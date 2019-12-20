@@ -325,6 +325,10 @@ BGCOLOR_IF_ADMIN_UP_UP = "#ADFF2F"  # brighter green
 # Admin disabled
 BGCOLOR_IF_ADMIN_DOWN = "#EB5B5B"  # red
 
+# login view organization. Number of colums in the "matrix" groups display
+# Can be no more then 12!
+TOPMENU_MAX_COLUMNS = 4
+
 # SNMP related settings, normally not needed to change.
 SNMP_TIMEOUT = 5    # in seconds
 SNMP_RETRIES = 3

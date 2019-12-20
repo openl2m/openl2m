@@ -117,6 +117,9 @@ BGCOLOR_IF_ADMIN_UP = getattr(configuration, 'BGCOLOR_IF_ADMIN_UP', "#D9FCC2")
 BGCOLOR_IF_ADMIN_UP_UP = getattr(configuration, 'BGCOLOR_IF_ADMIN_UP_UP', "#ADFF2F")
 BGCOLOR_IF_ADMIN_DOWN = getattr(configuration, 'BGCOLOR_IF_ADMIN_DOWN', "#FF6347")
 
+# login view organization
+TOPMENU_MAX_COLUMNS = getattr(configuration, 'TOPMENU_MAX_COLUMNS', 4)
+
 # snmp related constants
 SNMP_TIMEOUT = getattr(configuration, 'SNMP_TIMEOUT', 4)    # seconds before retry, see EasySNMP docs
 SNMP_RETRIES = getattr(configuration, 'SNMP_RETRIES', 3)    # retries before fail

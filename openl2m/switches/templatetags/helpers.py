@@ -69,24 +69,46 @@ def get_my_switchgroups(groups):
     """
     Get all the switchgroups and their switches
     """
-    c = len(groups)
-    if not c:
-        s = '<strong>You are not a member of any switch groups!</strong></br>Please contact the application administrator!'
+    num_groups = len(groups)
+    if not num_groups:
+        s = "<strong>You are not a member of any switch groups!</strong></br>Please contact the OpenL2M administrator!\n"
         return mark_safe(s)
     # at least one group:
-    if c == 1:
+    s = '<div class="row"><div class="col-sm-6 col-md-4">'
+    if num_groups == 1:
         # one group only
-        s = "<h4>My Switch Group</h4>"
+        s = "%s\n<h4>My Switch Group</h4>" % s
     else:
-        s = "<h4>My Switch Groups</h4>"
+        s = "%s\n<h4>My Switch Groups</h4>" % s
 
     # start groups wrapper:
-    s = "%s\n\n <div>\n" % s    # end panel-heading
+    s = "%s\n</div></div>" % s  # end header row
+
+    # calculate column width, if set. Bootstrap uses 12 grid columns per page, max we use is 3 grids
+    col_width = 3
+    if settings.TOPMENU_MAX_COLUMNS > 4:
+        col_width = 12 / settings.TOPMENU_MAX_COLUMNS
+
+    #if settings.TOPMENU_MAX_COLUMNS > 1:
+    #    s = "%s\n<div class=\"container\">" % s
 
     # now list the groups:
+    group_num = 0
     for (group_name, group) in groups.items():
+        group_num += 1
+        if settings.TOPMENU_MAX_COLUMNS > 1:
+            if not ((group_num -1) % settings.TOPMENU_MAX_COLUMNS):
+                # end previous row, if needed
+                if group_num > 1:
+                    s = "%s\n</div>" % s
+                # and start a new row!
+                s = "%s\n\n<div class=\"row\">" % s
+            # add column div:
+            s = "%s\n <div class=\"col-md-%d\">" % (s, col_width)
+        else:
+            s = "%s\n <div class=\"row\">\n  <div class=\"col-md-%d\">" % (s, col_width)
         # header for collapsible items, i.e. the switchgroup name
-        s = "%s\n <div class=\"panel-group\">\n   <div class=\"panel panel-default\">\n   <div class=\"panel-heading\">" % s
+        s = "%s\n  <div class=\"panel-group\">\n   <div class=\"panel panel-default\">\n   <div class=\"panel-heading\">" % s
         if False and group.description:
             s = "%s\n  <span title=\"%s\">" % group.description
         s = "%s<a data-toggle=\"collapse\" href=\"#group%d\">" % (s, group.id)
@@ -104,7 +126,7 @@ def get_my_switchgroups(groups):
         # the collapsible items:
         s = "%s\n   <div id=\"group%d\" class=\"panel-collapse" % (s, group.id)
         # if only 1 group, show all items
-        if c > 1:
+        if num_groups > 1:
             s = "%s collapse" % s
         s = "%s\">\n    <ul class=\"list-group\">" % s
         for member in SwitchGroupMembership.objects.filter(switchgroup=group):
@@ -112,10 +134,20 @@ def get_my_switchgroups(groups):
         s = "%s\n    </ul>\n   </div>" % s  # /div ends panel-collapse
 
         # and end this group header and group:
-        s = "%s\n  </div>\n  </div>\n" % s     # end panel-default and panel-group
+        s = "%s\n  </div>\n  </div>" % s     # end panel-default and panel-group
 
-    # end groups wrapper, and 'panel panel-default'
-    s = "%s\n </div>\n" % s
+        if settings.TOPMENU_MAX_COLUMNS > 1:
+            # end the column div:
+            s = "%s\n </div>" % s
+        else:
+            # end row
+            s = "%s\n </div>\n</div>" % s     # end panel-default and panel-group
+
+
+    # end the last row, and container, if needed:
+    if settings.TOPMENU_MAX_COLUMNS > 1:
+        s = "%s\n</div>" % s
+
     return mark_safe(s)
 
 
