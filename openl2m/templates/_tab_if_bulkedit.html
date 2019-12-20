@@ -1,0 +1,163 @@
+{% load helpers %}
+{% load static %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <strong>Interface Bulk Edit</strong>
+  </div>
+  <div class="table-responsive">
+    <form name="bulkedit_form"
+          action="{% url 'switches:switch_bulkedit' group.id switch.id %}"
+          method="post">
+      {% csrf_token %}
+      <table class="table table-hover table-headings w-auto">
+        {# row with submit #}
+        <caption>
+          <input type="submit"
+                 value="Update Selected Interfaces"
+                 onclick="return confirm_change('Are you sure you want change the selected interfaces?')">
+        </caption>
+        <thead>
+          <tr>
+            <th>Select</th>
+            <th>Name</th>
+            <th>Link</th>
+            <th>Vlan</th>
+            {% if connection.system.poe_capable %}
+            <th>PoE</th>
+            {% endif %}
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {# the form row with the editable fields #}
+          <tr>
+            <td></td> {# select column #}
+
+            <td colspan="2">
+              <span title="Check this to toggle state on all selected interfaces. I.e. go from Enabled to Disabled, or Disabled to Enabled (depending on current state!).">
+                <input type="checkbox" id="interface_change" name="interface_change">
+                <label for="interface_change">Change Interface State</label>
+              </span>
+            </td>
+
+            <td>
+              <span title="Select the new untagged vlan for all selected interfaces.">
+                <select name="new_pvid">
+                  <option value="-1" selected>No Change</option>
+                  {% for vlan_id,vlan in connection.allowed_vlans.items %}
+                    <option value="{{ vlan_id }}">{{ vlan_id}} - {{ vlan.name }}</option>
+                  {% endfor %}
+                </select>
+              </span>
+            </td>
+
+            {% if connection.system.poe_capable %}
+            <td>
+              <span title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Toggle' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE."">
+                <select name="poe_choice">
+                  {% for choice,name,descr in BULKEDIT_POE_CHOICES %}
+                    <option value="{{ choice }}">{{ name }}</option>
+                  {% endfor %}
+                </select>
+              </span>
+            </td>
+            {% endif %}
+
+            <td>
+              {% if switch.edit_if_descr and group.edit_if_descr or user.profile.edit_if_descr %}
+                <span title="Enter a new description for all selected interfaces.">
+                  <input type="text" size=40 name="new_alias" value="">
+                </span>
+              {% else %}
+                <i>No description edit allowed</i>
+              {% endif %}
+            </td>
+          </tr>
+
+          {# the rows with the actual interfaces to bulk-edit #}
+          {% for if_index,iface in connection.interfaces.items %}
+            {% if iface.manageable and iface.visible %}
+
+            <tr class="{% cycle 'odd' 'even' %}" >
+
+              <td><input type="checkbox" value="{{if_index}}" name="interfaces"></td>
+              <td
+                {% if iface.ifAdminStatus ==  IF_ADMIN_STATUS_UP %}
+                  {% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
+                    bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
+                  {% else %}
+                    bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
+                  {% endif %}
+                {% else %}
+                  bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
+                {% endif %}
+                {{ iface.name }}
+              </td>
+
+              <td>
+                {% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
+                  {% if iface.ifHCSpeed > 0 %}
+                    {{ iface.ifHCSpeed }} Mbps
+                  {% else %}
+                     <small>(Unknown)</small>
+                  {% endif %}
+                {% else %}
+                      -
+                {% endif %}
+              </td>
+
+              {# only show vlan, poe, alias and command capabilities for Ethernet interfaces #}
+              {% if iface.ifType == IF_TYPE_ETHERNET %}
+                <td>
+                  {% if iface.untagged_vlan > 0 %}
+                    {{ iface.untagged_vlan }}
+                  {% else %} {# untagged_vlan = 0 #}
+                    <span title="Configured vlan is not defined on this switch. See warnings tab!">Not defined!</span>
+                  {% endif %}
+                </td>
+
+                {% if connection.system.poe_capable %}
+                  <td>
+                  {% if iface.poe_entry %}
+                    {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
+                      {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
+                        {# fault or something like that #}
+                        <img src="{% static 'img/poe-fault-24.png' %}"
+                             alt="PoE Fault!"
+                             title="PoE Fault state">
+                      {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
+                        <img src="{% static 'img/poe-serving-24.png' %}"
+                             alt="PoE Delivering!"
+                             title="PoE Delivering">
+                      {% else %}
+                        <img src="{% static 'img/poe-enabled-24.png' %}"
+                             alt="PoE Enabled"
+                             title="PoE Enabled, not delivering"></a>
+                      {% endif %}
+                    {% else %}
+                      <img src="{% static 'img/disabled.png' %}"
+                           alt="PoE Disabled"
+                           title="PoE Disabled">
+                    {% endif %}
+                  {% else %}
+                     <span title="Not supported on this interface">n/s</span>
+                  {% endif %}
+                  </td>
+                {% endif %}
+
+                <td>
+                  {{ iface.ifAlias }}
+                </td>
+
+              {% endif %}
+
+              </tr>
+
+            {% endif %} {# manageable/visible #}
+
+          {% endfor %} {# interfaces #}
+        </tbody>
+      </table>
+    </form>
+  </div> {# class table-responsive #}
+</div> {# class panel #}

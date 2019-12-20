@@ -1,0 +1,6 @@
+"name","username","password","device_type","description"
+"IOS","ssh_username","ssh_password","cisco_ios","Sample Cisco IOS ssh access"
+"Comware7","ssh_username","ssh_password","hp_comware","Sample HPE Comware ssh access"
+"Aruba-ProCurve","ssh_username","ssh_password","hp_procurve","Sample HPE Procurve/Aruba ssh access"
+"Juniper","ssh_username","ssh_password","juniper","Sample Juniper/JUNOS ssh access"
+"ASA","ssh_username","ssh_password","cisco_asa","Sample Cisco ASA ssh access"

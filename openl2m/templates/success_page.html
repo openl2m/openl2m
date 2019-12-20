@@ -1,0 +1,20 @@
+{% extends '_base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+      <div class="panel panel-success">
+          <div class="panel-heading">
+              <strong>Success!</strong>
+          </div>
+          <div class="panel-body">
+            <div>{{ description }}</div>
+            {% if switch %}
+            <div>&nbsp;</div>
+            <div><a href="{% url 'switches:switch_basics' group.id switch.id %}">Go back to switch &quot;{{ switch.name }}&quot;</a></div>
+            {% endif %}
+          </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

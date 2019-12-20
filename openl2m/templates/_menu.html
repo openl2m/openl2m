@@ -1,0 +1,95 @@
+{% load static %}
+<nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand"
+                href="/switches/"
+                title="Go to Top Menu"
+            {% if connection.save_needed %}
+                onclick="return confirm_change('There are UNSAVED changes, are you sure?')"
+            {% endif %}
+            >
+                <img src="{% static 'img/openl2m-logo.png' %}" />
+            </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+
+          {% if request.user.is_authenticated %}
+            <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="{{ request.user }}" role="button" aria-haspopup="true" aria-expanded="false">
+                      <i class="fa fa-user"></i>
+                      <span id="navbar_user">{{ request.user|truncatechars:"30" }}</span>
+                      <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu">
+                    <li><a href="/"><i class="fa fa-user"></i> Home</a></li>
+                    <li><a href="{% static 'docs/html/using/index.html' %}" target="_docs"><i class="fa fa-book"></i> Docs</a></li>
+                    {% if request.user.is_superuser %}
+                      <li class="divider"></li>
+                      <li><a href="/admin"><i class="fa fa-cog fa-fw"></i> Admin</a></li>
+                      <li><a href="{% url 'switches:admin_activity' %}"><i class="fa fa-list-ol"></i> Activity</a></li>
+                    {% elif request.user.is_staff %}
+                      <li class="divider"></li>
+                      <li><a href="{% url 'switches:admin_activity' %}"><i class="fa fa-list-ol"></i> Activity</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'switches:show_stats' %}"><i class="fa fa-pie-chart"></i> Statistics</a></li>
+                    <li class="divider"></li>
+                    <li><a><i class="fa fa-caret-right"></i> OpenL2M v{{ settings.VERSION }}</a></li>
+                    <li><a href="/logout"><i class="fa fa-sign-out"></i> Log out</a></li>
+                  </ul>
+              </li>
+            </ul>
+            {% if settings.MENU_INFO_URLS %}
+              {% for headername,menus in settings.MENU_INFO_URLS.items %}
+                <ul class="nav navbar-nav
+                {% if settings.MENU_ON_RIGHT %}
+                  navbar-right
+                {% endif %}
+                ">
+                  <li class="dropdown active">
+                    <ul class="nav navbar-nav">
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ headername }}<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                        {% for menu in menus %}
+                          <li>
+                            <a href="{{ menu.url }}"
+                            {% if menu.target %}
+                              target="{{ menu.target }}"
+                            {% endif %}
+                            {% if menu.hint %}
+                              title="{{ menu.hint }}"
+                            {% endif %}
+                            >
+                            {% if menu.fa_icon %}
+                              <i class="fa {{ menu.fa_icon }} aria-hidden="true"></i>
+                            {% elif menu.icon %}
+                              <img src="{{ menu.icon }}"
+                              {% if menu.alt %}
+                                alt="{{ menu.alt }}"
+                              {% endif %}
+                              >
+                            {% endif %}
+                            {{ menu.name }}</a>
+                          </li>
+                        {% endfor %}
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              {% endfor %}
+            {% endif %}
+
+          {% endif %}{# authenticated #}
+
+        </div>
+    </div>
+</nav>

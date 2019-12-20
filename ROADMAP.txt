@@ -1,0 +1,7 @@
+Clean Ups:
+
+- code optimization (move duplicates to functions, etc.)
+
+New Features Wish List (in no particular order):
+
+See  ./docs/roadmap.rst or <your-url>/static/docs/html/roadmap.html

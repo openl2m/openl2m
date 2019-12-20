@@ -1,0 +1,14 @@
+<div class="panel panel-warning">
+  <div class="panel-heading">
+    <strong>Warnings & Errors</strong>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped w-auto">
+      <tbody>
+        {% for w in connection.warnings %}
+          <tr><td>{{ w }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

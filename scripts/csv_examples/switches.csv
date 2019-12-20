@@ -1,0 +1,5 @@
+"name","snmp_profile","netmiko_profile","primary_ip4","read_only","group","command_list","description","default_view","indent_level","nms_id"
+"TEST-LAB Router","v3-Auth-Priv","IOS","10.1.1.1","True","switches-test-group","Comware7 Commands","Test Lab Cisco Router","1","0","12"
+"TEST-LAB 5130-Switch","v3-Auth-Priv","Comware7","10.1.1.10","False","switches-test-group","Comware7 Commands","Test Lab HPE 5130","0","1","15"
+"TEST-LAB C2960","Sample v2","IOS","10.1.1.11","False","switches-test-group","IOS-2960 Commands","Test Lab Cisco 2960","0","1","22"
+"TEST-LAB 2920","v3-Auth-Priv","Aruba-ProCurve","10.1.1.12","False","switches-test-group","Aruba Commands","Test Lab Aruba 2920","0","1","23"

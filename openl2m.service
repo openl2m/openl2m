@@ -1,0 +1,15 @@
+[Unit]
+Description=OpenL2M - Open Layer 2 Switch Management Tools
+After=network-online.target
+Wants=network-online.target
+Conflicts=shutdown.target
+
+[Service]
+User=nginx
+ExecStart=/usr/local/bin/gunicorn -c /opt/openl2m/gunicorn_config.py openl2m.wsgi
+WorkingDirectory=/opt/openl2m/openl2m
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

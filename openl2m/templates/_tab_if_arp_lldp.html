@@ -1,0 +1,117 @@
+{% load helpers %}
+{% load static %}
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <strong>Info by Interface</strong>
+    {% if connection.eth_addr_count == 0 %}(0 ethernet addr. found!){% endif %}
+    {% if not CAPABILITIES_LLDP_MIB|bitwise_and:switch.snmp_capabilities %}
+      (LLDP not implemented!)
+    {% elif connection.neighbor_count == 0 %}
+      (0 neighbors found!)
+    {% endif %}
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover table-headings">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Link</th>
+          <th>Vlan</th>
+          {% if connection.eth_addr_count > 0 %}
+          <th>Ethernet Addresses ({{ connection.eth_addr_count }})</th>
+          {% endif %}
+          {% if connection.neighbor_count > 0 %}
+          <th>Neighbors ({{ connection.neighbor_count }})</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for ifindex,iface in connection.interfaces.items %}
+        {% if iface.visible %}
+          <tr class="{% cycle 'odd' 'even' %}" >
+
+
+            <td
+            {% if iface.ifAdminStatus ==  IF_ADMIN_STATUS_UP %}
+              {% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
+                bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
+              {% else %}
+                bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
+              {% endif %}
+            {% else %}
+                bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
+            {% endif %}
+            {{ switch|get_interface_info_links:iface }}
+            {% if iface.ifAlias %}
+              <span title="{{ iface.ifAlias }}">{{ iface.name }}</span>
+            {% else %}
+              {{ iface.name }}
+            {% endif %}
+            {% if iface.is_tagged %}
+              &nbsp;<img src="{% static 'img/trunk-24.png' %}" alt="Tagged/Trunked Interface" title="Tagged/Trunked Interface">
+            {% endif %}
+            {% if iface.voice_vlan %}
+              &nbsp;<img src="{% static 'img/voicevlan-24.png' %}" alt="Voice VLAN" title="Voice VLAN {{ iface.voice_vlan }}">
+            {% endif %}
+            <!-- ifIndex = {{ iface.ifIndex }} -->
+            </td>
+
+            <td>{% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
+                  {% if iface.ifHCSpeed > 0 %}
+                    {{ iface.ifHCSpeed }} Mbps
+                  {% else %}
+                   <small>(Unknown)</small>
+                   {% endif %}
+                {% else %}
+                  -
+                {% endif %}
+            </td>
+
+            <td>
+              {% if iface.untagged_vlan > 0 %}
+                <span {% if iface.untagged_vlan_name != '' %}
+                    title="{{ iface.untagged_vlan_name }}"{% endif %}>
+                    {{ iface.untagged_vlan }}
+                </span>
+              {% else %}
+                <span title="Not applicable for this interface">n/a</span>
+              {% endif %}
+            </td>
+
+            {% if connection.eth_addr_count > 0 %}
+            <td>{# known ethernet addresses #}
+              {% for macaddr, eth in iface.eth.items %}
+                <div>
+                  {{ eth|get_ethernet_info_links }}
+                  {{ eth.display_address }}
+                  {% if eth.address_ip4 %}
+                     / {{ eth.address_ip4|get_ip4_info_links }}
+                       {{ eth.address_ip4 }}
+                  {% endif %}
+                  {% if eth.vendor != "" %}&nbsp;&nbsp;<small>({{ eth.vendor }})</small>{% endif %}
+                </div>
+              {% endfor %}
+            </td>
+            {% endif %}
+
+            {% if connection.neighbor_count > 0 %}
+            <td>{# lldp neigbors #}
+              {% for lldp_index,neighbor in iface.lldp.items %}
+                <div>{{ neighbor|get_lldp_info }}
+                  <!-- lldp_index = {{ neighbor.index }} -->
+                </div>
+              {% endfor %}
+            </td>
+            {% endif %}
+
+          </tr>
+
+        {% endif %} {# visible and ethernet #}
+
+      {% endfor %}
+    </tbody>
+    </table>
+
+  </div> {# class table-responsive #}
+</div> {# class panel #}

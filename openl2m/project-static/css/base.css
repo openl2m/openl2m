@@ -1,0 +1,336 @@
+/* Layout */
+* {
+    margin: 0;
+}
+html {
+    overflow-y: scroll;
+}
+html, body {
+    height: 100%;
+}
+body {
+    padding-top: 70px;
+}
+.container {
+    width: auto;
+    max-width: 1600px;
+}
+.wrapper {
+    min-height: 100%;
+    height: auto !important;
+    margin: 0 auto -61px; /* the bottom margin is the negative value of the footer's height */
+    padding-bottom: 30px;
+}
+.navbar-brand {
+    padding: 12px 15px 8px;
+}
+.footer, .push {
+    height: 60px; /* .push must be the same height as .footer */
+}
+.footer {
+    background-color: #f5f5f5;
+    border-top: 1px solid #d0d0d0;
+}
+footer p {
+    margin: 20px 0;
+}
+
+/* Hide the username in the navigation menu on displays less than 1400px wide */
+@media (max-width: 1399px) {
+    #navbar_user {
+        display: none;
+    }
+}
+
+/* Hide the search bar in the navigation menu on displays less than 1200px wide */
+@media (max-width: 1199px) {
+    #navbar_search {
+        display: none;
+    }
+}
+
+/* Printer friendly CSS class and various fixes for printing. */
+@media print {
+    body {
+        padding-top: 0px;
+    }
+    a[href]:after {
+        content: none !important;
+    }
+    .noprint {
+        display: none !important;
+    }
+}
+
+/* Collapse the nav menu on displays less than 960px wide */
+@media (max-width: 959px) {
+    .navbar-header {
+        float: none;
+    }
+    .navbar-left,.navbar-right {
+        float: none !important;
+    }
+    .navbar-toggle {
+        display: block;
+    }
+    .navbar-collapse {
+        border-top: 1px solid transparent;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .navbar-fixed-top {
+        top: 0;
+        border-width: 0 0 1px;
+    }
+    .navbar-collapse.collapse {
+        display: none!important;
+        max-height: none;
+    }
+    .navbar-nav {
+        float: none !important;
+        margin-top: 7.5px;
+    }
+    .navbar-nav>li {
+        float: none;
+    }
+    .navbar-nav>li>a {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .collapse.in {
+        display:block !important;
+    }
+    #navbar_user {
+        display: inline;
+    }
+}
+
+/* Navigation menu */
+li.subnav > a {
+    padding-left: 30px;
+}
+ul.dropdown-menu {
+    width: 250px;
+}
+ul.dropdown-menu div.buttons {
+    padding-right: 10px;
+    padding-top: 2px;
+}
+ul.dropdown-menu div.buttons a {
+    width: 26px;
+}
+ul.dropdown-menu > li > a {
+    clear: left;
+}
+
+/* Forms */
+label {
+    font-weight: normal;
+}
+label.required {
+    font-weight: bold;
+}
+input[name="pk"] {
+    margin-top: 0;
+}
+
+/* Color Selections */
+.color-selection-aa1409 {
+    background-color: #aa1409;
+    color: #ffffff;
+}
+.color-selection-f44336 {
+    background-color: #f44336;
+    color: #ffffff;
+}
+.color-selection-e91e63 {
+    background-color: #e91e63;
+    color: #ffffff;
+}
+.color-selection-ffe4e1 {
+    background-color: #ffe4e1;
+    color: #000000;
+}
+.color-selection-ff66ff {
+    background-color: #ff66ff;
+    color: #ffffff;
+}
+.color-selection-9c27b0 {
+    background-color: #9c27b0;
+    color: #ffffff;
+}
+.color-selection-673ab7 {
+    background-color: #673ab7;
+    color: #ffffff;
+}
+.color-selection-3f51b5 {
+    background-color: #3f51b5;
+    color: #ffffff;
+}
+.color-selection-2196f3 {
+    background-color: #2196f3;
+    color: #ffffff;
+}
+.color-selection-03a9f4 {
+    background-color: #03a9f4;
+    color: #ffffff;
+}
+.color-selection-00bcd4 {
+    background-color: #00bcd4;
+    color: #ffffff;
+}
+.color-selection-009688 {
+    background-color: #009688;
+    color: #ffffff;
+}
+.color-selection-00ffff {
+    background-color: #00ffff;
+    color: #ffffff;
+}
+.color-selection-2f6a31 {
+    background-color: #2f6a31;
+    color: #ffffff;
+}
+.color-selection-4caf50 {
+    background-color: #4caf50;
+    color: #ffffff;
+}
+.color-selection-8bc34a {
+    background-color: #8bc34a;
+    color: #ffffff;
+}
+.color-selection-cddc39 {
+    background-color: #cddc39;
+    color: #000000;
+}
+.color-selection-ffeb3b {
+    background-color: #ffeb3b;
+    color: #000000;
+}
+.color-selection-ffc107 {
+    background-color: #ffc107;
+    color: #000000;
+}
+.color-selection-ff9800 {
+    background-color: #ff9800;
+    color: #ffffff;
+}
+.color-selection-ff5722 {
+    background-color: #ff5722;
+    color: #ffffff;
+}
+.color-selection-795548 {
+    background-color: #795548;
+    color: #ffffff;
+}
+.color-selection-c0c0c0 {
+    background-color: #c0c0c0;
+    color: #000000;
+}
+.color-selection-9e9e9e {
+    background-color: #9e9e9e;
+    color: #ffffff;
+}
+.color-selection-607d8b {
+    background-color: #607d8b;
+    color: #ffffff;
+}
+.color-selection-111111 {
+    background-color: #111111;
+    color: #ffffff;
+}
+.color-selection-ffffff {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+
+/* Tables */
+th.pk, td.pk {
+    padding-bottom: 6px;
+    padding-top: 10px;
+    width: 30px;
+}
+tfoot td {
+    font-weight: bold;
+}
+table.attr-table td:nth-child(1) {
+    width: 25%;
+}
+.table-headings th {
+    background-color: #f5f5f5;
+}
+
+/* Paginator */
+div.paginator {
+    margin-bottom: 20px;
+}
+div.paginator form {
+    margin-bottom: 6px;
+}
+nav ul.pagination {
+    margin-top: 0;
+    margin-bottom: 8px !important;
+}
+
+/* Switchs */
+table.component-list td.subtable {
+    padding: 0;
+    padding-left: 16px;
+}
+table.component-list td.subtable td {
+    border: none;
+    padding-bottom: 6px;
+    padding-top: 6px;
+}
+table.interface-ips th {
+    font-size: 80%;
+    font-weight: normal;
+}
+
+/* Rendered Markdown */
+.rendered-markdown table {
+    width: 100%;
+}
+.rendered-markdown th {
+    border-bottom: 2px solid #dddddd;
+    padding: 8px;
+}
+.rendered-markdown td {
+    border-top: 1px solid #dddddd;
+    padding: 8px;
+}
+
+/* Misc */
+.color-block {
+    display: block;
+    width: 80px;
+}
+.text-nowrap {
+    white-space: nowrap;
+}
+.banner-bottom {
+    margin-bottom: 50px;
+}
+.panel table {
+    margin-bottom: 0;
+}
+.panel .table th {
+    border-bottom-width: 1px;
+}
+.panel table tr.even:first-child td {
+    border-top: 0;
+}
+.panel .list-group {
+    max-height: 400px;
+    overflow: auto;
+}
+ul.nav-tabs, ul.nav-pills {
+    margin-bottom: 20px;
+}
+/* Fix progress bar margin inside table cells */
+td .progress {
+    margin-bottom: 0;
+}
+textarea {
+    font-family: Consolas, Lucida Console, monospace;
+}

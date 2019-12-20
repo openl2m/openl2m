@@ -1,0 +1,27 @@
+{% extends '_base.html' %}
+
+{% block content %}
+<div class="row" style="margin-top: {% if settings.BANNER_LOGIN %}100{% else %}150{% endif %}px;">
+    <div class="col-sm-4 col-sm-offset-4">
+      {% if settings.BANNER_LOGIN %}
+      <div style="margin-bottom: 25px">
+          {{ settings.BANNER_LOGIN|safe }}
+      </div>
+      {% endif %}
+      <form method="post" class="form form-horizontal">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+              <strong>Log In</strong>
+          </div>
+          {% csrf_token %}
+          <div class="panel-body">
+            {{ form.as_p }}
+          </div>
+          <div class="panel-footer text-right">
+              <button type="submit" class="btn btn-primary">Login</button>
+          </div>
+        </div>
+      </form>
+  </div>
+</div>
+{% endblock %}

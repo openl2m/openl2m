@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Server Error</title>
+    <link rel="stylesheet" href="{% static 'bootstrap-3.4.1-dist/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'font-awesome-4.7.0/css/font-awesome.min.css' %}">
+    <meta charset="UTF-8">
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-6 col-md-offset-3">
+        <div class="panel panel-danger" style="margin-top: 200px">
+          <div class="panel-heading">
+            <strong>
+              <i class="fa fa-warning"></i>
+                Server Error
+            </strong>
+          </div>
+          <div class="panel-body">
+            {% block message %}
+              <p> Something bad happened! Please contact the site administrator.</p>
+            {% endblock %}
+            <hr />
+            <p>The error details are:</p>
+            <pre>
+              <strong>{{ exception }}</strong><br />
+              {{ error }}
+            </pre>
+            <div class="text-right">
+              <a href="{% url 'home' %}" class="btn btn-primary">Home Page</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

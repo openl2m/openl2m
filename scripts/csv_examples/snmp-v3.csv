@@ -1,0 +1,3 @@
+"name","version","description","sec_level","username","passphrase","auth_protocol","priv_protocol","priv_passphrase"
+"v3-Auth-No-Priv","3","Sample v3 AuthNoPriv","Auth-NoPriv","user_authnopriv","password","SHA","",""
+"v3-Auth-Priv","3","Sample v3 AuthPriv","Auth-Priv","user_authpriv","password","SHA","AES","nocpassword"

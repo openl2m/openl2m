@@ -1,0 +1,29 @@
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <strong>Show Commands</strong>
+  </div>
+  <div class="panel-body">
+    <form name="command_form"
+          action="{% url 'switches:switch_cmd_output'  group.id switch.id %}"
+          method="post">
+      {% csrf_token %}
+      <select name="command_id">
+        <optgroup label="Commands available:">
+        {% for c in switch.command_list.global_commands.all %}
+          <option value="{{ c.id }}">{{ c.name }}</option>
+        {% endfor %}
+        </optgroup>
+        {% if request.user.is_superuser or request.user.is_staff %}
+          {% if switch.command_list.global_commands_staff.count %}
+            <optgroup label="Staff commands:">
+            {% for c in switch.command_list.global_commands_staff.all %}
+              <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+            </optgroup>
+          {% endif %}
+        {% endif %}
+      </select>
+      &nbsp;<input type="submit" value="Run">
+    </form>
+  </div>
+</div>

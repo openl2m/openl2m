@@ -1,0 +1,4 @@
+"username","email","password","staff","superuser"
+"user1","user1@email.address","password1","False","False"
+"staff2","staff2@email.address","password2","True","False"
+"admin3","admin3@email.address","password3","False","True"

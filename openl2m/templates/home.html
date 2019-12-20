@@ -1,0 +1,16 @@
+{% extends '_base.html' %}
+
+{# Home page! This shows the list of switches a user has access to #}
+
+{% block content %}
+
+{% load helpers %}
+
+ <div class="row">
+  <div class="col-sm-6 col-md-4">
+   {{ groups|get_my_switchgroups }}
+  </div>
+ </div>
+
+
+{% endblock %}
