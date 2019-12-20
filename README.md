@@ -1,4 +1,4 @@
-![OpenL2M](docs/openl2m_logo.png "OpenL2M logo")
+![OpenL2M](docs/_static/openl2m_logo.png "OpenL2M logo")
 
 __OpenL2M, Open Layer 2 Management__, was developed in an attempt to learn
 Django, and in the hope that it may some day provide a possibly useful
