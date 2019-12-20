@@ -1114,9 +1114,9 @@ def admin_activity(request):
         'filter': filter,
         'types': LOG_TYPE_CHOICES,
         'actions': LOG_ACTION_CHOICES,
-        'switches': Switch.objects.all(),
-        'switchgroups': SwitchGroup.objects.all(),
-        'users': User.objects.all(),
+        'switches': Switch.objects.all().order_by('name'),
+        'switchgroups': SwitchGroup.objects.all().order_by('name'),
+        'users': User.objects.all().order_by('username'),
     })
 
 
