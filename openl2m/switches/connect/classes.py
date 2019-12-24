@@ -118,7 +118,7 @@ class Interface():
         self.addresses_ip4 = {}     # dictionary of all my ipv4 addresses on this interface
         self.addresses_ip6 = {}     # dictionary of all my ipv6 addresses on this interface
         # vlan related
-        self.port_id = 0             # Q-Bridge MIB port id
+        self.port_id = -1            # Q-Bridge MIB port id
         self.untagged_vlan = -1      # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
         self.untagged_vlan_name = ''
         self.vlans = []              # array of vlanId's on this interface, from Q-Bridge. If size > 0 this is a tagged port!
@@ -274,6 +274,7 @@ class PortList():
         significant bit is regarded as bit 0 in this context.
         """
         # NOTE: bit 0 = port_id 1. First byte is ports 1-8, second 9-16, etc.
+        dprint("__setitem__ pos=%s, val=%s" % (position, value))
         position -= 1
         value = value and 1 or 0
         block = position // 8

@@ -75,7 +75,7 @@
                              alt="Voice VLAN"
                              title="Voice VLAN {{ iface.voice_vlan }}">
                 {% endif %}
-                <!-- ifIndex = {{ iface.ifIndex }} -->
+                <!-- ifIndex = {{ iface.ifIndex }}, port_id = {{ iface.port_id }} -->
               </td>
 
               <td>
@@ -266,7 +266,7 @@
                              alt="Voice VLAN"
                              title="Voice VLAN {{ iface.voice_vlan }}">
                 {% endif %}
-                <!-- ifIndex = {{ iface.ifIndex }} -->
+                <!-- ifIndex = {{ iface.ifIndex }}, port_id = {{ iface.port_id }} -->
               </td>
 
               <td>
@@ -301,8 +301,8 @@
                         <img src="{% static 'img/poe-fault-24.png' %}" alt="PoE FAULT!" title="PoE Fault!">
                       {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
                         <img src="{% static 'img/poe-serving-24.png' %}" alt="PoE Delivering!" title="PoE Delivering!">
-                        {% if iface.poe_can_toggle %}
-                          {# if delivering power, toggle option if allowed #}
+                        {# if delivering power, toggle option if allowed #}
+                        {% if iface.allow_poe_toggle %}
                           <a
                           {% if request.user.profile.are_you_sure %}
                               onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
