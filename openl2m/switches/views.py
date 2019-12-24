@@ -38,6 +38,7 @@ from switches.connect.constants import *
 from switches.connect.snmp import *
 from switches.connect.netmiko.netmiko import *
 from switches.utils import *
+from switches.tasks import bulkedit_job
 
 
 @login_required
@@ -517,6 +518,27 @@ def switch_bulkedit(request, group_id, switch_id):
         return error_page(request, group, switch, err)
     else:
         return success_page(request, group, switch, mark_safe(description))
+
+@login_required
+def switch_bulkedit_job(request, group_id, switch_id):
+    """
+    Handle the submission of the Bulk-Edit job, ie bulk changes at some time in the future.
+    """
+    group = get_object_or_404(SwitchGroup, pk=group_id)
+    switch = get_object_or_404(Switch, pk=switch_id)
+
+    if not rights_to_group_and_switch(request, group_id, switch_id):
+        error = Error()
+        error.description = "You do not have access to this switch"
+        return error_page(request, group, switch, error)
+
+    conn = get_connection_object(request, group, switch)
+
+    bulkedit_job.apply_async(countdown=5, kwargs={'user_id': request.user.id, 'http_post': request.POST})
+
+    description = "New Bulk-Edit job was submitted!"
+
+    return success_page(request, group, switch, mark_safe(description))
 
 
 #

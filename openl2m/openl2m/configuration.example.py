@@ -336,3 +336,12 @@ SNMP_RETRIES = 3
 # note that some devices cannot handle the default 25, and you may need to lower this e.g. 10
 # see the references in the documentation for more information.
 SNMP_MAX_REPETITIONS = 25
+
+# Email settings, used to send results of Bulk-Edit jobs
+EMAIL_SERVER = 'localhost'
+EMAIL_PORT = 25
+EMAIL_USERNAME = ''
+EMAIL_PASSWORD = ''
+EMAIL_TIMEOUT = 10      # in seconds
+EMAIL_FROM_ADDRESS = '<openl2m@localhost>'
+EMAIL_SUBJECT_PREFIX = '[OpenL2M] '

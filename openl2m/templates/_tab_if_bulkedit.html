@@ -1,5 +1,6 @@
 {% load helpers %}
 {% load static %}
+
 <div class="panel panel-default">
   <div class="panel-heading">
     <strong>Interface Bulk Edit</strong>
@@ -9,13 +10,49 @@
           action="{% url 'switches:switch_bulkedit' group.id switch.id %}"
           method="post">
       {% csrf_token %}
-      <table class="table table-hover table-headings w-auto">
-        {# row with submit #}
-        <caption>
+      <div class="row">   {# row with submit #}
+
+        <div class='col-sm-2'>
           <input type="submit"
-                 value="Update Selected Interfaces"
+                 value="Update Selected Interfaces NOW"
                  onclick="return confirm_change('Are you sure you want change the selected interfaces?')">
-        </caption>
+        </div>
+
+        <div class="bootstrap-iso">
+          <div class='col-sm-4'>
+           <div class="form-group">
+               <div class='input-group date' id='datetimepicker1'>
+                   <input type='text' class="form-control" id="datetime" name="datetime" placeholder="MM/DD/YY hh:mm"/>
+                   <span class="input-group-addon">
+                       <span class="glyphicon glyphicon-calendar"></span>
+                   </span>
+               </div>
+           </div>
+          </div>
+        </div>
+        <script>
+            $(document).ready(function(){
+                var date_input=$('input[name="datetime"]');   // date&time input element has the name "datetime"
+                var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
+                date_input.datepicker({
+                    format: 'mm/dd/yyyy',
+                    container: container,
+                    todayHighlight: true,
+                    autoclose: true,
+                })
+            })
+        </script>
+
+        <div class="col-sm-2">
+          <input type="submit"
+                 value="Schedule Update on Selected Interfaces"
+                 formaction="{% url 'switches:switch_bulkedit_job' group.id switch.id %}"
+                 onclick="return confirm_change('Are you sure you want change the selected interfaces and schedule it?')">
+        </div>
+
+      </div> {# row #}
+
+      <table class="table table-hover table-headings w-auto">
         <thead>
           <tr>
             <th>Select</th>
@@ -66,7 +103,7 @@
             <td>
               {% if switch.edit_if_descr and group.edit_if_descr or user.profile.edit_if_descr %}
                 <span title="Enter a new description for all selected interfaces.">
-                  <input type="text" size=40 name="new_alias" value="">
+                  <input type="text" size=40 name="new_alias" value="" placeholder="new description here...">
                 </span>
               {% else %}
                 <i>No description edit allowed</i>

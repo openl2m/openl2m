@@ -4,6 +4,7 @@
 <head>
     <title>{% block title %}Home{% endblock %} - OpenL2M</title>
     <link rel="stylesheet" href="{% static 'bootstrap-3.4.1-dist/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-datepicker-1.90-dist/bootstrap-datepicker3.standalone.min.css' %}">
     <link rel="stylesheet" href="{% static 'font-awesome-4.7.0/css/font-awesome.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}?v{{ settings.VERSION }}">
     <link rel="icon" type="image/png" href="{% static 'img/openl2m.ico' %}" />
@@ -51,6 +52,7 @@
 <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
 <script src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
 <script src="{% static 'bootstrap-3.4.1-dist/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'bootstrap-datepicker-1.90-dist/js/bootstrap-datepicker.js' %}"></script>
 {% block javascript %}{% endblock %}
 </body>
 </html>

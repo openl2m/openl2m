@@ -24,6 +24,7 @@ urlpatterns = [
 
     path('<int:group_id>/<int:switch_id>/', views.switch_basics, name='switch_basics'),
     path('<int:group_id>/<int:switch_id>/bulkedit/', views.switch_bulkedit, name='switch_bulkedit'),
+    path('<int:group_id>/<int:switch_id>/bulkedit_job/', views.switch_bulkedit_job, name='switch_bulkedit_job'),
     path('<int:group_id>/<int:switch_id>/command/', views.switch_cmd_output, name='switch_cmd_output'),
     path('<int:group_id>/<int:switch_id>/details/', views.switch_arp_lldp, name='switch_arp_lldp'),
     path('<int:group_id>/<int:switch_id>/hwinfo/', views.switch_hw_info, name='switch_hw_info'),
