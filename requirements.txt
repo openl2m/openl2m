@@ -16,6 +16,7 @@ pycryptodome==3.8.2
 pycodestyle>=2.5.0
 redis>=3.3,<3.4
 sphinx>=2.1.2
+sphinx_rtd_theme
 recommonmark>=0.5.0
 easysnmp>=0.2.5
 pyasn1<0.5.0,>=0.4.6
