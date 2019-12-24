@@ -10,3 +10,4 @@ docs/_build/
 .DS_Store
 ._*
 .vscode
+venv/
