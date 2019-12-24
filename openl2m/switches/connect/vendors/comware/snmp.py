@@ -155,6 +155,8 @@ class SnmpConnectorComware(SnmpConnector):
                 # regular access mode untagged port:
                 # create a PortList to represent the bits that are in the new vlan.
                 # we need byte size from number of ports:
+                max_port_id = self._get_max_qb_port_id()
+                #bytecount = (max_port_id / 8) + 1
                 bytecount = int(len(self.qb_port_to_ifindex) / 8) + 1
                 portlist = PortList()
                 # initialize with "00" bytes
@@ -163,7 +165,7 @@ class SnmpConnectorComware(SnmpConnector):
                 portlist[int(iface.port_id)] = 1
                 # now loop to find other existing ports on this vlan:
                 for (index, intface) in self.interfaces.items():
-                    if intface.port_id:
+                    if intface.port_id > -1:
                         # untagged or tagged port on this new vlanId?
                         if (intface.untagged_vlan == new_vlan_id) or (new_vlan_id in intface.vlans):
                             portlist[intface.port_id] = 1
