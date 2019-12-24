@@ -1401,7 +1401,7 @@ class SnmpConnector(EasySNMP):
         the Q-Bridge mib that maps bridge port id to interfaceId.
         """
         if len(self.qb_port_to_ifindex) > 0 and port_id in self.qb_port_to_ifindex.keys():
-            ifIndex = self.qb_port_to_ifindex[port_id]
+            ifIndex = self.qb_port_to_ifindex[int(port_id)]
             return ifIndex
         else:
             # we did not find the Q-BRIDGE mib. port_id = ifIndex !
@@ -1419,6 +1419,17 @@ class SnmpConnector(EasySNMP):
         else:
             # we did not find the Q-BRIDGE mib. port_id = ifIndex !
             return ifIndex
+
+    def _get_max_qb_port_id(self):
+        """
+        Get the maximum value of the switchport id, used for bitmap/byte sizing.
+        returns integer
+        """
+        max_port_id = 0
+        for (port_id, intf) in self.qb_port_to_ifindex.items():
+            if int(port_id) > max_port_id:
+                max_port_id = int(port_id)
+        return max_port_id
 
     def _parse_system_oids(self):
         """
@@ -1889,7 +1900,7 @@ class SnmpConnector(EasySNMP):
             # super-users have access to all other attributes of interfaces!
             if user.is_superuser:
                 iface.visible = True
-                iface.poe_can_toggle = True
+                iface.allow_poe_toggle = True
                 iface.can_edit_alias = True
                 continue
 
