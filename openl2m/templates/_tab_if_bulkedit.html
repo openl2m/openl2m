@@ -5,23 +5,27 @@
   <div class="panel-heading">
     <strong>Interface Bulk Edit</strong>
   </div>
+  <form name="bulkedit_form"
+        action="{% url 'switches:switch_bulkedit' group.id switch.id %}"
+        method="post">
+    {% csrf_token %}
+
   <div class="table-responsive">
-    <form name="bulkedit_form"
-          action="{% url 'switches:switch_bulkedit' group.id switch.id %}"
-          method="post">
-      {% csrf_token %}
-      <div class="row">   {# row with submit #}
 
-        <div class='col-sm-2'>
-          <input type="submit"
-                 value="Update Selected Interfaces NOW"
-                 onclick="return confirm_change('Are you sure you want change the selected interfaces?')">
-        </div>
+        <div class="row">   {# row with submit #}
 
-        <div class="bootstrap-iso">
+          <div class='col-sm-2'>
+            <input type="submit"
+                   value="Update Selected Interfaces NOW"
+                   onclick="return confirm_change('Are you sure you want change the selected interfaces?')">
+          </div>
+
           <div class='col-sm-4'>
+          </div>
+
+          <div class='col-sm-2'>
            <div class="form-group">
-               <div class='input-group date' id='datetimepicker1'>
+               <div class='input-group date' id='datetimepicker'>
                    <input type='text' class="form-control" id="datetime" name="datetime" placeholder="MM/DD/YY hh:mm"/>
                    <span class="input-group-addon">
                        <span class="glyphicon glyphicon-calendar"></span>
@@ -29,28 +33,26 @@
                </div>
            </div>
           </div>
-        </div>
-        <script>
-            $(document).ready(function(){
-                var date_input=$('input[name="datetime"]');   // date&time input element has the name "datetime"
-                var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
-                date_input.datepicker({
-                    format: 'mm/dd/yyyy',
-                    container: container,
-                    todayHighlight: true,
-                    autoclose: true,
-                })
-            })
-        </script>
 
-        <div class="col-sm-2">
-          <input type="submit"
-                 value="Schedule Update on Selected Interfaces"
-                 formaction="{% url 'switches:switch_bulkedit_job' group.id switch.id %}"
-                 onclick="return confirm_change('Are you sure you want change the selected interfaces and schedule it?')">
-        </div>
+          <script>
+              $(document).ready(function(){
+                  datetime.datepicker({
+                      format: 'mm/dd/yyyy',
+                      container: 'datetimepicker',
+                      todayHighlight: true,
+                      autoclose: true,
+                  })
+              })
+          </script>
 
-      </div> {# row #}
+          <div class="col-sm-2">
+            <input type="submit"
+                   value="Schedule Update on Selected Interfaces"
+                   formaction="{% url 'switches:switch_bulkedit_job' group.id switch.id %}"
+                   onclick="return confirm_change('Are you sure you want change the selected interfaces and schedule it?')">
+          </div>
+
+        </div> {# row #}
 
       <table class="table table-hover table-headings w-auto">
         <thead>

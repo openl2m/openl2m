@@ -534,7 +534,7 @@ def switch_bulkedit_job(request, group_id, switch_id):
 
     conn = get_connection_object(request, group, switch)
 
-    bulkedit_job.apply_async(countdown=5, kwargs={'user_id': request.user.id, 'http_post': request.POST})
+    bulkedit_job.apply_async((request.user.id, request.POST), countdown=10)
 
     description = "New Bulk-Edit job was submitted!"
 
