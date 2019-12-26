@@ -1,0 +1,8 @@
+Web Safe colors used:
+
+Red - CC0000
+
+Lighter Green - 33CC00
+Green - 66CC00
+Dark Green - 336633
+Light Dark Green - 339933

@@ -30,18 +30,19 @@
                   </a>
                   <ul class="dropdown-menu">
                     <li><a href="/"><i class="fa fa-user"></i> Home</a></li>
-                    <li><a href="{% static 'docs/html/using/index.html' %}" target="_docs"><i class="fa fa-book"></i> Docs</a></li>
+                    <li><a href="{% static 'docs/html/using/index.html' %}" target="_docs"><i class="fa fa-book" aria-hidden="true"></i> Docs</a></li>
                     {% if request.user.is_superuser %}
                       <li class="divider"></li>
                       <li><a href="/admin"><i class="fa fa-cog fa-fw"></i> Admin</a></li>
-                      <li><a href="{% url 'switches:admin_activity' %}"><i class="fa fa-list-ol"></i> Activity</a></li>
+                      <li><a href="{% url 'switches:admin_activity' %}"><i class="fa fa-list-ol" aria-hidden="true"></i> Activity Logs</a></li>
                     {% elif request.user.is_staff %}
                       <li class="divider"></li>
-                      <li><a href="{% url 'switches:admin_activity' %}"><i class="fa fa-list-ol"></i> Activity</a></li>
+                      <li><a href="{% url 'switches:admin_activity' %}"><i class="fa fa-list-ol" aria-hidden="true" ></i> Activity Logs</a></li>
                     {% endif %}
-                    <li><a href="{% url 'switches:show_stats' %}"><i class="fa fa-pie-chart"></i> Statistics</a></li>
+                    <li><a href="{% url 'switches:show_stats' %}"><i class="fa fa-pie-chart" aria-hidden="true"></i> Usage Statistics</a></li>
+                    <li><a href="https://github.com/openl2m/openl2m/" target="_sources"><i class="fa fa-code" aria-hidden="true"></i> Code</a></li>
                     <li class="divider"></li>
-                    <li><a><i class="fa fa-caret-right"></i> OpenL2M v{{ settings.VERSION }}</a></li>
+                    <li><a><i class="fa fa-info" aria-hidden="true"></i> OpenL2M v{{ settings.VERSION }}</a></li>
                     <li><a href="/logout"><i class="fa fa-sign-out"></i> Log out</a></li>
                   </ul>
               </li>

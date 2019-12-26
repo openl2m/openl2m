@@ -116,12 +116,12 @@
     <li>
     {% endif %}
       <a href="#tab_info" data-toggle="tab">
-        <strong title="General switch information, such as OS, etc.">Information</strong>
+        <strong title="General switch information, such as OS, etc.">Switch Information</strong>
       </a>
     </li>
     <li>
       <a href="#tab_logs" data-toggle="tab">
-        <strong title="Recent OpenL2M activity logs for this switch">Activity</strong>
+        <strong title="Recent OpenL2M activity logs for this switch">Activity Logs</strong>
       </a>
     </li>
     {% if cmd %}
@@ -135,7 +135,7 @@
       {% if switch.command_list.global_commands.count or switch.command_list.global_commands_staff.count %}
       <li>
         <a href="#tab_cmd_list" data-toggle="tab">
-          <strong title="Possible show commands for the switch">Show Commands</strong>
+          <strong title="Possible show commands for the switch">Switch Commands</strong>
         </a>
       </li>
       {% endif %}
