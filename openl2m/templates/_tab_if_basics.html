@@ -104,7 +104,9 @@
                           {% for vlan_id,vlan in connection.allowed_vlans.items %}
                             <option
                             {% if vlan_id == iface.untagged_vlan %} selected {% endif %}
-                             value="{{ vlan_id }}">{{ vlan_id}} - {{ vlan.name }}</option>
+                             value="{{ vlan_id }}">{{ vlan_id }}
+                            {% if vlan.name %} - {{ vlan.name }} {% endif %}
+                            </option>
                           {% endfor %}
                         </select>
                         <input type="submit" value="Change"

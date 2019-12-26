@@ -158,7 +158,8 @@ class Vlan():
         Vlan() requires passing in the vlan id
         """
         self.id = vlanId
-        self.name = "VLAN %d" % vlanId
+        #self.name = "VLAN %d" % vlanId
+        self.name = ""
         self.type = CISCO_VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
         self.status = VLAN_STATUS_OTHER     # 1-other-0, 2-permanent, 3-dynamic(gvrp)
         self.current_egress_ports_bitmap = 0x0      # dot1qVlanCurrentEgressPorts OCTETSTRING (PortList) with bitmap of egress ports in this vlan

@@ -45,7 +45,9 @@
                 <select name="new_pvid">
                   <option value="-1" selected>No Change</option>
                   {% for vlan_id,vlan in connection.allowed_vlans.items %}
-                    <option value="{{ vlan_id }}">{{ vlan_id}} - {{ vlan.name }}</option>
+                    <option value="{{ vlan_id }}">{{ vlan_id }}
+                      {% if vlan.name %} - {{ vlan.name }} {% endif %}
+                    </option>
                   {% endfor %}
                 </select>
               </span>
