@@ -10,49 +10,44 @@
         method="post">
     {% csrf_token %}
 
-  <div class="table-responsive">
+    <div class="row">   {# row with submit #}
 
-        <div class="row">   {# row with submit #}
+      <div class='col-sm-2'>
+        <input type="submit"
+               value="Update Selected Interfaces NOW"
+               onclick="return confirm_change('Are you sure you want change the selected interfaces?')">
+      </div>
 
-          <div class='col-sm-2'>
-            <input type="submit"
-                   value="Update Selected Interfaces NOW"
-                   onclick="return confirm_change('Are you sure you want change the selected interfaces?')">
+      <div class='col-sm-4'>
+      </div>
+
+      <div class='col-sm-2'>
+        <div class="form-group">
+          <div class='input-group date' id='datetimepicker1'>
+            <input type='text' class="form-control" placeholder="MM/DD/YY hh:mm" />
+            <span class="input-group-addon">
+              <span class="glyphicon glyphicon-calendar"></span>
+            </span>
           </div>
+        </div>
+      </div>
 
-          <div class='col-sm-4'>
-          </div>
+      <script type="text/javascript">
+        $(function () {
+          $('#datetimepicker1').datetimepicker();
+        });
+      </script>
 
-          <div class='col-sm-2'>
-           <div class="form-group">
-               <div class='input-group date' id='datetimepicker'>
-                   <input type='text' class="form-control" id="datetime" name="datetime" placeholder="MM/DD/YY hh:mm"/>
-                   <span class="input-group-addon">
-                       <span class="glyphicon glyphicon-calendar"></span>
-                   </span>
-               </div>
-           </div>
-          </div>
+      <div class="col-sm-2">
+        <input type="submit"
+               value="Schedule Update on Selected Interfaces"
+               formaction="{% url 'switches:switch_bulkedit_job' group.id switch.id %}"
+               onclick="return confirm_change('Are you sure you want change the selected interfaces and schedule it?')">
+      </div>
 
-          <script>
-              $(document).ready(function(){
-                  datetime.datepicker({
-                      format: 'mm/dd/yyyy',
-                      container: 'datetimepicker',
-                      todayHighlight: true,
-                      autoclose: true,
-                  })
-              })
-          </script>
+    </div> {# row #}
 
-          <div class="col-sm-2">
-            <input type="submit"
-                   value="Schedule Update on Selected Interfaces"
-                   formaction="{% url 'switches:switch_bulkedit_job' group.id switch.id %}"
-                   onclick="return confirm_change('Are you sure you want change the selected interfaces and schedule it?')">
-          </div>
-
-        </div> {# row #}
+    <div class="table-responsive">
 
       <table class="table table-hover table-headings w-auto">
         <thead>
@@ -197,6 +192,6 @@
           {% endfor %} {# interfaces #}
         </tbody>
       </table>
-    </form>
-  </div> {# class table-responsive #}
-</div> {# class panel #}
+    </div>  {# class table-responsive #}
+  </form>
+</div> {# class panel panel-default #}

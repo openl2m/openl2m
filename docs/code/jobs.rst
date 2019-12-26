@@ -35,9 +35,10 @@ This views.switch_bulk_edit_job() function imports the tasks.bulkedit_job(), and
 
 
 
-The Date Picker form element in the Bulk Edit form comes get_from_http_session
-  https://github.com/uxsolutions/bootstrap-datepicker
+The Date Picker form element in the Bulk Edit form comes from
+  OLD:  https://github.com/uxsolutions/bootstrap-datepicker
+  CURRENT: https://github.com/xdan/datetimepicker
+  See also: https://www.jqueryscript.net/time-clock/Clean-jQuery-Date-Time-Picker-Plugin-datetimepicker.html
 
 See this for more:
   https://formden.com/blog/date-picker
-  
