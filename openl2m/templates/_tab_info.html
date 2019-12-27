@@ -18,7 +18,7 @@
     <div class="panel-body">
       {% for vlanid,vlan in connection.vlans.items %}
         {% if vlan.type == VLAN_TYPE_NORMAL %}
-          <div>{{ vlan|get_vlan_info_links }} {{ vlanid }} - {{ vlan.name }}
+          <div>{{ vlan|get_vlan_info_links }} {{ vlanid }}{% if vlan.name %} - {{ vlan.name }} {% endif %}
           {% if vlan.status == VLAN_STATUS_DYNAMIC %}
             {# <i class="fa fa-cloud-download" aria-hidden="true"></i> #}
             <img src="{% static 'img/mvrp-24.png' %}"

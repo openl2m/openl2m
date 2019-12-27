@@ -47,8 +47,20 @@ hh3cPowerEthernetExt = '.1.3.6.1.4.1.25506.2.14'
 hh3cPsePortCurrentPower = '.1.3.6.1.4.1.25506.2.14.1.1.5'
 snmp_mib_variables['hh3cPsePortCurrentPower'] = hh3cPsePortCurrentPower
 
-# HH3C LswINF MIB - interface related
+# HH3C LswINF MIB - interface related information
 # See http://www.circitor.fr/Mibs/Html/H/HH3C-LswINF-MIB.php
+
+# Start of the Extended interface information table.
+hh3cifXXEntry = '.1.3.6.1.4.1.25506.8.35.1.1.1'
+
+# This OID DEFINES THE PORT TYPE!
+hh3cifVLANType = '.1.3.6.1.4.1.25506.8.35.1.1.1.5'
+snmp_mib_variables['hh3cifVLANType'] = hh3cifVLANType
+HH3C_IF_MODE_INVALID = 0
+HH3C_IF_MODE_TRUNK = 1
+HH3C_IF_MODE_ACCESS = 2
+HH3C_IF_MODE_HYBRID = 3
+HH3C_IF_MODE_FABRIC= 4    # not used!
 
 # hh3cifAggregatePort
 hh3cifAggregatePort = '.1.3.6.1.4.1.25506.8.35.1.1.1.3'  # + ifIndex = True if aggregate port

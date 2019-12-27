@@ -56,6 +56,10 @@ class SnmpConnectorComware(SnmpConnector):
             return True
         if self._parse_mibs_comware_config(oid, val):
             return True
+        if self._parse_mibs_comware_vlan(oid, val):
+            return True
+        if self._parse_mibs_comware_if_type(oid, val):
+            return True
         # call the generic base parser
         return SnmpConnector._parse_oid(self, oid, val)
 
@@ -70,12 +74,22 @@ class SnmpConnectorComware(SnmpConnector):
         # now read some Comware specific items.
         # some Comware switches do not report vlan names in Q-Bridge mib
         # so read HH3C version
-        retval = self._get_branch_by_name('hh3cdot1qVlanName', True, self._parse_mibs_comware_config)
+        if self._get_branch_by_name('hh3cdot1qVlanName', True, self._parse_mibs_comware_vlan) < 0:
+            dprint("Comware hh3cdot1qVlanName returned error!")
+            return False
+
+        # read the COmware port type:
+        if self._get_branch_by_name('hh3cifVLANType', True, self._parse_mibs_comware_if_type) < 0:
+            dprint("Comware hh3cifVLANType returned error!")
+            return False
 
         # for each vlan, PortList bitmap of untagged ports
+        """  NOT PARSED YET:
         if self._get_branch_by_name('hh3cdot1qVlanPorts') < 0:
             dprint("Comware hh3cdot1qVlanPorts returned error!")
             return False
+        """
+
         # tagged vlan types are next
         # if not self._get_branch_by_name('hh3cifVLANTrunkAllowListLow'):
         #    dprint("Comware Low VLAN PortList FALSE")
@@ -155,6 +169,8 @@ class SnmpConnectorComware(SnmpConnector):
                 # regular access mode untagged port:
                 # create a PortList to represent the bits that are in the new vlan.
                 # we need byte size from number of ports:
+                max_port_id = self._get_max_qb_port_id()
+                #bytecount = (max_port_id / 8) + 1
                 bytecount = int(len(self.qb_port_to_ifindex) / 8) + 1
                 portlist = PortList()
                 # initialize with "00" bytes
@@ -163,7 +179,7 @@ class SnmpConnectorComware(SnmpConnector):
                 portlist[int(iface.port_id)] = 1
                 # now loop to find other existing ports on this vlan:
                 for (index, intface) in self.interfaces.items():
-                    if intface.port_id:
+                    if intface.port_id > -1:
                         # untagged or tagged port on this new vlanId?
                         if (intface.untagged_vlan == new_vlan_id) or (new_vlan_id in intface.vlans):
                             portlist[intface.port_id] = 1
@@ -252,7 +268,22 @@ class SnmpConnectorComware(SnmpConnector):
         vlan_id = int(oid_in_branch(hh3cdot1qVlanName, oid))
         if vlan_id > 0:
             if vlan_id in self.vlans.keys():
-                self.vlans[vlan_id].name = val
+                # some Comware switches only report "VLAN xxxx", skip that!
+                if not val.startswith('VLAN '):
+                    self.vlans[vlan_id].name = val
+            return True
+        return False
+
+    def _parse_mibs_comware_if_type(self, oid, val):
+        """
+        Parse Comware specific Interface Type MIB
+        """
+        if_index = int(oid_in_branch(hh3cifVLANType, oid))
+        if if_index:
+            dprint("Comware if_index %s VLAN TYPE %s" % (if_index, val))
+            if if_index in self.interfaces.keys():
+                if int(val) == HH3C_IF_MODE_TRUNK:
+                    self.interfaces[if_index].is_tagged = True
             return True
         return False
 

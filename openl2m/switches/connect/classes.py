@@ -123,6 +123,7 @@ class Interface():
         self.untagged_vlan_name = ''
         self.vlans = []              # array of vlanId's on this interface, from Q-Bridge. If size > 0 this is a tagged port!
         self.is_tagged = False       # if 802.1q tagging or trunking is enabled
+        self.if_vlan_mode = -1       # some vendors have a interface vlan mode, such as access, trunk, hybrid
         self.voice_vlan = 0          # Cisco specific "Voice Vlan"
         self.can_change_vlan = True  # if set, we can change the vlan; some device types this is not implemented yet!
         self.gvrp_enabled = False    # the value representing the status of MVRP/GVRP on the interface
@@ -157,7 +158,8 @@ class Vlan():
         Vlan() requires passing in the vlan id
         """
         self.id = vlanId
-        self.name = "VLAN %d" % vlanId
+        #self.name = "VLAN %d" % vlanId
+        self.name = ""
         self.type = CISCO_VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
         self.status = VLAN_STATUS_OTHER     # 1-other-0, 2-permanent, 3-dynamic(gvrp)
         self.current_egress_ports_bitmap = 0x0      # dot1qVlanCurrentEgressPorts OCTETSTRING (PortList) with bitmap of egress ports in this vlan
