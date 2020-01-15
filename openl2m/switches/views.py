@@ -446,7 +446,7 @@ def switch_bulkedit(request, group_id, switch_id):
                     (iface.name, conn.error.description)
             else:
                 success_count += 1
-                log.type = LOG_TYPE_ERROR
+                log.type = LOG_TYPE_CHANGE
                 log.description = "%s: Bulk-Edit Vlan set to %s" % (iface.name, new_pvid)
             outputs.append(log.description)
             log.save()
@@ -483,7 +483,7 @@ def switch_bulkedit(request, group_id, switch_id):
                 return error_page(request, group, switch, conn.error)
             else:
                 success_count += 1
-                log.type = LOG_TYPE_ERROR
+                log.type = LOG_TYPE_CHANGE
                 log.description = "%s: Bulk-Edit Descr set OK" % iface.name
             outputs.append(log.description)
             log.save()
