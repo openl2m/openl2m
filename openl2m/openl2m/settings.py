@@ -34,7 +34,7 @@ except ImportError:
         "Configuration file is not present. Please define openl2m/openl2m/configuration.py per the documentation."
     )
 
-VERSION = '1.0-beta(20191226)'
+VERSION = '1.0-(20200115)'
 
 # Hostname
 HOSTNAME = platform.node()
