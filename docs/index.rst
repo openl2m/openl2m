@@ -12,7 +12,7 @@ Welcome to OpenL2M
 Welcome to the documentation for the "Open Layer 2 Management" project.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
    :caption: Contents:
 
    introduction.rst
@@ -20,6 +20,7 @@ Welcome to the documentation for the "Open Layer 2 Management" project.
    installation/index.rst
    configuration/index.rst
    switches.rst
+   releases/index.rst
    faq.rst
    roadmap.rst
    references.rst

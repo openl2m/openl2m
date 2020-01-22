@@ -4,10 +4,11 @@ openl2m/openl2m/ldap_config.py
 openl2m/static
 openl2m/project-static/docs/
 docs/_build/
+.recycle/
+venv/
 .idea
 *.sh
 *.swp
 .DS_Store
 ._*
 .vscode
-venv/

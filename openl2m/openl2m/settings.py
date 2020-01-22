@@ -34,7 +34,7 @@ except ImportError:
         "Configuration file is not present. Please define openl2m/openl2m/configuration.py per the documentation."
     )
 
-VERSION = '1.0-(20200115)'
+VERSION = '1.1-beta(20200122)'
 
 # Hostname
 HOSTNAME = platform.node()
@@ -307,3 +307,28 @@ STATIC_URL = '/{}static/'.format(BASE_PATH)
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'project-static'),
 )
+
+
+# task scheduling via Celery:
+TASKS_ENABLED = getattr(configuration, 'TASKS_ENABLED', False)
+TASKS_BCC_ADMINS = getattr(configuration, 'TASKS_BCC_ADMINS', False)
+CELERY_BROKER_URL = getattr(configuration, 'CELERY_BROKER_URL', 'redis://localhost:6379')
+CELERY_RESULT_BACKEND = getattr(configuration, 'CELERY_RESULT_BACKEND', 'redis://localhost:6379')
+CELERY_ACCEPT_CONTENT = getattr(configuration, 'CELERY_ACCEPT_CONTENT', ['application/json'])
+CELERY_RESULT_SERIALIZER = getattr(configuration, 'CELERY_RESULT_SERIALIZER', 'json')
+CELERY_TASK_SERIALIZER = getattr(configuration, 'CELERY_TASK_SERIALIZER', 'json')
+
+#
+# Email settings for sending results of Bulk-Edit jobs
+#
+EMAIL_HOST = getattr(configuration, 'EMAIL_SERVER', 'localhost')
+EMAIL_HOST_USER = getattr(configuration, 'EMAIL_USERNAME', '')
+EMAIL_HOST_PASSWORD = getattr(configuration, 'EMAIL_PASSWORD', '')
+EMAIL_PORT = getattr(configuration, 'EMAIL_PORT', 25)
+EMAIL_USE_TLS = getattr(configuration, 'EMAIL_USE_TLS', False)
+EMAIL_USE_SSL = getattr(configuration, 'EMAIL_USE_SSL', False)
+EMAIL_SSL_CERTFILE = getattr(configuration, 'EMAIL_SSL_CERTFILE', None)
+EMAIL_SSL_KEYFILE = getattr(configuration, 'EMAIL_SSL_KEYFILE', None)
+EMAIL_TIMEOUT = getattr(configuration, 'EMAIL_TIMEOUT', 10)
+EMAIL_SUBJECT_PREFIX = getattr(configuration, 'EMAIL_SUBJECT_PREFIX', '[OpenL2M] ')
+EMAIL_FROM_ADDRESS = getattr(configuration, 'EMAIL_FROM_ADDRESS', '<openl2m@localhost>')

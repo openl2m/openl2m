@@ -104,9 +104,9 @@ In that case, this will show as "<vlan id> - Not Defined"
 * **PoE**
 
 If Power-over-Ethernet is enabled on capable switches,
-the PoE status will be indicated in this field. If we can read it from the switch,
-the power drawn will also be listed.
-An example of the PoE display of enabled port serving about 9 Watts of power is:
+the interface PoE status will be indicated in this field. The power drawn will also be listed,
+If we can read it from the switch. An example of the PoE display of enabled
+port serving about 9 Watts of power is:
 
 .. image:: ../_static/poe-powered-port.png
 
@@ -133,6 +133,7 @@ To change state, simply click on the Disabled or Enabled icon to change the powe
 
 |poe_toggle| Click this icon to toggle the power off,
 and then on again after a short wait (5 seconds by default, but admin configurable)
+Note this only shows for port with power enabled.
 
 .. |poe_toggle| image:: ../_static/down-up-24.png
 
@@ -156,10 +157,15 @@ Bulk Edit tab
 -------------
 
 If permissions allow, users will see the Bulk Edit tab. This shows the Bulk Edit form.
+This form allows you to apply or schedule a variety of changes at once to a number of switch interfaces.
+
+This form has two submit buttons, one to submit the changes now, and another to schedule
+as a task at a later time (if enabled by your administrator).
+**Note:** if all the back-end processes for task scheduling are not running,
+this option will not show!
 
 .. image:: ../_static/bulkedit-form.png
 
-* This form allows you to apply a variety of changes at once to a number of switch interfaces.
 * You can toggle the interface up/down state (a admin-down interface will be brought up, and vice versa,
   an up interface will go admin-down, all at once!)
 * You can change the interface (untagged) vlan, and also the interface description.
@@ -168,8 +174,27 @@ If permissions allow, users will see the Bulk Edit tab. This shows the Bulk Edit
   Note this is done serially, so if you perform this on many interfaces at once, it will take some time!
   Please be patient!
 
-Fill in the form, then select the interfaces you want to apply this to. Click the "Update Selected Interfaces" button,
-and your changes will be applied.
+Fill in the form, then select the interfaces you want to apply this to.
+
+**To apply the change now**, click the "Update Selected Interfaces NOW" button,
+and your changes will be applied. Please be patient!
+
+**To schedule a task to apply these changes at a later time**, you need to fill in
+two additional fields:
+
+* fill in the proposed time the task will run.
+* fill in a short description of the task.
+
+Then click the "Schedule Update on Selected Interfaces" button.
+
+**Note**
+ The requested time is a "no-sooner-then" time. Depending on server load,
+ the task may start a short time after the requested date and time.
+ Upon completion of the task, the user will be sent an email with the results
+ (if their email address is listed in their profile).
+
+Tasks can be seen from the "Information" tab by any user that has access to the switch.
+Additionally, users can see all tasks they have scheduled from the main menu, under "Scheduled Tasks".
 
 
 Information tab
@@ -179,10 +204,13 @@ This shows a series of information about the switch. Depending on the device and
 this can include items such as model, firmware, vlans defined on switch, PoE power supply info, stacking info,
 IP(v4) addresses of the switch, and more.
 
+If there are scheduled tasks for the selected switch, they will also be shown here.
+Any user with the ability to create tasks, can delete scheduled tasks from this tab. (Assuming the background processes are running!)
+
 Activity tab
 ------------
 
-This will show the last OpenL2M activity on this switch. I.e. anything changed, viewed, etc. will be listed here
+This will show the last OpenL2M activity on this switch. I.e. anything changed will be listed here
 by user and time.
 
 Show Commands tab
@@ -190,7 +218,8 @@ Show Commands tab
 
 This tab will only 'global' show if commands are configured by the admin.
 
-|commands_tab|  This tab will give a simple form with some 'global' show commands you can execute on the switch.
+|commands_tab|
+This tab will give a simple form with some 'global' show commands you can execute on the switch.
 Select a command, click on 'Run Command', and be patient! When complete, the page will refresh and a new 'Command Output'
 tab will be added.
 
@@ -200,10 +229,12 @@ tab will be added.
 Warnings/Errors tab
 -------------------
 
-|warnings_tab| This tab will only show if warnings or errors were found at some point.
+|warnings_tab|
+This tab will only show if warnings or errors were found at some point.
 
 .. |warnings_tab| image:: ../_static/warnings_tab.png
 
-|warnings|  The content of this tab will show a variety of warnings and non-critical errors discovered.
+|warnings|
+The content of this tab will show a variety of warnings and non-critical errors discovered.
 
 .. |warnings| image:: ../_static/warnings.png

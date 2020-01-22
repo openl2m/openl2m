@@ -40,4 +40,5 @@ However, this should work just fine on Ubuntu and other distributions.
    nginx.rst
    nginx-ssl.rst
    ldap.rst
+   tasks.rst
    upgrading.rst

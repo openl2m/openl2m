@@ -12,6 +12,6 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .cisco.constants import *
-from .procurve.constants import *
-from .comware.constants import *
+from switches.connect.cisco.constants import *
+from switches.connect.procurve.constants import *
+from switches.connect.comware.constants import *

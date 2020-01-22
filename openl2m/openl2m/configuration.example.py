@@ -32,6 +32,13 @@ DATABASE = {
 #   Optional settings   #
 #                       #
 #########################
+# OpenL2M "administrator" emails. This is a list of all the people who get
+# code error notifications, and task result emails (see below)
+# This is not related to users with superuser access.
+ADMINS = [
+    # ('John', 'john@example.com'),
+    # ('Mary', 'mary@example.com')
+]
 
 # Optionally display a persistent banner at the top and/or bottom of every page. HTML is allowed. To display the same
 # content in both banners, define BANNER_TOP and set BANNER_BOTTOM = BANNER_TOP.
@@ -336,3 +343,32 @@ SNMP_RETRIES = 3
 # note that some devices cannot handle the default 25, and you may need to lower this e.g. 10
 # see the references in the documentation for more information.
 SNMP_MAX_REPETITIONS = 25
+
+# task scheduling via Celery. If you want to use this, set this to True
+TASKS_ENABLED = False
+# send task result emails as bcc to admins (if email enabled, see below)
+TASKS_BCC_ADMINS = False
+# Leave these settings alone, unless you change to a custom or remote Redis server setup
+# in which case, please read the appropriate docs...
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+
+# Email settings, used to send results of tasks and other emails.
+# the default uses the local plain old smtp server on port 25
+# see the installation docs or Django docs for other options.
+EMAIL_HOST = 'localhost'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_PORT = 25
+EMAIL_TIMEOUT = 10      # in seconds
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = False
+EMAIL_SSL_CERTFILE = None
+EMAIL_SSL_KEYFILE = None
+
+# to receive bounced emails, make sure this is a valid return address!
+EMAIL_FROM_ADDRESS = '<openl2m@localhost>'
+EMAIL_SUBJECT_PREFIX = '[OpenL2M] '

@@ -13,10 +13,14 @@ configuration file in *openl2m/configuration.py*
 This configuration below enables the following debugging:
 
 * Debug output goes to /tmp/openl2m-debug.log. Modify this path as needed.
+* This implementents time-based rotation, with a new log every day. You can also change
+  to size-based rotation. See the Python 3 logging docs for more details.
 * if running in DEBUG mode (for developers), the same output also goes to
-  the console screen
+  the console screen.
+* you can also log to syslog, Sentry.io, or anything else supported by the
+  Python logging library. Configuration is left as an exercise to the reader.
 
-Configure this:
+Add this to configuration.py:
 
 .. code-block:: bash
 
@@ -30,7 +34,9 @@ Configure this:
           },
           'file': {
               'level': 'DEBUG',
-              'class': 'logging.FileHandler',
+              'class': 'logging.handlers.TimedRotatingFileHandler',
+              'when': 'd',            # rotate daily
+              'backupCount': 14,      # keep max 14 days of files
               'filename': '/tmp/openl2m-debug.log',
           },
       },
@@ -42,9 +48,15 @@ Configure this:
           'openl2m.debug': {
               'handlers': ['file'],
               'level': 'DEBUG',
-          }
+          },
       },
   }
 
+NOTE: this is NOT compatible with running the Celery task engine.
+If you have this enabled, for debugging please stop that process:
 
-Don't forget to remove this when you are done!
+.. code-block:: bash
+
+  sudo systemctl stop celery
+
+Don't forget to remove this configuration when you are done! (and start Celery, if needed)

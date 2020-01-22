@@ -61,10 +61,10 @@ If this looks OK, you need to issue the following command to get your snmp v3 us
 
   snmp-server group <your_v3_group> v3 auth context vlan- match prefix
 
-* **How can I import my switches from <name your NMS here>?
+* **How can I import my switches from <name your NMS here>?**
 
 The Django python API is fully supported. You can write a custom stand-alone import script using whatever NMS API
-you have to read your device data and import into OpenL2M. See the ./scripts/example.py file for more details. 
+you have to read your device data and import into OpenL2M. See the ./scripts/example.py file for more details.
 
 * **How do I debug OpenL2M?**
 

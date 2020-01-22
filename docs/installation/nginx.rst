@@ -224,6 +224,10 @@ check that everything functions as you expect, before you start using this in pr
 
 Finally, Have Fun!
 
+:doc:`We strongly recommend that you use SSL encryption on your web server. <nginx-ssl>`
+
 If you decide to do so, you can now optionally :doc:`use LDAP for authentication. <ldap>`
 
-:doc:`We strong recommend that you use SSL encryption on your web server. <nginx-ssl>`
+Also optionally, you can allow users to :doc:`schedule bulk changes at some time in the future. <tasks>` 
+
+If all is well, you are now ready to install the :doc:`webserver <nginx>`.
