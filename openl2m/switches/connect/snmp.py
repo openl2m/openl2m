@@ -23,6 +23,7 @@ import re
 import traceback
 import pprint
 from django.conf import settings
+from django.contrib.auth.models import User
 import easysnmp
 from easysnmp.variables import SNMPVariable
 from pysnmp.hlapi import *
@@ -33,7 +34,7 @@ from switches.models import Switch, VLAN, SnmpProfile, Log
 from switches.connect.constants import *
 from switches.connect.classes import *
 from switches.connect.connect import *
-from switches.connect.netmiko.netmiko import *
+from switches.connect.netmiko.connector import *
 from switches.connect.vendors.constants import *
 from switches.connect.oui.oui import *
 from switches.utils import *
@@ -578,9 +579,9 @@ class SnmpConnector(EasySNMP):
             # make sure this is stored, can also add this setting:
             # SESSION_SAVE_EVERY_REQUEST=True
             self.request.session.modified = True
-        else:
-            # "should" not happen:
-            dprint("_set_http_session_cache() called but NO http.request found!")
+        #else:
+            # only happens if running in CLI or tasks
+            # dprint("_set_http_session_cache() called but NO http.request found!")
 
     def _get_http_session_cache(self):
         """
@@ -621,7 +622,7 @@ class SnmpConnector(EasySNMP):
         Set a flag that this switch needs the config saved
         """
         if value:
-            if self.can_save_config():
+            if self.can_save_config() and self.request:
                 self.request.session['save_needed'] = True
             # else:
             #    dprint("   save config NOT supported")
@@ -1002,7 +1003,8 @@ class SnmpConnector(EasySNMP):
                     log = Log()
                     log.group = self.group
                     log.switch = self.switch
-                    log.user = self.request.user
+                    if self.request:
+                        log.user = self.request.user
                     log.ip_address = get_remote_ip(self.request)
                     log.if_index = ifIndex
                     log.type = LOG_TYPE_ERROR
@@ -1470,7 +1472,8 @@ class SnmpConnector(EasySNMP):
             log.description = "New System ObjectID found"
             log.switch = self.switch
             log.group = self.group
-            log.user = self.request.user
+            if self.request:
+                log.user = self.request.user
             log.ip_address = get_remote_ip(self.request)
             log.type = LOG_TYPE_WARNING
             log.save()
@@ -1486,7 +1489,8 @@ class SnmpConnector(EasySNMP):
             log.description = "New System Hostname found"
             log.switch = self.switch
             log.group = self.group
-            log.user = self.request.user
+            if self.request:
+                log.user = self.request.user
             log.ip_address = get_remote_ip(self.request)
             log.type = LOG_TYPE_WARNING
             log.save()
@@ -1855,11 +1859,11 @@ class SnmpConnector(EasySNMP):
         """
 
         # check the vlans on the switch (self.vlans) agains switchgroup.vlan_groups and switchgroup.vlans
-        if self.group.read_only and not self.request.user.is_superuser:
+        if self.group.read_only and self.request and not self.request.user.is_superuser:
             # Read-Only Group, no vlan allowed!
             return
         for switch_vlan_id in self.vlans.keys():
-            if self.request.user.is_superuser:
+            if self.request and self.request.user.is_superuser:
                 self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
             else:
                 # first the switchgroup.vlan_groups:
@@ -1885,7 +1889,12 @@ class SnmpConnector(EasySNMP):
         """
         switch = self.switch
         group = self.group
-        user = self.request.user
+        if self.request:
+            user = self.request.user
+        else:
+            # we are running as a task, simulate 'admin'
+            # permissions were checked when form was generated/submitted
+            user = User.objects.get(pk=1)
 
         # find allowed vlans for this user
         self._set_allowed_vlans()
@@ -1979,7 +1988,8 @@ class SnmpConnector(EasySNMP):
         log = Log()
         log.group = self.group
         log.switch = self.switch
-        log.user = self.request.user
+        if self.request:
+            log.user = self.request.user
         log.ip_address = get_remote_ip(self.request)
         log.type = LOG_TYPE_WARNING
         log.action = LOG_WARNING_SNMP_ERROR
@@ -2197,7 +2207,7 @@ def _clear_session_save_needed(request):
     """
     Clear the session variable that indicates the switch config needs saving
     """
-    if 'save_needed' in request.session.keys():
+    if request and 'save_needed' in request.session.keys():
         del request.session['save_needed']
 
 
@@ -2206,11 +2216,12 @@ def clear_session_oidcache(request):
     clear all session data storage, because we want to re-read switch
     or because we changed switches
     """
-    if 'switch_id' in request.session.keys():
-        del request.session['switch_id']
-    if 'oid_cache' in request.session.keys():
-        del request.session['oid_cache']
-    _clear_session_save_needed(request)
+    if request:
+        if 'switch_id' in request.session.keys():
+            del request.session['switch_id']
+        if 'oid_cache' in request.session.keys():
+            del request.session['oid_cache']
+        _clear_session_save_needed(request)
 
 
 def get_switch_enterprise_info(system_oid):

@@ -64,5 +64,8 @@ def add_variables(request):
 
         'LOG_TYPE_CHOICES': LOG_TYPE_CHOICES,
 
+        'TASK_STATUS_SCHEDULED': TASK_STATUS_SCHEDULED,
+        'TASK_STATUS_RUNNING': TASK_STATUS_RUNNING,
+        
         'settings': mysettings,
     }

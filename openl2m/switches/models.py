@@ -718,7 +718,7 @@ class SwitchGroupMembership(OrderedModel):
 
 
 #
-# Activity Logging related_name
+# Activity Logging related
 #
 class Log(models.Model):
     """
@@ -743,14 +743,14 @@ class Log(models.Model):
     group = models.ForeignKey(
         to='SwitchGroup',
         on_delete=models.CASCADE,
-        related_name='instances',
+        related_name='logs',
         blank=True,
         null=True,   # we don't require to have a group
     )
     switch = models.ForeignKey(
         to='Switch',
         on_delete=models.CASCADE,
-        related_name='instances',
+        related_name='logs',
         blank=True,
         null=True,  # we don't require to have a switch
     )
@@ -819,3 +819,109 @@ class Log(models.Model):
     class Meta:
         ordering = ['timestamp']
         verbose_name_plural = 'Activity Logs'
+
+
+
+#
+# Task model
+#
+class Task(models.Model):
+    """
+    A Task entry respresent information about a scheduled task or job,
+    """
+    created = models.DateTimeField(
+        auto_now_add=True,  # set on save, do not allow changes in code.
+        blank=True,
+        null=True,
+    )
+    eta = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Estimated Time task will be started",
+    )
+    started = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Last time task was started",
+    )
+    completed = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Time of completion",
+    )
+    email_result = models.BooleanField(
+        default=True,
+        verbose_name='Email results to user',
+    )
+    start_count = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name='Run Count',
+        help_text="The number of times the task was started",
+    )
+    user = models.ForeignKey(
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='tasks',
+        blank=True,
+        null=True,  # we don't require to have a user
+        help_text='The user who submitted the task',
+    )
+    group = models.ForeignKey(
+        to='SwitchGroup',
+        on_delete=models.CASCADE,
+        related_name='tasks',
+        blank=True,
+        null=True,   # we don't require to have a group
+    )
+    switch = models.ForeignKey(
+        to='Switch',
+        on_delete=models.CASCADE,
+        related_name='tasks',
+        blank=True,
+        null=True,  # we don't require to have a switch
+    )
+    type = models.PositiveSmallIntegerField(
+        choices=TASK_TYPE_CHOICES,
+        default=TASK_TYPE_NONE,
+        verbose_name='Type of Task',
+    )
+    status = models.PositiveSmallIntegerField(
+        choices=TASK_STATUS_CHOICES,
+        default=TASK_STATUS_CREATED,
+        verbose_name='Status of this task',
+    )
+    description = models.TextField(
+        blank=True, null=True,  # description or comments about the task
+    )
+    arguments = models.TextField(
+        blank=True,     # any parameters for this task, in JSON format
+        null=True,
+        help_text="Task arguments, in JSON format",
+    )
+    reverse_arguments = models.TextField(
+        blank=True,     # the parameters to reverse the changes, in JSON format
+        null=True,
+        help_text="Arguments to undo the changes of this task, in JSON format",
+    )
+    celery_task_id = models.TextField(
+        blank=True,
+        null=True,
+        help_text='Celery task id returned when task is submitted'
+    )
+    results = models.TextField(
+        blank=True,     # any results, in JSON format
+        null=True,
+        help_text="Task results, in JSON format",
+    )
+    def display_name(self):
+        """
+        This is used in templates, so we can 'annotate' as needed
+        """
+        return "Task %d: User %s - Switch %s - %s" % (self.id, self.user.username, self.switch.name, self.description)
+
+    def __str__(self):
+        return self.display_name()
+
+    class Meta:
+        ordering = ['eta']
+        verbose_name_plural = 'Scheduled Tasks'

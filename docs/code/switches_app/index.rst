@@ -43,7 +43,7 @@ work to handle urls is done. Please read :doc:`Views <views>`
 **Connections**
 
 Connections to the switch are typically done using Snmp. The snmp and other network related code is in the
-*switches/connections/ *directory.
+*switches/connections/* directory.
 
 See :doc:`Connections <connections>`
 

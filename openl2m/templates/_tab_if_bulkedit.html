@@ -10,42 +10,60 @@
         method="post">
     {% csrf_token %}
 
-    <div class="row">   {# row with submit #}
+    <div class="table-responsive">
+      <table class="table table-hover table-headings w-auto">
+        <tbody>
+          {% if allow_tasks %}
+          <tr>
+            <td aligh="left"></td>
+            <td align="right">
+              <span title="Select the date and time you want these changes to applied.">
+                <input type="text"
+                       name="task_eta"
+                       id="dateTime"
+                       placeholder="YYYY-MM-DD hh:mm"
+                       data-input>
+              </span>
+              <span title="Check to save config after task completes without errors.">
+                Save Config <input type="checkbox" id="save_config" name="save_config" value="on" checked>
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td></td>
+            <td align="right">
+              <span title="Enter the mandatory description for this task.">
+                <input type="text" size=40 name="task_description" value="" placeholder="Task description here...">
+              </span>
+            </td>
+          </tr>
+          {% endif %} {# if tasks #}
 
-      <div class='col-sm-2'>
-        <input type="submit"
-               value="Update Selected Interfaces NOW"
-               onclick="return confirm_change('Are you sure you want change the selected interfaces?')">
-      </div>
-
-      <div class='col-sm-4'>
-      </div>
-
-      <div class='col-sm-2'>
-        <div class="form-group">
-          <div class='input-group date' id='datetimepicker1'>
-            <input type='text' class="form-control" placeholder="MM/DD/YY hh:mm" />
-            <span class="input-group-addon">
-              <span class="glyphicon glyphicon-calendar"></span>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <script type="text/javascript">
-        $(function () {
-          $('#datetimepicker1').datetimepicker();
-        });
-      </script>
-
-      <div class="col-sm-2">
-        <input type="submit"
-               value="Schedule Update on Selected Interfaces"
-               formaction="{% url 'switches:switch_bulkedit_job' group.id switch.id %}"
-               onclick="return confirm_change('Are you sure you want change the selected interfaces and schedule it?')">
-      </div>
-
-    </div> {# row #}
+          <tr>
+            <td align="left">
+              <span title="Click to submit changes to the selected interfaces now!">
+                <input type="submit"
+                       value="Change Selected Interfaces NOW"
+                       onclick="return confirm_change('Are you sure you want change the selected interfaces?')">
+              </span>
+            </td>
+            {% if tasks %}
+              <td align="right">
+                <span title="Click to schedule changes to the selected interfaces at some time in the future!">
+                  <input type="submit"
+                         value="Schedule Changes on Selected Interfaces"
+                         formaction="{% url 'switches:switch_bulkedit_task' group.id switch.id %}"
+                         onclick="return confirm_change('Are you sure you want change the selected interfaces and schedule it?')"
+                  >
+                </span>
+              </td>
+            {% else %}
+              <td></td>
+            {% endif %}
+          </tr>
+        <tbody>
+      </table>
+    </div>
 
     <div class="table-responsive">
 
@@ -89,7 +107,7 @@
 
             {% if connection.system.poe_capable %}
             <td>
-              <span title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Toggle' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE."">
+              <span title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Toggle' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE.">
                 <select name="poe_choice">
                   {% for choice,name,descr in BULKEDIT_POE_CHOICES %}
                     <option value="{{ choice }}">{{ name }}</option>
@@ -116,7 +134,7 @@
 
             <tr class="{% cycle 'odd' 'even' %}" >
 
-              <td><input type="checkbox" value="{{if_index}}" name="interfaces"></td>
+              <td><input type="checkbox" value="{{if_index}}" name="interface_list"></td>
               <td
                 {% if iface.ifAdminStatus ==  IF_ADMIN_STATUS_UP %}
                   {% if iface.ifOperStatus == IF_OPER_STATUS_UP %}

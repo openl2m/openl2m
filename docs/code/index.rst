@@ -16,5 +16,5 @@ permits. Meanwhile, the source code is your best bet!
    requirements.rst
    code_explained.rst
    templating.rst
-   jobs.rst
+   tasks.rst
    documentation.rst

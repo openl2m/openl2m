@@ -1,0 +1,107 @@
+{% extends '_base.html' %}
+
+{% block content %}
+
+{% load helpers %}
+{% load static %}
+
+{# generic submit-are-you-sure? function #}
+<script type="text/javascript">
+    function confirm_change(s) {
+       return confirm(s);
+    }
+</script>
+
+<div class="container">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <strong>Task Details</strong>
+      {% if task.status == TASK_STATUS_SCHEDULED %}
+        <a href="{% url 'switches:task_delete' task.id %}"
+           title="Click here to delete this scheduled task..."
+        {% if request.user.profile.are_you_sure %}
+           onclick="return confirm_change('Are you sure you want to DELETE this task?')"
+        {% endif %}
+           >
+           <i class="fa fa-trash" aria-hidden="true"></i>
+       </a>
+      {% endif %}
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover table-headings">
+        <tr>
+          <td>Description</td>
+          <td>{{ task.description }}</td>
+        </tr>
+        <tr>
+          <td>Type</td>
+          <td>{{ task.get_type_display }}</td>
+        </tr>
+        <tr>
+          <td>Status</td>
+          <td>{{ task.get_status_display }}</td>
+        </tr>
+        {% if user.is_superuser or user.is_staff %}
+          <tr>
+            <td>User</td>
+            <td>{{ task.user }}</td>
+          </tr>
+        {% endif %}
+        <tr>
+          <td>Switch</td>
+          <td>{{ task.switch }}</td>
+        </tr>
+        <tr>
+          <td>Scheduled at</td>
+          <td>{{ task.eta }}</td>
+        </tr>
+        <tr>
+          <td>Started at</td>
+          <td>{{ task.started }}</td>
+        </tr>
+        <tr>
+          <td>Completed at</td>
+          <td>{{ task.completed }}</td>
+        </tr>
+        <tr>
+          <td>
+            <span title="If a task failed, it may have run more then once!">
+              Times started
+            </span>
+          </td>
+          <td>{{ task.start_count }}</td>
+        </tr>
+        <tr>
+          <td>Task ID</td>
+          <td>{{ task.id }}</td>
+        </tr>
+        <tr>
+          <td>Scheduler ID</td>
+          <td>{{ task.celery_task_id }}</td>
+        </tr>
+        <tr>
+          <td>
+            <span title="These are the requested changes to the selected interfaces when the task runs">
+            Arguments
+            </span>
+          </td>
+          <td>{{ task.arguments }}</td>
+        </tr>
+        <tr>
+          <td>Results</td>
+          <td>{{ task.results }}</td>
+        </tr>
+        <tr>
+          <td>
+            <span title="This is the state of the interfaces at the time the task runs">
+              Previous State
+            </span>
+          </td>
+          <td>{{ task.reverse_arguments }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -25,3 +25,4 @@ textfsm>=0.4.1
 netmiko>=2.3.3
 gitpython
 celery>=4.4,<4.5
+flower

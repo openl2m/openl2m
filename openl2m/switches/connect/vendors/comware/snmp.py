@@ -23,7 +23,6 @@ from switches.constants import *
 from switches.connect.classes import *
 from switches.connect.snmp import pysnmpHelper, SnmpConnector, oid_in_branch
 from switches.connect.constants import *
-from switches.connect.netmiko.netmiko import *
 from switches.utils import *
 
 from .constants import *
@@ -282,6 +281,7 @@ class SnmpConnectorComware(SnmpConnector):
         if if_index:
             dprint("Comware if_index %s VLAN TYPE %s" % (if_index, val))
             if if_index in self.interfaces.keys():
+                self.interfaces[if_index].if_vlan_mode = int(val)
                 if int(val) == HH3C_IF_MODE_TRUNK:
                     self.interfaces[if_index].is_tagged = True
             return True

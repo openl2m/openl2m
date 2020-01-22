@@ -6,11 +6,12 @@ Upgrading
 
 **Before upgrading, make sure you have a backup of the database!!!**
 
-Stop the backend OpenL2M python process first:
+Stop the backend OpenL2M python process first. Also stop Celery if using scheduled tasks:
 
 .. code-block:: bash
 
   # systemctl stop openl2m
+  # systemctl stop celery
 
 You can now upgrade by going to the latest version of the `master` branch
 of the git repo::
@@ -28,13 +29,15 @@ new static files (bootstrap, images, etc...):
 
   ./upgrade.sh
 
-**Restart the backend OpenL2M service**
+**Restart the backend OpenL2M services**
 
 Run:
 
 .. code-block:: bash
 
   # systemctl start openl2m
+  # systemctl start celery
   # systemctl status openl2m
+  # systemctl status celery
 
 You should not need to restart the Nginx web server.

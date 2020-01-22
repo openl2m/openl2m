@@ -4,16 +4,21 @@
 Roadmap / To Do
 ===============
 
-Here are some features we are considering implementing (*in no particular order*)
-
-* IP v6 support, both for switch snmp access, and other informational tables.
-
-* Tagged/Trunked ports tagged vlan management (we can do the untagged vlan now)
+Planned for version 1.2
+-----------------------
 
 * Single-Sign-On (SSO) via SAML, and possibly OAUTH for authorization (switch group membership)
   with as primary SSO compatibility target Shiboleth SAML SSO
 
-* scheduling of Bulk Edit changes at a future date/time.
+
+Other Features
+--------------
+
+Here are some other features we are considering implementing (*in no particular order*)
+
+* IP v6 support, both for switch snmp access, and other informational tables.
+
+* Tagged/Trunked ports tagged vlan management (we can do the untagged vlan now)
 
 * hide change/submit buttons until form has changes (vlan, ifalias, etc.)
 

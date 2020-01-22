@@ -74,4 +74,4 @@ Netmiko functionality
 ---------------------
 
 When we need to SSH to execute commands on the switch, we call a Netmiko
-wrapper class defined in switches/connect/netmiko/netmiko.py
+wrapper class defined in switches/connect/netmiko/connector.py

@@ -17,7 +17,7 @@ from ordered_model.admin import OrderedStackedInline, OrderedInlineModelAdminMix
 
 # Register your models here.
 from switches.models import (Command, CommandList, Switch, SwitchGroup, SwitchGroupMembership,
-                             SnmpProfile, NetmikoProfile, VLAN, VlanGroup)
+                             SnmpProfile, NetmikoProfile, VLAN, VlanGroup, Task)
 
 # register with the custom admin site
 from openl2m.admin import admin_site
@@ -123,6 +123,13 @@ class CommandListAdmin(admin.ModelAdmin):
     search_fields = ['name']
     filter_horizontal = ('global_commands', 'interface_commands', 'global_commands_staff', 'interface_commands_staff',)
 
+class TaskAdmin(admin.ModelAdmin):
+    search_fields = ['description', 'user', 'group', 'switch']
+    # we want all fields read-only:
+    # readonly_fields = []
+    def has_change_permission(self, request, obj=None):
+        return False
+
 
 # Register your models here.
 admin_site.register(Switch, SwitchAdmin)
@@ -133,3 +140,4 @@ admin_site.register(SnmpProfile, SnmpProfileAdmin)
 admin_site.register(NetmikoProfile, NetmikoProfileAdmin)
 admin_site.register(Command, CommandAdmin)
 admin_site.register(CommandList, CommandListAdmin)
+admin_site.register(Task, TaskAdmin)

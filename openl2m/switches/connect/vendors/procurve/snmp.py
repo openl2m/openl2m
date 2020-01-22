@@ -20,7 +20,6 @@ from switches.models import Log
 from switches.connect.classes import *
 from switches.connect.snmp import SnmpConnector, oid_in_branch
 from switches.connect.constants import *
-from switches.connect.netmiko.netmiko import *
 from switches.utils import *
 
 from .constants import *

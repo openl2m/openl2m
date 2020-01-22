@@ -15,14 +15,15 @@
 Various utility functions
 """
 import datetime
+import pytz
 import logging
 from django.conf import settings
+from django.utils.timezone import get_default_timezone
 
 from switches.constants import ETH_FORMAT_COLON, ETH_FORMAT_HYPHEN, ETH_FORMAT_CISCO
 
 logger_debug = logging.getLogger("openl2m.debug")
 logger_console = logging.getLogger("openl2m.console")
-
 
 def dprint(var):
     """
@@ -43,6 +44,14 @@ def time_duration(seconds):
 
     s = str(d)
     return s
+
+
+def get_local_timezone_offset():
+    """
+    Get the offset as <-+00:00> of our local timezone
+    This uses the settings.TIME_ZONE variable, if set.
+    """
+    return datetime.datetime.now(pytz.timezone(str(get_default_timezone()))).strftime('%z')
 
 
 def bytes_to_hex_string_ethernet(bytes):
