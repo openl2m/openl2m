@@ -164,9 +164,12 @@ def get_remote_ip(request):
     """
     Return a string that represents the most likely client IP ip address
     """
-    # see: https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django
-    from ipware import get_client_ip
-    (ip, routable) = get_client_ip(request)  # we need the request variable from the view!
-    if ip is None:
-        return '0.0.0.0'
-    return str(ip)
+    if request:
+        # see: https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django
+        from ipware import get_client_ip
+        (ip, routable) = get_client_ip(request)  # we need the request variable from the view!
+        if ip is None:
+            return '0.0.0.0'
+        return str(ip)
+    # not in web server context, return "0"
+    return "0.0.0.0"
