@@ -59,4 +59,6 @@ If you have this enabled, for debugging please stop that process:
 
   sudo systemctl stop celery
 
-Don't forget to remove this configuration when you are done! (and start Celery, if needed)
+Alternatively, you can use a syslog config, or the like, that does NOT write files directly.
+
+**Don't forget to remove this configuration when you are done!** (and start Celery, if needed)

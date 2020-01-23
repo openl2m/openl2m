@@ -135,7 +135,7 @@ Now, we can activate and start this service:
   sudo systemctl start celery
   sudo systemctl enable celery
 
-  And verify:
+And verify:
 
 .. code-block:: bash
 
