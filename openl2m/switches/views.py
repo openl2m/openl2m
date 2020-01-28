@@ -30,7 +30,7 @@ from django.utils.html import mark_safe
 from django.views.generic import View
 from django.utils import timezone
 
-from openl2m.celery import get_celery_info
+from openl2m.celery import get_celery_info, is_celery_running
 from switches.models import *
 from switches.constants import *
 from switches.connect.connect import *
@@ -238,6 +238,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
 
     # are there any scheduled tasks for this switch?
     if settings.TASKS_ENABLED:
+        task_process_running = is_celery_running()
         tasks = Task.objects.all().filter(switch=switch, status=TASK_STATUS_SCHEDULED).order_by('-eta')
     else:
         tasks = False
@@ -254,6 +255,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
         'connection': conn,
         'logs': logs,
         'tasks': tasks,
+        'task_process_running': task_process_running,
         'view': view,
         'cmd': cmd,
         'bulk_edit': bulk_edit,
@@ -1092,6 +1094,7 @@ def tasks(request):
 
     template_name = 'tasks.html'
 
+    task_process_running = is_celery_running()
     if request.user.is_superuser:
         # show all types of tasks
         tasks = Task.objects.all().filter().order_by('status', '-eta')
@@ -1113,6 +1116,7 @@ def tasks(request):
     # return success_page(request, False, False, "Task page!")
     return render(request, template_name, {
         'tasks': tasks,
+        'task_process_running': task_process_running,
     })
 
 
@@ -1147,9 +1151,12 @@ def task_details(request, task_id):
     log.description = "Viewing task %d details" % task_id
     log.save()
 
+    task_process_running = is_celery_running()
+
     # render the template
     return render(request, template_name, {
         'task': task,
+        'task_process_running': task_process_running,
     })
 
 
@@ -1171,6 +1178,10 @@ def task_delete(request, task_id):
         error = Error()
         error.description = log.description
         return error_page(request, False, False, error)
+
+    if not is_celery_running():
+        description = "The Task Process is NOT running, so we cannot delete this task at the moment!"
+        return warning_page(request, False, False, description)
 
     # log my activity
     log = Log()
@@ -1210,6 +1221,10 @@ def task_terminate(request, task_id):
         return error_page(request, False, False, error)
 
     task = get_object_or_404(Task, pk=task_id)
+
+    if not is_celery_running():
+        description = "The Task Process is NOT running, so we cannot terminate this task at the moment!"
+        return warning_page(request, False, False, description)
 
     # log my activity
     log = Log()

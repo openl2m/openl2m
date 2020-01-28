@@ -38,7 +38,7 @@ class SnmpConnectorComware(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("Comware SnmpConnector __init__")
-        SnmpConnector.__init__(self, request, group, switch)
+        super().__init__(self, request, group, switch)
         self.name = "Comware SnmpConnector"  # what type of class is running!
         self.vendor_name = "HPE/Comware"
         # needed for saving config file:
@@ -60,7 +60,7 @@ class SnmpConnectorComware(SnmpConnector):
         if self._parse_mibs_comware_if_type(oid, val):
             return True
         # call the generic base parser
-        return SnmpConnector._parse_oid(self, oid, val)
+        return super()._parse_oid(self, oid, val)
 
     def _get_vlan_data(self):
         """
@@ -68,7 +68,7 @@ class SnmpConnectorComware(SnmpConnector):
         """
         dprint("Comware _get_vlan_data()\n")
         # first, call the standard vlan reader
-        SnmpConnector._get_vlan_data(self)
+        super()._get_vlan_data(self)
 
         # now read some Comware specific items.
         # some Comware switches do not report vlan names in Q-Bridge mib
@@ -77,7 +77,7 @@ class SnmpConnectorComware(SnmpConnector):
             dprint("Comware hh3cdot1qVlanName returned error!")
             return False
 
-        # read the COmware port type:
+        # read the Comware port type:
         if self._get_branch_by_name('hh3cifVLANType', True, self._parse_mibs_comware_if_type) < 0:
             dprint("Comware hh3cifVLANType returned error!")
             return False
@@ -300,7 +300,7 @@ class SnmpConnectorComware(SnmpConnector):
         Get PoE data, first via the standard PoE MIB,
         then by calling the Comware extended HH3C-POWER-ETH MIB
         """
-        SnmpConnector._get_poe_data(self)
+        super()._get_poe_data(self)
         # now get HP specific info from HP-IFC-POE-MIB first
         retval = self._get_branch_by_name('hh3cPsePortCurrentPower', True, self._parse_mibs_comware_poe)
         if retval < 0:

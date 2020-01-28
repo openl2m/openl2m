@@ -34,7 +34,7 @@ class SnmpConnectorCisco(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("CISCO SnmpConnector __init__")
-        SnmpConnector.__init__(self, request, group, switch)
+        super().__init__(self, request, group, switch)
         self.name = "Cisco SnmpConnector"  # what type of class is running!
         self.vendor_name = "Cisco"
 
@@ -159,7 +159,7 @@ class SnmpConnectorCisco(SnmpConnector):
             return True
 
         # if not Cisco specific, call the generic parser
-        return SnmpConnector._parse_oid(self, oid, val)
+        return super()._parse_oid(self, oid, val)
 
     def _get_vlan_data(self):
         """
@@ -247,7 +247,7 @@ class SnmpConnectorCisco(SnmpConnector):
             return retval
 
         # check to see if standard PoE MIB is supported
-        retval = SnmpConnector._get_poe_data(self)
+        retval = super()._get_poe_data(self)
         if retval < 0:
             return retval
 

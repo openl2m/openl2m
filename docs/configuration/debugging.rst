@@ -28,13 +28,25 @@ Add this to configuration.py:
   LOGGING = {
       'version': 1,
       'disable_existing_loggers': False,
+      'formatters': {
+          'console': {
+              # very minimal format:
+              'format': '%(asctime)s %(message)s',
+          },
+          'file': {
+              # basic format:
+              'format': '%(asctime)s %(levelname)-8s %(message)s',
+          }
+      },
       'handlers': {
           'console': {
               'class': 'logging.StreamHandler',
+              'formatter': 'console',
           },
           'file': {
               'level': 'DEBUG',
               'class': 'logging.handlers.TimedRotatingFileHandler',
+              'formatter': 'file',
               'when': 'd',            # rotate daily
               'backupCount': 14,      # keep max 14 days of files
               'filename': '/tmp/openl2m-debug.log',

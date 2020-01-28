@@ -656,7 +656,6 @@ LACP_PORT_ATTACHED_AGG_ID = '.1.2.840.10006.300.43.1.2.1.1.13'
 snmp_mib_variables['dot3adAggPortAttachedAggID'] = LACP_PORT_ATTACHED_AGG_ID
 
 
-
 #
 # VENDOR SPECIFIC Entries, see also vendors/vendors.py
 #

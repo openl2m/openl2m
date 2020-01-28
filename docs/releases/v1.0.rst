@@ -3,7 +3,12 @@
 Version 1.0
 ===========
 
-This is the initial release of OpenL2M. Features include:
+This is the initial release of OpenL2M.
+
+Features
+--------
+
+Initial features include:
 
 * **enabling / disabling** of interfaces  (i.e. admin-shutdown/enable).
 * **change vlan** of the interface.
@@ -21,3 +26,5 @@ This is the initial release of OpenL2M. Features include:
 * configurable links on the switch, or interfaces to external tools such as an NMS
 * configurable menus
 * easily extended architecture to support other vendors that require custom snmp variables (mibs)
+
+Please see the installation section of this documentation for additional details.

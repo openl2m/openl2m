@@ -16,13 +16,19 @@
   {% if not settings.TASKS_ENABLED %}
   <div class="panel panel-warning">
     <div class="panel-heading">
-      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Tasks are not enabled!
+      <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Tasks are not enabled!</strong>
+    </div>
+  </div>
+  {% elif not task_process_running %}
+  <div class="panel panel-warning">
+    <div class="panel-heading">
+      <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Task process is not running!</strong>
     </div>
   </div>
   {% endif %}
   <div class="panel panel-default">
     <div class="panel-heading">
-      <strong>Tasks: {{ tasks.count }}</strong>
+      <strong>Scheduled Tasks: {{ tasks.count }}</strong>
     </div>
     <div class="table-responsive">
       <table class="table table-hover table-headings">
@@ -39,7 +45,7 @@
         {% for task in tasks %}
           <tr>
             <td>
-              {% if task.status == TASK_STATUS_SCHEDULED %}
+              {% if task_process_running and task.status == TASK_STATUS_SCHEDULED %}
                 <a href="{% url 'switches:task_delete' task.id %}"
                    title="Click here to delete this scheduled task..."
                 {% if request.user.profile.are_you_sure %}
@@ -50,9 +56,9 @@
                </a>
               {% endif %}
               {{ task.eta }}
-              {% if task.status == TASK_STATUS_RUNNING and request.user.is_superuser %}
+              {% if task_process_running and task.status == TASK_STATUS_RUNNING and request.user.is_superuser %}
                 <a href="{% url 'switches:task_terminate' task.id %}"
-                 title="Click here to terminate this task if is hung..."
+                 title="Click here to terminate this task if it is hung..."
                 {% if request.user.profile.are_you_sure %}
                  onclick="return confirm_change('Are you sure you want to TERMINATE this running task?')"
                 {% endif %}

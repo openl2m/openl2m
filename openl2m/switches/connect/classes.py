@@ -129,8 +129,8 @@ class Interface():
         self.gvrp_enabled = False    # the value representing the status of MVRP/GVRP on the interface
         self.last_change = 0         # ifLastChange, tick count since uptime when interface last changed
         # LACP related
-        self.lacp_members = {}       # We are LACP master, this is a dictionary of lacp member interfaces.
-                                             # key = ifIndex, value = ifName, of member interfaces
+        # for LACP master, a dictionary of lacp member interfaces. key=ifIndex, value=ifName of member interfaces
+        self.lacp_members = {}
         self.lacp_master_index = -1  # we are member of an LACP interface. ifIndex of the master aggregate. Mutually exclusive with above!
         self.lacp_master_name = ''   # we are member of an LACP interface. ifname of the master aggregate.
         # Power related
@@ -160,16 +160,15 @@ class Vlan():
         Vlan() requires passing in the vlan id
         """
         self.id = vlanId
-        # self.name = "VLAN %d" % vlanId
-        self.name = ""
+        self.name = ''
         self.type = CISCO_VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
         self.status = VLAN_STATUS_OTHER     # 1-other-0, 2-permanent, 3-dynamic(gvrp)
-        self.current_egress_portlist = PortList()   # dot1qVlanCurrentEgressPorts OCTETSTRING (PortList)
-                                                        # stored as PortList() object with bitmap of egress ports in this vlan
-        self.static_egress_portlist = PortList()    # dot1qVlanStaticPorts OCTETSTRING (PortList)
-                                                        # stored as PortList() object with bitmap of egress ports in this vlan
+        # dot1qVlanCurrentEgressPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
+        self.current_egress_portlist = PortList()
+        # dot1qVlanStaticPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
+        self.static_egress_portlist = PortList()
         self.untagged_ports_bitmap = 0x0    # exactly what you think, PortList format ! :-)
-        # self.hh3c_dot1q_vlan_ports = PortList()       # hh3cdot1qVlanPorts is HH3C specific vlan untagged PortList() bitmap
+        # self.hh3c_dot1q_vlan_ports = PortList()   # hh3cdot1qVlanPorts is HH3C specific vlan untagged PortList() bitmap
 
     def set_name(self, name):
         self.name = name
