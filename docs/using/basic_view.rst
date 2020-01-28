@@ -18,6 +18,11 @@ This bar shows the switch name on the left. This may be preceded by one or more 
 which would be links to external systems with more information about the device. E.g. you may see a link to the
 Network Management System.
 
+There may be an icon to the left of switch name as well: |task| This means there scheduled tasks defined for this switch.
+Details can be found in the Information tab.
+
+.. |task| image:: ../_static/task.png
+
 The entry in the center, :doc:`'Read Eth/Arp/Lldp' <details_view>`, will get you a real-time read of the ethernet
 tables (MAC address) and LLPD neighbors of the switch. If the device is a router, ARP for IPv4 will also be shown.
 
@@ -162,12 +167,13 @@ Bulk Edit tab
 -------------
 
 If permissions allow, users will see the Bulk Edit tab. This shows the Bulk Edit form.
-This form allows you to apply or schedule a variety of changes at once to a number of switch interfaces.
+This form allows you to apply or schedule (if permitted) a variety of changes at once
+to a number of switch interfaces.
 
-This form has two submit buttons, one to submit the changes now, and another to schedule
-as a task at a later time (if enabled by your administrator).
-**Note:** if all the back-end processes for task scheduling are not running,
-this option will not show!
+This form has two submit buttons, one to apply the changes now,
+and if enabled and permitted by your administrator, another to schedule
+the changes as a task at a later time.
+**Note:** this option will only show if all the back-end processes for task scheduling are running.
 
 .. image:: ../_static/bulkedit-form.png
 
@@ -187,7 +193,7 @@ and your changes will be applied. Please be patient!
 **To schedule a task to apply these changes at a later time**, you need to fill in
 two additional fields:
 
-* fill in the proposed time the task will run.
+* pick the proposed time the task will run. This is in your local time zone, in 5 minute increments. You can schedule up to 28 days (4 weeks) in advance.
 * fill in a short description of the task.
 
 Then click the "Schedule Update on Selected Interfaces" button.

@@ -94,8 +94,8 @@
   </div>
 
   {% if tasks %}
-  <div class="panel panel-default">
-    <div class="panel-heading"><strong>Scheduled Tasks</strong></div>
+  <div class="panel {% if task_process_running %}panel-default{% else %}panel-warning{% endif %}">
+    <div class="panel-heading"><strong>Scheduled Tasks{% if not task_process_running %} - Task process is not running! <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>{% endif %}</strong></div>
     <div class="panel-body">
       <table class="table">
         <thead>
@@ -108,7 +108,7 @@
         {% for task in tasks %}
           <tr>
             <td>
-              {% if allow_tasks %}
+              {% if task_process_running and allow_tasks %}
                 <a href="{% url 'switches:task_delete' task.id %}"
                    title="Click here to delete this scheduled task..."
                 {% if request.user.profile.are_you_sure %}

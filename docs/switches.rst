@@ -8,6 +8,7 @@ OpenL2M uses standard SNMP to find the information about interfaces on switches.
 Snmp v1 is not supported. We recommend all devices are configured with v3.
 
 **Standard MIBs**
+
 OpenL2M requires the following MIBs to be available on the switches it manages:
 
 MIB-II, RFC 1213, see https://tools.ietf.org/html/rfc1213
@@ -27,7 +28,11 @@ or ipNetToPhysicalTable in the newer RFC4293, see https://tools.ietf.org/html/rf
 This is used to get mac address and ARP information.
 
 IEEE LLDP, LLDP-EXT-DOT1 and LLDP-EXT-DOT3 MIBs, see http://www.ieee802.org/1/files/public/MIBs/
-Used to read device neighbors interfaces.
+Used to read device neighbors information.
+
+IEEE MLAG MIB, see http://www.ieee802.org/1/files/public/MIBs/IEEE8023-LAG-MIB-201610120000Z.txt
+Used to find Link Aggregation (LACP) interface information.
+
 
 **Vendor Specific MIBs**
 
@@ -37,12 +42,28 @@ Cisco VTP MIB
   Used for VLAN information on Cisco Switches
 
 Cisco Extended PoE MIB
-  Get enhance PoE info on the switches that support it.
+  Get enhanced PoE info on the switches that support it.
 
 Cisco Stacking MIB
   For stack member info, if supported.
 
+HP Aruba/Procure HP-ICF-POE-MIB
+  Get enhanced PoE info on the Aruba/Procurve switches that support it.
 
+HP HP-ENTITY-POWER-MIB
+  Old power mib, supported by some Aruba/Procurve switches to get enhanced PoE info.
+
+HPE HH3C-PoE MIB
+  Get enhanced PoE info on the Comware switches that support it.
+
+HPE HH3C-LswINF MIB
+  Used for additional layer 2 interface information in HPE Comware switches.
+
+HPE HH3C-LswVLAN MIB
+  Used for additional VLAN data in HPE Comware switches.
+
+HPE HH3C-Config-Man MIB
+  Used to save running configuration on HPE Comware switches.
 
 **Switches Tested**
 

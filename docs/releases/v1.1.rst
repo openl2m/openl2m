@@ -10,6 +10,8 @@ New Features
 ------------
 
 * scheduling of Bulk Edit changes at a future date/time.
+* recognize LACP interface members. Do not allow vlan changes on LACP member interfaces.
+  This requires support for the IEEE LACP MIB.
 
 Bug Fixes
 ---------

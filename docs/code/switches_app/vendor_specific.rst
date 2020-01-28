@@ -9,7 +9,7 @@ Supporting a new vendor device
 
 In openl2m/switches/connect/vendor/, you can create you own vendor subdirectory.
 This folder needs to contain a python file that inherits from the main SnmpConnector() class.
-Suggested name is *snmp.py*  Call the class SnmpConnection*VendorName*
+Suggested name is *snmp.py*  Call the class SnmpConnector*VendorName*
 
 Override whatever function are needed (see the samples in vendor/cisco, vendor/procurve and vendor/comware)
 Then add your code as follows:
