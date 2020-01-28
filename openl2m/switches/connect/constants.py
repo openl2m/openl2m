@@ -631,6 +631,32 @@ LLDP_CAPA_BITS_PHONE = 0x04     # telephone(5)
 LLDP_CAPA_BITS_DOCSIS = 0x02    # docsisCableDevice(6),
 LLDP_CAPA_BITS_STATION = 0x01   # stationOnly(7)
 
+
+#
+# LACP MIB
+#
+# see also
+# http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.2.840.10006.300.43.1.2.1.1
+# https://stackoverflow.com/questions/14960157/how-to-map-portchannel-to-interfaces-via-snmp
+#
+
+# all info about LACP ports
+LACP_PORT_ENTRY = '.1.2.840.10006.300.43.1.2.1.1'
+snmp_mib_variables['dot3adAggPortEntry'] = LACP_PORT_ENTRY
+
+# specifically, what interfaces are members, i.e.:
+# LACP_PORT_SELECTED_AGG_ID.<member interface ifIndex> = <lacp virtual interface ifIndex>
+LACP_PORT_SELECTED_AGG_ID = '.1.2.840.10006.300.43.1.2.1.1.12'
+snmp_mib_variables['dot3adAggPortSelectedAggID'] = LACP_PORT_SELECTED_AGG_ID
+
+# The identifier value of the Aggregator that this Aggregation Port is currently attached to.
+# Zero indicates that the Aggregation Port is not currently attached to an Aggregator. This value is read-only.
+# LACP_PORT_ATTACHED_AGG_ID.<member interface ifIndex> = <lacp virtual interface ifIndex>
+LACP_PORT_ATTACHED_AGG_ID = '.1.2.840.10006.300.43.1.2.1.1.13'
+snmp_mib_variables['dot3adAggPortAttachedAggID'] = LACP_PORT_ATTACHED_AGG_ID
+
+
+
 #
 # VENDOR SPECIFIC Entries, see also vendors/vendors.py
 #

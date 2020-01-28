@@ -111,11 +111,12 @@ class SnmpConnectorComware(SnmpConnector):
         As an example, Override the VLAN change, this is done Comware specific using the Comware VLAN MIB
         Return -1 if invalid interface, or value of _set() call
         """
-        dprint("Comware set_interface_untagged_vlan()")
+        dprint("Comware set_interface_untagged_vlan() %d from %d to %d" % (if_index, old_vlan_id, new_vlan_id))
         iface = self.get_interface_by_index(if_index)
         new_vlan = self.get_vlan_by_id(new_vlan_id)
         if iface and new_vlan:
             if iface.is_tagged:
+                dprint("Tagged!")
                 # set the TRUNK_NATIVE_VLAN OID:
                 low_vlan_list = PortList()
                 low_vlan_list.from_byte_count(BYTES_FOR_2048_VLANS)
@@ -166,26 +167,33 @@ class SnmpConnectorComware(SnmpConnector):
 
             else:
                 # regular access mode untagged port:
-                # create a PortList to represent the bits that are in the new vlan.
+                # create a PortList to represent the ports/bits that are in the new vlan.
                 # we need byte size from number of ports:
-                max_port_id = self._get_max_qb_port_id()
-                #bytecount = (max_port_id / 8) + 1
-                bytecount = int(len(self.qb_port_to_ifindex) / 8) + 1
+                max_port_id = self._get_max_qbridge_port_id()
+                # bytecount = (max_port_id / 8) + 1
+                bytecount = int(len(self.qbridge_port_to_if_index) / 8) + 1
                 portlist = PortList()
                 # initialize with "00" bytes
                 portlist.from_byte_count(bytecount)
                 # now set bit to 1 for the port_id (interfaces):
                 portlist[int(iface.port_id)] = 1
                 # now loop to find other existing ports on this vlan:
-                for (index, intface) in self.interfaces.items():
-                    if intface.port_id > -1:
-                        # untagged or tagged port on this new vlanId?
-                        if (intface.untagged_vlan == new_vlan_id) or (new_vlan_id in intface.vlans):
-                            portlist[intface.port_id] = 1
-                    else:
-                        # no switchport? "should" not happen for a valid switch port interface
-                        warning = "Warning: %s - no port_id found in set_interface_untagged_vlan(Comware)!" % intface.name
-                        self._add_warning(warning)
+                for (this_index, this_iface) in self.interfaces.items():
+                    if this_iface.type == IF_TYPE_ETHERNET:
+                        if this_iface.port_id > -1:     # we have a valid PortId
+                            # untagged or tagged port on this new vlanId?
+                            if (this_iface.untagged_vlan == new_vlan_id) or (new_vlan_id in this_iface.vlans):
+                                # is this port in Current Egress PortList?
+                                # if not, do NOT add!
+                                # this can happen with a PVID set on a port in trunk mode, but
+                                # the trunk does not allow that vlan! (edge use case)
+                                if self.vlans[new_vlan_id].current_egress_portlist[this_iface.port_id]:
+                                    portlist[this_iface.port_id] = 1
+                        else:
+                            # no switchport? "should" not happen for a valid switch port interface
+                            warning = "Warning: %s - no port_id found in set_interface_untagged_vlan(Comware)!" % this_iface.name
+                            self._add_warning(warning)
+
                 # send to the switch!
                 # Comware needs bits in opposite order inside each byte! (go figure)
                 portlist.reverse_bits_in_bytes()
@@ -279,7 +287,7 @@ class SnmpConnectorComware(SnmpConnector):
         """
         if_index = int(oid_in_branch(hh3cifVLANType, oid))
         if if_index:
-            dprint("Comware if_index %s VLAN TYPE %s" % (if_index, val))
+            # dprint("Comware if_index %s if_type %s" % (if_index, val))
             if if_index in self.interfaces.keys():
                 self.interfaces[if_index].if_vlan_mode = int(val)
                 if int(val) == HH3C_IF_MODE_TRUNK:
@@ -332,15 +340,6 @@ class SnmpConnectorComware(SnmpConnector):
                         log.description = warning
                         log.save()
                     break
-
-    def can_change_interface_vlan(self):
-        """
-        Return True if we can change a vlan on an interface, False if not
-        """
-        # at this time, we use SSH/Netmiko for this, so we need a Netmiko profile!
-        if self.switch.netmiko_profile:
-            return True
-        return False
 
     def can_save_config(self):
         """

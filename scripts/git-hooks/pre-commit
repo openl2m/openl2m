@@ -15,7 +15,7 @@ RED='\033[0;31m'
 NOCOLOR='\033[0m'
 
 echo "Validating PEP8 compliance..."
-pycodestyle --ignore=W504,W605,E501 openl2m/
+pycodestyle --ignore=E121,E123,E126,E133,E226,E241,E242,E501,E704,W503,W504,W505,W605 openl2m/
 if [ $? != 0 ]; then
 	EXIT=1
 fi

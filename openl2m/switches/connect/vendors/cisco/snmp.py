@@ -107,9 +107,9 @@ class SnmpConnectorCisco(SnmpConnector):
         if_index = int(oid_in_branch(VTP_UNTAGGED_MEMBERSHIP_VLAN, oid))
         if if_index:
             untagged_vlan = int(val)
-            if (if_index in self.interfaces.keys() and
-                    not self.interfaces[if_index].is_tagged and
-                    untagged_vlan in self.vlans.keys()):
+            if (if_index in self.interfaces.keys()
+                    and not self.interfaces[if_index].is_tagged
+                    and untagged_vlan in self.vlans.keys()):
                 self.interfaces[if_index].untagged_vlan = untagged_vlan
                 self.interfaces[if_index].untagged_vlan_name = self.vlans[untagged_vlan].name
             else:
@@ -128,7 +128,7 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         stack_port_id = oid_in_branch(CISCO_PORT_IF_INDEX, oid)
         if stack_port_id:
-            self.stack_port_to_ifindex[stack_port_id] = int(val)
+            self.stack_port_to_if_index[stack_port_id] = int(val)
             return True
 
         """
@@ -275,9 +275,9 @@ class SnmpConnectorCisco(SnmpConnector):
         e.g. GigabitEthernet5/12
         """
         for (pe_index, port_entry) in self.poe_port_entries.items():
-            if len(self.stack_port_to_ifindex) > 0:
-                if pe_index in self.stack_port_to_ifindex.keys():
-                    if_index = self.stack_port_to_ifindex[pe_index]
+            if len(self.stack_port_to_if_index) > 0:
+                if pe_index in self.stack_port_to_if_index.keys():
+                    if_index = self.stack_port_to_if_index[pe_index]
                     if if_index in self.interfaces.keys():
                         self.interfaces[if_index].poe_entry = port_entry
                         if port_entry.detect_status == POE_PORT_DETECT_FAULT:

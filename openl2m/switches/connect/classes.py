@@ -96,25 +96,25 @@ class Interface():
     """
     Class to represent all the switch interface attributes, SNMP or otherwize discovered
     """
-    def __init__(self, ifIndex):
+    def __init__(self, if_index):
         """
-        Initialize the object
+        Initialize the object. We map the MIB-II entity names to similar class attributes.
         """
         self.visible = True         # if True, this user can "see" this interface
         self.manageable = True      # if True, this interface is manageable by the current user
-        self.can_edit_alias = False  # if True, can change ifAlias, aka interface description
-        self.ifIndex = ifIndex
+        self.can_edit_alias = False  # if True, can change alias, aka interface description
+        self.index = if_index       # ifIndex, the key to all MIB-2 data!
         # self.ifDescr = ''           # the old name of the interface, NOT the "description" attribute which is the ifAlias !!!
-        self.name = ''              # the name from IFMIB IF_NAME entry! Falls back to older IfDescr is not found!
-        self.ifType = 0
-        self.ifOperStatus = IF_OPER_STATUS_DOWN
-        self.ifAdminStatus = IF_ADMIN_STATUS_DOWN
+        self.name = ''              # the name from IFMIB ifName entry! Falls back to older MIB-2ifDescr is not found!
+        self.type = 0               # ifType, the MIB-2 type of the interface
+        self.oper_status = IF_OPER_STATUS_DOWN      # ifOperStatus, operation status of interface
+        self.admin_status = IF_ADMIN_STATUS_DOWN    # ifAdminStatus, administrative status of the interface
         self.has_connector = True   # value of IFMIB_CONNECTOR
-        self.ifMtu = 0
-        self.ifSpeed = 0
-        self.ifHCSpeed = 0          # high speed counter, in 1 Mbps, from IF-MIB, not Interfaces MIB
-        self.ifPhysAddr = 0x0
-        self.ifAlias = ''           # the interface description, as set by the switch configuration, from IF-MIB
+        self.mtu = 0                # ifMTU value
+        self.speed = 0              # ifSpeed from the old Interfaces mib
+        self.hc_speed = 0           # high speed counter, in 1 Mbps, from IF-MIB, not Interfaces MIB
+        self.phys_addr = 0x0
+        self.alias = ''           # the interface description, as set by the switch configuration, from IF-MIB
         self.addresses_ip4 = {}     # dictionary of all my ipv4 addresses on this interface
         self.addresses_ip6 = {}     # dictionary of all my ipv6 addresses on this interface
         # vlan related
@@ -127,10 +127,12 @@ class Interface():
         self.voice_vlan = 0          # Cisco specific "Voice Vlan"
         self.can_change_vlan = True  # if set, we can change the vlan; some device types this is not implemented yet!
         self.gvrp_enabled = False    # the value representing the status of MVRP/GVRP on the interface
-        # some stats
-        self.ifLastChange = 0
-        self.ifInOctets = 0
-        self.ifInUcastPkts = 0
+        self.last_change = 0         # ifLastChange, tick count since uptime when interface last changed
+        # LACP related
+        self.lacp_members = {}       # We are LACP master, this is a dictionary of lacp member interfaces.
+                                             # key = ifIndex, value = ifName, of member interfaces
+        self.lacp_master_index = -1  # we are member of an LACP interface. ifIndex of the master aggregate. Mutually exclusive with above!
+        self.lacp_master_name = ''   # we are member of an LACP interface. ifname of the master aggregate.
         # Power related
         self.poe_entry = False
         self.allow_poe_toggle = False   # if set, any user can toggle PoE OFF-ON
@@ -141,8 +143,8 @@ class Interface():
 
     def display_name(self):
         s = self.name   # use the IF-MIB new interface name
-        if self.ifAlias:
-            s += ": " + self.ifAlias
+        if self.alias:
+            s += ": " + self.alias
         return s
 
     def __str__(self):
@@ -158,14 +160,16 @@ class Vlan():
         Vlan() requires passing in the vlan id
         """
         self.id = vlanId
-        #self.name = "VLAN %d" % vlanId
+        # self.name = "VLAN %d" % vlanId
         self.name = ""
         self.type = CISCO_VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
         self.status = VLAN_STATUS_OTHER     # 1-other-0, 2-permanent, 3-dynamic(gvrp)
-        self.current_egress_ports_bitmap = 0x0      # dot1qVlanCurrentEgressPorts OCTETSTRING (PortList) with bitmap of egress ports in this vlan
-        self.static_egress_ports_bitmap = 0x0       # dot1qVlanStaticPorts OCTETSTRING (PortList) with bitmap of egress ports in this vlan
+        self.current_egress_portlist = PortList()   # dot1qVlanCurrentEgressPorts OCTETSTRING (PortList)
+                                                        # stored as PortList() object with bitmap of egress ports in this vlan
+        self.static_egress_portlist = PortList()    # dot1qVlanStaticPorts OCTETSTRING (PortList)
+                                                        # stored as PortList() object with bitmap of egress ports in this vlan
         self.untagged_ports_bitmap = 0x0    # exactly what you think, PortList format ! :-)
-        self.hh3cdot1qVlanPorts = 0x0       # HH3C specific vlan PortList bitmap
+        # self.hh3c_dot1q_vlan_ports = PortList()       # hh3cdot1qVlanPorts is HH3C specific vlan untagged PortList() bitmap
 
     def set_name(self, name):
         self.name = name
@@ -181,10 +185,10 @@ class Vlan():
 
 class PortList():
     """
-    Object to handle theQ-BRIDGE PortList bitmap that exists per vlan.
+    Object to handle the Q-BRIDGE PortList bitmap that exists per vlan.
     This is the back-and-forth mapping of switch port to bit
     in a stream of bits . This is snmp type OCTETSTRING
-    This is heavily inspired by the BitVector() class from NAV
+    Mostly a copy of the BitVector() class from NAV
 
     :param bitmap_string: a Unicode encoded string of bytes representing
                           the bitmap that represents switch ports on a vlan.
@@ -276,7 +280,7 @@ class PortList():
         significant bit is regarded as bit 0 in this context.
         """
         # NOTE: bit 0 = port_id 1. First byte is ports 1-8, second 9-16, etc.
-        dprint("__setitem__ pos=%s, val=%s" % (position, value))
+        dprint("PortList __setitem__ pos=%s, val=%s" % (position, value))
         position -= 1
         value = value and 1 or 0
         block = position // 8
@@ -293,6 +297,7 @@ class PortList():
         Get the value of the bit in position.  NOTE: The most
         significant bit is regarded as bit 0 in this context.
         """
+        position -= 1
         if isinstance(position, slice):
             result = []
             for i in range(*position.indices(len(self))):
@@ -315,15 +320,15 @@ class IP4Address():
         self.ip = ip
         self.netmask = netmask
         self.cyder_bits = 32
-        self.ifIndex = 0
+        self.if_index = 0
 
     def set_netmask(self, netmask):
         self.netmask = netmask
         # set bits as well
         self.cyder_bits = (sum([bin(int(bits)).count("1") for bits in self.netmask.split(".")]))
 
-    def set_ifindex(self, ifindex):
-        self.ifIndex = ifindex
+    def set_if_index(self, if_index):
+        self.if_index = if_index
 
     def display_name(self):
         return self.ip + "/" + self.netmask
@@ -364,12 +369,12 @@ class NeighborDevice():
     """
     Class to represents an lldp neighbor, and whatever we know about it.
     """
-    def __init__(self, lldp_index, ifIndex):
+    def __init__(self, lldp_index, if_index):
         """
         Initialize the object, requires the lldp index and ifIndex
         """
         self.index = lldp_index     # 'string' remainder of OID that is unique per remote device
-        self.ifIndex = int(ifIndex)
+        self.if_index = int(if_index)
         self.chassis_type = 0    # integer, LldpChassisIdSubtype
         self.chassis_string = ''        # LldpChassisId, OctetString format depends on type.
         self.capabilities = 0x0  # integer bitmap of device capabilities, see LLDP mib

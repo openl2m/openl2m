@@ -25,6 +25,7 @@ from switches.constants import ETH_FORMAT_COLON, ETH_FORMAT_HYPHEN, ETH_FORMAT_C
 logger_debug = logging.getLogger("openl2m.debug")
 logger_console = logging.getLogger("openl2m.console")
 
+
 def dprint(var):
     """
     log to file if configured in settings.LOGGING

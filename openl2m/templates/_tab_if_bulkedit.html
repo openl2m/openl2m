@@ -136,8 +136,8 @@
 
               <td><input type="checkbox" value="{{if_index}}" name="interface_list"></td>
               <td
-                {% if iface.ifAdminStatus ==  IF_ADMIN_STATUS_UP %}
-                  {% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
+                {% if iface.admin_status ==  IF_ADMIN_STATUS_UP %}
+                  {% if iface.oper_status == IF_OPER_STATUS_UP %}
                     bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
                   {% else %}
                     bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
@@ -149,9 +149,9 @@
               </td>
 
               <td>
-                {% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
-                  {% if iface.ifHCSpeed > 0 %}
-                    {{ iface.ifHCSpeed }} Mbps
+                {% if iface.oper_status == IF_OPER_STATUS_UP %}
+                  {% if iface.hc_speed > 0 %}
+                    {{ iface.hc_speed }} Mbps
                   {% else %}
                      <small>(Unknown)</small>
                   {% endif %}
@@ -161,7 +161,7 @@
               </td>
 
               {# only show vlan, poe, alias and command capabilities for Ethernet interfaces #}
-              {% if iface.ifType == IF_TYPE_ETHERNET %}
+              {% if iface.type == IF_TYPE_ETHERNET %}
                 <td>
                   {% if iface.untagged_vlan > 0 %}
                     {{ iface.untagged_vlan }}
@@ -200,7 +200,7 @@
                 {% endif %}
 
                 <td>
-                  {{ iface.ifAlias }}
+                  {{ iface.alias }}
                 </td>
 
               {% endif %}

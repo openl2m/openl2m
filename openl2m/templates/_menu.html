@@ -30,10 +30,8 @@
                   </a>
                   <ul class="dropdown-menu">
                     <li><a href="/"><i class="fa fa-user"></i> Home</a></li>
-                    {% if settings.TASKS_ENABLED %}
-                      {% if request.user.profile.tasks or request.user.is_superuser %}
+                    {% if request.user.profile.tasks or request.user.is_superuser %}
                     <li><a href="{% url 'switches:tasks' %}"><i class="fa fa-calendar" aria-hidden="true"></i> Scheduled Tasks</a></li>
-                      {% endif %}
                     {% endif %}
                     <li><a href="{% static 'docs/html/using/index.html' %}" target="_docs"><i class="fa fa-book" aria-hidden="true"></i> Docs</a></li>
                     {% if request.user.is_superuser %}

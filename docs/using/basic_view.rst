@@ -68,6 +68,11 @@ Hovering over the icon will show the tagged Vlans on this port.
 
 .. |trunk| image:: ../_static/trunk-24.png
 
+|lacp|  This means the interface is an LACP interface, or a member of an LACP aggregation interface.
+Hovering over the icon will show the member interfaces if this is a virtual aggregate interface, or on a physical interface it will show which aggregate it is part of.
+
+.. |lacp| image:: ../_static/lacp.png
+
 |voicevlan|  This means the interface has a voice vlan defined on it. This is Cisco
 specific. Hovering over the icon will
 show the Voice Vlan.

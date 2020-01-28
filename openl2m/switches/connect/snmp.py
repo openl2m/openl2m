@@ -521,9 +521,9 @@ class SnmpConnector(EasySNMP):
         self.poe_port_entries = {}  # PoePort() port power entries, used to store until we can map to interface
         self.vlans = {}             # Vlan() objects on this switch, key is vlan id
         self.allowed_vlans = {}     # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
-        self.qb_port_to_ifindex = {}     # this maps Q-Bridge port id to MIB-II ifIndex
-        self.stack_port_to_ifindex = {}  # maps (Cisco) stacking port to ifIndex values
-        self.ip4toifIndex = {}      # the IPv4 addresses as keys, with stored value ifIndex; needed to map netmask to interface
+        self.qbridge_port_to_if_index = {}     # this maps Q-Bridge port id to MIB-II ifIndex
+        self.stack_port_to_if_index = {}  # maps (Cisco) stacking port to ifIndex values
+        self.ip4_to_if_index = {}      # the IPv4 addresses as keys, with stored value ifIndex; needed to map netmask to interface
         self.eth_addr_count = 0     # number of known mac addresses
         self.neighbor_count = 0     # number of lldp neighbors
         self.warnings = []          # list of warning strings that may be shown to users
@@ -550,7 +550,7 @@ class SnmpConnector(EasySNMP):
         self._get_http_session_cache()
 
         # check if the previous page set the 'save needed' flag in the web session
-        self.save_needed = self.is_save_needed()
+        self.save_needed = self.get_save_needed()
         # check if we can change vlans
         self.vlan_change_implemented = self.can_change_interface_vlan()
 
@@ -579,7 +579,7 @@ class SnmpConnector(EasySNMP):
             # make sure this is stored, can also add this setting:
             # SESSION_SAVE_EVERY_REQUEST=True
             self.request.session.modified = True
-        #else:
+        # else:
             # only happens if running in CLI or tasks
             # dprint("_set_http_session_cache() called but NO http.request found!")
 
@@ -611,9 +611,9 @@ class SnmpConnector(EasySNMP):
                     return False
             else:
                 # wrong switch id, i.e. we changed switches, clear session data!
-                self._clear_session_oidcache()
+                self._clear_session_oid_cache()
         # else:
-        #    dprint("NO SESSION or SESSION DATA NOT FOUND")
+        #    we are running from CLI or Celery task process!
 
         return False
 
@@ -630,7 +630,7 @@ class SnmpConnector(EasySNMP):
             _clear_session_save_needed(self.request)
         return True
 
-    def is_save_needed(self):
+    def get_save_needed(self):
         """
         Get the flag that this switch needs the config saved
         """
@@ -733,98 +733,98 @@ class SnmpConnector(EasySNMP):
             return True
 
         # this is the old ifDescr, superceded by the IF-MIB name
-        ifIndex = int(oid_in_branch(IF_DESCR, oid))
-        if ifIndex:
-            if ifIndex in self.interfaces.keys():
-                # self.interfaces[ifIndex].ifDescr = str(val)
+        if_index = int(oid_in_branch(IF_DESCR, oid))
+        if if_index:
+            if if_index in self.interfaces.keys():
+                # self.interfaces[if_index].ifDescr = str(val)
                 # set new 'name'. Latter will later be overwritten with IFMIB_NAME bulkwalk
-                self.interfaces[ifIndex].name = str(val)
+                self.interfaces[if_index].name = str(val)
             return True
 
-        ifIndex = int(oid_in_branch(IF_TYPE, oid))
-        if ifIndex:
+        if_index = int(oid_in_branch(IF_TYPE, oid))
+        if if_index:
             val = int(val)
-            if ifIndex in self.interfaces.keys():
-                self.interfaces[ifIndex].ifType = val
+            if if_index in self.interfaces.keys():
+                self.interfaces[if_index].type = val
                 if val != IF_TYPE_ETHERNET:
                     # non-Ethernet interfaces are NOT manageable, no matter who
-                    self.interfaces[ifIndex].manageable = False
+                    self.interfaces[if_index].manageable = False
             return True
 
-        ifIndex = int(oid_in_branch(IF_MTU, oid))
-        if ifIndex:
+        if_index = int(oid_in_branch(IF_MTU, oid))
+        if if_index:
             val = int(val)
-            if ifIndex in self.interfaces.keys():
-                self.interfaces[ifIndex].ifMtu = val
+            if if_index in self.interfaces.keys():
+                self.interfaces[if_index].mtu = val
             return True
 
         # the old speed, but really we want HCSpeed from IF-MIB, see below
-        ifIndex = int(oid_in_branch(IF_SPEED, oid))
-        if ifIndex:
+        if_index = int(oid_in_branch(IF_SPEED, oid))
+        if if_index:
             # save this in 1Mbps, as per IF-MIB hcspeed
-            if ifIndex in self.interfaces.keys():
-                self.interfaces[ifIndex].ifHCSpeed = int(val) / 1000000
+            if if_index in self.interfaces.keys():
+                self.interfaces[if_index].hc_speed = int(val) / 1000000
             return True
 
         # do we care about this one?
-        ifIndex = int(oid_in_branch(IF_PHYS_ADDR, oid))
-        if ifIndex:
-            if ifIndex in self.interfaces.keys():
-                self.interfaces[ifIndex].ifPhysAddr = val
+        if_index = int(oid_in_branch(IF_PHYS_ADDR, oid))
+        if if_index:
+            if if_index in self.interfaces.keys():
+                self.interfaces[if_index].phys_addr = val
             return True
 
-        ifIndex = int(oid_in_branch(IF_ADMIN_STATUS, oid))
-        if ifIndex:
-            if ifIndex in self.interfaces.keys():
-                self.interfaces[ifIndex].ifAdminStatus = int(val)
+        if_index = int(oid_in_branch(IF_ADMIN_STATUS, oid))
+        if if_index:
+            if if_index in self.interfaces.keys():
+                self.interfaces[if_index].admin_status = int(val)
             return True
 
-        ifIndex = int(oid_in_branch(IF_OPER_STATUS, oid))
-        if ifIndex:
-            if ifIndex in self.interfaces.keys():
-                self.interfaces[ifIndex].ifOperStatus = int(val)
+        if_index = int(oid_in_branch(IF_OPER_STATUS, oid))
+        if if_index:
+            if if_index in self.interfaces.keys():
+                self.interfaces[if_index].oper_status = int(val)
             return True
 
         """
-        ifIndex = int(oid_in_branch(IF_LAST_CHANGE, oid))
-        if ifIndex:
-            if ifIndex in self.interfaces.keys():
-                self.interfaces[ifIndex].ifLastChange = int(val)
+        if_index = int(oid_in_branch(IF_LAST_CHANGE, oid))
+        if if_index:
+            if if_index in self.interfaces.keys():
+                self.interfaces[if_index].last_change = int(val)
             return True
         """
 
-        ifIndex = int(oid_in_branch(IFMIB_NAME, oid))
-        if ifIndex:
-            if ifIndex in self.interfaces.keys():
-                self.interfaces[ifIndex].name = str(val)
+        if_index = int(oid_in_branch(IFMIB_NAME, oid))
+        if if_index:
+            if if_index in self.interfaces.keys():
+                self.interfaces[if_index].name = str(val)
             return True
 
-        ifIndex = int(oid_in_branch(IFMIB_ALIAS, oid))
-        if ifIndex:
-            if ifIndex in self.interfaces.keys():
-                self.interfaces[ifIndex].ifAlias = str(val)
+        if_index = int(oid_in_branch(IFMIB_ALIAS, oid))
+        if if_index:
+            if if_index in self.interfaces.keys():
+                self.interfaces[if_index].alias = str(val)
             return True
 
         # ifMIB high speed counter:
-        ifIndex = int(oid_in_branch(IFMIB_HIGHSPEED, oid))
-        if ifIndex:
+        if_index = int(oid_in_branch(IFMIB_HIGHSPEED, oid))
+        if if_index:
             if not self.switch.snmp_capabilities & CAPABILITIES_IF_MIB:
                 self.switch.snmp_capabilities |= CAPABILITIES_IF_MIB
                 self.switch.save()
-            if ifIndex in self.interfaces.keys():
-                self.interfaces[ifIndex].ifHCSpeed = int(val)
+            if if_index in self.interfaces.keys():
+                self.interfaces[if_index].hc_speed = int(val)
             return True
 
         """
-        ifIndex = int(oid_in_branch(IFMIB_CONNECTOR, oid))
-        if ifIndex:
+        if_index = int(oid_in_branch(IFMIB_CONNECTOR, oid))
+        if if_index:
             val = int(val)
-            if ifIndex in self.interfaces.keys():
+            if if_index in self.interfaces.keys():
                 if val == SNMP_TRUE:
-                    self.interfaces[ifIndex].has_connector = True
+                    self.interfaces[if_index].has_connector = True
                 else:
-                    self.interfaces[ifIndex].has_connector = False
-                    self.interfaces[ifIndex].manageable = False
+                    self.interfaces[if_index].has_connector = False
+                    self.interfaces[if_index].manageable = False
             return True
         """
 
@@ -858,7 +858,7 @@ class SnmpConnector(EasySNMP):
         # the per-switchport GVRP setting:
         port_id = int(oid_in_branch(dot1qPortGvrpStatus, oid))
         if port_id:
-            if_index = self._get_ifindex_from_portid(port_id)
+            if_index = self._get_if_index_from_port_id(port_id)
             if if_index in self.interfaces.keys() and int(val) == GVRP_ENABLED:
                 self.interfaces[if_index].gvrp_enabled = True
             return True
@@ -872,7 +872,7 @@ class SnmpConnector(EasySNMP):
             if vlanId not in self.vlans.keys():
                 # not likely, we should know vlan by now, but just in case!
                 self.vlans[vlanId] = Vlan(vlanId)
-            self.vlans[vlanId].current_egress_ports_bitmap = val
+            self.vlans[vlanId].current_egress_portlist.from_unicode(val)
             offset = 0
             for byte in val:
                 byte = ord(byte)
@@ -953,7 +953,7 @@ class SnmpConnector(EasySNMP):
                 # not likely, we should know by now, but just in case.
                 self.vlans[vlanId] = Vlan(vlanId)
             # store it!
-            self.vlans[vlanId].static_egress_ports_bitmap = val
+            self.vlans[vlanId].static_egress_portlist.from_unicode(val)
             return True
 
         # this is the bitmap of static untagged ports in vlans (see also above QBRIDGE_VLAN_EGRESS_PORTS)
@@ -982,22 +982,22 @@ class SnmpConnector(EasySNMP):
             return True
 
         # The VLAN ID assigned to ***untagged*** frames - dot1qPvid, indexed by dot1dBasePort
-        # ie. lookup ifIndex with _get_ifindex_from_portid(port_id)
+        # ie. lookup ifIndex with _get_if_index_from_port_id(port_id)
         # IMPORTANT: IF THE INTERFACE IS TAGGED, this value is 1, and typically incorrect!!!
         port_id = int(oid_in_branch(QBRIDGE_PORT_VLAN_PVID, oid))
         if port_id:
-            ifIndex = self._get_ifindex_from_portid(port_id)
+            if_index = self._get_if_index_from_port_id(port_id)
             # not yet sure how to handle this
             untagged_vlan = int(val)
-            if ifIndex in self.interfaces.keys():
+            if if_index in self.interfaces.keys():
                 if untagged_vlan in self.vlans.keys():
-                    self.interfaces[ifIndex].untagged_vlan = untagged_vlan
-                    self.interfaces[ifIndex].untagged_vlan_name = self.vlans[untagged_vlan].name
+                    self.interfaces[if_index].untagged_vlan = untagged_vlan
+                    self.interfaces[if_index].untagged_vlan_name = self.vlans[untagged_vlan].name
                 else:
                     # vlan not defined on switch!
-                    self.interfaces[ifIndex].disabled = True
-                    self.interfaces[ifIndex].disabled_reason = "Untagged vlan %d is NOT defined on switch" % untagged_vlan
-                    warning = "Undefined vlan %d on %s" % (untagged_vlan, self.interfaces[ifIndex].name)
+                    self.interfaces[if_index].disabled = True
+                    self.interfaces[if_index].disabled_reason = "Untagged vlan %d is NOT defined on switch" % untagged_vlan
+                    warning = "Undefined vlan %d on %s" % (untagged_vlan, self.interfaces[if_index].name)
                     self._add_warning(warning)
                     # log this as well
                     log = Log()
@@ -1006,7 +1006,7 @@ class SnmpConnector(EasySNMP):
                     if self.request:
                         log.user = self.request.user
                     log.ip_address = get_remote_ip(self.request)
-                    log.if_index = ifIndex
+                    log.if_index = if_index
                     log.type = LOG_TYPE_ERROR
                     log.action = LOG_UNDEFINED_VLAN
                     log.description = "ERROR: %s" % warning
@@ -1019,13 +1019,13 @@ class SnmpConnector(EasySNMP):
         # CURRENT_VLAN_EGRESS_PORTS = QBRIDGENODES['dot1qVlanCurrentEgressPorts']['oid'] + '.0'
         # NOTE: this is a READ-ONLY variable!
 
-        # Map the Q-BRIDGE port id to the MIB-II ifIndexes.
+        # Map the Q-BRIDGE port id to the MIB-II if_indexes.
         # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
         port_id = int(oid_in_branch(BRIDGE_PORT_TO_INDEX_MAP, oid))
         if port_id:
             # map port ID to interface ID
             if_index = int(val)
-            self.qb_port_to_ifindex[port_id] = if_index
+            self.qbridge_port_to_if_index[port_id] = if_index
             # and map Interface() object back to port ID as well:
             if if_index in self.interfaces.keys():
                 self.interfaces[if_index].port_id = port_id
@@ -1038,7 +1038,7 @@ class SnmpConnector(EasySNMP):
         if ip:
             if_index = int(val)
             if if_index in self.interfaces.keys():
-                self.ip4toifIndex[ip] = if_index  # for lookup of netmask below
+                self.ip4_to_if_index[ip] = if_index  # for lookup of netmask below
                 self.interfaces[if_index].addresses_ip4[ip] = IP4Address(ip)
             return True
 
@@ -1053,14 +1053,14 @@ class SnmpConnector(EasySNMP):
                 netmask = val
             # dprint("IP address %s netmask %s" % (ip, netmask))
             # we should have found the IP address already!
-            if ip in self.ip4toifIndex.keys():
-                ifIndex = self.ip4toifIndex[ip]
-                if ifIndex in self.interfaces.keys():
+            if ip in self.ip4_to_if_index.keys():
+                if_index = self.ip4_to_if_index[ip]
+                if if_index in self.interfaces.keys():
                     # have we seen this IP on this interface (we should!)?
-                    if ip in self.interfaces[ifIndex].addresses_ip4.keys():
-                        ip_addr = self.interfaces[ifIndex].addresses_ip4[ip]
+                    if ip in self.interfaces[if_index].addresses_ip4.keys():
+                        ip_addr = self.interfaces[if_index].addresses_ip4[ip]
                         ip_addr.set_netmask(netmask)
-                        self.interfaces[ifIndex].addresses_ip4[ip] = ip_addr  # save change!
+                        self.interfaces[if_index].addresses_ip4[ip] = ip_addr  # save change!
             return True
 
         """
@@ -1193,6 +1193,28 @@ class SnmpConnector(EasySNMP):
             return True
         """
 
+        #
+        # LACP MIB parsing
+        #
+        """
+        Parse a single OID with data returned from the LACP MIB
+        Will return True if we have parsed this, and False if not.
+        """
+        # Q-Bridge Ethernet addresses known
+        member_if_index = int(oid_in_branch(LACP_PORT_ATTACHED_AGG_ID, oid))
+        if member_if_index:
+            lacp_if_index = int(val)
+            if lacp_if_index > 0:
+                dprint("Member ifIndex %s is part of LCAP ifIndex %d" % (member_if_index, lacp_if_index))
+                if member_if_index in self.interfaces.keys() and lacp_if_index in self.interfaces.keys():
+                    # from this one read, we can get the aggregate ifIndex for the virtual interface
+                    # (and name, for display convenience)
+                    self.interfaces[member_if_index].lacp_master_index = lacp_if_index
+                    self.interfaces[member_if_index].lacp_master_name = self.interfaces[lacp_if_index].name
+                    # and also the member interface (i.e. the physical interface!)
+                    self.interfaces[lacp_if_index].lacp_members[member_if_index] = self.interfaces[member_if_index].name
+            return True
+
         # we did not parse this. This can happen with Bulk Walks...
         return False
 
@@ -1211,12 +1233,12 @@ class SnmpConnector(EasySNMP):
             port_id = int(val)
             # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
             if port_id:
-                ifIndex = self.qb_port_to_ifindex[int(val)]
-                if ifIndex in self.interfaces.keys():
-                    self.interfaces[ifIndex].eth[eth_string] = EthernetAddress(eth_decimals)
+                if_index = self.qbridge_port_to_if_index[int(val)]
+                if if_index in self.interfaces.keys():
+                    self.interfaces[if_index].eth[eth_string] = EthernetAddress(eth_decimals)
                     self.eth_addr_count += 1
                 # else:
-                #    dprint("  ifIndex = %d: NOT FOUND!")
+                #    dprint("  if_index = %d: NOT FOUND!")
             return True
         return False
 
@@ -1233,11 +1255,11 @@ class SnmpConnector(EasySNMP):
                 self.switch.snmp_capabilities |= CAPABILITIES_NET2MEDIA_MIB
                 self.switch.save()
             parts = if_ip_string.split('.', 1)  # 1 means one split, two elements!
-            ifIndex = int(parts[0])
+            if_index = int(parts[0])
             ip = str(parts[1])
-            if ifIndex in self.interfaces.keys():
+            if if_index in self.interfaces.keys():
                 mac_addr = bytes_to_hex_string_ethernet(val)
-                self.interfaces[ifIndex].arp4[ip] = mac_addr
+                self.interfaces[if_index].arp4[ip] = mac_addr
                 # see if we can add this to a known ethernet address
                 # time consuming, but useful
                 for index, iface in self.interfaces.items():
@@ -1277,7 +1299,7 @@ class SnmpConnector(EasySNMP):
         #    return True
 
         # the following are indexed by  <remote-device-random-id>.<port-id>.1
-        # if Q-BRIDGE is implemented, <port-id> is that portid, mapped in self.qb_port_to_ifindex[port_id]
+        # if Q-BRIDGE is implemented, <port-id> is that port_id, mapped in self.qbridge_port_to_if_index[port_id]
         # if Q-BRIDGE is NOT implemented, <port-id> = <ifIndex>, ie without the mapping
         lldp_index = oid_in_branch(LLDP_REMOTE_PORT_ID, oid)
         if lldp_index:
@@ -1289,10 +1311,10 @@ class SnmpConnector(EasySNMP):
             # store the new lldp object, based on the string index.
             # need to find the ifIndex first.
             # did we find Q-Bridge mappings?
-            ifIndex = self._get_ifindex_from_portid(port_id)
-            if ifIndex in self.interfaces.keys():
+            if_index = self._get_if_index_from_port_id(port_id)
+            if if_index in self.interfaces.keys():
                 # add new LLDP neighbor
-                self.interfaces[ifIndex].lldp[lldp_index] = NeighborDevice(lldp_index, ifIndex)
+                self.interfaces[if_index].lldp[lldp_index] = NeighborDevice(lldp_index, if_index)
                 self.neighbor_count += 1
             return True
 
@@ -1302,11 +1324,11 @@ class SnmpConnector(EasySNMP):
             port_id = int(port_id)
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            ifIndex = self._get_ifindex_from_portid(port_id)
-            if ifIndex in self.interfaces.keys():
-                if lldp_index in self.interfaces[ifIndex].lldp.keys():
+            if_index = self._get_if_index_from_port_id(port_id)
+            if if_index in self.interfaces.keys():
+                if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system name
-                    self.interfaces[ifIndex].lldp[lldp_index].port_descr = str(val)
+                    self.interfaces[if_index].lldp[lldp_index].port_descr = str(val)
             return True
 
         lldp_index = oid_in_branch(LLDP_REMOTE_SYS_NAME, oid)
@@ -1315,11 +1337,11 @@ class SnmpConnector(EasySNMP):
             port_id = int(port_id)
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            ifIndex = self._get_ifindex_from_portid(port_id)
-            if ifIndex in self.interfaces.keys():
-                if lldp_index in self.interfaces[ifIndex].lldp.keys():
+            if_index = self._get_if_index_from_port_id(port_id)
+            if if_index in self.interfaces.keys():
+                if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system name
-                    self.interfaces[ifIndex].lldp[lldp_index].sys_name = str(val)
+                    self.interfaces[if_index].lldp[lldp_index].sys_name = str(val)
             return True
 
         lldp_index = oid_in_branch(LLDP_REMOTE_SYS_DESCR, oid)
@@ -1328,11 +1350,11 @@ class SnmpConnector(EasySNMP):
             port_id = int(port_id)
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            ifIndex = self._get_ifindex_from_portid(port_id)
-            if ifIndex in self.interfaces.keys():
-                if lldp_index in self.interfaces[ifIndex].lldp.keys():
+            if_index = self._get_if_index_from_port_id(port_id)
+            if if_index in self.interfaces.keys():
+                if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system name
-                    self.interfaces[ifIndex].lldp[lldp_index].sys_descr = str(val)
+                    self.interfaces[if_index].lldp[lldp_index].sys_descr = str(val)
             return True
 
         # parse enabled capabilities
@@ -1342,11 +1364,11 @@ class SnmpConnector(EasySNMP):
             port_id = int(port_id)
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            ifIndex = self._get_ifindex_from_portid(port_id)
-            if ifIndex in self.interfaces.keys():
-                if lldp_index in self.interfaces[ifIndex].lldp.keys():
+            if_index = self._get_if_index_from_port_id(port_id)
+            if if_index in self.interfaces.keys():
+                if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system name
-                    self.interfaces[ifIndex].lldp[lldp_index].capabilities = bytes(val, 'utf-8')
+                    self.interfaces[if_index].lldp[lldp_index].capabilities = bytes(val, 'utf-8')
             return True
 
         lldp_index = oid_in_branch(LLDP_REMOTE_CHASSIS_TYPE, oid)
@@ -1356,14 +1378,14 @@ class SnmpConnector(EasySNMP):
             val = int(val)
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            ifIndex = self._get_ifindex_from_portid(port_id)
-            if ifIndex in self.interfaces.keys():
-                if lldp_index in self.interfaces[ifIndex].lldp.keys():
+            if_index = self._get_if_index_from_port_id(port_id)
+            if if_index in self.interfaces.keys():
+                if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system name
-                    if self.interfaces[ifIndex].lldp[lldp_index].chassis_type > 0:
+                    if self.interfaces[if_index].lldp[lldp_index].chassis_type > 0:
                         self._add_warning("Chassis Type for %d already %d, now %d!" %
-                                          (llp_index, self.interfaces[ifIndex].lldp[lldp_index].chassis_type, val))
-                    self.interfaces[ifIndex].lldp[lldp_index].chassis_type = val
+                                          (llp_index, self.interfaces[if_index].lldp[lldp_index].chassis_type, val))
+                    self.interfaces[if_index].lldp[lldp_index].chassis_type = val
             return True
 
         lldp_index = oid_in_branch(LLDP_REMOTE_CHASSIS_ID, oid)
@@ -1372,63 +1394,63 @@ class SnmpConnector(EasySNMP):
             port_id = int(port_id)
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            ifIndex = self._get_ifindex_from_portid(port_id)
-            if ifIndex in self.interfaces.keys():
-                if lldp_index in self.interfaces[ifIndex].lldp.keys():
+            if_index = self._get_if_index_from_port_id(port_id)
+            if if_index in self.interfaces.keys():
+                if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system name
-                    self.interfaces[ifIndex].lldp[lldp_index].chassis_string = val
+                    self.interfaces[if_index].lldp[lldp_index].chassis_string = val
             return True
 
         return False
 
-    def _add_vlan_to_interface(self, port_id, vlanId):
+    def _add_vlan_to_interface(self, port_id, vlan_id):
         """
         Function to add a given vlan to the interface identified by the dot1D bridge port id
         """
         # get the interface index first:
-        ifIndex = self._get_ifindex_from_portid(port_id)
-        if ifIndex in self.interfaces.keys():
-            if self.interfaces[ifIndex].untagged_vlan == vlanId:
+        if_index = self._get_if_index_from_port_id(port_id)
+        if if_index in self.interfaces.keys():
+            if self.interfaces[if_index].untagged_vlan == vlan_id:
                 # interface already has this untagged vlan, not adding
                 return True
             else:
-                self.interfaces[ifIndex].vlans.append(vlanId)
-                self.interfaces[ifIndex].is_tagged = True
+                self.interfaces[if_index].vlans.append(vlan_id)
+                self.interfaces[if_index].is_tagged = True
             return True
         return False
 
-    def _get_ifindex_from_portid(self, port_id):
+    def _get_if_index_from_port_id(self, port_id):
         """
         Return the ifIndex from the Q-Bridge port_id. This assumes we have walked
         the Q-Bridge mib that maps bridge port id to interfaceId.
         """
-        if len(self.qb_port_to_ifindex) > 0 and port_id in self.qb_port_to_ifindex.keys():
-            ifIndex = self.qb_port_to_ifindex[int(port_id)]
-            return ifIndex
+        if len(self.qbridge_port_to_if_index) > 0 and port_id in self.qbridge_port_to_if_index.keys():
+            if_index = self.qbridge_port_to_if_index[int(port_id)]
+            return if_index
         else:
             # we did not find the Q-BRIDGE mib. port_id = ifIndex !
             return port_id
 
-    def _get_portid_from_ifindex(self, ifIndex):
+    def _get_port_id_from_if_index(self, if_index):
         """
         Return the bridge PortId for the given interface index. This assumes we have walked
         the Q-Bridge mib that maps bridge port id to interfaceId.
         """
-        if ifIndex in self.interfaces.keys() and len(self.qb_port_to_ifindex) > 0:
-            for (port_id, intf) in self.qb_port_to_ifindex.items():
-                if ifIndex == intf:
+        if if_index in self.interfaces.keys() and len(self.qbridge_port_to_if_index) > 0:
+            for (port_id, intf) in self.qbridge_port_to_if_index.items():
+                if if_index == intf:
                     return port_id
         else:
             # we did not find the Q-BRIDGE mib. port_id = ifIndex !
-            return ifIndex
+            return if_index
 
-    def _get_max_qb_port_id(self):
+    def _get_max_qbridge_port_id(self):
         """
         Get the maximum value of the switchport id, used for bitmap/byte sizing.
         returns integer
         """
         max_port_id = 0
-        for (port_id, intf) in self.qb_port_to_ifindex.items():
+        for (port_id, intf) in self.qbridge_port_to_if_index.items():
             if int(port_id) > max_port_id:
                 max_port_id = int(port_id)
         return max_port_id
@@ -1760,6 +1782,19 @@ class SnmpConnector(EasySNMP):
 
         return 1
 
+    def _get_arp_data(self):
+        """
+        Read the arp tables from both old style ipNetToMedia,
+        and eventually, new style ipNetToPhysical
+        Returns 1 on success, -1 on failure
+        """
+        retval = self._get_branch_by_name('ipNetToMediaPhysAddress', False, self._parse_mibs_net_to_media)
+        if retval < 0:
+            self._add_warning("Error getting 'ARP-Table' (ipNetToMediaPhysAddress)")
+            return retval
+
+        return 1
+
     def _get_lldp_data(self):
         """
         Read parts of the LLDP mib for neighbors on interfaces
@@ -1816,18 +1851,17 @@ class SnmpConnector(EasySNMP):
 
         return 1
 
-    def _get_arp_data(self):
+    def _get_lacp_data(self):
         """
-        Read the arp tables from both old style ipNetToMedia,
-        and eventually, new style ipNetToPhysical
-        Returns 1 on success, -1 on failure
+        Read the IEEE LACP mib, single mib counter gives us enough to identify
+        the physical interfaces that are an LACP member.
         """
-        retval = self._get_branch_by_name('ipNetToMediaPhysAddress', False, self._parse_mibs_net_to_media)
+        # second argument is True, as we want to cache this data!
+        retval = self._get_branch_by_name('dot3adAggPortAttachedAggID')
         if retval < 0:
-            self._add_warning("Error getting 'ARP-Table' (ipNetToMediaPhysAddress)")
+            self._add_warning("Error getting 'LACP-Port-AttachedAggID' (dot3adAggPortAttachedAggID)")
             return retval
-
-        return 1
+        return retval
 
     def _test_read(self):
         """
@@ -1929,7 +1963,7 @@ class SnmpConnector(EasySNMP):
 
             # check interface types first, only show ethernet
             # this hides vlan, loopback etc. interfaces for the regular user.
-            if iface.ifType not in visible_interfaces.keys():
+            if iface.type not in visible_interfaces.keys():
                 iface.visible = False
                 iface.manageable = False  # just to be safe :-)
                 continue
@@ -1943,13 +1977,13 @@ class SnmpConnector(EasySNMP):
 
             # see if this regex matches the interface 'ifAlias' aka. the interface description
             if settings.IFACE_HIDE_REGEX_IFDESCR != "":
-                match = re.match(settings.IFACE_HIDE_REGEX_IFDESCR, iface.ifAlias)
+                match = re.match(settings.IFACE_HIDE_REGEX_IFDESCR, iface.alias)
                 if match:
                     iface.manageable = False  # match, so we cannot modify! Show anyway...
                     continue
 
             # see if we should hide interfaces with speeds above this value in Mbps.
-            if int(settings.IFACE_HIDE_SPEED_ABOVE) > 0 and int(iface.ifHCSpeed) > int(settings.IFACE_HIDE_SPEED_ABOVE):
+            if int(settings.IFACE_HIDE_SPEED_ABOVE) > 0 and int(iface.hc_speed) > int(settings.IFACE_HIDE_SPEED_ABOVE):
                 iface.manageable = False  # match, so we cannot modify! Show anyway...
                 continue
 
@@ -1960,11 +1994,11 @@ class SnmpConnector(EasySNMP):
 
         return
 
-    def _clear_session_oidcache(self):
+    def _clear_session_oid_cache(self):
         """
         call the static function to clear our our web session database
         """
-        return clear_session_oidcache(self.request)
+        return clear_session_oid_cache(self.request)
 
     def _probe_mibs(self):
         """
@@ -2052,19 +2086,21 @@ class SnmpConnector(EasySNMP):
                     if retval != -1:
                         retval = self._get_my_ip4_addresses()
                         if retval != -1:
-                            retval = self._get_poe_data()
+                            retval = self._get_lacp_data()
                             if retval != -1:
-                                # try to map poe port info to actual interfaces
-                                self._map_poe_port_entries_to_interface()
-                                # time it took to read all this.
-                                self.basic_info_duration = int((time.time() - self.basic_info_read_time) + 0.5)
-                                # cache the data in the session,
-                                # so we can avoid reading the switch all the time
-                                self._set_http_session_cache()
-                                # set the permissions to the interfaces:
-                                self._set_interfaces_permissions()
-                                self.switch.save()  # update counters
-                                return True
+                                retval = self._get_poe_data()
+                                if retval != -1:
+                                    # try to map poe port info to actual interfaces
+                                    self._map_poe_port_entries_to_interface()
+                                    # time it took to read all this.
+                                    self.basic_info_duration = int((time.time() - self.basic_info_read_time) + 0.5)
+                                    # cache the data in the session,
+                                    # so we can avoid reading the switch all the time
+                                    self._set_http_session_cache()
+                                    # set the permissions to the interfaces:
+                                    self._set_interfaces_permissions()
+                                    self.switch.save()  # update counters
+                                    return True
             return False
         else:
             # set the permissions to the interfaces:
@@ -2136,7 +2172,7 @@ class SnmpConnector(EasySNMP):
         iface = self.get_interface_by_index(if_index)
         # now get the Q-Bridge PortID
         if iface:
-            port_id = self._get_portid_from_ifindex(if_index)
+            port_id = self._get_port_id_from_if_index(if_index)
             # set this switch port on the new vlan:
             # Q-BIRDGE mib: VlanIndex = Unsigned32
             retval = self._set("%s.%s" % (snmp_mib_variables['dot1qPvid'], str(port_id)), int(new_vlan_id), 'u')
@@ -2169,7 +2205,7 @@ class SnmpConnector(EasySNMP):
 
             # and re-read the dot1qVlanCurrentEgressPorts, all ports
             # tagged/untagged on the old and new vlan
-            # note the 0 to hopefull deactivate filter!
+            # note the 0 to hopefull deactivate time filter!
             (error_status, snmpval) = self._get("%s.0.%s" %
                                                 (snmp_mib_variables['dot1qVlanCurrentEgressPorts'], old_vlan_id))
             (error_status, snmpval) = self._get("%s.0.%s" %
@@ -2211,7 +2247,7 @@ def _clear_session_save_needed(request):
         del request.session['save_needed']
 
 
-def clear_session_oidcache(request):
+def clear_session_oid_cache(request):
     """
     clear all session data storage, because we want to re-read switch
     or because we changed switches

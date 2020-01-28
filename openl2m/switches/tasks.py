@@ -1,3 +1,17 @@
+#
+# This file is part of Open Layer 2 Management (OpenL2M).
+#
+# OpenL2M is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 3 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
+#
+
 # Create your Celery scheduled tasks here
 from __future__ import absolute_import, unicode_literals
 
@@ -9,7 +23,6 @@ from django.core.mail import send_mail, mail_admins
 from django.contrib.auth.models import User
 from django.utils import timezone
 from celery import shared_task
-#from celery.utils.log import get_task_logger
 
 from switches.models import Switch, SwitchGroup, Log, Task
 from switches.constants import *
@@ -17,12 +30,11 @@ from switches.connect.connect import get_connection_object
 from switches.connect.snmp import *
 from switches.utils import dprint
 
-#logging = get_task_logger(__name__)
 
 @shared_task
 def bulkedit_task(task_id, user_id, group_id, switch_id,
-                       interface_change, poe_choice, new_pvid,
-                       new_alias, interfaces, save_config):
+                  interface_change, poe_choice, new_pvid,
+                  new_alias, interfaces, save_config):
 
     log = Log()
     log.ip_address = "0.0.0.0"
@@ -32,28 +44,28 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
         task = Task.objects.get(pk=int(task_id))
     except Exception as e:
         log.description = "Bulk-Edit task started with invalid task id %d" \
-                           % int(task_id)
+            % int(task_id)
         log.save()
         return
     try:
         user = User.objects.get(pk=int(user_id))
     except Exception as e:
         log.description = "Bulk-Edit task(id=%d) started with invalid user id (%d)" \
-                           % (task_id, int(user_id))
+            % (task_id, int(user_id))
         log.save()
         return
     try:
         group = SwitchGroup.objects.get(pk=int(group_id))
     except Exception as e:
         log.description = "Bulk-Edit task(id=%d) started with invalid group id (%d)" \
-                           % (task_id, int(group_id))
+            % (task_id, int(group_id))
         log.save()
         return
     try:
         switch = Switch.objects.get(pk=int(switch_id))
     except Exception as e:
         log.description = "Bulk-Edit task(id=%d) started with invalid switch id (%d)" \
-                           % (task_id, int(switch_id))
+            % (task_id, int(switch_id))
         log.save()
         return
 
@@ -76,8 +88,8 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
     # now go process
     settings.IN_CELERY_PROCESS = True
     results = bulkedit_processor(False, user_id, group_id, switch_id,
-                           interface_change, poe_choice, new_pvid,
-                           new_alias, interfaces, save_config)
+                                 interface_change, poe_choice, new_pvid,
+                                 new_alias, interfaces, save_config)
 
     task.completed = timezone.now()   # use Django time with support of timezone!
     task.results = json.dumps(results)
@@ -95,7 +107,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
         log.description = "Bulk-Edit task(id=%d) ended successfully" % task_id
         log.type = LOG_TYPE_CHANGE
         log.save()
-        subject = "%sTask executed successfully!" % settings.EMAIL_SUBJECT_PREFIX
+        subject = "Task executed successfully!"
     else:
         # log the error
         task.status = TASK_STATUS_ERROR
@@ -104,21 +116,22 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
         log.description = "Bulk-Edit task(%d) ended with errors" % task_id
         log.type = LOG_TYPE_ERROR
         log.save()
-        subject = "%sTask had errors!" % settings.EMAIL_SUBJECT_PREFIX
+        subject = "Task had errors!"
 
     # now email the results to the user:
     if user.email:
         message = "Task Description: %s\nId: %d\nScheduled: %s\nCompleted: %s\n\nResults:\n\n%s\n" % \
-                (task.description, task.id, task.eta, task.completed, \
-                "\n".join(results['outputs']))
+            (task.description, task.id, task.eta, task.completed,
+             "\n".join(results['outputs']))
 
         log = Log()
         log.user = user
         log.group = group
         log.switch = switch
         try:
-            send_mail(subject, message, settings.EMAIL_FROM_ADDRESS, \
-                  [user.email], fail_silently=False)
+            send_mail("%s%s" % (subject, settings.EMAIL_SUBJECT_PREFIX),
+                      message, settings.EMAIL_FROM_ADDRESS,
+                      [user.email], fail_silently=False)
             log.type = LOG_TYPE_CHANGE
             log.action = LOG_EMAIL_SENT
             log.description = "Bulk-Edit task(id=%d) results email sent" % task_id
@@ -175,7 +188,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
         return results
 
     if request:
-        remote_ip =  get_remote_ip(request)
+        remote_ip = get_remote_ip(request)
     else:
         remote_ip = "0.0.0.0"
 
@@ -207,7 +220,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
             log.if_index = if_index
             log.switch = switch
             log.group = group
-            if iface.ifAdminStatus == IF_ADMIN_STATUS_UP:
+            if iface.admin_status == IF_ADMIN_STATUS_UP:
                 new_state = IF_ADMIN_STATUS_DOWN
                 new_state_name = "Down"
                 log.action = LOG_CHANGE_INTERFACE_DOWN
@@ -325,7 +338,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
             # check if the original alias starts with a string we have to keep
             if settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX:
                 keep_format = "(^%s)" % settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX
-                match = re.match(keep_format, iface.ifAlias)
+                match = re.match(keep_format, iface.alias)
                 if match:
                     # check of new submitted alias begins with this string:
                     match_new = re.match(keep_format, iface_new_alias)
@@ -375,7 +388,6 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
             log.type = LOG_TYPE_CHANGE
             log.description = "Bulk-Edit Config Saved"
         log.save()
-
 
     # log final results
     log = Log()

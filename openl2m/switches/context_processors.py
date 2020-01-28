@@ -30,6 +30,7 @@ def add_variables(request):
         'IF_OPER_STATUS_UP': IF_OPER_STATUS_UP,
         'IF_OPER_STATUS_DOWN': IF_OPER_STATUS_DOWN,
         'IF_TYPE_ETHERNET': IF_TYPE_ETHERNET,
+        'IF_TYPE_LAGG': IF_TYPE_LAGG,
 
         'VLAN_TYPE_NORMAL': CISCO_VLAN_TYPE_NORMAL,
         'VLAN_STATUS_DYNAMIC': VLAN_STATUS_DYNAMIC,
@@ -66,6 +67,6 @@ def add_variables(request):
 
         'TASK_STATUS_SCHEDULED': TASK_STATUS_SCHEDULED,
         'TASK_STATUS_RUNNING': TASK_STATUS_RUNNING,
-        
+
         'settings': mysettings,
     }

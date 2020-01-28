@@ -60,7 +60,7 @@ HH3C_IF_MODE_INVALID = 0
 HH3C_IF_MODE_TRUNK = 1
 HH3C_IF_MODE_ACCESS = 2
 HH3C_IF_MODE_HYBRID = 3
-HH3C_IF_MODE_FABRIC= 4    # not used!
+HH3C_IF_MODE_FABRIC = 4    # not used!
 
 # hh3cifAggregatePort
 hh3cifAggregatePort = '.1.3.6.1.4.1.25506.8.35.1.1.1.3'  # + ifIndex = True if aggregate port

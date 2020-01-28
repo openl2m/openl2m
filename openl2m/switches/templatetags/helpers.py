@@ -1,3 +1,16 @@
+#
+# This file is part of Open Layer 2 Management (OpenL2M).
+#
+# OpenL2M is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 3 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
+#
 from django.conf import settings
 from django import template
 from django.template import Template, Context
@@ -13,14 +26,6 @@ from switches.connect.oui.oui import get_vendor_from_oui
 # and https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/
 
 register = template.Library()
-
-
-@register.filter
-def bitwise_and(value, arg):
-    """
-    This is used in some templates to show the bitmat values of switch.capabilities
-    """
-    return bool(value & arg)
 
 
 def build_url_string(values):
@@ -65,6 +70,23 @@ def get_switch_link(group, switch):
 
 
 @register.filter
+def bitwise_and(value, arg):
+    """
+    This is used in some templates to show the bitmat values of switch.capabilities
+    """
+    return bool(value & arg)
+
+
+@register.filter
+def get_device_class(device):
+    """
+    Return an html string that represent the data of the device given.
+    A device is a switch, a stack, or a switch in that stack.
+    """
+    return ENTITY_CLASS_NAME[device.type]
+
+
+@register.filter
 def get_my_switchgroups(groups):
     """
     Get all the switchgroups and their switches
@@ -89,7 +111,7 @@ def get_my_switchgroups(groups):
     if settings.TOPMENU_MAX_COLUMNS > 4:
         col_width = 12 / settings.TOPMENU_MAX_COLUMNS
 
-    #if settings.TOPMENU_MAX_COLUMNS > 1:
+    # if settings.TOPMENU_MAX_COLUMNS > 1:
     #    s = "%s\n<div class=\"container\">" % s
 
     # now list the groups:
@@ -97,7 +119,7 @@ def get_my_switchgroups(groups):
     for (group_name, group) in groups.items():
         group_num += 1
         if settings.TOPMENU_MAX_COLUMNS > 1:
-            if not ((group_num -1) % settings.TOPMENU_MAX_COLUMNS):
+            if not ((group_num - 1) % settings.TOPMENU_MAX_COLUMNS):
                 # end previous row, if needed
                 if group_num > 1:
                     s = "%s\n</div>" % s
@@ -142,7 +164,6 @@ def get_my_switchgroups(groups):
         else:
             # end row
             s = "%s\n </div>\n</div>" % s     # end panel-default and panel-group
-
 
     # end the last row, and container, if needed:
     if settings.TOPMENU_MAX_COLUMNS > 1:
@@ -254,7 +275,7 @@ def get_interface_link(switch, iface):
     Return the HTML data for this interface, including status/type images, etc.
     """
     # start with up/down color for interface
-    if iface.ifAdminStatus == IF_ADMIN_STATUS_UP:
+    if iface.admin_status == IF_ADMIN_STATUS_UP:
         info = " bgcolor=\"%s\" " % settings.BGCOLOR_IF_ADMIN_UP
     else:
         info = " bgcolor=\"%s\" " % settings.BGCOLOR_IF_ADMIN_DOWN
@@ -262,19 +283,19 @@ def get_interface_link(switch, iface):
     info += get_interface_info_links(switch, iface)
     # next make linkable if we can manage it
     if iface.manageable:
-        if iface.ifAdminStatus == IF_ADMIN_STATUS_UP:
+        if iface.admin_status == IF_ADMIN_STATUS_UP:
             info += ("<a onclick=\"return confirm_change('Are you sure you want to DISABLE %s ?')\" \
                      href=\"/switches/%d/%d/%d/admin/%d/\" title=\"Click here to Disable %s\">%s</a>" %
-                     (iface.name, group.id, switch.id, iface.ifIndex, IF_ADMIN_STATUS_DOWN, iface.name))
+                     (iface.name, group.id, switch.id, iface.index, IF_ADMIN_STATUS_DOWN, iface.name))
         else:
             info += ("<a onclick=\"return confirm_change('Are you sure you want to ENABLE %s ?')\" \
                      href=\"/switches/%d/%d/%d/admin/%d/\" title=\"Click here to Enable %s\">%s</a>" %
-                     (iface.name, group.id, switch.id, iface.ifIndex, IF_ADMIN_STATUS_UP, iface.name))
+                     (iface.name, group.id, switch.id, iface.index, IF_ADMIN_STATUS_UP, iface.name))
     else:
         info += " %s " % iface.name
 
     # start with up/down color for interface
-    if iface.ifAdminStatus == IF_ADMIN_STATUS_UP:
+    if iface.admin_status == IF_ADMIN_STATUS_UP:
         info += "&nbsp;&nbsp;<img src=\"/static/img/enabled-24.png\" \
                  alt=\"Interface Enabled\" title=\"Interface is Enabled\">"
     else:
@@ -290,15 +311,6 @@ def get_interface_link(switch, iface):
                  alt=\"Voice VLAN\" title=\"Voice VLAN %d>\"" % iface.voice_vlan
 
     return mark_safe(info)
-
-
-@register.filter
-def get_device_class(device):
-    """
-    Return an html string that represent the data of the device given.
-    A device is a switch, a stack, or a switch in that stack.
-    """
-    return ENTITY_CLASS_NAME[device.type]
 
 
 @register.filter

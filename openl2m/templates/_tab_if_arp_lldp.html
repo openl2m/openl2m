@@ -27,14 +27,14 @@
         </tr>
       </thead>
       <tbody>
-      {% for ifindex,iface in connection.interfaces.items %}
+      {% for if_index,iface in connection.interfaces.items %}
         {% if iface.visible %}
           <tr class="{% cycle 'odd' 'even' %}" >
 
 
             <td
-            {% if iface.ifAdminStatus ==  IF_ADMIN_STATUS_UP %}
-              {% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
+            {% if iface.admin_status ==  IF_ADMIN_STATUS_UP %}
+              {% if iface.oper_status == IF_OPER_STATUS_UP %}
                 bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
               {% else %}
                 bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
@@ -43,8 +43,8 @@
                 bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
             {% endif %}
             {{ switch|get_interface_info_links:iface }}
-            {% if iface.ifAlias %}
-              <span title="{{ iface.ifAlias }}">{{ iface.name }}</span>
+            {% if iface.alias %}
+              <span title="{{ iface.alias }}">{{ iface.name }}</span>
             {% else %}
               {{ iface.name }}
             {% endif %}
@@ -54,12 +54,12 @@
             {% if iface.voice_vlan %}
               &nbsp;<img src="{% static 'img/voicevlan-24.png' %}" alt="Voice VLAN" title="Voice VLAN {{ iface.voice_vlan }}">
             {% endif %}
-            <!-- ifIndex = {{ iface.ifIndex }} -->
+            <!-- ifIndex = {{ iface.index }} -->
             </td>
 
-            <td>{% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
-                  {% if iface.ifHCSpeed > 0 %}
-                    {{ iface.ifHCSpeed }} Mbps
+            <td>{% if iface.oper_status == IF_OPER_STATUS_UP %}
+                  {% if iface.hc_speed > 0 %}
+                    {{ iface.hc_speed }} Mbps
                   {% else %}
                    <small>(Unknown)</small>
                    {% endif %}

@@ -36,7 +36,7 @@
       <strong>Device IPv4 Addresses</strong>
     </div>
     <div class="panel-body">
-    {% for ifindex,iface in connection.interfaces.items %}
+    {% for if_index,iface in connection.interfaces.items %}
       {% if iface.addresses_ip4 %}
         {% for ip,addr in iface.addresses_ip4.items %}
           <div>{{ connection.switch|get_interface_info_links:iface }} {{iface.name}}: {{ addr.ip|get_ip4_info_links }} {{ addr.ip }} / {{ addr.netmask }}</div>

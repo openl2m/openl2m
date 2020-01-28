@@ -13,9 +13,16 @@
 </script>
 
 <div class="container">
+  {% if not settings.TASKS_ENABLED %}
+  <div class="panel panel-warning">
+    <div class="panel-heading">
+      <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Tasks are not enabled!
+    </div>
+  </div>
+  {% endif %}
   <div class="panel panel-default">
     <div class="panel-heading">
-      <strong>Tasks</strong>
+      <strong>Tasks: {{ tasks.count }}</strong>
     </div>
     <div class="table-responsive">
       <table class="table table-hover table-headings">

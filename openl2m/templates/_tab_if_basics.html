@@ -26,7 +26,7 @@
       </tr>
       </thead>
       <tbody>
-      {% for ifindex,iface in connection.interfaces.items %}
+      {% for if_index,iface in connection.interfaces.items %}
         {% if iface.visible %}
 
           <tr class="{% cycle 'odd' 'even' %}" >
@@ -34,14 +34,14 @@
             {% if iface.manageable %}
 
               <td
-                {% if iface.ifAdminStatus ==  IF_ADMIN_STATUS_UP %}
-                  {% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
+                {% if iface.admin_status ==  IF_ADMIN_STATUS_UP %}
+                  {% if iface.oper_status == IF_OPER_STATUS_UP %}
                     bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
                   {% else %}
                     bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
                   {% endif %}
                   {{ switch|get_interface_info_links:iface }}
-                  <a href="{% url 'switches:admin_change' group.id switch.id iface.ifIndex IF_ADMIN_STATUS_DOWN %}"
+                  <a href="{% url 'switches:admin_change' group.id switch.id iface.index IF_ADMIN_STATUS_DOWN %}"
                     title="Click here to Disable {{ iface.name }}"
                   {% if request.user.profile.are_you_sure %}
                     onclick="return confirm_change('Are you sure you want to DISABLE {{ iface.name }}?')"
@@ -50,7 +50,7 @@
                 {% else %}
                   bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
                   {{ switch|get_interface_info_links:iface }}
-                  <a href="{% url 'switches:admin_change' group.id switch.id iface.ifIndex IF_ADMIN_STATUS_UP %}"
+                  <a href="{% url 'switches:admin_change' group.id switch.id iface.index IF_ADMIN_STATUS_UP %}"
                      title="Click here to Enable {{ iface.name }}"
                   {% if request.user.profile.are_you_sure %}
                      onclick="return confirm_change('Are you sure you want to ENABLE {{ iface.name }}?')"
@@ -64,6 +64,19 @@
                        alt="Tagged/Trunked Interface"
                        title="Tagged/Trunked Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
                 {% endif %}
+                {% if iface.lacp_master_index > 0 %}
+                  &nbsp;
+                  <img src="{% static 'img/lacp.png' %}"
+                       alt="LACP Member Interface"
+                       title="This interface is a member of LACP interface {{ iface.lacp_master_name }}">
+                {% endif %}
+                {% if iface.type == IF_TYPE_LAGG %}
+                  &nbsp;
+                  <img src="{% static 'img/lacp.png' %}"
+                       alt="LACP Master Interface"
+                       title="This interface is an LACP interface! Members are: {% for if_index, if_name in iface.lacp_members.items %}{{ if_name }} {% endfor %}
+                        ">
+                {% endif %}
                 {% if iface.gvrp_enabled %}
                   &nbsp;
                   <img src="{% static 'img/mvrp-24.png' %}"
@@ -71,17 +84,18 @@
                        title="MVRP or GVRP is Enabled on this interface">
                 {% endif %}
                 {% if iface.voice_vlan %}
-                  &nbsp;<img src="{% static 'img/voicevlan-24.png' %}"
-                             alt="Voice VLAN"
-                             title="Voice VLAN {{ iface.voice_vlan }}">
+                  &nbsp;
+                  <img src="{% static 'img/voicevlan-24.png' %}"
+                       alt="Voice VLAN"
+                       title="Voice VLAN {{ iface.voice_vlan }}">
                 {% endif %}
-                <!-- ifIndex = {{ iface.ifIndex }}, port_id = {{ iface.port_id }} -->
+                <!-- ifIndex = {{ iface.index }}, port_id = {{ iface.port_id }} -->
               </td>
 
               <td>
-                {% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
-                  {% if iface.ifHCSpeed > 0 %}
-                    {{ iface.ifHCSpeed }} Mbps
+                {% if iface.oper_status == IF_OPER_STATUS_UP %}
+                  {% if iface.hc_speed > 0 %}
+                    {{ iface.hc_speed }} Mbps
                   {% else %}
                      <small>(Unknown)</small>
                   {% endif %}
@@ -91,12 +105,12 @@
               </td>
 
               {# only show vlan, poe, alias and command capabilities for Ethernet interfaces #}
-              {% if iface.ifType == IF_TYPE_ETHERNET %}
+              {% if iface.type == IF_TYPE_ETHERNET %}
                 <td>
                   {% if iface.untagged_vlan > 0 %}
-                    {% if connection.vlan_change_implemented %}
-                      <form name="vlanchange_{{ iface.ifIndex }}"
-                            action="{% url 'switches:pvid_change' group.id switch.id iface.ifIndex %}"
+                    {% if connection.vlan_change_implemented and iface.lacp_master_index == -1  %}
+                      <form name="vlanchange_{{ iface.index }}"
+                            action="{% url 'switches:pvid_change' group.id switch.id iface.index %}"
                             method="post"
                             >
                         {% csrf_token %}
@@ -134,7 +148,7 @@
                       {% if request.user.profile.are_you_sure %}
                           onclick="return confirm_change('Are you sure you want to DISABLE POWER on interface {{ iface.name }}?')"
                       {% endif %}
-                          href="{% url 'switches:poe_change' group.id switch.id iface.ifIndex POE_PORT_ADMIN_DISABLED %}"
+                          href="{% url 'switches:poe_change' group.id switch.id iface.index POE_PORT_ADMIN_DISABLED %}"
                       {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
                         {# fault or something like that #}
                             title="PoE Enabled with FAULT! Click here to Disable PoE on interface {{ iface.name }}">
@@ -156,7 +170,7 @@
                         {% if request.user.profile.are_you_sure %}
                             onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
                         {% endif %}
-                            href="{% url 'switches:poe_down_up' group.id switch.id iface.ifIndex %}"
+                            href="{% url 'switches:poe_down_up' group.id switch.id iface.index %}"
                             title="Toggle PoE Off and then On again on interface {{ iface.name }}">
                           <img src="{% static 'img/down-up-24.png' %}" alt="PoE Down/Up Toggle">
                         </a>
@@ -166,7 +180,7 @@
                       {% if request.user.profile.are_you_sure %}
                           onclick="return confirm_change('Are you sure you want to ENABLE POWER on interface {{ iface.name }}?')"
                       {% endif %}
-                          href="{% url 'switches:poe_change' group.id switch.id iface.ifIndex POE_PORT_ADMIN_ENABLED %}"
+                          href="{% url 'switches:poe_change' group.id switch.id iface.index POE_PORT_ADMIN_ENABLED %}"
                           title="PoE Disabled! Click here to Enable PoE on interface {{ iface.name }}">
                           <img src="{% static 'img/disabled.png' %}" alt="PoE Disabled">
                       </a>
@@ -180,11 +194,11 @@
                 <td>
                   {% if iface.can_edit_alias %}
                     <form name="aliaschange"
-                      action="{% url 'switches:alias_change' group.id switch.id iface.ifIndex %}"
+                      action="{% url 'switches:alias_change' group.id switch.id iface.index %}"
                       method="post"
                       >
                       {% csrf_token %}
-                      <input type="text" size=40 name="new_alias" value="{{ iface.ifAlias }}">
+                      <input type="text" size=40 name="new_alias" value="{{ iface.alias }}">
                       <input type="submit" value="Change"
                       {% if request.user.profile.are_you_sure %}
                         onclick="return confirm_change('Are you sure you want change the description on interface {{ iface.name }}?')"
@@ -192,14 +206,14 @@
                       >
                     </form>
                   {% else %}
-                    {{ iface.ifAlias }}
+                    {{ iface.alias }}
                   {% endif %}
                 </td>
 
                 {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
                   <td>
                     <form name="command_form"
-                          action="{% url 'switches:interface_cmd_output' group.id switch.id iface.ifIndex %}"
+                          action="{% url 'switches:interface_cmd_output' group.id switch.id iface.index %}"
                           method="post">
                       {% csrf_token %}
                       <select name="command_id">
@@ -236,7 +250,7 @@
                   </td>
                 {% endif %}
 
-                <td>{{ iface.ifAlias }}</td>
+                <td>{{ iface.alias }}</td>
 
                 <td>
                   <span title="Not applicable for this interface">n/a</span>
@@ -246,8 +260,8 @@
             {% else %} {# not manageable #}
 
               <td
-              {% if iface.ifAdminStatus ==  IF_ADMIN_STATUS_UP %}
-                {% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
+              {% if iface.admin_status ==  IF_ADMIN_STATUS_UP %}
+                {% if iface.oper_status == IF_OPER_STATUS_UP %}
                   bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
                 {% else %}
                   bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
@@ -263,18 +277,31 @@
                        alt="Tagged/Trunked Interface"
                        title="Tagged/Trunked Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }}&nbsp;{% endfor %}">
                 {% endif %}
+                {% if iface.lacp_master_index > 0 %}
+                  &nbsp;
+                  <img src="{% static 'img/lacp.png' %}"
+                       alt="LACP Member Interface"
+                       title="This interface is a member of LACP interface {{ iface.lacp_master_name }}">
+                {% endif %}
+                {% if iface.type == IF_TYPE_LAGG %}
+                  &nbsp;
+                  <img src="{% static 'img/lacp.png' %}"
+                       alt="LACP Master Interface"
+                       title="This interface is an LACP interface! Members are: {% for if_index, if_name in iface.lacp_members.items %}{{ if_name }} {% endfor %}
+                       ">
+                {% endif %}
                 {% if iface.voice_vlan %}
                   &nbsp;<img src="{% static 'img/voicevlan-24.png' %}"
                              alt="Voice VLAN"
                              title="Voice VLAN {{ iface.voice_vlan }}">
                 {% endif %}
-                <!-- ifIndex = {{ iface.ifIndex }}, port_id = {{ iface.port_id }} -->
+                <!-- ifIndex = {{ iface.index }}, type = {{ iface.type }}, port_id = {{ iface.port_id }} -->
               </td>
 
               <td>
-                {% if iface.ifOperStatus == IF_OPER_STATUS_UP %}
-                  {% if iface.ifHCSpeed > 0 %}
-                    {{ iface.ifHCSpeed }} Mbps
+                {% if iface.oper_status == IF_OPER_STATUS_UP %}
+                  {% if iface.hc_speed > 0 %}
+                    {{ iface.hc_speed }} Mbps
                   {% else %}
                     <small>(Unknown)</small>
                   {% endif %}
@@ -309,7 +336,7 @@
                           {% if request.user.profile.are_you_sure %}
                               onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
                           {% endif %}
-                              href="/switches/{{ group.id }}/{{ switch.id }}/{{ iface.ifIndex }}/poetoggle/"
+                              href="/switches/{{ group.id }}/{{ switch.id }}/{{ iface.index }}/poetoggle/"
                               title="Toggle PoE Off and then On again on interface {{ iface.name }}">
                             <img src="{% static 'img/down-up-24.png' %}" alt="PoE Down/Up Toggle">
                           </a>
@@ -329,12 +356,12 @@
                 </td>
               {% endif %} {# poe_capable #}
 
-              <td>{{ iface.ifAlias }}</td>
+              <td>{{ iface.alias }}</td>
 
               {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
                 <td>
                   <form name="command_form"
-                        action="{% url 'switches:interface_cmd_output' group.id switch.id iface.ifIndex %}"
+                        action="{% url 'switches:interface_cmd_output' group.id switch.id iface.index %}"
                         method="post">
                     {% csrf_token %}
                     <select name="command_id">

@@ -123,10 +123,12 @@ class CommandListAdmin(admin.ModelAdmin):
     search_fields = ['name']
     filter_horizontal = ('global_commands', 'interface_commands', 'global_commands_staff', 'interface_commands_staff',)
 
+
 class TaskAdmin(admin.ModelAdmin):
     search_fields = ['description', 'user', 'group', 'switch']
     # we want all fields read-only:
     # readonly_fields = []
+
     def has_change_permission(self, request, obj=None):
         return False
 

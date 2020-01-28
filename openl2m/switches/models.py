@@ -821,7 +821,6 @@ class Log(models.Model):
         verbose_name_plural = 'Activity Logs'
 
 
-
 #
 # Task model
 #
@@ -913,6 +912,7 @@ class Task(models.Model):
         null=True,
         help_text="Task results, in JSON format",
     )
+
     def display_name(self):
         """
         This is used in templates, so we can 'annotate' as needed

@@ -16,7 +16,6 @@ Routines to allow Netmiko communications (ie SSH) with switches
 to execute various 'show' or 'display' commands
 """
 import traceback
-#from netmiko import *
 import netmiko
 
 from django.shortcuts import get_object_or_404
@@ -72,11 +71,11 @@ class NetmikoConnector():
 
         try:
             handle = netmiko.ConnectHandler(**device)
-        except NetMikoTimeoutException:
+        except netmiko.NetMikoTimeoutException:
             self.error.status = True
             self.error.description = "Connection time-out! Please ask the admin to correct the switch hostname or IP."
             return False
-        except NetMikoAuthenticationException:
+        except netmiko.NetMikoAuthenticationException:
             self.error.status = True
             self.error.description = "Access denied! Please ask the admin to correct the switch credentials."
             return False

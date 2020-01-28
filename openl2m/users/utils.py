@@ -27,7 +27,7 @@ def user_can_run_tasks(user, group, switch):
     if user.profile.tasks and not group.read_only and not switch.read_only \
        and not user.profile.read_only:
         return True
-    #dis-allow everything else
+    # dis-allow everything else
     return False
 
 
@@ -39,5 +39,5 @@ def user_can_bulkedit(user, group, switch):
     if user.profile.bulk_edit and group.bulk_edit and switch.bulk_edit \
        and not group.read_only and not switch.read_only and \
        not user.profile.read_only:
-       return True
+        return True
     return False

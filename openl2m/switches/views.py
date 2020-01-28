@@ -41,6 +41,7 @@ from switches.utils import *
 from switches.tasks import bulkedit_task, bulkedit_processor
 from users.utils import *
 
+
 @login_required
 def switches(request):
     """
@@ -52,7 +53,7 @@ def switches(request):
 
     # back to the home screen, clear session cache
     # so we re-read switche as needed
-    clear_session_oidcache(request)
+    clear_session_oid_cache(request)
 
     # find the groups with switches that we have rights to:
     regular_user = True
@@ -387,11 +388,11 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
                 if new_pvid > 0:
                     current['pvid'] = iface.untagged_vlan
                 if new_alias:
-                    current['description'] = iface.ifAlias
+                    current['description'] = iface.alias
                 if poe_choice != BULKEDIT_POE_NONE and iface.poe_entry:
                     current['poe_state'] = iface.poe_entry.admin_status
                 if interface_change:
-                    current['admin_state'] = iface.ifAdminStatus
+                    current['admin_state'] = iface.admin_status
                 undo_info[if_index] = current
 
     if is_task:
@@ -431,8 +432,9 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         # now go schedule the task
         try:
             celery_task_id = bulkedit_task.apply_async((task.id, request.user.id, group_id, switch_id,
-                                         interface_change, poe_choice, new_pvid,
-                                         new_alias, interfaces, save_config), eta=eta_datetime)
+                                                       interface_change, poe_choice, new_pvid,
+                                                       new_alias, interfaces, save_config),
+                                                       eta=eta_datetime)
         except Exception as e:
             error = Error()
             error.description = "There was an error submitting your task. Please contact your administrator to make sure the job broker is running!"
@@ -539,7 +541,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
     # read the submitted form data:
     new_alias = str(request.POST.get('new_alias', ''))
 
-    if iface.ifAlias == new_alias:
+    if iface.alias == new_alias:
         description = "New description is the same, please change it first!"
         return warning_page(request, group, switch, description)
 
@@ -574,7 +576,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
     # check if the original alias starts with a string we have to keep
     if settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX:
         keep_format = "(^%s)" % settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX
-        match = re.match(keep_format, iface.ifAlias)
+        match = re.match(keep_format, iface.alias)
         if match:
             # check of new submitted alias begins with this string:
             match_new = re.match(keep_format, new_alias)
@@ -840,7 +842,7 @@ def switch_save_config(request, group_id, switch_id, view):
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request, group, switch, error)
 
-    if conn.is_save_needed() and conn.can_save_config():
+    if conn.can_save_config() and conn.get_save_needed():
         # we can save
         retval = conn.save_running_config()
         if retval < 0:
@@ -909,7 +911,7 @@ def switch_reload(request, group_id, switch_id, view):
     log.type = LOG_TYPE_VIEW
     log.save()
 
-    clear_session_oidcache(request)
+    clear_session_oid_cache(request)
 
     return switch_view(request, group_id, switch_id, view)
 
@@ -950,7 +952,7 @@ def show_stats(request):
     # Celery task processing information
     if settings.TASKS_ENABLED:
         celery_info = get_celery_info()
-        if celery_info['stats'] == None:
+        if celery_info['stats'] is None:
             environment['Tasks'] = "Enabled, NOT running"
         else:
             environment['Tasks'] = "Enabled and running"
@@ -1091,14 +1093,13 @@ def tasks(request):
     template_name = 'tasks.html'
 
     if request.user.is_superuser:
-        # show types of tasks
-        tasks = Task.objects.all().filter(user=request.user).order_by('status', '-eta')
+        # show all types of tasks
+        tasks = Task.objects.all().filter().order_by('status', '-eta')
     else:
-        # only shpwnon-deleted to regular users
+        # only show non-deleted to regular users
         tasks = Task.objects.all().filter(user=request.user).exclude(status=TASK_STATUS_DELETED).order_by('status', '-eta')
-
-    if tasks.count() == 0:
-        return success_page(request, False, False, "You have not scheduled any tasks!")
+        if tasks.count() == 0:
+            return success_page(request, False, False, "You have not scheduled any tasks!")
 
     # log my activity
     log = Log()
@@ -1113,6 +1114,7 @@ def tasks(request):
     return render(request, template_name, {
         'tasks': tasks,
     })
+
 
 @login_required
 def task_details(request, task_id):
@@ -1182,7 +1184,7 @@ def task_delete(request, task_id):
         return success_page(request, False, False, "Task %d has been deleted!" % task_id)
     else:
         log.description = "Error deleting task %d !" % task_id
-        log.type=LOG_TYPE_ERROR
+        log.type = LOG_TYPE_ERROR
         log.save()
         error = Error()
         error.description = log.description
