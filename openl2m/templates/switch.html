@@ -34,75 +34,76 @@
 
   {# this is the header "menu" bar #}
   <div class="table-responsive">
-    <table class="table table-headings">
-      <tr>
-        <th>
-          <h5>{{ switch|get_switch_info_url_links }}
+    <table class="table">
+      <thead>
+        <tr>
+          <td>
+            {{ switch|get_switch_info_url_links }}
             {% if switch.description %}
-              <span title="{{ switch.description }}">{{ switch.name }}</span>
+              <span title="{{ switch.description }}"><strong>{{ switch.name }}</strong></span>
             {% else %}
-              {{ switch.name }}
+              <strong>{{ switch.name }}</strong>
             {% endif %}
-          {% if tasks %}
-            <spam title="There are scheduled tasks for this switch. For details, see the Switch Information tab!">
-              <i class="fa fa-calendar" aria-hidden="true"></i>
-            </span>
-          {% endif %}
-          {% if switch.read_only or group.read_only or user.profile.read_only %}
-            <span title="This switch is set as Read-Only by the administrator. You can not make any changes!">
-              <i class="fa fa-hand-o-right" aria-hidden="true"></i>&nbsp;<small>Read-Only</small>&nbsp;<i class="fa fa-hand-o-left" aria-hidden="true"></i>
-            </span>
-          {% endif %}
-          </h5>
-        </th>
+            {% if tasks %}
+              <span title="There are scheduled tasks for this switch. For details, see the Switch Information tab!">
+                <i class="fa fa-calendar" aria-hidden="true"></i>
+              </span>
+            {% endif %}
+            {% if switch.read_only or group.read_only or user.profile.read_only %}
+              <span title="This switch is set as Read-Only by the administrator. You can not make any changes!">
+                <i class="fa fa-hand-o-right" aria-hidden="true"></i>&nbsp;<small>Read-Only</small>&nbsp;<i class="fa fa-hand-o-left" aria-hidden="true"></i>
+              </span>
+            {% endif %}
+          </td>
 
-        {% if request.user.is_superuser and connection.hwinfo_needed %}
-        <th>
-          <a href="{% url 'switches:switch_hw_info' group.id switch.id %}"
-            title="Read additional hardware details for this switch! This may take some time..."
-            class="btn btn-primary">
-            <i class="fa fa-info-circle" aria-hidden="true"></i>
-            More Hardware Details
-          </a>
-        </th>
-        {% endif %}
+          {% if request.user.is_superuser and connection.hwinfo_needed %}
+          <td>
+            <a href="{% url 'switches:switch_hw_info' group.id switch.id %}"
+              title="Read additional hardware details for this switch! This may take some time..."
+              class="btn btn-primary">
+              <i class="fa fa-info-circle" aria-hidden="true"></i>
+              More Hardware Details
+            </a>
+          </td>
+          {% endif %}
 
-        <th>
-          <a href="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
-             title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time..."
-             class="btn btn-primary">
-            {% if view == 'arp_lldp' %}
+          <td>
+            <a href="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
+               title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time..."
+               class="btn btn-primary">
+              {% if view == 'arp_lldp' %}
+                <i class="fa fa-refresh" aria-hidden="true"></i>
+                Refresh
+              {% else %}
+              <i class="fa fa-lightbulb-o" aria-hidden="true"></i>
+                Read
+              {% endif %} Eth/Arp/LLDP
+            </a>
+          </td>
+
+          {% if connection.save_needed %}
+          <td>
+            <a href="{% url 'switches:switch_save_config' group.id switch.id view %}"
+               title="Click here to save changes to the startup config of the switch!"
+               class="btn btn-info">
+              <i class="fa fa-exclamation" aria-hidden="true"></i>
+                Save Changes
+              <i class="fa fa-exclamation" aria-hidden="true"></i>
+            </a>
+          </td>
+          {% endif %}
+
+          <td>
+            <a href="{% url 'switches:switch_reload' group.id switch.id view %}"
+               title="Click here to fully reload all SNMP data for this switch! This may take some time..."
+               class="btn btn-primary">
               <i class="fa fa-refresh" aria-hidden="true"></i>
-              Refresh
-            {% else %}
-            <i class="fa fa-lightbulb-o" aria-hidden="true"></i>
-              Read
-            {% endif %} Eth/Arp/LLDP
-          </a>
-        </th>
+              Reload All
+            </a>
+          </td>
 
-        {% if connection.save_needed %}
-        <th>
-          <a href="{% url 'switches:switch_save_config' group.id switch.id view %}"
-             title="Click here to save changes to the startup config of the switch!"
-             class="btn btn-info">
-            <i class="fa fa-exclamation" aria-hidden="true"></i>
-              Save Changes
-            <i class="fa fa-exclamation" aria-hidden="true"></i>
-          </a>
-        </th>
-        {% endif %}
-
-        <th align="right">
-          <a href="{% url 'switches:switch_reload' group.id switch.id view %}"
-             title="Click here to fully reload all SNMP data for this switch! This may take some time..."
-             class="btn btn-primary">
-            <i class="fa fa-refresh" aria-hidden="true"></i>
-            Reload All
-          </a>
-        </th>
-
-      </tr>
+        </tr>
+      </thead>
     </table>
   </div>
 

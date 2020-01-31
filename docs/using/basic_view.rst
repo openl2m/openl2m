@@ -53,6 +53,10 @@ for switch **Show commands**.
 Interfaces tab
 --------------
 
+|interfaces_tab|
+
+.. |interfaces_tab| image:: ../_static/interfaces_tab.png
+
 In the Interfaces tab, the following fields are shown:
 
 * **Name**
@@ -166,6 +170,10 @@ but with a new active 'Command Output' tab showing the results of the command. C
 Bulk Edit tab
 -------------
 
+|bulkedit_tab|
+
+.. |bulkedit_tab| image:: ../_static/bulkedit_tab.png
+
 If permissions allow, users will see the Bulk Edit tab. This shows the Bulk Edit form.
 This form allows you to apply or schedule (if permitted) a variety of changes at once
 to a number of switch interfaces.
@@ -193,10 +201,12 @@ and your changes will be applied. Please be patient!
 **To schedule a task to apply these changes at a later time**, you need to fill in
 two additional fields:
 
+.. image:: ../_static/bulkedit-task-form.png
+
 * pick the proposed time the task will run. This is in your local time zone, in 5 minute increments. You can schedule up to 28 days (4 weeks) in advance.
 * fill in a short description of the task.
 
-Then click the "Schedule Update on Selected Interfaces" button.
+Then click the "Schedule Changes on Selected Interfaces" button.
 
 **Note**
  The requested time is a "no-sooner-then" time. Depending on server load,
@@ -208,8 +218,10 @@ Tasks can be seen from the "Information" tab by any user that has access to the 
 Additionally, users can see all tasks they have scheduled from the main menu, under "Scheduled Tasks".
 
 
-Information tab
----------------
+Switch Information tab
+----------------------
+
+|switch_information_tab|
 
 This shows a series of information about the switch. Depending on the device and what is supported via SNMP,
 this can include items such as model, firmware, vlans defined on switch, PoE power supply info, stacking info,
@@ -218,18 +230,25 @@ IP(v4) addresses of the switch, and more.
 If there are scheduled tasks for the selected switch, they will also be shown here.
 Any user with the ability to create tasks, can delete scheduled tasks from this tab. (Assuming the background processes are running!)
 
-Activity tab
-------------
+.. |switch_information_tab| image:: ../_static/switch_information_tab.png
+
+Activity Logs tab
+-----------------
+
+|activity_logs_tab|
 
 This will show the last OpenL2M activity on this switch. I.e. anything changed will be listed here
 by user and time.
 
+.. |activity_logs_tab| image:: ../_static/activity_logs_tab.png
+
+
 Show Commands tab
 -----------------
 
-This tab will only 'global' show if commands are configured by the admin.
-
 |commands_tab|
+This tab will only show if 'global' switch-level commands are configured by the admin.
+
 This tab will give a simple form with some 'global' show commands you can execute on the switch.
 Select a command, click on 'Run Command', and be patient! When complete, the page will refresh and a new 'Command Output'
 tab will be added.
@@ -240,10 +259,10 @@ tab will be added.
 Warnings/Errors tab
 -------------------
 
-|warnings_tab|
+|warnings_errors_tab|
 This tab will only show if warnings or errors were found at some point.
 
-.. |warnings_tab| image:: ../_static/warnings_tab.png
+.. |warnings_errors_tab| image:: ../_static/warnings_errors_tab.png
 
 |warnings|
 The content of this tab will show a variety of warnings and non-critical errors discovered.

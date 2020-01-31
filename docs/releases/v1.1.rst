@@ -16,7 +16,8 @@ New Features
 Bug Fixes
 ---------
 
-* numerous small fixes, mostly in the web UI.
+* numerous small fixes and updates, mostly in the web UI.
+* several fixes for handling HPE Comware devices.
 
 
 Configuration changes

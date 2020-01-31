@@ -39,6 +39,7 @@ However, this should work just fine on Ubuntu and other distributions.
    openl2m.rst
    nginx.rst
    nginx-ssl.rst
-   ldap.rst
    tasks.rst
+   ldap.rst
+   sso.rst
    upgrading.rst
