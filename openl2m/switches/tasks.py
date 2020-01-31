@@ -89,7 +89,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
     settings.IN_CELERY_PROCESS = True
     results = bulkedit_processor(False, user_id, group_id, switch_id,
                                  interface_change, poe_choice, new_pvid,
-                                 new_alias, interfaces, save_config)
+                                 new_alias, interfaces, save_config, task)
 
     task.completed = timezone.now()   # use Django time with support of timezone!
     task.results = json.dumps(results)
@@ -158,7 +158,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
 
 def bulkedit_processor(request, user_id, group_id, switch_id,
                        interface_change, poe_choice, new_pvid,
-                       new_alias, interfaces, save_config):
+                       new_alias, interfaces, save_config, task=False):
     """
     Function to handle the bulk edit processing, from form-submission or scheduled job.
     This will Log() each individual action per interface.
@@ -200,6 +200,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
         conn.get_switch_basic_info()
 
     # now do the work, and log each change
+    runtime_undo_info = {}
     iface_count = 0
     success_count = 0
     error_count = 0
@@ -213,6 +214,9 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
             outputs.append("ERROR: interface for index %s not found!" % if_index)
             continue
         iface_count += 1
+        current_state = {}  # save the current state, right before we make a change!
+        current_state['if_index'] = if_index
+        current_state['name'] = iface.name    # for readability
         if interface_change:
             log = Log()
             log.user = user
@@ -220,6 +224,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
             log.if_index = if_index
             log.switch = switch
             log.group = group
+            current_state['admin_state'] = iface.admin_status
             if iface.admin_status == IF_ADMIN_STATUS_UP:
                 new_state = IF_ADMIN_STATUS_DOWN
                 new_state_name = "Down"
@@ -251,6 +256,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                 log.if_index = if_index
                 log.switch = switch
                 log.group = group
+                current_state['poe_state'] = iface.poe_entry.admin_status
                 if poe_choice == BULKEDIT_POE_CHANGE:
                     # the PoE index is kept in the iface.poe_entry
                     if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
@@ -312,26 +318,41 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                 outputs.append("Interface %s: not PoE capable - ignored!" % iface.name)
 
         if new_pvid > 0:
-            # make sure we cast the proper type here! Ie this needs an Integer()
-            retval = conn.set_interface_untagged_vlan(if_index, iface.untagged_vlan, new_pvid)
-            log = Log()
-            log.user = user
-            log.ip_address = remote_ip
-            log.if_index = if_index
-            log.switch = switch
-            log.group = group
-            log.action = LOG_CHANGE_INTERFACE_PVID
-            if retval < 0:
-                error_count += 1
-                log.type = LOG_TYPE_ERROR
-                log.description = "Interface %s: Bulk-Edit Vlan change ERROR: %s" % \
-                    (iface.name, conn.error.description)
+            if iface.lacp_master_index > 0:
+                # LACP member interface, we cannot edit the vlan!
+                log = Log()
+                log.user = user
+                log.ip_address = remote_ip
+                log.if_index = if_index
+                log.switch = switch
+                log.group = group
+                log.type = LOG_TYPE_WARNING
+                log.action = LOG_CHANGE_INTERFACE_PVID
+                log.description = "Interface %s: LACP Member, Bulk-Edit Vlan set to %s IGNORED!" % (iface.name, new_pvid)
+                outputs.append(log.description)
+                log.save()
             else:
-                success_count += 1
-                log.type = LOG_TYPE_CHANGE
-                log.description = "Interface %s: Bulk-Edit Vlan set to %s" % (iface.name, new_pvid)
-            outputs.append(log.description)
-            log.save()
+                # make sure we cast the proper type here! Ie this needs an Integer()
+                current_state['pvid'] = iface.untagged_vlan
+                retval = conn.set_interface_untagged_vlan(if_index, iface.untagged_vlan, new_pvid)
+                log = Log()
+                log.user = user
+                log.ip_address = remote_ip
+                log.if_index = if_index
+                log.switch = switch
+                log.group = group
+                log.action = LOG_CHANGE_INTERFACE_PVID
+                if retval < 0:
+                    error_count += 1
+                    log.type = LOG_TYPE_ERROR
+                    log.description = "Interface %s: Bulk-Edit Vlan change ERROR: %s" % \
+                        (iface.name, conn.error.description)
+                else:
+                    success_count += 1
+                    log.type = LOG_TYPE_CHANGE
+                    log.description = "Interface %s: Bulk-Edit Vlan set to %s" % (iface.name, new_pvid)
+                outputs.append(log.description)
+                log.save()
 
         if new_alias:
             iface_new_alias = new_alias
@@ -354,6 +375,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
             log.switch = switch
             log.group = group
             log.action = LOG_CHANGE_INTERFACE_ALIAS
+            current_state['description'] = iface.alias
             # make sure we cast the proper type here! Ie this needs an string
             retval = conn._set(IFMIB_ALIAS + "." + str(if_index), iface_new_alias, 'OCTETSTRING')
             if retval < 0:
@@ -369,6 +391,14 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                 log.description = "Interface %s: Bulk-Edit Descr set OK" % iface.name
             outputs.append(log.description)
             log.save()
+
+        # done with this interface, add pre-change state!
+        runtime_undo_info[if_index] = current_state
+
+    # update the task with the pre-change state:
+    if task:
+        task.runtime_reverse_arguments = json.dumps(runtime_undo_info)
+        task.save()
 
     # do we need to save the config?
     if save_config and error_count == 0 and conn.can_save_config():

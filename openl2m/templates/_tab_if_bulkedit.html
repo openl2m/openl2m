@@ -43,6 +43,7 @@
             <td align="left">
               <span title="Click to submit changes to the selected interfaces now!">
                 <input type="submit"
+                       class="btn btn-primary"
                        value="Change Selected Interfaces NOW"
                        onclick="return confirm_change('Are you sure you want change the selected interfaces?')">
               </span>
@@ -51,6 +52,7 @@
               <td align="right">
                 <span title="Click to schedule changes to the selected interfaces at some time in the future!">
                   <input type="submit"
+                         class="btn btn-primary"
                          value="Schedule Changes on Selected Interfaces"
                          formaction="{% url 'switches:switch_bulkedit_task' group.id switch.id %}"
                          onclick="return confirm_change('Are you sure you want change the selected interfaces and schedule it?')"
@@ -146,6 +148,12 @@
                   bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
                 {% endif %}
                 {{ iface.name }}
+                {% if iface.lacp_master_index > 0 %}
+                  &nbsp;
+                  <img src="{% static 'img/lacp.png' %}"
+                       alt="LACP Member Interface"
+                       title="This interface is a member of LACP interface {{ iface.lacp_master_name }}">
+                {% endif %}
               </td>
 
               <td>

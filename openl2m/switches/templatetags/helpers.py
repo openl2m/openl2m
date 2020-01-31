@@ -11,6 +11,8 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+import json
+
 from django.conf import settings
 from django import template
 from django.template import Template, Context
@@ -52,7 +54,7 @@ def get_switch_link(group, switch):
     s = ''
     if switch.status == SWITCH_STATUS_ACTIVE and switch.snmp_profile:
         s = "<li class=\"list-group-item\">"
-        if False and switch.description:
+        if switch.description:
             s = "%s<span title=\"%s\">" % (s, switch.description)
         # do proper indenting:
         indent = ''
@@ -63,10 +65,50 @@ def get_switch_link(group, switch):
         else:
             s = "%s<a href=\"/switches/%d/%d/details/\">" % (s, group.id, switch.id)
         s = "%s%s</a>" % (s, switch.name)
-        if False and switch.description:
+        if switch.description:
             s = "%s</span>" % s
         s = "%s</li>" % s
     return s
+
+
+@register.filter
+def get_list_value_from_json(s, index):
+    """
+    Get the value for the given index from a JSON string representing a list.
+    call as {{ list|get_list_value_from_json:index }}
+    """
+    if index:
+        return json.loads(s)[index]
+
+
+@register.filter
+def get_list_value(l, index):
+    """
+    Get a list value for the given index.
+    call as {{ list|get_list_value:index }}
+    """
+    if index:
+        return l[index]
+
+
+@register.filter
+def get_dictionary_value(d, key):
+    """
+    Get a dictionary value for the given key.
+    call as {{ dictionary|get_dictonary_value:key }}
+    """
+    if key:
+        return d.get(key)
+
+
+@register.filter
+def get_dictionary_value_from_json(s, key):
+    """
+    Get the value for the given key from a JSON string representing a dictionary.
+    call as {{ dictionary_string|get_dictonary_value_from_json:key }}
+    """
+    if key:
+        return json.loads(s).get(key)
 
 
 @register.filter

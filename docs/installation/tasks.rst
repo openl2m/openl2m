@@ -15,6 +15,13 @@ To enable task scheduling, set the following in configuration.py
 
   TASKS_ENABLED = True
 
+.. note::
+
+  You also need to set the TIME_ZONE to the local time zone of your environment.
+  If this is NOT set, tasks will not be scheduled properly (unless your users do the conversion
+  when they submit the date and time for the task)
+
+
 Next, you need to install Redis and Celery.
 
 Install Redis:
@@ -67,15 +74,15 @@ Run the command below. You should see some lines indicating success:
   [2019-12-22 00:31:58,848: INFO/MainProcess] mingle: all alone
   [2019-12-22 00:31:58,872: INFO/MainProcess] celery@your.host.name ready.
 
-** Note: **
+.. note::
 
-You should not have to configure anything in openl2m/configurations.py to use
-Celery with the default Redis setup. However, if your Redis setup is used by other
-clients/tools as well, you may need to change the database that is used.
-The default database is 0, and the default installation allows up to 16 databases.
-See the Celery / Redis documentation for more.
+  You should not have to configure anything in openl2m/configurations.py to use
+  Celery with the default Redis setup. However, if your Redis setup is used by other
+  clients/tools as well, you may need to change the database that is used.
+  The default database is 0, and the default installation allows up to 16 databases.
+  See the Celery / Redis documentation for more.
 
-In that case, take a look at
+If you want to modify the config, start by taking a look at
 
 .. code-block:: bash
 
@@ -214,3 +221,51 @@ Something like this should work in a new shell (window):
 
 This should start a web server on port 5555. Now point a browser to
 http://localhost:5555/ to see lots of interesting details about your Celery tasks.
+
+
+Time Format Customization
+-------------------------
+
+The default time selector for tasks uses a 12-hour AM/PM clock. If you want to use 24 Hour time format, set to True.
+
+.. code-block:: bash
+
+  TASK_USE_24HR_TIME = False
+
+By default, users can choose time in 5 minute increments (0,5,10,15,...). Change this to set an increment as save_needed
+
+.. code-block:: bash
+
+  TASK_SUBMIT_MINUTE_INCREMENT = 5
+
+By default, users can schedules tasks up to 28 days (4 weeks) into the future. Set this as needed.
+
+.. code-block:: bash
+
+  TASK_SUBMIT_MAX_DAYS_IN_FUTURE = 28
+
+
+Advanced Time Field Customization
+---------------------------------
+
+.. warning::
+
+  If you want to change the date & time format beyond what is listed above, take a look at the openl2m/settings.py file.
+  There are several other format variables available, e.g Internation format with Day-Month-Year. The two settings below
+  are inter-dependent, and if you make a mistake, date & time parsing will fail!
+
+Take a look at:
+
+.. code-block:: bash
+
+  # pay attention to these two, they need to match format!
+  # Flatpickr option 'dateFormat: "Y-m-d H:i"''
+  FLATPICKR_DATE_FORMAT = getattr(configuration, 'FLATPICKR_DATE_FORMAT', 'Y-m-d H:i')
+  # this next one needs to match the Flatpickr 'dateFormat' option above,
+  # minus the ending %z which add timezone offset:
+  TASK_SUBMIT_DATE_FORMAT = getattr(configuration, 'TASK_SUBMIT_DATE_FORMAT', '%Y-%m-%d %H:%M %z')
+
+See the following two pages for more:
+
+* https://flatpickr.js.org/formatting/
+* https://docs.python.org/3.6/library/datetime.html#strftime-strptime-behavior

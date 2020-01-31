@@ -359,9 +359,10 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
             # if you change the format here, you also need to change it
             # in the web form in the "_tab_if_bulkedit.html" template
             eta_with_tz = "%s %s" % (eta, get_local_timezone_offset())
+            dprint("TASK ETA with TZ-offset: %s" % eta_with_tz)
             try:
                 # this needs timezone parsing!
-                eta_datetime = datetime.datetime.strptime(eta_with_tz, "%Y-%m-%d %H:%M %z")
+                eta_datetime = datetime.datetime.strptime(eta_with_tz, settings.TASK_SUBMIT_DATE_FORMAT)
             except Exception as e:
                 # unsupported time format!
                 errors.append("Invalid date/time format, please use YYYY-MM-DD HH:MM !")

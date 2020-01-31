@@ -130,8 +130,8 @@ SWITCH_INFO_URLS = [
         # or use the icon from Akip:
         # 'icon': 'https://akips.yoursite/img/favicon-32.png',
         'alt': 'Akips NMS Icon',
-        # or use a Font Awesome icon:
-        # 'fa_icon': 'fa-delicious',
+        # or use any Font Awesome 4 icon:
+        # 'fa_icon': 'fa-area-chart',
     },
     # this would be a link to a LibreNMS or Observium page.
     # Note you have to fill in the "nms_id" field for each switch for this to work!
@@ -146,8 +146,8 @@ SWITCH_INFO_URLS = [
         # 'icon': 'http://librenms.yoursite.com/images/favicon-32x32.png',
         # 'icon': 'http://librenms.yoursite.com/images/favicon.ico',
         'alt': 'LibreNMS Icon',
-        # or use a Font Awesome icon:
-        # 'fa_icon': 'fa-delicious',
+        # or use any Font Awesome 4 icon:
+        # 'fa_icon': 'fa-area-chart',
     },
 ]
 
@@ -165,8 +165,8 @@ INTERFACE_INFO_URLS = [
         'target': '_akips',
         'icon': '/static/img/nms-24.png',
         'alt': 'NMS Icon',
-        # or use a Font Awesome icon:
-        # 'fa_icon': 'fa-delicious',
+        # or use any Font Awesome 4 icon:
+        # 'fa_icon': 'fa-area-chart',
     },
 ]
 
@@ -183,8 +183,8 @@ VLAN_INFO_URLS = [
         'target': '_ipam',
         'icon': '/static/img/ipam.png',
         'alt': 'NMS Icon',
-        # or use a Font Awesome icon:
-        # 'fa_icon': 'fa-delicious',
+        # or use any Font Awesome 4 icon:
+        # 'fa_icon': 'fa-area-chart',
     },
 ]
 
@@ -201,8 +201,8 @@ IP4_INFO_URLS = [
         'target': '_ipam',
         'icon': '/static/img/ipam.png',
         'alt': 'NMS Icon',
-        # or use a Font Awesome icon:
-        # 'fa_icon': 'fa-delicious',
+        # or use any Font Awesome 4 icon:
+        # 'fa_icon': 'fa-area-chart',
     },
     # another example, a direct link to an ELK stack log parser for the ipv4 addresses
     # note this is completely fictitious!
@@ -213,8 +213,8 @@ IP4_INFO_URLS = [
         'target': '_elk',
         'icon': '/static/img/general-info-24.png',
         'alt': 'ELK Stack Icon',
-        # or use a Font Awesome icon:
-        # 'fa_icon': 'fa-delicious',
+        # or use any Font Awesome 4 icon:
+        # 'fa_icon': 'fa-area-chart',
     },
 ]
 
@@ -231,8 +231,8 @@ ETHERNET_INFO_URLS = [
         'target': '_ipam',
         'icon': '/static/img/ipam.png',
         'alt': 'NMS Icon',
-        # or use a Font Awesome icon:
-        # 'fa_icon': 'fa-delicious',
+        # or use any Font Awesome 4 icon:
+        # 'fa_icon': 'fa-area-chart',
     },
     # another example, a direct link to an ELK stack log parser for the ethernet addresses
     # note this is completely fictitious!
@@ -243,8 +243,8 @@ ETHERNET_INFO_URLS = [
         'target': '_elk',
         'icon': '/static/img/general-info-24.png',
         'alt': 'ELK Stack Icon',
-        # or use a Font Awesome icon:
-        # 'fa_icon': 'fa-delicious',
+        # or use any Font Awesome 4 icon:
+        # 'fa_icon': 'fa-area-chart',
     },
 ]
 
@@ -348,6 +348,14 @@ SNMP_MAX_REPETITIONS = 25
 TASKS_ENABLED = False
 # send task result emails as bcc to admins (if email enabled, see below)
 TASKS_BCC_ADMINS = False
+# this defines the time format used in the Flatpickr JS library:
+# Use AM/PM by default, set to True if you want to use 24 Hour time format in the picker.
+TASK_USE_24HR_TIME = False
+# allow users to pick minutes in this increment. default = 5 minutes.
+TASK_SUBMIT_MINUTE_INCREMENT = 5
+# this defines how many days into the future you can schedule tasks
+TASK_SUBMIT_MAX_DAYS_IN_FUTURE = 28
+
 # Leave these settings alone, unless you change to a custom or remote Redis server setup
 # in which case, please read the appropriate docs...
 CELERY_BROKER_URL = 'redis://localhost:6379'

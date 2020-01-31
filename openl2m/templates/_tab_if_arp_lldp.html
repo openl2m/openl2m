@@ -54,6 +54,19 @@
             {% if iface.voice_vlan %}
               &nbsp;<img src="{% static 'img/voicevlan-24.png' %}" alt="Voice VLAN" title="Voice VLAN {{ iface.voice_vlan }}">
             {% endif %}
+            {% if iface.lacp_master_index > 0 %}
+              &nbsp;
+              <img src="{% static 'img/lacp.png' %}"
+                   alt="LACP Member Interface"
+                   title="This interface is a member of LACP interface {{ iface.lacp_master_name }}">
+            {% endif %}
+            {% if iface.type == IF_TYPE_LAGG %}
+              &nbsp;
+              <img src="{% static 'img/lacp.png' %}"
+                   alt="LACP Master Interface"
+                   title="This interface is an LACP interface! Members are: {% for if_index, if_name in iface.lacp_members.items %}{{ if_name }} {% endfor %}
+                    ">
+            {% endif %}
             <!-- ifIndex = {{ iface.index }} -->
             </td>
 

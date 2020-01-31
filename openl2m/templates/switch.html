@@ -8,6 +8,20 @@
     function confirm_change(s) {
        return confirm(s);
     }
+    $(document).ready(function() {
+      // Flatpickr time selector settings
+      // invoked by setting id="dateTime" on element
+      $("#dateTime").flatpickr({
+        allowInput: true,
+        enableSeconds: false,
+        enableTime: true,
+        minuteIncrement: {{settings.TASK_SUBMIT_MINUTE_INCREMENT }},
+        time_24hr: {{ settings.FLATPICKR_24HR_OPTION }},
+        dateFormat: "{{ settings.FLATPICKR_DATE_FORMAT }}",
+        minDate: "today",
+        maxDate: new Date().fp_incr({{ settings.TASK_SUBMIT_MAX_DAYS_IN_FUTURE }}),    // 28 days from now
+      });
+    });
 </script>
 {% endblock %}
 
@@ -23,7 +37,12 @@
     <table class="table table-headings">
       <tr>
         <th>
-          <h5>{{ switch|get_switch_info_url_links }} {{ switch.name }}
+          <h5>{{ switch|get_switch_info_url_links }}
+            {% if switch.description %}
+              <span title="{{ switch.description }}">{{ switch.name }}</span>
+            {% else %}
+              {{ switch.name }}
+            {% endif %}
           {% if tasks %}
             <spam title="There are scheduled tasks for this switch. For details, see the Switch Information tab!">
               <i class="fa fa-calendar" aria-hidden="true"></i>
@@ -36,41 +55,53 @@
           {% endif %}
           </h5>
         </th>
+
         {% if request.user.is_superuser and connection.hwinfo_needed %}
         <th>
           <a href="{% url 'switches:switch_hw_info' group.id switch.id %}"
-            title="Read additional hardware details for this switch! This may take some time...">
+            title="Read additional hardware details for this switch! This may take some time..."
+            class="btn btn-primary">
+            <i class="fa fa-info-circle" aria-hidden="true"></i>
             More Hardware Details
           </a>
         </th>
         {% endif %}
-        {% if view == 'arp_lldp' %}
+
         <th>
           <a href="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
-             title="Refresh the Ethernet/ARP/LLDP details for this switch! This may take some time...">
-            Refresh Eth/Arp/Lldp
-          </a>
-        </th>
-        {% else %}
-        <th>
-          <a href="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
-             title="Click here to see Ethernet/ARP/LLDP details for this switch! This may take some time...">
-          Read Eth/Arp/Lldp
-          </a>
-        </th>
-        {% endif %}
-        <th>
-          <a href="{% url 'switches:switch_reload' group.id switch.id view %}"
-             title="Click here to fully reload all SNMP data for this switch! This may take some time...">
-            Reload All
+             title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time..."
+             class="btn btn-primary">
+            {% if view == 'arp_lldp' %}
+              <i class="fa fa-refresh" aria-hidden="true"></i>
+              Refresh
+            {% else %}
+            <i class="fa fa-lightbulb-o" aria-hidden="true"></i>
+              Read
+            {% endif %} Eth/Arp/LLDP
           </a>
         </th>
 
         {% if connection.save_needed %}
-        <th><a href="{% url 'switches:switch_save_config' group.id switch.id view %}"
-               title="Click here to save changes to the startup config of the switch!">
-              <img src="{% static "img/warning-24.png" %}" alt="Alert Image">&nbsp;Save Changes</a></th>
+        <th>
+          <a href="{% url 'switches:switch_save_config' group.id switch.id view %}"
+             title="Click here to save changes to the startup config of the switch!"
+             class="btn btn-info">
+            <i class="fa fa-exclamation" aria-hidden="true"></i>
+              Save Changes
+            <i class="fa fa-exclamation" aria-hidden="true"></i>
+          </a>
+        </th>
         {% endif %}
+
+        <th align="right">
+          <a href="{% url 'switches:switch_reload' group.id switch.id view %}"
+             title="Click here to fully reload all SNMP data for this switch! This may take some time..."
+             class="btn btn-primary">
+            <i class="fa fa-refresh" aria-hidden="true"></i>
+            Reload All
+          </a>
+        </th>
+
       </tr>
     </table>
   </div>
@@ -82,13 +113,19 @@
     {% if view == 'arp_lldp' %}
     <li>
       <a href="#tab_interfaces" data-toggle="tab">
-        <strong title="Interface information">Interfaces</strong>
+        <strong title="Interface information">
+          <i class="fa fa-plug" aria-hidden="true"></i>
+          Interfaces
+        </strong>
       </a>
     </li>
       {% if bulk_edit %}
       <li>
          <a href="#tab_bulkedit" data-toggle="tab">
-           <strong title="Bulk Edit">Bulk Edit</strong>
+           <strong title="Bulk Edit">
+             <i class="fa fa-pencil" aria-hidden="true"></i>
+             Bulk Edit
+           </strong>
          </a>
       </li>
       {% endif %}
@@ -98,7 +135,10 @@
       <li>
       {% endif %}
         <a href="#tab_arp_lldp" data-toggle="tab">
-          <strong title="Interface details such as ethernet address, ARP, LLDP, etc.">Eth/ARP/LLDP</strong>
+          <strong title="Interface details such as ethernet address, ARP, LLDP, etc.">
+            <i class="fa fa-lightbulb-o" aria-hidden="true"></i>
+            Eth/ARP/LLDP
+          </strong>
         </a>
       </li>
     {% else %} {# not arp_lldp #}
@@ -108,13 +148,19 @@
       <li>
       {% endif %}
         <a href="#tab_interfaces" data-toggle="tab">
-          <strong title="Interface information">Interfaces</strong>
+          <strong title="Interface information">
+            <i class="fa fa-plug" aria-hidden="true"></i>
+            Interfaces
+          </strong>
         </a>
       </li>
       {% if bulk_edit %}
         <li>
           <a href="#tab_bulkedit" data-toggle="tab">
-            <strong title="Bulk Edit">Bulk Edit</strong>
+            <strong title="Bulk Edit">
+              <i class="fa fa-pencil" aria-hidden="true"></i>
+              Bulk Edit
+            </strong>
           </a>
         </li>
        {% endif %}
@@ -125,33 +171,49 @@
     <li>
     {% endif %}
       <a href="#tab_info" data-toggle="tab">
-        <strong title="General switch information, such as OS, etc.">Switch Information</strong>
+        <strong title="General switch information, such as OS, etc.">
+          <i class="fa fa-info" aria-hidden="true"></i>
+          Switch Information
+        </strong>
       </a>
     </li>
     <li>
       <a href="#tab_logs" data-toggle="tab">
-        <strong title="Recent OpenL2M activity logs for this switch">Activity Logs</strong>
+        <strong title="Recent OpenL2M activity logs for this switch">
+          <i class="fa fa-list-ul" aria-hidden="true"></i>
+          Activity Logs
+        </strong>
       </a>
     </li>
     {% if cmd %}
       {% if cmd.state == 'run' %}
       <li class="active">
         <a href="#tab_cmd_output" data-toggle="tab">
-          <strong title="Show command output">Command Output</strong>
+          <strong title="Show command output">
+            <i class="fa fa-cog" aria-hidden="true"></i>
+            Command Output
+          </strong>
         </a>
       </li>
       {% endif %}
       {% if switch.command_list.global_commands.count or switch.command_list.global_commands_staff.count %}
       <li>
         <a href="#tab_cmd_list" data-toggle="tab">
-          <strong title="Possible show commands for the switch">Switch Commands</strong>
+          <strong title="Possible show commands for the switch">
+            <i class="fa fa-cogs" aria-hidden="true"></i>
+            Switch Commands
+          </strong>
         </a>
       </li>
       {% endif %}
     {% endif %}
     {% if connection.warnings %}
-      <li><a href="#tab_warnings" data-toggle="tab"><strong title="Errors or Warnings have been found!">
-        <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Warnings/Errors</strong></a>
+      <li>
+        <a href="#tab_warnings" data-toggle="tab"><strong title="Errors or Warnings have been found!">
+          <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+          Warnings/Errors
+        </strong>
+        </a>
       </li>
     {% endif %}
   </ul>

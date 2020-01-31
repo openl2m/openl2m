@@ -4,7 +4,7 @@
 Version 1.1
 ===========
 
-Release Date: 2020-01-22
+Release Date: 2020-01-29
 
 New Features
 ------------
@@ -22,6 +22,8 @@ Bug Fixes
 Configuration changes
 ---------------------
 
+See also the :doc:`the Tasks installation section<../installation/tasks>`.
+
 Run upgrade.sh first!
 
 To enable task scheduling via Celery, you need to add the following to configuration.py:
@@ -37,15 +39,23 @@ To send separate emails with the results of tasks to ADMINS, set this:
 
 You will need to set one or more email destinations in ADMINS !
 
-If you have installed Celery according to the documentation, you should not need to touch these:
+The default time selector for tasks uses a 12-hour AM/PM clock. If you want to use 24 Hour time format, set to True.
 
 .. code-block:: bash
 
-  CELERY_BROKER_URL = 'redis://localhost:6379'
-  CELERY_RESULT_BACKEND = 'redis://localhost:6379'
-  CELERY_ACCEPT_CONTENT = ['application/json']
-  CELERY_RESULT_SERIALIZER = 'json'
-  CELERY_TASK_SERIALIZER = 'json'
+  TASK_USE_24HR_TIME = False
+
+By default, users can choose time in 5 minute increments (0,5,10,15,...). Change this to set an increment as save_needed
+
+.. code-block:: bash
+
+  TASK_SUBMIT_MINUTE_INCREMENT = 5
+
+By default, users can schedules tasks up to 28 days (4 weeks) into the future. Set this as needed.
+
+.. code-block:: bash
+
+  TASK_SUBMIT_MAX_DAYS_IN_FUTURE = 28
 
 To send emails with the results of Bulk-Edit jobs, set these, if needed.
 The defaults assume a local smtp server. See the installation section
@@ -66,4 +76,18 @@ and configuration.example.py for more.
   EMAIL_SUBJECT_PREFIX = '[OpenL2M] '
   EMAIL_FROM_ADDRESS = '<openl2m@localhost>'
 
-Once this is complete, :doc:`follow the steps in the Tasks installation section<../installation/tasks>`.
+.. warning::
+
+  If you have installed Redis/Celery according to the documentation, you should not need to change these.
+  Only change these settings if need to customize your Redis server configuration!
+
+.. code-block:: bash
+
+    CELERY_BROKER_URL = 'redis://localhost:6379'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+    CELERY_ACCEPT_CONTENT = ['application/json']
+    CELERY_RESULT_SERIALIZER = 'json'
+    CELERY_TASK_SERIALIZER = 'json'
+
+
+Once these steps are complete, :doc:`follow the steps in the Tasks installation section<../installation/tasks>`.

@@ -3,6 +3,8 @@
 Version 1.0
 ===========
 
+Release date: 2020-01-15
+
 This is the initial release of OpenL2M.
 
 Features

@@ -49,7 +49,12 @@
         {% endif %}
         <tr>
           <td>Switch</td>
-          <td>{{ task.switch }}</td>
+          <td>
+            <a href="{% url 'switches:switch_basics' task.group.id task.switch.id %}"
+              title="Click here to access this switch." >
+              {{ task.switch }}
+            </a>
+          </td>
         </tr>
         <tr>
           <td>Scheduled at</td>
@@ -93,8 +98,16 @@
         </tr>
         <tr>
           <td>
-            <span title="This is the state of the interfaces at the time the task runs">
+            <span title="This is the state of the interfaces at the time the task executed">
               Previous State
+            </span>
+          </td>
+          <td>{{ task.runtime_reverse_arguments }}</td>
+        </tr>
+        <tr>
+          <td>
+            <span title="This is the state of the interfaces at the time the task was submitted">
+              Submit State
             </span>
           </td>
           <td>{{ task.reverse_arguments }}</td>

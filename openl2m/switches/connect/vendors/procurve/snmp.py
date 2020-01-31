@@ -35,7 +35,7 @@ class SnmpConnectorProcurve(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("HP-Aruba/Procurve SnmpConnector __init__")
-        super().__init__(self, request, group, switch)
+        super().__init__(request, group, switch)
         self.name = "HP-Aruba/Procurve SnmpConnector"  # what type of class is running!
         self.vendor_name = 'HP/Procurve'
 
@@ -46,7 +46,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         """
         if not self._parse_mibs_hp_poe(oid, val):
             # call the generic parser
-            return super()._parse_oid(self, oid, val)
+            return super()._parse_oid(oid, val)
         return True
 
     def _get_vendor_data(self):
@@ -111,7 +111,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         call the HP-ENTITY-POWER-MIB
         """
         # get standard data first, this loads PoE status, etc.
-        super()._get_poe_data(self)
+        super()._get_poe_data()
         # now get HP specific info about power usage from HP-IFC-POE-MIB first
         retval = self._get_branch_by_name('hpicfPoePethPsePortPower', True, self._parse_mibs_hp_poe)
         if retval < 0:

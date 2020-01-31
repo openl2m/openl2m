@@ -89,6 +89,7 @@ Open `configuration.py` with your preferred editor and at the minimum set the fo
   * ALLOWED_HOSTS
   * DATABASE
   * SECRET_KEY
+  * TIME_ZONE
 
 *ALLOWED_HOSTS*
 
@@ -133,6 +134,12 @@ In the case of a highly available installation with multiple web servers,
 persistent user session state.
 
 Other variables in the configuration files are commented. Change settings as needed in your environment.
+
+*TIME_ZONE*
+
+Set this to the appropriate time, to get logs, etc. in the local time. Note that if you enable
+tasks, you need to set this appropriately, as using UTC will result in tasks running at unexpected times!
+
 
 **Run Database Migrations**
 

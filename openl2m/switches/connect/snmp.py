@@ -1407,13 +1407,16 @@ class SnmpConnector(EasySNMP):
         """
         Function to add a given vlan to the interface identified by the dot1D bridge port id
         """
+        dprint("_add_vlan_to_interface() port %d vlan %d" % (port_id, vlan_id))
         # get the interface index first:
         if_index = self._get_if_index_from_port_id(port_id)
         if if_index in self.interfaces.keys():
             if self.interfaces[if_index].untagged_vlan == vlan_id:
+                dprint("   PVID already set!")
                 # interface already has this untagged vlan, not adding
                 return True
             else:
+                dprint("   Add as tagged!")
                 self.interfaces[if_index].vlans.append(vlan_id)
                 self.interfaces[if_index].is_tagged = True
             return True

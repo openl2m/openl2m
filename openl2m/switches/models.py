@@ -900,7 +900,12 @@ class Task(models.Model):
     reverse_arguments = models.TextField(
         blank=True,     # the parameters to reverse the changes, in JSON format
         null=True,
-        help_text="Arguments to undo the changes of this task, in JSON format",
+        help_text="Arguments to undo the changes of this task, at submit time, in JSON format",
+    )
+    runtime_reverse_arguments = models.TextField(
+        blank=True,     # the parameters to reverse the changes, stored right before the changes are applied, in JSON format
+        null=True,
+        help_text="Arguments to undo the changes of this task, just prior to task executing, in JSON format",
     )
     celery_task_id = models.TextField(
         blank=True,

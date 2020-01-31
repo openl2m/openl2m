@@ -38,8 +38,8 @@ class SnmpConnectorComware(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("Comware SnmpConnector __init__")
-        super().__init__(self, request, group, switch)
-        self.name = "Comware SnmpConnector"  # what type of class is running!
+        super().__init__(request, group, switch)
+        self.name = "SnmpConnectorComware"  # what type of class is running!
         self.vendor_name = "HPE/Comware"
         # needed for saving config file:
         self.active_config_rows = 0
@@ -49,7 +49,7 @@ class SnmpConnectorComware(SnmpConnector):
         Parse a single OID with data returned from a switch through some "get" function
         Returns True if we parse the OID!
         """
-        dprint("Comware Parsing OID %s" % oid)
+        dprint("Comware _parse_oid() %s" % oid)
 
         if self._parse_mibs_comware_poe(oid, val):
             return True
@@ -60,7 +60,7 @@ class SnmpConnectorComware(SnmpConnector):
         if self._parse_mibs_comware_if_type(oid, val):
             return True
         # call the generic base parser
-        return super()._parse_oid(self, oid, val)
+        return super()._parse_oid(oid, val)
 
     def _get_vlan_data(self):
         """
@@ -68,7 +68,7 @@ class SnmpConnectorComware(SnmpConnector):
         """
         dprint("Comware _get_vlan_data()\n")
         # first, call the standard vlan reader
-        super()._get_vlan_data(self)
+        super()._get_vlan_data()
 
         # now read some Comware specific items.
         # some Comware switches do not report vlan names in Q-Bridge mib
@@ -102,8 +102,9 @@ class SnmpConnectorComware(SnmpConnector):
     def _get_vendor_data(self):
         """
         Implement the get_vendor_data() class from the base object
+        Does not return anything!
         """
-        dprint("Comware _get_vendor_data()")
+        # dprint("Comware _get_vendor_data()")
         self._get_branch_by_name('hh3cCfgLog', True, self._parse_mibs_comware_config)
 
     def set_interface_untagged_vlan(self, if_index, old_vlan_id, new_vlan_id):
@@ -111,12 +112,12 @@ class SnmpConnectorComware(SnmpConnector):
         As an example, Override the VLAN change, this is done Comware specific using the Comware VLAN MIB
         Return -1 if invalid interface, or value of _set() call
         """
-        dprint("Comware set_interface_untagged_vlan() %d from %d to %d" % (if_index, old_vlan_id, new_vlan_id))
+        dprint("Comware set_interface_untagged_vlan() port %d from %d to %d" % (if_index, old_vlan_id, new_vlan_id))
         iface = self.get_interface_by_index(if_index)
         new_vlan = self.get_vlan_by_id(new_vlan_id)
         if iface and new_vlan:
             if iface.is_tagged:
-                dprint("Tagged!")
+                # dprint("Tagged/Trunk Mode!")
                 # set the TRUNK_NATIVE_VLAN OID:
                 low_vlan_list = PortList()
                 low_vlan_list.from_byte_count(BYTES_FOR_2048_VLANS)
@@ -167,28 +168,45 @@ class SnmpConnectorComware(SnmpConnector):
 
             else:
                 # regular access mode untagged port:
-                # create a PortList to represent the ports/bits that are in the new vlan.
+                # dprint("Acces Mode!")
+
+                # create a PortList() to represent the ports/bits that are in the new vlan.
                 # we need byte size from number of ports:
                 max_port_id = self._get_max_qbridge_port_id()
                 # bytecount = (max_port_id / 8) + 1
                 bytecount = int(len(self.qbridge_port_to_if_index) / 8) + 1
-                portlist = PortList()
+                new_vlan_portlist = PortList()
                 # initialize with "00" bytes
-                portlist.from_byte_count(bytecount)
-                # now set bit to 1 for the port_id (interfaces):
-                portlist[int(iface.port_id)] = 1
+                new_vlan_portlist.from_byte_count(bytecount)
+                # now set bit to 1 for this interface (i.e. set the port_id bit!):
+                new_vlan_portlist[int(iface.port_id)] = 1
                 # now loop to find other existing ports on this vlan:
+                # dprint("Finding other ports on this vlan:")
                 for (this_index, this_iface) in self.interfaces.items():
+                    # dprint("%s (port %d), Tagged %s, untagged vlan %d, Vlan dict: %s" %
+                    #        (this_iface.name, this_iface.port_id, this_iface.is_tagged, this_iface.untagged_vlan, this_iface.vlans))
                     if this_iface.type == IF_TYPE_ETHERNET:
                         if this_iface.port_id > -1:     # we have a valid PortId
-                            # untagged or tagged port on this new vlanId?
-                            if (this_iface.untagged_vlan == new_vlan_id) or (new_vlan_id in this_iface.vlans):
-                                # is this port in Current Egress PortList?
-                                # if not, do NOT add!
-                                # this can happen with a PVID set on a port in trunk mode, but
-                                # the trunk does not allow that vlan! (edge use case)
-                                if self.vlans[new_vlan_id].current_egress_portlist[this_iface.port_id]:
-                                    portlist[this_iface.port_id] = 1
+                            if this_iface.is_tagged:
+                                # tagged interface
+                                # dprint("  Tagged")
+                                # is the new vlanId active on this port (i.e. PVID or on trunk) ?
+                                if (this_iface.untagged_vlan == new_vlan_id) or (new_vlan_id in this_iface.vlans):
+                                    # dprint(" This port is needed on new vlan")
+                                    # is this port in Current Egress PortList?
+                                    # if not, do NOT add!
+                                    # this can happen with a PVID set on a port in trunk mode, but
+                                    # the trunk does not allow that vlan! (edge use case)
+                                    if self.vlans[new_vlan_id].current_egress_portlist[this_iface.port_id]:
+                                        # dprint("  and in allow list!")
+                                        new_vlan_portlist[this_iface.port_id] = 1
+                                    # else:
+                                    #    dprint("  but NOT in allow list!")
+                            else:
+                                # untagged on this new vlanId ?
+                                if (this_iface.untagged_vlan == new_vlan_id):
+                                    # dprint("  Port PVID added to new vlan!")
+                                    new_vlan_portlist[this_iface.port_id] = 1
                         else:
                             # no switchport? "should" not happen for a valid switch port interface
                             warning = "Warning: %s - no port_id found in set_interface_untagged_vlan(Comware)!" % this_iface.name
@@ -196,11 +214,11 @@ class SnmpConnectorComware(SnmpConnector):
 
                 # send to the switch!
                 # Comware needs bits in opposite order inside each byte! (go figure)
-                portlist.reverse_bits_in_bytes()
+                new_vlan_portlist.reverse_bits_in_bytes()
                 # get the PySNMP helper to do the work with this BitMap:
                 # note that to_hex_string() is same as .__str__ representation,
                 # but we use it for extra clarity!
-                octet_string = OctetString(hexValue=portlist.to_hex_string())
+                octet_string = OctetString(hexValue=new_vlan_portlist.to_hex_string())
                 pysnmp = pysnmpHelper(self.switch)
                 (error_status, details) = pysnmp.set("%s.%s" % (snmp_mib_variables['hh3cdot1qVlanPorts'], new_vlan_id), octet_string)
                 if error_status:
@@ -300,7 +318,7 @@ class SnmpConnectorComware(SnmpConnector):
         Get PoE data, first via the standard PoE MIB,
         then by calling the Comware extended HH3C-POWER-ETH MIB
         """
-        super()._get_poe_data(self)
+        super()._get_poe_data()
         # now get HP specific info from HP-IFC-POE-MIB first
         retval = self._get_branch_by_name('hh3cPsePortCurrentPower', True, self._parse_mibs_comware_poe)
         if retval < 0:

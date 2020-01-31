@@ -123,16 +123,18 @@
                             </option>
                           {% endfor %}
                         </select>
-                        <input type="submit" value="Change"
-                        {% if request.user.profile.are_you_sure %}
-                          onclick="return confirm_change('Are you sure you want change VLAN on interface {{ iface.name }}?')"
-                          {% endif %}
+                        <input type="submit"
+                               value="Change"
+                               class="btn btn-primary"
+                            {% if request.user.profile.are_you_sure %}
+                               onclick="return confirm_change('Are you sure you want change VLAN on interface {{ iface.name }}?')"
+                            {% endif %}
                         >
                       </form>
                     {% else %} {# not vlan_change_implemented #}
                       <span {% if iface.untagged_vlan_name != '' %}
-                          title="{{ iface.untagged_vlan_name }}"{% endif %}>
-                          {{ iface.untagged_vlan }}
+                        title="{{ iface.untagged_vlan_name }}"{% endif %}>
+                        {{ iface.untagged_vlan }}
                       </span>
                     {% endif %}
                   {% else %} {# untagged_vlan = 0 #}
@@ -199,10 +201,12 @@
                       >
                       {% csrf_token %}
                       <input type="text" size=40 name="new_alias" value="{{ iface.alias }}">
-                      <input type="submit" value="Change"
-                      {% if request.user.profile.are_you_sure %}
-                        onclick="return confirm_change('Are you sure you want change the description on interface {{ iface.name }}?')"
-                      {% endif %}
+                      <input type="submit"
+                             value="Change"
+                             class="btn btn-primary"
+                          {% if request.user.profile.are_you_sure %}
+                             onclick="return confirm_change('Are you sure you want change the description on interface {{ iface.name }}?')"
+                          {% endif %}
                       >
                     </form>
                   {% else %}
@@ -233,7 +237,7 @@
                         {% endif %}
                       </select>
                       <input type="hidden" name="if_name" value="{{ iface.name }}">
-                      &nbsp;<input type="submit" value="Run">
+                      &nbsp;<input type="submit" value="Run" class="btn btn-primary">
                     </form>
                   </td>
                 {% endif %}
@@ -381,7 +385,7 @@
                       {% endif %}
                     </select>
                     <input type="hidden" name="if_name" value="{{ iface.name }}">
-                    &nbsp;<input type="submit" value="Run">
+                    &nbsp;<input type="submit" value="Run" class="btn btn-primary">
                   </form>
                 </td>
               {% endif %}
