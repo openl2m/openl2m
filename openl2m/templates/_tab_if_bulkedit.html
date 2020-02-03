@@ -122,7 +122,7 @@
             <td>
               {% if switch.edit_if_descr and group.edit_if_descr or user.profile.edit_if_descr %}
                 <span title="Enter a new description for all selected interfaces.">
-                  <input type="text" size=40 name="new_alias" value="" placeholder="new description here...">
+                  <input type="text" class="form-control" name="new_alias" value="" placeholder="new description here...">
                 </span>
               {% else %}
                 <i>No description edit allowed</i>
