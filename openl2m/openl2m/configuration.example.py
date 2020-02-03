@@ -379,4 +379,7 @@ EMAIL_SSL_KEYFILE = None
 
 # to receive bounced emails, make sure this is a valid return address!
 EMAIL_FROM_ADDRESS = '<openl2m@localhost>'
-EMAIL_SUBJECT_PREFIX = '[OpenL2M] '
+# the subject Prefix for admin emails:
+EMAIL_SUBJECT_PREFIX = '[OpenL2M-Admin] '
+# the subject Prefix for regular user emails:
+EMAIL_SUBJECT_PREFIX_USER = '[OpenL2M] '

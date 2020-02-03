@@ -47,7 +47,8 @@ except ImportError:
         "Configuration file is not present. Please define openl2m/openl2m/configuration.py per the documentation."
     )
 
-VERSION = '1.1(20200129)'
+# if you change this version, also change it in docs/conf.py !!!
+VERSION = '1.1.1(20200203)'
 
 # Hostname
 HOSTNAME = platform.node()
@@ -360,5 +361,6 @@ EMAIL_USE_SSL = getattr(configuration, 'EMAIL_USE_SSL', False)
 EMAIL_SSL_CERTFILE = getattr(configuration, 'EMAIL_SSL_CERTFILE', None)
 EMAIL_SSL_KEYFILE = getattr(configuration, 'EMAIL_SSL_KEYFILE', None)
 EMAIL_TIMEOUT = getattr(configuration, 'EMAIL_TIMEOUT', 10)
-EMAIL_SUBJECT_PREFIX = getattr(configuration, 'EMAIL_SUBJECT_PREFIX', '[OpenL2M] ')
+EMAIL_SUBJECT_PREFIX = getattr(configuration, 'EMAIL_SUBJECT_PREFIX', '[OpenL2M-Admin] ')
+EMAIL_SUBJECT_PREFIX_USER = getattr(configuration, 'EMAIL_SUBJECT_PREFIX_USER', '[OpenL2M] ')
 EMAIL_FROM_ADDRESS = getattr(configuration, 'EMAIL_FROM_ADDRESS', '<openl2m@localhost>')
