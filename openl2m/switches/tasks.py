@@ -129,7 +129,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
         log.group = group
         log.switch = switch
         try:
-            send_mail("%s%s" % (settings.EMAIL_SUBJECT_PREFIX, subject),
+            send_mail("%s%s" % (settings.EMAIL_SUBJECT_PREFIX_USER, subject),
                       message, settings.EMAIL_FROM_ADDRESS,
                       [user.email], fail_silently=False)
             log.type = LOG_TYPE_CHANGE
