@@ -44,6 +44,6 @@ it only where absolutely needed.
 `Netmiko <https://github.com/ktbyers/netmiko>`_ is a Python library that
 establishes SSH connections to network gear.
 `It has a lot of useful functionality.
-<[https://pynet.twb-tech.com/blog/automation/netmiko.html>`_
-We use it to do what we cannot accomplish via SNMP, such as switch command line execution.
-We provide admin-configurable command line output to users.
+<https://pynet.twb-tech.com/blog/automation/netmiko.html>`_
+We use it to do what we cannot accomplish via SNMP, such as switch command line execution,
+to provide admin-configurable command line output to users.

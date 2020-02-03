@@ -197,6 +197,13 @@ E.g. if you want to send via Gmail, this is what you should use:
   EMAIL_PORT = 587
   EMAIL_USE_TLS = True
 
+There are two email subject prefix settings:
+
+EMAIL_SUBJECT_PREFIX_USER is used to prefix messages to regular users (e.g. task result emails)
+
+EMAIL_SUBJECT_PREFIX  is the prefix for administrative emails.
+
+
 Viewing Tasks
 -------------
 
