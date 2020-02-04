@@ -18,17 +18,23 @@ This bar shows the switch name on the left. This may be preceded by one or more 
 which would be links to external systems with more information about the device. E.g. you may see a link to the
 Network Management System.
 
-There may be an icon to the left of switch name as well: |tasks| This means there scheduled tasks defined for this switch.
-Details can be found in the Information tab.
+There may be an icon to the left of switch name as well: |tasks| This means there are scheduled tasks defined for this switch.
+Details about these tasks can be found in the Information tab.
 
 .. |tasks| image:: ../_static/tasks.png
 
-The entry in the center, :doc:`'Read Eth/Arp/Lldp' <details_view>`, will get you a real-time read of the ethernet
-tables (MAC address) and LLPD neighbors of the switch. If the device is a router, ARP for IPv4 will also be shown.
+The entry in the center, |switch-arp-lldp-header|, will get you a real-time read of the ethernet
+tables (MAC address) and LLPD neighbors of the switch. If the device is a router, ARP entries for IPv4 will also be shown.
 
-On the right, *'Reload All'*, does exactly that! This forces a complete refresh of all switch data via SNMP.
+.. |switch-arp-lldp-header| image:: ../_static/switch-arp-lldp-header.png
 
-The *'More Hardware Details'* option adds a few more bits of information to the Information tab below (depending on vendor).
+On the right, |switch-reload-header|, does exactly that! This forces a complete refresh of all switch data via SNMP.
+
+.. |switch-reload-header| image:: ../_static/switch-reload-header.png
+
+The |hardware-details-header| option adds a few more bits of information to the Information tab below (depending on vendor).
+
+.. |hardware-details-header| image:: ../_static/hardware-details-header.png
 
 |save_warning|  If you have made changes that require saving the config, an additional option to save the config
 will appear on the right with a warning icon in front! Click it to save the running config to the switch startup config.
@@ -48,7 +54,7 @@ to allow changing the configuration.
 
 Additionally, you will see tabs with switch **Information**, and OpenL2M
 **Activity** logs for this switch. If configured, there may even be a tab
-for switch **Show commands**.
+for **Switch Commands**.
 
 Interfaces tab
 --------------
@@ -243,28 +249,37 @@ by user and time.
 .. |activity_logs_tab| image:: ../_static/activity_logs_tab.png
 
 
-Show Commands tab
------------------
+Switch Commands tab
+-------------------
 
-|commands_tab|
+|switch_commands_tab|
+
 This tab will only show if 'global' switch-level commands are configured by the admin.
 
 This tab will give a simple form with some 'global' show commands you can execute on the switch.
-Select a command, click on 'Run Command', and be patient! When complete, the page will refresh and a new 'Command Output'
-tab will be added.
+Select a command, click on 'Run Command', and be patient!
 
-.. |commands_tab| image:: ../_static/commands_tab.png
+|command_output_tab|
+
+When complete, the page will refresh and a new 'Command Output' tab will show the output from the switch.
+
+
+.. |switch_commands_tab| image:: ../_static/switch_commands_tab.png
+.. |command_output_tab| image:: ../_static/command_output_tab.png
 
 
 Warnings/Errors tab
 -------------------
 
 |warnings_errors_tab|
+
 This tab will only show if warnings or errors were found at some point.
 
 .. |warnings_errors_tab| image:: ../_static/warnings_errors_tab.png
 
 |warnings|
+
 The content of this tab will show a variety of warnings and non-critical errors discovered.
+Note that these findings are also logged.
 
 .. |warnings| image:: ../_static/warnings.png

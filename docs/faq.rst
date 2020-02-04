@@ -11,7 +11,7 @@ Frequenty Asked Questions
 
 * **Why does it take a while to show the switch page?**
 
-This is a design decision. **Everything is live read from the switch as
+This is a design decision. **Everything is read in real-time from the switch as
 you access it**. I.e. Every time you go (back) to a switch, it needs to
 re-learn the switch information from SNMP data. That makes it somewhat
 slower, but it also means **you always have the current information.**

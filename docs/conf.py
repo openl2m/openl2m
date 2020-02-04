@@ -19,7 +19,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'OpenL2M'
-copyright = '2019, Various'
+copyright = '2019-2020, Various'
 author = 'Various'
 
 # The full version, including alpha/beta/rc tags

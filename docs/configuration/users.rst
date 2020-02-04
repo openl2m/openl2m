@@ -12,13 +12,13 @@ to Switch Groups as needed.
 
 **LDAP Users**
 
-If you configured :doc: `LDAP login <../installation/ldap>`,
+If you configured :doc:`LDAP login <../installation/ldap>`,
 users can be auto-created based on an ldap directory.
 This allows you to manage users and rights in a central location,
 e.g. an active directory domain.
 
 **Automation**
 
-OpenL2M supports the normal
-:doc: `Django script interface <https://django-extensions.readthedocs.io/en/latest/runscript.html>`.
-As an example, look in the /scripts directly and check out the example.py script.
+OpenL2M supports the normal Django script interface.
+(See https://django-extensions.readthedocs.io/en/latest/runscript.html)
+As an example, look in the /scripts directory and check out the example.py script.

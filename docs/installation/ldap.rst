@@ -117,14 +117,14 @@ LDAP Groups can be used to create SwitchGroup() objects. See the configuration s
   AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
 
 
-* `is_active` - All users must be mapped to at least this group to enable authentication.
-   Without this, users cannot log in.
+* *is_active* - All users must be mapped to at least this group to enable authentication.
+  Without this, users cannot log in.
 
-* `is_staff` - Users mapped to this group are enabled for access to the administration tools;
+* *is_staff* - Users mapped to this group are enabled for access to the administration tools;
   this is the equivalent of checking the "staff status" box on a manually created user.
   This doesn't grant any specific permissions.
 
-* `is_superuser` - Users mapped to this group will be granted superuser status.
+* *is_superuser* - Users mapped to this group will be granted superuser status.
   Superusers are implicitly granted all permissions.
 
 **Troubleshooting LDAP**
@@ -136,7 +136,7 @@ Restart the OpenL2M service to initiate changes made to ldap_config.py:
   systemctl restart openl2m
 
 If there are syntax errors present, the OpenL2M process will not spawn an instance,
- and errors should show with `systemctl status openl2m`
+and errors should show with `systemctl status openl2m`
 
 For troubleshooting LDAP user/group queries, add the following lines to the start of
 `ldap_config.py` after `import ldap`:

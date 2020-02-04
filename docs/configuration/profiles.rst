@@ -46,7 +46,7 @@ and a username and password for the SSH login.
 Select the proper Netmiko device type. If Cisco, you can give the 'enable'
 password. This is currently not used yet, so you can leave it blank as well.
 
-If you run SSH on a non-standard port, edit it. If you want SSL host key checking,
+If you run SSH on a non-standard port, enter it. If you want SSL host key checking,
 select the option. Note this is not tested, but should work if you have
 the proper SSH known hosts config files in the user profile that runs your web server.
 

@@ -7,7 +7,7 @@ Debugging
 Debugging is mostly to assist the developers with troubleshooting. This can
 come in handy when you have a new device that is not properly rendering.
 
-To enable lots of debugging output, at the following to the file
+To enable lots of debugging output, add the following to the
 configuration file in *openl2m/configuration.py*
 
 This configuration below enables the following debugging:
@@ -72,5 +72,6 @@ If you have this enabled, for debugging please stop that process:
   sudo systemctl stop celery
 
 Alternatively, you can use a syslog config, or the like, that does NOT write files directly.
+See more at https://docs.djangoproject.com/en/2.2/topics/logging/
 
 **Don't forget to remove this configuration when you are done!** (and start Celery, if needed)

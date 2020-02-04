@@ -25,6 +25,7 @@ OpenL2M can manage interfaces on switches using SNMP v2 and v3, including:
 * show **Ethernet addresses** on the interfaces (i.e. MAC address, or the layer 2 switch tables).
 * show **LLDP neighbor** information on interfaces.
 * **bulk edit** of vlan, interface state, Power-over-Ethernet state, and description on multiple interfaces at once.
+* **scheduling of bulk edits**
 * using SSH under the hood, we can configure **any switch CLI 'show' command** to be runnable by users from the web interface,
   shown with 'friendly' names in a drop-down menu.
 * switch **device import via csv files**, or fully programmable import via Python scripts.
@@ -62,13 +63,12 @@ Users, switch groups, and switch group membership can be auto-generated through 
 
 Several pattern matches can be configured to 'remove' interfaces from view,
 regardless of vlan or group membership. E.g. all ports with descriptions
-matching "Trunk" can be matched to be off-limits.
+matching "Trunk", or with port speeds above 9.5Gbps can be matched to be off-limits.
 
 **Getting Started**
 
 OpenL2M uses the Django_ framework with a PostgreSQL_ database.
-It uses the Python_ v3 programming language. For a complete list of
-requirements, see `requirements.txt`.
+It uses the Python_ v3 programming language. Switches need to support SNMP v3 or v2c.
 
 .. _Django: https://www.djangoproject.com/
 .. _PostgreSQL: http://www.postgresql.org/
