@@ -977,6 +977,7 @@ def show_stats(request):
     db_items['Netmiko Profiles'] = NetmikoProfile.objects.count()
     db_items['Commands'] = Command.objects.count()
     db_items['Command Lists'] = CommandList.objects.count()
+    db_items['Tasks'] = Task.objects.count()
     db_items['Log Entries'] = Log.objects.count()
 
     usage = {}  # usage statistics
