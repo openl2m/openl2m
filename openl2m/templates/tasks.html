@@ -16,13 +16,13 @@
   {% if not settings.TASKS_ENABLED %}
   <div class="panel panel-warning">
     <div class="panel-heading">
-      <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Tasks are not enabled!</strong>
+      <strong><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Tasks are not enabled!</strong>
     </div>
   </div>
   {% elif not task_process_running %}
   <div class="panel panel-warning">
     <div class="panel-heading">
-      <strong><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Task process is not running!</strong>
+      <strong><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Task process is not running!</strong>
     </div>
   </div>
   {% endif %}
@@ -52,7 +52,7 @@
                    onclick="return confirm_change('Are you sure you want to DELETE this task?')"
                 {% endif %}
                    >
-                   <i class="fa fa-trash" aria-hidden="true"></i>
+                   <i class="fas fa-trash" aria-hidden="true"></i>
                </a>
               {% endif %}
               {{ task.eta }}
@@ -63,7 +63,7 @@
                  onclick="return confirm_change('Are you sure you want to TERMINATE this running task?')"
                 {% endif %}
                  >
-                 <i class="fa fa-times" aria-hidden="true"></i>
+                 <i class="fas fa-times" aria-hidden="true"></i>
                 </a>
               {% endif %}
             </td>

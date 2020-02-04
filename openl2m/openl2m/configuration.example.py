@@ -130,8 +130,8 @@ SWITCH_INFO_URLS = [
         # or use the icon from Akip:
         # 'icon': 'https://akips.yoursite/img/favicon-32.png',
         'alt': 'Akips NMS Icon',
-        # or use any Font Awesome 4 icon:
-        # 'fa_icon': 'fa-area-chart',
+        # or use any Font Awesome 5 icon:
+        # 'fa_icon': 'fa-chart-area',
     },
     # this would be a link to a LibreNMS or Observium page.
     # Note you have to fill in the "nms_id" field for each switch for this to work!
@@ -146,8 +146,8 @@ SWITCH_INFO_URLS = [
         # 'icon': 'http://librenms.yoursite.com/images/favicon-32x32.png',
         # 'icon': 'http://librenms.yoursite.com/images/favicon.ico',
         'alt': 'LibreNMS Icon',
-        # or use any Font Awesome 4 icon:
-        # 'fa_icon': 'fa-area-chart',
+        # or use any Font Awesome 5 icon:
+        # 'fa_icon': 'fa-chart-area',
     },
 ]
 
@@ -165,8 +165,8 @@ INTERFACE_INFO_URLS = [
         'target': '_akips',
         'icon': '/static/img/nms-24.png',
         'alt': 'NMS Icon',
-        # or use any Font Awesome 4 icon:
-        # 'fa_icon': 'fa-area-chart',
+        # or use any Font Awesome 5 icon:
+        # 'fa_icon': 'fa-chart-area',
     },
 ]
 
@@ -183,8 +183,8 @@ VLAN_INFO_URLS = [
         'target': '_ipam',
         'icon': '/static/img/ipam.png',
         'alt': 'NMS Icon',
-        # or use any Font Awesome 4 icon:
-        # 'fa_icon': 'fa-area-chart',
+        # or use any Font Awesome 5 icon:
+        # 'fa_icon': 'fa-chart-area',
     },
 ]
 
@@ -201,8 +201,8 @@ IP4_INFO_URLS = [
         'target': '_ipam',
         'icon': '/static/img/ipam.png',
         'alt': 'NMS Icon',
-        # or use any Font Awesome 4 icon:
-        # 'fa_icon': 'fa-area-chart',
+        # or use any Font Awesome 5 icon:
+        # 'fa_icon': 'fa-chart-area',
     },
     # another example, a direct link to an ELK stack log parser for the ipv4 addresses
     # note this is completely fictitious!
@@ -213,8 +213,8 @@ IP4_INFO_URLS = [
         'target': '_elk',
         'icon': '/static/img/general-info-24.png',
         'alt': 'ELK Stack Icon',
-        # or use any Font Awesome 4 icon:
-        # 'fa_icon': 'fa-area-chart',
+        # or use any Font Awesome 5 icon:
+        # 'fa_icon': 'fa-chart-area',
     },
 ]
 
@@ -231,8 +231,8 @@ ETHERNET_INFO_URLS = [
         'target': '_ipam',
         'icon': '/static/img/ipam.png',
         'alt': 'NMS Icon',
-        # or use any Font Awesome 4 icon:
-        # 'fa_icon': 'fa-area-chart',
+        # or use any Font Awesome 5 icon:
+        # 'fa_icon': 'fa-chart-area',
     },
     # another example, a direct link to an ELK stack log parser for the ethernet addresses
     # note this is completely fictitious!
@@ -243,8 +243,8 @@ ETHERNET_INFO_URLS = [
         'target': '_elk',
         'icon': '/static/img/general-info-24.png',
         'alt': 'ELK Stack Icon',
-        # or use any Font Awesome 4 icon:
-        # 'fa_icon': 'fa-area-chart',
+        # or use any Font Awesome 5 icon:
+        # 'fa_icon': 'fa-chart-area',
     },
 ]
 

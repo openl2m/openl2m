@@ -20,7 +20,7 @@
         {% if vlan.type == VLAN_TYPE_NORMAL %}
           <div>{{ vlan|get_vlan_info_links }} {{ vlanid }}{% if vlan.name %} - {{ vlan.name }} {% endif %}
           {% if vlan.status == VLAN_STATUS_DYNAMIC %}
-            {# <i class="fa fa-cloud-download" aria-hidden="true"></i> #}
+            {# <i class="fas fa-cloud-download" aria-hidden="true"></i> #}
             <img src="{% static 'img/mvrp-24.png' %}"
                  alt="MVRP/GVRP Image"
                  title="Vlan learned via MVRP or GVRP">
@@ -95,7 +95,7 @@
 
   {% if tasks %}
   <div class="panel {% if task_process_running %}panel-default{% else %}panel-warning{% endif %}">
-    <div class="panel-heading"><strong>Scheduled Tasks{% if not task_process_running %} - Task process is not running! <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>{% endif %}</strong></div>
+    <div class="panel-heading"><strong>Scheduled Tasks{% if not task_process_running %} - Task process is not running! <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>{% endif %}</strong></div>
     <div class="panel-body">
       <table class="table">
         <thead>
@@ -115,7 +115,7 @@
                    onclick="return confirm_change('Are you sure you want to DELETE this task?')"
                 {% endif %}
                    >
-                   <i class="fa fa-trash" aria-hidden="true"></i>
+                   <i class="fas fa-trash" aria-hidden="true"></i>
                 </a>
               {% endif %}
               {{ task.eta }}

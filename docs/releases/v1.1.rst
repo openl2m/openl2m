@@ -4,6 +4,13 @@
 Version 1.1
 ===========
 
+Version 1.1.2
+-------------
+
+Release Date: 2020-02-04
+
+* update to use icons from FontAwesome v5.12 (from v4.7)
+
 Version 1.1.1
 -------------
 

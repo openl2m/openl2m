@@ -46,12 +46,12 @@
             {% endif %}
             {% if tasks %}
               <span title="There are scheduled tasks for this switch. For details, see the Switch Information tab!">
-                <i class="fa fa-calendar" aria-hidden="true"></i>
+                <i class="fas fa-calendar" aria-hidden="true"></i>
               </span>
             {% endif %}
             {% if switch.read_only or group.read_only or user.profile.read_only %}
               <span title="This switch is set as Read-Only by the administrator. You can not make any changes!">
-                <i class="fa fa-hand-o-right" aria-hidden="true"></i>&nbsp;<small>Read-Only</small>&nbsp;<i class="fa fa-hand-o-left" aria-hidden="true"></i>
+                <i class="far fa-hand-point-right" aria-hidden="true"></i>&nbsp;<small>Read-Only</small>&nbsp;<i class="fas fa-hand-point-left" aria-hidden="true"></i>
               </span>
             {% endif %}
           </td>
@@ -61,7 +61,7 @@
             <a href="{% url 'switches:switch_hw_info' group.id switch.id %}"
               title="Read additional hardware details for this switch! This may take some time..."
               class="btn btn-primary">
-              <i class="fa fa-info-circle" aria-hidden="true"></i>
+              <i class="fas fa-info-circle" aria-hidden="true"></i>
               More Hardware Details
             </a>
           </td>
@@ -72,10 +72,10 @@
                title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time..."
                class="btn btn-primary">
               {% if view == 'arp_lldp' %}
-                <i class="fa fa-refresh" aria-hidden="true"></i>
+                <i class="fas fa-sync" aria-hidden="true"></i>
                 Refresh
               {% else %}
-              <i class="fa fa-lightbulb-o" aria-hidden="true"></i>
+              <i class="fas fa-lightbulb" aria-hidden="true"></i>
                 Read
               {% endif %} Eth/Arp/LLDP
             </a>
@@ -86,9 +86,9 @@
             <a href="{% url 'switches:switch_save_config' group.id switch.id view %}"
                title="Click here to save changes to the startup config of the switch!"
                class="btn btn-info">
-              <i class="fa fa-exclamation" aria-hidden="true"></i>
+              <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
                 Save Changes
-              <i class="fa fa-exclamation" aria-hidden="true"></i>
+              <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
             </a>
           </td>
           {% endif %}
@@ -97,7 +97,7 @@
             <a href="{% url 'switches:switch_reload' group.id switch.id view %}"
                title="Click here to fully reload all SNMP data for this switch! This may take some time..."
                class="btn btn-primary">
-              <i class="fa fa-refresh" aria-hidden="true"></i>
+              <i class="fas fa-sync" aria-hidden="true"></i>
               Reload All
             </a>
           </td>
@@ -115,7 +115,7 @@
     <li>
       <a href="#tab_interfaces" data-toggle="tab">
         <strong title="Interface information">
-          <i class="fa fa-plug" aria-hidden="true"></i>
+          <i class="fas fa-plug" aria-hidden="true"></i>
           Interfaces
         </strong>
       </a>
@@ -124,7 +124,7 @@
       <li>
          <a href="#tab_bulkedit" data-toggle="tab">
            <strong title="Bulk Edit">
-             <i class="fa fa-pencil" aria-hidden="true"></i>
+             <i class="fas fa-pencil" aria-hidden="true"></i>
              Bulk Edit
            </strong>
          </a>
@@ -137,7 +137,7 @@
       {% endif %}
         <a href="#tab_arp_lldp" data-toggle="tab">
           <strong title="Interface details such as ethernet address, ARP, LLDP, etc.">
-            <i class="fa fa-lightbulb-o" aria-hidden="true"></i>
+            <i class="fas fa-lightbulb-o" aria-hidden="true"></i>
             Eth/ARP/LLDP
           </strong>
         </a>
@@ -150,7 +150,7 @@
       {% endif %}
         <a href="#tab_interfaces" data-toggle="tab">
           <strong title="Interface information">
-            <i class="fa fa-plug" aria-hidden="true"></i>
+            <i class="fas fa-plug" aria-hidden="true"></i>
             Interfaces
           </strong>
         </a>
@@ -159,7 +159,7 @@
         <li>
           <a href="#tab_bulkedit" data-toggle="tab">
             <strong title="Bulk Edit">
-              <i class="fa fa-pencil" aria-hidden="true"></i>
+              <i class="fas fa-edit" aria-hidden="true"></i>
               Bulk Edit
             </strong>
           </a>
@@ -173,7 +173,7 @@
     {% endif %}
       <a href="#tab_info" data-toggle="tab">
         <strong title="General switch information, such as OS, etc.">
-          <i class="fa fa-info" aria-hidden="true"></i>
+          <i class="fas fa-info" aria-hidden="true"></i>
           Switch Information
         </strong>
       </a>
@@ -181,7 +181,7 @@
     <li>
       <a href="#tab_logs" data-toggle="tab">
         <strong title="Recent OpenL2M activity logs for this switch">
-          <i class="fa fa-list-ul" aria-hidden="true"></i>
+          <i class="fas fa-list-ul" aria-hidden="true"></i>
           Activity Logs
         </strong>
       </a>
@@ -191,7 +191,7 @@
       <li class="active">
         <a href="#tab_cmd_output" data-toggle="tab">
           <strong title="Show command output">
-            <i class="fa fa-cog" aria-hidden="true"></i>
+            <i class="fas fa-cog" aria-hidden="true"></i>
             Command Output
           </strong>
         </a>
@@ -201,7 +201,7 @@
       <li>
         <a href="#tab_cmd_list" data-toggle="tab">
           <strong title="Possible show commands for the switch">
-            <i class="fa fa-cogs" aria-hidden="true"></i>
+            <i class="fas fa-cogs" aria-hidden="true"></i>
             Switch Commands
           </strong>
         </a>
@@ -211,7 +211,7 @@
     {% if connection.warnings %}
       <li>
         <a href="#tab_warnings" data-toggle="tab"><strong title="Errors or Warnings have been found!">
-          <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+          <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
           Warnings/Errors
         </strong>
         </a>
