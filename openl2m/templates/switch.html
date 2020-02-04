@@ -46,12 +46,12 @@
             {% endif %}
             {% if tasks %}
               <span title="There are scheduled tasks for this switch. For details, see the Switch Information tab!">
-                <i class="fas fa-calendar" aria-hidden="true"></i>
+                <i class="fas fa-calendar-alt" aria-hidden="true"></i>
               </span>
             {% endif %}
             {% if switch.read_only or group.read_only or user.profile.read_only %}
               <span title="This switch is set as Read-Only by the administrator. You can not make any changes!">
-                <i class="far fa-hand-point-right" aria-hidden="true"></i>&nbsp;<small>Read-Only</small>&nbsp;<i class="fas fa-hand-point-left" aria-hidden="true"></i>
+                <i class="far fa-hand-point-right" aria-hidden="true"></i>&nbsp;<small>Read-Only</small>&nbsp;<i class="far fa-hand-point-left" aria-hidden="true"></i>
               </span>
             {% endif %}
           </td>
@@ -75,7 +75,7 @@
                 <i class="fas fa-sync" aria-hidden="true"></i>
                 Refresh
               {% else %}
-              <i class="fas fa-lightbulb" aria-hidden="true"></i>
+              <i class="fas fa-sitemap" aria-hidden="true"></i>
                 Read
               {% endif %} Eth/Arp/LLDP
             </a>
@@ -115,7 +115,7 @@
     <li>
       <a href="#tab_interfaces" data-toggle="tab">
         <strong title="Interface information">
-          <i class="fas fa-plug" aria-hidden="true"></i>
+          <i class="fas fa-ethernet" aria-hidden="true"></i>
           Interfaces
         </strong>
       </a>
@@ -137,7 +137,7 @@
       {% endif %}
         <a href="#tab_arp_lldp" data-toggle="tab">
           <strong title="Interface details such as ethernet address, ARP, LLDP, etc.">
-            <i class="fas fa-lightbulb-o" aria-hidden="true"></i>
+            <i class="fas fa-sitemap" aria-hidden="true"></i>
             Eth/ARP/LLDP
           </strong>
         </a>
@@ -150,7 +150,7 @@
       {% endif %}
         <a href="#tab_interfaces" data-toggle="tab">
           <strong title="Interface information">
-            <i class="fas fa-plug" aria-hidden="true"></i>
+            <i class="fas fa-ethernet" aria-hidden="true"></i>
             Interfaces
           </strong>
         </a>
