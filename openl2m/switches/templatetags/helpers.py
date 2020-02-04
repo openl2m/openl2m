@@ -43,10 +43,10 @@ def build_url_string(values):
         s += " title=\"%s\"" % values['hint']
     s += ">"
     if 'fa_icon' in values.keys():
-        s += "<i fas %s aria-hidden=\"true\"></i>" % values['fa_icon']
+        s += "<i class=\"fas %s\" aria-hidden=\"true\"></i>" % values['fa_icon']
     elif 'icon' in values.keys():
         s += ("<img src=\"%s\" alt=\"%s\" height=\"24\" width=\"24\">" % (values['icon'], values['alt']))
-    s += "</a>"
+    s += "</a> "
     return s
 
 
