@@ -96,7 +96,9 @@ show the Voice Vlan.
 
 **Enabling or Disabling the Interface**
 
-|disable_interface| If you want to Disable a currently enabled interface, click on the interface name on the left side.
+|disable_interface|
+
+If you want to Disable a currently enabled interface, click on the interface name on the left side.
 In the warning box, select OK. To enable a disabled port, do the same!
 
 .. |disable_interface| image:: ../_static/disable-interface.png

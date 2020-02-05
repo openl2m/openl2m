@@ -4,4 +4,10 @@
 OpenL2M Screenshots
 ===================
 
+**The main interface management page:**
+
 .. image:: _static/screenshot-1.png
+
+**The Bulk-Edit interface page:**
+
+.. image:: _static/screenshot-2.png

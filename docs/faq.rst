@@ -39,6 +39,13 @@ There is a timeout somewhere, either in Nginx or in the Gunicorn Python
 process. Please see :doc:`the installation documents <installation/nginx>`
 on how to fix this.
 
+* **My HP switch does not ask to save changes?**
+
+HP Procurve/Aruba switches do an automatic save after every SNMP set() call. This is unlike CLI access,
+where (some) switches require an explicit save (write mem).
+
+For more see http://www.circitor.fr/Mibs/Html/H/HP-SWITCH-BASIC-CONFIG-MIB.php#hpSwitchImplicitConfigSave
+
 * **My Cisco switch does not show MAC address info using SNMP v3?**
 
 Cisco switches use the SNMP v3 Context field to "separate" data per vlan.

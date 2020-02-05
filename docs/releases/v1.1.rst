@@ -20,6 +20,8 @@ New Features
 ------------
 
 * Add separate user and admin email subject prefix (see below)
+* adds new setting for admin/staff customizable links for a switch (SWITCH_INFO_URLS_STAFF & SWITCH_INFO_URLS_ADMINS),
+  see more in openl2m/configuration.example.py
 
 Bug Fixes
 ---------
