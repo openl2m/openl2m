@@ -108,6 +108,8 @@ ALWAYS_ALLOW_POE_TOGGLE = getattr(configuration, 'ALWAYS_ALLOW_POE_TOGGLE', Fals
 CSRF_TRUSTED_ORIGINS = ALLOWED_HOSTS
 
 SWITCH_INFO_URLS = getattr(configuration, 'SWITCH_INFO_URLS', False)
+SWITCH_INFO_URLS_STAFF = getattr(configuration, 'SWITCH_INFO_URLS_STAFF', False)
+SWITCH_INFO_URLS_ADMINS = getattr(configuration, 'SWITCH_INFO_URLS_ADMINS', False)
 INTERFACE_INFO_URLS = getattr(configuration, 'INTERFACE_INFO_URLS', False)
 VLAN_INFO_URLS = getattr(configuration, 'VLAN_INFO_URLS', False)
 IP4_INFO_URLS = getattr(configuration, 'IP4_INFO_URLS', False)

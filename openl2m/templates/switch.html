@@ -38,7 +38,7 @@
       <thead>
         <tr>
           <td>
-            {{ switch|get_switch_info_url_links }}
+            {{ switch|get_switch_info_url_links:request.user }}
             {% if switch.description %}
               <span title="{{ switch.description }}"><strong>{{ switch.name }}</strong></span>
             {% else %}

@@ -110,8 +110,8 @@ ALWAYS_ALLOW_POE_TOGGLE = False
 # Customizable URLs for Switch, Interface, Ethernet and IP addresses
 # 'url' is mandatory. 'hint' and 'target' are optional
 # You can also use 'icon' and 'alt', or 'fa_icon'
-# fa_icon refers to the Font Awesome v4.7 icon collection, and you reference it by name
-# see  https://fontawesome.com/v4.7.0/icons/
+# fa_icon refers to the Font Awesome v5 icon collection, and you reference it by name
+# see https://fontawesome.com/icons?d=gallery&m=free
 # fa_icon takes precedence over icon/alt entries.
 
 # Switch Info Urls is a list dictionaries with one or more links to put in front of the switch name.
@@ -146,6 +146,60 @@ SWITCH_INFO_URLS = [
         # 'icon': 'http://librenms.yoursite.com/images/favicon-32x32.png',
         # 'icon': 'http://librenms.yoursite.com/images/favicon.ico',
         'alt': 'LibreNMS Icon',
+        # or use any Font Awesome 5 icon:
+        # 'fa_icon': 'fa-chart-area',
+    },
+]
+
+# This is identical to SWITCH_INFO_URLS, but only shows for Staff of SuperUsers (admins)
+# See explanation above.
+SWITCH_INFO_URLS_STAFF = [
+    # This example is for SSH. Note this require browsers to handle "ssh://" !
+    {
+        'url': 'ssh://{{ switch.primary_ip4 }}/',
+        'hint': 'Click here to SSH to this switch',
+        'target': '_blank',
+        # 'icon': '/static/img/nms-24.png',
+        # or use the icon from a URL:
+        # 'icon': 'https://some.site.com/favicon.png',
+        'alt': 'SSH Icon',
+        # or use any Font Awesome 5 icon:
+        'fa_icon': 'fa-desktop',
+    },
+    # this would be a link to a another management tool for admins.
+    {
+        'url': 'https://yourtool.yoursite.com/device/device={{ switch.snmp_hostname }}/',
+        'hint': 'Click here to go to some tool!',
+        'target': '_blank',
+        'icon': '/static/img/nms-24.png',
+        'alt': 'Tool Icon',
+        # or use any Font Awesome 5 icon:
+        # 'fa_icon': 'fa-chart-area',
+    },
+]
+
+# This is identical to SWITCH_INFO_URLS, but only shows for SuperUsers (admins)
+# See explanation above.
+SWITCH_INFO_URLS_ADMINS = [
+    # This example is for SSH. Note this require browsers to handle "ssh://" !
+    {
+        'url': 'ssh://{{ switch.primary_ip4 }}/',
+        'hint': 'Click here to SSH to this switch',
+        'target': '_blank',
+        # 'icon': '/static/img/nms-24.png',
+        # or use the icon from a URL:
+        # 'icon': 'https://some.site.com/favicon.png',
+        'alt': 'SSH Icon',
+        # or use any Font Awesome 5 icon:
+        'fa_icon': 'fa-desktop',
+    },
+    # this would be a link to a another management tool for admins.
+    {
+        'url': 'https://yourtool.yoursite.com/device/device={{ switch.snmp_hostname }}/',
+        'hint': 'Click here to go to some tool!',
+        'target': '_blank',
+        'icon': '/static/img/nms-24.png',
+        'alt': 'Tool Icon',
         # or use any Font Awesome 5 icon:
         # 'fa_icon': 'fa-chart-area',
     },

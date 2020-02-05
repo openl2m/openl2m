@@ -33,6 +33,7 @@ register = template.Library()
 def build_url_string(values):
     """
     Build a external url string from the url values dict() given
+    Used to build custom links from "settings" variables
     """
     if 'target' in values.keys():
         s = "<a target=\"%s\" " % values['target']
@@ -51,6 +52,9 @@ def build_url_string(values):
 
 
 def get_switch_link(group, switch):
+    """
+    Build custom html link to switch, based on switch attributes
+    """
     s = ''
     if switch.status == SWITCH_STATUS_ACTIVE and switch.snmp_profile:
         s = "<li class=\"list-group-item\">"
@@ -131,7 +135,7 @@ def get_device_class(device):
 @register.filter
 def get_my_switchgroups(groups):
     """
-    Get all the switchgroups and their switches
+    Build custom html menu of all the switchgroups and their switches
     """
     num_groups = len(groups)
     if not num_groups:
@@ -215,7 +219,7 @@ def get_my_switchgroups(groups):
 
 
 @register.filter
-def get_switch_info_url_links(switch):
+def get_switch_info_url_links(switch, user):
     """
     Get the info url(s) for the switch expanded from the settings file variable
     """
@@ -232,6 +236,34 @@ def get_switch_info_url_links(switch):
             template = Template(build_url_string(u))
             context = Context({'switch': switch})
             links += template.render(context)
+
+    if user.is_superuser or user.is_staff:
+        if settings.SWITCH_INFO_URLS_STAFF:
+            for u in settings.SWITCH_INFO_URLS_STAFF:
+                # the switch.nms_id field is optional. If used in URL, check that it is set!
+                if 'url' in u.keys():
+                    if u['url'].find('switch.nms_id') > -1:
+                        # found it, but is the value set:
+                        if not switch.nms_id:
+                            # nms_id not set, skipping this switch
+                            continue
+                template = Template(build_url_string(u))
+                context = Context({'switch': switch})
+                links += template.render(context)
+
+    if user.is_superuser and settings.SWITCH_INFO_URLS_ADMINS:
+        for u in settings.SWITCH_INFO_URLS_ADMINS:
+            # the switch.nms_id field is optional. If used in URL, check that it is set!
+            if 'url' in u.keys():
+                if u['url'].find('switch.nms_id') > -1:
+                    # found it, but is the value set:
+                    if not switch.nms_id:
+                        # nms_id not set, skipping this switch
+                        continue
+            template = Template(build_url_string(u))
+            context = Context({'switch': switch})
+            links += template.render(context)
+
     return mark_safe(links)
 
 
