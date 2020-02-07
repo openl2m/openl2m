@@ -177,18 +177,18 @@ def get_my_switchgroups(groups):
             s = "%s\n <div class=\"row\">\n  <div class=\"col-md-%d\">" % (s, col_width)
         # header for collapsible items, i.e. the switchgroup name
         s = "%s\n  <div class=\"panel-group\">\n   <div class=\"panel panel-default\">\n   <div class=\"panel-heading\">" % s
-        if False and group.description:
-            s = "%s\n  <span title=\"%s\">" % group.description
         s = "%s<a data-toggle=\"collapse\" href=\"#group%d\">" % (s, group.id)
+        if group.description:
+            s = "%s\n  <span title=\"%s\">" % (s, group.description)
         if group.display_name:
             s = "%s%s" % (s, group.display_name)
         else:
             s = "%s%s" % (s, group.name)
+        if group.description:
+            s = "%s</span>" % s
         s = "%s</a>" % s
         if group.read_only:
             s = "%s (r/o)" % s
-        if False and group.description:
-            s = "%s</span>" % s
         s = "%s</div>" % s  # this /div ends panel-heading
 
         # the collapsible items:
