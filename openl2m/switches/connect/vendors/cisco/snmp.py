@@ -34,7 +34,7 @@ class SnmpConnectorCisco(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("CISCO SnmpConnector __init__")
-        super().__init__(group, switch)
+        super().__init__(request, group, switch)
         self.name = "Cisco SnmpConnector"  # what type of class is running!
         self.vendor_name = "Cisco"
 
