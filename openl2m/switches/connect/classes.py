@@ -106,7 +106,7 @@ class Interface():
         self.index = if_index       # ifIndex, the key to all MIB-2 data!
         # self.ifDescr = ''           # the old name of the interface, NOT the "description" attribute which is the ifAlias !!!
         self.name = ''              # the name from IFMIB ifName entry! Falls back to older MIB-2ifDescr is not found!
-        self.type = 0               # ifType, the MIB-2 type of the interface
+        self.type = IF_TYPE_NONE    # ifType, the MIB-2 type of the interface
         self.oper_status = IF_OPER_STATUS_DOWN      # ifOperStatus, operation status of interface
         self.admin_status = IF_ADMIN_STATUS_DOWN    # ifAdminStatus, administrative status of the interface
         self.has_connector = True   # value of IFMIB_CONNECTOR

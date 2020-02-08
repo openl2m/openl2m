@@ -239,6 +239,18 @@ class SnmpConnectorComware(SnmpConnector):
         # interface not found, return False!
         return -1
 
+    def _can_manage_interface(self, iface):
+        """
+        vendor-specific override of function to check if this interface can be managed.
+        We check for IRF ports here. This is detected via 'hh3cifVLANType' MIB value,
+        in _parse_mibs_comware_if_type()
+        Returns True for normal interfaces, but False for IRF ports.
+        """
+        if iface.type == IF_TYPE_ETHERNET and iface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
+            dprint("Interface %s: mode=%d, NO MANAGEMENT ALLOWED!" % (iface.name, iface.if_vlan_mode))
+            return False
+        return True
+
     def _parse_mibs_comware_config(self, oid, val):
         """
         Parse Comware specific ConfigMan MIB
@@ -312,6 +324,17 @@ class SnmpConnectorComware(SnmpConnector):
                     self.interfaces[if_index].is_tagged = True
             return True
         return False
+
+    def _parse_mibs_comware_configfile(self, oid, val):
+        """
+        Parse Comware specific ConfigMan MIB
+        """
+        dprint("_parse_mibs_comware_configfile(Comware)")
+        sub_oid = oid_in_branch(hh3cCfgOperateRowStatus, oid)
+        if sub_oid:
+            if int(sub_oid) > self.active_config_rows:
+                self.active_config_rows = int(sub_oid)
+            return True
 
     def _get_poe_data(self):
         """
@@ -396,14 +419,3 @@ class SnmpConnectorComware(SnmpConnector):
             self._add_warning("Error saving via SNMP (hh3cCfgOperateRowStatus)")
             return -1
         return 0
-
-    def _parse_mibs_comware_configfile(self, oid, val):
-        """
-        Parse Comware specific ConfigMan MIB
-        """
-        dprint("_parse_mibs_comware_configfile(Comware)")
-        sub_oid = oid_in_branch(hh3cCfgOperateRowStatus, oid)
-        if sub_oid:
-            if int(sub_oid) > self.active_config_rows:
-                self.active_config_rows = int(sub_oid)
-            return True

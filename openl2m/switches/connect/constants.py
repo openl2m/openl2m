@@ -73,6 +73,7 @@ IF_TYPE = '.1.3.6.1.2.1.2.2.1.3'
 snmp_mib_variables['ifType'] = IF_TYPE
 
 # Enumeration, see https://www.iana.org/assignments/ianaiftype-mib/ianaiftype-mib
+IF_TYPE_NONE = 0
 IF_TYPE_ETHERNET = 6    # Ethernet-like (ethernetCsmacd)
 IF_TYPE_LOOPBACK = 24   # interface Loopback X (softwareLoopback)
 IF_TYPE_VIRTUAL = 53    # interface Vlan X (proprietary virtual/internal)

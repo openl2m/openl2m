@@ -1920,9 +1920,19 @@ class SnmpConnector(EasySNMP):
                             continue
         return
 
+    def _can_manage_interface(self, iface):
+        """
+        Function meant to check if this interface can be managed.
+        This allows for vendor-specific override in the vendor subclass, to detect e.g. stacking ports
+        called from _set_interfaces_permissions() to check for each interface.
+        Returns True by default, but if False, then _set_interfaces_permissions()
+        will not allow any attribute of this interface to be managed (even then admin!)
+        """
+        return True
+
     def _set_interfaces_permissions(self):
         """
-        for all found interfaces, check out rules to see if this user should be able see or edit them
+        For all found interfaces, check out rules to see if this user should be able see or edit them
         """
         switch = self.switch
         group = self.group
@@ -1939,6 +1949,14 @@ class SnmpConnector(EasySNMP):
         # apply the permission rules to all interfaces
         for if_index in self.interfaces:
             iface = self.interfaces[if_index]
+            # first check vendor-specific restrictions. This allow for Stacking ports, etc.
+            if not self._can_manage_interface(iface):
+                iface.manageable = False
+                iface.allow_poe_toggle = False
+                iface.can_edit_alias = False
+                iface.visible = True
+                continue
+
             # Read-Only switch cannot be overwritten, not even by SuperUser!
             if group.read_only or switch.read_only or user.profile.read_only:
                 iface.manageable = False
