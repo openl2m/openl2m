@@ -6,10 +6,12 @@ What is OpenL2M
 
 **What is OpenL2M?**
 
-OpenL2M, or Open Layer 2 Management, is an open source web application designed to provide a consistent interface
-for switch management at Layer 2, *independent of the underlying switch vendor*. OpenL2M can distribute
-the management of Layer 2 network switches to various users and groups. The distributed management approach
-taken by OpenL2M is based on Vlans and switch groups. OpenL2M uses SNMP to accomplish all of its regular tasks.
+OpenL2M, or Open Layer 2 Management, is an open source switch management
+application designed to provide a consistent web interface for Layer 2 device
+management, *independent of the underlying switch vendor*. OpenL2M can distribute
+the management of Layer 2 network switches to various users and groups. The
+distributed management approach taken by OpenL2M is based on Vlans and switch
+groups. OpenL2M uses only SNMP to accomplish all of its regular tasks.
 
 **Features**
 
