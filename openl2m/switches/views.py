@@ -1335,7 +1335,7 @@ def user_can_access_task(request, task=False):
             return True
         # does the user have rights to the group of this task?
         permissions = get_from_http_session(request, 'permissions')
-        if str(task.group.id) in permisssions.keys():
+        if str(task.group.id) in permissions.keys():
             #  if member of group there is no need to check switch!
             return True
     # deny others
