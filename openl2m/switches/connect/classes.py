@@ -102,11 +102,13 @@ class Interface():
         """
         self.visible = True         # if True, this user can "see" this interface
         self.manageable = True      # if True, this interface is manageable by the current user
+        self.unmanage_reason = ''   # string with reason why interface is not manageable
         self.can_edit_alias = False  # if True, can change alias, aka interface description
         self.index = if_index       # ifIndex, the key to all MIB-2 data!
         # self.ifDescr = ''           # the old name of the interface, NOT the "description" attribute which is the ifAlias !!!
         self.name = ''              # the name from IFMIB ifName entry! Falls back to older MIB-2ifDescr is not found!
         self.type = IF_TYPE_NONE    # ifType, the MIB-2 type of the interface
+        self.is_routed = False      # if True interface is in routed mode (i.e. a layer 3 interface)
         self.oper_status = IF_OPER_STATUS_DOWN      # ifOperStatus, operation status of interface
         self.admin_status = IF_ADMIN_STATUS_DOWN    # ifAdminStatus, administrative status of the interface
         self.has_connector = True   # value of IFMIB_CONNECTOR

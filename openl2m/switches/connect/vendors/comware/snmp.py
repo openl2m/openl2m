@@ -246,9 +246,14 @@ class SnmpConnectorComware(SnmpConnector):
         in _parse_mibs_comware_if_type()
         Returns True for normal interfaces, but False for IRF ports.
         """
-        if iface.type == IF_TYPE_ETHERNET and iface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
-            dprint("Interface %s: mode=%d, NO MANAGEMENT ALLOWED!" % (iface.name, iface.if_vlan_mode))
-            return False
+        if iface.type == IF_TYPE_ETHERNET:
+            if iface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
+                dprint("Interface %s: mode=%d, NO MANAGEMENT ALLOWED!" % (iface.name, iface.if_vlan_mode))
+                iface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
+                return False
+            if iface.if_vlan_mode == HH3C_IF_MODE_HYBRID or iface.if_vlan_mode == HH3C_IF_MODE_FABRIC:
+                iface.unmanage_reason = "Access denied: interface in Hybrid or Fabric mode!"
+                return False
         return True
 
     def _parse_mibs_comware_config(self, oid, val):

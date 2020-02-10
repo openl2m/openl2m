@@ -274,7 +274,13 @@
                   bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
               {% endif %}
                 {{ switch|get_interface_info_links:iface }}
+                {% if iface.unmanage_reason %}
+                <span title="{{ iface.unmanage_reason }}">
+                {% endif %}
                 {{ iface.name }}
+                {% if iface.unmanage_reason %}
+                </span>
+                {% endif %}
                 {% if iface.is_tagged %}
                   &nbsp;
                   <img src="{% static 'img/trunk-24.png' %}"
