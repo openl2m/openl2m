@@ -38,6 +38,14 @@ snmp_mib_variables['hpnicfCfgRunModifiedLast'] = hpnicfCfgRunModifiedLast
 hpnicfCfgRunSavedLast = '.1.3.6.1.4.1.11.2.14.11.15.2.4.1.1.2'
 snmp_mib_variables['hpnicfCfgRunSavedLast'] = hpnicfCfgRunSavedLast
 
+# HP If Extention mib: HPN-ICF-IF-EXT-MIB
+# http://www.circitor.fr/Mibs/Html/H/HPN-ICF-IF-EXT-MIB.php
+hpnicfIfLinkMode = '.1.3.6.1.4.1.11.2.14.11.15.2.40.2.2.3.1.1'
+snmp_mib_variables['hpnicfIfLinkMode'] = hpnicfIfLinkMode
+# bridgeMode(1), routeMode(2)
+HP_BRIDGE_MODE = 1
+HP_ROUTE_MODE = 2
+
 # SOME SWITCHES IMPLEMENT THIS:
 # see http://www.circitor.fr/Mibs/Html/H/HP-ICF-POE-MIB.php
 hpicfPOE = '.1.3.6.1.4.1.11.2.14.11.1.9'

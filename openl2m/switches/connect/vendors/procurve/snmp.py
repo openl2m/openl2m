@@ -44,9 +44,26 @@ class SnmpConnectorProcurve(SnmpConnector):
         Parse a single OID with data returned from a switch through some "get" function
         Returns True if we parse the OID!
         """
-        if not self._parse_mibs_hp_poe(oid, val):
-            # call the generic parser
-            return super()._parse_oid(oid, val)
+        if self._parse_mibs_hp_poe(oid, val):
+            return True
+        if self._parse_mibs_hp_if_linkmode(oid, val):
+            return True
+        # call the generic base parser
+        return super()._parse_oid(oid, val)
+
+    def _get_interface_data(self):
+        """
+        Implement an override of the interface parsing routine,
+        so we can add HP specific interface MIBs
+        """
+        # first call the base class to populate interfaces:
+        super()._get_interface_data()
+
+        # now add HP data, and cache it:
+        if self._get_branch_by_name('hpnicfIfLinkMode', True, self._parse_mibs_hp_if_linkmode) < 0:
+            dprint("Comware hpnicfIfLinkMode returned error!")
+            return False
+
         return True
 
     def _get_vendor_data(self):
@@ -83,6 +100,19 @@ class SnmpConnectorProcurve(SnmpConnector):
                 self.poe_port_entries[pe_index].power_consumed = int(val)
             return True
 
+        return False
+
+    def _parse_mibs_hp_if_linkmode(self, oid, val):
+        """
+        Parse HP specific Interface Extension MIB for link mode, PoE info
+        """
+        if_index = int(oid_in_branch(hpnicfIfLinkMode, oid))
+        if if_index:
+            dprint("HP LinkMode if_index %s link_mode %s" % (if_index, val))
+            if if_index in self.interfaces.keys():
+                if int(val) == HP_ROUTE_MODE:
+                    self.interfaces[if_index].is_routed = True
+            return True
         return False
 
     def _parse_mibs_procurve_config(self, oid, val):
