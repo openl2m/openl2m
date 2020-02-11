@@ -59,8 +59,25 @@ class SnmpConnectorComware(SnmpConnector):
             return True
         if self._parse_mibs_comware_if_type(oid, val):
             return True
+        if self._parse_mibs_comware_if_linkmode(oid, val):
+            return True
         # call the generic base parser
         return super()._parse_oid(oid, val)
+
+    def _get_interface_data(self):
+        """
+        Implement an override of the interface parsing routine,
+        so we can add Comware specific interface MIBs
+        """
+        # first call the base class to populate interfaces:
+        super()._get_interface_data()
+
+        # now add Comware data, and cache it:
+        if self._get_branch_by_name('hh3cIfLinkMode', True, self._parse_mibs_comware_if_linkmode) < 0:
+            dprint("Comware hh3cIfLinkMode returned error!")
+            return False
+
+        return True
 
     def _get_vlan_data(self):
         """
@@ -327,6 +344,19 @@ class SnmpConnectorComware(SnmpConnector):
                 self.interfaces[if_index].if_vlan_mode = int(val)
                 if int(val) == HH3C_IF_MODE_TRUNK:
                     self.interfaces[if_index].is_tagged = True
+            return True
+        return False
+
+    def _parse_mibs_comware_if_linkmode(self, oid, val):
+        """
+        Parse Comware specific Interface Extension MIB for link mode, PoE info
+        """
+        if_index = int(oid_in_branch(hh3cIfLinkMode, oid))
+        if if_index:
+            dprint("Comware LinkMode if_index %s link_mode %s" % (if_index, val))
+            if if_index in self.interfaces.keys():
+                if int(val) == HH3C_ROUTE_MODE:
+                    self.interfaces[if_index].is_routed = True
             return True
         return False
 

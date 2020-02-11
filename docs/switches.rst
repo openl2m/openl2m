@@ -47,6 +47,9 @@ Several vendor specific MIB are supported at this time.
 * Cisco Stacking MIB
   For stack member info, if supported.
 
+* Cisco L2L3-INTERFACE-CONFIG MIB
+  Used to see if interface is in switching or routing mode on Cisco devices
+
 * HP Aruba/Procure HP-ICF-POE-MIB
   Get enhanced PoE info on the Aruba/Procurve switches that support it.
 
@@ -61,6 +64,9 @@ Several vendor specific MIB are supported at this time.
 
 * HPE HH3C-LswVLAN MIB
   Used for additional VLAN data in HPE Comware switches.
+
+* HH3C-IF-EXT MIB
+  Used for additional information about interfaces in HPE Comware switches (route mode, PoE capable).
 
 * HPE HH3C-Config-Man MIB
   Used to save running configuration on HPE Comware switches.

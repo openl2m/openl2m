@@ -228,8 +228,8 @@ a development instance:
   Performing system checks...
 
   System check identified no issues (0 silenced).
-  July 16, 2019 - 09:33:45
-  Django version 2.2.3, using settings 'openl2m.settings'
+  February 10, 2020 - 19:21:07
+  Django version 2.2.10, using settings 'openl2m.settings'
   Starting development server at http://0:8000/
   Quit the server with CONTROL-C.
 

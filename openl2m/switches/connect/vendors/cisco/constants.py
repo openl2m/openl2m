@@ -56,6 +56,8 @@ snmp_mib_variables['vtpVlanName'] = VTP_VLAN_NAME
 # VTP trunk ports start at .1.3.6.1.4.1.9.9.46.1.6
 # details about ports start at .1.3.6.1.4.1.9.9.46.1.6.1.1
 
+VTP_PORT_TRUNK_NATIVE_VLAN = '.1.3.6.1.4.1.9.9.46.1.6.1.1.5'
+snmp_mib_variables['vlanTrunkPortNativeVlan'] = VTP_PORT_TRUNK_NATIVE_VLAN
 
 VTP_PORT_TRUNK_DYNAMIC_STATE = '.1.3.6.1.4.1.9.9.46.1.6.1.1.13'
 snmp_mib_variables['vlanTrunkPortDynamicState'] = VTP_PORT_TRUNK_DYNAMIC_STATE
@@ -72,9 +74,6 @@ snmp_mib_variables['vlanTrunkPortDynamicStatus'] = VTP_PORT_TRUNK_DYNAMIC_STATUS
 VTP_PORT_TRUNK_ENABLED = 1
 VTP_PORT_TRUNK_DISABLED = 2
 
-VTP_PORT_TRUNK_NATIVE_VLAN = '.1.3.6.1.4.1.9.9.46.1.6.1.1.5'
-snmp_mib_variables['vlanTrunkPortNativeVlan'] = VTP_PORT_TRUNK_NATIVE_VLAN
-
 # this is the untagged or native vlan for a Cisco switch port
 # this will NOT show ports in trunk mode!!!
 VTP_UNTAGGED_MEMBERSHIP_VLAN = '.1.3.6.1.4.1.9.9.68.1.2.2.1.2'
@@ -83,6 +82,16 @@ snmp_mib_variables['vmVlan'] = VTP_UNTAGGED_MEMBERSHIP_VLAN
 # this is the Cisco "Voice" Vlan
 CISCO_VOICE_VLAN = '.1.3.6.1.4.1.9.9.68.1.5.1.1.1'
 snmp_mib_variables['vmVoiceVlanId'] = CISCO_VOICE_VLAN
+
+
+# Cisco L2L3 Interface Config Mib
+# http://www.circitor.fr/Mibs/Html/C/CISCO-L2L3-INTERFACE-CONFIG-MIB.php
+
+cL2L3IfModeOper = '.1.3.6.1.4.1.9.9.151.1.1.1.1.2'
+snmp_mib_variables['cL2L3IfModeOper'] = cL2L3IfModeOper
+# routed(1), switchport(2)
+CISCO_ROUTE_MODE = 1
+CISCO_BRIDGE_MODE = 2
 
 #
 # Cisco new Extended POE mib

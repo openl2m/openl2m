@@ -47,6 +47,23 @@ hh3cPowerEthernetExt = '.1.3.6.1.4.1.25506.2.14'
 hh3cPsePortCurrentPower = '.1.3.6.1.4.1.25506.2.14.1.1.5'
 snmp_mib_variables['hh3cPsePortCurrentPower'] = hh3cPsePortCurrentPower
 
+
+# HH3C IF Extension MIB has some interesting fields
+# HH3C-IF-EXT-MIB
+# see http://www.circitor.fr/Mibs/Html/H/HH3C-IF-EXT-MIB.ph
+
+# is an interface in Link (switch) mode, or Route (layer 3) mode ?
+hh3cIfLinkMode = '.1.3.6.1.4.1.25506.2.40.2.2.3.1.2'
+snmp_mib_variables['hh3cIfLinkMode'] = hh3cIfLinkMode
+# bridgeMode(1), routeMode(2)
+HH3C_BRIDGE_MODE = 1
+HH3C_ROUTE_MODE = 2
+
+# Whether the interface supports poe. Return TruthValue (SNMP_TRUE or SNMP_FALSE)
+hh3cIfIsPoe = '.1.3.6.1.4.1.25506.2.40.2.3.2.1.8'
+snmp_mib_variables['hh3cIfIsPoe'] = hh3cIfIsPoe
+
+
 # HH3C LswINF MIB - interface related information
 # See http://www.circitor.fr/Mibs/Html/H/HH3C-LswINF-MIB.php
 

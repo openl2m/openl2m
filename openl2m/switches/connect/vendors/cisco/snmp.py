@@ -46,76 +46,6 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         dprint("CISCO Parsing OID %s" % oid)
 
-        """
-        VTP RELATED
-        """
-        # vlan id
-        vlanId = int(oid_in_branch(VTP_VLAN_STATE, oid))
-        if vlanId:
-            if (int(val) == 1):
-                self.vlans[vlanId] = Vlan(vlanId)
-            return True
-
-        # vlan type
-        vlanId = int(oid_in_branch(VTP_VLAN_TYPE, oid))
-        if vlanId:
-            val = int(val)
-            if vlanId in self.vlans.keys():
-                self.vlans[vlanId].type = val
-            return True
-
-        # vlan name
-        vlanId = int(oid_in_branch(VTP_VLAN_NAME, oid))
-        if vlanId:
-            if vlanId in self.vlans.keys():
-                self.vlans[vlanId].name = str(val)
-            return True
-
-        # access or trunk mode configured?
-        if_index = int(oid_in_branch(VTP_PORT_TRUNK_DYNAMIC_STATE, oid))
-        if if_index:
-            if(int(val) == VTP_TRUNK_STATE_ON):
-                # trunk/tagged port
-                if if_index in self.interfaces.keys():
-                    self.interfaces[if_index].is_tagged = True
-            return True
-
-        # access or trunk mode actual status?
-        # this is the actual status, not what is configured; ie NOT trunk if interface is down!!!
-        # if_index = int(oid_in_branch(VTP_PORT_TRUNK_DYNAMIC_STATUS, oid))
-        # if if_index:
-        #    dprint("Cisco PORT TRUNK STATUS ifIndex %d = %s" % (if_index, val))
-        #    if(int(val) == VTP_PORT_TRUNK_ENABLED):
-        #        # trunk/tagged port
-        #        if if_index in self.interfaces.keys():
-        #            dprint("  TRUNKED!")
-        #            self.interfaces[if_index].is_tagged = True
-        #    return True
-
-        # if trunk, what is the native mode?
-        if_index = int(oid_in_branch(VTP_PORT_TRUNK_NATIVE_VLAN, oid))
-        if if_index:
-            # trunk/tagged port native vlan
-            if if_index in self.interfaces.keys():
-                # make sure this is a trunked interface and vlan is valid
-                if self.interfaces[if_index].is_tagged and int(val) in self.vlans.keys():
-                    self.interfaces[if_index].untagged_vlan = int(val)
-                else:
-                    dprint("  TRUNK NATIVE found, but NOT TRUNK PORT")
-            return True
-
-        if_index = int(oid_in_branch(VTP_UNTAGGED_MEMBERSHIP_VLAN, oid))
-        if if_index:
-            untagged_vlan = int(val)
-            if (if_index in self.interfaces.keys()
-                    and not self.interfaces[if_index].is_tagged
-                    and untagged_vlan in self.vlans.keys()):
-                self.interfaces[if_index].untagged_vlan = untagged_vlan
-                self.interfaces[if_index].untagged_vlan_name = self.vlans[untagged_vlan].name
-            else:
-                dprint("   UNTAGGED VLAN for invalid trunk port")
-            return True
-
         if_index = int(oid_in_branch(CISCO_VOICE_VLAN, oid))
         if if_index:
             voiceVlanId = int(val)
@@ -131,35 +61,35 @@ class SnmpConnectorCisco(SnmpConnector):
             self.stack_port_to_if_index[stack_port_id] = int(val)
             return True
 
-        """
-        Cisco POE Extension MIB database
-        """
-        # the actual consumed power, shown in 'show power inline <name> detail'
-        pe_index = oid_in_branch(CISCO_POE_PORT_POWER_CONSUMED, oid)
-        if pe_index:
-            if pe_index in self.poe_port_entries.keys():
-                self.poe_port_entries[pe_index].power_consumption_supported = True
-                self.poe_port_entries[pe_index].power_consumed = int(val)
+        if self._parse_mibs_cisco_vtp(oid, val):
             return True
 
-        #
-        # this is what is shown via 'show power inline interface X' command:
-        pe_index = oid_in_branch(CISCO_POE_PORT_POWER_AVAILABLE, oid)
-        if pe_index:
-            if pe_index in self.poe_port_entries.keys():
-                self.poe_port_entries[pe_index].power_consumption_supported = True
-                self.poe_port_entries[pe_index].power_available = int(val)
+        if self._parse_mibs_cisco_poe(oid, val):
             return True
 
-        pe_index = oid_in_branch(CISCO_POE_PORT_MAX_POWER_CONSUMED, oid)
-        if pe_index:
-            if pe_index in self.poe_port_entries.keys():
-                self.poe_port_entries[pe_index].power_consumption_supported = True
-                self.poe_port_entries[pe_index].max_power_consumed = int(val)
+        if self._parse_mibs_cisco_config(oid, val):
+            return True
+
+        if self._parse_mibs_cisco_if_opermode(oid, val):
             return True
 
         # if not Cisco specific, call the generic parser
         return super()._parse_oid(oid, val)
+
+    def _get_interface_data(self):
+        """
+        Implement an override of the interface parsing routine,
+        so we can add Cisco specific interface MIBs
+        """
+        # first call the base class to populate interfaces:
+        super()._get_interface_data()
+
+        # now add Comware data, and cache it:
+        if self._get_branch_by_name('cL2L3IfModeOper', True, self._parse_mibs_cisco_if_opermode) < 0:
+            dprint("Cisco cL2L3IfModeOper returned error!")
+            return False
+
+        return True
 
     def _get_vlan_data(self):
         """
@@ -168,19 +98,19 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         dprint("_get_vlan_data(Cisco)\n")
         # first, read existing vlan id's
-        retval = self._get_branch_by_name('vtpVlanState')
+        retval = self._get_branch_by_name('vtpVlanState', True, self._parse_mibs_cisco_vtp)
         if retval < 0:
             return retval
         # vlan types are next
-        retval = self._get_branch_by_name('vtpVlanType')
+        retval = self._get_branch_by_name('vtpVlanType', True, self._parse_mibs_cisco_vtp)
         if retval < 0:
             return retval
         # next, read vlan names
-        retval = self._get_branch_by_name('vtpVlanName')
+        retval = self._get_branch_by_name('vtpVlanName', True, self._parse_mibs_cisco_vtp)
         if retval < 0:
             return False
         # find out if a port is configured as trunk or not, read port trunk(802.1q tagged) status
-        retval = self._get_branch_by_name('vlanTrunkPortDynamicState')
+        retval = self._get_branch_by_name('vlanTrunkPortDynamicState', True, self._parse_mibs_cisco_vtp)
         if retval < 0:
             return False
         # now, find out if interfaces are access or trunk (tagged) mode
@@ -189,7 +119,7 @@ class SnmpConnectorCisco(SnmpConnector):
         #    dprint("Cisco PORT TRUNK STATUS data FALSE")
         #    return False
         # and read the native vlan for trunked ports
-        retval = self._get_branch_by_name('vlanTrunkPortNativeVlan')  # read trunk native vlan membership
+        retval = self._get_branch_by_name('vlanTrunkPortNativeVlan', True, self._parse_mibs_cisco_vtp)  # read trunk native vlan membership
         if retval < 0:
             return False
         # finally, if not trunked, read untagged interfaces vlan membership
@@ -335,6 +265,121 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         dprint("_get_vendor_data(Cisco)")
         self._get_branch_by_name('ccmHistory', True, self._parse_mibs_cisco_config)
+
+    def _parse_mibs_cisco_if_opermode(self, oid, val):
+        """
+        Parse Cisco specific Interface Config MIB for operational mode
+        """
+        if_index = int(oid_in_branch(cL2L3IfModeOper, oid))
+        if if_index:
+            dprint("Cisco Interface Operation mode if_index %s mode %s" % (if_index, val))
+            if if_index in self.interfaces.keys():
+                if int(val) == CISCO_ROUTE_MODE:
+                    self.interfaces[if_index].is_routed = True
+            return True
+        return False
+
+    def _parse_mibs_cisco_poe(self, oid, val):
+        """
+        Parse Cisco POE Extension MIB database
+        """
+        # the actual consumed power, shown in 'show power inline <name> detail'
+        pe_index = oid_in_branch(CISCO_POE_PORT_POWER_CONSUMED, oid)
+        if pe_index:
+            if pe_index in self.poe_port_entries.keys():
+                self.poe_port_entries[pe_index].power_consumption_supported = True
+                self.poe_port_entries[pe_index].power_consumed = int(val)
+            return True
+
+        # this is what is shown via 'show power inline interface X' command:
+        pe_index = oid_in_branch(CISCO_POE_PORT_POWER_AVAILABLE, oid)
+        if pe_index:
+            if pe_index in self.poe_port_entries.keys():
+                self.poe_port_entries[pe_index].power_consumption_supported = True
+                self.poe_port_entries[pe_index].power_available = int(val)
+            return True
+
+        pe_index = oid_in_branch(CISCO_POE_PORT_MAX_POWER_CONSUMED, oid)
+        if pe_index:
+            if pe_index in self.poe_port_entries.keys():
+                self.poe_port_entries[pe_index].power_consumption_supported = True
+                self.poe_port_entries[pe_index].max_power_consumed = int(val)
+            return True
+
+        return False
+
+    def _parse_mibs_cisco_vtp(self, oid, val):
+        """
+        Parse Cisco specific VTP MIB
+        """
+        # vlan id
+        vlanId = int(oid_in_branch(VTP_VLAN_STATE, oid))
+        if vlanId:
+            if (int(val) == 1):
+                self.vlans[vlanId] = Vlan(vlanId)
+            return True
+
+        # vlan type
+        vlanId = int(oid_in_branch(VTP_VLAN_TYPE, oid))
+        if vlanId:
+            val = int(val)
+            if vlanId in self.vlans.keys():
+                self.vlans[vlanId].type = val
+            return True
+
+        # vlan name
+        vlanId = int(oid_in_branch(VTP_VLAN_NAME, oid))
+        if vlanId:
+            if vlanId in self.vlans.keys():
+                self.vlans[vlanId].name = str(val)
+            return True
+
+        # access or trunk mode configured?
+        if_index = int(oid_in_branch(VTP_PORT_TRUNK_DYNAMIC_STATE, oid))
+        if if_index:
+            if(int(val) == VTP_TRUNK_STATE_ON):
+                # trunk/tagged port
+                if if_index in self.interfaces.keys():
+                    self.interfaces[if_index].is_tagged = True
+            return True
+
+        # access or trunk mode actual status?
+        # this is the actual status, not what is configured; ie NOT trunk if interface is down!!!
+        # if_index = int(oid_in_branch(VTP_PORT_TRUNK_DYNAMIC_STATUS, oid))
+        # if if_index:
+        #    dprint("Cisco PORT TRUNK STATUS ifIndex %d = %s" % (if_index, val))
+        #    if(int(val) == VTP_PORT_TRUNK_ENABLED):
+        #        # trunk/tagged port
+        #        if if_index in self.interfaces.keys():
+        #            dprint("  TRUNKED!")
+        #            self.interfaces[if_index].is_tagged = True
+        #    return True
+
+        # if trunk, what is the native mode?
+        if_index = int(oid_in_branch(VTP_PORT_TRUNK_NATIVE_VLAN, oid))
+        if if_index:
+            # trunk/tagged port native vlan
+            if if_index in self.interfaces.keys():
+                # make sure this is a trunked interface and vlan is valid
+                if self.interfaces[if_index].is_tagged and int(val) in self.vlans.keys():
+                    self.interfaces[if_index].untagged_vlan = int(val)
+                else:
+                    dprint("  TRUNK NATIVE found, but NOT TRUNK PORT")
+            return True
+
+        if_index = int(oid_in_branch(VTP_UNTAGGED_MEMBERSHIP_VLAN, oid))
+        if if_index:
+            untagged_vlan = int(val)
+            if (if_index in self.interfaces.keys()
+                    and not self.interfaces[if_index].is_tagged
+                    and untagged_vlan in self.vlans.keys()):
+                self.interfaces[if_index].untagged_vlan = untagged_vlan
+                self.interfaces[if_index].untagged_vlan_name = self.vlans[untagged_vlan].name
+            else:
+                dprint("   UNTAGGED VLAN for invalid trunk port")
+            return True
+
+        return False
 
     def _parse_mibs_cisco_config(self, oid, val):
         """

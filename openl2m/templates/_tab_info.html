@@ -21,7 +21,7 @@
           <div>{{ vlan|get_vlan_info_links }} {{ vlanid }}{% if vlan.name %} - {{ vlan.name }} {% endif %}
           {% if vlan.status == VLAN_STATUS_DYNAMIC %}
             {# <i class="fas fa-cloud-download" aria-hidden="true"></i> #}
-            <img src="{% static 'img/mvrp-24.png' %}"
+            <img src="{% static 'img/mvrp.png' %}"
                  alt="MVRP/GVRP Image"
                  title="Vlan learned via MVRP or GVRP">
           {% endif %}

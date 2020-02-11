@@ -4,6 +4,19 @@
 Version 1.1
 ===========
 
+Version 1.1.3
+-------------
+
+Release Date: 2020-02-10
+
+* update to detect interfaces in routed mode (i.e. Layer 3), for Cisco and HPE Comware
+* update to FontAwesome v5.12.1
+
+Bug Fixes
+---------
+
+* permission fix for tasks for non-admin users
+
 Version 1.1.2
 -------------
 

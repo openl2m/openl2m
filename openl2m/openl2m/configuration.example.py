@@ -126,7 +126,7 @@ SWITCH_INFO_URLS = [
         'url': 'https://akips.yoursite.com/dashboard?mode=device;device_list={{ switch.name }};',
         'hint': 'Click here to see AKIPS data for this switch',
         'target': '_blank',
-        'icon': '/static/img/nms-24.png',
+        'icon': '/static/img/nms.png',
         # or use the icon from Akip:
         # 'icon': 'https://akips.yoursite/img/favicon-32.png',
         'alt': 'Akips NMS Icon',
@@ -139,7 +139,7 @@ SWITCH_INFO_URLS = [
         'url': 'https://librenms.yoursite.com/device/device={{ switch.nms_id }}/',
         'hint': 'Click here to see LibreNMS data for this switch',
         'target': '_blank',
-        'icon': '/static/img/nms-24.png',
+        'icon': '/static/img/nms.png',
         # or use the icon from LibreNMS:
         # 'icon': 'http://librenms.yoursite.com/images/favicon-16x16.png',
         # or
@@ -159,7 +159,7 @@ SWITCH_INFO_URLS_STAFF = [
         'url': 'ssh://{{ switch.primary_ip4 }}/',
         'hint': 'Click here to SSH to this switch',
         'target': '_blank',
-        # 'icon': '/static/img/nms-24.png',
+        # 'icon': '/static/img/nms.png',
         # or use the icon from a URL:
         # 'icon': 'https://some.site.com/favicon.png',
         'alt': 'SSH Icon',
@@ -171,7 +171,7 @@ SWITCH_INFO_URLS_STAFF = [
         'url': 'https://yourtool.yoursite.com/device/device={{ switch.snmp_hostname }}/',
         'hint': 'Click here to go to some tool!',
         'target': '_blank',
-        'icon': '/static/img/nms-24.png',
+        'icon': '/static/img/nms.png',
         'alt': 'Tool Icon',
         # or use any Font Awesome 5 icon:
         # 'fa_icon': 'fa-chart-area',
@@ -186,7 +186,7 @@ SWITCH_INFO_URLS_ADMINS = [
         'url': 'ssh://{{ switch.primary_ip4 }}/',
         'hint': 'Click here to SSH to this switch',
         'target': '_blank',
-        # 'icon': '/static/img/nms-24.png',
+        # 'icon': '/static/img/nms.png',
         # or use the icon from a URL:
         # 'icon': 'https://some.site.com/favicon.png',
         'alt': 'SSH Icon',
@@ -198,7 +198,7 @@ SWITCH_INFO_URLS_ADMINS = [
         'url': 'https://yourtool.yoursite.com/device/device={{ switch.snmp_hostname }}/',
         'hint': 'Click here to go to some tool!',
         'target': '_blank',
-        'icon': '/static/img/nms-24.png',
+        'icon': '/static/img/nms.png',
         'alt': 'Tool Icon',
         # or use any Font Awesome 5 icon:
         # 'fa_icon': 'fa-chart-area',
@@ -217,7 +217,7 @@ INTERFACE_INFO_URLS = [
         'url': 'https://akips.yoursite.com/dashboard?mode=interface;time=last3h;controls=interface;device={{ switch.name }};child={{ iface.name }}',
         'hint': 'Click here to see AKIPS data for this interface',
         'target': '_akips',
-        'icon': '/static/img/nms-24.png',
+        'icon': '/static/img/nms.png',
         'alt': 'NMS Icon',
         # or use any Font Awesome 5 icon:
         # 'fa_icon': 'fa-chart-area',
@@ -265,7 +265,7 @@ IP4_INFO_URLS = [
         'url': 'https://elkstack.yoursite.com/search?eipv4={{ ip4 }}',
         'hint': 'Click here to see ELK Stack log data about this IPv4 address',
         'target': '_elk',
-        'icon': '/static/img/general-info-24.png',
+        'icon': '/static/img/general-info.png',
         'alt': 'ELK Stack Icon',
         # or use any Font Awesome 5 icon:
         # 'fa_icon': 'fa-chart-area',
@@ -295,7 +295,7 @@ ETHERNET_INFO_URLS = [
         'url': 'https://elkstack.yoursite.com/search?ethernet={{ ethernet.address }}',
         'hint': 'Click here to see ELK Stack log data about this eithernet address',
         'target': '_elk',
-        'icon': '/static/img/general-info-24.png',
+        'icon': '/static/img/general-info.png',
         'alt': 'ELK Stack Icon',
         # or use any Font Awesome 5 icon:
         # 'fa_icon': 'fa-chart-area',

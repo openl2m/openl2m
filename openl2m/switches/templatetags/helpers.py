@@ -370,18 +370,18 @@ def get_interface_link(switch, iface):
 
     # start with up/down color for interface
     if iface.admin_status == IF_ADMIN_STATUS_UP:
-        info += "&nbsp;&nbsp;<img src=\"/static/img/enabled-24.png\" \
+        info += "&nbsp;&nbsp;<img src=\"/static/img/enabled.png\" \
                  alt=\"Interface Enabled\" title=\"Interface is Enabled\">"
     else:
-        info += "&nbsp;&nbsp;<img src=\"/static/img/disabled-24.png\" \
+        info += "&nbsp;&nbsp;<img src=\"/static/img/disabled.png\" \
                  alt=\"Interface Disabled\" title=\"Interface is Disabled\">"
 
     # finally, add icons representing interface 'features'
     if iface.is_tagged:
-        info += "&nbsp;&nbsp;<img src=\"/static/img/trunk-24.png\" \
+        info += "&nbsp;&nbsp;<img src=\"/static/img/trunk.png\" \
                  alt=\"Tagged/Trunked Interface\" title=\"Tagged/Trunked Interface\">"
     if iface.voice_vlan:
-        info += "&nbsp;&nbsp;<img src=\"/static/img/voicevlan-24.png\" \
+        info += "&nbsp;&nbsp;<img src=\"/static/img/voicevlan.png\" \
                  alt=\"Voice VLAN\" title=\"Voice VLAN %d>\"" % iface.voice_vlan
 
     return mark_safe(info)
@@ -399,24 +399,24 @@ def get_lldp_info(neighbor):
     img_format = "<img src=\"/static/img/%s\" title=\"%s\" height=\"24\" width=\"24\">&nbsp;"
     capabilities = int(neighbor.capabilities[0])
     if capabilities & LLDP_CAPA_BITS_WLAN:
-        info += img_format % ('device-wifi-24.png', 'Wireless AP')
+        info += img_format % ('device-wifi.png', 'Wireless AP')
     elif capabilities & LLDP_CAPA_BITS_PHONE:
-        info += img_format % ('device-phone-24.png', 'VOIP Phone')
+        info += img_format % ('device-phone.png', 'VOIP Phone')
     elif capabilities & LLDP_CAPA_BITS_ROUTER:
-        info += img_format % ('device-router-24.png', 'Router or Switch')
+        info += img_format % ('device-router.png', 'Router or Switch')
     elif capabilities & LLDP_CAPA_BITS_STATION:
-        info += img_format % ('device-station-24.png', 'Workstation or Server')
+        info += img_format % ('device-station.png', 'Workstation or Server')
     elif capabilities & LLDP_CAPA_BITS_BRIDGE:
-        info += img_format % ('device-switch-24.png', 'Switch')
+        info += img_format % ('device-switch.png', 'Switch')
     elif capabilities & LLDP_CAPA_BITS_REPEATER:
-        info += img_format % ('device-switch-24.png', 'Hub or Repeater')
+        info += img_format % ('device-switch.png', 'Hub or Repeater')
     # elif capabilities & LLDP_CAPA_BITS_DOCSIS:
     # unlikely to see this!
     #    icon = "unknown"
     elif capabilities & LLDP_CAPA_BITS_OTHER:
-        info += img_format % ('device-unknown-24.png', 'Other Capabilities')
+        info += img_format % ('device-unknown.png', 'Other Capabilities')
     else:
-        info += img_format % ('device-unknown-24.png', 'Capabilities NOT Advertized ')
+        info += img_format % ('device-unknown.png', 'Capabilities NOT Advertized ')
 
     name = ''
     if neighbor.sys_name:
