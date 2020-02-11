@@ -10,11 +10,12 @@ Please be patient!
 
 Once data has been retrieved, the basic view will open up, with the following elements.
 
-**The top banner**
+Top Menu Banner
+---------------
 
 .. image:: ../_static/top-banner.png
 
-This bar shows the switch name on the left. This may be preceded by one or more icons (configurable by the admin),
+The banner bar shows the switch name on the left. This may be preceded by one or more icons (configurable by the admin),
 which would be links to external systems with more information about the device. E.g. you may see a link to the
 Network Management System.
 
@@ -40,10 +41,11 @@ The |hardware-details-header| option adds a few more bits of information to the 
 will appear on the right with a warning icon in front! Click it to save the running config to the switch startup config.
 (I.e. this is a 'write mem'!) When completed, that option will disappear.
 
-.. |save_warning| image:: ../_static/warning-24.png
+.. |save_warning| image:: ../_static/warning.png
 
 
-**The tabs**
+The Tabs
+--------
 
 .. image:: ../_static/tabs.png
 
@@ -56,12 +58,12 @@ Additionally, you will see tabs with switch **Information**, and OpenL2M
 **Activity** logs for this switch. If configured, there may even be a tab
 for **Switch Commands**.
 
-Interfaces tab
+Interfaces Tab
 --------------
 
 |interfaces_tab|
 
-.. |interfaces_tab| image:: ../_static/interfaces_tab.png
+.. |interfaces_tab| image:: ../_static/interfaces-tab.png
 
 In the Interfaces tab, the following fields are shown:
 
@@ -81,10 +83,11 @@ Interface names can also have several icons behind them. They are:
 |trunk|  This means the interface is in trunking or 802.1Q tagged mode.
 Hovering over the icon will show the tagged Vlans on this port.
 
-.. |trunk| image:: ../_static/trunk-24.png
+.. |trunk| image:: ../_static/trunk.png
 
-|lacp|  This means the interface is an LACP interface, or a member of an LACP aggregation interface.
-Hovering over the icon will show the member interfaces if this is a virtual aggregate interface, or on a physical interface it will show which aggregate it is part of.
+|lacp|  This means the interface is an LACP interface, or a member of an LACP
+aggregation interface. Hovering over the icon will either show the member interfaces
+for a virtual aggregate interface, or for a physical interface the aggregate it is part of.
 
 .. |lacp| image:: ../_static/lacp.png
 
@@ -92,7 +95,12 @@ Hovering over the icon will show the member interfaces if this is a virtual aggr
 specific. Hovering over the icon will
 show the Voice Vlan.
 
-.. |voicevlan| image:: ../_static/voicevlan-24.png
+.. |voicevlan| image:: ../_static/voice-vlan.png
+
+|routedmode|  This means the interface is in routed mode (i.e. layer 3).
+Routed Mode interfaces can not be managed.
+
+.. |routedmode| image:: ../_static/routed-mode.png
 
 **Enabling or Disabling the Interface**
 
@@ -112,7 +120,7 @@ If the interface is enabled, and link established, this will show the link speed
 
 The current 'PVID' or 'untagged' vlan of the port will be shown.
 
-.. image:: ../_static/vlan_list.png
+.. image:: ../_static/vlan-list.png
 
 Click the drop-down arrow next to the current untagged vlan, and select the
 new untagged vlan. You will only see vlans you are allowed to change to.
@@ -136,16 +144,16 @@ Here are the meanings of the various icons used in the PoE section:
 
 |poe_enabled| This means PoE is enabled, but not serving power.
 
-.. |poe_enabled| image:: ../_static/poe-enabled-24.png
+.. |poe_enabled| image:: ../_static/poe-enabled.png
 
 |poe_serving| This means PoE is serving power. Depending on vendor, we can also show
 the power consumed by the device on this port.
 
-.. |poe_serving| image:: ../_static/poe-serving-24.png
+.. |poe_serving| image:: ../_static/poe-serving.png
 
 |poe_fault| This means PoE is enabled, and there is a fault on the port.
 
-.. |poe_fault| image:: ../_static/poe-fault-24.png
+.. |poe_fault| image:: ../_static/poe-fault.png
 
 |poe_disabled| This means PoE is disabled on this port.
 
@@ -157,7 +165,7 @@ To change state, simply click on the Disabled or Enabled icon to change the powe
 and then on again after a short wait (5 seconds by default, but admin configurable)
 Note this only shows for port with power enabled.
 
-.. |poe_toggle| image:: ../_static/down-up-24.png
+.. |poe_toggle| image:: ../_static/down-up.png
 
 
 * **Description**
@@ -175,12 +183,12 @@ but with a new active 'Command Output' tab showing the results of the command. C
 .. |commands| image:: ../_static/commands.png
 
 
-Bulk Edit tab
+Bulk Edit Tab
 -------------
 
-|bulkedit_tab|
+|bulk_edit_tab|
 
-.. |bulkedit_tab| image:: ../_static/bulkedit_tab.png
+.. |bulk_edit_tab| image:: ../_static/bulk-edit-tab.png
 
 If permissions allow, users will see the Bulk Edit tab. This shows the Bulk Edit form.
 This form allows you to apply or schedule (if permitted) a variety of changes at once
@@ -191,7 +199,7 @@ and if enabled and permitted by your administrator, another to schedule
 the changes as a task at a later time.
 **Note:** this option will only show if all the back-end processes for task scheduling are running.
 
-.. image:: ../_static/bulkedit-form.png
+.. image:: ../_static/bulk-edit-form.png
 
 * You can toggle the interface up/down state (a admin-down interface will be brought up, and vice versa,
   an up interface will go admin-down, all at once!)
@@ -209,7 +217,7 @@ and your changes will be applied. Please be patient!
 **To schedule a task to apply these changes at a later time**, you need to fill in
 two additional fields:
 
-.. image:: ../_static/bulkedit-task-form.png
+.. image:: ../_static/bulk-edit-task-form.png
 
 * pick the proposed time the task will run. This is in your local time zone, in 5 minute increments. You can schedule up to 28 days (4 weeks) in advance.
 * fill in a short description of the task.
@@ -226,7 +234,7 @@ Tasks can be seen from the "Information" tab by any user that has access to the 
 Additionally, users can see all tasks they have scheduled from the main menu, under "Scheduled Tasks".
 
 
-Switch Information tab
+Switch Information Tab
 ----------------------
 
 |switch_information_tab|
@@ -238,9 +246,9 @@ IP(v4) addresses of the switch, and more.
 If there are scheduled tasks for the selected switch, they will also be shown here.
 Any user with the ability to create tasks, can delete scheduled tasks from this tab. (Assuming the background processes are running!)
 
-.. |switch_information_tab| image:: ../_static/switch_information_tab.png
+.. |switch_information_tab| image:: ../_static/switch-information-tab.png
 
-Activity Logs tab
+Activity Logs Tab
 -----------------
 
 |activity_logs_tab|
@@ -248,10 +256,10 @@ Activity Logs tab
 This will show the last OpenL2M activity on this switch. I.e. anything changed will be listed here
 by user and time.
 
-.. |activity_logs_tab| image:: ../_static/activity_logs_tab.png
+.. |activity_logs_tab| image:: ../_static/activity-logs-tab.png
 
 
-Switch Commands tab
+Switch Commands Tab
 -------------------
 
 |switch_commands_tab|
@@ -266,18 +274,18 @@ Select a command, click on 'Run Command', and be patient!
 When complete, the page will refresh and a new 'Command Output' tab will show the output from the switch.
 
 
-.. |switch_commands_tab| image:: ../_static/switch_commands_tab.png
-.. |command_output_tab| image:: ../_static/command_output_tab.png
+.. |switch_commands_tab| image:: ../_static/switch-commands-tab.png
+.. |command_output_tab| image:: ../_static/command-output-tab.png
 
 
-Warnings/Errors tab
+Warnings/Errors Tab
 -------------------
 
 |warnings_errors_tab|
 
 This tab will only show if warnings or errors were found at some point.
 
-.. |warnings_errors_tab| image:: ../_static/warnings_errors_tab.png
+.. |warnings_errors_tab| image:: ../_static/warnings-errors-tab.png
 
 |warnings|
 

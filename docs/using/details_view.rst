@@ -10,7 +10,7 @@ the "Eth/ARP/LLDP" tab.
 
 |arp_details_tab|
 
-.. |arp_details_tab| image:: ../_static/details_tab.png
+.. |arp_details_tab| image:: ../_static/details-tab.png
 
 This loads 'real-time' data! To reload and update this
 data, click the 'Refresh Eth/Arl/LLDP' button!

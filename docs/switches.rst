@@ -1,7 +1,7 @@
 .. image:: _static/openl2m_logo.png
 
 ===================
-Switch requirements
+Switch Requirements
 ===================
 
 OpenL2M uses standard SNMP to find the information about interfaces on switches. It supports Snmp v2c and v3.
@@ -53,8 +53,11 @@ Several vendor specific MIB are supported at this time.
 * HP Aruba/Procure HP-ICF-POE-MIB
   Get enhanced PoE info on the Aruba/Procurve switches that support it.
 
-* HP HP-ENTITY-POWER-MIB
+* HP HP-ENTITY-POWER MIB
   Old power mib, supported by some Aruba/Procurve switches to get enhanced PoE info.
+
+* HP HPN-ICF-IF-EXT MIB
+  Interface extension to get switching or routing mode on HP devices
 
 * HPE HH3C-PoE MIB
   Get enhanced PoE info on the Comware switches that support it.
@@ -65,7 +68,7 @@ Several vendor specific MIB are supported at this time.
 * HPE HH3C-LswVLAN MIB
   Used for additional VLAN data in HPE Comware switches.
 
-* HH3C-IF-EXT MIB
+* HPE HH3C-IF-EXT MIB
   Used for additional information about interfaces in HPE Comware switches (route mode, PoE capable).
 
 * HPE HH3C-Config-Man MIB

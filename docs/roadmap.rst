@@ -14,7 +14,7 @@ Planned for version 1.2
 Other Features
 --------------
 
-Here are some other features we are considering implementing (*in no particular order*)
+Here are some other features we are considering implementing (*in no particular order!*)
 
 * IP v6 support, both for switch snmp access, and other informational tables.
 
