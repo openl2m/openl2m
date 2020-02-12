@@ -49,7 +49,7 @@ except ImportError:
 
 # if you change this version, also change it in docs/conf.py !!!
 VERSION = '1.1.3'
-VERSION_DATE = '2020-02-10'
+VERSION_DATE = '2020-02-12'
 
 # Hostname
 HOSTNAME = platform.node()
