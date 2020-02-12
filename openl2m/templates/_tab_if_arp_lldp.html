@@ -48,6 +48,12 @@
             {% else %}
               {{ iface.name }}
             {% endif %}
+            {% if iface.is_routed %}
+              &nbsp;
+              <img src="{% static 'img/routed-mode.png' %}"
+                   alt="Routed Mode Interface"
+                   title="Routed Mode Interface">
+            {% endif %}
             {% if iface.is_tagged %}
               &nbsp;<img src="{% static 'img/trunk.png' %}" alt="Tagged/Trunked Interface" title="Tagged/Trunked Interface">
             {% endif %}
