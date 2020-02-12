@@ -1949,7 +1949,17 @@ class SnmpConnector(EasySNMP):
         # apply the permission rules to all interfaces
         for if_index in self.interfaces:
             iface = self.interfaces[if_index]
-            # first check vendor-specific restrictions. This allow for Stacking ports, etc.
+
+            # Layer 3 (routed mode) interfaces are denied (but shown)!
+            if iface.is_routed:
+                iface.manageable = False
+                iface.allow_poe_toggle = False
+                iface.can_edit_alias = False
+                iface.visible = True
+                iface.unmanage_reason = "Access denied: interface in routed mode!"
+                continue
+
+            # next check vendor-specific restrictions. This allows denying Stacking ports, etc.
             if not self._can_manage_interface(iface):
                 iface.manageable = False
                 iface.allow_poe_toggle = False
