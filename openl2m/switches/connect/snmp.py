@@ -749,6 +749,7 @@ class SnmpConnector(EasySNMP):
                 if val != IF_TYPE_ETHERNET:
                     # non-Ethernet interfaces are NOT manageable, no matter who
                     self.interfaces[if_index].manageable = False
+                    self.interfaces[if_index].unmanage_reason = "Access denied: not an Ethernet interface!"
             return True
 
         if_index = int(oid_in_branch(IF_MTU, oid))

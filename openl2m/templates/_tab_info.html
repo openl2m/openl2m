@@ -23,6 +23,7 @@
             {# <i class="fas fa-cloud-download" aria-hidden="true"></i> #}
             <img src="{% static 'img/mvrp.png' %}"
                  alt="MVRP/GVRP Image"
+                 data-toggle="tooltip"
                  title="Vlan learned via MVRP or GVRP">
           {% endif %}
           </div>
@@ -110,6 +111,7 @@
             <td>
               {% if task_process_running and allow_tasks %}
                 <a href="{% url 'switches:task_delete' task.id %}"
+                   data-toggle="tooltip"
                    title="Click here to delete this scheduled task..."
                 {% if request.user.profile.are_you_sure %}
                    onclick="return confirm_change('Are you sure you want to DELETE this task?')"
@@ -122,6 +124,7 @@
             </td>
             <td>
               <a href="{% url 'switches:task_details' task.id %}"
+                 data-toggle="tooltip"
                  title="Click here to show the details of this scheduled task...">
                  {{ task.description }}
               </a>

@@ -7,7 +7,7 @@
           action="{% url 'switches:switch_cmd_output'  group.id switch.id %}"
           method="post">
       {% csrf_token %}
-      <select name="command_id">
+      <select name="command_id" data-toggle="tooltip" title="Select command to run">
         <optgroup label="Commands available:">
         {% for c in switch.command_list.global_commands.all %}
           <option value="{{ c.id }}">{{ c.name }}</option>
@@ -23,7 +23,7 @@
           {% endif %}
         {% endif %}
       </select>
-      &nbsp;<input type="submit" value="Run" class="btn btn-primary">
+      &nbsp;<input type="submit" value="Run" class="btn btn-primary" data-toggle="tooltip" title="Click to run command">
     </form>
   </div>
 </div>

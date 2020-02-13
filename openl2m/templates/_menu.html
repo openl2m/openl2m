@@ -10,12 +10,15 @@
             </button>
             <a class="navbar-brand"
                 href="/switches/"
-                title="Go to Top Menu"
             {% if connection.save_needed %}
                 onclick="return confirm_change('There are UNSAVED changes, are you sure?')"
             {% endif %}
             >
-                <img src="{% static 'img/openl2m-logo.png' %}" />
+                <img src="{% static 'img/openl2m-logo.png' %}"
+                     data-toggle="tooltip"
+                     data-placement="bottom"
+                     title="Go back to Switch Group Menu"
+                 />
             </a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
@@ -24,9 +27,11 @@
             <ul class="nav navbar-nav navbar-right">
               <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="{{ request.user }}" role="button" aria-haspopup="true" aria-expanded="false">
-                      <i class="fas fa-user"></i>
-                      <span id="navbar_user">{{ request.user|truncatechars:"30" }}</span>
-                      <span class="caret"></span>
+                      <span data-toggle="tooltip" data-placement="bottom" title="Your menu options!">
+                        <i class="fas fa-user"></i>
+                        <span id="navbar_user">{{ request.user|truncatechars:"30" }}</span>
+                        <span class="caret"></span>
+                      </span>
                   </a>
                   <ul class="dropdown-menu">
                     <li><a href="/"><i class="fas fa-user"></i> Home</a></li>
@@ -69,6 +74,7 @@
                               target="{{ menu.target }}"
                             {% endif %}
                             {% if menu.hint %}
+                              data-toggle="tooltip"
                               title="{{ menu.hint }}"
                             {% endif %}
                             >

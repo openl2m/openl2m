@@ -17,14 +17,14 @@
           <tr>
             <td aligh="left"></td>
             <td align="right">
-              <span title="Select the date and time you want these changes to applied.">
+              <span data-toggle="tooltip" title="Select the date and time you want these changes to applied.">
                 <input type="text"
                        name="task_eta"
                        id="dateTime"
                        placeholder="YYYY-MM-DD hh:mm"
                        data-input>
               </span>
-              <span title="Check to save config after task completes without errors.">
+              <span data-toggle="tooltip" title="Check to save config after task completes without errors.">
                 Save Config <input type="checkbox" id="save_config" name="save_config" value="on" checked>
               </span>
             </td>
@@ -32,7 +32,7 @@
           <tr>
             <td></td>
             <td align="right">
-              <span title="Enter the mandatory description for this task.">
+              <span data-toggle="tooltip" title="Enter the mandatory description for this task.">
                 <input type="text" size=40 name="task_description" value="" placeholder="Task description here...">
               </span>
             </td>
@@ -41,7 +41,7 @@
 
           <tr>
             <td align="left">
-              <span title="Click to submit changes to the selected interfaces now!">
+              <span data-toggle="tooltip" title="Click to submit changes to the selected interfaces now!">
                 <input type="submit"
                        class="btn btn-primary"
                        value="Change Selected Interfaces NOW"
@@ -50,7 +50,7 @@
             </td>
             {% if allow_tasks %}
               <td align="right">
-                <span title="Click to schedule changes to the selected interfaces at some time in the future!">
+                <span data-toggle="tooltip" title="Click to schedule changes to the selected interfaces at some time in the future!">
                   <input type="submit"
                          class="btn btn-primary"
                          value="Schedule Changes on Selected Interfaces"
@@ -88,14 +88,14 @@
             <td></td> {# select column #}
 
             <td colspan="2">
-              <span title="Check this to toggle state on all selected interfaces. I.e. go from Enabled to Disabled, or Disabled to Enabled (depending on current state!).">
+              <span data-toggle="tooltip" title="Check this to toggle state on all selected interfaces. I.e. go from Enabled to Disabled, or Disabled to Enabled (depending on current state!).">
                 <input type="checkbox" id="interface_change" name="interface_change">
                 <label for="interface_change">Change Interface State</label>
               </span>
             </td>
 
             <td>
-              <span title="Select the new untagged vlan for all selected interfaces.">
+              <span data-toggle="tooltip" title="Select the new untagged vlan for all selected interfaces.">
                 <select name="new_pvid">
                   <option value="-1" selected>No Change</option>
                   {% for vlan_id,vlan in connection.allowed_vlans.items %}
@@ -109,7 +109,7 @@
 
             {% if connection.system.poe_capable %}
             <td>
-              <span title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Toggle' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE.">
+              <span data-toggle="tooltip" title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Toggle' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE.">
                 <select name="poe_choice">
                   {% for choice,name,descr in BULKEDIT_POE_CHOICES %}
                     <option value="{{ choice }}">{{ name }}</option>
@@ -121,7 +121,7 @@
 
             <td>
               {% if switch.edit_if_descr and group.edit_if_descr or user.profile.edit_if_descr %}
-                <span title="Enter a new description for all selected interfaces.">
+                <span data-toggle="tooltip" title="Enter a new description for all selected interfaces.">
                   <input type="text" class="form-control" name="new_alias" value="" placeholder="new description here...">
                 </span>
               {% else %}
@@ -136,7 +136,10 @@
 
             <tr class="{% cycle 'odd' 'even' %}" >
 
-              <td><input type="checkbox" value="{{if_index}}" name="interface_list"></td>
+              <td><input type="checkbox" value="{{if_index}}" name="interface_list"
+                         data-toggle="tooltip"
+                         title="Check to add interface {{ iface.name }} to list">
+              </td>
               <td
                 {% if iface.admin_status ==  IF_ADMIN_STATUS_UP %}
                   {% if iface.oper_status == IF_OPER_STATUS_UP %}
@@ -152,6 +155,7 @@
                   &nbsp;
                   <img src="{% static 'img/lacp.png' %}"
                        alt="LACP Member Interface"
+                       data-toggle="tooltip"
                        title="This interface is a member of LACP interface {{ iface.lacp_master_name }}">
                 {% endif %}
               </td>
@@ -174,7 +178,7 @@
                   {% if iface.untagged_vlan > 0 %}
                     {{ iface.untagged_vlan }}
                   {% else %} {# untagged_vlan = 0 #}
-                    <span title="Configured vlan is not defined on this switch. See warnings tab!">Not defined!</span>
+                    <span data-toggle="tooltip" title="Configured vlan is not defined on this switch. See warnings tab!">Not defined!</span>
                   {% endif %}
                 </td>
 
@@ -186,23 +190,27 @@
                         {# fault or something like that #}
                         <img src="{% static 'img/poe-fault.png' %}"
                              alt="PoE Fault!"
+                             data-toggle="tooltip"
                              title="PoE Fault state">
                       {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
                         <img src="{% static 'img/poe-serving.png' %}"
                              alt="PoE Delivering!"
+                             data-toggle="tooltip"
                              title="PoE Delivering">
                       {% else %}
                         <img src="{% static 'img/poe-enabled.png' %}"
                              alt="PoE Enabled"
+                             data-toggle="tooltip"
                              title="PoE Enabled, not delivering"></a>
                       {% endif %}
                     {% else %}
                       <img src="{% static 'img/disabled.png' %}"
                            alt="PoE Disabled"
+                           data-toggle="tooltip"
                            title="PoE Disabled">
                     {% endif %}
                   {% else %}
-                     <span title="Not supported on this interface">n/s</span>
+                     <span data-toggle="tooltip" title="Not supported on this interface">n/s</span>
                   {% endif %}
                   </td>
                 {% endif %}

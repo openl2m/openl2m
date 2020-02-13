@@ -41,7 +41,7 @@ def build_url_string(values):
         s = "<a "
     s += "href=\"%s\"" % values['url']
     if 'hint' in values.keys():
-        s += " title=\"%s\"" % values['hint']
+        s += "data-toggle=\"tooltip\" title=\"%s\"" % values['hint']
     s += ">"
     if 'fa_icon' in values.keys():
         s += "<i class=\"fas %s\" aria-hidden=\"true\"></i>" % values['fa_icon']
@@ -59,7 +59,7 @@ def get_switch_link(group, switch):
     if switch.status == SWITCH_STATUS_ACTIVE and switch.snmp_profile:
         s = "<li class=\"list-group-item\">"
         if switch.description:
-            s = "%s<span title=\"%s\">" % (s, switch.description)
+            s = "%s<span data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"%s\">" % (s, switch.description)
         # do proper indenting:
         indent = ''
         for i in range(switch.indent_level):
@@ -179,7 +179,7 @@ def get_my_switchgroups(groups):
         s = "%s\n  <div class=\"panel-group\">\n   <div class=\"panel panel-default\">\n   <div class=\"panel-heading\">" % s
         s = "%s<a data-toggle=\"collapse\" href=\"#group%d\">" % (s, group.id)
         if group.description:
-            s = "%s\n  <span title=\"%s\">" % (s, group.description)
+            s = "%s\n  <span data-toggle=\"tooltip\" title=\"%s\">" % (s, group.description)
         if group.display_name:
             s = "%s%s" % (s, group.display_name)
         else:
@@ -359,11 +359,11 @@ def get_interface_link(switch, iface):
     if iface.manageable:
         if iface.admin_status == IF_ADMIN_STATUS_UP:
             info += ("<a onclick=\"return confirm_change('Are you sure you want to DISABLE %s ?')\" \
-                     href=\"/switches/%d/%d/%d/admin/%d/\" title=\"Click here to Disable %s\">%s</a>" %
+                     href=\"/switches/%d/%d/%d/admin/%d/\" data-toggle=\"tooltip\" title=\"Click here to Disable %s\">%s</a>" %
                      (iface.name, group.id, switch.id, iface.index, IF_ADMIN_STATUS_DOWN, iface.name))
         else:
             info += ("<a onclick=\"return confirm_change('Are you sure you want to ENABLE %s ?')\" \
-                     href=\"/switches/%d/%d/%d/admin/%d/\" title=\"Click here to Enable %s\">%s</a>" %
+                     href=\"/switches/%d/%d/%d/admin/%d/\" data-toggle=\"tooltip\" title=\"Click here to Enable %s\">%s</a>" %
                      (iface.name, group.id, switch.id, iface.index, IF_ADMIN_STATUS_UP, iface.name))
     else:
         info += " %s " % iface.name
@@ -371,18 +371,18 @@ def get_interface_link(switch, iface):
     # start with up/down color for interface
     if iface.admin_status == IF_ADMIN_STATUS_UP:
         info += "&nbsp;&nbsp;<img src=\"/static/img/enabled.png\" \
-                 alt=\"Interface Enabled\" title=\"Interface is Enabled\">"
+                 alt=\"Interface Enabled\" data-toggle=\"tooltip\" title=\"Interface is Enabled\">"
     else:
         info += "&nbsp;&nbsp;<img src=\"/static/img/disabled.png\" \
-                 alt=\"Interface Disabled\" title=\"Interface is Disabled\">"
+                 alt=\"Interface Disabled\" data-toggle=\"tooltip\" title=\"Interface is Disabled\">"
 
     # finally, add icons representing interface 'features'
     if iface.is_tagged:
         info += "&nbsp;&nbsp;<img src=\"/static/img/trunk.png\" \
-                 alt=\"Tagged/Trunked Interface\" title=\"Tagged/Trunked Interface\">"
+                 alt=\"Tagged/Trunked Interface\" data-toggle=\"tooltip\" title=\"Tagged/Trunked Interface\">"
     if iface.voice_vlan:
-        info += "&nbsp;&nbsp;<img src=\"/static/img/voicevlan.png\" \
-                 alt=\"Voice VLAN\" title=\"Voice VLAN %d>\"" % iface.voice_vlan
+        info += "&nbsp;&nbsp;<img src=\"/static/img/voice-vlan.png\" \
+                 alt=\"Voice VLAN\" data-toggle=\"tooltip\" title=\"Voice VLAN %d>\"" % iface.voice_vlan
 
     return mark_safe(info)
 
@@ -396,7 +396,7 @@ def get_lldp_info(neighbor):
 
     info = ''
     # add an image for the capabilities
-    img_format = "<img src=\"/static/img/%s\" title=\"%s\" height=\"24\" width=\"24\">&nbsp;"
+    img_format = "<img src=\"/static/img/%s\" data-toggle=\"tooltip\" title=\"%s\" height=\"24\" width=\"24\">&nbsp;"
     capabilities = int(neighbor.capabilities[0])
     if capabilities & LLDP_CAPA_BITS_WLAN:
         info += img_format % ('device-wifi.png', 'Wireless AP')
@@ -446,7 +446,7 @@ def get_lldp_info(neighbor):
                 chassis_info = 'Unknown Address Type'
 
     if neighbor.sys_descr:
-        info += "<abbr title=\"%s\">%s - %s</abbr>" % (neighbor.sys_descr, name, chassis_info)
+        info += "<abbr data-toggle=\"tooltip\" title=\"%s\">%s - %s</abbr>" % (neighbor.sys_descr, name, chassis_info)
     else:
         info += "%s - %s" % (name, chassis_info)
 

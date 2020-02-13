@@ -5,13 +5,6 @@
 {% load helpers %}
 {% load static %}
 
-{# generic submit-are-you-sure? function #}
-<script type="text/javascript">
-    function confirm_change(s) {
-       return confirm(s);
-    }
-</script>
-
 <div class="container">
   {% if not settings.TASKS_ENABLED %}
   <div class="panel panel-warning">
@@ -47,6 +40,7 @@
             <td>
               {% if task_process_running and task.status == TASK_STATUS_SCHEDULED %}
                 <a href="{% url 'switches:task_delete' task.id %}"
+                   data-toggle="tooltip"
                    title="Click here to delete this scheduled task..."
                 {% if request.user.profile.are_you_sure %}
                    onclick="return confirm_change('Are you sure you want to DELETE this task?')"
@@ -58,9 +52,10 @@
               {{ task.eta }}
               {% if task_process_running and task.status == TASK_STATUS_RUNNING and request.user.is_superuser %}
                 <a href="{% url 'switches:task_terminate' task.id %}"
-                 title="Click here to terminate this task if it is hung..."
+                   data-toggle="tooltip"
+                   title="Click here to terminate this task if it is hung..."
                 {% if request.user.profile.are_you_sure %}
-                 onclick="return confirm_change('Are you sure you want to TERMINATE this running task?')"
+                   onclick="return confirm_change('Are you sure you want to TERMINATE this running task?')"
                 {% endif %}
                  >
                  <i class="fas fa-times" aria-hidden="true"></i>
@@ -75,6 +70,7 @@
             <td>{{ task.switch }}</td>
             <td>
               <a href="{% url 'switches:task_details' task.id %}"
+                 data-toggle="tooltip"
                  title="Click here to show the details of this scheduled task...">
                  {{ task.description }}
               </a>

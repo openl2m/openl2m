@@ -5,19 +5,13 @@
 {% load helpers %}
 {% load static %}
 
-{# generic submit-are-you-sure? function #}
-<script type="text/javascript">
-    function confirm_change(s) {
-       return confirm(s);
-    }
-</script>
-
 <div class="container">
   <div class="panel {% if task_process_running %}panel-default{% else %}panel-warning{% endif %}">
     <div class="panel-heading">
       <strong>Scheduled Task Details{% if not task_process_running %} - Task process is not running! <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>{% endif %}</strong>
       {% if task_process_running and task.status == TASK_STATUS_SCHEDULED %}
         <a href="{% url 'switches:task_delete' task.id %}"
+           data-toggle="tooltip"
            title="Click here to delete this scheduled task..."
         {% if request.user.profile.are_you_sure %}
            onclick="return confirm_change('Are you sure you want to DELETE this task?')"
@@ -51,6 +45,7 @@
           <td>Switch</td>
           <td>
             <a href="{% url 'switches:switch_basics' task.group.id task.switch.id %}"
+              data-toggle="tooltip"
               title="Click here to access this switch." >
               {{ task.switch }}
             </a>
@@ -70,7 +65,7 @@
         </tr>
         <tr>
           <td>
-            <span title="If a task failed, it may have run more then once!">
+            <span data-toggle="tooltip" title="If a task failed, it may have run more then once!">
               Times started
             </span>
           </td>
@@ -86,7 +81,7 @@
         </tr>
         <tr>
           <td>
-            <span title="These are the requested changes to the selected interfaces when the task runs">
+            <span data-toggle="tooltip" title="These are the requested changes to the selected interfaces when the task runs">
             Arguments
             </span>
           </td>
@@ -98,7 +93,7 @@
         </tr>
         <tr>
           <td>
-            <span title="This is the state of the interfaces at the time the task executed">
+            <span data-toggle="tooltip" title="This is the state of the interfaces at the time the task executed">
               Previous State
             </span>
           </td>
@@ -106,7 +101,7 @@
         </tr>
         <tr>
           <td>
-            <span title="This is the state of the interfaces at the time the task was submitted">
+            <span data-toggle="tooltip" title="This is the state of the interfaces at the time the task was submitted">
               Submit State
             </span>
           </td>

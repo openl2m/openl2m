@@ -53,5 +53,23 @@
   <script type="text/javascript" src="{% static 'js/forms.js' %}"></script>
   -->
   {% block javascript %}{% endblock %}
+  <style>
+  /* Tooltip */
+  .tooltip > .tooltip-inner {
+    background-color: #3399FF;
+    color: #FFFFFF;
+    border: 1px solid green;
+    padding: 1px;
+    font-size: 14px;
+  }
+  </style>
+  <script>
+    function confirm_change(s) {
+       return confirm(s);
+    }
+    $(document).ready(function(){
+      $('[data-toggle="tooltip"]').tooltip();
+    });
+  </script>
 </body>
 </html>

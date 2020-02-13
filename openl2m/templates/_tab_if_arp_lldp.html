@@ -44,7 +44,7 @@
             {% endif %}
             {{ switch|get_interface_info_links:iface }}
             {% if iface.alias %}
-              <span title="{{ iface.alias }}">{{ iface.name }}</span>
+              <span data-toggle="tooltip" title="{{ iface.alias }}">{{ iface.name }}</span>
             {% else %}
               {{ iface.name }}
             {% endif %}
@@ -52,24 +52,33 @@
               &nbsp;
               <img src="{% static 'img/routed-mode.png' %}"
                    alt="Routed Mode Interface"
+                   data-toggle="tooltip"
                    title="Routed Mode Interface">
             {% endif %}
             {% if iface.is_tagged %}
-              &nbsp;<img src="{% static 'img/trunk.png' %}" alt="Tagged/Trunked Interface" title="Tagged/Trunked Interface">
+              &nbsp;<img src="{% static 'img/trunk.png' %}"
+                         alt="Tagged/Trunked Interface"
+                         data-toggle="tooltip"
+                         title="Tagged/Trunked Interface">
             {% endif %}
             {% if iface.voice_vlan %}
-              &nbsp;<img src="{% static 'img/voicevlan.png' %}" alt="Voice VLAN" title="Voice VLAN {{ iface.voice_vlan }}">
+              &nbsp;<img src="{% static 'img/voice-vlan.png' %}"
+                         alt="Voice VLAN"
+                         data-toggle="tooltip"
+                         title="Voice VLAN {{ iface.voice_vlan }}">
             {% endif %}
             {% if iface.lacp_master_index > 0 %}
               &nbsp;
               <img src="{% static 'img/lacp.png' %}"
                    alt="LACP Member Interface"
+                   data-toggle="tooltip"
                    title="This interface is a member of LACP interface {{ iface.lacp_master_name }}">
             {% endif %}
             {% if iface.type == IF_TYPE_LAGG %}
               &nbsp;
               <img src="{% static 'img/lacp.png' %}"
                    alt="LACP Master Interface"
+                   data-toggle="tooltip"
                    title="This interface is an LACP interface! Members are: {% for if_index, if_name in iface.lacp_members.items %}{{ if_name }} {% endfor %}
                     ">
             {% endif %}
@@ -89,12 +98,15 @@
 
             <td>
               {% if iface.untagged_vlan > 0 %}
-                <span {% if iface.untagged_vlan_name != '' %}
-                    title="{{ iface.untagged_vlan_name }}"{% endif %}>
-                    {{ iface.untagged_vlan }}
-                </span>
+                {% if iface.untagged_vlan_name != '' %}
+                  <span data-toggle="tooltip" title="{{ iface.untagged_vlan_name }}">
+                {% endif %}
+                {{ iface.untagged_vlan }}
+                {% if iface.untagged_vlan_name != '' %}
+                  </span>
+                {% endif %}
               {% else %}
-                <span title="Not applicable for this interface">n/a</span>
+                <span data-toggle="tooltip" title="Not applicable for this interface">n/a</span>
               {% endif %}
             </td>
 

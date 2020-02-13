@@ -3,11 +3,8 @@
 {# This shows the menu of options for a switch #}
 
 {% block javascript %}
-{# generic submit-are-you-sure? function #}
+{# this generates the date/time picker #}
 <script type="text/javascript">
-    function confirm_change(s) {
-       return confirm(s);
-    }
     $(document).ready(function() {
       // Flatpickr time selector settings
       // invoked by setting id="dateTime" on element
@@ -40,17 +37,17 @@
           <td>
             {{ switch|get_switch_info_url_links:request.user }}
             {% if switch.description %}
-              <span title="{{ switch.description }}"><strong>{{ switch.name }}</strong></span>
+              <span data-toggle="tooltip" title="{{ switch.description }}"><strong>{{ switch.name }}</strong></span>
             {% else %}
               <strong>{{ switch.name }}</strong>
             {% endif %}
             {% if tasks %}
-              <span title="There are scheduled tasks for this switch. For details, see the Switch Information tab!">
+              <span data-toggle="tooltip" title="There are scheduled tasks for this switch. For details, see the Switch Information tab!">
                 <i class="fas fa-calendar-alt" aria-hidden="true"></i>
               </span>
             {% endif %}
             {% if switch.read_only or group.read_only or user.profile.read_only %}
-              <span title="This switch is set as Read-Only by the administrator. You can not make any changes!">
+              <span data-toggle="tooltip" title="This switch is set as Read-Only by the administrator. You can not make any changes!">
                 <i class="far fa-hand-point-right" aria-hidden="true"></i>&nbsp;<small>Read-Only</small>&nbsp;<i class="far fa-hand-point-left" aria-hidden="true"></i>
               </span>
             {% endif %}
@@ -59,6 +56,7 @@
           {% if request.user.is_superuser and connection.hwinfo_needed %}
           <td>
             <a href="{% url 'switches:switch_hw_info' group.id switch.id %}"
+              data-toggle="tooltip"
               title="Read additional hardware details for this switch! This may take some time..."
               class="btn btn-primary">
               <i class="fas fa-info-circle" aria-hidden="true"></i>
@@ -69,6 +67,7 @@
 
           <td>
             <a href="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
+               data-toggle="tooltip"
                title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time..."
                class="btn btn-primary">
               {% if view == 'arp_lldp' %}
@@ -84,6 +83,7 @@
           {% if connection.save_needed %}
           <td>
             <a href="{% url 'switches:switch_save_config' group.id switch.id view %}"
+               data-toggle="tooltip"
                title="Click here to save changes to the startup config of the switch!"
                class="btn btn-info">
               <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
@@ -95,6 +95,7 @@
 
           <td>
             <a href="{% url 'switches:switch_reload' group.id switch.id view %}"
+               data-toggle="tooltip"
                title="Click here to fully reload all SNMP data for this switch! This may take some time..."
                class="btn btn-primary">
               <i class="fas fa-sync" aria-hidden="true"></i>
@@ -114,7 +115,7 @@
     {% if view == 'arp_lldp' %}
     <li>
       <a href="#tab_interfaces" data-toggle="tab">
-        <strong title="Interface information">
+        <strong data-toggle="tooltip"  title="Interfaces information">
           <i class="fas fa-ethernet" aria-hidden="true"></i>
           Interfaces
         </strong>
@@ -123,7 +124,7 @@
       {% if bulk_edit %}
       <li>
          <a href="#tab_bulkedit" data-toggle="tab">
-           <strong title="Bulk Edit">
+           <strong data-toggle="tooltip" title="The interfaces Bulk Edit form">
              <i class="fas fa-pencil" aria-hidden="true"></i>
              Bulk Edit
            </strong>
@@ -136,7 +137,7 @@
       <li>
       {% endif %}
         <a href="#tab_arp_lldp" data-toggle="tab">
-          <strong title="Interface details such as ethernet address, ARP, LLDP, etc.">
+          <strong data-toggle="tooltip"  title="Interface details such as ethernet address, ARP, LLDP, etc.">
             <i class="fas fa-sitemap" aria-hidden="true"></i>
             Eth/ARP/LLDP
           </strong>
@@ -149,7 +150,7 @@
       <li>
       {% endif %}
         <a href="#tab_interfaces" data-toggle="tab">
-          <strong title="Interface information">
+          <strong data-toggle="tooltip" title="Interfaces information">
             <i class="fas fa-ethernet" aria-hidden="true"></i>
             Interfaces
           </strong>
@@ -158,7 +159,7 @@
       {% if bulk_edit %}
         <li>
           <a href="#tab_bulkedit" data-toggle="tab">
-            <strong title="Bulk Edit">
+            <strong data-toggle="tooltip" title="The interfaces Bulk Edit form">
               <i class="fas fa-edit" aria-hidden="true"></i>
               Bulk Edit
             </strong>
@@ -172,7 +173,7 @@
     <li>
     {% endif %}
       <a href="#tab_info" data-toggle="tab">
-        <strong title="General switch information, such as OS, etc.">
+        <strong data-toggle="tooltip" title="General switch information, such as OS, etc.">
           <i class="fas fa-info" aria-hidden="true"></i>
           Switch Information
         </strong>
@@ -180,7 +181,7 @@
     </li>
     <li>
       <a href="#tab_logs" data-toggle="tab">
-        <strong title="Recent OpenL2M activity logs for this switch">
+        <strong data-toggle="tooltip" title="Recent OpenL2M activity logs for this switch">
           <i class="fas fa-list-ul" aria-hidden="true"></i>
           Activity Logs
         </strong>
@@ -190,7 +191,7 @@
       {% if cmd.state == 'run' %}
       <li class="active">
         <a href="#tab_cmd_output" data-toggle="tab">
-          <strong title="Show command output">
+          <strong data-toggle="tooltip" title="Show command output">
             <i class="fas fa-cog" aria-hidden="true"></i>
             Command Output
           </strong>
@@ -200,7 +201,7 @@
       {% if switch.command_list.global_commands.count or switch.command_list.global_commands_staff.count %}
       <li>
         <a href="#tab_cmd_list" data-toggle="tab">
-          <strong title="Possible show commands for the switch">
+          <strong data-toggle="tooltip" title="Possible show commands for the switch">
             <i class="fas fa-cogs" aria-hidden="true"></i>
             Switch Commands
           </strong>
@@ -210,7 +211,7 @@
     {% endif %}
     {% if connection.warnings %}
       <li>
-        <a href="#tab_warnings" data-toggle="tab"><strong title="Errors or Warnings have been found!">
+        <a href="#tab_warnings" data-toggle="tab"><strong data-toggle="tooltip" title="Errors or Warnings have been found!">
           <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
           Warnings/Errors
         </strong>
