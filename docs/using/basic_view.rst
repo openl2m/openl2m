@@ -85,9 +85,9 @@ Hovering over the icon will show the tagged Vlans on this port.
 
 .. |trunk| image:: ../_static/trunk.png
 
-|lacp|  This means the interface is an LACP interface, or a member of an LACP
+|lacp|  This means the interface is an LACP bridge-aggregate interface, or a member of an LACP
 aggregation interface. Hovering over the icon will either show the member interfaces
-for a virtual aggregate interface, or for a physical interface the aggregate it is part of.
+for a virtual aggregate interface, or for a physical interface the bridge aggregate it is part of.
 
 .. |lacp| image:: ../_static/lacp.png
 
