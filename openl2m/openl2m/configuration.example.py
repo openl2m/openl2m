@@ -214,7 +214,7 @@ SWITCH_INFO_URLS_ADMINS = [
 INTERFACE_INFO_URLS = [
     {
         'name': 'Akips',
-        'url': 'https://akips.yoursite.com/dashboard?mode=interface;time=last3h;controls=interface;device={{ switch.name }};child={{ iface.name }}',
+        'url': 'https://akips.yoursite.com/dashboard?mode=interface;time=last3h;controls=interface;device={{ switch.snmp_hostname }};child={{ iface.name }}',
         'hint': 'Click here to see AKIPS data for this interface',
         'target': '_akips',
         'icon': '/static/img/nms.png',
