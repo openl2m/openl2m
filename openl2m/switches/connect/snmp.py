@@ -122,6 +122,7 @@ class pysnmpHelper():
             return (True, details)
 
         else:
+            # no errors
             return (False, None)
 
     def set(self, oid, value):
@@ -672,6 +673,7 @@ class SnmpConnector(EasySNMP):
         dprint("HANDLING OID: %s" % str(oid))
         dprint(" value type = %s" % str(type(value)))
         dprint("  snmp_type = %s" % snmp_type)
+        dprint("     length = %d" % len(value))
         # change some types, and pass
         # pysnmp types:
         if ('DisplayString' in snmp_type):
@@ -720,12 +722,12 @@ class SnmpConnector(EasySNMP):
         """
         dprint("Base _parse_oid() %s" % str(oid))
         # SYS MIB is read, we only cache it
-        oid_end = oid_in_branch(SYS_MIB, oid)
+        oid_end = oid_in_branch(system, oid)
         if oid_end:
             # SYSTEM MIB entry, caching only
             return True
 
-        oid_end = oid_in_branch(IF_INDEX, oid)
+        oid_end = oid_in_branch(ifIndex, oid)
         if oid_end:
             # ifIndex branch is special, the "val" is the index, not the oid ending!
             # create new interface object and store
@@ -733,15 +735,15 @@ class SnmpConnector(EasySNMP):
             return True
 
         # this is the old ifDescr, superceded by the IF-MIB name
-        if_index = int(oid_in_branch(IF_DESCR, oid))
+        if_index = int(oid_in_branch(ifDescr, oid))
         if if_index:
             if if_index in self.interfaces.keys():
                 # self.interfaces[if_index].ifDescr = str(val)
-                # set new 'name'. Latter will later be overwritten with IFMIB_NAME bulkwalk
+                # set new 'name'. Latter will later be overwritten with ifName bulkwalk
                 self.interfaces[if_index].name = str(val)
             return True
 
-        if_index = int(oid_in_branch(IF_TYPE, oid))
+        if_index = int(oid_in_branch(ifType, oid))
         if if_index:
             val = int(val)
             if if_index in self.interfaces.keys():
@@ -752,7 +754,7 @@ class SnmpConnector(EasySNMP):
                     self.interfaces[if_index].unmanage_reason = "Access denied: not an Ethernet interface!"
             return True
 
-        if_index = int(oid_in_branch(IF_MTU, oid))
+        if_index = int(oid_in_branch(ifMtu, oid))
         if if_index:
             val = int(val)
             if if_index in self.interfaces.keys():
@@ -760,7 +762,7 @@ class SnmpConnector(EasySNMP):
             return True
 
         # the old speed, but really we want HCSpeed from IF-MIB, see below
-        if_index = int(oid_in_branch(IF_SPEED, oid))
+        if_index = int(oid_in_branch(ifSpeed, oid))
         if if_index:
             # save this in 1Mbps, as per IF-MIB hcspeed
             if if_index in self.interfaces.keys():
@@ -768,19 +770,19 @@ class SnmpConnector(EasySNMP):
             return True
 
         # do we care about this one?
-        if_index = int(oid_in_branch(IF_PHYS_ADDR, oid))
+        if_index = int(oid_in_branch(ifPhysAddress, oid))
         if if_index:
             if if_index in self.interfaces.keys():
                 self.interfaces[if_index].phys_addr = val
             return True
 
-        if_index = int(oid_in_branch(IF_ADMIN_STATUS, oid))
+        if_index = int(oid_in_branch(ifAdminStatus, oid))
         if if_index:
             if if_index in self.interfaces.keys():
                 self.interfaces[if_index].admin_status = int(val)
             return True
 
-        if_index = int(oid_in_branch(IF_OPER_STATUS, oid))
+        if_index = int(oid_in_branch(ifOperStatus, oid))
         if if_index:
             if if_index in self.interfaces.keys():
                 self.interfaces[if_index].oper_status = int(val)
@@ -794,20 +796,20 @@ class SnmpConnector(EasySNMP):
             return True
         """
 
-        if_index = int(oid_in_branch(IFMIB_NAME, oid))
+        if_index = int(oid_in_branch(ifName, oid))
         if if_index:
             if if_index in self.interfaces.keys():
                 self.interfaces[if_index].name = str(val)
             return True
 
-        if_index = int(oid_in_branch(IFMIB_ALIAS, oid))
+        if_index = int(oid_in_branch(ifAlias, oid))
         if if_index:
             if if_index in self.interfaces.keys():
                 self.interfaces[if_index].alias = str(val)
             return True
 
         # ifMIB high speed counter:
-        if_index = int(oid_in_branch(IFMIB_HIGHSPEED, oid))
+        if_index = int(oid_in_branch(ifHighSpeed, oid))
         if if_index:
             if not self.switch.snmp_capabilities & CAPABILITIES_IF_MIB:
                 self.switch.snmp_capabilities |= CAPABILITIES_IF_MIB
@@ -817,7 +819,7 @@ class SnmpConnector(EasySNMP):
             return True
 
         """
-        if_index = int(oid_in_branch(IFMIB_CONNECTOR, oid))
+        if_index = int(oid_in_branch(ifConnectorPresent, oid))
         if if_index:
             val = int(val)
             if if_index in self.interfaces.keys():
@@ -830,9 +832,9 @@ class SnmpConnector(EasySNMP):
         """
 
         # TO ADD:
-        # IFMIB_STACK_HIGHER_LAYER = '.1.3.6.1.2.1.31.1.2.1.1'    # ifStackHigherLayer
-        # IFMIB_STACK_LOWER_LAYER =  '.1.3.6.1.2.1.31.1.2.1.2'    # ifStackLowerLayer
-        # IFMIB_STACK_STATUS =       '.1.3.6.1.2.1.31.1.2.1.3'    # ifStackStatus
+        # ifStackHigherLayer = '.1.3.6.1.2.1.31.1.2.1.1'
+        # ifStackLowerLayer =  '.1.3.6.1.2.1.31.1.2.1.2'
+        # ifStackStatus =      '.1.3.6.1.2.1.31.1.2.1.3'
 
         #
         # 802.1Q / VLAN related
@@ -866,7 +868,7 @@ class SnmpConnector(EasySNMP):
 
         # List of all egress ports of a VLAN (tagged + untagged) as a hexstring
         # dot1qVlanCurrentEgressPorts
-        sub_oid = oid_in_branch(QBRIDGE_VLAN_CURRENT_EGRESS_PORTS, oid)
+        sub_oid = oid_in_branch(dot1qVlanCurrentEgressPorts, oid)
         if sub_oid:
             (time_val, v) = sub_oid.split('.')
             vlanId = int(v)
@@ -907,8 +909,8 @@ class SnmpConnector(EasySNMP):
                 offset += 1
             return True
 
-        # this is the bitmap of current untagged ports in vlans (see also above QBRIDGE_VLAN_CURRENT_EGRESS_PORTS)
-        sub_oid = oid_in_branch(QBRIDGE_VLAN_CURRENT_UNTAGGED_PORTS, oid)
+        # this is the bitmap of current untagged ports in vlans (see also above dot1qVlanStaticEgressPorts)
+        sub_oid = oid_in_branch(dot1qVlanCurrentUntaggedPorts, oid)
         if sub_oid:
             (dummy, v) = sub_oid.split('.')
             vlanId = int(v)
@@ -916,7 +918,7 @@ class SnmpConnector(EasySNMP):
                 # not likely, but just in case:
                 self.vlans[vlanId] = Vlan(vlanId)
             # store bitmap for later use
-            # self.vlans[vlanId].untagged_ports_bitmap = val
+            self.vlans[vlanId].untagged_ports_bitmap = val
             return True
 
         # see if this is static or dynamic vlan
@@ -934,7 +936,7 @@ class SnmpConnector(EasySNMP):
             return True
 
         # The VLAN name
-        vlanId = int(oid_in_branch(QBRIDGE_VLAN_STATIC_NAME, oid))
+        vlanId = int(oid_in_branch(dot1qVlanStaticName, oid))
         if vlanId:
             # not yet sure how to handle this
             if vlanId in self.vlans.keys():
@@ -948,7 +950,7 @@ class SnmpConnector(EasySNMP):
         # List of all static egress ports of a VLAN (tagged + untagged) as a hexstring
         # dot1qVlanStaticEgressPorts - READ-WRITE variable
         # we read and store this so we have it ready to WRITE by setting a bit value, when we update the vlan on a port!
-        vlanId = int(oid_in_branch(QBRIDGE_VLAN_STATIC_EGRESS_PORTS, oid))
+        vlanId = int(oid_in_branch(dot1qVlanStaticEgressPorts, oid))
         if vlanId:
             if vlanId not in self.vlans.keys():
                 # not likely, we should know by now, but just in case.
@@ -957,8 +959,9 @@ class SnmpConnector(EasySNMP):
             self.vlans[vlanId].static_egress_portlist.from_unicode(val)
             return True
 
-        # this is the bitmap of static untagged ports in vlans (see also above QBRIDGE_VLAN_EGRESS_PORTS)
-        vlanId = int(oid_in_branch(QBRIDGE_VLAN_STATIC_UNTAGGED_PORTS, oid))
+        """
+        # this is the bitmap of static untagged ports in vlans (see also above dot1qVlanCurrentEgressPorts)
+        vlanId = int(oid_in_branch(dot1qVlanStaticUntaggedPorts, oid))
         if vlanId:
             if vlanId not in self.vlans.keys():
                 # unlikely, we should know by now, but just in case
@@ -966,9 +969,10 @@ class SnmpConnector(EasySNMP):
             # store for later use:
             # self.vlans[vlanId].untagged_ports_bitmap = val
             return True
+        """
 
         # List of all available vlans on this switch as by the command "show vlans"
-        vlanId = int(oid_in_branch(QBRIDGE_VLAN_STATIC_ROW_STATUS, oid))
+        vlanId = int(oid_in_branch(dot1qVlanStaticRowStatus, oid))
         if vlanId:
             if not self.switch.snmp_capabilities & CAPABILITIES_QBRIDGE_MIB:
                 self.switch.snmp_capabilities |= CAPABILITIES_QBRIDGE_MIB
@@ -985,7 +989,7 @@ class SnmpConnector(EasySNMP):
         # The VLAN ID assigned to ***untagged*** frames - dot1qPvid, indexed by dot1dBasePort
         # ie. lookup ifIndex with _get_if_index_from_port_id(port_id)
         # IMPORTANT: IF THE INTERFACE IS TAGGED, this value is 1, and typically incorrect!!!
-        port_id = int(oid_in_branch(QBRIDGE_PORT_VLAN_PVID, oid))
+        port_id = int(oid_in_branch(dot1qPvid, oid))
         if port_id:
             if_index = self._get_if_index_from_port_id(port_id)
             # not yet sure how to handle this
@@ -1022,7 +1026,7 @@ class SnmpConnector(EasySNMP):
 
         # Map the Q-BRIDGE port id to the MIB-II if_indexes.
         # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
-        port_id = int(oid_in_branch(BRIDGE_PORT_TO_INDEX_MAP, oid))
+        port_id = int(oid_in_branch(dot1dBasePortIfIndex, oid))
         if port_id:
             # map port ID to interface ID
             if_index = int(val)
@@ -1035,7 +1039,7 @@ class SnmpConnector(EasySNMP):
         """
         Handle the device IP addresses, e.g. interface ip, vlan ip, etc.
         """
-        ip = oid_in_branch(IP_ADDRESS_IFINDEX, oid)
+        ip = oid_in_branch(ipAdEntIfIndex, oid)
         if ip:
             if_index = int(val)
             if if_index in self.interfaces.keys():
@@ -1043,7 +1047,7 @@ class SnmpConnector(EasySNMP):
                 self.interfaces[if_index].addresses_ip4[ip] = IP4Address(ip)
             return True
 
-        ip = oid_in_branch(IP_ADDRESS_NETMASK, oid)
+        ip = oid_in_branch(ipAdEntNetMask, oid)
         if ip:
             # depending on SNMP class, we either have a nice string (EasySNMP)
             # or a 4-byte binary address (pysnmp)
@@ -1109,7 +1113,7 @@ class SnmpConnector(EasySNMP):
         where <device-id> is stack member number, vendor and device specific!
         """
 
-        pse_id = int(oid_in_branch(POE_PSE_MAXPOWER, oid))
+        pse_id = int(oid_in_branch(pethMainPsePower, oid))
         if pse_id:
             self.system.poe_capable = True
             self.system.poe_max_power += int(val)
@@ -1120,7 +1124,7 @@ class SnmpConnector(EasySNMP):
             self.system.poe_pse_devices[pse_id].max_power = int(val)
             return True
 
-        pse_id = int(oid_in_branch(POE_PSE_OPERSTATUS, oid))
+        pse_id = int(oid_in_branch(pethMainPseOperStatus, oid))
         if pse_id:
             if not self.switch.snmp_capabilities & CAPABILITIES_POE_MIB:
                 self.switch.snmp_capabilities |= CAPABILITIES_POE_MIB
@@ -1135,7 +1139,7 @@ class SnmpConnector(EasySNMP):
             self.system.poe_pse_devices[pse_id].status = int(val)
             return True
 
-        pse_id = int(oid_in_branch(POE_PSE_POWER_USED, oid))
+        pse_id = int(oid_in_branch(pethMainPseConsumptionPower, oid))
         if pse_id:
             self.system.poe_capable = True
             self.system.poe_power_consumed += int(val)
@@ -1146,7 +1150,7 @@ class SnmpConnector(EasySNMP):
             self.system.poe_pse_devices[pse_id].power_consumed = int(val)
             return True
 
-        pse_id = int(oid_in_branch(POE_PSE_THRESHOLD, oid))
+        pse_id = int(oid_in_branch(pethMainPseUsageThreshold, oid))
         if pse_id:
             self.system.poe_capable = True
             # store data about individual PSE unit:
@@ -1167,12 +1171,12 @@ class SnmpConnector(EasySNMP):
         vendor/cisco/snmp.py, vendor/comware/snmp.py, etc.)
         """
 
-        pe_index = oid_in_branch(POE_PORT_ADMINSTATUS, oid)
+        pe_index = oid_in_branch(pethPsePortAdminEnable, oid)
         if pe_index:
             self.poe_port_entries[pe_index] = PoePort(pe_index, int(val))
             return True
 
-        pe_index = oid_in_branch(POE_PORT_DETECTSTATUS, oid)
+        pe_index = oid_in_branch(pethPsePortDetectionStatus, oid)
         if pe_index:
             if pe_index in self.poe_port_entries.keys():
                 self.poe_port_entries[pe_index].detect_status = int(val)
@@ -1181,13 +1185,13 @@ class SnmpConnector(EasySNMP):
 
         """
         These are currently not used:
-        pe_index = oid_in_branch(POE_PORT_PRIORITY, oid)
+        pe_index = oid_in_branch(pethPsePortPowerPriority, oid)
         if pe_index:
             if pe_index in self.poe_port_entries.keys():
                 self.poe_port_entries[pe_index].priority = int(val)
             return True
 
-        pe_index = oid_in_branch(POE_PORT_DESCR, oid)
+        pe_index = oid_in_branch(pethPsePortType, oid)
         if pe_index:
             if pe_index in self.poe_port_entries.keys():
                 self.poe_port_entries[pe_index].description = str(val)
@@ -1202,7 +1206,7 @@ class SnmpConnector(EasySNMP):
         Will return True if we have parsed this, and False if not.
         """
         # Q-Bridge Ethernet addresses known
-        member_if_index = int(oid_in_branch(LACP_PORT_ATTACHED_AGG_ID, oid))
+        member_if_index = int(oid_in_branch(dot3adAggPortAttachedAggID, oid))
         if member_if_index:
             lacp_if_index = int(val)
             if lacp_if_index > 0:
@@ -1250,7 +1254,7 @@ class SnmpConnector(EasySNMP):
         """
         # First the old style ipNetToMedia tables
         # we take some shortcuts here by not using the mappings through ipNetToMediaIfIndex and ipNetToMediaNetAddress
-        if_ip_string = oid_in_branch(IP_NET_TO_MEDIA_PHYSADDR, oid)
+        if_ip_string = oid_in_branch(ipNetToMediaPhysAddress, oid)
         if if_ip_string:
             if not self.switch.snmp_capabilities & CAPABILITIES_NET2MEDIA_MIB:
                 self.switch.snmp_capabilities |= CAPABILITIES_NET2MEDIA_MIB
@@ -1288,13 +1292,13 @@ class SnmpConnector(EasySNMP):
         dprint("_parse_mibs_lldp() %s, len = %d, type = %s" % (str(oid), len(val), str(type(val))))
 
         # we are not looking at this at this time, already have it from IF MIB
-        # lldp = oid_in_branch(LLDP_LOCAL_PORT_ENTRY, oid)
+        # lldp = oid_in_branch(lldpLocPortTable, oid)
         # if lldp:
         #    dprint("LLDP LOCAL PORT ENTRY %s = %s" % (lldp, str(val)))
         #    return True
 
         # this does not appear to be implemented in most gear:
-        # lldp = oid_in_branch(LLDP_REMOTE_LOCAL_PORT, oid)
+        # lldp = oid_in_branch(lldpRemLocalPortNum, oid)
         # if lldp:
         #    dprint("LLDP REMOTE_LOCAL PORT ENTRY %s = %s" % (lldp, str(val)))
         #    return True
@@ -1302,7 +1306,7 @@ class SnmpConnector(EasySNMP):
         # the following are indexed by  <remote-device-random-id>.<port-id>.1
         # if Q-BRIDGE is implemented, <port-id> is that port_id, mapped in self.qbridge_port_to_if_index[port_id]
         # if Q-BRIDGE is NOT implemented, <port-id> = <ifIndex>, ie without the mapping
-        lldp_index = oid_in_branch(LLDP_REMOTE_PORT_ID, oid)
+        lldp_index = oid_in_branch(lldpRemPortId, oid)
         if lldp_index:
             if not self.switch.snmp_capabilities & CAPABILITIES_LLDP_MIB:
                 self.switch.snmp_capabilities |= CAPABILITIES_LLDP_MIB
@@ -1319,7 +1323,7 @@ class SnmpConnector(EasySNMP):
                 self.neighbor_count += 1
             return True
 
-        lldp_index = oid_in_branch(LLDP_REMOTE_PORT_DESCR, oid)
+        lldp_index = oid_in_branch(lldpRemPortDesc, oid)
         if lldp_index:
             (extra_one, port_id, extra_two) = lldp_index.split('.')
             port_id = int(port_id)
@@ -1332,7 +1336,7 @@ class SnmpConnector(EasySNMP):
                     self.interfaces[if_index].lldp[lldp_index].port_descr = str(val)
             return True
 
-        lldp_index = oid_in_branch(LLDP_REMOTE_SYS_NAME, oid)
+        lldp_index = oid_in_branch(lldpRemSysName, oid)
         if lldp_index:
             (extra_one, port_id, extra_two) = lldp_index.split('.')
             port_id = int(port_id)
@@ -1345,7 +1349,7 @@ class SnmpConnector(EasySNMP):
                     self.interfaces[if_index].lldp[lldp_index].sys_name = str(val)
             return True
 
-        lldp_index = oid_in_branch(LLDP_REMOTE_SYS_DESCR, oid)
+        lldp_index = oid_in_branch(lldpRemSysDesc, oid)
         if lldp_index:
             (extra_one, port_id, extra_two) = lldp_index.split('.')
             port_id = int(port_id)
@@ -1359,7 +1363,7 @@ class SnmpConnector(EasySNMP):
             return True
 
         # parse enabled capabilities
-        lldp_index = oid_in_branch(LLDP_REMOTE_SYS_CAP_EN, oid)
+        lldp_index = oid_in_branch(lldpRemSysCapEnabled, oid)
         if lldp_index:
             (extra_one, port_id, extra_two) = lldp_index.split('.')
             port_id = int(port_id)
@@ -1372,7 +1376,7 @@ class SnmpConnector(EasySNMP):
                     self.interfaces[if_index].lldp[lldp_index].capabilities = bytes(val, 'utf-8')
             return True
 
-        lldp_index = oid_in_branch(LLDP_REMOTE_CHASSIS_TYPE, oid)
+        lldp_index = oid_in_branch(lldpRemChassisIdSubtype, oid)
         if lldp_index:
             (extra_one, port_id, extra_two) = lldp_index.split('.')
             port_id = int(port_id)
@@ -1389,7 +1393,7 @@ class SnmpConnector(EasySNMP):
                     self.interfaces[if_index].lldp[lldp_index].chassis_type = val
             return True
 
-        lldp_index = oid_in_branch(LLDP_REMOTE_CHASSIS_ID, oid)
+        lldp_index = oid_in_branch(lldpRemChassisId, oid)
         if lldp_index:
             (extra_one, port_id, extra_two) = lldp_index.split('.')
             port_id = int(port_id)
@@ -1465,14 +1469,14 @@ class SnmpConnector(EasySNMP):
         ie.sys-descr, object-id, uptime, contact, name & location
         """
         dprint("_parse_system_oids()")
-        self.system.description = self.get_cached_oid(SYS_DESCR)
-        self.system.object_id = self.get_cached_oid(SYS_OBJECTID)
+        self.system.description = self.get_cached_oid(sysDescr)
+        self.system.object_id = self.get_cached_oid(sysObjectID)
         self.system.enterprise_info = get_switch_enterprise_info(self.system.object_id)
         # sysUptime is in 1/100th of a second!
-        self.system.uptime = datetime.timedelta(seconds=int(self.get_cached_oid(SYS_UPTIME)) / 100)
-        self.system.contact = self.get_cached_oid(SYS_CONTACT)
-        self.system.name = self.get_cached_oid(SYS_NAME)
-        self.system.location = self.get_cached_oid(SYS_LOCATION)
+        self.system.uptime = datetime.timedelta(seconds=int(self.get_cached_oid(sysUpTime)) / 100)
+        self.system.contact = self.get_cached_oid(sysContact)
+        self.system.name = self.get_cached_oid(sysName)
+        self.system.location = self.get_cached_oid(sysLocation)
 
     def _get_system_data(self):
         """
@@ -1559,63 +1563,63 @@ class SnmpConnector(EasySNMP):
 
     def _get_interface_data(self):
         """
-        Get Interface MIB data from the switch. We are not reading the whole MIB-II branch at INTERFACES_MIB,
+        Get Interface MIB data from the switch. We are not reading the whole MIB-II branch at ifTable,
         but to speed it up, we run individual branches that we need ...
         Returns 1 on succes, -1 on failure
         """
         # it all starts with the interface indexes
         retval = self._get_branch_by_name('ifIndex')
         if retval < 0:
-            self._add_warning("Error getting 'Interfaces' (%s)" % IF_INDEX)
+            self._add_warning("Error getting 'Interfaces' (%s)" % ifIndex)
             return retval
         # and the types
         retval = self._get_branch_by_name('ifType')
         if retval < 0:
-            self._add_warning("Error getting 'Interface-Type' (%s)" % IF_TYPE)
+            self._add_warning("Error getting 'Interface-Type' (%s)" % ifType)
             return retval
 
         # the status of the interface, admin up/down, link up/down
         retval = self._get_branch_by_name('ifAdminStatus')
         if retval < 0:
-            self._add_warning("Error getting 'Interface-AdminStatus' (%s)" % IF_ADMIN_STATUS)
+            self._add_warning("Error getting 'Interface-AdminStatus' (%s)" % ifAdminStatus)
             return retval
         retval = self._get_branch_by_name('ifOperStatus')
         if retval < 0:
-            self._add_warning("Error getting 'Interface-OperStatus' (%s)" % IF_OPER_STATUS)
+            self._add_warning("Error getting 'Interface-OperStatus' (%s)" % ifOperStatus)
             return retval
 
         # find the interface name, start with the newer IF-MIB
         retval = self._get_branch_by_name('ifName')
         if retval < 0:
-            self._add_warning("Error getting 'Interface-Names' (%s)" % IFMIB_NAME)
+            self._add_warning("Error getting 'Interface-Names' (%s)" % ifName)
             return retval
         if retval == 0:  # newer IF-MIB entries no found, try the old
             retval = self._get_branch_by_name('ifDescr')
             if retval < 0:
-                self._add_warning("Error getting 'Interface-Descriptions' (%s)" % IF_DESCR)
+                self._add_warning("Error getting 'Interface-Descriptions' (%s)" % ifDescr)
                 return retval
 
         # this is the interface description
         retval = self._get_branch_by_name('ifAlias')
         if retval < 0:
-            self._add_warning("Error getting 'Interface-Alias' (%s)" % IFMIB_ALIAS)
+            self._add_warning("Error getting 'Interface-Alias' (%s)" % ifAlias)
             return retval
 
         # speed is in new IF-MIB
         retval = self._get_branch_by_name('ifHighSpeed')
         if retval < 0:
-            self._add_warning("Error getting 'Interface-HiSpeed' (%s)" % IFMIB_HIGHSPEED)
+            self._add_warning("Error getting 'Interface-HiSpeed' (%s)" % ifHighSpeed)
             return retval
         if retval == 0:    # new IF-MIB hcspeed entry not found, try old speed
             retval = self._get_branch_by_name('ifSpeed')
             if retval < 0:
-                self._add_warning("Error getting 'Interface-Speed' (%s)" % IF_SPEED)
+                self._add_warning("Error getting 'Interface-Speed' (%s)" % ifSpeed)
                 return retval
 
         # check the connector, if not, cannot be managed, another safety feature
         # retval = self._get_branch_by_name('ifConnectorPresent')
         # if retval < 0:
-        #    self._add_warning("Error getting 'Interface-Connector' (%s)" % IFMIB_CONNECTOR)
+        #    self._add_warning("Error getting 'Interface-Connector' (%s)" % ifConnectorPresent)
         #    return retval
 
         # if not self._get_branch_by_name('ifStackEntry'):   # LACP / Aggregate / Port-Channel interfaces
@@ -1670,9 +1674,9 @@ class SnmpConnector(EasySNMP):
 
         # THIS IS LIKELY NOT PROPERLY HANDLED !!!
         # read the current vlan untagged port mappings
-        # retval = self._get_branch_by_name(QBRIDGE_VLAN_CURRENT_UNTAGGED_PORTS)
+        # retval = self._get_branch_by_name(dot1qVlanCurrentUntaggedPorts)
         # if retval < 0:
-        #    self._add_warning("Error getting 'Q-Bridge-Vlan-Untagged-Interfaces' (%s)" % QBRIDGE_VLAN_CURRENT_UNTAGGED_PORTS)
+        #    self._add_warning("Error getting 'Q-Bridge-Vlan-Untagged-Interfaces' (%s)" % dot1qVlanCurrentUntaggedPorts)
         #    return retval
 
         # read the current vlan egress port mappings, tagged and untagged
@@ -1683,9 +1687,9 @@ class SnmpConnector(EasySNMP):
 
         # read the 'static' vlan egress port mappings, tagged and untagged
         # this will be used when changing vlans on ports, could also ignore for now!
-        # retval = self._get_branch_by_name(QBRIDGE_VLAN_STATIC_EGRESS_PORTS)
+        # retval = self._get_branch_by_name(dot1qVlanStaticEgressPorts)
         # if retval < 0:
-        #    self._add_warning("Error getting 'Q-Bridge-Vlan-Static-Egress-Interfaces' (%s)" % QBRIDGE_VLAN_STATIC_EGRESS_PORTS)
+        #    self._add_warning("Error getting 'Q-Bridge-Vlan-Static-Egress-Interfaces' (%s)" % dot1qVlanStaticEgressPorts)
         #    return retval
 
         return 1
@@ -1753,7 +1757,7 @@ class SnmpConnector(EasySNMP):
             return retval
         if retval > 0:
             # found power supplies, look at port power data
-            # this is under POE_PORT_ENTRY, but we only need a few entries:
+            # this is under pethPsePortEntry, but we only need a few entries:
             retval = self._get_branch_by_name('pethPsePortAdminEnable')
             if retval < 0:
                 self._add_warning("Error getting 'PoE-Port-Admin-Status' (pethPsePortAdminEnable)")
@@ -1807,15 +1811,15 @@ class SnmpConnector(EasySNMP):
         Returns 1 on success, -1 on failure
         """
         # Probably don't need this part, already got most from MIB-2
-        # retval = not self._get_branch_by_name(LLDP_LOCAL_PORT_ENTRY):
+        # retval = not self._get_branch_by_name(lldpLocPortTable):
         #    return False
 
         # this does not appear to be implemented in most gear:
-        # retval = not self._get_branch_by_name(LLDP_REMOTE_LOCAL_PORT):
+        # retval = not self._get_branch_by_name(lldpRemLocalPortNum):
         #    return False
 
         # this should catch all the remote device info:
-        # retval = not self._get_branch_by_name(LLDP_REMOTE_ENTRIES):
+        # retval = not self._get_branch_by_name(lldpRemEntry):
         #    return False
         # return True
 
@@ -2046,7 +2050,7 @@ class SnmpConnector(EasySNMP):
         # this will read the SystemMIB and update the System OID of the switch
         retval = self._get_system_data()
         if retval != -1:
-            self.switch.snmp_oid = self.get_cached_oid(SYS_OBJECTID)
+            self.switch.snmp_oid = self.get_cached_oid(sysObjectID)
             self.switch.save()
             return True
         return False
@@ -2194,12 +2198,12 @@ class SnmpConnector(EasySNMP):
         """
         return self.vlans
 
-    def get_vlan_by_id(self, vlanId):
+    def get_vlan_by_id(self, vlan_id):
         """
         Return the Vlan() object for the given id
         """
-        if vlanId in self.vlans.keys():
-            return self.vlans[vlanId]
+        if vlan_id in self.vlans.keys():
+            return self.vlans[vlan_id]
         return False
 
     def set_interface_untagged_vlan(self, if_index, old_vlan_id, new_vlan_id):
@@ -2213,39 +2217,46 @@ class SnmpConnector(EasySNMP):
             port_id = self._get_port_id_from_if_index(if_index)
             # set this switch port on the new vlan:
             # Q-BIRDGE mib: VlanIndex = Unsigned32
+            dprint("Setting NEW VLAN on port")
             retval = self._set("%s.%s" % (snmp_mib_variables['dot1qPvid'], str(port_id)), int(new_vlan_id), 'u')
             if retval == -1:
                 return retval
 
+            # some switches need a little "settling time" here (value is in seconds)
+            time.sleep(0.5)
+
             # Remove port from list of ports on old vlan,
-            # i.e. read Egress PortList bitmap first:
+            # i.e. read current Egress PortList bitmap first:
             (error_status, snmpval) = self._get("%s.%s" % (snmp_mib_variables['dot1qVlanStaticEgressPorts'], old_vlan_id))
             if error_status:
                 # Hmm, not sure what to do
                 return -1
 
             # now calculate new bitmap by removing this switch port
-            static_portlist = PortList()
-            static_portlist.from_unicode(snmpval.value)
+            old_vlan_portlist = PortList()
+            old_vlan_portlist.from_unicode(snmpval.value)
+            dprint("OLD VLAN Current Egress Ports = %s" % old_vlan_portlist.to_hex_string())
             # unset bit for port, i.e. remove from active portlist on vlan:
-            static_portlist[port_id] = 0
+            old_vlan_portlist[port_id] = 0
 
             # now send update to switch:
             # use PySNMP to do this work:
-            octet_string = OctetString(hexValue=static_portlist.to_hex_string())
+            octet_string = OctetString(hexValue=old_vlan_portlist.to_hex_string())
             pysnmp = pysnmpHelper(self.switch)
             (error_status, details) = pysnmp.set("%s.%s" % (snmp_mib_variables['dot1qVlanStaticEgressPorts'], old_vlan_id), octet_string)
             if error_status:
                 self.error.status = True
-                self.error.description = "Error in setting port"
+                self.error.description = "Error in setting port (dot1qVlanStaticEgressPorts)"
                 self.error.details = details
                 return -1
 
             # and re-read the dot1qVlanCurrentEgressPorts, all ports
             # tagged/untagged on the old and new vlan
             # note the 0 to hopefull deactivate time filter!
+            dprint("Get OLD VLAN Current Egress Ports")
             (error_status, snmpval) = self._get("%s.0.%s" %
                                                 (snmp_mib_variables['dot1qVlanCurrentEgressPorts'], old_vlan_id))
+            dprint("Get NEW VLAN Current Egress Ports")
             (error_status, snmpval) = self._get("%s.0.%s" %
                                                 (snmp_mib_variables['dot1qVlanCurrentEgressPorts'], new_vlan_id))
             return 0
@@ -2302,7 +2313,7 @@ def get_switch_enterprise_info(system_oid):
     """
     Return the Enterprise name from the Object ID given
     """
-    sub_oid = oid_in_branch(ENTERPRISE_ID_BASE, system_oid)
+    sub_oid = oid_in_branch(enterprises, system_oid)
     if sub_oid:
         parts = sub_oid.split('.', 1)  # 1 means one split, two elements!
         enterprise_id = int(parts[0])

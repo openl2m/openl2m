@@ -782,9 +782,13 @@ class Log(models.Model):
 
     def save(self, *args, **kwargs):
         # set default description if none given
-        if not self.description and self.action in log_info.keys():
-            # to do: get default description from LOG_CHOICES
-            self.description = log_info[self.action]
+        if not self.description:
+            # see if this is a valid action index:
+            try:
+                self.description = LOG_ACTION_CHOICES[self.action]
+            except:
+                # not found (should not happen!)
+                self.description = "Unknown action!"
 
         # if requested, also sent to Syslog host
         # if settings.SYSLOG_HOST:

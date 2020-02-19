@@ -29,48 +29,48 @@ snmp_mib_variables = {}
 #
 # SYSTEM RELATED
 #
-SYS_MIB = '.1.3.6.1.2.1.1'
-snmp_mib_variables['system'] = SYS_MIB
+system = '.1.3.6.1.2.1.1'
+snmp_mib_variables['system'] = system
 
-SYS_DESCR = '.1.3.6.1.2.1.1.1.0'
-snmp_mib_variables['sysDescr'] = SYS_DESCR
+sysDescr = '.1.3.6.1.2.1.1.1.0'
+snmp_mib_variables['sysDescr'] = sysDescr
 
-SYS_OBJECTID = '.1.3.6.1.2.1.1.2.0'
-snmp_mib_variables['sysObjectID'] = SYS_OBJECTID
+sysObjectID = '.1.3.6.1.2.1.1.2.0'
+snmp_mib_variables['sysObjectID'] = sysObjectID
 
-SYS_UPTIME = '.1.3.6.1.2.1.1.3.0'
-snmp_mib_variables['sysUpTime'] = SYS_UPTIME
+sysUpTime = '.1.3.6.1.2.1.1.3.0'
+snmp_mib_variables['sysUpTime'] = sysUpTime
 
-SYS_CONTACT = '.1.3.6.1.2.1.1.4.0'
-snmp_mib_variables['sysContact'] = SYS_CONTACT
+sysContact = '.1.3.6.1.2.1.1.4.0'
+snmp_mib_variables['sysContact'] = sysContact
 
-SYS_NAME = '.1.3.6.1.2.1.1.5.0'
-snmp_mib_variables['sysName'] = SYS_NAME
+sysName = '.1.3.6.1.2.1.1.5.0'
+snmp_mib_variables['sysName'] = sysName
 
-SYS_LOCATION = '.1.3.6.1.2.1.1.6.0'
-snmp_mib_variables['sysLocation'] = SYS_LOCATION
+sysLocation = '.1.3.6.1.2.1.1.6.0'
+snmp_mib_variables['sysLocation'] = sysLocation
 
 snmp_mib_variables['sysServices'] = '.1.3.6.1.2.1.1.7.0'
 
 #
 # INTERFACE RELATED
 #
-IF_NUMBER = '.1.3.6.1.2.1.2.1.0'   # interface count on device
-snmp_mib_variables['ifNumber'] = IF_NUMBER
+ifNumber = '.1.3.6.1.2.1.2.1.0'   # interface count on device
+snmp_mib_variables['ifNumber'] = ifNumber
 
 #
 # OLD "Interfaces" part of MIB-2, for HighSpeed, see ifMIB extensions at .31
-INTERFACES_MIB = '.1.3.6.1.2.1.2.2.1'  # see also: https://www.alvestrand.no/objectid/1.3.6.1.2.1.2.2.1.html
-snmp_mib_variables['ifTable'] = INTERFACES_MIB
+ifTable = '.1.3.6.1.2.1.2.2.1'  # see also: https://www.alvestrand.no/objectid/1.3.6.1.2.1.2.2.1.html
+snmp_mib_variables['ifTable'] = ifTable
 
-IF_INDEX = '.1.3.6.1.2.1.2.2.1.1'   # https://www.alvestrand.no/objectid/1.3.6.1.2.1.2.2.1.1.html
-snmp_mib_variables['ifIndex'] = IF_INDEX
+ifIndex = '.1.3.6.1.2.1.2.2.1.1'   # https://www.alvestrand.no/objectid/1.3.6.1.2.1.2.2.1.1.html
+snmp_mib_variables['ifIndex'] = ifIndex
 
-IF_DESCR = '.1.3.6.1.2.1.2.2.1.2'  # the OLD interface name, see IFMIB_NAME below
-snmp_mib_variables['ifDescr'] = IF_DESCR
+ifDescr = '.1.3.6.1.2.1.2.2.1.2'  # the OLD interface name, see ifName below
+snmp_mib_variables['ifDescr'] = ifDescr
 
-IF_TYPE = '.1.3.6.1.2.1.2.2.1.3'
-snmp_mib_variables['ifType'] = IF_TYPE
+ifType = '.1.3.6.1.2.1.2.2.1.3'
+snmp_mib_variables['ifType'] = ifType
 
 # Enumeration, see https://www.iana.org/assignments/ianaiftype-mib/ianaiftype-mib
 IF_TYPE_NONE = 0
@@ -85,23 +85,23 @@ visible_interfaces = {
     IF_TYPE_LAGG: True,
 }
 
-IF_MTU = '.1.3.6.1.2.1.2.2.1.4'
-snmp_mib_variables['ifMtu'] = IF_MTU
+ifMtu = '.1.3.6.1.2.1.2.2.1.4'
+snmp_mib_variables['ifMtu'] = ifMtu
 
-IF_SPEED = '.1.3.6.1.2.1.2.2.1.5'
-snmp_mib_variables['ifSpeed'] = IF_SPEED
+ifSpeed = '.1.3.6.1.2.1.2.2.1.5'
+snmp_mib_variables['ifSpeed'] = ifSpeed
 
-IF_PHYS_ADDR = '.1.3.6.1.2.1.2.2.1.6'
-snmp_mib_variables['ifPhysAddress'] = IF_PHYS_ADDR
+ifPhysAddress = '.1.3.6.1.2.1.2.2.1.6'
+snmp_mib_variables['ifPhysAddress'] = ifPhysAddress
 
-IF_ADMIN_STATUS = '.1.3.6.1.2.1.2.2.1.7'
-snmp_mib_variables['ifAdminStatus'] = IF_ADMIN_STATUS
+ifAdminStatus = '.1.3.6.1.2.1.2.2.1.7'
+snmp_mib_variables['ifAdminStatus'] = ifAdminStatus
 
 IF_ADMIN_STATUS_UP = 1
 IF_ADMIN_STATUS_DOWN = 2
 
-IF_OPER_STATUS = '.1.3.6.1.2.1.2.2.1.8'
-snmp_mib_variables['ifOperStatus'] = IF_OPER_STATUS
+ifOperStatus = '.1.3.6.1.2.1.2.2.1.8'
+snmp_mib_variables['ifOperStatus'] = ifOperStatus
 
 IF_OPER_STATUS_UP = 1
 IF_OPER_STATUS_DOWN = 2
@@ -109,100 +109,100 @@ IF_OPER_STATUS_DOWN = 2
 """
 Currently not used, best served from a Network Management application:
 
-IF_LAST_CHANGE = '.1.3.6.1.2.1.2.2.1.9'
-snmp_mib_variables['ifLastChange'] =  IF_LAST_CHANGE
+ifLastChange = '.1.3.6.1.2.1.2.2.1.9'
+snmp_mib_variables['ifLastChange'] =  ifLastChange
 
-IF_IN_OCTETS = '.1.3.6.1.2.1.2.2.1.10'
-snmp_mib_variables['ifInOctets'] = IF_IN_OCTETS'
+ifInOctets = '.1.3.6.1.2.1.2.2.1.10'
+snmp_mib_variables['ifInOctets'] = ifInOctets
 
-IF_IN_UCAST_PKTS = '.1.3.6.1.2.1.2.2.1.11'
-snmp_mib_variables['ifInUcastPkts'] = IF_IN_UCAST_PKTS
+ifInUcastPkts = '.1.3.6.1.2.1.2.2.1.11'
+snmp_mib_variables['ifInUcastPkts'] = ifInUcastPkts
 
-IF_IN_NUCAST_PKTS = '.1.3.6.1.2.1.2.2.1.12'
-snmp_mib_variables['ifInNUcastPkts'] = IF_IN_NUCAST_PKTS
+ifInNUcastPkts = '.1.3.6.1.2.1.2.2.1.12'
+snmp_mib_variables['ifInNUcastPkts'] = ifInNUcastPkts
 
-IF_IN_DISCARDS = '.1.3.6.1.2.1.2.2.1.13'
-snmp_mib_variables['ifInDiscards'] = IF_IN_DISCARDS
+ifInDiscards = '.1.3.6.1.2.1.2.2.1.13'
+snmp_mib_variables['ifInDiscards'] = ifInDiscards
 
-IF_IN_ERRORS = '.1.3.6.1.2.1.2.2.1.14'
-snmp_mib_variables['ifInErrors'] = IF_IN_ERRORS
+ifInErrors = '.1.3.6.1.2.1.2.2.1.14'
+snmp_mib_variables['ifInErrors'] = ifInErrors
 
-IF_IN_UNKNOWN_PROTOS = '.1.3.6.1.2.1.2.2.1.15'
-snmp_mib_variables['ifInUnknownProtos'] = IF_IN_UNKNOWN_PROTOS
+ifInUnknownProtos = '.1.3.6.1.2.1.2.2.1.15'
+snmp_mib_variables['ifInUnknownProtos'] = ifInUnknownProtos
 
-IF_OUT_OCTETS = '.1.3.6.1.2.1.2.2.1.16'
-snmp_mib_variables['ifOutOctets'] = IF_OUT_OCTETS
+ifOutOctets = '.1.3.6.1.2.1.2.2.1.16'
+snmp_mib_variables['ifOutOctets'] = ifOutOctets
 
-IF_OUT_UCAST_PKTS = '.1.3.6.1.2.1.2.2.1.17'
-snmp_mib_variables['ifOutUcastPkts'] = IF_OUT_UCAST_PKTS
+ifOutUcastPkts = '.1.3.6.1.2.1.2.2.1.17'
+snmp_mib_variables['ifOutUcastPkts'] = ifOutUcastPkts
 
-IF_OUT_NUCAST_PKTS = '.1.3.6.1.2.1.2.2.1.18'
-snmp_mib_variables['ifOutNUcastPkts'] = IF_OUT_NUCAST_PKTS
+ifOutNUcastPkts = '.1.3.6.1.2.1.2.2.1.18'
+snmp_mib_variables['ifOutNUcastPkts'] = ifOutNUcastPkts
 
-IF_OUT_DISCARDS = '.1.3.6.1.2.1.2.2.1.19'
-snmp_mib_variables['ifOutDiscards'] = '.1.3.6.1.2.1.2.2.1.19'
+ifOutDiscards = '.1.3.6.1.2.1.2.2.1.19'
+snmp_mib_variables['ifOutDiscards'] = ifOutDiscards
 
-IF_OUT_ERRORS = '.1.3.6.1.2.1.2.2.1.20'
-snmp_mib_variables['ifOutErrors'] = IF_OUT_DISCARDS
+ifOutErrors = '.1.3.6.1.2.1.2.2.1.20'
+snmp_mib_variables['ifOutErrors'] = ifOutErrors
 
 #not sure we care about these:
-IF_OUT_QLEN = '.1.3.6.1.2.1.2.2.1.19'
-snmp_mib_variables['ifOutQLen'] = IF_OUT_QLEN
+ifOutQLen = '.1.3.6.1.2.1.2.2.1.19'
+snmp_mib_variables['ifOutQLen'] = ifOutQLen
 
-IF_SPECIFIC = '.1.3.6.1.2.1.2.2.1.20'
-snmp_mib_variables['ifSpecific'] =  IF_SPECIFIC
+ifSpecific = '.1.3.6.1.2.1.2.2.1.20'
+snmp_mib_variables['ifSpecific'] =  ifSpecific
 """
 
 
 #
 # the IP address(es) of the switch
 #
-IP_ADDRESS_ENTRY = '.1.3.6.1.2.1.4.20'
-snmp_mib_variables['ipAddrTable'] = IP_ADDRESS_ENTRY
+ipAddrTable = '.1.3.6.1.2.1.4.20'
+snmp_mib_variables['ipAddrTable'] = ipAddrTable
 
 # and the sub-entities:
-IP_ADDRESS_ADDR = '.1.3.6.1.2.1.4.20.1.1'
-snmp_mib_variables['ipAdEntAddr'] = IP_ADDRESS_ADDR
+ipAdEntAddr = '.1.3.6.1.2.1.4.20.1.1'
+snmp_mib_variables['ipAdEntAddr'] = ipAdEntAddr
 
-IP_ADDRESS_IFINDEX = '.1.3.6.1.2.1.4.20.1.2'
-snmp_mib_variables['ipAdEntIfIndex'] = IP_ADDRESS_IFINDEX
+ipAdEntIfIndex = '.1.3.6.1.2.1.4.20.1.2'
+snmp_mib_variables['ipAdEntIfIndex'] = ipAdEntIfIndex
 
-IP_ADDRESS_NETMASK = '.1.3.6.1.2.1.4.20.1.3'
-snmp_mib_variables['ipAdEntNetMask'] = IP_ADDRESS_NETMASK
+ipAdEntNetMask = '.1.3.6.1.2.1.4.20.1.3'
+snmp_mib_variables['ipAdEntNetMask'] = ipAdEntNetMask
 
 #
 # ARP Table related, using the modern Entries#
 #
 # the older ipNetToMedia tables:
-IP_NET_TO_MEDIA_MIB = '.1.3.6.1.2.1.4.22'
-snmp_mib_variables['ipNetToMediaTable'] = IP_NET_TO_MEDIA_MIB
+ipNetToMediaTable = '.1.3.6.1.2.1.4.22'
+snmp_mib_variables['ipNetToMediaTable'] = ipNetToMediaTable
 
-IP_NET_TO_MEDIA_IFINDEX = '.1.3.6.1.2.1.4.22.1.1'
-snmp_mib_variables['ipNetToMediaIfIndex'] = IP_NET_TO_MEDIA_IFINDEX
+ipNetToMediaIfIndex = '.1.3.6.1.2.1.4.22.1.1'
+snmp_mib_variables['ipNetToMediaIfIndex'] = ipNetToMediaIfIndex
 
-IP_NET_TO_MEDIA_PHYSADDR = '.1.3.6.1.2.1.4.22.1.2'
-snmp_mib_variables['ipNetToMediaPhysAddress'] = IP_NET_TO_MEDIA_PHYSADDR
+ipNetToMediaPhysAddress = '.1.3.6.1.2.1.4.22.1.2'
+snmp_mib_variables['ipNetToMediaPhysAddress'] = ipNetToMediaPhysAddress
 
 # ipNetToMediaNetAddress is the 'arp' table,
-IP_NET_TO_MEDIA_NETADDR = '.1.3.6.1.2.1.4.22.1.3'
-snmp_mib_variables['ipNetToMediaNetAddress'] = IP_NET_TO_MEDIA_NETADDR
+ipNetToMediaNetAddress = '.1.3.6.1.2.1.4.22.1.3'
+snmp_mib_variables['ipNetToMediaNetAddress'] = ipNetToMediaNetAddress
 
 #
 # the newer ipNetToPhysical tables:
-IP_NET_TO_PHYSICAL = '.1.3.6.1.2.1.4.35.1'
-snmp_mib_variables['ipNetToPhysicalEntry'] = IP_NET_TO_PHYSICAL
+ipNetToPhysicalEntry = '.1.3.6.1.2.1.4.35.1'
+snmp_mib_variables['ipNetToPhysicalEntry'] = ipNetToPhysicalEntry
 
-IP_NET_TO_PHYSICAL_IFINDEX = '.1.3.6.1.2.1.4.35.1.1'
-snmp_mib_variables['ipNetToPhysicalIfIndex'] = IP_NET_TO_PHYSICAL_IFINDEX
+ipNetToPhysicalIfIndex = '.1.3.6.1.2.1.4.35.1.1'
+snmp_mib_variables['ipNetToPhysicalIfIndex'] = ipNetToPhysicalIfIndex
 
-IP_NET_TO_PHYSICAL_NET_ADDR_TYPE = '.1.3.6.1.2.1.4.35.1.2'
-snmp_mib_variables['ipNetToPhysicalNetAddressType'] = IP_NET_TO_PHYSICAL_NET_ADDR_TYPE
+ipNetToPhysicalNetAddressType = '.1.3.6.1.2.1.4.35.1.2'
+snmp_mib_variables['ipNetToPhysicalNetAddressType'] = ipNetToPhysicalNetAddressType
 
-IP_NET_TO_PHYSICAL_NET_ADDR = '.1.3.6.1.2.1.4.35.1.3'
-snmp_mib_variables['ipNetToPhysicalNetAddress'] = IP_NET_TO_PHYSICAL_NET_ADDR
+ipNetToPhysicalNetAddress = '.1.3.6.1.2.1.4.35.1.3'
+snmp_mib_variables['ipNetToPhysicalNetAddress'] = ipNetToPhysicalNetAddress
 
-IP_NET_TO_PHYSICAL_NET_PHYSADDR = '.1.3.6.1.2.1.4.35.1.4'
-snmp_mib_variables['ipNetToPhysicalPhysAddress'] = IP_NET_TO_PHYSICAL_NET_PHYSADDR
+ipNetToPhysicalPhysAddress = '.1.3.6.1.2.1.4.35.1.4'
+snmp_mib_variables['ipNetToPhysicalPhysAddress'] = ipNetToPhysicalPhysAddress
 
 #
 
@@ -212,8 +212,8 @@ snmp_mib_variables['dot3StatsDuplexStatus'] = dot3StatsDuplexStatus
 #
 # BRIDGE MIB RELATED
 #
-BRIDGE_MIB = '.1.3.6.1.2.1.17'   # orignal Bridge-MIB, including Ethernet-to-Interface mappings
-snmp_mib_variables['dot1dBridge'] = BRIDGE_MIB
+dot1dBridge = '.1.3.6.1.2.1.17'   # orignal Bridge-MIB, including Ethernet-to-Interface mappings
+snmp_mib_variables['dot1dBridge'] = dot1dBridge
 
 # base settings about the 802.1q config:
 dot1qBase = '.1.3.6.1.2.1.17.7.1.1'
@@ -237,8 +237,8 @@ GVRP_ENABLED = 1
 GVRP_DISABLED = 2
 
 # dot1dBasePortIfIndex, this maps the port number to the ifIndex in MIB-II
-BRIDGE_PORT_TO_INDEX_MAP = '.1.3.6.1.2.1.17.1.4.1.2'
-snmp_mib_variables['dot1dBasePortIfIndex'] = BRIDGE_PORT_TO_INDEX_MAP
+dot1dBasePortIfIndex = '.1.3.6.1.2.1.17.1.4.1.2'
+snmp_mib_variables['dot1dBasePortIfIndex'] = dot1dBasePortIfIndex
 
 # Getting Ethernet addresses on ports:
 # walk dot1dTpFdbAddress
@@ -253,18 +253,12 @@ snmp_mib_variables['dot1dTpFdbPort'] = BRIDGE_ACTIVE_ETH_ADDRESSES_BY_PORT
 #
 # VLAN Q-BRIDGE RELATED
 #
-QBRIDGE_MIB = '.1.3.6.1.2.1.17.7'   # Expanded 802.1Q MIB, includes VLAN info, etc.
-snmp_mib_variables['qBridgeMIB'] = QBRIDGE_MIB
+qBridgeMIB = '.1.3.6.1.2.1.17.7'   # Expanded 802.1Q MIB, includes VLAN info, etc.
+snmp_mib_variables['qBridgeMIB'] = qBridgeMIB
 
-QBRIDGE_VLAN_CURRENT_ENTRY = '.1.3.6.1.2.1.17.7.1.4.2.1'
-snmp_mib_variables['dot1qVlanCurrentEntry'] = QBRIDGE_VLAN_CURRENT_ENTRY
+dot1qVlanCurrentEntry = '.1.3.6.1.2.1.17.7.1.4.2.1'
+snmp_mib_variables['dot1qVlanCurrentEntry'] = dot1qVlanCurrentEntry
 
-# NOTE _ NOTE _ NOTE:
-# The QBRIDGE_VLAN_CURRENT_* entries are READ-only
-#
-
-
-# List of all ports on a vlan as a hexstring (including native vlan)
 """
 PortList ::= TEXTUAL-CONVENTION
     STATUS      current
@@ -280,29 +274,33 @@ PortList ::= TEXTUAL-CONVENTION
         then that port is included in the set of ports; the port
         is not included if its bit has a value of '0'."
     SYNTAX      OCTET STRING
-"""
-"""
+
 PORT VLAN INFO:
-We READ the untagged vlan on a port from QBRIDGE_VLAN_IFACE_UNTAGGED_PVID
+
+NOTE _ NOTE _ NOTE:
+    The qBridge Current_* entries are READ-only
+
+We READ the untagged vlan on a port from:
+    dot1qPvid
+
 We READ bitmap port-on-vlan info from this read-only oid:
-    dot1qVlanCurrentEgressPorts / QBRIDGE_VLAN_CURRENT_EGRESS_PORTS
+    dot1qVlanCurrentEgressPorts
 
 We WRITE changes to the port-on-vlan bitmap to
-    dot1qVlanStaticEgressPorts / QBRIDGE_VLAN_STATIC_EGRESS_PORTS
-
+    dot1qVlanStaticEgressPorts
 """
 
 
 # The set of ports that are transmitting traffic for this VLAN
 # as either tagged or untagged frames.
-# dot1qVlanCurrentEgressPorts - this is READ-ONLY !!!
-QBRIDGE_VLAN_CURRENT_EGRESS_PORTS = '.1.3.6.1.2.1.17.7.1.4.2.1.4'     # followed by <time_index>.<vlanId>
-snmp_mib_variables['dot1qVlanCurrentEgressPorts'] = QBRIDGE_VLAN_CURRENT_EGRESS_PORTS
+# dot1qVlanCurrentEgressPorts - this is *** READ-ONLY !!! ***
+dot1qVlanCurrentEgressPorts = '.1.3.6.1.2.1.17.7.1.4.2.1.4'     # followed by <time_index>.<vlanId>
+snmp_mib_variables['dot1qVlanCurrentEgressPorts'] = dot1qVlanCurrentEgressPorts
 
 # The set of ports that are transmitting traffic for this VLAN as untagged frames.
 # dot1qVlanCurrentUntaggedPorts - READ-ONLY !!!
-QBRIDGE_VLAN_CURRENT_UNTAGGED_PORTS = '.1.3.6.1.2.1.17.7.1.4.2.1.5'     # followed by <someIndex>.<vlanId>
-snmp_mib_variables['dot1qVlanCurrentUntaggedPorts'] = QBRIDGE_VLAN_CURRENT_UNTAGGED_PORTS
+dot1qVlanCurrentUntaggedPorts = '.1.3.6.1.2.1.17.7.1.4.2.1.5'     # followed by <someIndex>.<vlanId>
+snmp_mib_variables['dot1qVlanCurrentUntaggedPorts'] = dot1qVlanCurrentUntaggedPorts
 
 # The vlan status, ie static, dynamic, etc.
 # dot1qVlanStatus - READ-ONLY !!!
@@ -315,23 +313,23 @@ VLAN_STATUS_DYNAMIC = 3
 
 CISCO_VLAN_TYPE_NORMAL = 1    # regular(1) in the Cisco VTP mib
 
-QBRIDGE_VLAN_CURRENT_VLAN_CREATION_TIME = '.1.3.6.1.2.1.17.7.1.4.2.1.7'              # followed by <someIndex>.<vlanId>
-snmp_mib_variables['dot1qVlanCreationTime'] = QBRIDGE_VLAN_CURRENT_VLAN_CREATION_TIME
+dot1qVlanCreationTime = '.1.3.6.1.2.1.17.7.1.4.2.1.7'              # followed by <someIndex>.<vlanId>
+snmp_mib_variables['dot1qVlanCreationTime'] = dot1qVlanCreationTime
 
 
 ###################################################################
 #
 # dot1qVlanStaticTable = 1.3.6.1.2.1.17.7.1.4.3
 #
-QBRIDGE_VLAN_STATIC_ENTRY = '.1.3.6.1.2.1.17.7.1.4.3.1'
-snmp_mib_variables['dot1qVlanStaticTable'] = QBRIDGE_VLAN_STATIC_ENTRY
+dot1qVlanStaticTable = '.1.3.6.1.2.1.17.7.1.4.3.1'
+snmp_mib_variables['dot1qVlanStaticTable'] = dot1qVlanStaticTable
 
 # Entries under dot1qVlanStaticTable.dot1qVlanStaticEntry  1.3.6.1.2.1.17.7.1.4.3.1
 # This is dot1qVlanStaticName
 # To get vlan names
 # dot1qVlanStaticName = 1.3.6.1.2.1.17.7.1.4.3.1.1
-QBRIDGE_VLAN_STATIC_NAME = '.1.3.6.1.2.1.17.7.1.4.3.1.1'
-snmp_mib_variables['dot1qVlanStaticName'] = QBRIDGE_VLAN_STATIC_NAME
+dot1qVlanStaticName = '.1.3.6.1.2.1.17.7.1.4.3.1.1'
+snmp_mib_variables['dot1qVlanStaticName'] = dot1qVlanStaticName
 
 # VLAN set:
 # set .1.3.6.1.2.1.17.7.1.4.3.1.2 for tagged ports and .1.3.6.1.2.1.17.7.1.4.3.1.4 for untagged.
@@ -339,37 +337,37 @@ snmp_mib_variables['dot1qVlanStaticName'] = QBRIDGE_VLAN_STATIC_NAME
 # dot1qVlanStaticEgressPorts.<vlanId>
 # dot1qVlanStaticUntaggedPorts.<vlanId>
 
-# VLAN_EGRESS_PORTS = QBRIDGENODES['dot1qVlanStaticEgressPorts']['oid']
+# VLAN_EGRESS_PORTS = ['dot1qVlanStaticEgressPorts']['oid']
 # To WRITE!!! egress ports of a VLAN (tagged + untagged)
 # dot1qVlanStaticEgressPorts - READ-WRITE !!!
 # The set of ports that are permanently assigned to the egress list for this VLAN by management.
 # this is what you change when you SET a new vlan on a port (based on the bitmap)
-QBRIDGE_VLAN_STATIC_EGRESS_PORTS = '.1.3.6.1.2.1.17.7.1.4.3.1.2'    # followed by vlanId
-snmp_mib_variables['dot1qVlanStaticEgressPorts'] = QBRIDGE_VLAN_STATIC_EGRESS_PORTS
+dot1qVlanStaticEgressPorts = '.1.3.6.1.2.1.17.7.1.4.3.1.2'    # followed by vlanId
+snmp_mib_variables['dot1qVlanStaticEgressPorts'] = dot1qVlanStaticEgressPorts
 
 # To get untagged ports of a VLAN, returns bitmap
 # dot1qVlanStaticUntaggedPorts = 1.3.6.1.2.1.17.7.1.4.3.1.4
-QBRIDGE_VLAN_STATIC_UNTAGGED_PORTS = '.1.3.6.1.2.1.17.7.1.4.3.1.4'          # followed by vlanId
-snmp_mib_variables['dot1qVlanStaticUntaggedPorts'] = QBRIDGE_VLAN_STATIC_UNTAGGED_PORTS
+dot1qVlanStaticUntaggedPorts = '.1.3.6.1.2.1.17.7.1.4.3.1.4'          # followed by vlanId
+snmp_mib_variables['dot1qVlanStaticUntaggedPorts'] = dot1qVlanStaticUntaggedPorts
 
 # List of all available vlans on this switch as by the command "show vlans"
-# VLAN_ROW_STATUS = QBRIDGENODES['dot1qVlanStaticRowStatus']['oid']
-QBRIDGE_VLAN_STATIC_ROW_STATUS = '.1.3.6.1.2.1.17.7.1.4.3.1.5'           # followed by vlanId
-snmp_mib_variables['dot1qVlanStaticRowStatus'] = QBRIDGE_VLAN_STATIC_ROW_STATUS
+# VLAN_ROW_STATUS = ['dot1qVlanStaticRowStatus']['oid']
+dot1qVlanStaticRowStatus = '.1.3.6.1.2.1.17.7.1.4.3.1.5'           # followed by vlanId
+snmp_mib_variables['dot1qVlanStaticRowStatus'] = dot1qVlanStaticRowStatus
 
 #####################################################
 
 # Per Port VLAN data, dot1qPortVlanEntry
-QBRIDGE_PORT_VLAN_ENTRY = '.1.3.6.1.2.1.17.7.1.4.5.1'
-snmp_mib_variables['dot1qPortVlanEntry'] = QBRIDGE_PORT_VLAN_ENTRY
+dot1qPortVlanEntry = '.1.3.6.1.2.1.17.7.1.4.5.1'
+snmp_mib_variables['dot1qPortVlanEntry'] = dot1qPortVlanEntry
 
 # The VLAN ID assigned to untagged frames,
 # To get ports (and their respective vlans) / to untag port in a vlan
 # dot1qPvid = 1.3.6.1.2.1.17.7.1.4.5.1.1
 # indexed by dot1dBasePort, so we need to lookup in the table from
-# dot1dBasePortIfIndex  or BRIDGE_PORT_TO_INDEX_MAP above !!!
-QBRIDGE_PORT_VLAN_PVID = '.1.3.6.1.2.1.17.7.1.4.5.1.1'
-snmp_mib_variables['dot1qPvid'] = QBRIDGE_PORT_VLAN_PVID
+# dot1dBasePortIfIndex  or dot1dBasePortIfIndex above !!!
+dot1qPvid = '.1.3.6.1.2.1.17.7.1.4.5.1.1'
+snmp_mib_variables['dot1qPvid'] = dot1qPvid
 
 
 # GVRP port status related:
@@ -381,37 +379,37 @@ snmp_mib_variables['dot1qPortGvrpStatus'] = dot1qPortGvrpStatus
 ########################################################################
 #
 # ifMIB, extensions for higher speed, etc.
-IFMIB_MIB = '.1.3.6.1.2.1.31'
-snmp_mib_variables['ifMIB'] = IFMIB_MIB
+ifMIB = '.1.3.6.1.2.1.31'
+snmp_mib_variables['ifMIB'] = ifMIB
 
 #
 # interface name
-IFMIB_NAME = '.1.3.6.1.2.1.31.1.1.1.1'
-snmp_mib_variables['ifName'] = IFMIB_NAME
+ifName = '.1.3.6.1.2.1.31.1.1.1.1'
+snmp_mib_variables['ifName'] = ifName
 
 # high speed, in units of 1 Mbps
-IFMIB_HIGHSPEED = '.1.3.6.1.2.1.31.1.1.1.15'
-snmp_mib_variables['ifHighSpeed'] = IFMIB_HIGHSPEED
+ifHighSpeed = '.1.3.6.1.2.1.31.1.1.1.15'
+snmp_mib_variables['ifHighSpeed'] = ifHighSpeed
 
-IFMIB_CONNECTOR = '.1.3.6.1.2.1.31.1.1.1.17'   # if SNMP_TRUE, then Physical port, otherwize virtual
-snmp_mib_variables['ifConnectorPresent'] = IFMIB_CONNECTOR
+ifConnectorPresent = '.1.3.6.1.2.1.31.1.1.1.17'   # if SNMP_TRUE, then Physical port, otherwize virtual
+snmp_mib_variables['ifConnectorPresent'] = ifConnectorPresent
 
 # alias, i.e. interface Descriptions
-IFMIB_ALIAS = '.1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
-snmp_mib_variables['ifAlias'] = IFMIB_ALIAS
+ifAlias = '.1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
+snmp_mib_variables['ifAlias'] = ifAlias
 
 # interface stack, ie brdige aggregation, etc.
-IFMIB_STACK_MIB = '.1.3.6.1.2.1.31.1.2.1'
-snmp_mib_variables['ifStackEntry'] = IFMIB_STACK_MIB
+ifStackEntry = '.1.3.6.1.2.1.31.1.2.1'
+snmp_mib_variables['ifStackEntry'] = ifStackEntry
 
-IFMIB_STACK_HIGHER_LAYER = '.1.3.6.1.2.1.31.1.2.1.1'    # ifStackHigherLayer
-snmp_mib_variables['ifStackHigherLayer'] = IFMIB_STACK_HIGHER_LAYER
+ifStackHigherLayer = '.1.3.6.1.2.1.31.1.2.1.1'    # ifStackHigherLayer
+snmp_mib_variables['ifStackHigherLayer'] = ifStackHigherLayer
 
-IFMIB_STACK_LOWER_LAYER = '.1.3.6.1.2.1.31.1.2.1.2'    # ifStackLowerLayer
-snmp_mib_variables['ifStackLowerLayer'] = IFMIB_STACK_LOWER_LAYER
+ifStackLowerLayer = '.1.3.6.1.2.1.31.1.2.1.2'    # ifStackLowerLayer
+snmp_mib_variables['ifStackLowerLayer'] = ifStackLowerLayer
 
-IFMIB_STACK_STATUS = '.1.3.6.1.2.1.31.1.2.1.3'    # ifStackStatus
-snmp_mib_variables['ifStackStatus'] = IFMIB_STACK_STATUS
+ifStackStatus = '.1.3.6.1.2.1.31.1.2.1.3'    # ifStackStatus
+snmp_mib_variables['ifStackStatus'] = ifStackStatus
 
 # To get forbidden ports
 # dot1qVlanForbiddenEgressPorts = 1.3.6.1.2.1.17.7.1.4.3.1.3</value>
@@ -481,44 +479,44 @@ ENTITY_CLASS_NAME[ENTITY_CLASS_STACK] = 'Stack'
 # POE RELATED
 #
 # ALL of these are followed by devId.ifIndex, where devId is stack member
-POE_MIB = '.1.3.6.1.2.1.105'
-snmp_mib_variables['powerEthernetMIB'] = POE_MIB
+powerEthernetMIB = '.1.3.6.1.2.1.105'
+snmp_mib_variables['powerEthernetMIB'] = powerEthernetMIB
 
 #
 # the pethMainPseEntry table entries with device-level PoE info
 #
-POE_PSE_ENTRY = '.1.3.6.1.2.1.105.1.3.1.1'
-snmp_mib_variables['pethMainPseEntry'] = POE_PSE_ENTRY
+pethMainPseEntry = '.1.3.6.1.2.1.105.1.3.1.1'
+snmp_mib_variables['pethMainPseEntry'] = pethMainPseEntry
 
-POE_PSE_MAXPOWER = '.1.3.6.1.2.1.105.1.3.1.1.2'     # followed by devId.index, where devId is stack member
-snmp_mib_variables['pethMainPsePower'] = POE_PSE_MAXPOWER
+pethMainPsePower = '.1.3.6.1.2.1.105.1.3.1.1.2'     # followed by devId.index, where devId is stack member
+snmp_mib_variables['pethMainPsePower'] = pethMainPsePower
 
-POE_PSE_OPERSTATUS = '.1.3.6.1.2.1.105.1.3.1.1.3'     # followed by devId.index, where devId is stack member
-snmp_mib_variables['pethMainPseOperStatus'] = POE_PSE_OPERSTATUS
+pethMainPseOperStatus = '.1.3.6.1.2.1.105.1.3.1.1.3'     # followed by devId.index, where devId is stack member
+snmp_mib_variables['pethMainPseOperStatus'] = pethMainPseOperStatus
 
 POE_PSE_STATUS_ON = 1
 POE_PSE_STATUS_OFF = 2
 POE_PSE_STATUS_FAULT = 3
 
-POE_PSE_POWER_USED = '.1.3.6.1.2.1.105.1.3.1.1.4'     # followed by devId.index, where devId is stack member
-snmp_mib_variables['pethMainPseConsumptionPower'] = POE_PSE_POWER_USED
+pethMainPseConsumptionPower = '.1.3.6.1.2.1.105.1.3.1.1.4'     # followed by devId.index, where devId is stack member
+snmp_mib_variables['pethMainPseConsumptionPower'] = pethMainPseConsumptionPower
 
-POE_PSE_THRESHOLD = '.1.3.6.1.2.1.105.1.3.1.1.5'     # followed by devId.index, where devId is stack member
-snmp_mib_variables['pethMainPseUsageThreshold'] = POE_PSE_THRESHOLD
+pethMainPseUsageThreshold = '.1.3.6.1.2.1.105.1.3.1.1.5'     # followed by devId.index, where devId is stack member
+snmp_mib_variables['pethMainPseUsageThreshold'] = pethMainPseUsageThreshold
 
 #
 # the pethPsePortEntry tables with port-level PoE info
 #
-POE_PORT_ENTRY = '.1.3.6.1.2.1.105.1.1.1'
-snmp_mib_variables['pethPsePortEntry'] = POE_PORT_ENTRY
+pethPsePortEntry = '.1.3.6.1.2.1.105.1.1.1'
+snmp_mib_variables['pethPsePortEntry'] = pethPsePortEntry
 
-POE_PORT_ADMINSTATUS = '.1.3.6.1.2.1.105.1.1.1.3'      # followed by devId.ifIndex, where devId is stack member
-snmp_mib_variables['pethPsePortAdminEnable'] = POE_PORT_ADMINSTATUS
+pethPsePortAdminEnable = '.1.3.6.1.2.1.105.1.1.1.3'      # followed by devId.ifIndex, where devId is stack member
+snmp_mib_variables['pethPsePortAdminEnable'] = pethPsePortAdminEnable
 POE_PORT_ADMIN_ENABLED = 1
 POE_PORT_ADMIN_DISABLED = 2
 
-POE_PORT_DETECTSTATUS = '.1.3.6.1.2.1.105.1.1.1.6'      # followed by devId.ifIndex, where devId is stack member
-snmp_mib_variables['pethPsePortDetectionStatus'] = POE_PORT_DETECTSTATUS
+pethPsePortDetectionStatus = '.1.3.6.1.2.1.105.1.1.1.6'      # followed by devId.ifIndex, where devId is stack member
+snmp_mib_variables['pethPsePortDetectionStatus'] = pethPsePortDetectionStatus
 POE_PORT_DETECT_DISABLED = 1     # '1' = disabled
 POE_PORT_DETECT_SEARCHING = 2    # ’2’ = searching
 POE_PORT_DETECT_DELIVERING = 3   # ’3’ = deliveringPower
@@ -533,14 +531,18 @@ poe_status_name[POE_PORT_DETECT_FAULT] = 'Fault'
 poe_status_name[POE_PORT_DETECT_TEST] = 'Test'
 poe_status_name[POE_PORT_DETECT_OTHERFAULT] = 'Unknown Fault'
 
-POE_PORT_PRIORITY = '.1.3.6.1.2.1.105.1.1.1.7'     # followed by devId.ifIndex, where devId is stack member
-snmp_mib_variables['pethPsePortPowerPriority'] = POE_PORT_PRIORITY
+pethPsePortPowerPriority = '.1.3.6.1.2.1.105.1.1.1.7'     # followed by devId.ifIndex, where devId is stack member
+snmp_mib_variables['pethPsePortPowerPriority'] = pethPsePortPowerPriority
 POE_PORT_PRIORITY_CRITICAL = 1   # '1' = Critical
 POE_PORT_PRIORITY_HIGH = 2       # '2' = High
 POE_PORT_PRIORITY_LOW = 3        # '3' = Low
+poe_priority_name = {}
+poe_priority_name[POE_PORT_PRIORITY_CRITICAL] = "Critical"
+poe_priority_name[POE_PORT_PRIORITY_HIGH] = "High"
+poe_priority_name[POE_PORT_PRIORITY_LOW] = "Low"
 
-POE_PORT_DESCR = '.1.3.6.1.2.1.105.1.1.1.9'     # followed by devId.ifIndex, where devId is stack member
-snmp_mib_variables['pethPsePortType'] = POE_PORT_DESCR
+pethPsePortType = '.1.3.6.1.2.1.105.1.1.1.9'     # followed by devId.ifIndex, where devId is stack member
+snmp_mib_variables['pethPsePortType'] = pethPsePortType
 
 
 # IEEE also has a Dot1Q MIB:
@@ -555,39 +557,39 @@ snmp_mib_variables['ieee8021QBridgeMvrpEnabledStatus'] = ieee8021QBridgeMvrpEnab
 #
 # local port:
 # (lldpLocPortEntry)
-LLDP_MIB = '.1.0.8802.1.1.2.1'    # start of lldpObjects
-snmp_mib_variables['lldpObjects'] = LLDP_MIB
+lldpObjects = '.1.0.8802.1.1.2.1'    # start of lldpObjects
+snmp_mib_variables['lldpObjects'] = lldpObjects
 
 # local system data at  .1.0.8802.1.1.2.1.3
 # lldpLocSysCapSupported, local capabilities supported, see bitmap below
-LLDP_LOCAL_CAP = '.1.0.8802.1.1.2.1.3.5.0'
-snmp_mib_variables['lldpLocSysCapSupported'] = LLDP_LOCAL_CAP
+lldpLocSysCapSupported = '.1.0.8802.1.1.2.1.3.5.0'
+snmp_mib_variables['lldpLocSysCapSupported'] = lldpLocSysCapSupported
 
 # lldpLocSysCapEnabled, local capabilities enabled, see bitmap below
-LLDP_LOCAL_CAP_EN = '.1.0.8802.1.1.2.1.3.6.0'
-snmp_mib_variables['lldpLocSysCapEnabled'] = LLDP_LOCAL_CAP_EN
+lldpLocSysCapEnabled = '.1.0.8802.1.1.2.1.3.6.0'
+snmp_mib_variables['lldpLocSysCapEnabled'] = lldpLocSysCapEnabled
 
 # lldpLocPortTable
-LLDP_LOCAL_PORT_ENTRY = '.1.0.8802.1.1.2.1.3.7'
-snmp_mib_variables['lldpLocPortTable'] = LLDP_LOCAL_PORT_ENTRY
+lldpLocPortTable = '.1.0.8802.1.1.2.1.3.7'
+snmp_mib_variables['lldpLocPortTable'] = lldpLocPortTable
 
 # remote system data at .1.0.8802.1.1.2.1.4
 # lldpRemEntry
-LLDP_REMOTE_ENTRIES = '.1.0.8802.1.1.2.1.4.1.1'
-snmp_mib_variables['lldpRemEntry'] = LLDP_REMOTE_ENTRIES
+lldpRemEntry = '.1.0.8802.1.1.2.1.4.1.1'
+snmp_mib_variables['lldpRemEntry'] = lldpRemEntry
 
 # LLDP_REM_TIMEMARK =       '.1.0.8802.1.1.2.1.4.1.1.1'  # NOT USED
 # this does not appear to be implemented in most gear.
 # This would mean that the interface ID is based on Dot1Q port map, or IFMIB-ifIndex
-LLDP_REMOTE_LOCAL_PORT = '.1.0.8802.1.1.2.1.4.1.1.2'
-snmp_mib_variables['lldpRemLocalPortNum'] = '.1.0.8802.1.1.2.1.4.1.1.2'
+lldpRemLocalPortNum = '.1.0.8802.1.1.2.1.4.1.1.2'
+snmp_mib_variables['lldpRemLocalPortNum'] = lldpRemLocalPortNum
 
 # the following are indexed by  <remote-device-random-id>.<port-id>.1
-LLDP_REMOTE_INDEX = '.1.0.8802.1.1.2.1.4.1.1.3'
-snmp_mib_variables['lldpRemIndex'] = LLDP_REMOTE_INDEX
+lldpRemIndex = '.1.0.8802.1.1.2.1.4.1.1.3'
+snmp_mib_variables['lldpRemIndex'] = lldpRemIndex
 
-LLDP_REMOTE_CHASSIS_TYPE = '.1.0.8802.1.1.2.1.4.1.1.4'
-snmp_mib_variables['lldpRemChassisIdSubtype'] = LLDP_REMOTE_CHASSIS_TYPE
+lldpRemChassisIdSubtype = '.1.0.8802.1.1.2.1.4.1.1.4'
+snmp_mib_variables['lldpRemChassisIdSubtype'] = lldpRemChassisIdSubtype
 LLDP_CHASSIC_TYPE_COMP = 1      # chassisComponent(1)
 LLDP_CHASSIC_TYPE_ALIAS = 2     # interfaceAlias(2), ifAlias from IF-MIB
 LLDP_CHASSIC_TYPE_PORT = 3      # portComponent(3)
@@ -599,28 +601,28 @@ IANA_TYPE_IPV6 = 2
 LLDP_CHASSIC_TYPE_IFNAME = 6    # interfaceName(6), ifName from IF-MIB
 LLDP_CHASSIC_TYPE_LOCAL = 7    # local(7)
 
-LLDP_REMOTE_CHASSIS_ID = '.1.0.8802.1.1.2.1.4.1.1.5'
-snmp_mib_variables['lldpRemChassisId'] = LLDP_REMOTE_CHASSIS_ID
+lldpRemChassisId = '.1.0.8802.1.1.2.1.4.1.1.5'
+snmp_mib_variables['lldpRemChassisId'] = lldpRemChassisId
 
-LLDP_REMOTE_PORT_ID = '.1.0.8802.1.1.2.1.4.1.1.7'
-snmp_mib_variables['lldpRemPortId'] = LLDP_REMOTE_PORT_ID
+lldpRemPortId = '.1.0.8802.1.1.2.1.4.1.1.7'
+snmp_mib_variables['lldpRemPortId'] = lldpRemPortId
 
-LLDP_REMOTE_PORT_DESCR = '.1.0.8802.1.1.2.1.4.1.1.8'
-snmp_mib_variables['lldpRemPortDesc'] = LLDP_REMOTE_PORT_DESCR
+lldpRemPortDesc = '.1.0.8802.1.1.2.1.4.1.1.8'
+snmp_mib_variables['lldpRemPortDesc'] = lldpRemPortDesc
 
-LLDP_REMOTE_SYS_NAME = '.1.0.8802.1.1.2.1.4.1.1.9'
-snmp_mib_variables['lldpRemSysName'] = LLDP_REMOTE_SYS_NAME
+lldpRemSysName = '.1.0.8802.1.1.2.1.4.1.1.9'
+snmp_mib_variables['lldpRemSysName'] = lldpRemSysName
 
-LLDP_REMOTE_SYS_DESCR = '.1.0.8802.1.1.2.1.4.1.1.10'
-snmp_mib_variables['lldpRemSysDesc'] = LLDP_REMOTE_SYS_DESCR
+lldpRemSysDesc = '.1.0.8802.1.1.2.1.4.1.1.10'
+snmp_mib_variables['lldpRemSysDesc'] = lldpRemSysDesc
 
 # capabilities, see entry for "LldpSystemCapabilitiesMap" at
 # http://www.ieee802.org/1/files/public/MIBs/LLDP-MIB-200505060000Z.txt
-LLDP_REMOTE_SYS_CAP = '.1.0.8802.1.1.2.1.4.1.1.11'   # lldpRemSysCapSupported bitmap!
-snmp_mib_variables['lldpRemSysCapSupported'] = LLDP_REMOTE_SYS_CAP
+lldpRemSysCapSupported = '.1.0.8802.1.1.2.1.4.1.1.11'   # lldpRemSysCapSupported bitmap!
+snmp_mib_variables['lldpRemSysCapSupported'] = lldpRemSysCapSupported
 
-LLDP_REMOTE_SYS_CAP_EN = '.1.0.8802.1.1.2.1.4.1.1.12'   # lldpRemSysCapEnabled bitmap!
-snmp_mib_variables['lldpRemSysCapEnabled'] = LLDP_REMOTE_SYS_CAP_EN
+lldpRemSysCapEnabled = '.1.0.8802.1.1.2.1.4.1.1.12'   # lldpRemSysCapEnabled bitmap!
+snmp_mib_variables['lldpRemSysCapEnabled'] = lldpRemSysCapEnabled
 
 # Capabilities bits. Note this is IN NETWORK ORDER, ie low order bit first!!!
 LLDP_CAPA_BITS_OTHER = 0x80     # other(0),
@@ -642,19 +644,19 @@ LLDP_CAPA_BITS_STATION = 0x01   # stationOnly(7)
 #
 
 # all info about LACP ports
-LACP_PORT_ENTRY = '.1.2.840.10006.300.43.1.2.1.1'
-snmp_mib_variables['dot3adAggPortEntry'] = LACP_PORT_ENTRY
+dot3adAggPortEntry = '.1.2.840.10006.300.43.1.2.1.1'
+snmp_mib_variables['dot3adAggPortEntry'] = dot3adAggPortEntry
 
 # specifically, what interfaces are members, i.e.:
-# LACP_PORT_SELECTED_AGG_ID.<member interface ifIndex> = <lacp virtual interface ifIndex>
-LACP_PORT_SELECTED_AGG_ID = '.1.2.840.10006.300.43.1.2.1.1.12'
-snmp_mib_variables['dot3adAggPortSelectedAggID'] = LACP_PORT_SELECTED_AGG_ID
+# dot3adAggPortSelectedAggID.<member interface ifIndex> = <lacp virtual interface ifIndex>
+dot3adAggPortSelectedAggID = '.1.2.840.10006.300.43.1.2.1.1.12'
+snmp_mib_variables['dot3adAggPortSelectedAggID'] = dot3adAggPortSelectedAggID
 
 # The identifier value of the Aggregator that this Aggregation Port is currently attached to.
 # Zero indicates that the Aggregation Port is not currently attached to an Aggregator. This value is read-only.
-# LACP_PORT_ATTACHED_AGG_ID.<member interface ifIndex> = <lacp virtual interface ifIndex>
-LACP_PORT_ATTACHED_AGG_ID = '.1.2.840.10006.300.43.1.2.1.1.13'
-snmp_mib_variables['dot3adAggPortAttachedAggID'] = LACP_PORT_ATTACHED_AGG_ID
+# dot3adAggPortAttachedAggID.<member interface ifIndex> = <lacp virtual interface ifIndex>
+dot3adAggPortAttachedAggID = '.1.2.840.10006.300.43.1.2.1.1.13'
+snmp_mib_variables['dot3adAggPortAttachedAggID'] = dot3adAggPortAttachedAggID
 
 
 #
@@ -662,5 +664,5 @@ snmp_mib_variables['dot3adAggPortAttachedAggID'] = LACP_PORT_ATTACHED_AGG_ID
 #
 
 # System Object ID: Vendor ID is the first number after this:
-ENTERPRISE_ID_BASE = '.1.3.6.1.4.1'
-snmp_mib_variables['enterprises'] = ENTERPRISE_ID_BASE
+enterprises = '.1.3.6.1.4.1'
+snmp_mib_variables['enterprises'] = enterprises

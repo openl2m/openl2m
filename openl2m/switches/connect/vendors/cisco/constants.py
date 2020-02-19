@@ -39,11 +39,11 @@ snmp_mib_variables['ccmHistoryStartupLastChanged'] = ccmHistoryStartupLastChange
 
 
 # VTP MIB:
-VTP_VLAN_STATE = '.1.3.6.1.4.1.9.9.46.1.3.1.1.2.1'
-snmp_mib_variables['vtpVlanState'] = VTP_VLAN_STATE
+vtpVlanState = '.1.3.6.1.4.1.9.9.46.1.3.1.1.2.1'
+snmp_mib_variables['vtpVlanState'] = vtpVlanState
 
-VTP_VLAN_TYPE = '.1.3.6.1.4.1.9.9.46.1.3.1.1.3.1'
-snmp_mib_variables['vtpVlanType'] = VTP_VLAN_TYPE
+vtpVlanType = '.1.3.6.1.4.1.9.9.46.1.3.1.1.3.1'
+snmp_mib_variables['vtpVlanType'] = vtpVlanType
 
 VLAN_TYPE_NORMAL = 1     # regular(1)
 VLAN_TYPE_FDDI = 2       # fddi(2)
@@ -51,16 +51,16 @@ VLAN_TYPE_TOKENRING = 3  # tokenRing(3)
 VLAN_TYPE_FDDINET = 4    # fddiNet(4)
 VLAN_TYPE_TRNET = 5      # trNet(5)
 
-VTP_VLAN_NAME = '.1.3.6.1.4.1.9.9.46.1.3.1.1.4.1'
-snmp_mib_variables['vtpVlanName'] = VTP_VLAN_NAME
+vtpVlanName = '.1.3.6.1.4.1.9.9.46.1.3.1.1.4.1'
+snmp_mib_variables['vtpVlanName'] = vtpVlanName
 # VTP trunk ports start at .1.3.6.1.4.1.9.9.46.1.6
 # details about ports start at .1.3.6.1.4.1.9.9.46.1.6.1.1
 
-VTP_PORT_TRUNK_NATIVE_VLAN = '.1.3.6.1.4.1.9.9.46.1.6.1.1.5'
-snmp_mib_variables['vlanTrunkPortNativeVlan'] = VTP_PORT_TRUNK_NATIVE_VLAN
+vlanTrunkPortNativeVlan = '.1.3.6.1.4.1.9.9.46.1.6.1.1.5'
+snmp_mib_variables['vlanTrunkPortNativeVlan'] = vlanTrunkPortNativeVlan
 
-VTP_PORT_TRUNK_DYNAMIC_STATE = '.1.3.6.1.4.1.9.9.46.1.6.1.1.13'
-snmp_mib_variables['vlanTrunkPortDynamicState'] = VTP_PORT_TRUNK_DYNAMIC_STATE
+vlanTrunkPortDynamicState = '.1.3.6.1.4.1.9.9.46.1.6.1.1.13'
+snmp_mib_variables['vlanTrunkPortDynamicState'] = vlanTrunkPortDynamicState
 VTP_TRUNK_STATE_ON = 1
 VTP_TRUNK_STATE_OFF = 2
 VTP_TRUNK_STATE_DESIRED = 3
@@ -69,19 +69,19 @@ VTP_TRUNK_STATE_NO_NEGOTIATE = 5
 
 # actual trunk status, result of the vlanTrunkPortDynamicState and the ifOperStatus of the trunk port itself
 # ie when port is down, this shows DISABLED!!!
-VTP_PORT_TRUNK_DYNAMIC_STATUS = '.1.3.6.1.4.1.9.9.46.1.6.1.1.14'
-snmp_mib_variables['vlanTrunkPortDynamicStatus'] = VTP_PORT_TRUNK_DYNAMIC_STATUS
+vlanTrunkPortDynamicStatus = '.1.3.6.1.4.1.9.9.46.1.6.1.1.14'
+snmp_mib_variables['vlanTrunkPortDynamicStatus'] = vlanTrunkPortDynamicStatus
 VTP_PORT_TRUNK_ENABLED = 1
 VTP_PORT_TRUNK_DISABLED = 2
 
 # this is the untagged or native vlan for a Cisco switch port
 # this will NOT show ports in trunk mode!!!
-VTP_UNTAGGED_MEMBERSHIP_VLAN = '.1.3.6.1.4.1.9.9.68.1.2.2.1.2'
-snmp_mib_variables['vmVlan'] = VTP_UNTAGGED_MEMBERSHIP_VLAN
+vmVlan = '.1.3.6.1.4.1.9.9.68.1.2.2.1.2'
+snmp_mib_variables['vmVlan'] = vmVlan
 
 # this is the Cisco "Voice" Vlan
-CISCO_VOICE_VLAN = '.1.3.6.1.4.1.9.9.68.1.5.1.1.1'
-snmp_mib_variables['vmVoiceVlanId'] = CISCO_VOICE_VLAN
+vmVoiceVlanId = '.1.3.6.1.4.1.9.9.68.1.5.1.1.1'
+snmp_mib_variables['vmVoiceVlanId'] = vmVoiceVlanId
 
 
 # Cisco L2L3 Interface Config Mib
@@ -96,29 +96,29 @@ CISCO_BRIDGE_MODE = 2
 #
 # Cisco new Extended POE mib
 #
-CISCO_EXT_POE_MIB = '.1.3.6.1.4.1.9.9.402'
-snmp_mib_variables['ciscoPowerEthernetExtMIB'] = CISCO_EXT_POE_MIB
+ciscoPowerEthernetExtMIB = '.1.3.6.1.4.1.9.9.402'
+snmp_mib_variables['ciscoPowerEthernetExtMIB'] = ciscoPowerEthernetExtMIB
 
-CISCO_POE_PORT_POWER_ALLOCATED = '.1.3.6.1.4.1.9.9.402.1.2.1.7'
-snmp_mib_variables['cpeExtPsePortPwrAllocated'] = CISCO_POE_PORT_POWER_ALLOCATED
+cpeExtPsePortPwrAllocated = '.1.3.6.1.4.1.9.9.402.1.2.1.7'
+snmp_mib_variables['cpeExtPsePortPwrAllocated'] = cpeExtPsePortPwrAllocated
 
-CISCO_POE_PORT_POWER_AVAILABLE = '.1.3.6.1.4.1.9.9.402.1.2.1.8'
-snmp_mib_variables['cpeExtPsePortPwrAvailable'] = CISCO_POE_PORT_POWER_AVAILABLE
+cpeExtPsePortPwrAvailable = '.1.3.6.1.4.1.9.9.402.1.2.1.8'
+snmp_mib_variables['cpeExtPsePortPwrAvailable'] = cpeExtPsePortPwrAvailable
 
-CISCO_POE_PORT_POWER_CONSUMED = '.1.3.6.1.4.1.9.9.402.1.2.1.9'
-snmp_mib_variables['cpeExtPsePortPwrConsumption'] = CISCO_POE_PORT_POWER_CONSUMED
+cpeExtPsePortPwrConsumption = '.1.3.6.1.4.1.9.9.402.1.2.1.9'
+snmp_mib_variables['cpeExtPsePortPwrConsumption'] = cpeExtPsePortPwrConsumption
 
-CISCO_POE_PORT_MAX_POWER_CONSUMED = '.1.3.6.1.4.1.9.9.402.1.2.1.10'
-snmp_mib_variables['cpeExtPsePortMaxPwrDrawn'] = CISCO_POE_PORT_MAX_POWER_CONSUMED
+cpeExtPsePortMaxPwrDrawn = '.1.3.6.1.4.1.9.9.402.1.2.1.10'
+snmp_mib_variables['cpeExtPsePortMaxPwrDrawn'] = cpeExtPsePortMaxPwrDrawn
 
 # CISCO-STACK-MIB contains various mappings
-CISCO_STACK_MIB = '.1.3.6.1.4.1.9.5.1'
-snmp_mib_variables['ciscoStackMIB'] = CISCO_STACK_MIB
+ciscoStackMIB = '.1.3.6.1.4.1.9.5.1'
+snmp_mib_variables['ciscoStackMIB'] = ciscoStackMIB
 # this maps a Cisco port # to a standard if_index:
-CISCO_PORT_IF_INDEX = '.1.3.6.1.4.1.9.5.1.4.1.1.11'
-snmp_mib_variables['portIfIndex'] = CISCO_PORT_IF_INDEX
+portIfIndex = '.1.3.6.1.4.1.9.5.1.4.1.1.11'
+snmp_mib_variables['portIfIndex'] = portIfIndex
 
 
 # OID to "write mem" via Snmp
-CISCO_WRITE_MEM = '.1.3.6.1.4.1.9.2.1.54.0'
-snmp_mib_variables['ciscoWriteMem'] = CISCO_WRITE_MEM
+ciscoWriteMem = '.1.3.6.1.4.1.9.2.1.54.0'
+snmp_mib_variables['ciscoWriteMem'] = ciscoWriteMem

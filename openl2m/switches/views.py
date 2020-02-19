@@ -509,7 +509,7 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
         state = "Disabled"
 
     # make sure we cast the proper type here! Ie this needs an Integer()
-    retval = conn._set(IF_ADMIN_STATUS + "." + str(interface_id), new_state, 'i')
+    retval = conn._set(ifAdminStatus + "." + str(interface_id), new_state, 'i')
     if retval < 0:
         log.description = "ERROR: " + conn.error.description
         log.type = LOG_TYPE_ERROR
@@ -571,6 +571,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
         match = re.match(settings.IFACE_ALIAS_NOT_ALLOW_REGEX, new_alias)
         if match:
             log.type = LOG_TYPE_ERROR
+            log.description = "New description matches admin deny setting!"
             log.save()
             error = Error()
             error.description = "The description '%s' is not allowed!" % new_alias
@@ -591,7 +592,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
     log.description = "Interface %s: Description = %s" % (iface.name, new_alias)
 
     # make sure we cast the proper type here! Ie this needs an string
-    retval = conn._set(IFMIB_ALIAS + "." + str(interface_id), new_alias, 'OCTETSTRING')
+    retval = conn._set(ifAlias + "." + str(interface_id), new_alias, 'OCTETSTRING')
     if retval < 0:
         log.description = "ERROR: %s" % conn.error.description
         log.type = LOG_TYPE_ERROR
@@ -720,7 +721,7 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
     # the PoE index is kept in the iface.poe_entry
 
     # make sure we cast the proper type here! Ie this needs an Integer()
-    retval = conn._set(POE_PORT_ADMINSTATUS + "." + iface.poe_entry.index, int(new_state), 'i')
+    retval = conn._set(pethPsePortAdminEnable + "." + iface.poe_entry.index, int(new_state), 'i')
     if retval < 0:
         log.description = "ERROR: " + conn.error.description
         log.type = LOG_TYPE_ERROR
@@ -788,7 +789,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
         return error_page(request, group, switch, error)
 
     # First disable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
-    retval = conn._set("%s.%s" % (POE_PORT_ADMINSTATUS, iface.poe_entry.index), POE_PORT_ADMIN_DISABLED, 'i')
+    retval = conn._set("%s.%s" % (pethPsePortAdminEnable, iface.poe_entry.index), POE_PORT_ADMIN_DISABLED, 'i')
     if retval < 0:
         log.description = "ERROR: Toggle-Disable PoE on %s - %s " % (iface.name, conn.error.description)
         log.type = LOG_TYPE_ERROR
@@ -799,7 +800,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
     time.sleep(settings.POE_TOGGLE_DELAY)
 
     # Now enable PoE again...
-    retval = conn._set("%s.%s" % (POE_PORT_ADMINSTATUS, iface.poe_entry.index), POE_PORT_ADMIN_ENABLED, 'i')
+    retval = conn._set("%s.%s" % (pethPsePortAdminEnable, iface.poe_entry.index), POE_PORT_ADMIN_ENABLED, 'i')
     if retval < 0:
         log.description = "ERROR: Toggle-Enable PoE on %s - %s " % (iface.name, conn.error.description)
         log.type = LOG_TYPE_ERROR

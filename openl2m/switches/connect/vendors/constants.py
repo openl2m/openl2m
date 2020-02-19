@@ -24,7 +24,10 @@ ENTERPRISE_ID_NETSNMP = 8072
 # a test cheap test switch used
 ENTERPRISE_ID_PLANET = 10456
 
+ENTERPRISE_ID_ARISTA = 30065
+
 enterprise_id_info = {}
-enterprise_id_info[ENTERPRISE_ID_JUNIPER] = 'Juniper'
+enterprise_id_info[ENTERPRISE_ID_JUNIPER] = 'Juniper Networks'
 enterprise_id_info[ENTERPRISE_ID_NETSNMP] = 'Generic Net-SNMP'
 enterprise_id_info[ENTERPRISE_ID_PLANET] = 'PLANET Technology Corp.'
+enterprise_id_info[ENTERPRISE_ID_ARISTA] = 'Arista Networks'

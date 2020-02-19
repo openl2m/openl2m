@@ -51,18 +51,18 @@ def get_connection_object(request, group, switch):
     if switch.snmp_oid:
         # we have the ObjectID, what kind of vendor is it:
         dprint("   Checking device type for %s" % switch.snmp_oid)
-        sub_oid = oid_in_branch(ENTERPRISE_ID_BASE, switch.snmp_oid)
+        sub_oid = oid_in_branch(enterprises, switch.snmp_oid)
         if sub_oid:
             parts = sub_oid.split('.', 1)  # 1 means one split, two elements!
-            enterprise = int(parts[0])
+            enterprise_id = int(parts[0])
             # here we go:
-            if enterprise == ENTERPRISE_ID_CISCO:
+            if enterprise_id == ENTERPRISE_ID_CISCO:
                 return SnmpConnectorCisco(request, group, switch)
 
-            if enterprise == ENTERPRISE_ID_HP:
+            if enterprise_id == ENTERPRISE_ID_HP:
                 return SnmpConnectorProcurve(request, group, switch)
 
-            if enterprise == ENTERPRISE_ID_H3C:
+            if enterprise_id == ENTERPRISE_ID_H3C:
                 return SnmpConnectorComware(request, group, switch)
 
     # in all other cases, return a "generic" SNMP object

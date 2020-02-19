@@ -46,7 +46,7 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         dprint("CISCO Parsing OID %s" % oid)
 
-        if_index = int(oid_in_branch(CISCO_VOICE_VLAN, oid))
+        if_index = int(oid_in_branch(vmVoiceVlanId, oid))
         if if_index:
             voiceVlanId = int(val)
             if if_index in self.interfaces.keys() and voiceVlanId in self.vlans.keys():
@@ -56,7 +56,7 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         Stack-MIB PortId to ifIndex mapping
         """
-        stack_port_id = oid_in_branch(CISCO_PORT_IF_INDEX, oid)
+        stack_port_id = oid_in_branch(portIfIndex, oid)
         if stack_port_id:
             self.stack_port_to_if_index[stack_port_id] = int(val)
             return True
@@ -115,7 +115,7 @@ class SnmpConnectorCisco(SnmpConnector):
             return False
         # now, find out if interfaces are access or trunk (tagged) mode
         # this is the actual status, not what is configured; ie NOT trunk if interface is down!!!
-        # retval = self._get_branch(VTP_PORT_TRUNK_DYNAMIC_STATUS):  # read port trunk(802.1q tagged) status
+        # retval = self._get_branch(vlanTrunkPortDynamicStatus):  # read port trunk(802.1q tagged) status
         #    dprint("Cisco PORT TRUNK STATUS data FALSE")
         #    return False
         # and read the native vlan for trunked ports
@@ -252,10 +252,10 @@ class SnmpConnectorCisco(SnmpConnector):
         if iface:
             if iface.is_tagged:
                 # set the TRUNK_NATIVE_VLAN OID:
-                return self._set(VTP_PORT_TRUNK_NATIVE_VLAN + "." + str(if_index), int(new_vlan_id), 'i')
+                return self._set(vlanTrunkPortNativeVlan + "." + str(if_index), int(new_vlan_id), 'i')
             else:
                 # regular access mode port:
-                return self._set(VTP_UNTAGGED_MEMBERSHIP_VLAN + "." + str(if_index), int(new_vlan_id), 'i')
+                return self._set(vmVlan + "." + str(if_index), int(new_vlan_id), 'i')
         # interface not found, return False!
         return False
 
@@ -284,7 +284,7 @@ class SnmpConnectorCisco(SnmpConnector):
         Parse Cisco POE Extension MIB database
         """
         # the actual consumed power, shown in 'show power inline <name> detail'
-        pe_index = oid_in_branch(CISCO_POE_PORT_POWER_CONSUMED, oid)
+        pe_index = oid_in_branch(cpeExtPsePortPwrConsumption, oid)
         if pe_index:
             if pe_index in self.poe_port_entries.keys():
                 self.poe_port_entries[pe_index].power_consumption_supported = True
@@ -292,14 +292,14 @@ class SnmpConnectorCisco(SnmpConnector):
             return True
 
         # this is what is shown via 'show power inline interface X' command:
-        pe_index = oid_in_branch(CISCO_POE_PORT_POWER_AVAILABLE, oid)
+        pe_index = oid_in_branch(cpeExtPsePortPwrAvailable, oid)
         if pe_index:
             if pe_index in self.poe_port_entries.keys():
                 self.poe_port_entries[pe_index].power_consumption_supported = True
                 self.poe_port_entries[pe_index].power_available = int(val)
             return True
 
-        pe_index = oid_in_branch(CISCO_POE_PORT_MAX_POWER_CONSUMED, oid)
+        pe_index = oid_in_branch(cpeExtPsePortMaxPwrDrawn, oid)
         if pe_index:
             if pe_index in self.poe_port_entries.keys():
                 self.poe_port_entries[pe_index].power_consumption_supported = True
@@ -313,14 +313,14 @@ class SnmpConnectorCisco(SnmpConnector):
         Parse Cisco specific VTP MIB
         """
         # vlan id
-        vlanId = int(oid_in_branch(VTP_VLAN_STATE, oid))
+        vlanId = int(oid_in_branch(vtpVlanState, oid))
         if vlanId:
             if (int(val) == 1):
                 self.vlans[vlanId] = Vlan(vlanId)
             return True
 
         # vlan type
-        vlanId = int(oid_in_branch(VTP_VLAN_TYPE, oid))
+        vlanId = int(oid_in_branch(vtpVlanType, oid))
         if vlanId:
             val = int(val)
             if vlanId in self.vlans.keys():
@@ -328,14 +328,14 @@ class SnmpConnectorCisco(SnmpConnector):
             return True
 
         # vlan name
-        vlanId = int(oid_in_branch(VTP_VLAN_NAME, oid))
+        vlanId = int(oid_in_branch(vtpVlanName, oid))
         if vlanId:
             if vlanId in self.vlans.keys():
                 self.vlans[vlanId].name = str(val)
             return True
 
         # access or trunk mode configured?
-        if_index = int(oid_in_branch(VTP_PORT_TRUNK_DYNAMIC_STATE, oid))
+        if_index = int(oid_in_branch(vlanTrunkPortDynamicState, oid))
         if if_index:
             if(int(val) == VTP_TRUNK_STATE_ON):
                 # trunk/tagged port
@@ -345,7 +345,7 @@ class SnmpConnectorCisco(SnmpConnector):
 
         # access or trunk mode actual status?
         # this is the actual status, not what is configured; ie NOT trunk if interface is down!!!
-        # if_index = int(oid_in_branch(VTP_PORT_TRUNK_DYNAMIC_STATUS, oid))
+        # if_index = int(oid_in_branch(vlanTrunkPortDynamicStatus, oid))
         # if if_index:
         #    dprint("Cisco PORT TRUNK STATUS ifIndex %d = %s" % (if_index, val))
         #    if(int(val) == VTP_PORT_TRUNK_ENABLED):
@@ -356,7 +356,7 @@ class SnmpConnectorCisco(SnmpConnector):
         #    return True
 
         # if trunk, what is the native mode?
-        if_index = int(oid_in_branch(VTP_PORT_TRUNK_NATIVE_VLAN, oid))
+        if_index = int(oid_in_branch(vlanTrunkPortNativeVlan, oid))
         if if_index:
             # trunk/tagged port native vlan
             if if_index in self.interfaces.keys():
@@ -367,7 +367,7 @@ class SnmpConnectorCisco(SnmpConnector):
                     dprint("  TRUNK NATIVE found, but NOT TRUNK PORT")
             return True
 
-        if_index = int(oid_in_branch(VTP_UNTAGGED_MEMBERSHIP_VLAN, oid))
+        if_index = int(oid_in_branch(vmVlan, oid))
         if if_index:
             untagged_vlan = int(val)
             if (if_index in self.interfaces.keys()
@@ -422,4 +422,4 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         dprint("\nCISCO save_running_config()\n")
         # set this OID, but do not update local cache.
-        return self._set(CISCO_WRITE_MEM, int(1), 'i', False)
+        return self._set(ciscoWriteMem, int(1), 'i', False)
