@@ -17,12 +17,14 @@ from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
 from ordered_model.models import OrderedModelManager, OrderedModel
 
 from switches.constants import *
 from switches.connect.netmiko.constants import *
+from switches.utils import is_valid_hostname_or_ip
 
 
 #
@@ -573,12 +575,19 @@ class Switch(models.Model):
     def get_switchgroups(self):
         return ",".join([str(g) for g in self.switchgroups.all()])
 
+    # basic validation
+    # see also https://docs.djangoproject.com/en/2.2/ref/models/instances/#validating-objects
+    def clean(self):
+        # check if IPv4 address or hostname given is valid!
+        if not is_valid_hostname_or_ip(self.primary_ip4):
+            raise ValidationError('Invalid primary IP address or hostname.')
+
     @property
     def primary_ip(self):
         if settings.PREFER_IPV4 and self.primary_ip4:
             return self.primary_ip4
-        elif self.primary_ip6:
-            return self.primary_ip6
+        # elif self.primary_ip6:
+        #    return self.primary_ip6
         elif self.primary_ip4:
             return self.primary_ip4
         else:

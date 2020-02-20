@@ -8,6 +8,7 @@ django-taggit==0.23.0
 django-ipware>=2.1.0
 django-ordered-model>=3.3
 django_auth_ldap>=2.0.0
+ip_address>=1.0.23
 Jinja2==2.10.1
 netaddr==0.7.19
 psycopg2-binary==2.8.3

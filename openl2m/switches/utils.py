@@ -17,6 +17,9 @@ Various utility functions
 import datetime
 import pytz
 import logging
+import socket
+import ipaddress
+
 from django.conf import settings
 from django.utils.timezone import get_default_timezone
 
@@ -174,3 +177,29 @@ def get_remote_ip(request):
         return str(ip)
     # not in web server context, return "0"
     return "0.0.0.0"
+
+
+def is_valid_hostname_or_ip(data):
+    """
+    Check if the data given is either an IPv4 address, or a valid hostname.
+    Return True if so, False otherwize.
+    Note: this does not handle IPv6 yet!
+    """
+    # check IP v4 pattern first
+    try:
+        address = ipaddress.ip_address(data)
+        if type(address) == ipaddress.IPv4Address:
+            return True
+        if type(address) == ipaddress.IPv6Address:
+            return False    # v6 not supported for now!
+        return False        # should not happen!
+    except ValueError:
+        # not IP v4 or v6!, so check hostname:
+        try:
+            ip4 = socket.gethostbyname(data)
+            # note: this does IPv4 resolution. When we support IPv6, change to socket.getaddrinfo()
+            return True
+        except Exception:
+            # fail gracefully!
+            return False
+    return False
