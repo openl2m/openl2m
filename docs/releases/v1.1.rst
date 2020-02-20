@@ -4,6 +4,22 @@
 Version 1.1
 ===========
 
+Version 1.1.5
+-------------
+Release Date: 2020-02-20
+
+* improved LACP detection
+* validate new switch ip or hostname
+* documentation updates
+* use standard mib variable names
+* updated ethernet OUI vendor list
+
+Bug Fixes:
+
+* session cache fix
+* csv import fix
+* Akips interface link url update
+
 Version 1.1.4
 -------------
 
