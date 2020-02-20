@@ -242,11 +242,11 @@ class EasySNMP():
             self.error.details = "SNMP Error: %s (%s)\n%s" % (repr(e), str(type(e)), traceback.format_exc())
             return (True, None)
 
-        # update the local cache as needed:
+        # we cache all values as strings, just like the original returns from get_branch()
+        self._parse_oid_and_cache("%s.%s" % (retval.oid, retval.oid_index),
+                                  str(retval.value), retval.snmp_type, update_oidcache, parser)
+        # update the local cache as needed by saving in the session:
         if update_oidcache:
-            # we cache all values as strings, just like the original returns from get_branch()
-            self._parse_oid_and_cache("%s.%s" % (retval.oid, retval.oid_index),
-                                      str(retval.value), retval.snmp_type, True, parser)
             self._set_http_session_cache()
 
         return (False, retval)
