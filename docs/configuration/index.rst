@@ -24,3 +24,4 @@ into the Django admin interface.
    importing.rst
    scripts.rst
    debugging.rst
+   snmp_configs.rst

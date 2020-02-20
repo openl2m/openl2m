@@ -27,3 +27,5 @@ Here are some other features we are considering implementing (*in no particular 
 * importing of switches from other NMS, e.g. Observium, LibreNMS, Netdisco, Nagios, etc.
 
 * code optimization (move duplicates to functions, session storage, etc.)
+
+* test support for AES-192 and up. This will require Net-SNMP v5.8 (which is available on CentOS 8)

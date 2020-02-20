@@ -31,6 +31,17 @@ __Documentation__: See the following OpenL2M documentation:
 * after install, from the menu, or at <your-website-url>/static/docs/html/
 * at https://openl2m.readthedocs.io/
 
+__Screenshots__:
+
+Interfaces Menu:
+
+![InterfaceMenu](docs/_static/screenshot-1.png "Interface Menu")
+
+BulkEdit Menu:
+
+![BulkEditMenu](docs/_static/screenshot-2.png "BulkEdit Menu")
+
+
 __Download__:
 
 OpenL2M sources can be found at
