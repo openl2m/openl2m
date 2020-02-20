@@ -1205,12 +1205,43 @@ class SnmpConnector(EasySNMP):
         Parse a single OID with data returned from the LACP MIB
         Will return True if we have parsed this, and False if not.
         """
-        # Q-Bridge Ethernet addresses known
+
+        # this gets the aggregator interface admin key or "index"
+        aggr_if_index = int(oid_in_branch(dot3adAggActorAdminKey, oid))
+        if aggr_if_index:
+            # this interface is a aggregator!
+            if aggr_if_index in self.interfaces.keys():
+                self.interfaces[aggr_if_index].lacp_type = LACP_IF_TYPE_AGGREGATOR
+                self.interfaces[aggr_if_index].lacp_admin_key = int(val)
+                # some vendors (certain Cisco switches) set the IF-MIB::ifType to Virtual (53) instead of LAGG (161)
+                # hardcode to LAGG:
+                self.interfaces[aggr_if_index].type = IF_TYPE_LAGG
+            return True
+
+        # this get the member interfaces admin key ("index"), which maps back to the aggregator interface above!
+        member_if_index = int(oid_in_branch(dot3adAggPortActorAdminKey, oid))
+        if member_if_index:
+            # this interface is an lacp member!
+            if member_if_index in self.interfaces.keys():
+                # can we find an aggregate with this key value ?
+                lacp_key = int(val)
+                for lacp_index, iface in self.interfaces.items():
+                    if iface.lacp_type == LACP_IF_TYPE_AGGREGATOR and iface.lacp_admin_key == lacp_key:
+                        # the current interface is a member of this aggregate iface !
+                        self.interfaces[member_if_index].lacp_type = LACP_IF_TYPE_MEMBER
+                        self.interfaces[member_if_index].lacp_master_index = lacp_index
+                        self.interfaces[member_if_index].lacp_master_name = iface.name
+                        # add our name to the list of the aggregate interface
+                        self.interfaces[lacp_index].lacp_members[member_if_index] = self.interfaces[member_if_index].name
+            return True
+
+        """
+        # LACP port membership, may only valid once an interface is "up" and has joined the aggregate
         member_if_index = int(oid_in_branch(dot3adAggPortAttachedAggID, oid))
         if member_if_index:
             lacp_if_index = int(val)
             if lacp_if_index > 0:
-                dprint("Member ifIndex %s is part of LCAP ifIndex %d" % (member_if_index, lacp_if_index))
+                dprint("Member ifIndex %s is part of LACP ifIndex %d" % (member_if_index, lacp_if_index))
                 if member_if_index in self.interfaces.keys() and lacp_if_index in self.interfaces.keys():
                     # from this one read, we can get the aggregate ifIndex for the virtual interface
                     # (and name, for display convenience)
@@ -1219,6 +1250,7 @@ class SnmpConnector(EasySNMP):
                     # and also the member interface (i.e. the physical interface!)
                     self.interfaces[lacp_if_index].lacp_members[member_if_index] = self.interfaces[member_if_index].name
             return True
+        """
 
         # we did not parse this. This can happen with Bulk Walks...
         return False
@@ -1864,11 +1896,28 @@ class SnmpConnector(EasySNMP):
         Read the IEEE LACP mib, single mib counter gives us enough to identify
         the physical interfaces that are an LACP member.
         """
-        # second argument is True, as we want to cache this data!
+
+        # Get the admin key or "index" for aggregate interfaces
+        retval = self._get_branch_by_name('dot3adAggActorAdminKey')
+        if retval < 0:
+            self._add_warning("Error getting 'LACP-Aggregate-Admin-Key' (dot3adAggActorAdminKey)")
+            return retval
+
+        # Get the admin key or "index" for physical member interfaces
+        # this maps back to the logical or actor aggregates above in dot3adAggActorAdminKey
+        retval = self._get_branch_by_name('dot3adAggPortActorAdminKey')
+        if retval < 0:
+            self._add_warning("Error getting 'LACP-Port-Admin-Key' (dot3adAggPortActorAdminKey)")
+            return retval
+
+        """
+        # this is a shortcut to find aggregates and members all in one, but does not work everyone.
         retval = self._get_branch_by_name('dot3adAggPortAttachedAggID')
         if retval < 0:
             self._add_warning("Error getting 'LACP-Port-AttachedAggID' (dot3adAggPortAttachedAggID)")
             return retval
+        """
+
         return retval
 
     def _test_read(self):

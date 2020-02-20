@@ -639,13 +639,47 @@ LLDP_CAPA_BITS_STATION = 0x01   # stationOnly(7)
 # LACP MIB
 #
 # see also
-# http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.2.840.10006.300.43.1.2.1.1
+# http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.2.840.10006.300.43.1.1
 # https://stackoverflow.com/questions/14960157/how-to-map-portchannel-to-interfaces-via-snmp
 #
 
+dot3adAgg = '.1.2.840.10006.300.43.1.1'
+
+#
+# info about the aggregator interfaces (Bridge-Aggregate or Port-Channel)
+#
+# The current operational value of the Key for the Aggregator. The administrative Key value may differ from the
+# operational Key value for the reasons discussed in 43.6.2. This is a 16-bit read-only value.
+# The meaning of particular Key values is of local significance.
+# Syntax: "LacpKey" (IEEE8023-LAG-MIB)
+dot3adAggActorAdminKey = '.1.2.840.10006.300.43.1.1.1.1.6'
+snmp_mib_variables['dot3adAggActorAdminKey'] = dot3adAggActorAdminKey
+# operational key "index" when the aggregate interface is up (ie at least one port in "up" state!)
+dot3adAggActorOperKey = '.1.2.840.10006.300.43.1.1.1.1.7'
+
+#
+# member ports information:
+#
+dot3adAggPortListEntry = '.1.2.840.10006.300.43.1.1.2.1'
+dot3adAggPortListPorts = '.1.2.840.10006.300.43.1.1.2.1.1'
+
 # all info about LACP ports
+dot3adAggPortTable = '.1.2.840.10006.300.43.1.2.1'
 dot3adAggPortEntry = '.1.2.840.10006.300.43.1.2.1.1'
-snmp_mib_variables['dot3adAggPortEntry'] = dot3adAggPortEntry
+
+# Mapping of LACP member back to Aggregator interface via the Admin or Operational key
+#
+# this is the administrative key, which maps back to the aggregator interface admin LacpKey found at dot3adAggActorAdminKey
+# NOTE: this key is always present,
+# whereas the Operations key (next item) is only set when the aggregate is up and the interface joined
+dot3adAggPortActorAdminKey = '.1.2.840.10006.300.43.1.2.1.1.4'
+snmp_mib_variables['dot3adAggPortActorAdminKey'] = dot3adAggPortActorAdminKey
+
+# this is the administrative key, which maps back to the aggregator interface admin LacpKey found at dot3adAggActorAdminKey
+# this is the operational key, which only maps back to the aggregator interface operational LacpKey found at dot3adAggOperAdminKey
+# when the aggregate is up and the interface joined !!!
+dot3adAggPortActorOperKey = '.1.2.840.10006.300.43.1.2.1.1.5'
+snmp_mib_variables['dot3adAggPortActorOperKey'] = dot3adAggPortActorOperKey
 
 # specifically, what interfaces are members, i.e.:
 # dot3adAggPortSelectedAggID.<member interface ifIndex> = <lacp virtual interface ifIndex>
@@ -658,6 +692,21 @@ snmp_mib_variables['dot3adAggPortSelectedAggID'] = dot3adAggPortSelectedAggID
 dot3adAggPortAttachedAggID = '.1.2.840.10006.300.43.1.2.1.1.13'
 snmp_mib_variables['dot3adAggPortAttachedAggID'] = dot3adAggPortAttachedAggID
 
+# The port number locally assigned to the Aggregation Port.
+# The port number is communicated in LACPDUs as the Actor_Port. This value is read-only.
+# a none-zero value means member of some LACP port
+dot3adAggPortActorPort = '.1.2.840.10006.300.43.1.2.1.1.14'
+
+# A string of 8 bits, "LacpState", corresponding to the current operational values of Actor_State as transmitted by the Actor in LACPDUs.
+# The bit allocations are as defined in 30.7.2.1.20.
+# This attribute value is read-only.
+dot3adAggPortActorOperState = '.1.2.840.10006.300.43.1.2.1.1.21'
+
+# A read-only Boolean value indicating whether the Aggregation Port is able to Aggregate (`TRUE')
+# or is only able to operate as an Individual link (`FALSE').
+# Syntax: TruthValue (SNMPv2-TC)
+dot3adAggPortAggregateOrIndividual = '.1.2.840.10006.300.43.1.2.1.1.24'
+snmp_mib_variables['dot3adAggPortAggregateOrIndividual'] = dot3adAggPortAggregateOrIndividual
 
 #
 # VENDOR SPECIFIC Entries, see also vendors/vendors.py

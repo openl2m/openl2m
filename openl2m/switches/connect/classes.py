@@ -92,6 +92,10 @@ class VendorData():
         self.value = value
 
 
+LACP_IF_TYPE_NONE = 0        # not port of LACP aggregation
+LACP_IF_TYPE_MEMBER = 1      # this is a physical port and member
+LACP_IF_TYPE_AGGREGATOR = 2  # this is an aggregator port (Port-Channel or Bridge-Aggregation)
+
 class Interface():
     """
     Class to represent all the switch interface attributes, SNMP or otherwize discovered
@@ -131,8 +135,11 @@ class Interface():
         self.gvrp_enabled = False    # the value representing the status of MVRP/GVRP on the interface
         self.last_change = 0         # ifLastChange, tick count since uptime when interface last changed
         # LACP related
-        # for LACP master, a dictionary of lacp member interfaces. key=ifIndex, value=ifName of member interfaces
+        self.lacp_type = LACP_IF_TYPE_NONE
+        # for LACP aggregator, a dictionary of lacp member interfaces. key=ifIndex, value=ifName of member interfaces
+        self.lacp_admin_key = -1      # "LacpKey" admin key. Member interfaces map back to this.
         self.lacp_members = {}
+        # for members:
         self.lacp_master_index = -1  # we are member of an LACP interface. ifIndex of the master aggregate. Mutually exclusive with above!
         self.lacp_master_name = ''   # we are member of an LACP interface. ifname of the master aggregate.
         # Power related
