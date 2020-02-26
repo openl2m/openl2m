@@ -1,6 +1,14 @@
 <div class="panel panel-default">
   <div class="panel-heading">
-    <strong>Recent Activity</strong>
+    <strong>{{ log_title }}</strong>
+    {% if logs_link %}
+      &nbsp;&nbsp;
+      <a href="{% url 'switches:switch_activity' group.id switch.id %}"
+        data-toggle="tooltip"
+        title="Click here to see all switch activity logs">
+      <i class="fas fa-list-ul" aria-hidden="true"></i> All Actity Logs
+      </a>
+    {% endif %}
   </div>
   <div class="table-responsive">
     <table class="table table-hover table-headings">

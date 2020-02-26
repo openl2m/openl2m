@@ -1,0 +1,61 @@
+{% load helpers %}
+
+<div class="paginator pull-left text-right">
+  {% if paginator.num_pages > 1 %}
+    <nav>
+      <ul class="pagination pull-left">
+      {% if page.has_previous %}
+        {% if page.number > 1 %}
+        <li>
+          <a href="{% querystring request page=1 %}"
+             data-toggle="tooltip"
+             title="Go to First page">
+            Pg.1
+          </a>
+        </li>
+        {% endif %}
+        {% if page.number > 2 %}
+        <li>
+          <a href="{% querystring request page=page.previous_page_number %}"
+             data-toggle="tooltip"
+             title="Go to Previous page">
+            <i class="fas fa-angle-double-left"></i>
+          </a>
+        </li>
+        {% endif %}
+      {% endif %}
+        <li class="active">
+          <a data-toggle="tooltip"
+             title="Current page">
+          Page {{ page.number }}
+          </a>
+        </li>
+      {% if page.has_next %}
+        {% if page.number < page.paginator.num_pages|add:-1 %}
+        <li>
+          <a href="{% querystring request page=page.next_page_number %}"
+             data-toggle="tooltip"
+             title="Go to Next page">
+            <i class="fas fa-angle-double-right"></i>
+          </a>
+        </li>
+        {% endif %}
+        {% if page.number < page.paginator.num_pages %}
+        <li>
+          <a href="{% querystring request page=page.paginator.num_pages %}"
+             data-toggle="tooltip"
+             title="Go to Last page">
+            Pg.{{ page.paginator.num_pages }}
+          </a>
+        </li>
+        {% endif %}
+      {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+</div>
+{% if page %}
+  <div class="text-right text-muted">
+    Showing {{ page.start_index }}-{{ page.end_index }} of {{ page.paginator.count }}
+  </div>
+{% endif %}

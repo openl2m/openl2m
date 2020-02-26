@@ -4,10 +4,21 @@
 
 {# see https://codepen.io/sinairv/pen/XjZyWP #}
 <div class="container-fluid">
+
+  <div class="row">
+    <div class="col-sm-10">
+      {% include '_paginator.html' with paginator=paginator page=logs %}
+    </div>
+  </div>
+
   <div class="row">
     <div class="col-sm-10">
       {% include "_tab_logs.html" %}
+      <div>
+        {% include '_paginator.html' with paginator=paginator page=logs %}
+      </div>
     </div>
+
     <div class="col-sm-2">
 
       <div class="panel panel-default">
@@ -101,6 +112,9 @@
           </form>
         </div>
       </div>
+      <!--  not enforced yet:
+      Log retention: {% if settings.LOG_MAX_AGE %}{{ settings.LOG_MAX_AGE }} days{% else %}Indefinite{% endif %}
+      -->
     </div>
   </div>
 </div>

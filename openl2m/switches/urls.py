@@ -27,6 +27,7 @@ urlpatterns = [
     path(r'tasks/terminate/<int:task_id>/', views.task_terminate, name='task_terminate'),
 
     path('<int:group_id>/<int:switch_id>/', views.switch_basics, name='switch_basics'),
+    path('<int:group_id>/<int:switch_id>/activity/', views.switch_activity, name='switch_activity'),
     path('<int:group_id>/<int:switch_id>/bulkedit/', views.switch_bulkedit, name='switch_bulkedit'),
     path('<int:group_id>/<int:switch_id>/bulkedit_task/', views.switch_bulkedit_task, name='switch_bulkedit_task'),
     path('<int:group_id>/<int:switch_id>/command/', views.switch_cmd_output, name='switch_cmd_output'),

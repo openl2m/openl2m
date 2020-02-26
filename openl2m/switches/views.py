@@ -29,6 +29,7 @@ from django.utils.decorators import method_decorator
 from django.utils.html import mark_safe
 from django.views.generic import View
 from django.utils import timezone
+from django.core.paginator import Paginator
 
 from openl2m.celery import get_celery_info, is_celery_running
 from switches.models import *
@@ -234,7 +235,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
 
     # get recent "non-viewing" activity for this switch
     # for now, show most recent 25 activities
-    logs = Log.objects.all().filter(switch=switch, type__gt=LOG_TYPE_VIEW).order_by('-timestamp')[:25]
+    logs = Log.objects.all().filter(switch=switch, type__gt=LOG_TYPE_VIEW).order_by('-timestamp')[:settings.RECENT_SWITCH_LOG_COUNT]
 
     # are there any scheduled tasks for this switch?
     if settings.TASKS_ENABLED:
@@ -249,11 +250,15 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
     bulk_edit = user_can_bulkedit(request.user, group, switch)
     allow_tasks = user_can_run_tasks(request.user, group, switch)
 
+    title = "Recent Activity"
+
     return render(request, template_name, {
         'group': group,
         'switch': switch,
         'connection': conn,
         'logs': logs,
+        'log_title': title,
+        'logs_link': True,
         'tasks': tasks,
         'task_process_running': task_process_running,
         'view': view,
@@ -921,6 +926,54 @@ def switch_reload(request, group_id, switch_id, view):
 
 
 @login_required
+def switch_activity(request, group_id, switch_id):
+    """
+    This shows recent activity for a specific switch
+    """
+    template_name = 'switch_activity.html'
+
+    group = get_object_or_404(SwitchGroup, pk=group_id)
+    switch = get_object_or_404(Switch, pk=switch_id)
+
+    if not rights_to_group_and_switch(request, group_id, switch_id):
+        error = Error()
+        error.description = "You do not have access to this switch"
+        return error_page(request, group, switch, error)
+
+    # only show this switch. May add more filters later...
+    filter = {}
+    filter['switch_id'] = switch_id
+    logs = Log.objects.all().filter(**filter).order_by('-timestamp')
+
+    # setup pagination of the resulting activity logs
+    page_number = int(request.GET.get('page', default=1))
+    paginator = Paginator(logs, settings.PAGINATE_COUNT)    # Show set number of contacts per page.
+    logs_page = paginator.get_page(page_number)
+
+    # log my activity
+    log = Log()
+    log.user = request.user
+    log.ip_address = get_remote_ip(request)
+    log.type = LOG_TYPE_VIEW
+    log.action = LOG_VIEW_ALL_LOGS
+    log.switch = switch
+    log.group = group
+    log.description = "Viewing Switch Activity Logs (page %d)" % page_number
+    log.save()
+
+    title = 'All Activity for %s' % switch.name
+    # render the template
+    return render(request, template_name, {
+        'logs': logs_page,
+        'paginator': paginator,
+        'group': group,
+        'switch': switch,
+        'log_title': title,
+        'logs_link': False,
+    })
+
+
+@login_required
 def show_stats(request):
     """
     This shows various site statistics
@@ -1045,11 +1098,11 @@ def admin_activity(request):
     log.type = LOG_TYPE_VIEW
     log.action = LOG_VIEW_ALL_LOGS
 
+    page_number = int(request.GET.get('page', default=1))
+
     # look at query string, and filter as needed
     filter = {}
     if len(request.GET) > 0:
-        # this contains a QueryString() object, a Django-defined class
-
         if request.GET.get('type', ''):
             filter['type'] = int(request.GET['type'])
         if request.GET.get('action', ''):
@@ -1060,28 +1113,34 @@ def admin_activity(request):
             filter['switch_id'] = int(request.GET['switch'])
         if request.GET.get('group', ''):
             filter['group_id'] = int(request.GET['group'])
-        if(len(filter) > 0):
-            logs = Log.objects.all().filter(**filter).order_by('-timestamp')[:50]
-            log.description = "Viewing filtered logs: %s" % filter
-        else:
-            logs = Log.objects.all().order_by('-timestamp')[:50]
-            log.description = "Viewing all logs"
-    else:
-        # if not, show most recent 50 activities
-        logs = Log.objects.all().order_by('-timestamp')[:50]
-        log.description = "Viewing all logs"
 
+    # now set the filter, if found
+    if(len(filter) > 0):
+        logs = Log.objects.all().filter(**filter).order_by('-timestamp')
+        log.description = "Viewing filtered logs: %s (page %d)" % (filter, page_number)
+        title = 'Filtered Activities'
+    else:
+        logs = Log.objects.all().order_by('-timestamp')
+        log.description = "Viewing all logs (page %d)" % page_number
+        title = 'All Activities'
     log.save()
+
+    # setup pagination of the resulting activity logs
+    paginator = Paginator(logs, settings.PAGINATE_COUNT)    # Show set number of contacts per page.
+    logs_page = paginator.get_page(page_number)
 
     # render the template
     return render(request, template_name, {
-        'logs': logs,
+        'logs': logs_page,
+        'paginator': paginator,
         'filter': filter,
         'types': LOG_TYPE_CHOICES,
         'actions': LOG_ACTION_CHOICES,
         'switches': Switch.objects.all().order_by('name'),
         'switchgroups': SwitchGroup.objects.all().order_by('name'),
         'users': User.objects.all().order_by('username'),
+        'log_title': title,
+        'logs_link': False,
     })
 
 
@@ -1107,18 +1166,23 @@ def tasks(request):
         if tasks.count() == 0:
             return success_page(request, False, False, "You have not scheduled any tasks!")
 
+    page_number = int(request.GET.get('page', default=1))
+
     # log my activity
     log = Log()
     log.user = request.user
     log.ip_address = get_remote_ip(request)
     log.type = LOG_TYPE_VIEW
     log.action = LOG_VIEW_TASKS
-    log.description = "Viewing tasks"
+    log.description = "Viewing tasks (page %d)" % page_number
     log.save()
 
-    # return success_page(request, False, False, "Task page!")
+    paginator = Paginator(tasks, settings.PAGINATE_COUNT)    # Show set number of contacts per page.
+    tasks_page = paginator.get_page(page_number)
+
     return render(request, template_name, {
-        'tasks': tasks,
+        'tasks': tasks_page,
+        'paginator': paginator,
         'task_process_running': task_process_running,
     })
 

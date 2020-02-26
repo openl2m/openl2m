@@ -465,3 +465,21 @@ def get_poe_pse_status(status):
     if status == POE_PSE_STATUS_FAULT:
         return 'Faulty'
     return 'Unknown'
+
+
+@register.simple_tag()
+def querystring(request, **kwargs):
+    """
+    Append or update the page number in a querystring.
+    """
+    querydict = request.GET.copy()
+    for k, v in kwargs.items():
+        if v is not None:
+            querydict[k] = str(v)
+        elif k in querydict:
+            querydict.pop(k)
+    querystring = querydict.urlencode(safe='/')
+    if querystring:
+        return '?' + querystring
+    else:
+        return ''

@@ -4,6 +4,14 @@
 Version 1.1
 ===========
 
+Version 1.1.6
+-------------
+Release Date: TBD
+
+ * pagination for admin activity log view (from top menu)
+ * pagination for scheduled tasks view (from top menu)
+ * new config setting RECENT_SWITCH_LOG_COUNT, see configuration.example.py
+
 Version 1.1.5
 -------------
 Release Date: 2020-02-20

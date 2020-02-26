@@ -55,6 +55,10 @@ BASE_PATH = ''
 # Keep activity log entries for this many day. 0 disables (keep forever)
 LOG_MAX_AGE = 180
 
+# the maximum number of recent switch activity log entries shown when accessing a switch
+# Note that only change & error logs are show, not 'view' log entries
+RECENT_SWITCH_LOG_COUNT = 25
+
 # API Cross-Origin Resource Sharing (CORS) settings. If CORS_ORIGIN_ALLOW_ALL is set to True, all origins will be
 # allowed. Otherwise, define a list of allowed origins using either CORS_ORIGIN_WHITELIST or
 # CORS_ORIGIN_REGEX_WHITELIST. For more information, see https://github.com/ottoyiu/django-cors-headers

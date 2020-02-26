@@ -1,0 +1,24 @@
+{% extends '_base.html' %}
+
+{% block content %}
+
+{# see https://codepen.io/sinairv/pen/XjZyWP #}
+<div class="container-fluid">
+
+  <div class="row">
+    <div class="col-sm-12">
+      {% include '_paginator.html' with paginator=paginator page=logs %}
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12">
+      {% include "_tab_logs.html" %}
+      <div>
+        {% include '_paginator.html' with paginator=paginator page=logs %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
