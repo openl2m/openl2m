@@ -96,6 +96,7 @@ LACP_IF_TYPE_NONE = 0        # not port of LACP aggregation
 LACP_IF_TYPE_MEMBER = 1      # this is a physical port and member
 LACP_IF_TYPE_AGGREGATOR = 2  # this is an aggregator port (Port-Channel or Bridge-Aggregation)
 
+
 class Interface():
     """
     Class to represent all the switch interface attributes, SNMP or otherwize discovered

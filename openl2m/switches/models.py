@@ -795,7 +795,7 @@ class Log(models.Model):
             # see if this is a valid action index:
             try:
                 self.description = LOG_ACTION_CHOICES[self.action]
-            except:
+            except Exception:
                 # not found (should not happen!)
                 self.description = "Unknown action!"
 
