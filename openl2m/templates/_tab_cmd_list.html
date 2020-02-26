@@ -4,7 +4,7 @@
   </div>
   <div class="panel-body">
     <form name="command_form"
-          action="{% url 'switches:switch_cmd_output'  group.id switch.id %}"
+          action="{% url 'switches:switch_cmd_output' group.id switch.id %}"
           method="post">
       {% csrf_token %}
       <select name="command_id" data-toggle="tooltip" title="Select command to run">

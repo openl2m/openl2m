@@ -45,7 +45,7 @@
                       <li><a href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true"></i> Activity Logs</a></li>
                     {% elif request.user.is_staff %}
                       <li class="divider"></li>
-                      <li><a href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true" ></i> Activity Logs</a></li>
+                      <li><a href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true"></i> Activity Logs</a></li>
                     {% endif %}
                     <li><a href="{% url 'switches:show_stats' %}"><i class="fas fa-chart-pie" aria-hidden="true"></i> Usage Statistics</a></li>
                     <li><a href="https://github.com/openl2m/openl2m/" target="_sources"><i class="fas fa-code" aria-hidden="true"></i> Code</a></li>
