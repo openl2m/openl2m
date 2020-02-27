@@ -964,7 +964,11 @@ def switch_activity(request, group_id, switch_id):
     log.description = "Viewing Switch Activity Logs (page %d)" % page_number
     log.save()
 
-    title = 'All Activity for %s' % switch.name
+    # get the url to this switch:
+    switch_url = reverse('switches:switch_basics', kwargs={'group_id': group.id, 'switch_id': switch.id})
+
+    title = mark_safe('All Activity for <a href="%s" data-toggle="tooltip" title="Go back to switch">%s</a>' \
+                      % (switch_url, switch.name))
     # render the template
     return render(request, template_name, {
         'logs': logs_page,
