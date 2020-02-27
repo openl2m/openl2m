@@ -47,7 +47,7 @@ except ImportError:
         "Configuration file is not present. Please define openl2m/openl2m/configuration.py per the documentation."
     )
 
-# if you change this version, also change it in docs/conf.py and docs/releases/ !!!
+# if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
 VERSION = '1.1.6'
 VERSION_DATE = '2020-02-27'
 
