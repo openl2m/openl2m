@@ -56,7 +56,7 @@ BASE_PATH = ''
 LOG_MAX_AGE = 180
 
 # the maximum number of recent switch activity log entries shown when accessing a switch
-# Note that only change & error logs are show, not 'view' log entries
+# Note that only change & error logs are shown, not 'view' log entries
 RECENT_SWITCH_LOG_COUNT = 25
 
 # API Cross-Origin Resource Sharing (CORS) settings. If CORS_ORIGIN_ALLOW_ALL is set to True, all origins will be
