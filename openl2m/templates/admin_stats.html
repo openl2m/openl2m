@@ -57,6 +57,21 @@
       </div>
     </div>
 
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <strong>Active Users</strong>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover table-headings">
+          {% for info in user_list %}
+            <tr><td>{{ info }}</td></tr>
+          {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 

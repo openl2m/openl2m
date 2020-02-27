@@ -53,8 +53,11 @@ def switches(request):
     template_name = 'home.html'
 
     # back to the home screen, clear session cache
-    # so we re-read switche as needed
+    # so we re-read switches as needed
     clear_session_oid_cache(request)
+
+    # save remote ip in session, so we can use it in current user display!
+    save_to_http_session(request, "remote_ip", get_remote_ip(request))
 
     # find the groups with switches that we have rights to:
     regular_user = True
@@ -80,7 +83,7 @@ def switches(request):
                     if switch.status == SWITCH_STATUS_ACTIVE and switch.snmp_profile:
                         permissions[group.id][switch.id] = switch.id
 
-    save_to_http_session(request, 'permissions', permissions)
+    save_to_http_session(request, "permissions", permissions)
 
     # log my activity
     log = Log()
@@ -1055,11 +1058,16 @@ def show_stats(request):
     filter['type'] = int(LOG_TYPE_CHANGE)
     usage['Changes logged'] = Log.objects.filter(**filter).count()
 
+
+    user_list = get_current_users()
+    dprint("Users: %s" % user_list)
+
     # render the template
     return render(request, template_name, {
         'db_items': db_items,
         'usage': usage,
         'environment': environment,
+        'user_list': user_list,
     })
 
 

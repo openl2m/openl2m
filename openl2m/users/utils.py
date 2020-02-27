@@ -12,7 +12,12 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from django.contrib.auth.models import User
+from django.contrib.sessions.models import Session
+from django.utils import timezone
+
 from openl2m.celery import is_celery_running
+from switches.utils import dprint
 
 
 def user_can_run_tasks(user, group, switch):
@@ -41,3 +46,23 @@ def user_can_bulkedit(user, group, switch):
        not user.profile.read_only:
         return True
     return False
+
+
+def get_current_users():
+    """
+    Get the list of current users with a session that has not expired.
+    This "approximates" the currently active users.
+    Note this only works if SESSION_EXPIRE_AT_BROWSER_CLOSE = True !
+    """
+    active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+    user_list = []
+    for session in active_sessions:
+        data = session.get_decoded()
+        #dprint("SESSION Data = %s" % data)
+        user_id = data.get('_auth_user_id', None)
+        remote_ip = data.get('remote_ip', "Unknown")
+        if user_id:
+            user = User.objects.get(pk=int(user_id))
+            dprint("User = %s" % user)
+            user_list.append("%s (%s)" % (user.username, remote_ip))
+    return user_list
