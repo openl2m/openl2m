@@ -155,6 +155,10 @@ if LOGIN_TIMEOUT is not None:
 if SESSION_FILE_PATH is not None:
     SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 
+# override the maximum GET/POST item count.
+# with large numbers of switches in a group, we may exceeed the default (1000):
+DATA_UPLOAD_MAX_NUMBER_FIELDS = getattr(configuration, 'DATA_UPLOAD_MAX_NUMBER_FIELDS', 10000)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 

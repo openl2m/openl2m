@@ -89,6 +89,10 @@ PREFER_IPV4 = True      # IPv6 has not been tested!
 # database access.) Note that the user as which OpenL2M runs must have read and write permissions to this path.
 SESSION_FILE_PATH = None
 
+# override the maximum GET/POST item count.
+# with large numbers of switches in a group, we may exceeed the default (1000):
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+
 # Time zone (default: UTC)
 TIME_ZONE = 'UTC'
 
