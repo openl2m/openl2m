@@ -4,6 +4,18 @@
 Version 1.1
 ===========
 
+Version 1.1.7
+-------------
+Release Date: 2020-03-05
+
+* add Cisco log entries (if configured on switch) to 'More Details' info tab.
+  See the :doc:`Faq <../faq>` for configuration steps, if needed.
+
+Bug Fixes:
+
+* increase GET/POST max items (would cause errors on large switch groups)
+
+
 Version 1.1.6
 -------------
 Release Date: 2020-02-27
