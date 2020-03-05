@@ -15,7 +15,7 @@ OpenL2M requires the following MIBs to be available on the switches it manages:
   This gives the 'regular' data about interfaces, names, etc.
 
 * Interfaces Group MIB, RFC 2863, https://tools.ietf.org/html/rfc2863
-  Used to read modern interface data, such as name, description, high speed interface data, and more
+  Used to read modern interface data, such as name, description, high speed interface data, and more.
 
 * Q-Bridge MIB, RFC 2674, https://tools.ietf.org/html/rfc2674
   This is used for the VLAN information.
@@ -39,7 +39,7 @@ OpenL2M requires the following MIBs to be available on the switches it manages:
 Several vendor specific MIB are supported at this time.
 
 * Cisco VTP MIB
-  Used for VLAN information on Cisco Switches
+  Used for VLAN information on Cisco Switches.
 
 * Cisco Extended PoE MIB
   Get enhanced PoE info on the switches that support it.
@@ -48,7 +48,10 @@ Several vendor specific MIB are supported at this time.
   For stack member info, if supported.
 
 * Cisco L2L3-INTERFACE-CONFIG MIB
-  Used to see if interface is in switching or routing mode on Cisco devices
+  Used to see if interface is in switching or routing mode on Cisco devices.
+
+* Cisco Syslog-Mib
+  Used to read log messages from Cisco devices (if configured).
 
 * HP Aruba/Procure HP-ICF-POE-MIB
   Get enhanced PoE info on the Aruba/Procurve switches that support it.
@@ -57,7 +60,7 @@ Several vendor specific MIB are supported at this time.
   Old power mib, supported by some Aruba/Procurve switches to get enhanced PoE info.
 
 * HP HPN-ICF-IF-EXT MIB
-  Interface extension to get switching or routing mode on HP devices
+  Interface extension to get switching or routing mode on HP devices.
 
 * HPE HH3C-PoE MIB
   Get enhanced PoE info on the Comware switches that support it.
@@ -82,13 +85,13 @@ completely 'standard' SNMP. We have tested OpenL2M on the following hardware, wi
 **Cisco**
 
 * *Catalyst 2960* series; single and stacked units.
-* *Catalyst 4500-E* series, with Sup6L-E and Sup7L-E
+* *Catalyst 4500-E* series, with Sup6L-E and Sup7L-E.
 
 **HP/Aruba**
 
-* *HP 2520G* series; single units
-* *HP 4200vl* series, specifically 4204vl (J8770A)
-* *Aruba 2930F* series; single units
+* *HP 2520G* series; single units.
+* *HP 4200vl* series, specifically 4204vl (J8770A).
+* *Aruba 2930F* series; single units.
 
 **HP Enterprise (HPE)**
 

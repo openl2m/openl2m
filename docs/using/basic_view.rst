@@ -34,6 +34,8 @@ On the right, |switch-reload-header|, does exactly that! This forces a complete 
 .. |switch-reload-header| image:: ../_static/switch-reload-header.png
 
 The |hardware-details-header| option adds a few more bits of information to the Information tab below (depending on vendor).
+On most devices, device and stacking information will be read, include serial numbers.
+On Cisco devices, if properly configured, this will add recent log entries (see below).
 
 .. |hardware-details-header| image:: ../_static/hardware-details-header.png
 
@@ -243,10 +245,25 @@ This shows a series of information about the switch. Depending on the device and
 this can include items such as model, firmware, vlans defined on switch, PoE power supply info, stacking info,
 IP(v4) addresses of the switch, and more.
 
+E.g.:
+
+|device_ip_poe_info|
+
+|device_stacking_info|
+
 If there are scheduled tasks for the selected switch, they will also be shown here.
 Any user with the ability to create tasks, can delete scheduled tasks from this tab. (Assuming the background processes are running!)
 
+On properly configured Cisco switches (:doc:`see Faq <../faq>`), we can show recent log entries,
+after you have selected the "More Hardware Details" button.
+
+|cisco_log_entries|
+
 .. |switch_information_tab| image:: ../_static/switch-information-tab.png
+.. |device_stacking_info| image:: ../_static/device-stacking-info.png
+.. |device_ip_poe_info| image:: ../_static/device-ip-and-poe-info.png
+.. |cisco_log_entries| image:: ../_static/cisco-log-entries.png
+
 
 Activity Logs Tab
 -----------------

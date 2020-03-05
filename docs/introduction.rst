@@ -33,6 +33,7 @@ OpenL2M can manage interfaces on switches using SNMP v2 and v3, including:
 * switch **device import via csv files**, or fully programmable import via Python scripts.
 * switches can be Read-Only.
 * support for Cisco, HP-Procurve, HP-Comware and generic switches.
+* *show recent log entries* for properly configured Cisco switches.
 * configurable links on the switch, or interfaces to external tools such as an NMS
 * configurable menus
 * easily extended architecture to support other vendors that require custom snmp variables (mibs)

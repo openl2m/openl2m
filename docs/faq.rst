@@ -91,3 +91,14 @@ Login to the server running OpenL2M, and from a root shell, run the following co
 This will run the Celery process in the foreground. Look at the output for errors. Likely cause is the LOGGING config.
 This is not compatible when logging to files! You need to use a syslog config, or the like,
 that does NOT write files directly.
+
+* **How do I configure my Cisco switch for Syslog messages over SNMP?**
+
+Regular Cisco IOS devices need a configuration similar to the one below, which allows for the 50 most recent
+syslog entries of "Informational" level and below to be available over SNMP. Note this can impact memory usage
+of the device. Please refer to your particular device documentation for more specifics.
+
+.. code-block:: bash
+
+  logging history size 50
+  logging history informational
