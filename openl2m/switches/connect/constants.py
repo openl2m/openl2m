@@ -545,6 +545,37 @@ pethPsePortType = '.1.3.6.1.2.1.105.1.1.1.9'     # followed by devId.ifIndex, wh
 snmp_mib_variables['pethPsePortType'] = pethPsePortType
 
 
+# SYSLOG-MSGS-MIB
+syslogMsgMib = '.1.3.6.1.2.1.192'
+
+syslogMsgObjects = '.1.3.6.1.2.1.192.1'
+
+snmp_mib_variables['syslogMsgObjects'] = syslogMsgObjects
+syslogMsgTableMaxSize = '.1.3.6.1.2.1.192.1.1.1'
+
+snmp_mib_variables['syslogMsgTableMaxSize'] = syslogMsgTableMaxSize
+syslogMsgTable = '.1.3.6.1.2.1.192.1.2'
+
+"""
+Note: the rest of the SYSLOG_MSG_MIB is meant to define OID's for sending
+SNMP notifications (traps) with syslog messages, NOT to poll messages from snmp reads.
+
+snmp_mib_variables['syslogMsgTable'] = syslogMsgTable
+syslogMsgEntry = '.1.3.6.1.2.1.192.1.2.1'
+syslogMsgIndex = '.1.3.6.1.2.1.192.1.2.1.1'
+syslogMsgFacility = '.1.3.6.1.2.1.192.1.2.1.2'
+syslogMsgSeverity = '.1.3.6.1.2.1.192.1.2.1.3'
+syslogMsgVersion = '.1.3.6.1.2.1.192.1.2.1.4'
+syslogMsgTimeStamp = '.1.3.6.1.2.1.192.1.2.1.5'
+syslogMsgHostName = '.1.3.6.1.2.1.192.1.2.1.6'
+syslogMsgAppName = '.1.3.6.1.2.1.192.1.2.1.7'
+syslogMsgProcID	= '.1.3.6.1.2.1.192.1.2.1.8'
+syslogMsgMsgID = '.1.3.6.1.2.1.192.1.2.1.9'
+syslogMsgSDParams = '.1.3.6.1.2.1.192.1.2.1.10'
+syslogMsgMsg = '.1.3.6.1.2.1.192.1.2.1.11'
+"""
+
+
 # IEEE also has a Dot1Q MIB:
 # see also https://mibs.observium.org/mib/IEEE8021-Q-BRIDGE-MIB/
 ieee8021QBridgeMib = '.1.3.111.2.802.1.1.4'

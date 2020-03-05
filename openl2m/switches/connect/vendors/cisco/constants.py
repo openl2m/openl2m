@@ -19,8 +19,40 @@ from switches.connect.vendors.constants import enterprise_id_info
 ENTERPRISE_ID_CISCO = 9
 enterprise_id_info[ENTERPRISE_ID_CISCO] = 'Cisco'
 
+
+# CISCO-SYSLOG-MIB
+# http://www.circitor.fr/Mibs/Html/C/CISCO-SYSLOG-MIB.php
+ciscoSyslogMIB = '.1.3.6.1.4.1.9.9.41'
+
+# here is the config:
+ciscoSyslogMIBObjects = '.1.3.6.1.4.1.9.9.41.1'
+snmp_mib_variables['ciscoSyslogMIBObjects'] = ciscoSyslogMIBObjects
+
+clogHistTableMaxLength = '.1.3.6.1.4.1.9.9.41.1.2.1'
+snmp_mib_variables['clogHistTableMaxLength'] = clogHistTableMaxLength
+
+clogHistMsgsFlushed = '.1.3.6.1.4.1.9.9.41.1.2.2'
+snmp_mib_variables['clogHistMsgsFlushed'] = clogHistMsgsFlushed
+
+# here are the messages:
+clogHistoryTable = '.1.3.6.1.4.1.9.9.41.1.2.3'
+snmp_mib_variables['clogHistoryTable'] = clogHistoryTable
+clogHistIndex = '.1.3.6.1.4.1.9.9.41.1.2.3.1.1'
+snmp_mib_variables['clogHistIndex'] = clogHistIndex
+clogHistFacility = '.1.3.6.1.4.1.9.9.41.1.2.3.1.2'
+snmp_mib_variables['clogHistFacility'] = clogHistFacility
+clogHistSeverity = '.1.3.6.1.4.1.9.9.41.1.2.3.1.3'
+snmp_mib_variables['clogHistSeverity'] = clogHistSeverity
+clogHistMsgName = '.1.3.6.1.4.1.9.9.41.1.2.3.1.4'
+snmp_mib_variables['clogHistMsgName'] = clogHistMsgName
+clogHistMsgText = '.1.3.6.1.4.1.9.9.41.1.2.3.1.5'
+snmp_mib_variables['clogHistMsgText'] = clogHistMsgText
+clogHistTimestamp = '.1.3.6.1.4.1.9.9.41.1.2.3.1.6'
+snmp_mib_variables['clogHistTimestamp'] = clogHistTimestamp
+
 # most Cisco switches support this:
 # http://www.circitor.fr/Mibs/Html/C/CISCO-CONFIG-MAN-MIB.php
+
 ciscoConfigManMIBObjects = '.1.3.6.1.4.1.9.9.43.1'
 snmp_mib_variables['ciscoConfigManMIBObjects'] = ciscoConfigManMIBObjects
 

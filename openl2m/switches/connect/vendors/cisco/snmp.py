@@ -73,6 +73,9 @@ class SnmpConnectorCisco(SnmpConnector):
         if self._parse_mibs_cisco_if_opermode(oid, val):
             return True
 
+        if self._parse_mibs_cisco_syslog_msg(oid, val):
+            return True
+
         # if not Cisco specific, call the generic parser
         return super()._parse_oid(oid, val)
 
@@ -193,6 +196,15 @@ class SnmpConnectorCisco(SnmpConnector):
         # max power consumed since interface power reset
         retval = self._get_branch_by_name('cpeExtPsePortMaxPwrDrawn')
         return retval
+
+    def _get_syslog_msgs(self):
+        """
+        Read the CISCO-SYSLOG-MSG-MIB
+        """
+        retval = self._get_branch_by_name('ciscoSyslogMIBObjects', True, self._parse_mibs_cisco_syslog_msg)
+        if retval < 0:
+            self._add_warning("Error getting Cisco Syslog Messages (ciscoSyslogMIBObjects)")
+            return 0    # for now
 
     def _map_poe_port_entries_to_interface(self):
         """
@@ -406,6 +418,98 @@ class SnmpConnectorCisco(SnmpConnector):
             ago = str(datetime.timedelta(seconds=(int(val) / 100)))
             self.add_vendor_data("Configuration", "Startup Last Changed", ago)
             return True
+        return False
+
+    def _parse_mibs_cisco_syslog_msg(self, oid, val):
+        """
+        Parse Cisco specific Syslog MIB to read syslog messages stored.
+        """
+        sub_oid = oid_in_branch(clogHistTableMaxLength, oid)
+        if sub_oid:
+            # this is the max number of syslog messages stored.
+            self.syslog_max_msgs = int(val)
+            return True
+
+        sub_oid = oid_in_branch(clogHistIndex, oid)
+        if sub_oid:
+            # this is the index, create a new object.
+            # note that not all implementation return this value, as it is implied in the other entries!
+            index = int(sub_oid)
+            self.syslog_msgs[index] = SyslogMsg(index)
+            return True
+
+        sub_oid = oid_in_branch(clogHistFacility, oid)
+        if sub_oid:
+            # verify we have an object for this index
+            index = int(sub_oid)
+            if index in self.syslog_msgs.keys():
+                self.syslog_msgs[index].facility = val
+            else:
+                msg = SyslogMsg(index)
+                msg.facility = val
+                self.syslog_msgs[index] = msg
+            return True
+
+        # from this point on we "should" have the object created!
+        sub_oid = oid_in_branch(clogHistSeverity, oid)
+        if sub_oid:
+            # verify we have an object for this index
+            index = int(sub_oid)
+            if index in self.syslog_msgs.keys():
+                self.syslog_msgs[index].severity = int(val)
+            else:
+                # be save, create; "should" never happen
+                msg = SyslogMsg(index)
+                msg.severity = int(val)
+                self.syslog_msgs[index] = msg
+            return True
+
+        sub_oid = oid_in_branch(clogHistMsgName, oid)
+        if sub_oid:
+            # verify we have an object for this index
+            index = int(sub_oid)
+            if index in self.syslog_msgs.keys():
+                self.syslog_msgs[index].name = val
+            else:
+                # be save, create; "should" never happen
+                msg = SyslogMsg(index)
+                msg.name = val
+                self.syslog_msgs[index] = msg
+            return True
+
+        sub_oid = oid_in_branch(clogHistMsgText, oid)
+        if sub_oid:
+            # verify we have an object for this index
+            index = int(sub_oid)
+            if index in self.syslog_msgs.keys():
+                self.syslog_msgs[index].message = val
+            else:
+                # be save, create; "should" never happen
+                msg = SyslogMsg(index)
+                msg.message = val
+                self.syslog_msgs[index] = msg
+            return True
+
+        sub_oid = oid_in_branch(clogHistTimestamp, oid)
+        if sub_oid:
+            # verify we have an object for this index
+            index = int(sub_oid)
+            # val is sysUpTime value when message was generated, ie. timetick!
+            timetick = int(val)
+            if index in self.syslog_msgs.keys():
+                # approximate / calculate the datetime value:
+                # msg timestamp = time when sysUpTime was read minus seconds between sysUptime and msg timetick
+                dprint("TIMES ARE: %d  %d  %d" % (self.system.time, self.system.sys_uptime, timetick))
+                self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(self.system.time - int((self.system.sys_uptime - timetick)/100))
+            else:
+                # be save, create; "should" never happen
+                msg = SyslogMsg(index)
+                # approximate / calculate the datetime value:
+                # msg time = time when sysUpTime was read minus seconds between sysUptime and msg timetick
+                msg.datetime = datetime.datetime.fromtimestamp(self.system.time - int((self.system.sys_uptime - timetick)/100))
+                self.syslog_msgs[index] = msg
+            return True
+
         return False
 
     def can_save_config(self):

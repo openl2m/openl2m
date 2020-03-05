@@ -53,7 +53,9 @@ class System():
         self.location = ''
         self.object_id = ''
         self.enterprise_info = ''    # textual version of enterprise part of object ID
-        self.uptime = 0
+        self.sys_uptime = 0          # sysUptime is in 1/100th of seconds since boot
+        self.time = 0                # datetime now() when sys_uptime was set
+        self.uptime = 0              # uptime will be calculated in seconds
         self.contact = ''
         # PoE related values
         self.poe_capable = False     # can the switch deliver PoE
@@ -430,7 +432,7 @@ class PoePort():
     """
     def __init__(self, index, admin_status):
         """
-        Initialized the object
+        Initialize the object
         """
         self.index = index          # port entry is the value after the PoE OID that is the index to this interface
         self.admin_status = admin_status
@@ -450,3 +452,25 @@ class PoePort():
         return ("PoePort:\nIndex=%s\nAdmin=%d\nDetect=%d\nPower Draw Supported=%s\nPower Draw=%d\n" %
                 (self.index, self.admin_status, self.detect_status, self.power_consumption_supported,
                  self.power_consumed))
+
+
+class SyslogMsg():
+    """
+    Class to represent a Syslog Message, implemented in SYSLOG-MSG-MIB
+    or vendorm-specific mibs like CISCO-SYSLOG-MIB
+    """
+    def __init__(self, index):
+        """
+        Initialize the object with the message index
+        """
+        self.index = index      # snmp table index
+        self.facility = ""      # some name
+        self.severity = -1      # valid are 0-7
+        self.name = ""          # type or name or app-name of message
+        self.message = ""       # the text of the message
+        # datetime() value of message. Generic SYSLOG-MSG-MIB has time "string" (DateAndTime)
+        # some vendor mibs have sys-uptime timetick. Recalculate all to datetime() object
+        self.datetime = 0
+
+    def __str__(self):
+        return (self.message)   # for now.

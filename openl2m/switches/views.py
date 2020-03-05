@@ -967,7 +967,7 @@ def switch_activity(request, group_id, switch_id):
     # get the url to this switch:
     switch_url = reverse('switches:switch_basics', kwargs={'group_id': group.id, 'switch_id': switch.id})
 
-    title = mark_safe('All Activity for <a href="%s" data-toggle="tooltip" title="Go back to switch">%s</a>' \
+    title = mark_safe('All Activity for <a href="%s" data-toggle="tooltip" title="Go back to switch">%s</a>'
                       % (switch_url, switch.name))
     # render the template
     return render(request, template_name, {
@@ -1061,7 +1061,6 @@ def show_stats(request):
     filter = {}
     filter['type'] = int(LOG_TYPE_CHANGE)
     usage['Changes logged'] = Log.objects.filter(**filter).count()
-
 
     user_list = get_current_users()
     dprint("Users: %s" % user_list)

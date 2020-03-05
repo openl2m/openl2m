@@ -91,6 +91,9 @@
         <div><strong>Response (details):</strong> {{ connection.detailed_info_duration }} seconds</div>
       {% endif %}
       <div><strong>Switch Group:</strong> {{ group }}</div>
+      {% if connection.syslog_max_msgs %}
+      <div><strong>Log size:</strong> {{ connection.syslog_max_msgs }}</div>
+      {% endif %}
     </div>
   </div>
 
@@ -137,10 +140,34 @@
   </div>
   {% endif %}
 
+  {% if connection.syslog_msgs.items %}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <strong>Recent Syslog Entries ({{ connection.syslog_max_msgs }} max)</strong>
+    </div>
+    <div class="panel-body">
+        <table class="table table-striped w-auto">
+          <thead>
+            <tr><th>Approx. Time</th><th>Message</th></tr>
+          </thead>
+          <tbody>
+          {% for index,msg in connection.syslog_msgs.items %}
+            <tr>
+              <td>{{ msg.datetime|date:"SHORT_DATETIME_FORMAT" }}</td>
+              <td>{{ msg.message }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+    </div>
+  </div>
+  {% endif %}
+
+
   {% if connection.stack_members.items %}
   <div class="panel panel-default">
     <div class="panel-heading">
-      <strong>Stacking Info</strong>
+      <strong>Device/Stacking Info</strong>
     </div>
     <div class="panel-body">
       {% for dev_id,dev in connection.stack_members.items %}

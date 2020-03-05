@@ -531,6 +531,10 @@ class SnmpConnector(EasySNMP):
         self.mib_timing = {}        # dictionary to track how many vars and how long various MIBs take to read
         self._add_mib_timing('Total', 0, 0)     # initialize the 'total' count to 0 entries, 0 seconds!
 
+        # syslog related info, if supported:
+        self.syslog_msgs = {}       # list of Syslog messages, if any
+        self.syslog_max_msgs = 0    # how many syslog msgs device will store
+
         # physical device related:
         self.stack_members = {}     # list of StackMember() objects that are part of this switch
         self.vendor_data = {}       # dict of categories with a list of VendorData() objects, to extend sytem info about this switch!
@@ -599,6 +603,9 @@ class SnmpConnector(EasySNMP):
                     self.mib_timing = self.request.session['mib_timing']
                 if 'oid_cache' in self.request.session.keys():
                     self.oid_cache = self.request.session['oid_cache']
+                    # need to update the sysUptime value first, before reading the cache:
+                    self._get_sys_uptime()
+                    # now parse the cache:
                     self._parse_oid_cache()
                     self.cached_oid_data = True
                     if 'basic_info_read_time' in self.request.session.keys():
@@ -1107,6 +1114,19 @@ class SnmpConnector(EasySNMP):
             return True
 
         """
+        SYSLOG-MSG-MIB - mostly mean to define notification, but we can read the log size
+        """
+        sub_oid = oid_in_branch(syslogMsgTableMaxSize, oid)
+        if sub_oid:
+            # this is the max number of syslog messages stored.
+            self.syslog_max_msgs = int(val)
+            return True
+        """
+        Note: the rest of the SYSLOG_MSG_MIB is meant to define OID's for sending
+        SNMP traps with syslog messages, NOT to poll messages from snmp reads !!!
+        """
+
+        """
         PoE related entries:
         the pethMainPseEntry table entries with device-level PoE info
         the OID is <base><device-id>.1 = <value>,
@@ -1504,11 +1524,23 @@ class SnmpConnector(EasySNMP):
         self.system.description = self.get_cached_oid(sysDescr)
         self.system.object_id = self.get_cached_oid(sysObjectID)
         self.system.enterprise_info = get_switch_enterprise_info(self.system.object_id)
-        # sysUptime is in 1/100th of a second!
-        self.system.uptime = datetime.timedelta(seconds=int(self.get_cached_oid(sysUpTime)) / 100)
+        # sysUpTime is ticks in 1/100th of second since boot
+        self.system.sys_uptime = int(self.get_cached_oid(sysUpTime))
+        self.system.time = time.time()
+        # uptime is in seconds:
+        self.system.uptime = datetime.timedelta(seconds=int(self.system.sys_uptime / 100))
         self.system.contact = self.get_cached_oid(sysContact)
         self.system.name = self.get_cached_oid(sysName)
         self.system.location = self.get_cached_oid(sysLocation)
+
+    def _get_sys_uptime(self):
+        """
+        Get the current sysUpTime timetick for the device.
+        """
+        self._get(sysUpTime)
+        # sysUpTime is ticks in 1/100th of second since boot
+        self.system.sys_uptime = int(self.get_cached_oid(sysUpTime))
+        self.system.time = time.time()
 
     def _get_system_data(self):
         """
@@ -1920,6 +1952,15 @@ class SnmpConnector(EasySNMP):
 
         return retval
 
+    def _get_syslog_msgs(self):
+        """
+        Read the SYSLOG-MSG-MIB: note this is meant for notifications, but we can read log size!
+        """
+        retval = self._get_branch_by_name('syslogMsgTableMaxSize')
+        if retval < 0:
+            self._add_warning("Error getting Log Size Info (syslogMsgTableMaxSize)")
+        return retval
+
     def _test_read(self):
         """
         Test if read works
@@ -2204,6 +2245,8 @@ class SnmpConnector(EasySNMP):
         """
         # call the vendor-specific data first, if implemented
         self._get_vendor_data()
+        # read Syslog MIB
+        self._get_syslog_msgs()
         # next read the standard Entity MIB hardware info
         retval = self._get_entity_data()
         if retval > 0:
