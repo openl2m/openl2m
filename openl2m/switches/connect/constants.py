@@ -242,13 +242,13 @@ snmp_mib_variables['dot1dBasePortIfIndex'] = dot1dBasePortIfIndex
 
 # Getting Ethernet addresses on ports:
 # walk dot1dTpFdbAddress
-BRIDGE_ACTIVE_ETH_ADDRESSES = '.1.3.6.1.2.1.17.4.3.1.1'
-snmp_mib_variables['dot1dTpFdbAddress'] = BRIDGE_ACTIVE_ETH_ADDRESSES
+dot1dTpFdbAddress = '.1.3.6.1.2.1.17.4.3.1.1'
+snmp_mib_variables['dot1dTpFdbAddress'] = dot1dTpFdbAddress
 
 # more useful is this, dot1dTpFdbPort. The 'sub-oid' values represent the ethernet address,
 # return value is the 'port id', mapped below in
-BRIDGE_ACTIVE_ETH_ADDRESSES_BY_PORT = '.1.3.6.1.2.1.17.4.3.1.2'
-snmp_mib_variables['dot1dTpFdbPort'] = BRIDGE_ACTIVE_ETH_ADDRESSES_BY_PORT
+dot1dTpFdbPort = '.1.3.6.1.2.1.17.4.3.1.2'
+snmp_mib_variables['dot1dTpFdbPort'] = dot1dTpFdbPort
 
 #
 # VLAN Q-BRIDGE RELATED

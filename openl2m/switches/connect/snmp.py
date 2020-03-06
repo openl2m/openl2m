@@ -1284,7 +1284,7 @@ class SnmpConnector(EasySNMP):
         Will return True if we have parsed this, and False if not.
         """
         # Q-Bridge Ethernet addresses known
-        eth_decimals = oid_in_branch(BRIDGE_ACTIVE_ETH_ADDRESSES_BY_PORT, oid)
+        eth_decimals = oid_in_branch(dot1dTpFdbPort, oid)
         if eth_decimals:
             eth_string = decimal_to_hex_string_ethernet(eth_decimals)
             port_id = int(val)
