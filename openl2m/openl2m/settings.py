@@ -107,6 +107,8 @@ POE_TOGGLE_DELAY = getattr(configuration, 'POE_TOGGLE_DELAY', 5)
 
 ALWAYS_ALLOW_POE_TOGGLE = getattr(configuration, 'ALWAYS_ALLOW_POE_TOGGLE', False)
 
+HIDE_NONE_ETHERNET_INTERFACES = getattr(configuration, 'HIDE_NONE_ETHERNET_INTERFACES', False)
+
 CSRF_TRUSTED_ORIGINS = ALLOWED_HOSTS
 
 SWITCH_INFO_URLS = getattr(configuration, 'SWITCH_INFO_URLS', False)
