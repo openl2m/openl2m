@@ -115,6 +115,9 @@ POE_TOGGLE_DELAY = 5
 # regardless of other access to the interface
 ALWAYS_ALLOW_POE_TOGGLE = False
 
+# If True, all non-ethernet interfaces are hidden from all users, including admins
+HIDE_NONE_ETHERNET_INTERFACES = False
+
 # Customizable URLs for Switch, Interface, Ethernet and IP addresses
 # 'url' is mandatory. 'hint' and 'target' are optional
 # You can also use 'icon' and 'alt', or 'fa_icon'

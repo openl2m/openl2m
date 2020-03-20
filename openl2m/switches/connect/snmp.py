@@ -2054,6 +2054,13 @@ class SnmpConnector(EasySNMP):
                 iface.unmanage_reason = "Access denied: interface in routed mode!"
                 continue
 
+            if iface.type != IF_TYPE_ETHERNET and settings.HIDE_NONE_ETHERNET_INTERFACES:
+                iface.manageable = False
+                iface.allow_poe_toggle = False
+                iface.can_edit_alias = False
+                iface.visible = False
+                continue
+
             # next check vendor-specific restrictions. This allows denying Stacking ports, etc.
             if not self._can_manage_interface(iface):
                 iface.manageable = False
