@@ -17,7 +17,7 @@ This augments/re-implements some methods found in the base SNMP() class
 with Cisco specific ways of doing things...
 """
 from switches.models import Log
-from switches.constants import SNMP_VERSION_2C
+from switches.constants import *
 from switches.connect.classes import *
 from switches.connect.snmp import SnmpConnector, oid_in_branch
 from switches.utils import *
@@ -325,25 +325,28 @@ class SnmpConnectorCisco(SnmpConnector):
         Parse Cisco specific VTP MIB
         """
         # vlan id
-        vlanId = int(oid_in_branch(vtpVlanState, oid))
-        if vlanId:
+        vlan_id = int(oid_in_branch(vtpVlanState, oid))
+        if vlan_id:
             if (int(val) == 1):
-                self.vlans[vlanId] = Vlan(vlanId)
+                self.vlans[vlan_id] = Vlan(vlan_id)
             return True
 
         # vlan type
-        vlanId = int(oid_in_branch(vtpVlanType, oid))
-        if vlanId:
-            val = int(val)
-            if vlanId in self.vlans.keys():
-                self.vlans[vlanId].type = val
+        vlan_id = int(oid_in_branch(vtpVlanType, oid))
+        if vlan_id:
+            type = int(val)
+            if vlan_id in self.vlans.keys():
+                if type == CISCO_VLAN_TYPE_NORMAL:
+                    self.vlans[vlan_id].type = VLAN_TYPE_NORMAL
+                else:
+                    self.vlans[vlan_id].type = type
             return True
 
         # vlan name
-        vlanId = int(oid_in_branch(vtpVlanName, oid))
-        if vlanId:
-            if vlanId in self.vlans.keys():
-                self.vlans[vlanId].name = str(val)
+        vlan_id = int(oid_in_branch(vtpVlanName, oid))
+        if vlan_id:
+            if vlan_id in self.vlans.keys():
+                self.vlans[vlan_id].name = str(val)
             return True
 
         # access or trunk mode configured?

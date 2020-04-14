@@ -1,0 +1,187 @@
+#
+# This file is part of Open Layer 2 Management (OpenL2M).
+#
+# OpenL2M is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 3 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
+#
+"""
+Juniper Networks specific implementation of the SNMP object
+This re-implements some methods found in the base SNMP() class
+with Juniper specific ways of doing things...
+"""
+from switches.models import Log
+from switches.constants import *
+from switches.connect.classes import *
+from switches.connect.snmp import SnmpConnector, oid_in_branch
+from switches.connect.constants import *
+from switches.utils import *
+
+from .constants import *
+
+
+class SnmpConnectorJuniper(SnmpConnector):
+    """
+    Juniper Networks specific implementation of the SNMP object
+    This re-implements some methods found in the base SNMP() class
+    with Juniper specific ways of doing things...
+    """
+
+    def __init__(self, request, group, switch):
+        # for now, just call the super class
+        dprint("Juniper Networks SnmpConnector __init__")
+        super().__init__(request, group, switch)
+        self.name = self.__class__.__name__
+        self.vendor_name = 'Juniper Networks'
+        self.vlans_by_tag = {}  # the list of Vlan() objects, but indexed by internal tag, instead of vlan id!
+        # force READ-ONLY for now! We have not implemented changing settings.
+        self.switch.read_only = True
+
+    def _parse_oid(self, oid, val):
+        """
+        Parse a single OID with data returned from a switch through some "get" function
+        THIS NEEDS WORK TO IMPROVE PERFORMANCE !!!
+        Returns True if we parse the OID and we should cache it!
+        """
+        dprint("Juniper Parsing OID %s" % oid)
+
+        if self._parse_mibs_juniper_l2ald_vlans(oid, val):
+            return True
+
+        # if not Juniper specific, call the generic parser
+        return super()._parse_oid(oid, val)
+
+    def _parse_oid_cache_post_processing(self):
+        """
+        Any post-parsing that needs to be performed after the OID cache is parsed
+        """
+        self._create_vlans_by_id_from_tag()
+        return
+
+    def _map_poe_port_entries_to_interface(self):
+        """
+        This function maps the "pethPsePortEntry" indices that are stored in self.poe_port_entries{}
+        to interface ifIndex values, so we can store them with the interface and display as needed.
+        It ***appears*** the poe_port index is "power-supply-number.port-number", all 1-based.
+        So power entry "1.1" is interface ge-0/0/0, and power entry "1.5" is ge-0/0/4
+        """
+        dprint("Juniper _map_poe_port_entries_to_interface()\n")
+        for (pe_index, port_entry) in self.poe_port_entries.items():
+            # we take the ending part of "1.5" as the index
+            (module, port) = port_entry.index.split('.')
+            module = int(module) - 1    # 0-based!
+            port = int(port) - 1        # 0-based!
+            # find the matching interface:
+            for (if_index, iface) in self.interfaces.items():
+                if_name = "ge-%d/0/%d" % (module, port)
+                if iface.name == if_name:
+                    dprint("   PoE Port Map FOUND %s" % iface.name)
+                    iface.poe_entry = port_entry
+                    if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
+                        warning = "PoE FAULT status (%d = %s) on interface %s" % (port_entry.detect_status, port_entry.status_name, iface.name)
+                        self._add_warning(warning)
+                        # log my activity
+                        log = Log()
+                        log.user = self.request.user
+                        log.type = LOG_TYPE_ERROR
+                        log.ip_address = get_remote_ip(request)
+                        log.action = LOG_PORT_POE_FAULT
+                        log.description = warning
+                        log.save()
+                    break
+
+
+
+
+
+    def _get_vlan_data(self):
+        """
+        Implement an override of vlan parsing to read Junos EX specific MIB
+        Return 1 on success, -1 on failure
+        """
+        dprint("Juniper _get_vlan_data()\n")
+
+        # first, call the standard vlan reader
+        super()._get_vlan_data()
+
+        # try this:
+        retval = self._get_branch_by_name('jnxL2aldVlanEntry', True, self._parse_mibs_juniper_l2ald_vlans)
+        if retval < 0:
+            return retval
+        if retval > 0:
+            # we found some, but they are indexed by an internal tag, we want indexed by vlan id
+            self._create_vlans_by_id_from_tag()
+        return retval
+
+    def _create_vlans_by_id_from_tag(self):
+        """
+        convert the self.vlans_by_tag dict to self.vlans dict.
+        """
+        for index, vlan in self.vlans_by_tag.items():
+            # make sure this is a valid Vlan() object
+            if vlan.id != 0 and vlan.id in self.vlans.keys():
+                self.vlans[vlan.id].name = vlan.name
+                self.vlans[vlan.id].status = vlan.status
+
+    def _parse_mibs_juniper_l2ald_vlans(self, oid, val):
+        """
+        Parse JNX EX specific VLAN Mibs
+        """
+        dprint("_parse_mibs_juniper_l2ald_vlans()\n")
+
+        """
+        # internal vlan tag - frequently NOT returned
+        vlan_index = int(oid_in_branch(jnxL2aldVlanID, oid))
+        if vlan_index:
+            if (int(val) == 1):
+                self.vlans_by_tag[vlan_index] = Vlan(none, vlan_index)
+            return True
+        """
+
+        # vlan name, indexed by internal vlan index, NOT vlan id!
+        vlan_index = int(oid_in_branch(jnxL2aldVlanName, oid))
+        if vlan_index:
+            dprint("jnxL2aldVlanName %s = %s" % (vlan_index, val))
+            if vlan_index in self.vlans_by_tag.keys():
+                self.vlans_by_tag[vlan_index].name = str(val)
+            else:
+                self.vlans_by_tag[vlan_index] = Vlan(0, vlan_index)
+                self.vlans_by_tag[vlan_index].name = str(val)
+            return True
+
+        # the actual vlan id on the wire!
+        vlan_index = int(oid_in_branch(jnxL2aldVlanTag, oid))
+        if vlan_index:
+            dprint("jnxL2aldVlanTag %s = %s" % (vlan_index, val))
+            if vlan_index in self.vlans_by_tag.keys():
+                self.vlans_by_tag[vlan_index].id = int(val)
+            return True
+
+        # vlan type, static or dynamic
+        vlan_index = int(oid_in_branch(jnxL2aldVlanType, oid))
+        if vlan_index:
+            dprint("jnxL2aldVlanType %s = %s" % (vlan_index, val))
+            val = int(val)
+            if vlan_index in self.vlans_by_tag.keys():
+                if val == JNX_VLAN_TYPE_STATIC:
+                    self.vlans_by_tag[vlan_index].status = VLAN_STATUS_PERMANENT
+                elif val == JNX_VLAN_TYPE_DYNAMIC:
+                    self.vlans_by_tag[vlan_index].status = VLAN_STATUS_DYNAMIC
+                else:   # should not happen!
+                    self.vlans_by_tag[vlan_index].status = VLAN_STATUS_OTHER
+            return True
+
+        # the filtering database, this maps 'vlan index' to 'filter db index'
+        vlan_index = int(oid_in_branch(jnxL2aldVlanFdbId, oid))
+        if vlan_index:
+            if vlan_index in self.vlans_by_tag.keys():
+                self.vlans_by_tag[vlan_index].fdb_index = int(val)
+            return True
+
+        return False

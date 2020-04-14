@@ -11,20 +11,3 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-
-# here we defined mappings from SNMP Enterprise Id to Company Name
-# specific entries for supported vendors are in their implementation
-# directories, eg. vendors/procurve/constants.py, vendors/cisco/constants.py...
-
-#
-# generic Net-SNMP installed snmpd
-ENTERPRISE_ID_NETSNMP = 8072
-# a test cheap test switch used
-ENTERPRISE_ID_PLANET = 10456
-
-ENTERPRISE_ID_ARISTA = 30065
-
-enterprise_id_info = {}
-enterprise_id_info[ENTERPRISE_ID_NETSNMP] = 'Generic Net-SNMP'
-enterprise_id_info[ENTERPRISE_ID_PLANET] = 'PLANET Technology Corp.'
-enterprise_id_info[ENTERPRISE_ID_ARISTA] = 'Arista Networks'

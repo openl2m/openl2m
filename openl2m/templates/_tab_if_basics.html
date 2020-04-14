@@ -147,8 +147,7 @@
                         >
                       </form>
                     {% else %} {# not vlan_change_implemented #}
-                      <span data-toggle="tooltip" {% if iface.untagged_vlan_name != '' %}
-                        title="{{ iface.untagged_vlan_name }}"{% endif %}>
+                      <span data-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
                         {{ iface.untagged_vlan }}
                       </span>
                     {% endif %}
@@ -349,8 +348,7 @@
 
               <td>
                 {% if iface.untagged_vlan > 0 %}
-                  <span data-toggle="tooltip" {% if iface.untagged_vlan_name != '' %}
-                      title="{{ iface.untagged_vlan_name }}"{% endif %}>
+                  <span data-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
                       {{ iface.untagged_vlan }}
                   </span>
                 {% else %}

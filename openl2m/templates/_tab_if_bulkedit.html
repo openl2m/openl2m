@@ -176,7 +176,9 @@
               {% if iface.type == IF_TYPE_ETHERNET %}
                 <td>
                   {% if iface.untagged_vlan > 0 %}
-                    {{ iface.untagged_vlan }}
+                    <span data-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
+                      {{ iface.untagged_vlan }}
+                    </span>
                   {% else %} {# untagged_vlan = 0 #}
                     <span data-toggle="tooltip" title="Configured vlan is not defined on this switch. See warnings tab!">Not defined!</span>
                   {% endif %}

@@ -29,6 +29,8 @@ from switches.connect.vendors.cisco.constants import *
 from switches.connect.vendors.cisco.snmp import SnmpConnectorCisco
 from switches.connect.vendors.comware.constants import *
 from switches.connect.vendors.comware.snmp import SnmpConnectorComware
+from switches.connect.vendors.juniper.constants import *
+from switches.connect.vendors.juniper.snmp import SnmpConnectorJuniper
 from switches.connect.vendors.procurve.constants import *
 from switches.connect.vendors.procurve.snmp import SnmpConnectorProcurve
 
@@ -46,6 +48,7 @@ def get_connection_object(request, group, switch):
         conn = SnmpConnector(request, group, switch)
         if not conn._probe_mibs():
             raise Exception('Error probing device. Is the SNMP Profile correct?')
+            return  # for clarify
 
     # now we should have the basics:
     if switch.snmp_oid:
@@ -57,13 +60,21 @@ def get_connection_object(request, group, switch):
             enterprise_id = int(parts[0])
             # here we go:
             if enterprise_id == ENTERPRISE_ID_CISCO:
-                return SnmpConnectorCisco(request, group, switch)
+                connection = SnmpConnectorCisco(request, group, switch)
+
+            if enterprise_id == ENTERPRISE_ID_JUNIPER:
+                connection = SnmpConnectorJuniper(request, group, switch)
 
             if enterprise_id == ENTERPRISE_ID_HP:
-                return SnmpConnectorProcurve(request, group, switch)
+                connection = SnmpConnectorProcurve(request, group, switch)
 
             if enterprise_id == ENTERPRISE_ID_H3C:
-                return SnmpConnectorComware(request, group, switch)
+                connection = SnmpConnectorComware(request, group, switch)
 
     # in all other cases, return a "generic" SNMP object
-    return SnmpConnector(request, group, switch)
+    else:
+        connection = SnmpConnector(request, group, switch)
+    # load caches (http session, memory cache (future), whatever else for performance)
+    connection.load_caches()
+    # then return object
+    return connection

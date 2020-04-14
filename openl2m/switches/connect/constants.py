@@ -215,6 +215,27 @@ snmp_mib_variables['dot3StatsDuplexStatus'] = dot3StatsDuplexStatus
 dot1dBridge = '.1.3.6.1.2.1.17'   # orignal Bridge-MIB, including Ethernet-to-Interface mappings
 snmp_mib_variables['dot1dBridge'] = dot1dBridge
 
+# dot1dBasePortIfIndex, this maps the switch port-id  to the ifIndex in MIB-II
+dot1dBasePortIfIndex = '.1.3.6.1.2.1.17.1.4.1.2'
+snmp_mib_variables['dot1dBasePortIfIndex'] = dot1dBasePortIfIndex
+
+# Getting Ethernet addresses on ports:
+# walk dot1dTpFdbAddress
+dot1dTpFdbAddress = '.1.3.6.1.2.1.17.4.3.1.1'
+snmp_mib_variables['dot1dTpFdbAddress'] = dot1dTpFdbAddress
+
+# more useful is this, dot1dTpFdbPort. The 'sub-oid' values represent the ethernet address,
+# return value is the 'port id', mapped below in
+dot1dTpFdbPort = '.1.3.6.1.2.1.17.4.3.1.2'
+snmp_mib_variables['dot1dTpFdbPort'] = dot1dTpFdbPort
+
+
+#
+# VLAN Q-BRIDGE RELATED
+#
+qBridgeMIB = '.1.3.6.1.2.1.17.7'   # Expanded 802.1Q MIB, includes VLAN info, etc.
+snmp_mib_variables['qBridgeMIB'] = qBridgeMIB
+
 # base settings about the 802.1q config:
 dot1qBase = '.1.3.6.1.2.1.17.7.1.1'
 snmp_mib_variables['dot1qBase'] = dot1qBase
@@ -236,25 +257,23 @@ snmp_mib_variables['dot1qGvrpStatus'] = dot1qGvrpStatus
 GVRP_ENABLED = 1
 GVRP_DISABLED = 2
 
-# dot1dBasePortIfIndex, this maps the port number to the ifIndex in MIB-II
-dot1dBasePortIfIndex = '.1.3.6.1.2.1.17.1.4.1.2'
-snmp_mib_variables['dot1dBasePortIfIndex'] = dot1dBasePortIfIndex
+# Transparant bridge (switch) forward tables
+# 1.3.6.1.2.1.17.7.1.2.2.1.2
+dot1qTp = '.1.3.6.1.2.1.17.7.1.2.2.1.2'
 
-# Getting Ethernet addresses on ports:
-# walk dot1dTpFdbAddress
-dot1dTpFdbAddress = '.1.3.6.1.2.1.17.4.3.1.1'
-snmp_mib_variables['dot1dTpFdbAddress'] = dot1dTpFdbAddress
-
-# more useful is this, dot1dTpFdbPort. The 'sub-oid' values represent the ethernet address,
-# return value is the 'port id', mapped below in
-dot1dTpFdbPort = '.1.3.6.1.2.1.17.4.3.1.2'
-snmp_mib_variables['dot1dTpFdbPort'] = dot1dTpFdbPort
-
-#
-# VLAN Q-BRIDGE RELATED
-#
-qBridgeMIB = '.1.3.6.1.2.1.17.7'   # Expanded 802.1Q MIB, includes VLAN info, etc.
-snmp_mib_variables['qBridgeMIB'] = qBridgeMIB
+# forwarding database information with mac address mapping to switch port id:
+# dot1qTpFdbPort.<fdb-id>.<6 byte mac address> = port-id
+dot1qTpFdbPort = '.1.3.6.1.2.1.17.7.1.2.2.1.2'
+snmp_mib_variables['dot1qTpFdbPort'] = dot1qTpFdbPort
+# similar, the status of the learned entry:
+# dot1qTpFdbStatus.<fdb-id>.<6 byte mac address> = status
+dot1qTpFdbStatus = '.1.3.6.1.2.1.17.7.1.2.2.1.3'
+snmp_mib_variables['dot1qTpFdbStatus'] = dot1qTpFdbStatus
+FDB_STATUS_OTHER = 1
+FDB_STATUS_INVALID = 2
+FDB_STATUS_LEARNED = 3
+FDB_STATUS_SELF = 4
+FDB_STATUS_MGMT = 5
 
 dot1qVlanCurrentEntry = '.1.3.6.1.2.1.17.7.1.4.2.1'
 snmp_mib_variables['dot1qVlanCurrentEntry'] = dot1qVlanCurrentEntry
@@ -290,7 +309,6 @@ We WRITE changes to the port-on-vlan bitmap to
     dot1qVlanStaticEgressPorts
 """
 
-
 # The set of ports that are transmitting traffic for this VLAN
 # as either tagged or untagged frames.
 # dot1qVlanCurrentEgressPorts - this is *** READ-ONLY !!! ***
@@ -311,7 +329,8 @@ VLAN_STATUS_OTHER = 1
 VLAN_STATUS_PERMANENT = 2
 VLAN_STATUS_DYNAMIC = 3
 
-CISCO_VLAN_TYPE_NORMAL = 1    # regular(1) in the Cisco VTP mib
+# mostly used for Cisco vlans, to avoid the 1000-1003 range. This is "regular(1)" in the Cisco VTP mib
+VLAN_TYPE_NORMAL = 1    # used to indicate 'normal' vlans,
 
 dot1qVlanCreationTime = '.1.3.6.1.2.1.17.7.1.4.2.1.7'              # followed by <someIndex>.<vlanId>
 snmp_mib_variables['dot1qVlanCreationTime'] = dot1qVlanCreationTime

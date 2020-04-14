@@ -249,7 +249,7 @@ class SnmpConnectorComware(SnmpConnector):
             # self._parse_oid_and_cache(QBRIDGE_VLAN_IFACE_UNTAGGED_PVID + "." + str(if_index), str(new_vlan_id), 'u')
 
             # now we need to reread the interface to VLAN mib part
-            self._get_port_vlan_data()
+            self._get_port_vlan_membership()
             # and force data to be added to session cache again!
             self._set_http_session_cache()
             return 0

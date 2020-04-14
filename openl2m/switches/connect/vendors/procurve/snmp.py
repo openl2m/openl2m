@@ -17,6 +17,7 @@ This re-implements some methods found in the base SNMP() class
 with Procurve specific ways of doing things...
 """
 from switches.models import Log
+from switches.constants import *
 from switches.connect.classes import *
 from switches.connect.snmp import SnmpConnector, oid_in_branch
 from switches.connect.constants import *
@@ -164,7 +165,6 @@ class SnmpConnectorProcurve(SnmpConnector):
         for (pe_index, port_entry) in self.poe_port_entries.items():
             # we take the ending part of "5.12" as the index
             (module, port) = port_entry.index.split('.')
-            count = len(port)
             for (if_index, iface) in self.interfaces.items():
                 if iface.name == port:
                     dprint("   PoE Port Map FOUND %s" % iface.name)

@@ -129,7 +129,6 @@ class Interface():
         # vlan related
         self.port_id = -1            # Q-Bridge MIB port id
         self.untagged_vlan = -1      # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
-        self.untagged_vlan_name = ''
         self.vlans = []              # array of vlanId's on this interface, from Q-Bridge. If size > 0 this is a tagged port!
         self.is_tagged = False       # if 802.1q tagging or trunking is enabled
         self.if_vlan_mode = -1       # some vendors (e.g. Comware) have a interface vlan mode, such as access, trunk, hybrid
@@ -167,13 +166,15 @@ class Vlan():
     """
     Class to represent a vlan found on the switch
     """
-    def __init__(self, vlanId):
+    def __init__(self, id=0, index=0):
         """
         Vlan() requires passing in the vlan id
         """
-        self.id = vlanId
+        self.id = id            # the vlan ID as sent on the wire
+        self.index = index      # the internal vlan index, used by some MIBs
+        self.fdb_index = 0      # the Forward-DB index, from maps switch database to vlan index
         self.name = ''
-        self.type = CISCO_VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
+        self.type = VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
         self.status = VLAN_STATUS_OTHER     # 1-other-0, 2-permanent, 3-dynamic(gvrp)
         # dot1qVlanCurrentEgressPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
         self.current_egress_portlist = PortList()
@@ -437,7 +438,6 @@ class PoePort():
         self.index = index          # port entry is the value after the PoE OID that is the index to this interface
         self.admin_status = admin_status
         self.detect_status = POE_PORT_DETECT_SEARCHING
-        self.status_name = poe_status_name[POE_PORT_DETECT_SEARCHING]
         """ currently not used:
         self.priority = 0
         self.description = ''       # rarely used, but available in POE MIB

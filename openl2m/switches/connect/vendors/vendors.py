@@ -13,5 +13,6 @@
 #
 
 from switches.connect.cisco.constants import *
-from switches.connect.procurve.constants import *
 from switches.connect.comware.constants import *
+from switches.connect.juniper.constants import *
+from switches.connect.procurve.constants import *
