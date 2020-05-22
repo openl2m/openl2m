@@ -170,13 +170,14 @@ class SnmpConnectorProcurve(SnmpConnector):
                     dprint("   PoE Port Map FOUND %s" % iface.name)
                     iface.poe_entry = port_entry
                     if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                        warning = "PoE FAULT status (%s) on interface %s" % (port_entry.status_name, iface.name)
+                        warning = "PoE FAULT status (%d = %s) on interface %s" % \
+                            (port_entry.detect_status, poe_status_name[port_entry.status_name], iface.name)
                         self._add_warning(warning)
                         # log my activity
                         log = Log()
                         log.user = self.request.user
                         log.type = LOG_TYPE_ERROR
-                        log.ip_address = get_remote_ip(request)
+                        log.ip_address = get_remote_ip(self.request)
                         log.action = LOG_PORT_POE_FAULT
                         log.description = warning
                         log.save()

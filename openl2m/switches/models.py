@@ -580,7 +580,7 @@ class Switch(models.Model):
     def clean(self):
         # check if IPv4 address or hostname given is valid!
         if not is_valid_hostname_or_ip(self.primary_ip4):
-            raise ValidationError('Invalid primary IP address or hostname.')
+            raise ValidationError('Invalid Management IPv4 address or hostname.')
 
     @property
     def primary_ip(self):

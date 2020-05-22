@@ -229,6 +229,13 @@ snmp_mib_variables['dot1dTpFdbAddress'] = dot1dTpFdbAddress
 dot1dTpFdbPort = '.1.3.6.1.2.1.17.4.3.1.2'
 snmp_mib_variables['dot1dTpFdbPort'] = dot1dTpFdbPort
 
+dot1dTpFdbStatus = '.1.3.6.1.2.1.17.4.3.1.3'
+snmp_mib_variables['dot1dTpFdbStatus'] = dot1dTpFdbStatus
+FDB_STATUS_OTHER = 1
+FDB_STATUS_INVALID = 2
+FDB_STATUS_LEARNED = 3
+FDB_STATUS_SELF = 4
+FDB_STATUS_MGMT = 5
 
 #
 # VLAN Q-BRIDGE RELATED
@@ -269,11 +276,7 @@ snmp_mib_variables['dot1qTpFdbPort'] = dot1qTpFdbPort
 # dot1qTpFdbStatus.<fdb-id>.<6 byte mac address> = status
 dot1qTpFdbStatus = '.1.3.6.1.2.1.17.7.1.2.2.1.3'
 snmp_mib_variables['dot1qTpFdbStatus'] = dot1qTpFdbStatus
-FDB_STATUS_OTHER = 1
-FDB_STATUS_INVALID = 2
-FDB_STATUS_LEARNED = 3
-FDB_STATUS_SELF = 4
-FDB_STATUS_MGMT = 5
+# see above at dot1dTpFdbStatus
 
 dot1qVlanCurrentEntry = '.1.3.6.1.2.1.17.7.1.4.2.1'
 snmp_mib_variables['dot1qVlanCurrentEntry'] = dot1qVlanCurrentEntry

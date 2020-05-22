@@ -6,12 +6,15 @@ Wants=network-online.target
 Conflicts=shutdown.target
 
 [Service]
+Type=simple
 User=nginx
+Group=nginx
 PIDFile=/var/tmp/openl2m.pid
-WorkingDirectory=/opt/openl2m/openl2m
-ExecStart=/usr/local/bin/gunicorn --pid /var/tmp/openl2m.pid -c /opt/openl2m/gunicorn_config.py openl2m.wsgi
+WorkingDirectory=/opt/openl2m
+ExecStart=/opt/openl2m/venv/bin/gunicorn --pid /var/tmp/openl2m.pid --pythonpath /opt/openl2m/openl2m --config /opt/openl2m/gunicorn_config.py openl2m.wsgi
 Restart=on-failure
 RestartSec=15
+PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target

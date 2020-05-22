@@ -6,6 +6,12 @@ CELERY_BIN=/usr/local/bin/celery
 
 CELERYD_NODES=worker
 
+# Where to chdir at start.
+#CELERYD_CHDIR="/opt/openl2m/"
+
+# Python interpreter from environment.
+#ENV_PYTHON="$CELERYD_CHDIR/env/bin/python"
+
 # Extra command-line arguments to the worker
 # --statedb is for persistent revoke (canceling) of tasks
 CELERYD_OPTS="--time-limit=300 --concurrency=4 --statedb=/var/run/celery/worker.state"

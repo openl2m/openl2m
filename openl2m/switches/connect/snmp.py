@@ -79,12 +79,12 @@ class pysnmpHelper():
         )
 
         if errorIndication:
-            details = "ERROR with SNMP Engine: %s at %s" % (errorStatus.prettyPrint(),
+            details = "ERROR with SNMP Engine: %s at %s" % (pprint.pformat(errorStatus),
                                                             errorIndex and varBinds[int(errorIndex) - 1][0] or '?')
             return (True, details)
 
         elif errorStatus:
-            details = "ERROR in SNMP PDU: %s at %s" % (errorStatus.prettyPrint(),
+            details = "ERROR in SNMP PDU: %s at %s" % (pprint.pformat(errorStatus),
                                                        errorIndex and varBinds[int(errorIndex) - 1][0] or '?')
             return (True, details)
 
@@ -112,12 +112,12 @@ class pysnmpHelper():
         )
 
         if errorIndication:
-            details = "ERROR with SNMP Engine: %s at %s" % (errorStatus.prettyPrint(),
+            details = "ERROR with SNMP Engine: %s at %s" % (pprint.pformat(errorStatus),
                                                             errorIndex and varBinds[int(errorIndex) - 1][0] or '?')
             return (True, details)
 
         elif errorStatus:
-            details = "ERROR in SNMP PDU: %s at %s" % (errorStatus.prettyPrint(),
+            details = "ERROR in SNMP PDU: %s at %s" % (pprint.pformat(errorStatus),
                                                        errorIndex and varBinds[int(errorIndex) - 1][0] or '?')
             return (True, details)
 
@@ -523,13 +523,15 @@ class SnmpConnector(EasySNMP):
         self.system = System()      # the global system aka switch info
         self.interfaces = {}        # Interface() objects representing the ports on this switch, key is ifIndex
         self.poe_port_entries = {}  # PoePort() port power entries, used to store until we can map to interface
-        self.vlan_index_to_id = {}  # list of vlan indexes and their vlan ID's. Note on many switches these two are the same!
+
+        self.vlan_id_by_index = {}  # list of vlan indexes and their vlan ID's. Note on many switches these two are the same!
         self.vlans = {}             # Vlan() objects on this switch, key is vlan id (not index!)
         self.allowed_vlans = {}     # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
-        self.qbridge_port_to_if_index = {}     # this maps Q-Bridge port id to MIB-II ifIndex
-        self.dot1tp_fdb_to_port_id = {}    # forwarding database index to switch port mapping. Note many switches do not use this...
-        self.stack_port_to_if_index = {}  # maps (Cisco) stacking port to ifIndex values
-        self.ip4_to_if_index = {}      # the IPv4 addresses as keys, with stored value ifIndex; needed to map netmask to interface
+        self.vlan_id_context = 0    # non-zero if the current function is running in the context of a specific vlan (e.g. for certain Cisco mibs)
+        self.qbridge_port_to_if_index = {}  # this maps Q-Bridge port id to MIB-II ifIndex
+        self.dot1tp_fdb_to_vlan_index = {}  # forwarding database index to vlan index mapping. Note many switches do not use this...
+        self.stack_port_to_if_index = {}    # maps (Cisco) stacking port to ifIndex values
+        self.ip4_to_if_index = {}   # the IPv4 addresses as keys, with stored value ifIndex; needed to map netmask to interface
         self.eth_addr_count = 0     # number of known mac addresses
         self.neighbor_count = 0     # number of lldp neighbors
         self.warnings = []          # list of warning strings that may be shown to users
@@ -558,7 +560,6 @@ class SnmpConnector(EasySNMP):
 
         if not self._set_snmp_session():
             raise Exception("Cannot get SNMP session, did you configure a profile?")
-
 
     def load_caches(self):
         """
@@ -673,14 +674,14 @@ class SnmpConnector(EasySNMP):
         """
         for oid, val in self.oid_cache.items():
             self._parse_oid(str(oid), val)
+        # any other (vendor) post-processing
+        self._parse_oid_cache_post_processing()
         # we parse the system info separately
         self._parse_system_oids()
-        # check if we can manage vlans ion this device:
+        # check if we can manage vlans on this device:
         self.vlan_change_implemented = self.can_change_interface_vlan()
         # and also map the PoE port data to the interfaces
         self._map_poe_port_entries_to_interface()
-        # any other post-processing
-        self._parse_oid_cache_post_processing()
         # set the permissions to the interfaces:
         self._set_interfaces_permissions()
         return
@@ -688,6 +689,7 @@ class SnmpConnector(EasySNMP):
     def _parse_oid_cache_post_processing(self):
         """
         Any post-parsing that needs to be performed.
+        Meant for vendor-specific processing...
         """
         return
 
@@ -1012,6 +1014,9 @@ class SnmpConnector(EasySNMP):
                 return True
             # else add entry, should never happen!
             self.vlans[vlan_id] = Vlan(vlan_id)
+            # assume vlan_id = vlan_index = fdb_index, unless we learn otherwize
+            self.vlan_id_by_index[vlan_id] = vlan_id
+            self.dot1tp_fdb_to_vlan_index[vlan_id] = vlan_id
             return True
 
         # The VLAN ID assigned to ***untagged*** frames - dot1qPvid, indexed by dot1dBasePort
@@ -1305,14 +1310,17 @@ class SnmpConnector(EasySNMP):
         # Q-Bridge Ethernet addresses known
         eth_decimals = oid_in_branch(dot1dTpFdbPort, oid)
         if eth_decimals:
-            # decimals returned at 6 numbers representing the MAC address!
+            # decimals returned are 6 numbers representing the MAC address!
             eth_string = decimal_to_hex_string_ethernet(eth_decimals)
             port_id = int(val)
             # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
             if port_id:
                 if_index = self.qbridge_port_to_if_index[int(val)]
                 if if_index in self.interfaces.keys():
-                    self.interfaces[if_index].eth[eth_string] = EthernetAddress(eth_decimals)
+                    e = EthernetAddress(eth_decimals)
+                    if self.vlan_id_context > 0:
+                        e.vlan_id = self.vlan_id_context
+                    self.interfaces[if_index].eth[eth_string] = e
                     self.eth_addr_count += 1
                 # else:
                 #    dprint("  if_index = %d: NOT FOUND!")
@@ -1330,23 +1338,35 @@ class SnmpConnector(EasySNMP):
         # Q-Bridge Ethernet addresses known
         fdb_eth_decimals = oid_in_branch(dot1qTpFdbPort, oid)
         if fdb_eth_decimals:
-            # decimals returned at fdb index and then 6 numbers representing the MAC address!
+            # decimals returned are fdb index and then 6 numbers representing the MAC address!
             # e.g.    458752.120.72.89.101.150.155
-            eth_decimals = fdb_eth_decimals.split('.', 1)[1]
-            dprint("Eth decimals = %s" % eth_decimals)
+            # fdb_index maps back to the vlan id!
+            (fdb_index, eth_decimals) = fdb_eth_decimals.split('.', 1)
             eth_string = decimal_to_hex_string_ethernet(eth_decimals)
             port_id = int(val)
             # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
             if port_id:
                 if_index = self.qbridge_port_to_if_index[int(val)]
                 if if_index in self.interfaces.keys():
-                    self.interfaces[if_index].eth[eth_string] = EthernetAddress(eth_decimals)
+                    e = EthernetAddress(eth_decimals)
+                    if self.vlan_id_context > 0:
+                        # we are explicitly in a vlan context! (vendor specific implementation)
+                        e.vlan_id = self.vlan_id_context
+                    else:
+                        # see if we can use Forward DB mapping:
+                        # double lookup: from fdb index find vlan index, then from vlan index find vlan id!
+                        """
+                        vlan_index = self.dot1tp_fdb_to_vlan_index.get(int(fdb_index), 0)
+                        vlan_id = self.vlan_id_by_index.get(vlan_index, 0)
+                        dprint("Eth found in fdb_index %d => vlan_index %d => vlan_id %d" % (int(fdb_index), vlan_index, vlan_id))
+                        """
+                        e.vlan_id = self.vlan_id_by_index.get(self.dot1tp_fdb_to_vlan_index.get(int(fdb_index), 0), 0)
+                    self.interfaces[if_index].eth[eth_string] = e
                     self.eth_addr_count += 1
                 # else:
                 #    dprint("  if_index = %d: NOT FOUND!")
             return True
         return False
-
 
     def _parse_mibs_net_to_media(self, oid, val):
         """
@@ -1900,17 +1920,17 @@ class SnmpConnector(EasySNMP):
         # next, read the known ethernet addresses, and add to the Interfaces.
         # Do NOT cache and use a custom parser for speed
 
-        # first, the older dot1d bridge mib
-        retval = not self._get_branch_by_name('dot1dTpFdbPort', False, self._parse_mibs_dot1d_bridge_eth)
-        if retval < 0:
-            self._add_warning("Error getting 'Bridge-EthernetAddresses' (dot1dTpFdbPort)")
-            return retval
-        # next the newer dot1q bridge mib
-        retval = not self._get_branch_by_name('dot1qTpFdbPort', False, self._parse_mibs_q_bridge_eth)
+        # First, the newer dot1q bridge mib
+        retval = self._get_branch_by_name('dot1qTpFdbPort', False, self._parse_mibs_q_bridge_eth)
         if retval < 0:
             self._add_warning("Error getting 'Q-Bridge-EthernetAddresses' (dot1qTpFdbPort)")
-            return retval
-
+            return -1
+        # If nothing found,check the older dot1d bridge mib
+        if retval == 0:
+            retval = self._get_branch_by_name('dot1dTpFdbPort', False, self._parse_mibs_dot1d_bridge_eth)
+            if retval < 0:
+                self._add_warning("Error getting 'Bridge-EthernetAddresses' (dot1dTpFdbPort)")
+                return -1
         return 1
 
     def _get_arp_data(self):
@@ -1923,7 +1943,6 @@ class SnmpConnector(EasySNMP):
         if retval < 0:
             self._add_warning("Error getting 'ARP-Table' (ipNetToMediaPhysAddress)")
             return retval
-
         return 1
 
     def _get_lldp_data(self):
@@ -2049,6 +2068,7 @@ class SnmpConnector(EasySNMP):
         self.group.vlans and self.group.vlangroups is a list of allowed VLAN() Django objects (see switches/models.py)
         """
 
+        dprint("_set_allowed_vlans()")
         # check the vlans on the switch (self.vlans) agains switchgroup.vlan_groups and switchgroup.vlans
         if self.group.read_only and self.request and not self.request.user.is_superuser:
             # Read-Only Group, no vlan allowed!
@@ -2088,6 +2108,7 @@ class SnmpConnector(EasySNMP):
         """
         For all found interfaces, check out rules to see if this user should be able see or edit them
         """
+        dprint("_set_interfaces_permissions()")
         switch = self.switch
         group = self.group
         if self.request:
@@ -2190,6 +2211,7 @@ class SnmpConnector(EasySNMP):
                 iface.unmanage_reason = "Access denied: vlan is not allowed!"
                 continue
 
+        dprint("_set_interfaces_permissions() done!")
         return
 
     def _clear_session_oid_cache(self):

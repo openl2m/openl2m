@@ -360,6 +360,7 @@ class EthernetAddress():
         self.decimal_string = decimal_string
         self.display_address = decimal_to_hex_string_ethernet(decimal_string)
         self.vendor = self.set_vendor()
+        self.vlan_id = 0        # the vlan id (number) this was heard on, if known
         self.address_ip4 = ''   # ipv4 address from arp table, if known
         self.address_ip6 = ''   # ipv6 address, if known
 

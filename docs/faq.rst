@@ -102,3 +102,10 @@ of the device. Please refer to your particular device documentation for more spe
 
   logging history size 50
   logging history informational
+
+
+*  **I have enabled tasks, and now OpenL2M just hangs?**
+
+If you enable tasks, but do not have Redis message queue running, OpenL2M may hang!
+This is caused by an underlying problem in the Celery library we are using, without a firm fix at this time!
+Make sure your redis process is running, and reachable by OpenL2M. See the installation section for more.

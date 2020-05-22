@@ -14,7 +14,7 @@ Install the following:
 
 .. code-block:: bash
 
-  # yum install -y gcc net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel epel-release
+  # yum install -y gcc make net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel epel-release
 
 You then need the following Python v3 packages:
 
@@ -30,7 +30,7 @@ Install these:
 
 .. code-block:: bash
 
-  # dnf install -y gcc net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel python36-devel
+  # dnf install -y gcc make net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel python36-devel
 
 
 **OpenL2M**
@@ -47,9 +47,17 @@ Create the base directory for the OpenL2M installation. For this guide, we'll us
 
 If `git` is not already installed, install it:
 
+**CentOS 7**
+
 .. code-block:: bash
 
   # yum install -y git
+
+  **CentOS 8**
+
+.. code-block:: bash
+
+  # dnf install -y git
 
 Next, clone the **master** branch of the OpenL2M GitHub repository into the current directory:
 
@@ -60,17 +68,26 @@ Next, clone the **master** branch of the OpenL2M GitHub repository into the curr
   ...
   Checking connectivity... done.
 
-**Install Python Packages**
+**Install Packages in Python Virtual Environment**
 
-Install the required Python packages using pip. (If you encounter any compilation errors during this step,
-ensure that you've installed all of the system dependencies listed above.):
+We will install the required Python packages in a virtual environment, so we do
+not interfere with the system-wide python packages.
+Next we activate this environment, upgrade the pip installer, and finally we
+install the required packages.
+If you encounter any compilation errors during this last step, ensure that
+you've installed all of the system dependencies listed above! :
 
 .. code-block:: bash
 
-  # pip3 install -r requirements.txt
+  # cd /opt/openl2m
+  # python3 -m venv /opt/openl2m/venv
+  # source venv/bin/activate
+  (venv) # pip3 install --upgrade pip
+  (venv) # pip3 install -r requirements.txt
 
-If you encounter errors while installing the required packages, check that you're running a recent version of pip
-with the command `pip3 -V`.
+
+If you encounter errors while installing the required packages, check that
+you're running a recent version of pip with the command `pip3 -V`.
 
 
 **Configuration**
@@ -79,8 +96,8 @@ Move into the OpenL2M configuration directory and make a copy of `configuration.
 
 .. code-block:: bash
 
-  # cd openl2m/openl2m/
-  # cp configuration.example.py configuration.py
+  (venv) # cd openl2m/openl2m/
+  (venv) # cp configuration.example.py configuration.py
 
 Open `configuration.py` with your preferred editor and at the minimum set the following variables:
 
@@ -149,8 +166,8 @@ This is done by running `python3 manage.py migrate` from the
 
 .. code-block:: bash
 
-  # cd /opt/openl2m/openl2m/
-  # python3 manage.py migrate
+  (venv) # cd /opt/openl2m/openl2m/
+  (venv) # python3 manage.py migrate
   Operations to perform:
     Apply all migrations: ...
   Running migrations:
@@ -169,20 +186,12 @@ create a super user to be able to log into OpenL2M:
 
 .. code-block:: bash
 
-  # python3 manage.py createsuperuser
+  (venv) # python3 manage.py createsuperuser
   Username: admin
   Email address: admin@example.com
   Password:
   Password (again):
   Superuser created successfully.
-
-**Generate the HTML documentation**
-
-Run:
-
-.. code-block:: bash
-
-  cd ../docs; make html; cd ../openl2m
 
 **Collect Static Files**
 
@@ -190,7 +199,7 @@ Run:
 
 .. code-block:: bash
 
-  # python3 manage.py collectstatic --no-input
+  (venv) # python3 manage.py collectstatic --no-input
 
   You have requested to collect static files at the destination
   location as specified in your settings:
@@ -201,6 +210,14 @@ Run:
   Are you sure you want to do this?
 
   Type 'yes' to continue, or 'no' to cancel: yes
+
+**Generate the HTML documentation**
+
+  Run:
+
+  .. code-block:: bash
+
+    (venv) # cd ../docs; make html; cd ../openl2m
 
 **Load Initial Data (Optional)**
 
@@ -224,7 +241,7 @@ a development instance:
 
 .. code-block:: bash
 
-  # python3 manage.py runserver 0:8000 --insecure
+  (venv) # python3 manage.py runserver 0:8000 --insecure
   Performing system checks...
 
   System check identified no issues (0 silenced).

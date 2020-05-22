@@ -39,7 +39,6 @@ class SnmpConnectorJuniper(SnmpConnector):
         super().__init__(request, group, switch)
         self.name = self.__class__.__name__
         self.vendor_name = 'Juniper Networks'
-        self.vlans_by_tag = {}  # the list of Vlan() objects, but indexed by internal tag, instead of vlan id!
         # force READ-ONLY for now! We have not implemented changing settings.
         self.switch.read_only = True
 
@@ -56,13 +55,6 @@ class SnmpConnectorJuniper(SnmpConnector):
 
         # if not Juniper specific, call the generic parser
         return super()._parse_oid(oid, val)
-
-    def _parse_oid_cache_post_processing(self):
-        """
-        Any post-parsing that needs to be performed after the OID cache is parsed
-        """
-        self._create_vlans_by_id_from_tag()
-        return
 
     def _map_poe_port_entries_to_interface(self):
         """
@@ -84,21 +76,18 @@ class SnmpConnectorJuniper(SnmpConnector):
                     dprint("   PoE Port Map FOUND %s" % iface.name)
                     iface.poe_entry = port_entry
                     if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                        warning = "PoE FAULT status (%d = %s) on interface %s" % (port_entry.detect_status, port_entry.status_name, iface.name)
+                        warning = "PoE FAULT status (%d = %s) on interface %s" % \
+                            (port_entry.detect_status, poe_status_name[port_entry.detect_status], iface.name)
                         self._add_warning(warning)
                         # log my activity
                         log = Log()
                         log.user = self.request.user
                         log.type = LOG_TYPE_ERROR
-                        log.ip_address = get_remote_ip(request)
+                        log.ip_address = get_remote_ip(self.request)
                         log.action = LOG_PORT_POE_FAULT
                         log.description = warning
                         log.save()
                     break
-
-
-
-
 
     def _get_vlan_data(self):
         """
@@ -107,31 +96,30 @@ class SnmpConnectorJuniper(SnmpConnector):
         """
         dprint("Juniper _get_vlan_data()\n")
 
-        # first, call the standard vlan reader
+        # first, call the standard snmp vlan reader
         super()._get_vlan_data()
 
-        # try this:
-        retval = self._get_branch_by_name('jnxL2aldVlanEntry', True, self._parse_mibs_juniper_l2ald_vlans)
-        if retval < 0:
+        # try the Juniper L2 entries. FIrst the "tag" or index to vlan_id mapping:
+        retval = self._get_branch_by_name('jnxL2aldVlanTag', True, self._parse_mibs_juniper_l2ald_vlans)
+        if retval < 0:  # error
             return retval
-        if retval > 0:
-            # we found some, but they are indexed by an internal tag, we want indexed by vlan id
-            self._create_vlans_by_id_from_tag()
-        return retval
-
-    def _create_vlans_by_id_from_tag(self):
-        """
-        convert the self.vlans_by_tag dict to self.vlans dict.
-        """
-        for index, vlan in self.vlans_by_tag.items():
-            # make sure this is a valid Vlan() object
-            if vlan.id != 0 and vlan.id in self.vlans.keys():
-                self.vlans[vlan.id].name = vlan.name
-                self.vlans[vlan.id].status = vlan.status
+        if retval > 0:  # we found something, read the rest
+            retval = self._get_branch_by_name('jnxL2aldVlanName', True, self._parse_mibs_juniper_l2ald_vlans)
+            if retval < 0:  # error
+                return retval
+            retval = self._get_branch_by_name('jnxL2aldVlanType', True, self._parse_mibs_juniper_l2ald_vlans)
+            if retval < 0:  # error
+                return retval
+            retval = self._get_branch_by_name('jnxL2aldVlanFdbId', True, self._parse_mibs_juniper_l2ald_vlans)
+            if retval < 0:  # error
+                return retval
+            return 1
+        return 0
 
     def _parse_mibs_juniper_l2ald_vlans(self, oid, val):
         """
         Parse JNX EX specific VLAN Mibs
+        Returns True if parses, False if not.
         """
         dprint("_parse_mibs_juniper_l2ald_vlans()\n")
 
@@ -140,27 +128,25 @@ class SnmpConnectorJuniper(SnmpConnector):
         vlan_index = int(oid_in_branch(jnxL2aldVlanID, oid))
         if vlan_index:
             if (int(val) == 1):
-                self.vlans_by_tag[vlan_index] = Vlan(none, vlan_index)
+                self.vlan_id_by_index[vlan_index] = Vlan(none, vlan_index)
             return True
         """
+        # a new vlan tag or index that maps to an actual vlan id on the wire!
+        vlan_index = int(oid_in_branch(jnxL2aldVlanTag, oid))
+        if vlan_index:
+            dprint("jnxL2aldVlanTag %s = %s" % (vlan_index, val))
+            self.vlan_id_by_index[vlan_index] = int(val)
+            return True
 
         # vlan name, indexed by internal vlan index, NOT vlan id!
         vlan_index = int(oid_in_branch(jnxL2aldVlanName, oid))
         if vlan_index:
             dprint("jnxL2aldVlanName %s = %s" % (vlan_index, val))
-            if vlan_index in self.vlans_by_tag.keys():
-                self.vlans_by_tag[vlan_index].name = str(val)
-            else:
-                self.vlans_by_tag[vlan_index] = Vlan(0, vlan_index)
-                self.vlans_by_tag[vlan_index].name = str(val)
-            return True
-
-        # the actual vlan id on the wire!
-        vlan_index = int(oid_in_branch(jnxL2aldVlanTag, oid))
-        if vlan_index:
-            dprint("jnxL2aldVlanTag %s = %s" % (vlan_index, val))
-            if vlan_index in self.vlans_by_tag.keys():
-                self.vlans_by_tag[vlan_index].id = int(val)
+            try:
+                self.vlans[self.vlan_id_by_index[vlan_index]].name = val
+            except KeyError:
+                # should not happen!
+                self._add_warning("Invalid vlan index %d (jnxL2aldVlanName)" % vlan_index)
             return True
 
         # vlan type, static or dynamic
@@ -168,20 +154,29 @@ class SnmpConnectorJuniper(SnmpConnector):
         if vlan_index:
             dprint("jnxL2aldVlanType %s = %s" % (vlan_index, val))
             val = int(val)
-            if vlan_index in self.vlans_by_tag.keys():
-                if val == JNX_VLAN_TYPE_STATIC:
-                    self.vlans_by_tag[vlan_index].status = VLAN_STATUS_PERMANENT
-                elif val == JNX_VLAN_TYPE_DYNAMIC:
-                    self.vlans_by_tag[vlan_index].status = VLAN_STATUS_DYNAMIC
-                else:   # should not happen!
-                    self.vlans_by_tag[vlan_index].status = VLAN_STATUS_OTHER
+            if val == JNX_VLAN_TYPE_STATIC:
+                status = VLAN_STATUS_PERMANENT
+            elif val == JNX_VLAN_TYPE_DYNAMIC:
+                status = VLAN_STATUS_DYNAMIC
+            else:   # should not happen!
+                status = VLAN_STATUS_OTHER
+            try:
+                self.vlans[self.vlan_id_by_index[vlan_index]].status = status
+            except KeyError:
+                # should not happen!
+                self._add_warning("Invalid vlan index %d (jnxL2aldVlanType)" % vlan_index)
             return True
 
-        # the filtering database, this maps 'vlan index' to 'filter db index'
+        # the filtering database, this maps 'vlan index' (sub-oid) to 'filter db index' (return value)
         vlan_index = int(oid_in_branch(jnxL2aldVlanFdbId, oid))
         if vlan_index:
-            if vlan_index in self.vlans_by_tag.keys():
-                self.vlans_by_tag[vlan_index].fdb_index = int(val)
+            fdb_index = int(val)
+            try:
+                self.vlans[self.vlan_id_by_index[vlan_index]].fdb_index = fdb_index
+                self.dot1tp_fdb_to_vlan_index[fdb_index] = vlan_index
+                dprint("FDB entry:  %s  =>  %s" % (fdb_index, vlan_index))
+            except KeyError:
+                # should not happen!
+                self._add_warning("Invalid vlan index %d (jnxL2aldVlanFdbId)" % vlan_index)
             return True
-
         return False

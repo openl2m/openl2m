@@ -27,3 +27,4 @@ netmiko>=3.0.0
 gitpython
 celery>=4.4,<4.5
 flower
+gunicorn==20.0.4

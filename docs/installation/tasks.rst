@@ -9,6 +9,11 @@ you need to install the Redis message queue, and Celery task queuing system.
 
 If you do *NOT* want to enable this feature, simple ignore the rest of this page!
 
+.. warning::
+
+  If you enable tasks, but do not have Redis message queue running, OpenL2M may hang!
+  This is caused by an underlying problem in the Celery library we are using, without a firm fix at this time!
+
 To enable task scheduling, set the following in configuration.py
 
 .. code-block:: bash
@@ -124,7 +129,7 @@ Copy the Celery configuration file celery.default to /etc/default/celeryd
 
 .. code-block:: bash
 
-  sudo cp celery.default /etc/default/celeryd
+  sudo cp ./scripts/celery.default /etc/default/celeryd
 
 
 The service definition is in the file celery.service
@@ -132,7 +137,7 @@ Copy this file into the system directory:
 
 .. code-block:: bash
 
-  sudo cp celery.service /etc/systemd/system
+  sudo cp ./scripts/celery.service /etc/systemd/system
 
 Now, we can activate and start this service:
 

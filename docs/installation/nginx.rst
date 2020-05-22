@@ -51,7 +51,7 @@ Once nginx is installed, save the following configuration to `/etc/nginx/conf.d/
 Be sure to replace `openl2m.yourcompany.com` with the domain name or IP address of your installation.
 (This should match the value configured for `ALLOWED_HOSTS` in `configuration.py`.)
 Adjust the listening port as needed (e.g. change 80 to 8000)
-The file *openl2m.conf* is available in this directory:
+The content below is also available in *./scripts/openl2m.conf*:
 
 .. code-block:: bash
 
@@ -133,46 +133,32 @@ make sure you open the proper port:
 
 **gunicorn Installation**
 
-Install gunicorn:
+Gunicorn is already installed in your Python Virtual environment. You need to copy the Gunicorn configuration
+into the "root" openl2m installation path as `gunicorn_config.py` (e.g. `/opt/openl2m/gunicorn_config.py`
+per our example installation).
 
 .. code-block:: bash
 
-  # pip3 install gunicorn
+  cp ./scripts/gunicorn_config.py .
 
-The Gunicorn configuration is in the root openl2m installation path as `gunicorn_config.py`
-(e.g. `/opt/openl2m/gunicorn_config.py` per our example installation).
-
-Verify the location of the gunicorn executable on your server (e.g. `which gunicorn`)
-And update the `pythonpath` variable if needed:
-
-.. code-block:: bash
-
-  command = '/usr/local/bin/gunicorn'
-  pythonpath = '/opt/openl2m/openl2m'
-  bind = '127.0.0.1:8001'
-  workers = 3
-  user = 'nginx'
-  timeout = 150
-  #errorlog = '/var/log/gunicorn_errors.log'
-
-Notes:
-The number of workers is related to how many users your site wil service at the same time.
-If this is large, increase the 3 to something higher, and restart the service (see below)
-
-Note that the timeout is increased from the default 30 seconds, to 150.
-This is to allow large switch stacks to be polled without causing a process timeout.
-You may need to adjust this timeout to suit your environment.
+Modify this file as needed for your environment.
+Note the following:
+* If you change the service port from 8001,
+  you will also need to change the corresponding nginx configuration!
+* The number of workers is related to how many users your site will service at the same time.
+  If this is large, increase the 3 to something higher, and restart the service (see below)
+* The timeout is increased from the default 30 seconds, to 150. This is to allow large switch stacks to be polled
+  without causing a process timeout. You may need to adjust this timeout to suit your environment.
 
 **systemd configuration**
 
 We will install Gunicorn as a service under systemd. The systemd service definition is in the file 'openl2m.service'.
-See this github page for more details: https://github.com/netbox-community/netbox/issues/2902
 
 Copy the file *openl2m.service* to the */etc/systemd/system* directory:
 
 .. code-block:: bash
 
-  # cp openl2m.service /etc/systemd/system
+  # cp ./scripts/openl2m.service /etc/systemd/system
 
 Now activate this service:
 
@@ -228,6 +214,6 @@ Finally, Have Fun!
 
 If you decide to do so, you can now optionally :doc:`use LDAP for authentication. <ldap>`
 
-Also optionally, you can allow users to :doc:`schedule bulk changes at some time in the future. <tasks>` 
+Also optionally, you can allow users to :doc:`schedule bulk changes at some time in the future. <tasks>`
 
 If all is well, you are now ready to install the :doc:`webserver <nginx>`.

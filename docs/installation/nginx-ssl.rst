@@ -45,11 +45,13 @@ On the last line, we generate the CSR. Fill in the questions as applicable to yo
 
 **Upload the CSR to your CA account**
 
-You now need to login to your favorite Certificate Authority account to generate a signed SSL certificate from the CSR. This process is very CA dependent, and will be left up to the reader.
+You now need to login to your favorite Certificate Authority account to generate a signed SSL certificate from the CSR.
+This process is very CA dependent, and will be left up to the reader.
 
 **Install the Signed Certificate**
 
-Once the certificate is issues or generated, download the X509 format file to the /etc/nginx/ssl directory. Name this file openl2m.cer
+Once the certificate is issues or generated, download the X509 format file to the /etc/nginx/ssl directory.
+Name this file openl2m.cer
 
 
 **Reconfigure for SSL**
@@ -60,14 +62,14 @@ Create the "openl2m-ssl.conf" nginx config file as follows:
 
   vi /etc/nginx/conf.d/openl2m-ssl.conf
 
-Add the following section to this file. Note the complete file *openl2m-ssl.conf* is available in this directory:
+Add the following section to this file. Note the complete file *openl2m-ssl.conf* is available in the scripts directory:
 
 .. code-block:: bash
 
   server {
     listen 443 http2 ssl;
 
-    server_name switches.yourcompany.com;
+    server_name openl2m.yourcompany.com;
     ssl_certificate /etc/nginx/ssl/openl2m.crt;
     ssl_certificate_key /etc/nginx/ssl/openl2m.key;
     ssl_dhparam /etc/ssl/certs/dhparam.pem;
@@ -99,15 +101,15 @@ Now modify the regular port to do a redirect to the SSL site:
   vi /etc/nginx/conf.d/openl2m.conf
 
 
-and replace the content with the following. Note this is available in *openl2m-redirect.conf*:
+and replace the content with the following. Note this is available in the scripts directory as *openl2m-redirect.conf*:
 
 .. code-block:: bash
 
   server {
       listen 80;
 
-      server_name switches.yourcompany.com;
-      return 301 https://switches.yourcompany.com/;
+      server_name openl2m.yourcompany.com;
+      return 301 https://openl2m.yourcompany.com/;
   }
 
 

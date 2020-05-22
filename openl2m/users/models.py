@@ -102,7 +102,8 @@ def create_logged_in_log_entry(sender, user, request, **kwargs):
 def create_logged_out_log_entry(sender, user, request, **kwargs):
     # log the logout!
     log = Log()
-    log.user = request.user
+    if isinstance(request.user, User):
+        log.user = request.user
     log.ip_address = get_remote_ip(request)
     log.action = LOG_LOGOUT
     log.description = "Logged out"

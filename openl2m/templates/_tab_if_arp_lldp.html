@@ -56,16 +56,18 @@
                    title="Routed Mode Interface">
             {% endif %}
             {% if iface.is_tagged %}
-              &nbsp;<img src="{% static 'img/trunk.png' %}"
-                         alt="Tagged/Trunked Interface"
-                         data-toggle="tooltip"
-                         title="Tagged/Trunked Interface">
+              &nbsp;
+              <img src="{% static 'img/trunk.png' %}"
+                   alt="Tagged/Trunked Interface"
+                   data-toggle="tooltip"
+                   title="Tagged/Trunked Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
             {% endif %}
             {% if iface.voice_vlan %}
-              &nbsp;<img src="{% static 'img/voice-vlan.png' %}"
-                         alt="Voice VLAN"
-                         data-toggle="tooltip"
-                         title="Voice VLAN {{ iface.voice_vlan }}">
+              &nbsp;
+              <img src="{% static 'img/voice-vlan.png' %}"
+                   alt="Voice VLAN"
+                   data-toggle="tooltip"
+                   title="Voice VLAN {{ iface.voice_vlan }}">
             {% endif %}
             {% if iface.lacp_master_index > 0 %}
               &nbsp;
@@ -85,16 +87,7 @@
             <!-- ifIndex = {{ iface.index }} -->
             </td>
 
-            <td>{% if iface.oper_status == IF_OPER_STATUS_UP %}
-                  {% if iface.hc_speed > 0 %}
-                    {{ iface.hc_speed }} Mbps
-                  {% else %}
-                   <small>(Unknown)</small>
-                   {% endif %}
-                {% else %}
-                  -
-                {% endif %}
-            </td>
+            {% include "_tpl_iface_link_td.html" %}
 
             <td>
               {% if iface.untagged_vlan > 0 %}
@@ -112,6 +105,9 @@
                 <div>
                   {{ eth|get_ethernet_info_links }}
                   {{ eth.display_address }}
+                  {% if eth.vlan_id > 0 %}
+                    (Vlan {{ eth.vlan_id }})
+                  {% endif %}
                   {% if eth.address_ip4 %}
                      / {{ eth.address_ip4|get_ip4_info_links }}
                        {{ eth.address_ip4 }}

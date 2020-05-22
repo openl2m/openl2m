@@ -1,0 +1,14 @@
+{% load helpers %}
+{% load static %}
+
+<td>
+  {% if iface.oper_status == IF_OPER_STATUS_UP %}
+    {% if iface.hc_speed > 0 %}
+      {{ iface.hc_speed }} Mbps
+    {% else %}
+      <small>(Unknown)</small>
+    {% endif %}
+  {% else %}
+    -
+  {% endif %}
+</td>

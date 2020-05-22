@@ -18,14 +18,14 @@ OpenL2M requires the following MIBs to be available on the switches it manages:
   Used to read modern interface data, such as name, description, high speed interface data, and more.
 
 * Q-Bridge MIB, RFC 2674, https://tools.ietf.org/html/rfc2674
-  This is used for the VLAN information.
+  This is used for VLAN and Ethernet address information.
 
 * Power Ethernet MIB, RFC 3621, <https://tools.ietf.org/html/rfc3621
   Used to read PoE data for interfaces.
 
 * ipNetToMediaTable entries of SMIv2 MIB in RFC2011, https://tools.ietf.org/html/rfc2011
   or ipNetToPhysicalTable in the newer RFC4293, https://tools.ietf.org/html/rfc4293.
-  This is used to get mac address and ARP information.
+  This is used to get Ethernet address and ARP information.
 
 * IEEE LLDP, LLDP-EXT-DOT1 and LLDP-EXT-DOT3 MIBs, http://www.ieee802.org/1/files/public/MIBs/
   Used to read device neighbors information.
@@ -77,6 +77,9 @@ Several vendor specific MIB are supported at this time.
 * HPE HH3C-Config-Man MIB
   Used to save running configuration on HPE Comware switches.
 
+* Juniper Networks L2ALD MIB
+  Used for vendor-specific vlan information.
+
 **Switches Tested**
 
 While an attempt has been made to make OpenL2M adhere to 'standard' SNMP, we recognize there is no such thing as
@@ -99,6 +102,10 @@ completely 'standard' SNMP. We have tested OpenL2M on the following hardware, wi
 * *HPE 5130* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5500* series switches, running Comware 5; single units.
 * *HPE 5900AF* series switches, running Comware 7; single units.
+
+**Juniper Networks**
+
+* *EX2300* series switch, running JUNOS 18.2R3-S2.9; single unit.
 
 **Generic**
 

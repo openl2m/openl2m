@@ -22,6 +22,7 @@ Welcome to the documentation for the "Open Layer 2 Management" project.
    switches.rst
    releases/index.rst
    faq.rst
+   howto/maintain.rst
    roadmap.rst
    references.rst
 

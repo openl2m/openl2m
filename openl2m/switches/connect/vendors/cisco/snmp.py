@@ -146,6 +146,7 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint("_get_known_ethernet_addresses(Cisco)\n")
         for vlan_id in self.vlans.keys():
             # little hack for Cisco devices, to see various vlan-specific tables:
+            self.vlan_id_context = int(vlan_id)
             com_or_ctx = ''
             if self.switch.snmp_profile.version == SNMP_VERSION_2C:
                 # for v2, set community string to "Cisco format"
@@ -159,10 +160,11 @@ class SnmpConnectorCisco(SnmpConnector):
             if retval < 0:
                 return retval
             # next, read the known ethernet addresses, and add to the Interfaces
-            retval = self._get_branch_by_name('dot1dTpFdbPort', False, self._parse_mibs_bridge_eth)
+            retval = self._get_branch_by_name('dot1dTpFdbPort', False, self._parse_mibs_dot1d_bridge_eth)
             if retval < 0:
                 return False
         # reset the snmp session back!
+        self.vlan_id_context = 0
         self._set_snmp_session()
         return True
 
@@ -223,13 +225,14 @@ class SnmpConnectorCisco(SnmpConnector):
                     if if_index in self.interfaces.keys():
                         self.interfaces[if_index].poe_entry = port_entry
                         if port_entry.detect_status == POE_PORT_DETECT_FAULT:
-                            warning = "PoE FAULT status (%s) on interface %s" % (port_entry.status_name, iface.name)
+                            warning = "PoE FAULT status (%d = %s) on interface %s" % \
+                                (port_entry.detect_status, poe_status_name[port_entry.detect_status], iface.name)
                             self._add_warning(warning)
                             # log my activity
                             log = Log()
                             log.user = self.request.user
                             log.type = LOG_TYPE_ERROR
-                            log.ip_address = get_remote_ip(request)
+                            log.ip_address = get_remote_ip(self.request)
                             log.action = LOG_PORT_POE_FAULT
                             log.description = warning
                             log.save()

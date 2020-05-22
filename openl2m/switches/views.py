@@ -174,6 +174,8 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
         log.save()
         return error_page(request, group, switch, conn.error)
 
+    dprint("Basic Info OK")
+
     if view == 'hw_info':
         if not conn.get_switch_hardware_details():
             # errors
@@ -183,6 +185,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
             # don't render error, since we have already read the basic interface data
             # Note that SNMP errors are already added to warnings!
             # return error_page(request, group, switch, conn.error)
+        dprint("Details Info OK")
 
     if view == 'arp_lldp':
         if not conn.get_switch_client_data():
@@ -192,6 +195,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
             # don't render error, since we have already read the basic interface data
             # Note that errors are already added to warnings!
             # return error_page(request, group, switch, conn.error)
+        dprint("ARP-LLDP Info OK")
 
     # does this switch have any commands defined?
     cmd = False
@@ -245,6 +249,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
         task_process_running = is_celery_running()
         tasks = Task.objects.all().filter(switch=switch, status=TASK_STATUS_SCHEDULED).order_by('-eta')
     else:
+        task_process_running = False
         tasks = False
 
     time_since_last_read = time_duration(time.time() - conn.basic_info_read_time)
@@ -253,14 +258,14 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
     bulk_edit = user_can_bulkedit(request.user, group, switch)
     allow_tasks = user_can_run_tasks(request.user, group, switch)
 
-    title = "Recent Activity"
+    log_title = "Recent Activity"
 
     return render(request, template_name, {
         'group': group,
         'switch': switch,
         'connection': conn,
         'logs': logs,
-        'log_title': title,
+        'log_title': log_title,
         'logs_link': True,
         'tasks': tasks,
         'task_process_running': task_process_running,
@@ -1016,7 +1021,7 @@ def show_stats(request):
     # Celery task processing information
     if settings.TASKS_ENABLED:
         celery_info = get_celery_info()
-        if celery_info['stats'] is None:
+        if not celery_info or celery_info['stats'] is None:
             environment['Tasks'] = "Enabled, NOT running"
         else:
             environment['Tasks'] = "Enabled and running"
@@ -1391,9 +1396,10 @@ def rights_to_group_and_switch(request, group_id, switch_id):
         return True
     # for regular users, check permissions:
     permissions = get_from_http_session(request, 'permissions')
-    if str(group_id) in permissions.keys():
+    if permissions and isinstance(permissions, Dict) and \
+       str(group_id) in permissions.keys():
         switches = permissions[str(group_id)]
-        if str(switch_id) in switches.keys():
+        if isinstance(switches, Dict) and str(switch_id) in switches.keys():
             return True
     return False
 
