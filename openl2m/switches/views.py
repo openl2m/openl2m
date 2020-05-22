@@ -1396,10 +1396,10 @@ def rights_to_group_and_switch(request, group_id, switch_id):
         return True
     # for regular users, check permissions:
     permissions = get_from_http_session(request, 'permissions')
-    if permissions and isinstance(permissions, Dict) and \
+    if permissions and isinstance(permissions, dict) and \
        str(group_id) in permissions.keys():
         switches = permissions[str(group_id)]
-        if isinstance(switches, Dict) and str(switch_id) in switches.keys():
+        if isinstance(switches, dict) and str(switch_id) in switches.keys():
             return True
     return False
 
