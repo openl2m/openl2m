@@ -7,9 +7,12 @@
 # Once the script completes, remember to restart the WSGI service
 # (e.g.  systemctl restart openl2m )
 
-# Stop the gunicorn python service
+# Stop the gunicorn/celery python services:
 #COMMAND="($SYSTEMCTL) stop openl2m"
 #echo "Stopping OpenL2M Python service ($COMMAND)..."
+#eval $COMMAND
+#COMMAND="($SYSTEMCTL) stop celery"
+#echo "Stopping OpenL2M Celery service ($COMMAND)..."
 #eval $COMMAND
 
 cd "$(dirname "$0")"
@@ -91,6 +94,10 @@ echo "    sudo systemctl restart celery"
 echo
 
 # Restart the python service
-#COMMAND="($SYSTEMCTL) start openl2m"
+#COMMAND="($SYSTEMCTL) restart openl2m"
 #echo "Starting OpenL2M Python service ($COMMAND)..."
+#eval $COMMAND
+# Restart the celery service
+#COMMAND="($SYSTEMCTL) restart celery"
+#echo "Starting OpenL2M Celery service ($COMMAND)..."
 #eval $COMMAND
