@@ -6,11 +6,11 @@ Version 1.1
 
 Version 1.1.8
 -------------
-Release Date: 2020-05-22
+Release Date: 2020-05-27
 
+* OpenL2M (and Celery, if used) now install into a Python3 Virtual Environment
 * add rudimentary Juniper switch support. This is currently Read-Only
   and only tested on one specific product (EX2300).
-
 * show the vlan on which Ethernet addresses are learned.
 
 Bug Fixes:

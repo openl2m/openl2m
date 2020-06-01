@@ -56,22 +56,21 @@ Note: you can also use an already existing Redis setup, either on the same serve
 This is left as an exercise to the reader. If you do, take a close look at the
 CELERY variables in openl2m/configuration.py
 
-Install Celery:
----------------
-
-.. code-block:: bash
-
-  sudo pip3 install celery[redis]
-
 Test Celery:
 ------------
 
-Test this from the ./openl2m/ directory (where manage.py lives).
+Test this from the ./openl2m/ directory (where manage.py lives, i.e /opt/openl2m/openl2m/ ).
+Make sure you have activated your virtual environment first:
+
+.. code-block:: bash
+
+  # source venv/bin/activate
+
 Run the command below. You should see some lines indicating success:
 
 .. code-block:: bash
 
-  celery -A openl2m worker --loglevel info
+  (venv) # celery -A openl2m worker --loglevel info
 
   <...snip...>
   [2019-12-22 00:31:57,754: INFO/MainProcess] Connected to redis://localhost:6379//

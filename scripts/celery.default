@@ -2,15 +2,15 @@
 # http://docs.celeryproject.org/en/latest/userguide/daemonizing.html#usage-systemd
 
 # Absolute path to the 'celery' command:
-CELERY_BIN=/usr/local/bin/celery
+CELERY_BIN=/opt/openl2m/venv/bin/celery
 
 CELERYD_NODES=worker
 
 # Where to chdir at start.
-#CELERYD_CHDIR="/opt/openl2m/"
+CELERYD_CHDIR="/opt/openl2m/"
 
 # Python interpreter from environment.
-#ENV_PYTHON="$CELERYD_CHDIR/env/bin/python"
+ENV_PYTHON="$CELERYD_CHDIR/env/bin/python"
 
 # Extra command-line arguments to the worker
 # --statedb is for persistent revoke (canceling) of tasks

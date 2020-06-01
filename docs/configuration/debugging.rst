@@ -29,35 +29,58 @@ Add this to configuration.py:
       'version': 1,
       'disable_existing_loggers': False,
       'formatters': {
-          'console': {
+          'minimal': {
               # very minimal format:
+              'format': '[OpenL2M] %(message)s',
+          },
+          'standard': {
+              'format' : "[OpenL2M] [%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+              'datefmt' : "%d/%b/%Y %H:%M:%S"
+          },
+          'console': {
+              # very minimal format for console:
               'format': '%(asctime)s %(message)s',
           },
-          'file': {
+          'basic': {
               # basic format:
-              'format': '%(asctime)s %(levelname)-8s %(message)s',
-          }
+              'format': '%(asctime)s %(levelname)s %(message)s',
+          },
       },
       'handlers': {
           'console': {
               'class': 'logging.StreamHandler',
               'formatter': 'console',
           },
+
+          # NOTE: this file handler is *NOT* compatible with running
+          #       Celery task processing! Make sure you COMMENT OUT this part
+          #       if using Celery !!! Use the syslog entry below, or some
+          #       other logger that does not write to files!
           'file': {
               'level': 'DEBUG',
               'class': 'logging.handlers.TimedRotatingFileHandler',
-              'formatter': 'file',
+              'formatter': 'basic',
               'when': 'd',            # rotate daily
               'backupCount': 14,      # keep max 14 days of files
               'filename': '/tmp/openl2m-debug.log',
           },
+          'syslog': {
+              'class': 'logging.handlers.SysLogHandler',
+              'formatter': 'standard',
+              'facility': 'user',
+              # uncomment next line if rsyslog works with unix socket only (UDP reception disabled)
+              #'address': '/dev/log'
+          }
       },
       'loggers': {
+          # NOTE: if using Celery, do NOT use file, but only console and/or syslog!
           'openl2m.console': {
               'handlers': ['console'],
               'level': 'DEBUG',
           },
           'openl2m.debug': {
+              # with Celery use:
+              #'handlers': ['syslog'],
               'handlers': ['file'],
               'level': 'DEBUG',
           },

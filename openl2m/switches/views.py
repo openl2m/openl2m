@@ -312,7 +312,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
 
     # read the submitted form data:
     interface_change = bool(request.POST.get('interface_change', False))
-    poe_choice = int(request.POST.get('poe_choice', False))
+    poe_choice = int(request.POST.get('poe_choice', BULKEDIT_POE_NONE))
     new_pvid = int(request.POST.get('new_pvid', -1))
     new_alias = str(request.POST.get('new_alias', ''))
     interface_list = request.POST.getlist('interface_list')
@@ -323,7 +323,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
     if len(interface_list) == 0:
         return warning_page(request, group, switch, mark_safe("Please select at least 1 interface!"))
 
-    if not interface_change and not poe_choice and new_pvid < 0 and not new_alias:
+    if not interface_change and poe_choice == BULKEDIT_POE_NONE and new_pvid < 0 and not new_alias:
         return warning_page(request, group, switch, mark_safe("Please select at least 1 thing to change!"))
 
     # perform some checks on valid data first:
@@ -891,7 +891,7 @@ def switch_cmd_output(request, group_id, switch_id):
     """
     Go parse a global switch command that was submitted in the form
     """
-    command_id = int(request.POST.get('command_id', ''))
+    command_id = int(request.POST.get('command_id', -1))
     return switch_view(request, group_id, switch_id, 'basic', command_id)
 
 
@@ -900,7 +900,7 @@ def interface_cmd_output(request, group_id, switch_id, interface_id):
     """
     Parse the interface-specific form and build the commands
     """
-    command_id = int(request.POST.get('command_id', ''))
+    command_id = int(request.POST.get('command_id', -1))
     return switch_view(request, group_id, switch_id, 'basic', command_id, interface_id)
 
 
