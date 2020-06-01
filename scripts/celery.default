@@ -1,5 +1,4 @@
-# See
-# http://docs.celeryproject.org/en/latest/userguide/daemonizing.html#usage-systemd
+# See http://docs.celeryproject.org/en/latest/userguide/daemonizing.html#usage-systemd
 
 # Absolute path to the 'celery' command:
 CELERY_BIN=/opt/openl2m/venv/bin/celery
