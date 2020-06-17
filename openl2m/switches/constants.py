@@ -136,6 +136,7 @@ LOG_VIEW_ALL_LOGS = 6
 LOG_VIEW_ADMIN_STATS = 7
 LOG_VIEW_TASKS = 8
 LOG_VIEW_TASK_DETAILS = 9
+LOG_VIEW_SWITCH_SEARCH = 10
 LOG_LOGIN = 90
 LOG_LOGOUT = 91
 LOG_LOGOUT_INACTIVE = 92
@@ -186,6 +187,7 @@ LOG_ACTION_CHOICES = [
     [LOG_VIEW_ADMIN_STATS, 'Viewing Site Statistics'],
     [LOG_VIEW_TASKS, 'Viewing Tasks'],
     [LOG_VIEW_TASK_DETAILS, 'Viewing Task Details'],
+    [LOG_VIEW_SWITCH_SEARCH, 'Searching for Switch Name'],
     [LOG_RELOAD_SWITCH, 'Reloading Switch Data'],
     [LOG_NEW_OID_FOUND, 'New System ObjectID Found'],
     [LOG_NEW_HOSTNAME_FOUND, 'New System Name Found'],

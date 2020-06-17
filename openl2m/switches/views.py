@@ -18,6 +18,7 @@ import datetime
 import traceback
 import git
 import json
+import re
 
 import django
 from django.conf import settings
@@ -30,6 +31,7 @@ from django.utils.html import mark_safe
 from django.views.generic import View
 from django.utils import timezone
 from django.core.paginator import Paginator
+from django.shortcuts import redirect
 
 from openl2m.celery import get_celery_info, is_celery_running
 from switches.models import *
@@ -60,11 +62,9 @@ def switches(request):
     save_to_http_session(request, "remote_ip", get_remote_ip(request))
 
     # find the groups with switches that we have rights to:
-    regular_user = True
     switchgroups = {}
     permissions = {}
     if request.user.is_superuser or request.user.is_staff:
-        regular_user = False
         # optimize data queries, get all related field at once!
         groups = SwitchGroup.objects.all().order_by('name')
 
@@ -76,12 +76,12 @@ def switches(request):
     for group in groups:
         if group.switches.count():
             switchgroups[group.name] = group
-            if regular_user:
-                # set this group, and the switches, in web session to track permissions
-                permissions[group.id] = {}
-                for switch in group.switches.all():
-                    if switch.status == SWITCH_STATUS_ACTIVE and switch.snmp_profile:
-                        permissions[group.id][switch.id] = switch.id
+            # set this group, and the switches, in web session to track permissions
+            permissions[group.id] = {}
+            for switch in group.switches.all():
+                if switch.status == SWITCH_STATUS_ACTIVE and switch.snmp_profile:
+                    # we save the names as well, so we can search them!
+                    permissions[group.id][switch.id] = (switch.name, switch.snmp_hostname, switch.description)
 
     save_to_http_session(request, "permissions", permissions)
 
@@ -97,7 +97,55 @@ def switches(request):
     # render the template
     return render(request, template_name, {
         'groups': switchgroups,
-        'group_count': len(switchgroups),
+    })
+
+
+@login_required
+def switch_search(request):
+    """
+    search for a switch by name
+    """
+
+    if not settings.SWITCH_SEARCH_FORM:
+        return redirect(reverse('switches:groups'))
+
+    search = str(request.POST.get('switchname', ''))
+    if not search:
+        return redirect(reverse('switches:groups'))
+
+    template_name = "search_results.html"
+
+    # log my activity
+    log = Log()
+    log.user = request.user
+    log.ip_address = get_remote_ip(request)
+    log.action = LOG_VIEW_SWITCH_SEARCH
+    log.description = f"Searching for switch '{ search }'"
+    log.type = LOG_TYPE_VIEW
+    log.save()
+
+    results = []
+    warning = False
+    permissions = get_from_http_session(request, 'permissions')
+    if permissions and isinstance(permissions, dict):
+        for group_id in permissions.keys():
+            switches = permissions[str(group_id)]
+            if isinstance(switches, dict):
+                for switch_id in switches.keys():
+                    (name, hostname, description) = switches[str(switch_id)]
+                    # now check the name, hostname for the search pattern:
+                    try:
+                        if re.search(search, name, re.IGNORECASE) or re.search(search, hostname, re.IGNORECASE):
+                            results.append((str(group_id), str(switch_id), name, description))
+                    except Exception as e:
+                        # invalid search, just ignore!
+                        warning = f"{search} - This is an invalid search pattern!"
+
+    # render the template
+    return render(request, template_name, {
+        'warning': warning,
+        'search': search,
+        'results': results,
     })
 
 
@@ -144,8 +192,8 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
 
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
-        error.description = "You do not have access to this switch"
-        return error_page(request, group, switch, error)
+        error.description = "Access denied!"
+        return error_page(request, False, False, error)
 
     log = Log()
     log.user = request.user
@@ -305,8 +353,8 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
 
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
-        error.description = "You do not have access to this switch"
-        return error_page(request, group, switch, error)
+        error.description = "Access denied!"
+        return error_page(request, False, False, error)
 
     conn = get_connection_object(request, group, switch)
 
@@ -499,8 +547,8 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
 
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
-        error.description = "You do not have access to this switch"
-        return error_page(request, group, switch, error)
+        error.description = "Access denied!"
+        return error_page(request, False, False, error)
 
     conn = get_connection_object(request, group, switch)
     iface = conn.get_interface_by_index(interface_id)
@@ -548,8 +596,8 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
 
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
-        error.description = "You do not have access to this switch"
-        return error_page(request, group, switch, error)
+        error.description = "Access denied!"
+        return error_page(request, False, False, error)
 
     conn = get_connection_object(request, group, switch)
     iface = conn.get_interface_by_index(interface_id)
@@ -632,8 +680,8 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
 
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
-        error.description = "You do not have access to this switch"
-        return error_page(request, group, switch, error)
+        error.description = "Access denied!"
+        return error_page(request, False, False, error)
 
     conn = get_connection_object(request, group, switch)
     iface = conn.get_interface_by_index(interface_id)
@@ -699,8 +747,8 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
         error.status = True
-        error.description = "You do not have access to this switch"
-        return error_page(request, group, switch, error)
+        error.description = "Access denied!"
+        return error_page(request, False, False, error)
 
     conn = get_connection_object(request, group, switch)
     iface = conn.get_interface_by_index(interface_id)
@@ -764,8 +812,8 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
         error.status = True
-        error.description = "You do not have access to this switch"
-        return error_page(request, group, switch, error)
+        error.description = "Access denied!"
+        return error_page(request, False, False, error)
 
     conn = get_connection_object(request, group, switch)
     iface = conn.get_interface_by_index(interface_id)
@@ -837,8 +885,8 @@ def switch_save_config(request, group_id, switch_id, view):
 
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
-        error.description = "You do not have access to this switch"
-        return error_page(request, group, switch, error)
+        error.description = "Access denied!"
+        return error_page(request, False, False, error)
 
     log = Log()
     log.user = request.user
@@ -915,8 +963,8 @@ def switch_reload(request, group_id, switch_id, view):
 
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
-        err.description = "You do not have access to this switch"
-        return error_page(request, group, switch, error)
+        err.description = "Access denied!"
+        return error_page(request, False, False, error)
 
     log = Log()
     log.user = request.user
@@ -945,8 +993,8 @@ def switch_activity(request, group_id, switch_id):
 
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
-        error.description = "You do not have access to this switch"
-        return error_page(request, group, switch, error)
+        error.description = "Access denied!"
+        return error_page(request, False, False, error)
 
     # only show this switch. May add more filters later...
     filter = {}
@@ -1417,7 +1465,8 @@ def user_can_access_task(request, task=False):
             return True
         # does the user have rights to the group of this task?
         permissions = get_from_http_session(request, 'permissions')
-        if str(task.group.id) in permissions.keys():
+        if permissions and isinstance(permissions, dict) and \
+           str(task.group.id) in permissions.keys():
             #  if member of group there is no need to check switch!
             return True
     # deny others

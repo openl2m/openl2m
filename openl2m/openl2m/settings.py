@@ -48,8 +48,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = '1.1.8'
-VERSION_DATE = '2020-05-27'
+VERSION = '1.1.9'
+VERSION_DATE = '2020-06-17'
 
 # Hostname
 HOSTNAME = platform.node()
@@ -139,6 +139,9 @@ BGCOLOR_IF_ADMIN_DOWN = getattr(configuration, 'BGCOLOR_IF_ADMIN_DOWN', "#FF6347
 
 # login view organization
 TOPMENU_MAX_COLUMNS = getattr(configuration, 'TOPMENU_MAX_COLUMNS', 4)
+
+# show the switch search form on home page
+SWITCH_SEARCH_FORM = getattr(configuration, 'SWITCH_SEARCH_FORM', True)
 
 # snmp related constants
 SNMP_TIMEOUT = getattr(configuration, 'SNMP_TIMEOUT', 4)    # seconds before retry, see EasySNMP docs

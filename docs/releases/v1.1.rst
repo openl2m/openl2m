@@ -4,6 +4,21 @@
 Version 1.1
 ===========
 
+Version 1.1.9
+-------------
+Release Date: 2020-05-17
+
+* access denied error page no longer shows denied switch name.
+* add switch search form on home page. This allows searches for switches through
+  pattern or regular expression matching. This is useful when large numbers of
+  switches are configured and accesible by users (e.g. at a helpdesk).
+  This is enabled by default, but can be disabled in configuration.py by setting
+
+  .. code-block:: bash
+
+  SWITCH_SEARCH_FORM = False
+
+
 Version 1.1.8
 -------------
 Release Date: 2020-05-27

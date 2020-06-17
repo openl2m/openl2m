@@ -156,12 +156,13 @@ def get_from_http_session(request, name, delete=False):
     Retrieve an object from the http session store.
     If delete=True, object will be removed from the store
     """
-    data = None
     if name in request.session.keys():
         data = request.session[name]
         if delete:
             del request.session[name]
-    return data
+        return data
+    else:
+        return None
 
 
 def get_remote_ip(request):

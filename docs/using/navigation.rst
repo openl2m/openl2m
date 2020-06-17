@@ -18,6 +18,11 @@ If you have just one group, it will list all switches in that group.
 
 .. image:: ../_static/one-group.png
 
+If enabled by your administrator, you will see a search box before the list of switch groups.
+You can use pattern matching or regular expressions to quickly find a switch among the groups.
+
+.. image:: ../_static/switch-search.png
+
 If you have multiple groups, they are listed as collapsed choices.
 Hover over the group to see a description of that group (if defined by your admin).
 
@@ -33,6 +38,8 @@ so this make take a little bit. After a little bit of patience, this will bring 
 :doc:`the Basic Switch View <basic_view>`, showing all (visible) interfaces of the device.
 
 
-To return to the top menu at any time, click the image in the top left
+To return to the top menu at any time, click the image in the top left.
+This will also apply any changed switch group permissions.
+I.e. no need to logout and login again.
 
 .. image:: ../_static/top-menu.png

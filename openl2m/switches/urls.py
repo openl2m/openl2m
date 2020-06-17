@@ -19,12 +19,14 @@ from . import views
 app_name = 'switches'
 urlpatterns = [
     path('', views.switches, name='groups'),
+    path(r'search', views.switch_search, name='switch_search'),
     path(r'activity', views.admin_activity, name='admin_activity'),
     path(r'stats', views.show_stats, name='show_stats'),
     path(r'tasks', views.tasks, name='tasks'),
     path(r'tasks/details/<int:task_id>/', views.task_details, name='task_details'),
     path(r'tasks/delete/<int:task_id>/', views.task_delete, name='task_delete'),
     path(r'tasks/terminate/<int:task_id>/', views.task_terminate, name='task_terminate'),
+
 
     path('<int:group_id>/<int:switch_id>/', views.switch_basics, name='switch_basics'),
     path('<int:group_id>/<int:switch_id>/activity/', views.switch_activity, name='switch_activity'),

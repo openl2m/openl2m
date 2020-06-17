@@ -401,6 +401,9 @@ BGCOLOR_IF_ADMIN_DOWN = "#EB5B5B"  # red
 # Can be no more then 12!
 TOPMENU_MAX_COLUMNS = 4
 
+# show the switch search form on home page
+SWITCH_SEARCH_FORM = True
+
 # SNMP related settings, normally not needed to change.
 SNMP_TIMEOUT = 5    # in seconds
 SNMP_RETRIES = 3

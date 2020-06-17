@@ -4,8 +4,9 @@
 
 {% block content %}
 
-{% load helpers %}
+{% include "_switch_search.html" %}
 
+{% load helpers %}
 {{ groups|get_my_switchgroups }}
 
 {% endblock %}
