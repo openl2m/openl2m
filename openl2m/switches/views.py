@@ -963,7 +963,7 @@ def switch_reload(request, group_id, switch_id, view):
 
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
-        err.description = "Access denied!"
+        error.description = "Access denied!"
         return error_page(request, False, False, error)
 
     log = Log()
