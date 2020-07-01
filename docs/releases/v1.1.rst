@@ -4,6 +4,18 @@
 Version 1.1
 ===========
 
+Version 1.1.10
+--------------
+Release Date: 2020-07-01
+
+Bug fixes:
+
+* Cisco switch may need unsigned integer to set untagged vlan
+* Comware untagged vlan set fix for large stacks
+* code style fixes
+* incorrect error variable name in a function
+
+
 Version 1.1.9
 -------------
 Release Date: 2020-05-17
