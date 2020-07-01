@@ -1553,9 +1553,9 @@ class SnmpConnector(EasySNMP):
         Return the ifIndex from the Q-Bridge port_id. This assumes we have walked
         the Q-Bridge mib that maps bridge port id to interfaceId.
         """
-        if len(self.qbridge_port_to_if_index) > 0 and port_id in self.qbridge_port_to_if_index.keys():
-            if_index = self.qbridge_port_to_if_index[int(port_id)]
-            return if_index
+        # if len(self.qbridge_port_to_if_index) > 0 and port_id in self.qbridge_port_to_if_index.keys():
+        if port_id in self.qbridge_port_to_if_index.keys():
+            return self.qbridge_port_to_if_index[int(port_id)]
         else:
             # we did not find the Q-BRIDGE mib. port_id = ifIndex !
             return port_id
@@ -1572,17 +1572,6 @@ class SnmpConnector(EasySNMP):
         else:
             # we did not find the Q-BRIDGE mib. port_id = ifIndex !
             return if_index
-
-    def _get_max_qbridge_port_id(self):
-        """
-        Get the maximum value of the switchport id, used for bitmap/byte sizing.
-        returns integer
-        """
-        max_port_id = 0
-        for (port_id, intf) in self.qbridge_port_to_if_index.items():
-            if int(port_id) > max_port_id:
-                max_port_id = int(port_id)
-        return max_port_id
 
     def _parse_system_oids(self):
         """

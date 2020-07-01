@@ -16,6 +16,8 @@ HPE/3Com ComWare specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
 with HH3C specific ways of doing things...
 """
+import math
+
 from pysnmp.proto.rfc1902 import ObjectName, OctetString, Gauge32
 
 from switches.models import Log
@@ -49,7 +51,7 @@ class SnmpConnectorComware(SnmpConnector):
         Parse a single OID with data returned from a switch through some "get" function
         Returns True if we parse the OID!
         """
-        dprint("Comware _parse_oid() %s" % oid)
+        dprint(f"Comware _parse_oid() {oid}")
 
         if self._parse_mibs_comware_poe(oid, val):
             return True
@@ -78,6 +80,18 @@ class SnmpConnectorComware(SnmpConnector):
             return False
 
         return True
+
+    def _get_max_qbridge_port_id(self):
+        """
+        Get the maximum value of the switchport id, for physical ports.
+        Used for bitmap/byte sizing.
+        Returns integer
+        """
+        max_port_id = 0
+        for (if_index, iface) in self.interfaces.items():
+            if iface.type == IF_TYPE_ETHERNET and iface.port_id > max_port_id:
+                max_port_id = iface.port_id
+        return max_port_id
 
     def _get_vlan_data(self):
         """
@@ -129,12 +143,12 @@ class SnmpConnectorComware(SnmpConnector):
         As an example, Override the VLAN change, this is done Comware specific using the Comware VLAN MIB
         Return -1 if invalid interface, or value of _set() call
         """
-        dprint("Comware set_interface_untagged_vlan() port %d from %d to %d" % (if_index, old_vlan_id, new_vlan_id))
+        dprint(f"Comware set_interface_untagged_vlan() port {if_index} from {old_vlan_id} to {new_vlan_id}")
         iface = self.get_interface_by_index(if_index)
         new_vlan = self.get_vlan_by_id(new_vlan_id)
         if iface and new_vlan:
             if iface.is_tagged:
-                # dprint("Tagged/Trunk Mode!")
+                dprint("Tagged/Trunk Mode!")
                 # set the TRUNK_NATIVE_VLAN OID:
                 low_vlan_list = PortList()
                 low_vlan_list.from_byte_count(BYTES_FOR_2048_VLANS)
@@ -185,23 +199,34 @@ class SnmpConnectorComware(SnmpConnector):
 
             else:
                 # regular access mode untagged port:
-                # dprint("Acces Mode!")
+                dprint("Acces Mode!")
+
+                # make sure we cast the proper type here! Ie this needs an Integer()
+                """
+                retval = super().set_interface_untagged_vlan(if_index, old_vlan_id, new_vlan_id)
+                if retval < 0:
+                    self.error.status = True
+                    self.error.description = "Error in setting vlan on access port!"
+                    self.error.details = ""
+                return retval
+                """
 
                 # create a PortList() to represent the ports/bits that are in the new vlan.
-                # we need byte size from number of ports:
+                # we need byte size from number of ethernet ports:
                 max_port_id = self._get_max_qbridge_port_id()
-                # bytecount = (max_port_id / 8) + 1
-                bytecount = int(len(self.qbridge_port_to_if_index) / 8) + 1
+                bytecount = math.ceil(max_port_id / 8)
+                dprint(f"max_port_id = {max_port_id}, bytecount = {bytecount}")
                 new_vlan_portlist = PortList()
                 # initialize with "00" bytes
                 new_vlan_portlist.from_byte_count(bytecount)
                 # now set bit to 1 for this interface (i.e. set the port_id bit!):
+                dprint(f"iface.port_id = {iface.port_id}")
                 new_vlan_portlist[int(iface.port_id)] = 1
                 # now loop to find other existing ports on this vlan:
                 # dprint("Finding other ports on this vlan:")
                 for (this_index, this_iface) in self.interfaces.items():
-                    # dprint("%s (port %d), Tagged %s, untagged vlan %d, Vlan dict: %s" %
-                    #        (this_iface.name, this_iface.port_id, this_iface.is_tagged, this_iface.untagged_vlan, this_iface.vlans))
+                    # dprint(f"{this_iface.name} (port {this_iface.port_id}), Tagged {this_iface.is_tagged}, \
+                    #  untagged vlan {this_iface.untagged_vlan}, Vlan dict: {this_iface.vlans}")
                     if this_iface.type == IF_TYPE_ETHERNET:
                         if this_iface.port_id > -1:     # we have a valid PortId
                             if this_iface.is_tagged:
@@ -265,7 +290,7 @@ class SnmpConnectorComware(SnmpConnector):
         """
         if iface.type == IF_TYPE_ETHERNET:
             if iface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
-                dprint("Interface %s: mode=%d, NO MANAGEMENT ALLOWED!" % (iface.name, iface.if_vlan_mode))
+                dprint(f"Interface {iface.name}: mode={iface.if_vlan_mode}, NO MANAGEMENT ALLOWED!")
                 iface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
                 return False
             if iface.if_vlan_mode == HH3C_IF_MODE_HYBRID or iface.if_vlan_mode == HH3C_IF_MODE_FABRIC:
@@ -310,7 +335,7 @@ class SnmpConnectorComware(SnmpConnector):
         """
         Parse the Comware extended HH3C-POWER-ETH MIB, power usage extension
         """
-        dprint("_parse_mibs_comware_poe() %s, len = %d, type = %s" % (str(oid), len(val), str(type(val))))
+        dprint(f"_parse_mibs_comware_poe() {oid}, len = {val}, type = {type(val)}")
         pe_index = oid_in_branch(hh3cPsePortCurrentPower, oid)
         if pe_index:
             if pe_index in self.poe_port_entries.keys():
@@ -339,7 +364,7 @@ class SnmpConnectorComware(SnmpConnector):
         """
         if_index = int(oid_in_branch(hh3cifVLANType, oid))
         if if_index:
-            # dprint("Comware if_index %s if_type %s" % (if_index, val))
+            # dprint(f"Comware if_index{if_index} if_type {val}"
             if if_index in self.interfaces.keys():
                 self.interfaces[if_index].if_vlan_mode = int(val)
                 if int(val) == HH3C_IF_MODE_TRUNK:
@@ -353,7 +378,7 @@ class SnmpConnectorComware(SnmpConnector):
         """
         if_index = int(oid_in_branch(hh3cIfLinkMode, oid))
         if if_index:
-            dprint("Comware LinkMode if_index %s link_mode %s" % (if_index, val))
+            dprint(f"Comware LinkMode if_index {if_index} link_mode {val}")
             if if_index in self.interfaces.keys():
                 if int(val) == HH3C_ROUTE_MODE:
                     self.interfaces[if_index].is_routed = True
