@@ -221,6 +221,7 @@ class PortList():
         """
         Initialize by setting a number of bytes to 0
         """
+        dprint(f"PortList bytecount size={bytecount}")
         for i in range(int(bytecount)):
             self.portlist.append(0)
 
@@ -292,11 +293,12 @@ class PortList():
         significant bit is regarded as bit 0 in this context.
         """
         # NOTE: bit 0 = port_id 1. First byte is ports 1-8, second 9-16, etc.
-        dprint("PortList __setitem__ pos=%s, val=%s" % (position, value))
+        dprint(f"PortList __setitem__ pos={position}, val={value}")
         position -= 1
         value = value and 1 or 0
         block = position // 8
         shift = position & 7
+        dprint(f"PortList position={position} value={value} block={block} shift={shift}")
         block_value = self.portlist[block]
         if (block_value << shift) & 128 and 1 or 0 != value:
             if value:
@@ -309,6 +311,7 @@ class PortList():
         Get the value of the bit in position.  NOTE: The most
         significant bit is regarded as bit 0 in this context.
         """
+        dprint(f"PortList __getitem__ pos={position}")
         position -= 1
         if isinstance(position, slice):
             result = []
