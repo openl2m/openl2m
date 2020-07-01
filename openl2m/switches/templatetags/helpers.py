@@ -74,7 +74,8 @@ def get_switch_link(group, switch):
         s = "%s</li>" % s
     return s
 
-def get_switch_url(group_id, switch_id, indent_level = 0, view = ""):
+
+def get_switch_url(group_id, switch_id, indent_level=0, view=""):
     """
     Build just the URL portion of the link to a switch
     """
@@ -84,6 +85,7 @@ def get_switch_url(group_id, switch_id, indent_level = 0, view = ""):
     if view:
         view = f"{view}/"
     return f"{indent}<a href=\"/switches/{group_id}/{switch_id}/{view}\""
+
 
 @register.filter
 def get_list_value_from_json(s, index):
@@ -141,6 +143,7 @@ def get_device_class(device):
     """
     return ENTITY_CLASS_NAME[device.type]
 
+
 @register.filter
 def get_my_results(results):
     """
@@ -159,6 +162,7 @@ def get_my_results(results):
         found += f"\n<li class=\"list-group-item\">{tooltip}<a href=\"/switches/{group_id}/{switch_id}/\">{name}</a>{tt_end}</li>"
 
     return mark_safe(f"<ul class=\"list-group\">{found}</ul>\n")
+
 
 @register.filter
 def get_my_switchgroups(groups):
