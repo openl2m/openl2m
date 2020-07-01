@@ -215,6 +215,11 @@ snmp_mib_variables['dot3StatsDuplexStatus'] = dot3StatsDuplexStatus
 dot1dBridge = '.1.3.6.1.2.1.17'   # orignal Bridge-MIB, including Ethernet-to-Interface mappings
 snmp_mib_variables['dot1dBridge'] = dot1dBridge
 
+# dot1dBaseNumPorts is the number of bridge ports on the device
+dot1dBaseNumPorts = '.1.3.6.1.2.1.17.1.2'
+snmp_mib_variables['dot1dBaseNumPorts'] = dot1dBaseNumPorts
+
+
 # dot1dBasePortIfIndex, this maps the switch port-id  to the ifIndex in MIB-II
 dot1dBasePortIfIndex = '.1.3.6.1.2.1.17.1.4.1.2'
 snmp_mib_variables['dot1dBasePortIfIndex'] = dot1dBasePortIfIndex
