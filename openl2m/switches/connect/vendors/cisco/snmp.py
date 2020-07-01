@@ -270,7 +270,11 @@ class SnmpConnectorCisco(SnmpConnector):
                 return self._set(vlanTrunkPortNativeVlan + "." + str(if_index), int(new_vlan_id), 'i')
             else:
                 # regular access mode port:
-                return self._set(vmVlan + "." + str(if_index), int(new_vlan_id), 'i')
+                retval = self._set(vmVlan + "." + str(if_index), int(new_vlan_id), 'i')
+                if retval < 0:
+                    # some Cisco devices want unsigned integer value:
+                    return self._set(vmVlan + "." + str(if_index), int(new_vlan_id), 'u')
+                return retval
         # interface not found, return False!
         return False
 
