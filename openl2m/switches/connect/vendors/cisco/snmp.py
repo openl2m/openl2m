@@ -229,12 +229,11 @@ class SnmpConnectorCisco(SnmpConnector):
                                 (port_entry.detect_status, poe_status_name[port_entry.detect_status], iface.name)
                             self._add_warning(warning)
                             # log my activity
-                            log = Log()
-                            log.user = self.request.user
-                            log.type = LOG_TYPE_ERROR
-                            log.ip_address = get_remote_ip(self.request)
-                            log.action = LOG_PORT_POE_FAULT
-                            log.description = warning
+                            log = Log(user=self.request.user,
+                                type=LOG_TYPE_ERROR,
+                                ip_address=get_remote_ip(self.request),
+                                action=LOG_PORT_POE_FAULT,
+                                description=warning)
                             log.save()
 
             else:
@@ -248,12 +247,11 @@ class SnmpConnectorCisco(SnmpConnector):
                             warning = "PoE FAULT status (%s) on interface %s" % (port_entry.status_name, iface.name)
                             self._add_warning(warning)
                             # log my activity
-                            log = Log()
-                            log.user = self.request.user
-                            log.type = LOG_TYPE_ERROR
-                            log.ip_address = get_remote_ip(request)
-                            log.action = LOG_PORT_POE_FAULTPOE_F
-                            log.description = warning
+                            log = Log(user=self.request.user,
+                                type=LOG_TYPE_ERROR,
+                                ip_address=get_remote_ip(request),
+                                action=LOG_PORT_POE_FAULT,
+                                description=warning)
                             log.save()
                         break
 

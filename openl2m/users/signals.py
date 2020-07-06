@@ -52,19 +52,17 @@ def ldap_auth_handler(user, ldap_user, **kwargs):
                 group.name = switchgroup_name
                 try:
                     group.save()
-                    log = Log()
-                    log.user = user
-                    log.action = LOG_LDAP_CREATE_GROUP
-                    log.description = "Creating switchgroup '%s' from LDAP" % switchgroup_name
-                    log.type = LOG_TYPE_LOGIN_OUT
+                    log = Log(user=user,
+                        action=LOG_LDAP_CREATE_GROUP,
+                        description=f"Creating switchgroup '{switchgroup_name}' from LDAP",
+                        type=LOG_TYPE_LOGIN_OUT)
                     log.save()
                 except Exception:
                     # error creating new SwitchGroup()
-                    log = Log()
-                    log.user = user
-                    log.action = LOG_LDAP_ERROR_CREATE_GROUP
-                    log.description = "Error creating switchgroup '%s' from LDAP" % switchgroup_name
-                    log.type = LOG_TYPE_ERROR
+                    log = Log(user=user,
+                        action=LOG_LDAP_ERROR_CREATE_GROUP,
+                        description=f"Error creating switchgroup '{switchgroup_name}' from LDAP",
+                        type=LOG_TYPE_ERROR)
                     log.save()
                     continue
             # add user to this switchgroup
@@ -72,9 +70,8 @@ def ldap_auth_handler(user, ldap_user, **kwargs):
                 group.users.add(user)
             except Exception:
                 # how to handle this other then log message?
-                log = Log()
-                log.user = user
-                log.action = LOG_LDAP_ERROR_USER_TO_GROUP
-                log.description = "Error adding user to switchgroup '%s' from LDAP" % switchgroup_name
-                log.type = LOG_TYPE_ERROR
+                log = Log(user=user,
+                    action=LOG_LDAP_ERROR_USER_TO_GROUP,
+                    description="Error adding user to switchgroup '{switchgroup_name}' from LDAP",
+                    type=LOG_TYPE_ERROR)
                 log.save()

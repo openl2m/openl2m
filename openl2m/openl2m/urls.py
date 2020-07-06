@@ -46,7 +46,7 @@ urlpatterns = [
     path('', lambda r: HttpResponseRedirect('switches/'), name='home'),
 
     # our own customized form for logout
-    # note that we capture login/logout signals in "users/models.py", so we can add Log() entries
+    # note that we capture login/logout signals in "users/models.py", so we can add log entries
     path(r'logout/', LogoutView.as_view(), name='logout'),
 
     # Login/logout - the built-in forms:

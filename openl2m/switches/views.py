@@ -86,12 +86,11 @@ def switches(request):
     save_to_http_session(request, "permissions", permissions)
 
     # log my activity
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.action = LOG_VIEW_SWITCHGROUPS
-    log.description = "Viewing switch groups"
-    log.type = LOG_TYPE_VIEW
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        action=LOG_VIEW_SWITCHGROUPS,
+        description="Viewing switch groups",
+        type = LOG_TYPE_VIEW)
     log.save()
 
     # render the template
@@ -116,12 +115,11 @@ def switch_search(request):
     template_name = "search_results.html"
 
     # log my activity
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.action = LOG_VIEW_SWITCH_SEARCH
-    log.description = f"Searching for switch '{ search }'"
-    log.type = LOG_TYPE_VIEW
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        action=LOG_VIEW_SWITCH_SEARCH,
+        description=f"Searching for switch '{ search }'",
+        type = LOG_TYPE_VIEW)
     log.save()
 
     results = []
@@ -195,20 +193,19 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
         error.description = "Access denied!"
         return error_page(request, False, False, error)
 
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.switch = switch
-    log.group = group
-    log.action = LOG_VIEW_SWITCH
-    log.type = LOG_TYPE_VIEW
-    log.description = "Viewing switch (%s)" % view
+    log = Log(user=request.user,
+        ip_address = get_remote_ip(request),
+        switch = switch,
+        group = group,
+        action = LOG_VIEW_SWITCH,
+        type = LOG_TYPE_VIEW,
+        description = f"Viewing switch ({view})")
 
     try:
         conn = get_connection_object(request, group, switch)
     except Exception as e:
         log.type = LOG_TYPE_ERROR
-        log.description = "SNMP ERROR: Viewing switch (%s)" % view
+        log.description = f"SNMP ERROR: Viewing switch ({view})"
         log.save()
         error = Error()
         error.description = "There was a failure communicating with this switch. Please contact your administrator to make sure switch data is correct in the database!"
@@ -356,7 +353,15 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         error.description = "Access denied!"
         return error_page(request, False, False, error)
 
-    conn = get_connection_object(request, group, switch)
+    try:
+        conn = get_connection_object(request, group, switch)
+    except Exception:
+        log.type = LOG_TYPE_ERROR
+        log.description = "Getting SNMP data (%s)" % view
+        log.save()
+        error = Error()
+        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
+        return error_page(request, group, switch, error)
 
     # read the submitted form data:
     interface_change = bool(request.POST.get('interface_change', False))
@@ -381,33 +386,31 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
     if new_alias and settings.IFACE_ALIAS_NOT_ALLOW_REGEX:
         match = re.match(settings.IFACE_ALIAS_NOT_ALLOW_REGEX, new_alias)
         if match:
-            log = Log()
-            log.user = request.user
-            log.ip_address = remote_ip
-            log.switch = switch
-            log.group = group
-            log.type = LOG_TYPE_ERROR
-            log.action = LOG_CHANGE_BULK_EDIT
-            log.description = "The description '%s' is not allowed!" % new_alias
+            log = Log(user=request.user,
+                ip_address = remote_ip,
+                switch = switch,
+                group = group,
+                type = LOG_TYPE_ERROR,
+                action = LOG_CHANGE_BULK_EDIT,
+                description = f"Description not allowed: {new_alias}")
             log.save()
             new_alias = ''
-            errors.append("The description '%s' is not allowed!" % new_alias)
+            errors.append(f"The description is not allowed: {new_alias}")
 
     # safety-check: is the new PVID allowed:
     if new_pvid > 0:
         conn._set_allowed_vlans()
         if new_pvid not in conn.allowed_vlans.keys():
-            log = Log()
-            log.user = request.user
-            log.ip_address = remote_ip
-            log.switch = switch
-            log.group = group
-            log.type = LOG_TYPE_ERROR
-            log.action = LOG_CHANGE_BULK_EDIT
-            log.description = "The new vlan '%d' is not allowed!" % new_pvid
+            log = Log(user=request.user,
+                    ip_address=remote_ip,
+                    switch=switch,
+                    group=group,
+                    type=LOG_TYPE_ERROR,
+                    action=LOG_CHANGE_BULK_EDIT,
+                    description=f"New vlan '{new_pvid}' is not allowed!")
             log.save()
             new_pvid = -1   # force no change!
-            errors.append("The new vlan '%d' is not allowed!" % new_pvid)
+            errors.append(f"New vlan '{new_pvid}' is not allowed!")
 
     if is_task:
         # we need a description
@@ -461,24 +464,16 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
 
     if is_task:
         # log this first
-        log = Log()
-        log.user = request.user
-        log.ip_address = get_remote_ip(request)
-        log.switch = switch
-        log.group = group
-        log.type = LOG_TYPE_CHANGE
-        log.action = LOG_BULK_EDIT_TASK_SUBMIT
-        log.description = "Bulk Edit Task Submitted (%s) to run at %s" % (task_description, eta)
+        log = Log(user=request.user,
+                ip_address=remote_ip,
+                switch=switch,
+                group=group,
+                type=LOG_TYPE_CHANGE,
+                action=LOG_BULK_EDIT_TASK_SUBMIT,
+                description = f"Bulk Edit Task Submitted ({task_description}) to run at {eta}")
         log.save()
 
-        # create a task to track progress
-        task = Task()
-        task.user = request.user
-        task.group = group
-        task.switch = switch
-        task.eta = eta_datetime
-        task.type = TASK_TYPE_BULKEDIT
-        task.description = task_description
+        # arguments for the task:
         args = {}
         args['user_id'] = request.user.id
         args['group_id'] = group_id
@@ -489,8 +484,15 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         args['new_alias'] = new_alias
         args['interfaces'] = interfaces
         args['save_config'] = save_config
-        task.arguments = json.dumps(args)
-        task.reverse_arguments = json.dumps(undo_info)
+        # create a task to track progress
+        task = Task(user=request.user,
+            group = group,
+            switch = switch,
+            eta = eta_datetime,
+            type = TASK_TYPE_BULKEDIT,
+            description = task_description,
+            arguments = json.dumps(args),
+            reverse_arguments=json.dumps(undo_info))
         task.save()
 
         # now go schedule the task
@@ -550,15 +552,31 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
         error.description = "Access denied!"
         return error_page(request, False, False, error)
 
-    conn = get_connection_object(request, group, switch)
-    iface = conn.get_interface_by_index(interface_id)
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        if_index=interface_id)
 
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.switch = switch
-    log.group = group
-    log.if_index = interface_id
+    try:
+        conn = get_connection_object(request, group, switch)
+    except Exception:
+        log.type = LOG_TYPE_ERROR
+        log.description = "Getting SNMP data (%s)" % view
+        log.save()
+        error = Error()
+        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
+        return error_page(request, group, switch, error)
+
+    iface = conn.get_interface_by_index(interface_id)
+    if not iface:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Admin-Change: Error getting interface data for if_index {interface_id}"
+        log.save()
+        error = Error()
+        error.description = "Could not get interface data. Please contact your administrator!"
+        return error_page(request, group, switch, error)
+
     log.type = LOG_TYPE_CHANGE
     if new_state == IF_ADMIN_STATUS_UP:
         log.action = LOG_CHANGE_INTERFACE_UP
@@ -599,8 +617,30 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
         error.description = "Access denied!"
         return error_page(request, False, False, error)
 
-    conn = get_connection_object(request, group, switch)
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        if_index=interface_id)
+
+    try:
+        conn = get_connection_object(request, group, switch)
+    except Exception:
+        log.type = LOG_TYPE_ERROR
+        log.description = "Getting SNMP data (%s)" % view
+        log.save()
+        error = Error()
+        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
+        return error_page(request, group, switch, error)
+
     iface = conn.get_interface_by_index(interface_id)
+    if not iface:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Alias-Change: Error getting interface data for if_index {interface_id}"
+        log.save()
+        error = Error()
+        error.description = "Could not get interface data. Please contact your administrator!"
+        return error_page(request, group, switch, error)
 
     # read the submitted form data:
     new_alias = str(request.POST.get('new_alias', ''))
@@ -609,12 +649,6 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
         description = "New description is the same, please change it first!"
         return warning_page(request, group, switch, description)
 
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.switch = switch
-    log.group = group
-    log.if_index = interface_id
     log.type = LOG_TYPE_CHANGE
     log.action = LOG_CHANGE_INTERFACE_ALIAS
 
@@ -683,8 +717,30 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
         error.description = "Access denied!"
         return error_page(request, False, False, error)
 
-    conn = get_connection_object(request, group, switch)
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        if_index=interface_id)
+
+    try:
+        conn = get_connection_object(request, group, switch)
+    except Exception:
+        log.type = LOG_TYPE_ERROR
+        log.description = "Getting SNMP data (%s)" % view
+        log.save()
+        error = Error()
+        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
+        return error_page(request, group, switch, error)
+
     iface = conn.get_interface_by_index(interface_id)
+    if not iface:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Pvid-Change: Error getting interface data for if_index {interface_id}"
+        log.save()
+        error = Error()
+        error.description = "Could not get interface data. Please contact your administrator!"
+        return error_page(request, group, switch, error)
 
     # read the submitted form data:
     new_pvid = int(request.POST.get('new_pvid', 0))
@@ -693,13 +749,6 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
         description = "New vlan %d is the same, please change the vlan first!" % iface.untagged_vlan
         return warning_page(request, group, switch, description)
 
-    # stuff to do here, so start a log entry...
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.switch = switch
-    log.group = group
-    log.if_index = interface_id
     log.type = LOG_TYPE_CHANGE
     log.action = LOG_CHANGE_INTERFACE_PVID
     log.description = "Interface %s: new PVID = %s (was %s)" % (iface.name, str(new_pvid), str(iface.untagged_vlan))
@@ -750,15 +799,31 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
         error.description = "Access denied!"
         return error_page(request, False, False, error)
 
-    conn = get_connection_object(request, group, switch)
-    iface = conn.get_interface_by_index(interface_id)
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        if_index=interface_id)
 
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.switch = switch
-    log.group = group
-    log.if_index = interface_id
+    try:
+        conn = get_connection_object(request, group, switch)
+    except Exception:
+        log.type = LOG_TYPE_ERROR
+        log.description = "Getting SNMP data (%s)" % view
+        log.save()
+        error = Error()
+        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
+        return error_page(request, group, switch, error)
+
+    iface = conn.get_interface_by_index(interface_id)
+    if not iface:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"PoE-Change: Error getting interface data for if_index {interface_id}"
+        log.save()
+        error = Error()
+        error.description = "Could not get interface data. Please contact your administrator!"
+        return error_page(request, group, switch, error)
+
     log.type = LOG_TYPE_CHANGE
     if new_state == POE_PORT_ADMIN_ENABLED:
         log.action = LOG_CHANGE_INTERFACE_POE_UP
@@ -815,15 +880,31 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
         error.description = "Access denied!"
         return error_page(request, False, False, error)
 
-    conn = get_connection_object(request, group, switch)
-    iface = conn.get_interface_by_index(interface_id)
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        if_index=interface_id)
 
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.switch = switch
-    log.group = group
-    log.if_index = interface_id
+    try:
+        conn = get_connection_object(request, group, switch)
+    except Exception:
+        log.type = LOG_TYPE_ERROR
+        log.description = "Getting SNMP data (%s)" % view
+        log.save()
+        error = Error()
+        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
+        return error_page(request, group, switch, error)
+
+    iface = conn.get_interface_by_index(interface_id)
+    if not iface:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"PoE-Down-Up: Error getting interface data for if_index {interface_id}"
+        log.save()
+        error = Error()
+        error.description = "Could not get interface data. Please contact your administrator!"
+        return error_page(request, group, switch, error)
+
     log.type = LOG_TYPE_CHANGE
     log.action = LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP
     log.description = "Interface %s: PoE Toggle Down-Up" % iface.name
@@ -888,14 +969,13 @@ def switch_save_config(request, group_id, switch_id, view):
         error.description = "Access denied!"
         return error_page(request, False, False, error)
 
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.switch = switch
-    log.group = group
-    log.action = LOG_SAVE_SWITCH
-    log.type = LOG_TYPE_CHANGE
-    log.description = "Saving switch config"
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_SAVE_SWITCH,
+        type=LOG_TYPE_CHANGE,
+        description="Saving switch config")
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -966,14 +1046,13 @@ def switch_reload(request, group_id, switch_id, view):
         error.description = "Access denied!"
         return error_page(request, False, False, error)
 
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.switch = switch
-    log.group = group
-    log.description = "Reloading SNMP (basic)"
-    log.action = LOG_RELOAD_SWITCH
-    log.type = LOG_TYPE_VIEW
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        description="Reloading SNMP (basic)",
+        action=LOG_RELOAD_SWITCH,
+        type=LOG_TYPE_VIEW)
     log.save()
 
     clear_session_oid_cache(request)
@@ -1007,14 +1086,13 @@ def switch_activity(request, group_id, switch_id):
     logs_page = paginator.get_page(page_number)
 
     # log my activity
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.type = LOG_TYPE_VIEW
-    log.action = LOG_VIEW_ALL_LOGS
-    log.switch = switch
-    log.group = group
-    log.description = "Viewing Switch Activity Logs (page %d)" % page_number
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        type=LOG_TYPE_VIEW,
+        action=LOG_VIEW_ALL_LOGS,
+        description=f"Viewing Switch Activity Logs (page {page_number})")
     log.save()
 
     # get the url to this switch:
@@ -1042,12 +1120,11 @@ def show_stats(request):
     template_name = 'admin_stats.html'
 
     # log my activity
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.type = LOG_TYPE_VIEW
-    log.action = LOG_VIEW_ADMIN_STATS
-    log.description = "Viewing Site Statistics"
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        type=LOG_TYPE_VIEW,
+        action=LOG_VIEW_ADMIN_STATS,
+        description="Viewing Site Statistics")
     log.save()
 
     environment = {}    # OS environment information
@@ -1143,12 +1220,11 @@ def admin_activity(request):
     if not request.user.is_superuser and not request.user.is_staff:
         # get them out of here!
         # log my activity
-        log = Log()
-        log.user = request.user
-        log.ip_address = get_remote_ip(request)
-        log.type = LOG_TYPE_ERROR
-        log.action = LOG_VIEW_ALL_LOGS
-        log.description = "Not Allowed to View All Logs"
+        log = Log(user=request.user,
+            ip_address = get_remote_ip(request),
+            type=LOG_TYPE_ERROR,
+            action=LOG_VIEW_ALL_LOGS,
+            description="Not Allowed to View All Logs")
         log.save()
         error = Error()
         error.status = True
@@ -1156,11 +1232,10 @@ def admin_activity(request):
         return error_page(request, '', error)
 
     # log my activity
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.type = LOG_TYPE_VIEW
-    log.action = LOG_VIEW_ALL_LOGS
+    log = Log(user=request.user,
+        ip_address = get_remote_ip(request),
+        type=LOG_TYPE_VIEW,
+        action=LOG_VIEW_ALL_LOGS)
 
     page_number = int(request.GET.get('page', default=1))
 
@@ -1233,12 +1308,11 @@ def tasks(request):
     page_number = int(request.GET.get('page', default=1))
 
     # log my activity
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.type = LOG_TYPE_VIEW
-    log.action = LOG_VIEW_TASKS
-    log.description = "Viewing tasks (page %d)" % page_number
+    log = Log(user=request.user,
+        ip_address = get_remote_ip(request),
+        type=LOG_TYPE_VIEW,
+        action=LOG_VIEW_TASKS,
+        description=f"Viewing tasks (page {page_number})")
     log.save()
 
     paginator = Paginator(tasks, settings.PAGINATE_COUNT)    # Show set number of contacts per page.
@@ -1262,24 +1336,22 @@ def task_details(request, task_id):
 
     if not user_can_access_task(request, task):
         # log my activity
-        log = Log()
-        log.user = request.user
-        log.ip_address = get_remote_ip(request)
-        log.type = LOG_TYPE_ERROR
-        log.action = LOG_VIEW_TASK_DETAILS
-        log.description = "You do not have permission to view task %d details!" % task_id
+        log = Log(user=request.user,
+            ip_address=get_remote_ip(request),
+            type=LOG_TYPE_ERROR,
+            action=LOG_VIEW_TASK_DETAILS,
+            description=f"You do not have permission to view task {task_id} details!")
         log.save()
         error = Error()
         error.description = log.description
         return error_page(request, False, False, error)
 
     # log my activity
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.type = LOG_TYPE_VIEW
-    log.action = LOG_VIEW_TASK_DETAILS
-    log.description = "Viewing task %d details" % task_id
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        type=LOG_TYPE_VIEW,
+        action=LOG_VIEW_TASK_DETAILS,
+        description=f"Viewing task {task_id} details")
     log.save()
 
     task_process_running = is_celery_running()
@@ -1299,12 +1371,11 @@ def task_delete(request, task_id):
     task = get_object_or_404(Task, pk=task_id)
 
     if not user_can_access_task(request, task):
-        log = Log()
-        log.user = request.user
-        log.ip_address = get_remote_ip(request)
-        log.action = LOG_TASK_DELETE
-        log.type = LOG_TYPE_ERROR
-        log.description = "You do not have permission to delete task %d !" % task_id
+        log = Log(user=request.user,
+            ip_address=get_remote_ip(request),
+            action=LOG_TASK_DELETE,
+            type=LOG_TYPE_ERROR,
+            description=f"You do not have permission to delete task {task_id} !")
         log.save()
         error = Error()
         error.description = log.description
@@ -1315,10 +1386,9 @@ def task_delete(request, task_id):
         return warning_page(request, False, False, description)
 
     # log my activity
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.action = LOG_TASK_DELETE
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        action=LOG_TASK_DELETE)
     if task_revoke(task, False):
         log.type = LOG_TYPE_CHANGE
         log.description = "Task %d deleted" % task_id
@@ -1340,12 +1410,11 @@ def task_terminate(request, task_id):
     Only callable by admins or staff!
     """
     if not request.user.is_superuser and not request.user.is_staff:
-        log = Log()
-        log.user = request.user
-        log.ip_address = get_remote_ip(request)
-        log.action = LOG_TASK_TERMINATE
-        log.type = LOG_TYPE_ERROR
-        log.description = "You do not have permission to terminate task %d. Please contact an administrator!" % task_id
+        log = Log(user=request.user,
+            ip_address=get_remote_ip(request),
+            action=LOG_TASK_TERMINATE,
+            type=LOG_TYPE_ERROR,
+            description=f"You do not have permission to terminate task {task_id}. Please contact an administrator!")
         log.save()
         error = Error()
         error.description = log.description
@@ -1358,10 +1427,9 @@ def task_terminate(request, task_id):
         return warning_page(request, False, False, description)
 
     # log my activity
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.action = LOG_TASK_TERMINATE
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        action=LOG_TASK_TERMINATE)
     if task_revoke(task, True):
         log.type = LOG_TYPE_CHANGE
         log.description = "Task %d terminated" % task_id

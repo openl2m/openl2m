@@ -62,16 +62,20 @@ def get_connection_object(request, group, switch):
             if enterprise_id == ENTERPRISE_ID_CISCO:
                 connection = SnmpConnectorCisco(request, group, switch)
 
-            if enterprise_id == ENTERPRISE_ID_JUNIPER:
+            elif enterprise_id == ENTERPRISE_ID_JUNIPER:
                 connection = SnmpConnectorJuniper(request, group, switch)
 
-            if enterprise_id == ENTERPRISE_ID_HP:
+            elif enterprise_id == ENTERPRISE_ID_HP:
                 connection = SnmpConnectorProcurve(request, group, switch)
 
-            if enterprise_id == ENTERPRISE_ID_H3C:
+            elif enterprise_id == ENTERPRISE_ID_H3C:
                 connection = SnmpConnectorComware(request, group, switch)
 
-    # in all other cases, return a "generic" SNMP object
+            else:
+                # system oid found, but unknwon vendor:
+                connection = SnmpConnector(request, group, switch)
+
+    # no system oid found, return a "generic" SNMP object
     else:
         connection = SnmpConnector(request, group, switch)
     # load caches (http session, memory cache (future), whatever else for performance)

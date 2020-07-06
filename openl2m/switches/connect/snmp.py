@@ -1037,16 +1037,15 @@ class SnmpConnector(EasySNMP):
                     warning = "Undefined vlan %d on %s" % (untagged_vlan, self.interfaces[if_index].name)
                     self._add_warning(warning)
                     # log this as well
-                    log = Log()
-                    log.group = self.group
-                    log.switch = self.switch
+                    log = Log(group=self.group,
+                        switch=self.switch,
+                        ip_address=get_remote_ip(self.request),
+                        if_index=if_index,
+                        type=LOG_TYPE_ERROR,
+                        action=LOG_UNDEFINED_VLAN,
+                        description=f"ERROR: {warning}")
                     if self.request:
                         log.user = self.request.user
-                    log.ip_address = get_remote_ip(self.request)
-                    log.if_index = if_index
-                    log.type = LOG_TYPE_ERROR
-                    log.action = LOG_UNDEFINED_VLAN
-                    log.description = "ERROR: %s" % warning
                     log.save()
                     # not sure what to do here
             return True
@@ -1619,15 +1618,14 @@ class SnmpConnector(EasySNMP):
         if self.switch.snmp_oid != self.system.object_id:
             self.switch.snmp_oid = self.system.object_id
             self.switch.save()
-            log = Log()
-            log.action = LOG_NEW_OID_FOUND
-            log.description = "New System ObjectID found"
-            log.switch = self.switch
-            log.group = self.group
+            log = Log(action=LOG_NEW_OID_FOUND,
+                description="New System ObjectID found",
+                switch=self.switch,
+                group=self.group,
+                ip_address=get_remote_ip(self.request),
+                type=LOG_TYPE_WARNING)
             if self.request:
                 log.user = self.request.user
-            log.ip_address = get_remote_ip(self.request)
-            log.type = LOG_TYPE_WARNING
             log.save()
 
         # and see if the hostname changed
@@ -1636,15 +1634,14 @@ class SnmpConnector(EasySNMP):
         if self.switch.snmp_hostname != self.system.name:
             self.switch.snmp_hostname = self.system.name
             self.switch.save()
-            log = Log()
-            log.action = LOG_NEW_HOSTNAME_FOUND
-            log.description = "New System Hostname found"
-            log.switch = self.switch
-            log.group = self.group
+            log = Log(action=LOG_NEW_HOSTNAME_FOUND,
+                description="New System Hostname found",
+                switch=self.switch,
+                group=self.group,
+                ip_address=get_remote_ip(self.request),
+                type=LOG_TYPE_WARNING)
             if self.request:
                 log.user = self.request.user
-            log.ip_address = get_remote_ip(self.request)
-            log.type = LOG_TYPE_WARNING
             log.save()
 
         return 1
@@ -2228,15 +2225,14 @@ class SnmpConnector(EasySNMP):
         """
         self.warnings.append(warning)
         # add a log message
-        log = Log()
-        log.group = self.group
-        log.switch = self.switch
+        log = Log(group=self.group,
+            switch=self.switch,
+            ip_address=get_remote_ip(self.request),
+            type=LOG_TYPE_WARNING,
+            action=LOG_WARNING_SNMP_ERROR,
+            description=warning)
         if self.request:
             log.user = self.request.user
-        log.ip_address = get_remote_ip(self.request)
-        log.type = LOG_TYPE_WARNING
-        log.action = LOG_WARNING_SNMP_ERROR
-        log.description = warning
         log.save()
         # done!
         return

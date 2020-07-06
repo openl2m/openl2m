@@ -90,35 +90,32 @@ def save_user_profile(sender, instance, **kwargs):
 
 def create_logged_in_log_entry(sender, user, request, **kwargs):
     # log the login!
-    log = Log()
-    log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.action = LOG_LOGIN
-    log.description = "Logged in"
-    log.type = LOG_TYPE_LOGIN_OUT
+    log = Log(user=request.user,
+        ip_address=get_remote_ip(request),
+        action=LOG_LOGIN,
+        description="Logged in",
+        type=LOG_TYPE_LOGIN_OUT)
     log.save()
 
 
 def create_logged_out_log_entry(sender, user, request, **kwargs):
     # log the logout!
-    log = Log()
+    log = Log(ip_address=get_remote_ip(request),
+        action=LOG_LOGOUT,
+        description="Logged out",
+        type = LOG_TYPE_LOGIN_OUT)
     if isinstance(request.user, User):
         log.user = request.user
-    log.ip_address = get_remote_ip(request)
-    log.action = LOG_LOGOUT
-    log.description = "Logged out"
-    log.type = LOG_TYPE_LOGIN_OUT
     log.save()
 
 
 def create_login_failed_log_entry(sender, credentials, request, **kwargs):
     # log the failed login!
-    log = Log()
-    log.user = None
-    log.ip_address = get_remote_ip(request)
-    log.action = LOG_LOGIN_FAILED
-    log.description = "Login failed: user=%s" % credentials['username']
-    log.type = LOG_TYPE_LOGIN_OUT
+    log = Log(user=None,
+        ip_address=get_remote_ip(request),
+        action=LOG_LOGIN_FAILED,
+        description="Login failed: user=%s" % credentials['username'],
+        type = LOG_TYPE_LOGIN_OUT)
     log.save()
 
 
