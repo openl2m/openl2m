@@ -1061,10 +1061,11 @@ class SnmpConnector(EasySNMP):
         if port_id:
             # map port ID to interface ID
             if_index = int(val)
-            self.qbridge_port_to_if_index[port_id] = if_index
-            # and map Interface() object back to port ID as well:
             if if_index in self.interfaces.keys():
+                self.qbridge_port_to_if_index[port_id] = if_index
+                # and map Interface() object back to port ID as well:
                 self.interfaces[if_index].port_id = port_id
+            # we parsed it, return true:
             return True
 
         """
@@ -2371,19 +2372,74 @@ class SnmpConnector(EasySNMP):
             return self.vlans[vlan_id]
         return False
 
-    def set_interface_untagged_vlan(self, if_index, old_vlan_id, new_vlan_id):
+    def set_interface_admin_status(self, interface=False, status=-1):
+        """
+        Set the admin status to up or down.
+        interface = Interface() object for the port/interface.
+        status = IF_ADMIN_STATUS_UP or IF_ADMIN_STATUS_DOWN
+        """
+        if not interface:
+            self.error = Error(status=True,
+                description=f"set_interface_poe_status(): Invalid interface!")
+            return -1
+
+        if status != IF_OPER_STATUS_UP and status != IF_OPER_STATUS_DOWN:
+            self.error = Error(status=True,
+                description=f"set_interface_admin_status(): Invalid status: {status}")
+            return -1
+
+        # make sure we cast the proper type here! Ie this needs an Integer()
+        return self._set(f"{ifAdminStatus}.{interface.index}", status, 'i')
+
+    def set_interface_poe_status(self, interface=False, status=-1):
+        """
+        Set the PoE status to up or down.
+        interface = Interface() object for the port/interface.
+        status = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
+        """
+        if not interface:
+            self.error = Error(status=True,
+                description=f"set_interface_description(): Invalid interface!")
+            return -1
+        # the PoE index is kept in the iface.poe_entry
+        if not interface.poe_entry:
+            self.error = Error(status=True,
+                description=f"set_interface_description(): interface has no poe_entry!")
+            return -1
+        # proper status value?
+        if status != POE_PORT_ADMIN_ENABLED and status != POE_PORT_ADMIN_DISABLED:
+            self.error = Error(status=True,
+                description=f"set_interface_poe_status(): Invalid status: {status}")
+            return -1
+
+        # make sure we cast the proper type here! Ie this needs an Integer()
+        return self._set(f"{pethPsePortAdminEnable}.{interface.poe_entry.index}", status, 'i')
+
+
+    def set_interface_description(self, interface=False, description=""):
+        """
+        Set a description on an interface.
+        """
+        if not interface:
+            self.error = Error(status=True,
+                description=f"set_interface_description(): Invalid interface!")
+            return -1
+
+        # make sure we cast the proper type here! I.e. this needs an string
+        return self._set(f"{ifAlias}.{interface.index}", description, 'OCTETSTRING')
+
+
+    def set_interface_untagged_vlan(self, interface, old_vlan_id, new_vlan_id):
         """
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
         Return -1 if invalid interface, or value of _set() call
         """
-        iface = self.get_interface_by_index(if_index)
-        # now get the Q-Bridge PortID
-        if iface:
-            port_id = self._get_port_id_from_if_index(if_index)
+        # now check the Q-Bridge PortID
+        if interface and interface.port_id > -1:
             # set this switch port on the new vlan:
             # Q-BIRDGE mib: VlanIndex = Unsigned32
             dprint("Setting NEW VLAN on port")
-            retval = self._set("%s.%s" % (snmp_mib_variables['dot1qPvid'], str(port_id)), int(new_vlan_id), 'u')
+            retval = self._set(f"{dot1qPvid}.{interface.port_id}", int(new_vlan_id), 'u')
             if retval == -1:
                 return retval
 
@@ -2392,7 +2448,7 @@ class SnmpConnector(EasySNMP):
 
             # Remove port from list of ports on old vlan,
             # i.e. read current Egress PortList bitmap first:
-            (error_status, snmpval) = self._get("%s.%s" % (snmp_mib_variables['dot1qVlanStaticEgressPorts'], old_vlan_id))
+            (error_status, snmpval) = self._get(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}")
             if error_status:
                 # Hmm, not sure what to do
                 return -1
@@ -2400,7 +2456,7 @@ class SnmpConnector(EasySNMP):
             # now calculate new bitmap by removing this switch port
             old_vlan_portlist = PortList()
             old_vlan_portlist.from_unicode(snmpval.value)
-            dprint("OLD VLAN Current Egress Ports = %s" % old_vlan_portlist.to_hex_string())
+            dprint(f"OLD VLAN Current Egress Ports = {old_vlan_portlist.to_hex_string()}")
             # unset bit for port, i.e. remove from active portlist on vlan:
             old_vlan_portlist[port_id] = 0
 
@@ -2408,7 +2464,7 @@ class SnmpConnector(EasySNMP):
             # use PySNMP to do this work:
             octet_string = OctetString(hexValue=old_vlan_portlist.to_hex_string())
             pysnmp = pysnmpHelper(self.switch)
-            (error_status, details) = pysnmp.set("%s.%s" % (snmp_mib_variables['dot1qVlanStaticEgressPorts'], old_vlan_id), octet_string)
+            (error_status, details) = pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", octet_string)
             if error_status:
                 self.error.status = True
                 self.error.description = "Error in setting port (dot1qVlanStaticEgressPorts)"
@@ -2419,18 +2475,16 @@ class SnmpConnector(EasySNMP):
             # tagged/untagged on the old and new vlan
             # note the 0 to hopefull deactivate time filter!
             dprint("Get OLD VLAN Current Egress Ports")
-            (error_status, snmpval) = self._get("%s.0.%s" %
-                                                (snmp_mib_variables['dot1qVlanCurrentEgressPorts'], old_vlan_id))
+            (error_status, snmpval) = self._get(f"{dot1qVlanCurrentEgressPorts}.0.{old_vlan_id}")
             dprint("Get NEW VLAN Current Egress Ports")
-            (error_status, snmpval) = self._get("%s.0.%s" %
-                                                (snmp_mib_variables['dot1qVlanCurrentEgressPorts'], new_vlan_id))
+            (error_status, snmpval) = self._get(f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}")
             return 0
 
         # interface not found, return False!
         return -1
 
     def display_name(self):
-        return "%s for %s" % (self.name, self.switch.name)
+        return f"{self.name} for {self.switch.name}"
 
     def __str__(self):
         return self.display_name

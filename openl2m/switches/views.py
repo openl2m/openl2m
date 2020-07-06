@@ -764,7 +764,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
         return error_page(request, group, switch, error)
 
     # make sure we cast the proper type here! Ie this needs an Integer()
-    retval = conn.set_interface_untagged_vlan(int(interface_id), iface.untagged_vlan, int(new_pvid))
+    retval = conn.set_interface_untagged_vlan(iface, iface.untagged_vlan, int(new_pvid))
     if retval < 0:
         log.description = "ERROR: %s" % conn.error.description
         log.type = LOG_TYPE_ERROR

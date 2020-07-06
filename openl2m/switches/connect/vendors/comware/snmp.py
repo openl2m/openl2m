@@ -138,16 +138,15 @@ class SnmpConnectorComware(SnmpConnector):
         # dprint("Comware _get_vendor_data()")
         self._get_branch_by_name('hh3cCfgLog', True, self._parse_mibs_comware_config)
 
-    def set_interface_untagged_vlan(self, if_index, old_vlan_id, new_vlan_id):
+    def set_interface_untagged_vlan(self, interface, old_vlan_id, new_vlan_id):
         """
         As an example, Override the VLAN change, this is done Comware specific using the Comware VLAN MIB
         Return -1 if invalid interface, or value of _set() call
         """
-        dprint(f"Comware set_interface_untagged_vlan() port {if_index} from {old_vlan_id} to {new_vlan_id}")
-        iface = self.get_interface_by_index(if_index)
+        dprint(f"Comware set_interface_untagged_vlan() port {interface.name} from {old_vlan_id} to {new_vlan_id}")
         new_vlan = self.get_vlan_by_id(new_vlan_id)
-        if iface and new_vlan:
-            if iface.is_tagged:
+        if interface and new_vlan:
+            if interface.is_tagged:
                 dprint("Tagged/Trunk Mode!")
                 # set the TRUNK_NATIVE_VLAN OID:
                 low_vlan_list = PortList()
@@ -161,7 +160,7 @@ class SnmpConnectorComware(SnmpConnector):
                 else:
                     low_vlan_list[new_vlan_id] = 1
                 # now loop through all vlans in this port and set the bit for the vlan:
-                for vlan in iface.vlans:
+                for vlan in interface.vlans:
                     if vlan > 2048:
                         # set the propper bit, adjust by the offset!
                         high_vlan_list[vlan - 2048] = 1
@@ -174,18 +173,17 @@ class SnmpConnectorComware(SnmpConnector):
                 # note that to_hex_string() is same as .__str__ representation,
                 # but we use it for extra clarity!
                 low_vlan_list.reverse_bits_in_bytes()
-                low_oid = ("%s.%s" % (snmp_mib_variables['hh3cifVLANTrunkAllowListLow'], str(iface.port_id)),
+                low_oid = (f"{hh3cifVLANTrunkAllowListLow}.{interface.port_id}",
                            OctetString(hexValue=low_vlan_list.to_hex_string()))
 
                 # next High-VLANs (2049-4096) on this port:
                 # Comware needs bits in opposite order inside each byte! (go figure)
                 high_vlan_list.reverse_bits_in_bytes()
-                high_oid = ("%s.%s" % (snmp_mib_variables['hh3cifVLANTrunkAllowListHigh'], str(iface.port_id)),
+                high_oid = (f"{hh3cifVLANTrunkAllowListHigh}.{interface.port_id}",
                             OctetString(hexValue=high_vlan_list.to_hex_string()))
 
                 # finally, set untagged vlan:  dot1qPvid
-                pvid_oid = ("%s.%s" % (snmp_mib_variables['dot1qPvid'], str(iface.port_id)),
-                            Gauge32(new_vlan_id))
+                pvid_oid = (f"{dot1qPvid}.{interface.port_id}", Gauge32(new_vlan_id))
 
                 # now send them all as an atomic set():
                 # get the PySNMP helper to do the work with the OctetString() BitMaps:
@@ -200,17 +198,6 @@ class SnmpConnectorComware(SnmpConnector):
             else:
                 # regular access mode untagged port:
                 dprint("Acces Mode!")
-
-                # make sure we cast the proper type here! Ie this needs an Integer()
-                """
-                retval = super().set_interface_untagged_vlan(if_index, old_vlan_id, new_vlan_id)
-                if retval < 0:
-                    self.error.status = True
-                    self.error.description = "Error in setting vlan on access port!"
-                    self.error.details = ""
-                return retval
-                """
-
                 # create a PortList() to represent the ports/bits that are in the new vlan.
                 # we need byte size from number of ethernet ports:
                 max_port_id = self._get_max_qbridge_port_id()
@@ -220,8 +207,8 @@ class SnmpConnectorComware(SnmpConnector):
                 # initialize with "00" bytes
                 new_vlan_portlist.from_byte_count(bytecount)
                 # now set bit to 1 for this interface (i.e. set the port_id bit!):
-                dprint(f"iface.port_id = {iface.port_id}")
-                new_vlan_portlist[int(iface.port_id)] = 1
+                dprint(f"interface.port_id = {interface.port_id}")
+                new_vlan_portlist[int(interface.port_id)] = 1
                 # now loop to find other existing ports on this vlan:
                 # dprint("Finding other ports on this vlan:")
                 for (this_index, this_iface) in self.interfaces.items():
@@ -262,7 +249,7 @@ class SnmpConnectorComware(SnmpConnector):
                 # but we use it for extra clarity!
                 octet_string = OctetString(hexValue=new_vlan_portlist.to_hex_string())
                 pysnmp = pysnmpHelper(self.switch)
-                (error_status, details) = pysnmp.set("%s.%s" % (snmp_mib_variables['hh3cdot1qVlanPorts'], new_vlan_id), octet_string)
+                (error_status, details) = pysnmp.set(f"{hh3cdot1qVlanPorts}.{new_vlan_id}", octet_string)
                 if error_status:
                     self.error.status = True
                     self.error.description = "Error in setting vlan on access port!"

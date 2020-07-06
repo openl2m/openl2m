@@ -255,26 +255,25 @@ class SnmpConnectorCisco(SnmpConnector):
                             log.save()
                         break
 
-    def set_interface_untagged_vlan(self, if_index, old_vlan_id, new_vlan_id):
+    def set_interface_untagged_vlan(self, interface, old_vlan_id, new_vlan_id):
         """
         Override the VLAN change, this is done Cisco specific using the VTP MIB
         Returns True or False
         """
         dprint("set_interface_untagged_vlan(Cisco)")
-        iface = self.get_interface_by_index(if_index)
-        if iface:
-            if iface.is_tagged:
+        if interface:
+            if interface.is_tagged:
                 # set the TRUNK_NATIVE_VLAN OID:
-                return self._set(vlanTrunkPortNativeVlan + "." + str(if_index), int(new_vlan_id), 'i')
+                return self._set(vlanTrunkPortNativeVlan + "." + str(interface.index), int(new_vlan_id), 'i')
             else:
                 # regular access mode port:
-                retval = self._set(vmVlan + "." + str(if_index), int(new_vlan_id), 'i')
+                retval = self._set(vmVlan + "." + str(interface.index), int(new_vlan_id), 'i')
                 if retval < 0:
                     # some Cisco devices want unsigned integer value:
-                    return self._set(vmVlan + "." + str(if_index), int(new_vlan_id), 'u')
+                    return self._set(vmVlan + "." + str(interface.index), int(new_vlan_id), 'u')
                 return retval
-        # interface not found, return False!
-        return False
+        # interface not found:
+        return -1
 
     def _get_vendor_data(self):
         """
