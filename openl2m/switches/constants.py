@@ -103,10 +103,14 @@ CMD_TYPE_CHOICES = [
 BULKEDIT_POE_NONE = 0
 BULKEDIT_POE_CHANGE = 1
 BULKEDIT_POE_DOWN_UP = 2
+BULKEDIT_POE_DOWN = 3
+BULKEDIT_POE_UP = 4
 BULKEDIT_POE_CHOICES = [
-    [BULKEDIT_POE_NONE, 'No Change', ''],
-    [BULKEDIT_POE_CHANGE, 'PoE Change', 'Descr 1'],
-    [BULKEDIT_POE_DOWN_UP, 'PoE Toggle Down/Up', 'Descr 2'],
+    [BULKEDIT_POE_NONE, 'No Change'],
+    [BULKEDIT_POE_CHANGE, 'PoE Change'],
+    [BULKEDIT_POE_DOWN_UP, 'PoE Toggle Down/Up'],
+    [BULKEDIT_POE_DOWN, 'PoE Disable'],
+    [BULKEDIT_POE_UP, 'PoE Enable'],
 ]
 
 # Types of log entries

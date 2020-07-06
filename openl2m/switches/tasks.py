@@ -297,8 +297,8 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                         if retval < 0:
                             log.description = "ERROR: Bulk-Edit Toggle-Disable PoE on interface %s - %s " % (iface.name, conn.error.description)
                             log.type = LOG_TYPE_ERROR
-                            log.save()
                             outputs.append(log.description)
+                            log.save()
                         else:
                             # successful power down, now delay
                             time.sleep(settings.POE_TOGGLE_DELAY)
@@ -313,14 +313,56 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                                 # all went well!
                                 success_count += 1
                                 log.type = LOG_TYPE_CHANGE
-                                log.description = "Interface %s: Bulk-Edit PoE Toggle Down/Up OK" % iface.name
+                                log.description = f"Interface {iface.name}: Bulk-Edit PoE Toggle Down/Up OK"
                                 outputs.append(log.description)
                                 log.save()
                     else:
-                        outputs.append("Interface %s: Bulk-Edit PoE IGNORED, Poe NOT enabled" % iface.name)
+                        outputs.append(f"Interface {iface.name}: Bulk-Edit PoE Down/Up IGNORED, PoE NOT enabled")
+
+                elif poe_choice == BULKEDIT_POE_DOWN:
+                    if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
+                        log.action = LOG_CHANGE_INTERFACE_POE_DOWN
+                        # the PoE index is kept in the iface.poe_entry
+                        # Disable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
+                        retval = conn._set("%s.%s" % (pethPsePortAdminEnable, iface.poe_entry.index), POE_PORT_ADMIN_DISABLED, 'i')
+                        if retval < 0:
+                            log.description = f"ERROR: Bulk-Edit Disable PoE on interface {iface.name} - {conn.error.description}"
+                            log.type = LOG_TYPE_ERROR
+                            outputs.append(log.description)
+                            log.save()
+                        else:
+                            # all went well!
+                            success_count += 1
+                            log.type = LOG_TYPE_CHANGE
+                            log.description = f"Interface {iface.name}: Bulk-Edit PoE Down OK"
+                            outputs.append(log.description)
+                            log.save()
+                    else:
+                        outputs.append(f"Interface {iface.name}: Bulk-Edit PoE Disable IGNORED, PoE already off")
+
+                elif poe_choice == BULKEDIT_POE_UP:
+                    if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
+                        outputs.append(f"Interface {iface.name}: Bulk-Edit PoE Disable IGNORED, PoE already on")
+                    else:
+                        log.action = LOG_CHANGE_INTERFACE_POE_UP
+                        # the PoE index is kept in the iface.poe_entry
+                        # Enable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
+                        retval = conn._set("%s.%s" % (pethPsePortAdminEnable, iface.poe_entry.index), POE_PORT_ADMIN_ENABLED, 'i')
+                        if retval < 0:
+                            log.description = f"ERROR: Bulk-Edit Enable PoE on interface {iface.name} - {conn.error.description}"
+                            log.type = LOG_TYPE_ERROR
+                            outputs.append(log.description)
+                            log.save()
+                        else:
+                            # all went well!
+                            success_count += 1
+                            log.type = LOG_TYPE_CHANGE
+                            log.description = f"Interface {iface.name}: Bulk-Edit PoE Up OK"
+                            outputs.append(log.description)
+                            log.save()
 
             else:
-                outputs.append("Interface %s: not PoE capable - ignored!" % iface.name)
+                outputs.append(f"Interface {iface.name}: not PoE capable - ignored!")
 
         if new_pvid > 0:
             if iface.lacp_master_index > 0:
