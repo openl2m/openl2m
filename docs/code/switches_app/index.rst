@@ -23,7 +23,7 @@ e.g. when you create a new SNMP Profile.
 If you want to refer to these choices from a template (ie on the web page),
 you can use the format model.get_*fieldname*_display,
 where *fieldname* is the name of the field in the model that has choice.
-Eg. the Log() object defined in models.py, has a attributes called
+Eg. the Log() object defined in models.py, has attributes called
 'type' and 'action'. These fields have a list of choices
 that show several fields ("View", "Change", "Error", "Warning").
 
