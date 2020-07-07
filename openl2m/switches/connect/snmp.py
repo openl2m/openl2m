@@ -540,7 +540,8 @@ class SnmpConnector(EasySNMP):
 
         # features that may or may noit be implemented:
         self.vlan_change_implemented = True
-
+        # set this flag is a save aka. 'write mem' is needed:
+        self.save_needed = False
         # syslog related info, if supported:
         self.syslog_msgs = {}       # list of Syslog messages, if any
         self.syslog_max_msgs = 0    # how many syslog msgs device will store
@@ -613,6 +614,7 @@ class SnmpConnector(EasySNMP):
                     self.hwinfo_needed = self.request.session['hwinfo_needed']
                 if 'mib_timing' in self.request.session.keys():
                     self.mib_timing = self.request.session['mib_timing']
+                self.save_needed = self.get_save_needed()
                 if 'oid_cache' in self.request.session.keys():
                     self.oid_cache = self.request.session['oid_cache']
                     # need to update the sysUptime value first, before reading the cache:
@@ -644,6 +646,7 @@ class SnmpConnector(EasySNMP):
         if value:
             if self.can_save_config() and self.request:
                 self.request.session['save_needed'] = True
+                self.request.session.modified = True
             # else:
             #    dprint("   save config NOT supported")
         else:
@@ -2513,6 +2516,7 @@ def _clear_session_save_needed(request):
     """
     if request and 'save_needed' in request.session.keys():
         del request.session['save_needed']
+        request.session.modified = True
 
 
 def clear_session_oid_cache(request):
