@@ -45,7 +45,7 @@ from switches.tasks import bulkedit_task, bulkedit_processor
 from users.utils import *
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def switches(request):
     """
     This is the "home view", at "/"
@@ -99,7 +99,7 @@ def switches(request):
     })
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def switch_search(request):
     """
     search for a switch by name
@@ -156,7 +156,7 @@ def switch_basics(request, group_id, switch_id):
     return switch_view(request, group_id, switch_id, 'basic')
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def switch_arp_lldp(request, group_id, switch_id):
     """
     "details" switch view, i.e. with Ethernet/ARP/LLDP data.
@@ -165,7 +165,7 @@ def switch_arp_lldp(request, group_id, switch_id):
     return switch_view(request, group_id, switch_id, 'arp_lldp')
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def switch_hw_info(request, group_id, switch_id):
     """
     "hardware info" switch view, i.e. read detailed system hardware ("entity") data.
@@ -325,7 +325,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
 #
 # Bulk Edit interfaces on a switch
 #
-@login_required
+@login_required(redirect_field_name=None)
 def switch_bulkedit(request, group_id, switch_id):
     """
     Change several interfaces at once.
@@ -333,7 +333,7 @@ def switch_bulkedit(request, group_id, switch_id):
     return bulkedit_form_handler(request, group_id, switch_id, False)
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def switch_bulkedit_task(request, group_id, switch_id):
     """
     Change several interfaces at once, at some future time
@@ -539,7 +539,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
 #
 # Change admin status, ie port Enable/Disable
 #
-@login_required
+@login_required(redirect_field_name=None)
 def interface_admin_change(request, group_id, switch_id, interface_id, new_state):
     """
     Toggle the admin status of an interface, ie admin up or down.
@@ -604,7 +604,7 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
     return success_page(request, group, switch, description)
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def interface_alias_change(request, group_id, switch_id, interface_id):
     """
     Change the ifAlias aka description on an interfaces.
@@ -703,7 +703,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
     return success_page(request, group, switch, description)
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def interface_pvid_change(request, group_id, switch_id, interface_id):
     """
     Change the PVID untagged vlan on an interfaces.
@@ -784,7 +784,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
 #
 # Change PoE status, i.e. port power Enable/Disable
 #
-@login_required
+@login_required(redirect_field_name=None)
 def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
     """
     Change the PoE status of an interfaces.
@@ -866,7 +866,7 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
 #
 # Toggle PoE status Down then Up
 #
-@login_required
+@login_required(redirect_field_name=None)
 def interface_poe_down_up(request, group_id, switch_id, interface_id):
     """
     Toggle the PoE status of an interfaces. I.e disable, wait some, then enable again.
@@ -956,7 +956,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
     return success_page(request, group, switch, description)
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def switch_save_config(request, group_id, switch_id, view):
     """
     This will save the running config via SNMP, on supported platforms
@@ -1014,7 +1014,7 @@ def switch_save_config(request, group_id, switch_id, view):
     return success_page(request, group, switch, description)
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def switch_cmd_output(request, group_id, switch_id):
     """
     Go parse a global switch command that was submitted in the form
@@ -1023,7 +1023,7 @@ def switch_cmd_output(request, group_id, switch_id):
     return switch_view(request, group_id, switch_id, 'basic', command_id)
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def interface_cmd_output(request, group_id, switch_id, interface_id):
     """
     Parse the interface-specific form and build the commands
@@ -1032,7 +1032,7 @@ def interface_cmd_output(request, group_id, switch_id, interface_id):
     return switch_view(request, group_id, switch_id, 'basic', command_id, interface_id)
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def switch_reload(request, group_id, switch_id, view):
     """
     This forces a new reading of basic switch SNMP data
@@ -1060,7 +1060,7 @@ def switch_reload(request, group_id, switch_id, view):
     return switch_view(request, group_id, switch_id, view)
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def switch_activity(request, group_id, switch_id):
     """
     This shows recent activity for a specific switch
@@ -1111,7 +1111,7 @@ def switch_activity(request, group_id, switch_id):
     })
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def show_stats(request):
     """
     This shows various site statistics
@@ -1208,7 +1208,7 @@ def show_stats(request):
 # "Administrative" views
 #
 
-@login_required
+@login_required(redirect_field_name=None)
 def admin_activity(request):
     """
     This shows recent activity
@@ -1283,7 +1283,7 @@ def admin_activity(request):
     })
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def tasks(request):
     """
     This shows scheduled tasks for users
@@ -1325,7 +1325,7 @@ def tasks(request):
     })
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def task_details(request, task_id):
     """
     This shows details of a scheduled task
@@ -1363,7 +1363,7 @@ def task_details(request, task_id):
     })
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def task_delete(request, task_id):
     """
     This deleted a scheduled task
@@ -1403,7 +1403,7 @@ def task_delete(request, task_id):
         return error_page(request, False, False, error)
 
 
-@login_required
+@login_required(redirect_field_name=None)
 def task_terminate(request, task_id):
     """
     This terminates a hung (or running) task

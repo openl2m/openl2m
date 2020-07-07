@@ -63,6 +63,8 @@ DATABASES = {
     'default': configuration.DATABASE,
 }
 
+LOGIN_REDIRECT_URL = 'home'
+
 # Import required configuration parameters
 ALLOWED_HOSTS = DATABASE = SECRET_KEY = None
 for setting in ['ALLOWED_HOSTS', 'DATABASE', 'SECRET_KEY']:
