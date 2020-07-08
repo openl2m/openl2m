@@ -4,6 +4,22 @@
 Version 1.1
 ===========
 
+Version 1.1.11
+--------------
+Release Date: 2020-07-08
+
+* improved inactivity timeout handling
+* error handling and logging improvements
+* bulk-edit PoE add up and down
+* 'Save-Needed' button color update
+* some internals rewritten
+
+Bug fixes:
+
+* fix broken 'Save Needed' button
+* fix losing 'Save Needed' button after re-reading device
+
+
 Version 1.1.10
 --------------
 Release Date: 2020-07-01
