@@ -179,3 +179,23 @@ class SnmpConnectorJuniper(SnmpConnector):
                 self._add_warning("Invalid vlan index %d (jnxL2aldVlanFdbId)" % vlan_index)
             return True
         return False
+
+    def set_interface_admin_status(self, interface=False, status=-1):
+        self.error = Error(status=True,
+            description=f"set_interface_admin_status(): Not implemented yet!")
+        return -1
+
+    def set_interface_poe_status(self, interface=False, status=-1):
+        self.error = Error(status=True,
+            description=f"set_interface_poe_status(): Not implemented yet!")
+        return -1
+
+    def set_interface_description(self, interface=False, description=""):
+        self.error = Error(status=True,
+            description=f"set_interface_description(): Not implemented yet!")
+        return -1
+
+    def set_interface_untagged_vlan(self, interface, old_vlan_id, new_vlan_id):
+        self.error = Error(status=True,
+            description=f"set_interface_untagged_vlan(): Not implemented yet!")
+        return -1

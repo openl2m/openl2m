@@ -445,21 +445,21 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
     for index in interface_list:
         if_index = int(index)
         if if_index in conn.interfaces.keys():
-            iface = conn.interfaces[if_index]
-            interfaces[if_index] = iface.name
+            interface = conn.interfaces[if_index]
+            interfaces[if_index] = interface.name
             if is_task:
                 # save the current state
                 current = {}
                 current['if_index'] = if_index
-                current['name'] = iface.name    # for readability
+                current['name'] = interface.name    # for readability
                 if new_pvid > 0:
-                    current['pvid'] = iface.untagged_vlan
+                    current['pvid'] = interface.untagged_vlan
                 if new_alias:
-                    current['description'] = iface.alias
-                if poe_choice != BULKEDIT_POE_NONE and iface.poe_entry:
-                    current['poe_state'] = iface.poe_entry.admin_status
+                    current['description'] = interface.alias
+                if poe_choice != BULKEDIT_POE_NONE and interface.poe_entry:
+                    current['poe_state'] = interface.poe_entry.admin_status
                 if interface_change:
-                    current['admin_state'] = iface.admin_status
+                    current['admin_state'] = interface.admin_status
                 undo_info[if_index] = current
 
     if is_task:
@@ -568,8 +568,8 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request, group, switch, error)
 
-    iface = conn.get_interface_by_index(interface_id)
-    if not iface:
+    interface = conn.get_interface_by_index(interface_id)
+    if not interface:
         log.type = LOG_TYPE_ERROR
         log.description = f"Admin-Change: Error getting interface data for if_index {interface_id}"
         log.save()
@@ -580,15 +580,16 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
     log.type = LOG_TYPE_CHANGE
     if new_state == IF_ADMIN_STATUS_UP:
         log.action = LOG_CHANGE_INTERFACE_UP
-        log.description = "Interface %s: Enabled" % iface.name
+        log.description = "Interface %s: Enabled" % interface.name
         state = "Enabled"
     else:
         log.action = LOG_CHANGE_INTERFACE_DOWN
-        log.description = "Interface %s: Disabled" % iface.name
+        log.description = "Interface %s: Disabled" % interface.name
         state = "Disabled"
 
     # make sure we cast the proper type here! Ie this needs an Integer()
-    retval = conn._set(ifAdminStatus + "." + str(interface_id), new_state, 'i')
+    # retval = conn._set(ifAdminStatus + "." + str(interface_id), new_state, 'i')
+    retval = conn.set_interface_admin_status(interface, new_state)
     if retval < 0:
         log.description = "ERROR: " + conn.error.description
         log.type = LOG_TYPE_ERROR
@@ -600,7 +601,7 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
 
     log.save()
 
-    description = 'Interface "%s" is now %s' % (iface.name, state)
+    description = 'Interface "%s" is now %s' % (interface.name, state)
     return success_page(request, group, switch, description)
 
 
@@ -633,8 +634,8 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request, group, switch, error)
 
-    iface = conn.get_interface_by_index(interface_id)
-    if not iface:
+    interface = conn.get_interface_by_index(interface_id)
+    if not interface:
         log.type = LOG_TYPE_ERROR
         log.description = f"Alias-Change: Error getting interface data for if_index {interface_id}"
         log.save()
@@ -645,7 +646,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
     # read the submitted form data:
     new_alias = str(request.POST.get('new_alias', ''))
 
-    if iface.alias == new_alias:
+    if interface.alias == new_alias:
         description = "New description is the same, please change it first!"
         return warning_page(request, group, switch, description)
 
@@ -653,8 +654,8 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
     log.action = LOG_CHANGE_INTERFACE_ALIAS
 
     # are we allowed to change alias ?
-    if not iface.can_edit_alias:
-        log.description = "Interface %s description edit not allowed" % iface.name
+    if not interface.can_edit_alias:
+        log.description = "Interface %s description edit not allowed" % interface.name
         log.type = LOG_TYPE_ERROR
         log.save()
         error = Error()
@@ -675,7 +676,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
     # check if the original alias starts with a string we have to keep
     if settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX:
         keep_format = "(^%s)" % settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX
-        match = re.match(keep_format, iface.alias)
+        match = re.match(keep_format, interface.alias)
         if match:
             # check of new submitted alias begins with this string:
             match_new = re.match(keep_format, new_alias)
@@ -684,10 +685,11 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
                 new_alias = "%s %s" % (match[1], new_alias)
 
     # log the work!
-    log.description = "Interface %s: Description = %s" % (iface.name, new_alias)
+    log.description = "Interface %s: Description = %s" % (interface.name, new_alias)
 
     # make sure we cast the proper type here! Ie this needs an string
-    retval = conn._set(ifAlias + "." + str(interface_id), new_alias, 'OCTETSTRING')
+    #retval = conn._set(ifAlias + "." + str(interface_id), new_alias, 'OCTETSTRING')
+    retval = conn.set_interface_description(interface, new_alias)
     if retval < 0:
         log.description = "ERROR: %s" % conn.error.description
         log.type = LOG_TYPE_ERROR
@@ -699,7 +701,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
 
     log.save()
 
-    description = 'Interface "%s" description changed' % iface.name
+    description = 'Interface "%s" description changed' % interface.name
     return success_page(request, group, switch, description)
 
 
@@ -733,8 +735,8 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request, group, switch, error)
 
-    iface = conn.get_interface_by_index(interface_id)
-    if not iface:
+    interface = conn.get_interface_by_index(interface_id)
+    if not interface:
         log.type = LOG_TYPE_ERROR
         log.description = f"Pvid-Change: Error getting interface data for if_index {interface_id}"
         log.save()
@@ -745,13 +747,13 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
     # read the submitted form data:
     new_pvid = int(request.POST.get('new_pvid', 0))
     # did the vlan change?
-    if iface.untagged_vlan == int(new_pvid):
-        description = "New vlan %d is the same, please change the vlan first!" % iface.untagged_vlan
+    if interface.untagged_vlan == int(new_pvid):
+        description = "New vlan %d is the same, please change the vlan first!" % interface.untagged_vlan
         return warning_page(request, group, switch, description)
 
     log.type = LOG_TYPE_CHANGE
     log.action = LOG_CHANGE_INTERFACE_PVID
-    log.description = "Interface %s: new PVID = %s (was %s)" % (iface.name, str(new_pvid), str(iface.untagged_vlan))
+    log.description = "Interface %s: new PVID = %s (was %s)" % (interface.name, str(new_pvid), str(interface.untagged_vlan))
 
     # are we allowed to change to this vlan ?
     conn._set_allowed_vlans()
@@ -764,7 +766,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
         return error_page(request, group, switch, error)
 
     # make sure we cast the proper type here! Ie this needs an Integer()
-    retval = conn.set_interface_untagged_vlan(iface, iface.untagged_vlan, int(new_pvid))
+    retval = conn.set_interface_untagged_vlan(interface, interface.untagged_vlan, int(new_pvid))
     if retval < 0:
         log.description = "ERROR: %s" % conn.error.description
         log.type = LOG_TYPE_ERROR
@@ -777,7 +779,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
     # all OK, save log
     log.save()
 
-    description = 'Interface "%s" changed to vlan %d' % (iface.name, new_pvid)
+    description = 'Interface "%s" changed to vlan %d' % (interface.name, new_pvid)
     return success_page(request, group, switch, description)
 
 
@@ -815,8 +817,8 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request, group, switch, error)
 
-    iface = conn.get_interface_by_index(interface_id)
-    if not iface:
+    interface = conn.get_interface_by_index(interface_id)
+    if not interface:
         log.type = LOG_TYPE_ERROR
         log.description = f"PoE-Change: Error getting interface data for if_index {interface_id}"
         log.save()
@@ -827,27 +829,28 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
     log.type = LOG_TYPE_CHANGE
     if new_state == POE_PORT_ADMIN_ENABLED:
         log.action = LOG_CHANGE_INTERFACE_POE_UP
-        log.description = "Interface %s: Enabling PoE" % iface.name
+        log.description = "Interface %s: Enabling PoE" % interface.name
         state = "Enabled"
     else:
         log.action = LOG_CHANGE_INTERFACE_POE_DOWN
-        log.description = "Interface %s: Disabling PoE" % iface.name
+        log.description = "Interface %s: Disabling PoE" % interface.name
         state = "Disabled"
 
-    if not iface.poe_entry:
+    if not interface.poe_entry:
         # should not happen...
         log.type = LOG_TYPE_ERROR
-        log.description = "Interface %s does not support PoE" % iface.name
+        log.description = "Interface %s does not support PoE" % interface.name
         error = Error()
         error.status = True
         error.description = log.descr
         log.save()
         return error_page(request, group, switch, error)
 
-    # the PoE index is kept in the iface.poe_entry
+    # the PoE index is kept in the interface.poe_entry
 
     # make sure we cast the proper type here! Ie this needs an Integer()
-    retval = conn._set(pethPsePortAdminEnable + "." + iface.poe_entry.index, int(new_state), 'i')
+    #retval = conn._set(pethPsePortAdminEnable + "." + interface.poe_entry.index, int(new_state), 'i')
+    retval = conn.set_interface_poe_status(interface, new_state)
     if retval < 0:
         log.description = "ERROR: " + conn.error.description
         log.type = LOG_TYPE_ERROR
@@ -859,7 +862,7 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
 
     log.save()
 
-    description = 'Interface "%s" PoE is now %s' % (iface.name, state)
+    description = 'Interface "%s" PoE is now %s' % (interface.name, state)
     return success_page(request, group, switch, description)
 
 
@@ -896,8 +899,8 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request, group, switch, error)
 
-    iface = conn.get_interface_by_index(interface_id)
-    if not iface:
+    interface = conn.get_interface_by_index(interface_id)
+    if not interface:
         log.type = LOG_TYPE_ERROR
         log.description = f"PoE-Down-Up: Error getting interface data for if_index {interface_id}"
         log.save()
@@ -907,23 +910,23 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
 
     log.type = LOG_TYPE_CHANGE
     log.action = LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP
-    log.description = "Interface %s: PoE Toggle Down-Up" % iface.name
+    log.description = "Interface %s: PoE Toggle Down-Up" % interface.name
 
-    if not iface.poe_entry:
+    if not interface.poe_entry:
         # should not happen...
         log.type = LOG_TYPE_ERROR
-        log.description = "Interface %s does not support PoE" % iface.name
+        log.description = "Interface %s does not support PoE" % interface.name
         error = Error()
         error.status = True
         error.description = log.descr
         log.save()
         return error_page(request, group, switch, error)
 
-    # the PoE information (index) is kept in the iface.poe_entry
-    if not iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
+    # the PoE information (index) is kept in the interface.poe_entry
+    if not interface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
         # should not happen...
         log.type = LOG_TYPE_ERROR
-        log.description = "Interface %s does not have PoE enabled" % iface.name
+        log.description = "Interface %s does not have PoE enabled" % interface.name
         error = Error()
         error.status = True
         error.description = log.descr
@@ -931,9 +934,10 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
         return error_page(request, group, switch, error)
 
     # First disable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
-    retval = conn._set("%s.%s" % (pethPsePortAdminEnable, iface.poe_entry.index), POE_PORT_ADMIN_DISABLED, 'i')
+    #retval = conn._set("%s.%s" % (pethPsePortAdminEnable, interface.poe_entry.index), POE_PORT_ADMIN_DISABLED, 'i')
+    retval = conn.set_interface_poe_status(interface, POE_PORT_ADMIN_DISABLED)
     if retval < 0:
-        log.description = "ERROR: Toggle-Disable PoE on %s - %s " % (iface.name, conn.error.description)
+        log.description = "ERROR: Toggle-Disable PoE on %s - %s " % (interface.name, conn.error.description)
         log.type = LOG_TYPE_ERROR
         log.save()
         return error_page(request, group, switch, conn.error)
@@ -942,9 +946,10 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
     time.sleep(settings.POE_TOGGLE_DELAY)
 
     # Now enable PoE again...
-    retval = conn._set("%s.%s" % (pethPsePortAdminEnable, iface.poe_entry.index), POE_PORT_ADMIN_ENABLED, 'i')
+    #retval = conn._set("%s.%s" % (pethPsePortAdminEnable, interface.poe_entry.index), POE_PORT_ADMIN_ENABLED, 'i')
+    retval = conn.set_interface_poe_status(interface, POE_PORT_ADMIN_ENABLED)
     if retval < 0:
-        log.description = "ERROR: Toggle-Enable PoE on %s - %s " % (iface.name, conn.error.description)
+        log.description = "ERROR: Toggle-Enable PoE on %s - %s " % (interface.name, conn.error.description)
         log.type = LOG_TYPE_ERROR
         log.save()
         return error_page(request, group, switch, conn.error)
@@ -952,7 +957,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
     # no state change, so no save needed!
     log.save()
 
-    description = 'Interface "%s" PoE was toggled!' % iface.name
+    description = 'Interface "%s" PoE was toggled!' % interface.name
     return success_page(request, group, switch, description)
 
 
