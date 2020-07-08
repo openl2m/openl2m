@@ -56,7 +56,7 @@ def switches(request):
 
     # back to the home screen, clear session cache
     # so we re-read switches as needed
-    clear_session_oid_cache(request)
+    clear_session_cache(request)
 
     # save remote ip in session, so we can use it in current user display!
     save_to_http_session(request, "remote_ip", get_remote_ip(request))

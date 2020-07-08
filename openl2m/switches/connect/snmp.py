@@ -633,7 +633,7 @@ class SnmpConnector(EasySNMP):
                     return False
             else:
                 # wrong switch id, i.e. we changed switches, clear session data!
-                self._clear_session_oid_cache()
+                self._clear_session_cache()
         # else:
         #    we are running from CLI or Celery task process!
 
@@ -2204,11 +2204,11 @@ class SnmpConnector(EasySNMP):
         dprint("_set_interfaces_permissions() done!")
         return
 
-    def _clear_session_oid_cache(self):
+    def _clear_session_cache(self):
         """
         call the static function to clear our our web session database
         """
-        return clear_session_oid_cache(self.request)
+        return clear_session_cache(self.request)
 
     def _probe_mibs(self):
         """
@@ -2521,15 +2521,23 @@ def _clear_session_save_needed(request):
 
 def clear_session_oid_cache(request):
     """
-    clear all session data storage, because we want to re-read switch
-    or because we changed switches
+    clear session OID data storage, because we want to re-read switch
+    """
+    if request and 'oid_cache' in request.session.keys():
+        del request.session['oid_cache']
+        request.session.modified = True
+
+
+def clear_session_cache(request):
+    """
+    clear all session data storage, because we changed switches
     """
     if request:
+        clear_session_oid_cache(request)
+        _clear_session_save_needed(request)
         if 'switch_id' in request.session.keys():
             del request.session['switch_id']
-        if 'oid_cache' in request.session.keys():
-            del request.session['oid_cache']
-        _clear_session_save_needed(request)
+        request.session.modified = True
 
 
 def get_switch_enterprise_info(system_oid):
