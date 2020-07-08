@@ -27,6 +27,10 @@ and is referenced also in the "users" app. We customize the admin site
 `using the techniques described here.
 <https://docs.djangoproject.com/en/2.2/ref/contrib/admin/#hooking-adminsite-to-urlconf>`_
 
+**Authentication**
+
+All pages require user authentication. :doc:`This is described here. <authentication>`
+
 **The apps**
 
 There are two apps at this time:

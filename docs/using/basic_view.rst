@@ -43,7 +43,7 @@ On Cisco devices, if properly configured, this will add recent log entries (see 
 will appear on the right with a warning icon in front! Click it to save the running config to the switch startup config.
 (I.e. this is a 'write mem'!) When completed, that option will disappear.
 
-.. |save_warning| image:: ../_static/warning.png
+.. |save_warning| image:: ../_static/save-changes.png
 
 
 The Tabs
