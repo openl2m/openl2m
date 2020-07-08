@@ -60,6 +60,11 @@ COMMAND="${PYTHON} openl2m/manage.py migrate"
 echo "Applying database migrations ($COMMAND)..."
 eval $COMMAND
 
+# Recompile the documentation, these become django static files!
+COMMAND="cd docs; make clean; make html; cd .."
+echo "Updating HTML documentation ($COMMAND)..."
+eval $COMMAND
+
 # Collect static files
 COMMAND="${PYTHON} openl2m/manage.py collectstatic --no-input"
 echo "Collecting static files ($COMMAND)..."
@@ -79,11 +84,6 @@ eval $COMMAND || exit 1
 #COMMAND="python3 openl2m/manage.py invalidate all"
 #echo "Clearing cache data ($COMMAND)..."
 #eval $COMMAND || exit 1
-
-# Recompile the documentation
-COMMAND="cd docs; make html; cd .."
-echo "Updating HTML documentation ($COMMAND)..."
-eval $COMMAND
 
 # All done!
 echo "OpenL2M upgrade complete! Don't forget to restart the OpenL2M service:"
