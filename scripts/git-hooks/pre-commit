@@ -21,7 +21,7 @@ if [ $? != 0 ]; then
 fi
 
 echo "Checking for missing migrations..."
-python openl2m/manage.py makemigrations --dry-run --check
+python3 openl2m/manage.py makemigrations --dry-run --check
 if [ $? != 0 ]; then
 	EXIT=1
 fi
