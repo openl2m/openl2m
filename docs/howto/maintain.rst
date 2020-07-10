@@ -21,7 +21,7 @@ Note this does NOT backup the log objects!:
 
 **Start Fresh with a new database**
 
-**DANGEROUS - This will **DELETE ALL YOUR DATA!!!*
+**DANGEROUS - This will DELETE ALL YOUR DATA!!!**
 
 .. code-block:: bash
 

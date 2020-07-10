@@ -143,10 +143,13 @@ per our example installation).
 
 Modify this file as needed for your environment.
 Note the following:
-* If you change the service port from 8001,
-  you will also need to change the corresponding nginx configuration!
+
+* If you change the service port from 8001, you will also need to change the
+  corresponding nginx configuration!
+
 * The number of workers is related to how many users your site will service at the same time.
   If this is large, increase the 3 to something higher, and restart the service (see below)
+  
 * The timeout is increased from the default 30 seconds, to 150. This is to allow large switch stacks to be polled
   without causing a process timeout. You may need to adjust this timeout to suit your environment.
 
