@@ -20,7 +20,17 @@
           <td>{{ l.get_action_display }}</td>
           <td>{{ l.ip_address }}</td>
           <td>{{ l.user }}</td>
-          <td>{{ l.switch }}</td>
+          <td>
+            {% if l.switch and request.user.is_superuser %}
+              <a href="{% url 'switches:switch_basics' l.group.id l.switch.id %}"
+                 data-toggle="tooltip"
+                 title="Click here to go to this switch...">
+                 {{ l.switch }}
+              </a>
+            {% else %}
+              {{ l.switch }}
+            {% endif %}
+          </td>
           <td>{{ l.description }}</td>
         </tr>
       {% endfor %}
