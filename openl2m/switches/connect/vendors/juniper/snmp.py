@@ -81,10 +81,10 @@ class SnmpConnectorJuniper(SnmpConnector):
                         self._add_warning(warning)
                         # log my activity
                         log = Log(user=self.request.user,
-                            type=LOG_TYPE_ERROR,
-                            ip_address=get_remote_ip(self.request),
-                            action=LOG_PORT_POE_FAULT,
-                            description=warning)
+                                  type=LOG_TYPE_ERROR,
+                                  ip_address=get_remote_ip(self.request),
+                                  action=LOG_PORT_POE_FAULT,
+                                  description=warning)
                         log.save()
                     break
 
@@ -182,20 +182,20 @@ class SnmpConnectorJuniper(SnmpConnector):
 
     def set_interface_admin_status(self, interface=False, status=-1):
         self.error = Error(status=True,
-            description=f"set_interface_admin_status(): Not implemented yet!")
+                           description=f"set_interface_admin_status(): Not implemented yet!")
         return -1
 
     def set_interface_poe_status(self, interface=False, status=-1):
         self.error = Error(status=True,
-            description=f"set_interface_poe_status(): Not implemented yet!")
+                           description=f"set_interface_poe_status(): Not implemented yet!")
         return -1
 
     def set_interface_description(self, interface=False, description=""):
         self.error = Error(status=True,
-            description=f"set_interface_description(): Not implemented yet!")
+                           description=f"set_interface_description(): Not implemented yet!")
         return -1
 
     def set_interface_untagged_vlan(self, interface, old_vlan_id, new_vlan_id):
         self.error = Error(status=True,
-            description=f"set_interface_untagged_vlan(): Not implemented yet!")
+                           description=f"set_interface_untagged_vlan(): Not implemented yet!")
         return -1

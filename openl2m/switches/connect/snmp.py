@@ -1041,12 +1041,12 @@ class SnmpConnector(EasySNMP):
                     self._add_warning(warning)
                     # log this as well
                     log = Log(group=self.group,
-                        switch=self.switch,
-                        ip_address=get_remote_ip(self.request),
-                        if_index=if_index,
-                        type=LOG_TYPE_ERROR,
-                        action=LOG_UNDEFINED_VLAN,
-                        description=f"ERROR: {warning}")
+                              switch=self.switch,
+                              ip_address=get_remote_ip(self.request),
+                              if_index=if_index,
+                              type=LOG_TYPE_ERROR,
+                              action=LOG_UNDEFINED_VLAN,
+                              description=f"ERROR: {warning}")
                     if self.request:
                         log.user = self.request.user
                     log.save()
@@ -1623,11 +1623,11 @@ class SnmpConnector(EasySNMP):
             self.switch.snmp_oid = self.system.object_id
             self.switch.save()
             log = Log(action=LOG_NEW_OID_FOUND,
-                description="New System ObjectID found",
-                switch=self.switch,
-                group=self.group,
-                ip_address=get_remote_ip(self.request),
-                type=LOG_TYPE_WARNING)
+                      description="New System ObjectID found",
+                      switch=self.switch,
+                      group=self.group,
+                      ip_address=get_remote_ip(self.request),
+                      type=LOG_TYPE_WARNING)
             if self.request:
                 log.user = self.request.user
             log.save()
@@ -1639,11 +1639,11 @@ class SnmpConnector(EasySNMP):
             self.switch.snmp_hostname = self.system.name
             self.switch.save()
             log = Log(action=LOG_NEW_HOSTNAME_FOUND,
-                description="New System Hostname found",
-                switch=self.switch,
-                group=self.group,
-                ip_address=get_remote_ip(self.request),
-                type=LOG_TYPE_WARNING)
+                      description="New System Hostname found",
+                      switch=self.switch,
+                      group=self.group,
+                      ip_address=get_remote_ip(self.request),
+                      type=LOG_TYPE_WARNING)
             if self.request:
                 log.user = self.request.user
             log.save()
@@ -2230,11 +2230,11 @@ class SnmpConnector(EasySNMP):
         self.warnings.append(warning)
         # add a log message
         log = Log(group=self.group,
-            switch=self.switch,
-            ip_address=get_remote_ip(self.request),
-            type=LOG_TYPE_WARNING,
-            action=LOG_WARNING_SNMP_ERROR,
-            description=warning)
+                  switch=self.switch,
+                  ip_address=get_remote_ip(self.request),
+                  type=LOG_TYPE_WARNING,
+                  action=LOG_WARNING_SNMP_ERROR,
+                  description=warning)
         if self.request:
             log.user = self.request.user
         log.save()
@@ -2383,12 +2383,12 @@ class SnmpConnector(EasySNMP):
         """
         if not interface:
             self.error = Error(status=True,
-                description=f"set_interface_poe_status(): Invalid interface!")
+                               description=f"set_interface_poe_status(): Invalid interface!")
             return -1
 
         if status != IF_OPER_STATUS_UP and status != IF_OPER_STATUS_DOWN:
             self.error = Error(status=True,
-                description=f"set_interface_admin_status(): Invalid status: {status}")
+                               description=f"set_interface_admin_status(): Invalid status: {status}")
             return -1
 
         # make sure we cast the proper type here! Ie this needs an Integer()
@@ -2402,22 +2402,21 @@ class SnmpConnector(EasySNMP):
         """
         if not interface:
             self.error = Error(status=True,
-                description=f"set_interface_description(): Invalid interface!")
+                               description=f"set_interface_description(): Invalid interface!")
             return -1
         # the PoE index is kept in the iface.poe_entry
         if not interface.poe_entry:
             self.error = Error(status=True,
-                description=f"set_interface_description(): interface has no poe_entry!")
+                               description=f"set_interface_description(): interface has no poe_entry!")
             return -1
         # proper status value?
         if status != POE_PORT_ADMIN_ENABLED and status != POE_PORT_ADMIN_DISABLED:
             self.error = Error(status=True,
-                description=f"set_interface_poe_status(): Invalid status: {status}")
+                               description=f"set_interface_poe_status(): Invalid status: {status}")
             return -1
 
         # make sure we cast the proper type here! Ie this needs an Integer()
         return self._set(f"{pethPsePortAdminEnable}.{interface.poe_entry.index}", status, 'i')
-
 
     def set_interface_description(self, interface=False, description=""):
         """
@@ -2425,12 +2424,11 @@ class SnmpConnector(EasySNMP):
         """
         if not interface:
             self.error = Error(status=True,
-                description=f"set_interface_description(): Invalid interface!")
+                               description=f"set_interface_description(): Invalid interface!")
             return -1
 
         # make sure we cast the proper type here! I.e. this needs an string
         return self._set(f"{ifAlias}.{interface.index}", description, 'OCTETSTRING')
-
 
     def set_interface_untagged_vlan(self, interface, old_vlan_id, new_vlan_id):
         """

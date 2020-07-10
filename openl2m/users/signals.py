@@ -53,16 +53,16 @@ def ldap_auth_handler(user, ldap_user, **kwargs):
                 try:
                     group.save()
                     log = Log(user=user,
-                        action=LOG_LDAP_CREATE_GROUP,
-                        description=f"Creating switchgroup '{switchgroup_name}' from LDAP",
-                        type=LOG_TYPE_LOGIN_OUT)
+                              action=LOG_LDAP_CREATE_GROUP,
+                              description=f"Creating switchgroup '{switchgroup_name}' from LDAP",
+                              type=LOG_TYPE_LOGIN_OUT)
                     log.save()
                 except Exception:
                     # error creating new SwitchGroup()
                     log = Log(user=user,
-                        action=LOG_LDAP_ERROR_CREATE_GROUP,
-                        description=f"Error creating switchgroup '{switchgroup_name}' from LDAP",
-                        type=LOG_TYPE_ERROR)
+                              action=LOG_LDAP_ERROR_CREATE_GROUP,
+                              description=f"Error creating switchgroup '{switchgroup_name}' from LDAP",
+                              type=LOG_TYPE_ERROR)
                     log.save()
                     continue
             # add user to this switchgroup
@@ -71,7 +71,7 @@ def ldap_auth_handler(user, ldap_user, **kwargs):
             except Exception:
                 # how to handle this other then log message?
                 log = Log(user=user,
-                    action=LOG_LDAP_ERROR_USER_TO_GROUP,
-                    description="Error adding user to switchgroup '{switchgroup_name}' from LDAP",
-                    type=LOG_TYPE_ERROR)
+                          action=LOG_LDAP_ERROR_USER_TO_GROUP,
+                          description="Error adding user to switchgroup '{switchgroup_name}' from LDAP",
+                          type=LOG_TYPE_ERROR)
                 log.save()

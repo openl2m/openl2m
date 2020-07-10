@@ -87,10 +87,10 @@ def switches(request):
 
     # log my activity
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        action=LOG_VIEW_SWITCHGROUPS,
-        description="Viewing switch groups",
-        type = LOG_TYPE_VIEW)
+              ip_address=get_remote_ip(request),
+              action=LOG_VIEW_SWITCHGROUPS,
+              description="Viewing switch groups",
+              type=LOG_TYPE_VIEW)
     log.save()
 
     # render the template
@@ -116,10 +116,10 @@ def switch_search(request):
 
     # log my activity
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        action=LOG_VIEW_SWITCH_SEARCH,
-        description=f"Searching for switch '{ search }'",
-        type = LOG_TYPE_VIEW)
+              ip_address=get_remote_ip(request),
+              action=LOG_VIEW_SWITCH_SEARCH,
+              description=f"Searching for switch '{ search }'",
+              type=LOG_TYPE_VIEW)
     log.save()
 
     results = []
@@ -194,12 +194,12 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
         return error_page(request, False, False, error)
 
     log = Log(user=request.user,
-        ip_address = get_remote_ip(request),
-        switch = switch,
-        group = group,
-        action = LOG_VIEW_SWITCH,
-        type = LOG_TYPE_VIEW,
-        description = f"Viewing switch ({view})")
+              ip_address=get_remote_ip(request),
+              switch=switch,
+              group=group,
+              action=LOG_VIEW_SWITCH,
+              type=LOG_TYPE_VIEW,
+              description=f"Viewing switch ({view})")
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -387,12 +387,12 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         match = re.match(settings.IFACE_ALIAS_NOT_ALLOW_REGEX, new_alias)
         if match:
             log = Log(user=request.user,
-                ip_address = remote_ip,
-                switch = switch,
-                group = group,
-                type = LOG_TYPE_ERROR,
-                action = LOG_CHANGE_BULK_EDIT,
-                description = f"Description not allowed: {new_alias}")
+                      ip_address=remote_ip,
+                      switch=switch,
+                      group=group,
+                      type=LOG_TYPE_ERROR,
+                      action=LOG_CHANGE_BULK_EDIT,
+                      description=f"Description not allowed: {new_alias}")
             log.save()
             new_alias = ''
             errors.append(f"The description is not allowed: {new_alias}")
@@ -402,12 +402,12 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         conn._set_allowed_vlans()
         if new_pvid not in conn.allowed_vlans.keys():
             log = Log(user=request.user,
-                    ip_address=remote_ip,
-                    switch=switch,
-                    group=group,
-                    type=LOG_TYPE_ERROR,
-                    action=LOG_CHANGE_BULK_EDIT,
-                    description=f"New vlan '{new_pvid}' is not allowed!")
+                      ip_address=remote_ip,
+                      switch=switch,
+                      group=group,
+                      type=LOG_TYPE_ERROR,
+                      action=LOG_CHANGE_BULK_EDIT,
+                      description=f"New vlan '{new_pvid}' is not allowed!")
             log.save()
             new_pvid = -1   # force no change!
             errors.append(f"New vlan '{new_pvid}' is not allowed!")
@@ -465,12 +465,12 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
     if is_task:
         # log this first
         log = Log(user=request.user,
-                ip_address=remote_ip,
-                switch=switch,
-                group=group,
-                type=LOG_TYPE_CHANGE,
-                action=LOG_BULK_EDIT_TASK_SUBMIT,
-                description = f"Bulk Edit Task Submitted ({task_description}) to run at {eta}")
+                  ip_address=remote_ip,
+                  switch=switch,
+                  group=group,
+                  type=LOG_TYPE_CHANGE,
+                  action=LOG_BULK_EDIT_TASK_SUBMIT,
+                  description=f"Bulk Edit Task Submitted ({task_description}) to run at {eta}")
         log.save()
 
         # arguments for the task:
@@ -486,13 +486,13 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         args['save_config'] = save_config
         # create a task to track progress
         task = Task(user=request.user,
-            group = group,
-            switch = switch,
-            eta = eta_datetime,
-            type = TASK_TYPE_BULKEDIT,
-            description = task_description,
-            arguments = json.dumps(args),
-            reverse_arguments=json.dumps(undo_info))
+                    group=group,
+                    switch=switch,
+                    eta=eta_datetime,
+                    type=TASK_TYPE_BULKEDIT,
+                    description=task_description,
+                    arguments=json.dumps(args),
+                    reverse_arguments=json.dumps(undo_info))
         task.save()
 
         # now go schedule the task
@@ -553,10 +553,10 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
         return error_page(request, False, False, error)
 
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        if_index=interface_id)
+              ip_address=get_remote_ip(request),
+              switch=switch,
+              group=group,
+              if_index=interface_id)
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -619,10 +619,10 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
         return error_page(request, False, False, error)
 
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        if_index=interface_id)
+              ip_address=get_remote_ip(request),
+              switch=switch,
+              group=group,
+              if_index=interface_id)
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -686,9 +686,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
 
     # log the work!
     log.description = "Interface %s: Description = %s" % (interface.name, new_alias)
-
-    # make sure we cast the proper type here! Ie this needs an string
-    #retval = conn._set(ifAlias + "." + str(interface_id), new_alias, 'OCTETSTRING')
+    # and do the work:
     retval = conn.set_interface_description(interface, new_alias)
     if retval < 0:
         log.description = "ERROR: %s" % conn.error.description
@@ -720,10 +718,10 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
         return error_page(request, False, False, error)
 
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        if_index=interface_id)
+              ip_address=get_remote_ip(request),
+              switch=switch,
+              group=group,
+              if_index=interface_id)
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -802,10 +800,10 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
         return error_page(request, False, False, error)
 
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        if_index=interface_id)
+              ip_address=get_remote_ip(request),
+              switch=switch,
+              group=group,
+              if_index=interface_id)
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -846,10 +844,7 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
         log.save()
         return error_page(request, group, switch, error)
 
-    # the PoE index is kept in the interface.poe_entry
-
-    # make sure we cast the proper type here! Ie this needs an Integer()
-    #retval = conn._set(pethPsePortAdminEnable + "." + interface.poe_entry.index, int(new_state), 'i')
+    # do the work:
     retval = conn.set_interface_poe_status(interface, new_state)
     if retval < 0:
         log.description = "ERROR: " + conn.error.description
@@ -884,10 +879,10 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
         return error_page(request, False, False, error)
 
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        if_index=interface_id)
+              ip_address=get_remote_ip(request),
+              switch=switch,
+              group=group,
+              if_index=interface_id)
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -933,8 +928,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
         log.save()
         return error_page(request, group, switch, error)
 
-    # First disable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
-    #retval = conn._set("%s.%s" % (pethPsePortAdminEnable, interface.poe_entry.index), POE_PORT_ADMIN_DISABLED, 'i')
+    # disable PoE:
     retval = conn.set_interface_poe_status(interface, POE_PORT_ADMIN_DISABLED)
     if retval < 0:
         log.description = "ERROR: Toggle-Disable PoE on %s - %s " % (interface.name, conn.error.description)
@@ -945,8 +939,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
     # delay to let the device cold-boot properly
     time.sleep(settings.POE_TOGGLE_DELAY)
 
-    # Now enable PoE again...
-    #retval = conn._set("%s.%s" % (pethPsePortAdminEnable, interface.poe_entry.index), POE_PORT_ADMIN_ENABLED, 'i')
+    # and enable PoE again...
     retval = conn.set_interface_poe_status(interface, POE_PORT_ADMIN_ENABLED)
     if retval < 0:
         log.description = "ERROR: Toggle-Enable PoE on %s - %s " % (interface.name, conn.error.description)
@@ -975,12 +968,12 @@ def switch_save_config(request, group_id, switch_id, view):
         return error_page(request, False, False, error)
 
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        action=LOG_SAVE_SWITCH,
-        type=LOG_TYPE_CHANGE,
-        description="Saving switch config")
+              ip_address=get_remote_ip(request),
+              switch=switch,
+              group=group,
+              action=LOG_SAVE_SWITCH,
+              type=LOG_TYPE_CHANGE,
+              description="Saving switch config")
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1052,12 +1045,12 @@ def switch_reload(request, group_id, switch_id, view):
         return error_page(request, False, False, error)
 
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        description="Reloading SNMP (basic)",
-        action=LOG_RELOAD_SWITCH,
-        type=LOG_TYPE_VIEW)
+              ip_address=get_remote_ip(request),
+              switch=switch,
+              group=group,
+              description="Reloading SNMP (basic)",
+              action=LOG_RELOAD_SWITCH,
+              type=LOG_TYPE_VIEW)
     log.save()
 
     clear_session_oid_cache(request)
@@ -1092,12 +1085,12 @@ def switch_activity(request, group_id, switch_id):
 
     # log my activity
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        type=LOG_TYPE_VIEW,
-        action=LOG_VIEW_ALL_LOGS,
-        description=f"Viewing Switch Activity Logs (page {page_number})")
+              ip_address=get_remote_ip(request),
+              switch=switch,
+              group=group,
+              type=LOG_TYPE_VIEW,
+              action=LOG_VIEW_ALL_LOGS,
+              description=f"Viewing Switch Activity Logs (page {page_number})")
     log.save()
 
     # get the url to this switch:
@@ -1126,10 +1119,10 @@ def show_stats(request):
 
     # log my activity
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        type=LOG_TYPE_VIEW,
-        action=LOG_VIEW_ADMIN_STATS,
-        description="Viewing Site Statistics")
+              ip_address=get_remote_ip(request),
+              type=LOG_TYPE_VIEW,
+              action=LOG_VIEW_ADMIN_STATS,
+              description="Viewing Site Statistics")
     log.save()
 
     environment = {}    # OS environment information
@@ -1226,10 +1219,10 @@ def admin_activity(request):
         # get them out of here!
         # log my activity
         log = Log(user=request.user,
-            ip_address = get_remote_ip(request),
-            type=LOG_TYPE_ERROR,
-            action=LOG_VIEW_ALL_LOGS,
-            description="Not Allowed to View All Logs")
+                  ip_address=get_remote_ip(request),
+                  type=LOG_TYPE_ERROR,
+                  action=LOG_VIEW_ALL_LOGS,
+                  description="Not Allowed to View All Logs")
         log.save()
         error = Error()
         error.status = True
@@ -1238,9 +1231,9 @@ def admin_activity(request):
 
     # log my activity
     log = Log(user=request.user,
-        ip_address = get_remote_ip(request),
-        type=LOG_TYPE_VIEW,
-        action=LOG_VIEW_ALL_LOGS)
+              ip_address=get_remote_ip(request),
+              type=LOG_TYPE_VIEW,
+              action=LOG_VIEW_ALL_LOGS)
 
     page_number = int(request.GET.get('page', default=1))
 
@@ -1314,10 +1307,10 @@ def tasks(request):
 
     # log my activity
     log = Log(user=request.user,
-        ip_address = get_remote_ip(request),
-        type=LOG_TYPE_VIEW,
-        action=LOG_VIEW_TASKS,
-        description=f"Viewing tasks (page {page_number})")
+              ip_address=get_remote_ip(request),
+              type=LOG_TYPE_VIEW,
+              action=LOG_VIEW_TASKS,
+              description=f"Viewing tasks (page {page_number})")
     log.save()
 
     paginator = Paginator(tasks, settings.PAGINATE_COUNT)    # Show set number of contacts per page.
@@ -1342,10 +1335,10 @@ def task_details(request, task_id):
     if not user_can_access_task(request, task):
         # log my activity
         log = Log(user=request.user,
-            ip_address=get_remote_ip(request),
-            type=LOG_TYPE_ERROR,
-            action=LOG_VIEW_TASK_DETAILS,
-            description=f"You do not have permission to view task {task_id} details!")
+                  ip_address=get_remote_ip(request),
+                  type=LOG_TYPE_ERROR,
+                  action=LOG_VIEW_TASK_DETAILS,
+                  description=f"You do not have permission to view task {task_id} details!")
         log.save()
         error = Error()
         error.description = log.description
@@ -1353,10 +1346,10 @@ def task_details(request, task_id):
 
     # log my activity
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        type=LOG_TYPE_VIEW,
-        action=LOG_VIEW_TASK_DETAILS,
-        description=f"Viewing task {task_id} details")
+              ip_address=get_remote_ip(request),
+              type=LOG_TYPE_VIEW,
+              action=LOG_VIEW_TASK_DETAILS,
+              description=f"Viewing task {task_id} details")
     log.save()
 
     task_process_running = is_celery_running()
@@ -1377,10 +1370,10 @@ def task_delete(request, task_id):
 
     if not user_can_access_task(request, task):
         log = Log(user=request.user,
-            ip_address=get_remote_ip(request),
-            action=LOG_TASK_DELETE,
-            type=LOG_TYPE_ERROR,
-            description=f"You do not have permission to delete task {task_id} !")
+                  ip_address=get_remote_ip(request),
+                  action=LOG_TASK_DELETE,
+                  type=LOG_TYPE_ERROR,
+                  description=f"You do not have permission to delete task {task_id} !")
         log.save()
         error = Error()
         error.description = log.description
@@ -1392,8 +1385,8 @@ def task_delete(request, task_id):
 
     # log my activity
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        action=LOG_TASK_DELETE)
+              ip_address=get_remote_ip(request),
+              action=LOG_TASK_DELETE)
     if task_revoke(task, False):
         log.type = LOG_TYPE_CHANGE
         log.description = "Task %d deleted" % task_id
@@ -1416,10 +1409,10 @@ def task_terminate(request, task_id):
     """
     if not request.user.is_superuser and not request.user.is_staff:
         log = Log(user=request.user,
-            ip_address=get_remote_ip(request),
-            action=LOG_TASK_TERMINATE,
-            type=LOG_TYPE_ERROR,
-            description=f"You do not have permission to terminate task {task_id}. Please contact an administrator!")
+                  ip_address=get_remote_ip(request),
+                  action=LOG_TASK_TERMINATE,
+                  type=LOG_TYPE_ERROR,
+                  description=f"You do not have permission to terminate task {task_id}. Please contact an administrator!")
         log.save()
         error = Error()
         error.description = log.description
@@ -1433,8 +1426,8 @@ def task_terminate(request, task_id):
 
     # log my activity
     log = Log(user=request.user,
-        ip_address=get_remote_ip(request),
-        action=LOG_TASK_TERMINATE)
+              ip_address=get_remote_ip(request),
+              action=LOG_TASK_TERMINATE)
     if task_revoke(task, True):
         log.type = LOG_TYPE_CHANGE
         log.description = "Task %d terminated" % task_id

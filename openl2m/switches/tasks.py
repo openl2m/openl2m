@@ -40,47 +40,47 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
         task = Task.objects.get(pk=int(task_id))
     except Exception as e:
         log = Log(ip_address="0.0.0.0",
-            action=LOG_BULK_EDIT_TASK_END_ERROR,
-            type=LOG_TYPE_ERROR,
-            description=f"Bulk-Edit task started with invalid task id {task_id}")
+                  action=LOG_BULK_EDIT_TASK_END_ERROR,
+                  type=LOG_TYPE_ERROR,
+                  description=f"Bulk-Edit task started with invalid task id {task_id}")
         log.save()
         return
     try:
         user = User.objects.get(pk=int(user_id))
     except Exception as e:
         log = Log(ip_address="0.0.0.0",
-            action=LOG_BULK_EDIT_TASK_END_ERROR,
-            type=LOG_TYPE_ERROR,
-            description=f"Bulk-Edit task(id={task_id}) started with invalid user id ({user_id})")
+                  action=LOG_BULK_EDIT_TASK_END_ERROR,
+                  type=LOG_TYPE_ERROR,
+                  description=f"Bulk-Edit task(id={task_id}) started with invalid user id ({user_id})")
         log.save()
         return
     try:
         group = SwitchGroup.objects.get(pk=int(group_id))
     except Exception as e:
         log = Log(ip_address="0.0.0.0",
-            action=LOG_BULK_EDIT_TASK_END_ERROR,
-            type=LOG_TYPE_ERROR,
-            description=f"Bulk-Edit task(id={task_id}) started with invalid group id ({group_id})")
+                  action=LOG_BULK_EDIT_TASK_END_ERROR,
+                  type=LOG_TYPE_ERROR,
+                  description=f"Bulk-Edit task(id={task_id}) started with invalid group id ({group_id})")
         log.save()
         return
     try:
         switch = Switch.objects.get(pk=int(switch_id))
     except Exception as e:
         log = Log(ip_address="0.0.0.0",
-            action=LOG_BULK_EDIT_TASK_END_ERROR,
-            type=LOG_TYPE_ERROR,
-            description=f"Bulk-Edit task(id={task_id}) started with invalid switch id ({switch_id})")
+                  action=LOG_BULK_EDIT_TASK_END_ERROR,
+                  type=LOG_TYPE_ERROR,
+                  description=f"Bulk-Edit task(id={task_id}) started with invalid switch id ({switch_id})")
         log.save()
         return
 
     # log the start of the job
     log = Log(user=user,
-        group=group,
-        switch=switch,
-        type=LOG_TYPE_CHANGE,
-        action=LOG_BULK_EDIT_TASK_START,
-        description=f"Bulk-Edit task(id={task_id}) started",
-        ip_address="0.0.0.0")
+              group=group,
+              switch=switch,
+              type=LOG_TYPE_CHANGE,
+              action=LOG_BULK_EDIT_TASK_START,
+              description=f"Bulk-Edit task(id={task_id}) started",
+              ip_address="0.0.0.0")
     log.save()
 
     task.status = TASK_STATUS_RUNNING
@@ -105,11 +105,11 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
         task.status = TASK_STATUS_COMPLETED
         task.save()
         log = Log(user=user,
-            group=group,
-            switch=switch,
-            action=LOG_BULK_EDIT_TASK_END_OK,
-            description=f"Bulk-Edit task(id={task_id}) ended successfully",
-            type=LOG_TYPE_CHANGE)
+                  group=group,
+                  switch=switch,
+                  action=LOG_BULK_EDIT_TASK_END_OK,
+                  description=f"Bulk-Edit task(id={task_id}) ended successfully",
+                  type=LOG_TYPE_CHANGE)
         log.save()
         subject = "Task executed successfully!"
     else:
@@ -117,11 +117,11 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
         task.status = TASK_STATUS_ERROR
         task.save()
         log = Log(user=user,
-            group=group,
-            switch=switch,
-            action=LOG_BULK_EDIT_TASK_END_ERROR,
-            description=f"Bulk-Edit task({task_id}) ended with errors",
-            type=LOG_TYPE_ERROR)
+                  group=group,
+                  switch=switch,
+                  action=LOG_BULK_EDIT_TASK_END_ERROR,
+                  description=f"Bulk-Edit task({task_id}) ended with errors",
+                  type=LOG_TYPE_ERROR)
         log.save()
         subject = "Task had errors!"
 
@@ -136,30 +136,30 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
                       message, settings.EMAIL_FROM_ADDRESS,
                       [user.email], fail_silently=False)
             log = Log(user=user,
-                group=group,
-                switch=switch,
-                type=LOG_TYPE_CHANGE,
-                action=LOG_EMAIL_SENT,
-                description=f"Bulk-Edit task(id={task_id}) results email sent")
+                      group=group,
+                      switch=switch,
+                      type=LOG_TYPE_CHANGE,
+                      action=LOG_EMAIL_SENT,
+                      description=f"Bulk-Edit task(id={task_id}) results email sent")
             log.save()
             if settings.TASKS_BCC_ADMINS:
                 try:
                     mail_admins(subject, message, fail_silently=False)
                 except Exception as e:
                     log = Log(user=user,
-                        group=group,
-                        switch=switch,
-                        type=LOG_TYPE_ERROR,
-                        action=LOG_EMAIL_ERROR,
-                        description=f"Error emailing admin results for task(id={task_id}) ({repr(e)})")
+                              group=group,
+                              switch=switch,
+                              type=LOG_TYPE_ERROR,
+                              action=LOG_EMAIL_ERROR,
+                              description=f"Error emailing admin results for task(id={task_id}) ({repr(e)})")
                     log.save()
         except Exception as e:
             log = Log(user=user,
-                group=group,
-                switch=switch,
-                type=LOG_TYPE_ERROR,
-                action=LOG_EMAIL_ERROR,
-                description = f"Error emailing Bulk-Edit task(id={task_id}) results ({repr(e)})")
+                      group=group,
+                      switch=switch,
+                      type=LOG_TYPE_ERROR,
+                      action=LOG_EMAIL_ERROR,
+                      description=f"Error emailing Bulk-Edit task(id={task_id}) results ({repr(e)})")
             log.save()
 
     return 0
@@ -180,10 +180,10 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
         switch = Switch.objects.get(pk=switch_id)
     except Exception as e:
         log = Log(ip_address="0.0.0.0",
-            action=LOG_BULK_EDIT_TASK_END_ERROR,
-            description=f"bulkedit_processor() started with invalid user({user_id}), \
+                  action=LOG_BULK_EDIT_TASK_END_ERROR,
+                  description=f"bulkedit_processor() started with invalid user({user_id}), \
                            group(group_id) or switch(switch_id)",
-            type=LOG_TYPE_ERROR)
+                  type=LOG_TYPE_ERROR)
         log.save()
 
         results = {}
@@ -226,10 +226,10 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
         current_state['name'] = iface.name    # for readability
         if interface_change:
             log = Log(user=user,
-                ip_address=remote_ip,
-                if_index=if_index,
-                switch=switch,
-                group=group)
+                      ip_address=remote_ip,
+                      if_index=if_index,
+                      switch=switch,
+                      group=group)
             current_state['admin_state'] = iface.admin_status
             if iface.admin_status == IF_ADMIN_STATUS_UP:
                 new_state = IF_ADMIN_STATUS_DOWN
@@ -257,10 +257,10 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
         if poe_choice != BULKEDIT_POE_NONE:
             if iface.poe_entry:
                 log = Log(user=user,
-                    ip_address=remote_ip,
-                    if_index=if_index,
-                    switch=switch,
-                    group=group)
+                          ip_address=remote_ip,
+                          if_index=if_index,
+                          switch=switch,
+                          group=group)
                 current_state['poe_state'] = iface.poe_entry.admin_status
                 if poe_choice == BULKEDIT_POE_CHANGE:
                     # the PoE index is kept in the iface.poe_entry
@@ -368,13 +368,13 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
             if iface.lacp_master_index > 0:
                 # LACP member interface, we cannot edit the vlan!
                 log = Log(user=user,
-                    ip_address=remote_ip,
-                    if_index=if_index,
-                    switch=switch,
-                    group=group,
-                    type=LOG_TYPE_WARNING,
-                    action=LOG_CHANGE_INTERFACE_PVID,
-                    description=f"Interface {iface.name}: LACP Member, Bulk-Edit Vlan set to {new_pvid} IGNORED!")
+                          ip_address=remote_ip,
+                          if_index=if_index,
+                          switch=switch,
+                          group=group,
+                          type=LOG_TYPE_WARNING,
+                          action=LOG_CHANGE_INTERFACE_PVID,
+                          description=f"Interface {iface.name}: LACP Member, Bulk-Edit Vlan set to {new_pvid} IGNORED!")
                 outputs.append(log.description)
                 log.save()
             else:
@@ -382,11 +382,11 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                 current_state['pvid'] = iface.untagged_vlan
                 retval = conn.set_interface_untagged_vlan(if_index, iface.untagged_vlan, new_pvid)
                 log = Log(user=user,
-                    ip_address=remote_ip,
-                    if_index=if_index,
-                    switch=switch,
-                    group=group,
-                    action=LOG_CHANGE_INTERFACE_PVID)
+                          ip_address=remote_ip,
+                          if_index=if_index,
+                          switch=switch,
+                          group=group,
+                          action=LOG_CHANGE_INTERFACE_PVID)
                 if retval < 0:
                     error_count += 1
                     log.type = LOG_TYPE_ERROR
@@ -413,11 +413,11 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                         outputs.append("Interface %s: Bulk-Edit Description override: %s" % (iface.name, iface_new_alias))
 
             log = Log(user=user,
-                ip_address=remote_ip,
-                if_index=if_index,
-                switch=switch,
-                group=group,
-                action=LOG_CHANGE_INTERFACE_ALIAS)
+                      ip_address=remote_ip,
+                      if_index=if_index,
+                      switch=switch,
+                      group=group,
+                      action=LOG_CHANGE_INTERFACE_ALIAS)
             current_state['description'] = iface.alias
             # make sure we cast the proper type here! Ie this needs an string
             retval = conn._set(ifAlias + "." + str(if_index), iface_new_alias, 'OCTETSTRING')
@@ -445,10 +445,10 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
     # do we need to save the config?
     if save_config and error_count == 0 and conn.can_save_config():
         log = Log(user=user,
-            ip_address=remote_ip,
-            switch=switch,
-            group=group,
-            action=LOG_SAVE_SWITCH)
+                  ip_address=remote_ip,
+                  switch=switch,
+                  group=group,
+                  action=LOG_SAVE_SWITCH)
         retval = conn.save_running_config()  # we are not checking errors here!
         if retval < 0:
             # an error happened!
@@ -462,11 +462,11 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
 
     # log final results
     log = Log(user=user,
-        ip_address=remote_ip,
-        switch=switch,
-        group=group,
-        type=LOG_TYPE_CHANGE,
-        action=LOG_CHANGE_BULK_EDIT)
+              ip_address=remote_ip,
+              switch=switch,
+              group=group,
+              type=LOG_TYPE_CHANGE,
+              action=LOG_CHANGE_BULK_EDIT)
     if error_count > 0:
         log.type = LOG_TYPE_ERROR
         log.description = "Bulk Edits had errors! (see previous entries)"

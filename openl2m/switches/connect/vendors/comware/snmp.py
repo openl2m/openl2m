@@ -422,10 +422,10 @@ class SnmpConnectorComware(SnmpConnector):
                         self._add_warning(warning)
                         # log my activity
                         log = Log(user=self.request.user,
-                            type=LOG_TYPE_ERROR,
-                            ip_address=get_remote_ip(self.request),
-                            action=LOG_PORT_POE_FAULT,
-                            description=warning)
+                                  type=LOG_TYPE_ERROR,
+                                  ip_address=get_remote_ip(self.request),
+                                  action=LOG_PORT_POE_FAULT,
+                                  description=warning)
                         log.save()
                     break
 

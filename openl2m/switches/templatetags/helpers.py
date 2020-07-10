@@ -98,13 +98,13 @@ def get_list_value_from_json(s, index):
 
 
 @register.filter
-def get_list_value(l, index):
+def get_list_value(list, index):
     """
     Get a list value for the given index.
     call as {{ list|get_list_value:index }}
     """
     if index:
-        return l[index]
+        return list[index]
 
 
 @register.filter
