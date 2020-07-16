@@ -46,7 +46,7 @@ while line:
     if match:
         # print("OUI = " + match[1])
         # print("Vendor = " + match[2])
-        outfile.write("oui_to_vendor['%s'] = \"%s\"\n" % (match[1], match[2]))
+        outfile.write(f"oui_to_vendor['{match[1]}'] = \"{match[2]}\"\n")
     line = infile.readline()
 
 outfile.close()

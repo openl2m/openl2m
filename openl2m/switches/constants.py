@@ -108,7 +108,7 @@ BULKEDIT_POE_UP = 4
 BULKEDIT_POE_CHOICES = [
     [BULKEDIT_POE_NONE, 'No Change'],
     [BULKEDIT_POE_CHANGE, 'PoE Change'],
-    [BULKEDIT_POE_DOWN_UP, 'PoE Toggle Down/Up'],
+    [BULKEDIT_POE_DOWN_UP, 'PoE Down/Up'],
     [BULKEDIT_POE_DOWN, 'PoE Disable'],
     [BULKEDIT_POE_UP, 'PoE Enable'],
 ]

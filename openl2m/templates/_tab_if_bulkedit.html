@@ -109,7 +109,7 @@
 
             {% if connection.system.poe_capable %}
             <td>
-              <span data-toggle="tooltip" title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Toggle' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE.">
+              <span data-toggle="tooltip" title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Down/Up' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE.">
                 <select name="poe_choice">
                   {% for choice,name in BULKEDIT_POE_CHOICES %}
                     <option value="{{ choice }}">{{ name }}</option>
@@ -160,17 +160,7 @@
                 {% endif %}
               </td>
 
-              <td>
-                {% if iface.oper_status == IF_OPER_STATUS_UP %}
-                  {% if iface.hc_speed > 0 %}
-                    {{ iface.hc_speed }} Mbps
-                  {% else %}
-                     <small>(Unknown)</small>
-                  {% endif %}
-                {% else %}
-                      -
-                {% endif %}
-              </td>
+              {% include "_tpl_iface_link_td.html" %}
 
               {# only show vlan, poe, alias and command capabilities for Ethernet interfaces #}
               {% if iface.type == IF_TYPE_ETHERNET %}

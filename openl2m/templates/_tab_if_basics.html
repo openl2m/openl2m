@@ -94,7 +94,7 @@
                         <img src="{% static 'img/poe-serving.png' %}" alt="PoE Delivering!">
                       </a>
                           {% if iface.poe_entry.power_consumption_supported %}
-                            {{ iface.poe_entry.power_consumed }}mW
+                            {{ iface.poe_entry.power_consumed|humanize_power }}
                           {% endif %}
                       {% else %}
                             title="PoE Enabled, NOT delivering! Click here to Disable PoE on interface {{ iface.name }}">

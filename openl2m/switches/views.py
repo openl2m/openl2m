@@ -279,7 +279,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
             else:
                 # error occured, pass it on
                 log.type = LOG_TYPE_ERROR
-                log.description = "%s: %s" % (log.description, nm.error.description)
+                log.description = "{log.description}: {nm.error.description}"
                 cmd['error_descr'] = nm.error.description
                 cmd['error_details'] = nm.error.details
 
@@ -357,7 +357,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = "Getting SNMP data (%s)" % view
+        log.description = f"Getting SNMP data ({view})"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -422,8 +422,8 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         if eta:
             # if you change the format here, you also need to change it
             # in the web form in the "_tab_if_bulkedit.html" template
-            eta_with_tz = "%s %s" % (eta, get_local_timezone_offset())
-            dprint("TASK ETA with TZ-offset: %s" % eta_with_tz)
+            eta_with_tz = f"{eta} {get_local_timezone_offset()}"
+            dprint(f"TASK ETA with TZ-offset: {eta_with_tz}")
             try:
                 # this needs timezone parsing!
                 eta_datetime = datetime.datetime.strptime(eta_with_tz, settings.TASK_SUBMIT_DATE_FORMAT)
@@ -504,7 +504,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         except Exception as e:
             error = Error()
             error.description = "There was an error submitting your task. Please contact your administrator to make sure the job broker is running!"
-            error.details = mark_safe("%s<br><br>%s" % (repr(e), traceback.format_exc()))
+            error.details = mark_safe(f"{repr(e)}<br><br>{traceback.format_exc()}")
             return error_page(request, group, switch, error)
 
         # update task:
@@ -512,7 +512,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         task.celery_task_id = celery_task_id
         task.save()
 
-        description = "New Bulk-Edit task was submitted to run at %s (task id = %s)" % (eta, task.id)
+        description = f"New Bulk-Edit task was submitted to run at {eta} (task id = {task.id})"
         return success_page(request, group, switch, mark_safe(description))
 
     # handle regular submit, execute now!
@@ -525,8 +525,8 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         conn.set_save_needed(True)
 
     # now build the results page from the outputs
-    description = "%s\n%s\n" % ("\n<div><strong>Results:</strong></div>",
-                                "\n<br>".join(results['outputs']))
+    result_str = "\n<br>".join(results['outputs'])
+    description = f"\n<div><strong>Results:</strong></div>\n<br>{result_str}"
     if results['error_count'] > 0:
         err = Error()
         err.description = "Bulk-Edit errors"
@@ -562,7 +562,7 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = "Getting SNMP data (%s)" % view
+        log.description = f"Getting SNMP data ({views})"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -580,18 +580,18 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
     log.type = LOG_TYPE_CHANGE
     if new_state == IF_ADMIN_STATUS_UP:
         log.action = LOG_CHANGE_INTERFACE_UP
-        log.description = "Interface %s: Enabled" % interface.name
+        log.description = f"Interface {interface.name}: Enabled"
         state = "Enabled"
     else:
         log.action = LOG_CHANGE_INTERFACE_DOWN
-        log.description = "Interface %s: Disabled" % interface.name
+        log.description = f"Interface {interface.name}: Disabled"
         state = "Disabled"
 
     # make sure we cast the proper type here! Ie this needs an Integer()
     # retval = conn._set(ifAdminStatus + "." + str(interface_id), new_state, 'i')
     retval = conn.set_interface_admin_status(interface, new_state)
     if retval < 0:
-        log.description = "ERROR: " + conn.error.description
+        log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
         return error_page(request, group, switch, conn.error)
@@ -601,7 +601,7 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
 
     log.save()
 
-    description = 'Interface "%s" is now %s' % (interface.name, state)
+    description = f"Interface {interface.name} is now {state}"
     return success_page(request, group, switch, description)
 
 
@@ -628,7 +628,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = "Getting SNMP data (%s)" % view
+        log.description = f"Getting SNMP data ({view})"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -655,7 +655,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
 
     # are we allowed to change alias ?
     if not interface.can_edit_alias:
-        log.description = "Interface %s description edit not allowed" % interface.name
+        log.description = f"Interface {interface.name} description edit not allowed"
         log.type = LOG_TYPE_ERROR
         log.save()
         error = Error()
@@ -670,26 +670,26 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
             log.description = "New description matches admin deny setting!"
             log.save()
             error = Error()
-            error.description = "The description '%s' is not allowed!" % new_alias
+            error.description = f"The description '{new_alias}' is not allowed!"
             return error_page(request, group, switch, error)
 
     # check if the original alias starts with a string we have to keep
     if settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX:
-        keep_format = "(^%s)" % settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX
+        keep_format = f"(^{settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX})"
         match = re.match(keep_format, interface.alias)
         if match:
             # check of new submitted alias begins with this string:
             match_new = re.match(keep_format, new_alias)
             if not match_new:
                 # required start string NOT found on new alias, so prepend it!
-                new_alias = "%s %s" % (match[1], new_alias)
+                new_alias = f"{match[1]} {new_alias}"
 
     # log the work!
-    log.description = "Interface %s: Description = %s" % (interface.name, new_alias)
+    log.description = f"Interface {interface.name}: Description = {new_alias}"
     # and do the work:
     retval = conn.set_interface_description(interface, new_alias)
     if retval < 0:
-        log.description = "ERROR: %s" % conn.error.description
+        log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
         return error_page(request, group, switch, conn.error)
@@ -699,7 +699,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
 
     log.save()
 
-    description = 'Interface "%s" description changed' % interface.name
+    description = f"Interface {interface.name} description changed"
     return success_page(request, group, switch, description)
 
 
@@ -727,7 +727,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = "Getting SNMP data (%s)" % view
+        log.description = f"Getting SNMP data ({view})"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -746,12 +746,12 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
     new_pvid = int(request.POST.get('new_pvid', 0))
     # did the vlan change?
     if interface.untagged_vlan == int(new_pvid):
-        description = "New vlan %d is the same, please change the vlan first!" % interface.untagged_vlan
+        description = f"New vlan {interface.untagged_vlan} is the same, please change the vlan first!"
         return warning_page(request, group, switch, description)
 
     log.type = LOG_TYPE_CHANGE
     log.action = LOG_CHANGE_INTERFACE_PVID
-    log.description = "Interface %s: new PVID = %s (was %s)" % (interface.name, str(new_pvid), str(interface.untagged_vlan))
+    log.description = f"Interface {interface.name}: new PVID = {new_pvid} (was {interface.untagged_vlan})"
 
     # are we allowed to change to this vlan ?
     conn._set_allowed_vlans()
@@ -760,13 +760,13 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
         log.save()
         error = Error()
         error.status = True
-        error.description = "New vlan %d is not valid on this switch" % new_pvid
+        error.description = f"New vlan {new_pvid} is not valid on this switch"
         return error_page(request, group, switch, error)
 
     # make sure we cast the proper type here! Ie this needs an Integer()
-    retval = conn.set_interface_untagged_vlan(interface, interface.untagged_vlan, int(new_pvid))
+    retval = conn.set_interface_untagged_vlan(interface, int(new_pvid))
     if retval < 0:
-        log.description = "ERROR: %s" % conn.error.description
+        log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
         return error_page(request, group, switch, conn.error)
@@ -777,7 +777,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
     # all OK, save log
     log.save()
 
-    description = 'Interface "%s" changed to vlan %d' % (interface.name, new_pvid)
+    description = f"Interface {interface.name} changed to vlan {new_pvid}"
     return success_page(request, group, switch, description)
 
 
@@ -809,7 +809,7 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = "Getting SNMP data (%s)" % view
+        log.description = f"Getting SNMP data ({view})"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -827,17 +827,17 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
     log.type = LOG_TYPE_CHANGE
     if new_state == POE_PORT_ADMIN_ENABLED:
         log.action = LOG_CHANGE_INTERFACE_POE_UP
-        log.description = "Interface %s: Enabling PoE" % interface.name
+        log.description = f"Interface {interface.name}: Enabling PoE"
         state = "Enabled"
     else:
         log.action = LOG_CHANGE_INTERFACE_POE_DOWN
-        log.description = "Interface %s: Disabling PoE" % interface.name
+        log.description = f"Interface {interface.name}: Disabling PoE"
         state = "Disabled"
 
     if not interface.poe_entry:
         # should not happen...
         log.type = LOG_TYPE_ERROR
-        log.description = "Interface %s does not support PoE" % interface.name
+        log.description = f"Interface {interface.name} does not support PoE"
         error = Error()
         error.status = True
         error.description = log.descr
@@ -847,7 +847,7 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
     # do the work:
     retval = conn.set_interface_poe_status(interface, new_state)
     if retval < 0:
-        log.description = "ERROR: " + conn.error.description
+        log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
         return error_page(request, group, switch, conn.error)
@@ -857,7 +857,7 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
 
     log.save()
 
-    description = 'Interface "%s" PoE is now %s' % (interface.name, state)
+    description = f"Interface {interface.name} PoE is now {state}"
     return success_page(request, group, switch, description)
 
 
@@ -888,7 +888,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = "Getting SNMP data (%s)" % view
+        log.description = f"Getting SNMP data ({view})"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -905,12 +905,12 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
 
     log.type = LOG_TYPE_CHANGE
     log.action = LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP
-    log.description = "Interface %s: PoE Toggle Down-Up" % interface.name
+    log.description = f"Interface {interface.name}: PoE Toggle Down-Up"
 
     if not interface.poe_entry:
         # should not happen...
         log.type = LOG_TYPE_ERROR
-        log.description = "Interface %s does not support PoE" % interface.name
+        log.description = f"Interface {interface.name} does not support PoE"
         error = Error()
         error.status = True
         error.description = log.descr
@@ -921,7 +921,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
     if not interface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
         # should not happen...
         log.type = LOG_TYPE_ERROR
-        log.description = "Interface %s does not have PoE enabled" % interface.name
+        log.description = f"Interface {interface.name} does not have PoE enabled"
         error = Error()
         error.status = True
         error.description = log.descr
@@ -931,7 +931,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
     # disable PoE:
     retval = conn.set_interface_poe_status(interface, POE_PORT_ADMIN_DISABLED)
     if retval < 0:
-        log.description = "ERROR: Toggle-Disable PoE on %s - %s " % (interface.name, conn.error.description)
+        log.description = f"ERROR: Toggle-Disable PoE on {interface.name} - {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
         return error_page(request, group, switch, conn.error)
@@ -942,7 +942,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
     # and enable PoE again...
     retval = conn.set_interface_poe_status(interface, POE_PORT_ADMIN_ENABLED)
     if retval < 0:
-        log.description = "ERROR: Toggle-Enable PoE on %s - %s " % (interface.name, conn.error.description)
+        log.description = f"ERROR: Toggle-Enable PoE on {interface.name} - {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
         return error_page(request, group, switch, conn.error)
@@ -950,7 +950,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
     # no state change, so no save needed!
     log.save()
 
-    description = 'Interface "%s" PoE was toggled!' % interface.name
+    description = f"Interface {interface.name} PoE was toggled!"
     return success_page(request, group, switch, description)
 
 
@@ -979,7 +979,7 @@ def switch_save_config(request, group_id, switch_id, view):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = "Getting SNMP data (%s)" % view
+        log.description = f"Getting SNMP data ({view})"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -1008,7 +1008,7 @@ def switch_save_config(request, group_id, switch_id, view):
     # all OK
     log.save()
 
-    description = 'Config was saved for "%s"' % switch.name
+    description = f"Config was saved for {switch.name}"
     return success_page(request, group, switch, description)
 
 
@@ -1095,9 +1095,8 @@ def switch_activity(request, group_id, switch_id):
 
     # get the url to this switch:
     switch_url = reverse('switches:switch_basics', kwargs={'group_id': group.id, 'switch_id': switch.id})
-
-    title = mark_safe('All Activity for <a href="%s" data-toggle="tooltip" title="Go back to switch">%s</a>'
-                      % (switch_url, switch.name))
+    # formulate the title and link
+    title = mark_safe(f"All Activity for <a href=\"{switch_url}\" data-toggle=\"tooltip\" title=\"Go back to switch\">{switch.name}</a>")
     # render the template
     return render(request, template_name, {
         'logs': logs_page,
@@ -1126,9 +1125,9 @@ def show_stats(request):
     log.save()
 
     environment = {}    # OS environment information
-    environment['Python'] = "%s.%s.%s" % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
+    environment['Python'] = f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
     uname = os.uname()
-    environment['OS'] = "%s (%s)" % (uname.sysname, uname.release)
+    environment['OS'] = f"{uname.sysname} ({uname.release})"
     environment['Django'] = django.get_version()
     import git
     try:
@@ -1137,7 +1136,7 @@ def show_stats(request):
         short_sha = repo.git.rev_parse(sha, short=8)
         branch = repo.active_branch
         commit_date = time.strftime("%a, %d %b %Y %H:%M UTC", time.gmtime(repo.head.object.committed_date))
-        environment['Git version'] = "%s (%s)" % (branch, short_sha)
+        environment['Git version'] = f"{branch} ({short_sha})"
         environment['Git commit'] = commit_date
     except Exception:
         environment['Git version'] = 'Not found!'
@@ -1150,7 +1149,7 @@ def show_stats(request):
             environment['Tasks'] = "Enabled and running"
     else:
         environment['Tasks'] = "Disabled"
-    environment['OpenL2M version'] = "%s (%s)" % (settings.VERSION, settings.VERSION_DATE)
+    environment['OpenL2M version'] = f"{settings.VERSION} (settings.VERSION_DATE)"
 
     db_items = {}   # database object item counts
     db_items['Switches'] = Switch.objects.count()
@@ -1191,7 +1190,6 @@ def show_stats(request):
     usage['Changes logged'] = Log.objects.filter(**filter).count()
 
     user_list = get_current_users()
-    dprint("Users: %s" % user_list)
 
     # render the template
     return render(request, template_name, {
@@ -1254,11 +1252,11 @@ def admin_activity(request):
     # now set the filter, if found
     if(len(filter) > 0):
         logs = Log.objects.all().filter(**filter).order_by('-timestamp')
-        log.description = "Viewing filtered logs: %s (page %d)" % (filter, page_number)
+        log.description = f"Viewing filtered logs: {filter} (page {page_number})"
         title = 'Filtered Activities'
     else:
         logs = Log.objects.all().order_by('-timestamp')
-        log.description = "Viewing all logs (page %d)" % page_number
+        log.description = f"Viewing all logs (page {page_number})"
         title = 'All Activities'
     log.save()
 
@@ -1389,11 +1387,11 @@ def task_delete(request, task_id):
               action=LOG_TASK_DELETE)
     if task_revoke(task, False):
         log.type = LOG_TYPE_CHANGE
-        log.description = "Task %d deleted" % task_id
+        log.description = f"Task {task_id} deleted"
         log.save()
-        return success_page(request, False, False, "Task %d has been deleted!" % task_id)
+        return success_page(request, False, False, f"Task {task_id} has been deleted!")
     else:
-        log.description = "Error deleting task %d !" % task_id
+        log.description = f"Error deleting task {task_id} !"
         log.type = LOG_TYPE_ERROR
         log.save()
         error = Error()
@@ -1430,12 +1428,12 @@ def task_terminate(request, task_id):
               action=LOG_TASK_TERMINATE)
     if task_revoke(task, True):
         log.type = LOG_TYPE_CHANGE
-        log.description = "Task %d terminated" % task_id
+        log.description = f"Task {task_id} terminated"
         log.save()
-        return success_page(request, False, False, "Task %d has been terminated (killed)!" % task_id)
+        return success_page(request, False, False, f"Task {task_id} has been terminated (killed)!")
     else:
         log.type = LOG_TYPE_ERROR
-        log.description = "Error terminating task %d" % task_id
+        log.description = f"Error terminating task {task_id}"
         log.save()
         error = Error()
         error.description = log.description

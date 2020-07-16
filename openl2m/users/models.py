@@ -114,7 +114,7 @@ def create_login_failed_log_entry(sender, credentials, request, **kwargs):
     log = Log(user=None,
               ip_address=get_remote_ip(request),
               action=LOG_LOGIN_FAILED,
-              description="Login failed: user=%s" % credentials['username'],
+              description=f"Login failed: user={credentials['username']}",
               type=LOG_TYPE_LOGIN_OUT)
     log.save()
 

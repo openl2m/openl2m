@@ -109,7 +109,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         """
         if_index = int(oid_in_branch(hpnicfIfLinkMode, oid))
         if if_index:
-            dprint("HP LinkMode if_index %s link_mode %s" % (if_index, val))
+            dprint(f"HP LinkMode if_index {if_index} link_mode {val}")
             if if_index in self.interfaces.keys():
                 if int(val) == HP_ROUTE_MODE:
                     self.interfaces[if_index].is_routed = True
@@ -167,11 +167,11 @@ class SnmpConnectorProcurve(SnmpConnector):
             (module, port) = port_entry.index.split('.')
             for (if_index, iface) in self.interfaces.items():
                 if iface.name == port:
-                    dprint("   PoE Port Map FOUND %s" % iface.name)
+                    dprint(f"   PoE Port Map FOUND {iface.name}")
                     iface.poe_entry = port_entry
                     if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                        warning = "PoE FAULT status (%d = %s) on interface %s" % \
-                            (port_entry.detect_status, poe_status_name[port_entry.status_name], iface.name)
+                        warning = f"PoE FAULT status ({port_entry.detect_status} = " \
+                                  "{poe_status_name[port_entry.status_name]}) on interface {iface.name}"
                         self._add_warning(warning)
                         # log my activity
                         log = Log(user=self.request.user,

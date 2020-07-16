@@ -36,18 +36,18 @@ def build_url_string(values):
     Used to build custom links from "settings" variables
     """
     if 'target' in values.keys():
-        s = "<a target=\"%s\" " % values['target']
+        s = f"<a target=\"{values['target']}\" "
     else:
         s = "<a "
-    s += "href=\"%s\"" % values['url']
+    s = s + f"href=\"{values['url']}\""
     if 'hint' in values.keys():
-        s += "data-toggle=\"tooltip\" title=\"%s\"" % values['hint']
-    s += ">"
+        s = s + f"data-toggle=\"tooltip\" title=\"{values['hint']}\""
+    s = s + ">"
     if 'fa_icon' in values.keys():
-        s += "<i class=\"fas %s\" aria-hidden=\"true\"></i>" % values['fa_icon']
+        s = s + f"<i class=\"fas {values['fa_icon']}\" aria-hidden=\"true\"></i>"
     elif 'icon' in values.keys():
-        s += ("<img src=\"%s\" alt=\"%s\" height=\"24\" width=\"24\">" % (values['icon'], values['alt']))
-    s += "</a> "
+        s = s + f"<img src=\"{values['icon']}\" alt=\"{values['alt']}\" height=\"24\" width=\"24\">"
+    s = s + "</a> "
     return s
 
 
@@ -59,19 +59,19 @@ def get_switch_link(group, switch):
     if switch.status == SWITCH_STATUS_ACTIVE and switch.snmp_profile:
         s = "<li class=\"list-group-item\">"
         if switch.description:
-            s = "%s<span data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"%s\">" % (s, switch.description)
+            s = s + f"<span data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"{switch.description}\">"
         # do proper indenting:
         indent = ''
         for i in range(switch.indent_level):
-            indent = "&nbsp;&nbsp;&nbsp;%s" % indent
+            indent = indent + "&nbsp;&nbsp;&nbsp;"
         if switch.default_view == SWITCH_VIEW_BASIC:
-            s = "%s%s<a href=\"/switches/%d/%d/\">" % (s, indent, group.id, switch.id)
+            s = s + f"{indent}<a href=\"/switches/{group.id}/{switch.id}/\">"
         else:
-            s = "%s<a href=\"/switches/%d/%d/details/\">" % (s, group.id, switch.id)
-        s = "%s%s</a>" % (s, switch.name)
+            s = s + f"<a href=\"/switches/{group.id}/{switch.id}/details/\">"
+        s = s + f"{switch.name}</a>"
         if switch.description:
-            s = "%s</span>" % s
-        s = "%s</li>" % s
+            s = s + "</span>"
+        s = s + "</li>"
     return s
 
 
@@ -81,7 +81,7 @@ def get_switch_url(group_id, switch_id, indent_level=0, view=""):
     """
     indent = ''
     for i in range(indent_level):
-        indent = "&nbsp;&nbsp;&nbsp;%s" % indent
+        indent = indent + "&nbsp;&nbsp;&nbsp;"
     if view:
         view = f"{view}/"
     return f"{indent}<a href=\"/switches/{group_id}/{switch_id}/{view}\""
@@ -177,20 +177,17 @@ def get_my_switchgroups(groups):
     s = '<div class="row"><div class="col-sm-6 col-md-4">'
     if num_groups == 1:
         # one group only
-        s = "%s\n<h4>My Switch Group:</h4>" % s
+        s = s + "\n<h4>My Switch Group:</h4>"
     else:
-        s = "%s\n<h4>My Switch Groups:</h4>" % s
+        s = s + "\n<h4>My Switch Groups:</h4>"
 
     # start groups wrapper:
-    s = "%s\n</div></div>" % s  # end header row
+    s = s + "\n</div></div>"     # end header row
 
     # calculate column width, if set. Bootstrap uses 12 grid columns per page, max we use is 3 grids
     col_width = 3
     if settings.TOPMENU_MAX_COLUMNS > 4:
-        col_width = 12 / settings.TOPMENU_MAX_COLUMNS
-
-    # if settings.TOPMENU_MAX_COLUMNS > 1:
-    #    s = "%s\n<div class=\"container\">" % s
+        col_width = int(12 / settings.TOPMENU_MAX_COLUMNS)
 
     # now list the groups:
     group_num = 0
@@ -200,52 +197,52 @@ def get_my_switchgroups(groups):
             if not ((group_num - 1) % settings.TOPMENU_MAX_COLUMNS):
                 # end previous row, if needed
                 if group_num > 1:
-                    s = "%s\n</div>" % s
+                    s = s + "\n</div>"
                 # and start a new row!
-                s = "%s\n\n<div class=\"row\">" % s
+                s = s + "\n\n<div class=\"row\">"
             # add column div:
-            s = "%s\n <div class=\"col-md-%d\">" % (s, col_width)
+            s = s + f"\n <div class=\"col-md-{col_width}\">"
         else:
-            s = "%s\n <div class=\"row\">\n  <div class=\"col-md-%d\">" % (s, col_width)
+            s = s + f"\n <div class=\"row\">\n  <div class=\"col-md-{col_width}\">"
         # header for collapsible items, i.e. the switchgroup name
-        s = "%s\n  <div class=\"panel-group\">\n   <div class=\"panel panel-default\">\n   <div class=\"panel-heading\">" % s
-        s = "%s<a data-toggle=\"collapse\" href=\"#group%d\">" % (s, group.id)
+        s = s + "\n  <div class=\"panel-group\">\n   <div class=\"panel panel-default\">\n   <div class=\"panel-heading\">"
+        s = s + f"<a data-toggle=\"collapse\" href=\"#group{group.id}\">"
         if group.description:
-            s = "%s\n  <span data-toggle=\"tooltip\" title=\"%s\">" % (s, group.description)
+            s = s + f"\n  <span data-toggle=\"tooltip\" title=\"{group.description}\">"
         if group.display_name:
-            s = "%s%s" % (s, group.display_name)
+            s = s + group.display_name
         else:
-            s = "%s%s" % (s, group.name)
+            s = s + group.name
         if group.description:
-            s = "%s</span>" % s
-        s = "%s</a>" % s
+            s = s + "</span>"
+        s = s + "</a>"
         if group.read_only:
-            s = "%s (r/o)" % s
-        s = "%s</div>" % s  # this /div ends panel-heading
+            s = s + " (r/o)"
+        s = s + "</div>"      # this /div ends panel-heading
 
         # the collapsible items:
-        s = "%s\n   <div id=\"group%d\" class=\"panel-collapse" % (s, group.id)
+        s = s + f"\n   <div id=\"group{group.id}\" class=\"panel-collapse"
         # if only 1 group, show all items
         if num_groups > 1:
-            s = "%s collapse" % s
-        s = "%s\">\n    <ul class=\"list-group\">" % s
+            s = s + " collapse"
+        s = s + "\">\n    <ul class=\"list-group\">"
         for member in SwitchGroupMembership.objects.filter(switchgroup=group):
-            s = "%s\n     %s" % (s, get_switch_link(group, member.switch))
-        s = "%s\n    </ul>\n   </div>" % s  # /div ends panel-collapse
+            s = s + f"\n    {get_switch_link(group, member.switch)}"
+        s = s + "\n    </ul>\n   </div>"    # /div ends panel-collapse
 
         # and end this group header and group:
-        s = "%s\n  </div>\n  </div>" % s     # end panel-default and panel-group
+        s = s + "\n  </div>\n  </div>"      # end panel-default and panel-group
 
         if settings.TOPMENU_MAX_COLUMNS > 1:
             # end the column div:
-            s = "%s\n </div>" % s
+            s = s + "\n </div>"
         else:
             # end row
-            s = "%s\n </div>\n</div>" % s     # end panel-default and panel-group
+            s = s + "\n </div>\n</div>"     # end panel-default and panel-group
 
     # end the last row, and container, if needed:
     if settings.TOPMENU_MAX_COLUMNS > 1:
-        s = "%s\n</div>" % s
+        s = s + "\n</div>"
 
     return mark_safe(s)
 
@@ -382,39 +379,40 @@ def get_interface_link(switch, iface):
     """
     # start with up/down color for interface
     if iface.admin_status == IF_ADMIN_STATUS_UP:
-        info = " bgcolor=\"%s\" " % settings.BGCOLOR_IF_ADMIN_UP
+        info = f" bgcolor=\"{settings.BGCOLOR_IF_ADMIN_UP}\" "
     else:
-        info = " bgcolor=\"%s\" " % settings.BGCOLOR_IF_ADMIN_DOWN
+        info = f" bgcolor=\"{settings.BGCOLOR_IF_ADMIN_DOWN}\" "
     # next add the NMS link for this interface
     info += get_interface_info_links(switch, iface)
     # next make linkable if we can manage it
     if iface.manageable:
         if iface.admin_status == IF_ADMIN_STATUS_UP:
-            info += ("<a onclick=\"return confirm_change('Are you sure you want to DISABLE %s ?')\" \
-                     href=\"/switches/%d/%d/%d/admin/%d/\" data-toggle=\"tooltip\" title=\"Click here to Disable %s\">%s</a>" %
-                     (iface.name, group.id, switch.id, iface.index, IF_ADMIN_STATUS_DOWN, iface.name))
+            info = info + f"<a onclick=\"return confirm_change('Are you sure you want to DISABLE {iface.name} ?')\" \
+                     href=\"/switches/{group.id}/{switch.id}/{iface.index}/admin/{IF_ADMIN_STATUS_DOWN}/\" \
+                     data-toggle=\"tooltip\" title=\"Click here to Disable {iface.name}\">{iface.name}</a>"
         else:
-            info += ("<a onclick=\"return confirm_change('Are you sure you want to ENABLE %s ?')\" \
-                     href=\"/switches/%d/%d/%d/admin/%d/\" data-toggle=\"tooltip\" title=\"Click here to Enable %s\">%s</a>" %
-                     (iface.name, group.id, switch.id, iface.index, IF_ADMIN_STATUS_UP, iface.name))
+            info = info + f"<a onclick=\"return confirm_change('Are you sure you want to ENABLE {iface.name} ?')\" \
+                     href=\"/switches/{group.id}/{switch.id}/{iface.index}/admin/{IF_ADMIN_STATUS_UP}/\" \
+                     data-toggle=\"tooltip\" title=\"Click here to Enable {iface.name}\">{iface.name}</a>"
+
     else:
-        info += " %s " % iface.name
+        info = info + f" {iface.name} "
 
     # start with up/down color for interface
     if iface.admin_status == IF_ADMIN_STATUS_UP:
-        info += "&nbsp;&nbsp;<img src=\"/static/img/enabled.png\" \
+        info = info + "&nbsp;&nbsp;<img src=\"/static/img/enabled.png\" \
                  alt=\"Interface Enabled\" data-toggle=\"tooltip\" title=\"Interface is Enabled\">"
     else:
-        info += "&nbsp;&nbsp;<img src=\"/static/img/disabled.png\" \
+        info = info + "&nbsp;&nbsp;<img src=\"/static/img/disabled.png\" \
                  alt=\"Interface Disabled\" data-toggle=\"tooltip\" title=\"Interface is Disabled\">"
 
     # finally, add icons representing interface 'features'
     if iface.is_tagged:
-        info += "&nbsp;&nbsp;<img src=\"/static/img/trunk.png\" \
+        info = info + "&nbsp;&nbsp;<img src=\"/static/img/trunk.png\" \
                  alt=\"Tagged/Trunked Interface\" data-toggle=\"tooltip\" title=\"Tagged/Trunked Interface\">"
     if iface.voice_vlan:
-        info += "&nbsp;&nbsp;<img src=\"/static/img/voice-vlan.png\" \
-                 alt=\"Voice VLAN\" data-toggle=\"tooltip\" title=\"Voice VLAN %d>\"" % iface.voice_vlan
+        info = info + f"&nbsp;&nbsp;<img src=\"/static/img/voice-vlan.png\" \
+                 alt=\"Voice VLAN\" data-toggle=\"tooltip\" title=\"Voice VLAN {iface.voice_vlan}>\""
 
     return mark_safe(info)
 
@@ -460,27 +458,21 @@ def get_lldp_info(neighbor):
     if neighbor.chassis_string and neighbor.chassis_type:
         # use the chassis info, if found.
         if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
-            eth = bytes_to_hex_string_ethernet(neighbor.chassis_string)
-            # vendor = get_vendor_from_oui(bytes_ethernet_to_oui(neighbor.chassis_string))
-            # name = "%s (%s)" % (eth, vendor)
-            chassis_info = eth
+            chassis_info = bytes_to_hex_string_ethernet(neighbor.chassis_string)
         elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
             net_addr_type = int(ord(neighbor.chassis_string[0]))
             if net_addr_type == IANA_TYPE_IPV4:
                 bytes = neighbor.chassis_string[1:]
-                separator = '.'
-                format = "%d"
-                chassis_info = 'IPv4 Address'
-                chassis_info = separator.join(format % ord(b) for b in bytes)
+                chassis_info = ".".join("%d" % ord(b) for b in bytes)
             elif net_addr_type == IANA_TYPE_IPV6:
                 chassis_info = 'IPv6 Address'
             else:
                 chassis_info = 'Unknown Address Type'
 
     if neighbor.sys_descr:
-        info += "<abbr data-toggle=\"tooltip\" title=\"%s\">%s - %s</abbr>" % (neighbor.sys_descr, name, chassis_info)
+        info = info + f"<abbr data-toggle=\"tooltip\" title=\"{neighbor.sys_descr}\">{name} - {chassis_info}</abbr>"
     else:
-        info += "%s - %s" % (name, chassis_info)
+        info = info + f"{name} - {chassis_info}"
 
     return mark_safe(info)
 
@@ -515,3 +507,40 @@ def querystring(request, **kwargs):
         return '?' + querystring
     else:
         return ''
+
+
+# adopted from Netbox!
+@register.filter()
+def humanize_speed(speed):
+    """
+    Humanize speeds given in Mbps. Examples:
+
+        1 => "1 Mbps"
+        100 => "100 Mbps"
+        10000 => "10 Gbps"
+    """
+    if not speed:
+        return ''
+    if speed >= 1000000000 and speed % 1000000000 == 0:
+        return '{} Pbps'.format(int(speed / 1000000000))
+    elif speed >= 1000000 and speed % 1000000 == 0:
+        return '{} Tbps'.format(int(speed / 1000000))
+    elif speed >= 1000 and speed % 1000 == 0:
+        return '{} Gbps'.format(int(speed / 1000))
+    elif speed >= 1000:
+        return '{} Gbps'.format(float(speed) / 1000)
+    else:
+        return '{} Mbps'.format(speed)
+
+
+# adopted from Netbox!
+@register.filter()
+def humanize_power(power):
+    """
+    Humanize power given in milliWatts. Examples:
+        6500 => "6.5W"
+        400 => "0.4W"
+    """
+    if not power:
+        return ''
+    return '{:.1f}W'.format(power / 1000)

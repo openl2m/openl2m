@@ -44,7 +44,7 @@ class SnmpConnectorCisco(SnmpConnector):
         THIS NEEDS WORK TO IMPROVE PERFORMANCE !!!
         Returns True if we parse the OID and we should cache it!
         """
-        dprint("CISCO Parsing OID %s" % oid)
+        dprint(f"CISCO Parsing OID {oid}")
 
         if_index = int(oid_in_branch(vmVoiceVlanId, oid))
         if if_index:
@@ -150,10 +150,10 @@ class SnmpConnectorCisco(SnmpConnector):
             com_or_ctx = ''
             if self.switch.snmp_profile.version == SNMP_VERSION_2C:
                 # for v2, set community string to "Cisco format"
-                com_or_ctx = "%s@%s" % (self.switch.snmp_profile.community, vlan_id)
+                com_or_ctx = f"{self.switch.snmp_profile.community}@{vlan_id}"
             else:
                 # v3, set context to "Cisco format":
-                com_or_ctx = "vlan-%s" % vlan_id
+                com_or_ctx = f"vlan-{vlan_id}"
             self._set_snmp_session(com_or_ctx)
             # first map Q-Bridge ports to ifIndexes:
             retval = self._get_branch_by_name('dot1dBasePortIfIndex')
@@ -225,8 +225,7 @@ class SnmpConnectorCisco(SnmpConnector):
                     if if_index in self.interfaces.keys():
                         self.interfaces[if_index].poe_entry = port_entry
                         if port_entry.detect_status == POE_PORT_DETECT_FAULT:
-                            warning = "PoE FAULT status (%d = %s) on interface %s" % \
-                                (port_entry.detect_status, poe_status_name[port_entry.detect_status], iface.name)
+                            warning = f"PoE FAULT status ({port_entry.detect_status} = {poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
                             self._add_warning(warning)
                             # log my activity
                             log = Log(user=self.request.user,
@@ -244,7 +243,7 @@ class SnmpConnectorCisco(SnmpConnector):
                     if iface.name[-count:] == end:
                         iface.poe_entry = port_entry
                         if port_entry.detect_status == POE_PORT_DETECT_FAULT:
-                            warning = "PoE FAULT status (%s) on interface %s" % (port_entry.status_name, iface.name)
+                            warning = f"PoE FAULT status ({port_entry.status_name}) on interface {iface.name}"
                             self._add_warning(warning)
                             # log my activity
                             log = Log(user=self.request.user,
@@ -255,7 +254,7 @@ class SnmpConnectorCisco(SnmpConnector):
                             log.save()
                         break
 
-    def set_interface_untagged_vlan(self, interface, old_vlan_id, new_vlan_id):
+    def set_interface_untagged_vlan(self, interface, new_vlan_id):
         """
         Override the VLAN change, this is done Cisco specific using the VTP MIB
         Returns True or False
@@ -288,7 +287,7 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         if_index = int(oid_in_branch(cL2L3IfModeOper, oid))
         if if_index:
-            dprint("Cisco Interface Operation mode if_index %s mode %s" % (if_index, val))
+            dprint(f"Cisco Interface Operation mode if_index {if_index} mode {val}")
             if if_index in self.interfaces.keys():
                 if int(val) == CISCO_ROUTE_MODE:
                     self.interfaces[if_index].is_routed = True
@@ -366,7 +365,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # this is the actual status, not what is configured; ie NOT trunk if interface is down!!!
         # if_index = int(oid_in_branch(vlanTrunkPortDynamicStatus, oid))
         # if if_index:
-        #    dprint("Cisco PORT TRUNK STATUS ifIndex %d = %s" % (if_index, val))
+        #    dprint(f"Cisco PORT TRUNK STATUS ifIndex {if_index} = {val}")
         #    if(int(val) == VTP_PORT_TRUNK_ENABLED):
         #        # trunk/tagged port
         #        if if_index in self.interfaces.keys():
@@ -506,7 +505,7 @@ class SnmpConnectorCisco(SnmpConnector):
             if index in self.syslog_msgs.keys():
                 # approximate / calculate the datetime value:
                 # msg timestamp = time when sysUpTime was read minus seconds between sysUptime and msg timetick
-                dprint("TIMES ARE: %d  %d  %d" % (self.system.time, self.system.sys_uptime, timetick))
+                dprint(f"TIMES ARE: {self.system.time}  {self.system.sys_uptime}  {timetick}")
                 self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(self.system.time - int((self.system.sys_uptime - timetick)/100))
             else:
                 # be save, create; "should" never happen

@@ -37,7 +37,7 @@ class NetmikoConnector():
         and connect to the switch
         switch -  the Switch() class object we will connect to
         """
-        dprint("NetmikoConnector __init__ for %s (%s)" % (switch.name, switch.primary_ip4))
+        dprint(f"NetmikoConnector __init__ for {switch.name} ({switch.primary_ip4})")
         self.name = "Standard Netmiko"  # what type of class is running!
         self.device_type = ''       # unknown at creation
         self.connection = False     # return from ConnectHandler()
@@ -82,7 +82,7 @@ class NetmikoConnector():
         except Exception as e:
             self.error.status = True
             self.error.description = "Unknown error! Please inform your admin."
-            self.error.details = "Netmiko Error: %s (%s)\n%s" % (repr(e), str(type(e)), traceback.format_exc())
+            self.error.details = f"Netmiko Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             return False
 
         self.connection = handle
@@ -112,10 +112,10 @@ class NetmikoConnector():
 
     def execute_command(self, command):
         """
-        Execute a command on the switch and return True on success.
-        Set the command output  to self.output
+        Execute a single command on the switch and return True on success.
+        Set the command output to self.output
         """
-        dprint("NetmikoConnector execute_command() '%s'" % command)
+        dprint(f"NetmikoConnector execute_command() '{command}'")
         self.output = ''
         if not self.connection:
             self.connect()
@@ -131,12 +131,13 @@ class NetmikoConnector():
             self.output = "No connection found!"
             return False
 
-    def execute_config_command(self, commands):
+    def execute_config_commands(self, commands):
         """
-        Put the switch in 'config' mode, and then execute a command on the switch
-        and return the command output
+        Put the switch in 'config' mode, and then execute a command string or
+        list of commands on the switch.
+        Return the command output
         """
-        dprint("NetmikoConnector execute_config_command '%s'" % commands)
+        dprint(f"NetmikoConnector execute_config_command '{commands}'")
         self.output = ''
         if not self.connection:
             self.connect()

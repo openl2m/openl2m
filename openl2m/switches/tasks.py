@@ -127,12 +127,12 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
 
     # now email the results to the user:
     if user.email:
-        message = "Task Description: %s\nId: %d\nScheduled: %s\nCompleted: %s\n\nResults:\n\n%s\n" % \
-            (task.description, task.id, task.eta, task.completed,
-             "\n".join(results['outputs']))
+        results = "\n".join(results['outputs'])
+        message = f"Task Description: {task.description}\nId: {task.id}\nScheduled: {task.eta}\n" \
+                  "Completed: {task.completed}\n\nResults:\n\n{results}\n"
 
         try:
-            send_mail("%s%s" % (settings.EMAIL_SUBJECT_PREFIX_USER, subject),
+            send_mail(f"{settings.EMAIL_SUBJECT_PREFIX_USER}{subject}",
                       message, settings.EMAIL_FROM_ADDRESS,
                       [user.email], fail_silently=False)
             log = Log(user=user,
@@ -214,11 +214,11 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
     outputs = []    # description of any errors found
     for (if_index, name) in interfaces.items():
         if_index = int(if_index)
-        # OPTIMIZE: options.append("Interface index %s</br>" % if_index)
+        # OPTIMIZE: options.append(f"Interface index {if_index}</br>")
         iface = conn.get_interface_by_index(if_index)
         if not iface:
             error_count += 1
-            outputs.append("ERROR: interface for index %s not found!" % if_index)
+            outputs.append(f"ERROR: interface for index {if_index} not found!")
             continue
         iface_count += 1
         current_state = {}  # save the current state, right before we make a change!
@@ -240,17 +240,16 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                 new_state_name = "Up"
                 log.action = LOG_CHANGE_INTERFACE_UP
             # make sure we cast the proper type here! Ie this needs an Integer()
-            retval = conn._set(ifAdminStatus + "." + str(if_index), new_state, 'i')
+            # retval = conn._set(ifAdminStatus + "." + str(if_index), new_state, 'i')
+            retval = conn.set_interface_admin_status(iface, new_state)
             if retval < 0:
                 error_count += 1
                 log.type = LOG_TYPE_ERROR
-                log.description = "Interface %s: Bulk-Edit Admin %s ERROR: %s" % \
-                    (iface.name, new_state_name, conn.error.description)
+                log.description = f"Interface {iface.name}: Bulk-Edit Admin {new_state_name} ERROR: {conn.error.description}"
             else:
                 success_count += 1
                 log.type = LOG_TYPE_CHANGE
-                log.description = "Interface %s: Bulk-Edit Admin set to %s" % \
-                    (iface.name, new_state_name)
+                log.description = f"Interface {iface.name}: Bulk-Edit Admin set to {new_state_name}"
             outputs.append(log.description)
             log.save()
 
@@ -273,17 +272,16 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                         new_state_name = "Enabled"
                         log.action = LOG_CHANGE_INTERFACE_POE_UP
                     # make sure we cast the proper type here! Ie this needs an Integer()
-                    retval = conn._set(pethPsePortAdminEnable + "." + iface.poe_entry.index, int(new_state), 'i')
+                    # retval = conn._set(pethPsePortAdminEnable + "." + iface.poe_entry.index, int(new_state), 'i')
+                    retval = conn.set_interface_admin_status(iface, new_state)
                     if retval < 0:
                         error_count += 1
                         log.type = LOG_TYPE_ERROR
-                        log.description = "Interface %s: Bulk-Edit PoE %s ERROR: %s" % \
-                            (iface.name, new_state_name, conn.error.description)
+                        log.description = f"Interface {iface.name}: Bulk-Edit PoE {new_state_name} ERROR: {conn.error.description}"
                     else:
                         success_count += 1
                         log.type = LOG_TYPE_CHANGE
-                        log.description = "Interface %s: Bulk-Edit PoE set to %s" % \
-                            (iface.name, new_state_name)
+                        log.description = f"Interface {iface.name}: Bulk-Edit PoE set to {new_state_name}"
                         outputs.append(log.description)
                         log.save()
 
@@ -293,9 +291,11 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                         log.action = LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP
                         # the PoE index is kept in the iface.poe_entry
                         # First disable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
-                        retval = conn._set("%s.%s" % (pethPsePortAdminEnable, iface.poe_entry.index), POE_PORT_ADMIN_DISABLED, 'i')
+                        # retval = conn._set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_DISABLED, 'i')
+                        # First disable PoE
+                        retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_DISABLED)
                         if retval < 0:
-                            log.description = "ERROR: Bulk-Edit Toggle-Disable PoE on interface %s - %s " % (iface.name, conn.error.description)
+                            log.description = f"ERROR: Bulk-Edit Toggle-Disable PoE on interface {iface.name} - {conn.error.description}"
                             log.type = LOG_TYPE_ERROR
                             outputs.append(log.description)
                             log.save()
@@ -303,9 +303,10 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                             # successful power down, now delay
                             time.sleep(settings.POE_TOGGLE_DELAY)
                             # Now enable PoE again...
-                            retval = conn._set("%s.%s" % (pethPsePortAdminEnable, iface.poe_entry.index), POE_PORT_ADMIN_ENABLED, 'i')
+                            # retval = conn._set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_ENABLED, 'i')
+                            retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_ENABLED)
                             if retval < 0:
-                                log.description = "ERROR: Bulk-Edit Toggle-Enable PoE on interface %s - %s " % (iface.name, conn.error.description)
+                                log.description = f"ERROR: Bulk-Edit Toggle-Enable PoE on interface {iface.name} - {conn.error.description}"
                                 log.type = LOG_TYPE_ERROR
                                 outputs.append(log.description)
                                 log.save()
@@ -324,7 +325,9 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                         log.action = LOG_CHANGE_INTERFACE_POE_DOWN
                         # the PoE index is kept in the iface.poe_entry
                         # Disable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
-                        retval = conn._set("%s.%s" % (pethPsePortAdminEnable, iface.poe_entry.index), POE_PORT_ADMIN_DISABLED, 'i')
+                        # retval = conn._set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_DISABLED, 'i')
+                        # disable PoE
+                        retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_DISABLED)
                         if retval < 0:
                             log.description = f"ERROR: Bulk-Edit Disable PoE on interface {iface.name} - {conn.error.description}"
                             log.type = LOG_TYPE_ERROR
@@ -347,7 +350,9 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                         log.action = LOG_CHANGE_INTERFACE_POE_UP
                         # the PoE index is kept in the iface.poe_entry
                         # Enable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
-                        retval = conn._set("%s.%s" % (pethPsePortAdminEnable, iface.poe_entry.index), POE_PORT_ADMIN_ENABLED, 'i')
+                        # retval = conn._set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_ENABLED, 'i')
+                        # enable PoE
+                        retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_ENABLED)
                         if retval < 0:
                             log.description = f"ERROR: Bulk-Edit Enable PoE on interface {iface.name} - {conn.error.description}"
                             log.type = LOG_TYPE_ERROR
@@ -380,7 +385,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
             else:
                 # make sure we cast the proper type here! Ie this needs an Integer()
                 current_state['pvid'] = iface.untagged_vlan
-                retval = conn.set_interface_untagged_vlan(if_index, iface.untagged_vlan, new_pvid)
+                retval = conn.set_interface_untagged_vlan(iface, new_pvid)
                 log = Log(user=user,
                           ip_address=remote_ip,
                           if_index=if_index,
@@ -402,15 +407,15 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
             iface_new_alias = new_alias
             # check if the original alias starts with a string we have to keep
             if settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX:
-                keep_format = "(^%s)" % settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX
+                keep_format = f"(^{settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX})"
                 match = re.match(keep_format, iface.alias)
                 if match:
                     # check of new submitted alias begins with this string:
                     match_new = re.match(keep_format, iface_new_alias)
                     if not match_new:
                         # required start string NOT found on new alias, so prepend it!
-                        iface_new_alias = "%s %s" % (match[1], iface_new_alias)
-                        outputs.append("Interface %s: Bulk-Edit Description override: %s" % (iface.name, iface_new_alias))
+                        iface_new_alias = f"{match[1]} {iface_new_alias}"
+                        outputs.append(f"Interface {iface.name}: Bulk-Edit Description override: {iface_new_alias}")
 
             log = Log(user=user,
                       ip_address=remote_ip,
@@ -420,7 +425,8 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                       action=LOG_CHANGE_INTERFACE_ALIAS)
             current_state['description'] = iface.alias
             # make sure we cast the proper type here! Ie this needs an string
-            retval = conn._set(ifAlias + "." + str(if_index), iface_new_alias, 'OCTETSTRING')
+            # retval = conn._set(ifAlias + "." + str(if_index), iface_new_alias, 'OCTETSTRING')
+            retval = conn.set_interface_description(iface, iface_new_alias)
             if retval < 0:
                 error_count += 1
                 log.type = LOG_TYPE_ERROR

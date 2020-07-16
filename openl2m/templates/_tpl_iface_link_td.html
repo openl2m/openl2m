@@ -4,7 +4,7 @@
 <td>
   {% if iface.oper_status == IF_OPER_STATUS_UP %}
     {% if iface.hc_speed > 0 %}
-      {{ iface.hc_speed }} Mbps
+      {{ iface.hc_speed|humanize_speed }}
     {% else %}
       <small>(Unknown)</small>
     {% endif %}

@@ -42,7 +42,7 @@ def get_connection_object(request, group, switch):
     If switch objectID is not known yet, we will probe the switch first.
     If probing fails, we raise an exception!
     """
-    dprint("get_connection_object() for %s at %s" % (switch, datetime.datetime.now()))
+    dprint(f"get_connection_object() for {switch} at {datetime.datetime.now()}")
     if not switch.snmp_oid:
         # we don't know this switch yet, go probe it
         conn = SnmpConnector(request, group, switch)
@@ -53,7 +53,7 @@ def get_connection_object(request, group, switch):
     # now we should have the basics:
     if switch.snmp_oid:
         # we have the ObjectID, what kind of vendor is it:
-        dprint("   Checking device type for %s" % switch.snmp_oid)
+        dprint(f"   Checking device type for {switch.snmp_oid}")
         sub_oid = oid_in_branch(enterprises, switch.snmp_oid)
         if sub_oid:
             parts = sub_oid.split('.', 1)  # 1 means one split, two elements!

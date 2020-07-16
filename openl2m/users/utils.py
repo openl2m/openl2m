@@ -58,11 +58,11 @@ def get_current_users():
     user_list = []
     for session in active_sessions:
         data = session.get_decoded()
-        # dprint("SESSION Data = %s" % data)
+        # dprint(f"SESSION Data = {data}")
         user_id = data.get('_auth_user_id', None)
         remote_ip = data.get('remote_ip', None)
         if user_id and remote_ip:
             user = User.objects.get(pk=int(user_id))
-            # dprint("Current User = %s" % user)
-            user_list.append("%s (%s)" % (user.username, remote_ip))
+            # dprint(f"Current User = {user}")
+            user_list.append(f"{user.username} ({remote_ip})")
     return user_list

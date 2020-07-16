@@ -120,7 +120,7 @@ class Interface():
         self.admin_status = IF_ADMIN_STATUS_DOWN    # ifAdminStatus, administrative status of the interface
         self.has_connector = True   # value of IFMIB_CONNECTOR
         self.mtu = 0                # ifMTU value
-        self.speed = 0              # ifSpeed from the old Interfaces mib
+        # self.speed = 0              # ifSpeed from the old Interfaces mib
         self.hc_speed = 0           # high speed counter, in 1 Mbps, from IF-MIB, not Interfaces MIB
         self.phys_addr = 0x0
         self.alias = ''           # the interface description, as set by the switch configuration, from IF-MIB
@@ -285,7 +285,7 @@ class PortList():
         """
         Handle the "string" representation
         """
-        return "%s(%s)" % (self.__class__.__name__, repr(self.to_hex_string()))
+        return f"{self.__class__.__name__}({repr(self.to_hex_string())})"
 
     def __setitem__(self, position, value):
         """
@@ -422,12 +422,13 @@ class PoePSE():
         self.threshold = 0
 
     def display_name(self):
-        return "PSE #%d" % self.index
+        return f"PSE #{self.index}"
 
     def __str__(self):
         return self.display_name()
-    #    return ("PoePSE:\nIndex=%s\nStatus=%d\nMax Power=%d\nPower Draw=%d\nThreshold=%d\n" %
-    #        (self.index,self.status,self.max_power,self.power_consumed,self.threshold))
+    #    return (f"PoePSE:\nIndex={self.index}\nStatus={self.status}\n" \
+    #            "Max Power={self.max_power}\nPower Draw={self.power_consumed}\n" \
+    #            "Threshold={self.threshold}\n"
 
 
 class PoePort():
@@ -453,9 +454,10 @@ class PoePort():
         self.max_power_consumed = 0  # max power drawn since PoE reset, in milliWatt
 
     def __str__(self):
-        return ("PoePort:\nIndex=%s\nAdmin=%d\nDetect=%d\nPower Draw Supported=%s\nPower Draw=%d\n" %
-                (self.index, self.admin_status, self.detect_status, self.power_consumption_supported,
-                 self.power_consumed))
+        return (f"PoePort:\nIndex={self.index}\nAdmin={self.admin_status}\n"
+                "Detect={self.detect_status}\n"
+                "Power Draw Supported={self.power_consumption_supported}\n"
+                "Power Draw={self.power_consumed}\n")
 
 
 class SyslogMsg():

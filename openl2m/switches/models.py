@@ -239,7 +239,7 @@ class Command(models.Model):
         """
         This is used in templates, so we can 'annotate' as needed
         """
-        return "%s (%s - %s)" % (self.name, self.os, self.get_type_display())
+        return f"{self.name} ({self.os} - {self.get_type_display()})"
 
     def __str__(self):
         return self.display_name()
@@ -814,17 +814,17 @@ class Log(models.Model):
         """
         return all the details of this activity entry as a string
         """
-        info = "User=%s, Type=%d, Action=%d, " % (self.user.username, self.type, self.action)
+        info = f"User={self.user.username}, Type={self.type}, Action={self.action}, "
         if self.switch:
-            info += ("Switch=%s, ifIndex=%d, " % (self.switch.name, self.if_index))
-        info += "Descr=%s" % self.description
+            info = info + f"Switch={self.switch.name}, ifIndex={self.if_index}, "
+        info = info + f"Descr={self.description}"
         return info
 
     def display_name(self):
         """
         This is used in templates, so we can 'annotate' as needed
         """
-        return "%s-%s-%d" % (self.user, self.switch, self.action)
+        return f"{self.user}-{self.switch}-{self.action}"
 
     def __str__(self):
         return self.display_name()
@@ -935,7 +935,7 @@ class Task(models.Model):
         """
         This is used in templates, so we can 'annotate' as needed
         """
-        return "Task %d: User %s - Switch %s - %s" % (self.id, self.user.username, self.switch.name, self.description)
+        return f"Task {self.id}: User {self.user.username} - Switch {self.switch.name} - {self.description}"
 
     def __str__(self):
         return self.display_name()

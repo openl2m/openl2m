@@ -138,12 +138,12 @@ class SnmpConnectorComware(SnmpConnector):
         # dprint("Comware _get_vendor_data()")
         self._get_branch_by_name('hh3cCfgLog', True, self._parse_mibs_comware_config)
 
-    def set_interface_untagged_vlan(self, interface, old_vlan_id, new_vlan_id):
+    def set_interface_untagged_vlan(self, interface, new_vlan_id):
         """
         As an example, Override the VLAN change, this is done Comware specific using the Comware VLAN MIB
         Return -1 if invalid interface, or value of _set() call
         """
-        dprint(f"Comware set_interface_untagged_vlan() port {interface.name} from {old_vlan_id} to {new_vlan_id}")
+        dprint(f"Comware set_interface_untagged_vlan() port {interface.name} to {new_vlan_id}")
         new_vlan = self.get_vlan_by_id(new_vlan_id)
         if interface and new_vlan:
             if interface.is_tagged:
@@ -238,7 +238,7 @@ class SnmpConnectorComware(SnmpConnector):
                                     new_vlan_portlist[this_iface.port_id] = 1
                         else:
                             # no switchport? "should" not happen for a valid switch port interface
-                            warning = "Warning: %s - no port_id found in set_interface_untagged_vlan(Comware)!" % this_iface.name
+                            warning = f"Warning: {this_iface.name} - no port_id found in set_interface_untagged_vlan(Comware)!"
                             self._add_warning(warning)
 
                 # send to the switch!
@@ -407,18 +407,19 @@ class SnmpConnectorComware(SnmpConnector):
             # we take the ending part of "7.12", where 7=PSE#, and 12=port!
             (pse_module, port) = port_entry.index.split('.')
             # calculate the stack member number from PSE#
-            member = ((int(pse_module) - 1) / 3)
+            member = int((int(pse_module) - 1) / 3)
             # generate the interface ending, for above 7.12 ==> 2/0/12
             # interface appears to be port - ((member-1)*65)
-            portnum = int(port) - ((member - 1) * 65)
-            end = "%d/0/%d" % (member, portnum)
+            portnum = int(int(port) - ((member - 1) * 65))
+            end = f"{member}/0/{portnum}"
             count = len(end)
             for (if_index, iface) in self.interfaces.items():
                 if iface.name[-count:] == end:
                     iface.poe_entry = port_entry
                     if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                        warning = "PoE FAULT status (%d = %s) on interface %s" % \
-                            (port_entry.detect_status, poe_status_name[port_entry.detect_status], iface.name)
+                        warning = f"PoE FAULT status ({port_entry.detect_status} = " \
+                                  "{poe_status_name[port_entry.detect_status]}) " \
+                                  "on interface {iface.name}"
                         self._add_warning(warning)
                         # log my activity
                         log = Log(user=self.request.user,
@@ -459,8 +460,8 @@ class SnmpConnectorComware(SnmpConnector):
         row_place = self.active_config_rows + 1
         # set_multiple() needs a list of tuples(oid, value, type)
         retval = self._set_multiple([
-            ("%s.%s" % (hh3cCfgOperateType, row_place), HH3C_running2Startup, 'i'),
-            ("%s.%s" % (hh3cCfgOperateRowStatus, row_place), HH3C_createAndGo, 'i')
+            (f"{hh3cCfgOperateType}.{row_place}", HH3C_running2Startup, 'i'),
+            (f"{hh3cCfgOperateRowStatus}.{row_place}", HH3C_createAndGo, 'i')
         ])
         if retval < 0:
             self._add_warning("Error saving via SNMP (hh3cCfgOperateRowStatus)")

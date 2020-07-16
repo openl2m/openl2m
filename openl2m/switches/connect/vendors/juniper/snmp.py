@@ -48,7 +48,7 @@ class SnmpConnectorJuniper(SnmpConnector):
         THIS NEEDS WORK TO IMPROVE PERFORMANCE !!!
         Returns True if we parse the OID and we should cache it!
         """
-        dprint("Juniper Parsing OID %s" % oid)
+        dprint(f"Juniper Parsing OID {oid}")
 
         if self._parse_mibs_juniper_l2ald_vlans(oid, val):
             return True
@@ -71,13 +71,14 @@ class SnmpConnectorJuniper(SnmpConnector):
             port = int(port) - 1        # 0-based!
             # find the matching interface:
             for (if_index, iface) in self.interfaces.items():
-                if_name = "ge-%d/0/%d" % (module, port)
+                if_name = f"ge-{module}/0/{port}"
                 if iface.name == if_name:
-                    dprint("   PoE Port Map FOUND %s" % iface.name)
+                    dprint(f"   PoE Port Map FOUND {iface.name}")
                     iface.poe_entry = port_entry
                     if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                        warning = "PoE FAULT status (%d = %s) on interface %s" % \
-                            (port_entry.detect_status, poe_status_name[port_entry.detect_status], iface.name)
+                        warning = f"PoE FAULT status ({port_entry.detect_status} = " \
+                                  "{poe_status_name[port_entry.detect_status]}) " \
+                                  "on interface {iface.name}"
                         self._add_warning(warning)
                         # log my activity
                         log = Log(user=self.request.user,
@@ -133,25 +134,25 @@ class SnmpConnectorJuniper(SnmpConnector):
         # a new vlan tag or index that maps to an actual vlan id on the wire!
         vlan_index = int(oid_in_branch(jnxL2aldVlanTag, oid))
         if vlan_index:
-            dprint("jnxL2aldVlanTag %s = %s" % (vlan_index, val))
+            dprint(f"jnxL2aldVlanTag {vlan_index} = {val}")
             self.vlan_id_by_index[vlan_index] = int(val)
             return True
 
         # vlan name, indexed by internal vlan index, NOT vlan id!
         vlan_index = int(oid_in_branch(jnxL2aldVlanName, oid))
         if vlan_index:
-            dprint("jnxL2aldVlanName %s = %s" % (vlan_index, val))
+            dprint(f"jnxL2aldVlanName {vlan_index} = {val}")
             try:
                 self.vlans[self.vlan_id_by_index[vlan_index]].name = val
             except KeyError:
                 # should not happen!
-                self._add_warning("Invalid vlan index %d (jnxL2aldVlanName)" % vlan_index)
+                self._add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanName)")
             return True
 
         # vlan type, static or dynamic
         vlan_index = int(oid_in_branch(jnxL2aldVlanType, oid))
         if vlan_index:
-            dprint("jnxL2aldVlanType %s = %s" % (vlan_index, val))
+            dprint(f"jnxL2aldVlanType {vlan_index} = {val}")
             val = int(val)
             if val == JNX_VLAN_TYPE_STATIC:
                 status = VLAN_STATUS_PERMANENT
@@ -163,7 +164,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                 self.vlans[self.vlan_id_by_index[vlan_index]].status = status
             except KeyError:
                 # should not happen!
-                self._add_warning("Invalid vlan index %d (jnxL2aldVlanType)" % vlan_index)
+                self._add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanType)")
             return True
 
         # the filtering database, this maps 'vlan index' (sub-oid) to 'filter db index' (return value)
@@ -173,10 +174,10 @@ class SnmpConnectorJuniper(SnmpConnector):
             try:
                 self.vlans[self.vlan_id_by_index[vlan_index]].fdb_index = fdb_index
                 self.dot1tp_fdb_to_vlan_index[fdb_index] = vlan_index
-                dprint("FDB entry:  %s  =>  %s" % (fdb_index, vlan_index))
+                dprint(f"FDB entry:  {fdb_index}  =>  {vlan_index}")
             except KeyError:
                 # should not happen!
-                self._add_warning("Invalid vlan index %d (jnxL2aldVlanFdbId)" % vlan_index)
+                self._add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanFdbId)")
             return True
         return False
 

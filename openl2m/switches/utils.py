@@ -44,10 +44,7 @@ def time_duration(seconds):
     """
     show a nice string with the time duration from the seconds given
     """
-    d = str(datetime.timedelta(seconds=seconds)).rsplit('.', 2)[0]
-
-    s = str(d)
-    return s
+    return str(datetime.timedelta(seconds=seconds)).rsplit('.', 2)[0]
 
 
 def get_local_timezone_offset():
