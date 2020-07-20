@@ -4,6 +4,19 @@
 Version 1.1
 ===========
 
+Version 1.1.12
+--------------
+Release Date: 2020-07-20
+
+* Bulk-edit can now also select interface up/down, instead of just change
+* interface speed shows in easier human form (Mbps/Gbps/Tbps)
+
+Bug fixes:
+
+* use f-strings everywhere
+* use font-awesome v5.12.1
+* other miscellaneous fixes
+
 Version 1.1.11
 --------------
 Release Date: 2020-07-08
