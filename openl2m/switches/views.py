@@ -1149,7 +1149,7 @@ def show_stats(request):
             environment['Tasks'] = "Enabled and running"
     else:
         environment['Tasks'] = "Disabled"
-    environment['OpenL2M version'] = f"{settings.VERSION} (settings.VERSION_DATE)"
+    environment['OpenL2M version'] = f"{settings.VERSION} ({settings.VERSION_DATE})"
 
     db_items = {}   # database object item counts
     db_items['Switches'] = Switch.objects.count()
