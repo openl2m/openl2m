@@ -224,68 +224,63 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
         current_state = {}  # save the current state, right before we make a change!
         current_state['if_index'] = if_index
         current_state['name'] = iface.name    # for readability
-        if interface_change:
+        if interface_change != INTERFACE_STATUS_NONE:
             log = Log(user=user,
                       ip_address=remote_ip,
                       if_index=if_index,
                       switch=switch,
                       group=group)
             current_state['admin_state'] = iface.admin_status
-            if iface.admin_status == IF_ADMIN_STATUS_UP:
+            if interface_change == INTERFACE_STATUS_CHANGE:
+                if iface.admin_status == IF_ADMIN_STATUS_UP:
+                    new_state = IF_ADMIN_STATUS_DOWN
+                    new_state_name = "Down"
+                    log.action = LOG_CHANGE_INTERFACE_DOWN
+                else:
+                    new_state = IF_ADMIN_STATUS_UP
+                    new_state_name = "Up"
+                    log.action = LOG_CHANGE_INTERFACE_UP
+
+            elif interface_change == INTERFACE_STATUS_DOWN:
                 new_state = IF_ADMIN_STATUS_DOWN
                 new_state_name = "Down"
                 log.action = LOG_CHANGE_INTERFACE_DOWN
-            else:
+
+            elif interface_change == INTERFACE_STATUS_UP:
                 new_state = IF_ADMIN_STATUS_UP
                 new_state_name = "Up"
                 log.action = LOG_CHANGE_INTERFACE_UP
-            # make sure we cast the proper type here! Ie this needs an Integer()
-            # retval = conn._set(ifAdminStatus + "." + str(if_index), new_state, 'i')
-            retval = conn.set_interface_admin_status(iface, new_state)
-            if retval < 0:
-                error_count += 1
-                log.type = LOG_TYPE_ERROR
-                log.description = f"Interface {iface.name}: Bulk-Edit Admin {new_state_name} ERROR: {conn.error.description}"
+
+            # are we actually making a change?
+            if new_state != current_state['admin_state']:
+                # yes, apply the change:
+                retval = conn.set_interface_admin_status(iface, new_state)
+                if retval < 0:
+                    error_count += 1
+                    log.type = LOG_TYPE_ERROR
+                    log.description = f"Interface {iface.name}: Bulk-Edit Admin {new_state_name} ERROR: {conn.error.description}"
+                else:
+                    success_count += 1
+                    log.type = LOG_TYPE_CHANGE
+                    log.description = f"Interface {iface.name}: Bulk-Edit Admin set to {new_state_name}"
             else:
-                success_count += 1
+                # already in wanted admin state:
                 log.type = LOG_TYPE_CHANGE
-                log.description = f"Interface {iface.name}: Bulk-Edit Admin set to {new_state_name}"
+                log.description = f"Interface {iface.name}: Bulk-Edit ignored - already {new_state_name}"
             outputs.append(log.description)
             log.save()
 
         if poe_choice != BULKEDIT_POE_NONE:
-            if iface.poe_entry:
+            if not iface.poe_entry:
+                outputs.append(f"Interface {iface.name}: Bulk-Edit ignored - not PoE capable")
+            else:
                 log = Log(user=user,
                           ip_address=remote_ip,
                           if_index=if_index,
                           switch=switch,
                           group=group)
                 current_state['poe_state'] = iface.poe_entry.admin_status
-                if poe_choice == BULKEDIT_POE_CHANGE:
-                    # the PoE index is kept in the iface.poe_entry
-                    if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
-                        new_state = POE_PORT_ADMIN_DISABLED
-                        new_state_name = "Disabled"
-                        log.action = LOG_CHANGE_INTERFACE_POE_DOWN
-                    else:
-                        new_state = POE_PORT_ADMIN_ENABLED
-                        new_state_name = "Enabled"
-                        log.action = LOG_CHANGE_INTERFACE_POE_UP
-                    # make sure we cast the proper type here! Ie this needs an Integer()
-                    # retval = conn._set(pethPsePortAdminEnable + "." + iface.poe_entry.index, int(new_state), 'i')
-                    retval = conn.set_interface_admin_status(iface, new_state)
-                    if retval < 0:
-                        error_count += 1
-                        log.type = LOG_TYPE_ERROR
-                        log.description = f"Interface {iface.name}: Bulk-Edit PoE {new_state_name} ERROR: {conn.error.description}"
-                    else:
-                        success_count += 1
-                        log.type = LOG_TYPE_CHANGE
-                        log.description = f"Interface {iface.name}: Bulk-Edit PoE set to {new_state_name}"
-                        outputs.append(log.description)
-                        log.save()
-
-                elif poe_choice == BULKEDIT_POE_DOWN_UP:
+                if poe_choice == BULKEDIT_POE_DOWN_UP:
                     # Down / Up on interfaces with PoE Enabled:
                     if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
                         log.action = LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP
@@ -320,54 +315,46 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                     else:
                         outputs.append(f"Interface {iface.name}: Bulk-Edit PoE Down/Up IGNORED, PoE NOT enabled")
 
-                elif poe_choice == BULKEDIT_POE_DOWN:
-                    if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
+                else:
+                    # just enable or disable:
+                    if poe_choice == BULKEDIT_POE_CHANGE:
+                        # the PoE index is kept in the iface.poe_entry
+                        if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
+                            new_state = POE_PORT_ADMIN_DISABLED
+                            new_state_name = "Disabled"
+                            log.action = LOG_CHANGE_INTERFACE_POE_DOWN
+                        else:
+                            new_state = POE_PORT_ADMIN_ENABLED
+                            new_state_name = "Enabled"
+                            log.action = LOG_CHANGE_INTERFACE_POE_UP
+
+                    elif poe_choice == BULKEDIT_POE_DOWN:
+                        new_state = POE_PORT_ADMIN_DISABLED
+                        new_state_name = "Disabled"
                         log.action = LOG_CHANGE_INTERFACE_POE_DOWN
-                        # the PoE index is kept in the iface.poe_entry
-                        # Disable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
-                        # retval = conn._set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_DISABLED, 'i')
-                        # disable PoE
-                        retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_DISABLED)
-                        if retval < 0:
-                            log.description = f"ERROR: Bulk-Edit Disable PoE on interface {iface.name} - {conn.error.description}"
-                            log.type = LOG_TYPE_ERROR
-                            outputs.append(log.description)
-                            log.save()
-                        else:
-                            # all went well!
-                            success_count += 1
-                            log.type = LOG_TYPE_CHANGE
-                            log.description = f"Interface {iface.name}: Bulk-Edit PoE Down OK"
-                            outputs.append(log.description)
-                            log.save()
-                    else:
-                        outputs.append(f"Interface {iface.name}: Bulk-Edit PoE Disable IGNORED, PoE already off")
 
-                elif poe_choice == BULKEDIT_POE_UP:
-                    if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
-                        outputs.append(f"Interface {iface.name}: Bulk-Edit PoE Disable IGNORED, PoE already on")
-                    else:
+                    elif poe_choice == BULKEDIT_POE_UP:
+                        new_state = POE_PORT_ADMIN_ENABLED
+                        new_state_name = "Enabled"
                         log.action = LOG_CHANGE_INTERFACE_POE_UP
-                        # the PoE index is kept in the iface.poe_entry
-                        # Enable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
-                        # retval = conn._set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_ENABLED, 'i')
-                        # enable PoE
-                        retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_ENABLED)
+
+                    # are we actually making a change?
+                    if new_state != current_state['poe_state']:
+                        # yes, go do it:
+                        retval = conn.set_interface_poe_status(iface, new_state)
                         if retval < 0:
-                            log.description = f"ERROR: Bulk-Edit Enable PoE on interface {iface.name} - {conn.error.description}"
+                            error_count += 1
                             log.type = LOG_TYPE_ERROR
-                            outputs.append(log.description)
-                            log.save()
+                            log.description = f"Interface {iface.name}: Bulk-Edit PoE {new_state_name} ERROR: {conn.error.description}"
                         else:
-                            # all went well!
                             success_count += 1
                             log.type = LOG_TYPE_CHANGE
-                            log.description = f"Interface {iface.name}: Bulk-Edit PoE Up OK"
+                            log.description = f"Interface {iface.name}: Bulk-Edit PoE {new_state_name}"
                             outputs.append(log.description)
                             log.save()
-
-            else:
-                outputs.append(f"Interface {iface.name}: not PoE capable - ignored!")
+                    else:
+                        # already in wanted power state:
+                        outputs.append(f"Interface {iface.name}: Bulk-Edit ignored, PoE already {new_state_name}")
 
         if new_pvid > 0:
             if iface.lacp_master_index > 0:

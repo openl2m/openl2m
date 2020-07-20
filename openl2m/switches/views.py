@@ -364,7 +364,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         return error_page(request, group, switch, error)
 
     # read the submitted form data:
-    interface_change = bool(request.POST.get('interface_change', False))
+    interface_change = int(request.POST.get('interface_change', INTERFACE_STATUS_NONE))
     poe_choice = int(request.POST.get('poe_choice', BULKEDIT_POE_NONE))
     new_pvid = int(request.POST.get('new_pvid', -1))
     new_alias = str(request.POST.get('new_alias', ''))
@@ -376,7 +376,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
     if len(interface_list) == 0:
         return warning_page(request, group, switch, mark_safe("Please select at least 1 interface!"))
 
-    if not interface_change and poe_choice == BULKEDIT_POE_NONE and new_pvid < 0 and not new_alias:
+    if interface_change == INTERFACE_STATUS_NONE and poe_choice == BULKEDIT_POE_NONE and new_pvid < 0 and not new_alias:
         return warning_page(request, group, switch, mark_safe("Please select at least 1 thing to change!"))
 
     # perform some checks on valid data first:
@@ -458,7 +458,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
                     current['description'] = interface.alias
                 if poe_choice != BULKEDIT_POE_NONE and interface.poe_entry:
                     current['poe_state'] = interface.poe_entry.admin_status
-                if interface_change:
+                if interface_change != INTERFACE_STATUS_NONE:
                     current['admin_state'] = interface.admin_status
                 undo_info[if_index] = current
 

@@ -88,9 +88,12 @@
             <td></td> {# select column #}
 
             <td colspan="2">
-              <span data-toggle="tooltip" title="Check this to toggle state on all selected interfaces. I.e. go from Enabled to Disabled, or Disabled to Enabled (depending on current state!).">
-                <input type="checkbox" id="interface_change" name="interface_change">
-                <label for="interface_change">Change Interface State</label>
+              <span data-toggle="tooltip" title="Change state of all selected interfaces.">
+                <select name="interface_change">
+                  {% for choice,name in BULKEDIT_INTERFACE_CHOICES %}
+                    <option value="{{ choice }}">{{ name }}</option>
+                  {% endfor %}
+                </select>
               </span>
             </td>
 
