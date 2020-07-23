@@ -15,6 +15,11 @@
 #echo "Stopping OpenL2M Celery service ($COMMAND)..."
 #eval $COMMAND
 
+# the full path to your system python 3 command:
+# for alternate versions, set proper path, e.g.:
+# PYTHON="/usr/local/bin/python3.7"
+PYTHON="/usr/bin/python3"
+
 cd "$(dirname "$0")"
 VIRTUALENV="$(pwd -P)/venv"
 
@@ -26,7 +31,7 @@ if [ -d "$VIRTUALENV" ]; then
 fi
 
 # Create a new virtual environment
-COMMAND="/usr/bin/python3 -m venv ${VIRTUALENV}"
+COMMAND="${PYTHON} -m venv ${VIRTUALENV}"
 echo "Creating a new virtual environment at ${VIRTUALENV}..."
 eval $COMMAND || {
   echo "--------------------------------------------------------------------"
@@ -56,7 +61,7 @@ echo "Installing core dependencies ($COMMAND)..."
 eval $COMMAND || exit 1
 
 # Apply any database migrations
-COMMAND="${PYTHON} openl2m/manage.py migrate"
+COMMAND="python3 openl2m/manage.py migrate"
 echo "Applying database migrations ($COMMAND)..."
 eval $COMMAND
 
@@ -66,12 +71,12 @@ echo "Updating HTML documentation ($COMMAND)..."
 eval $COMMAND
 
 # Collect static files
-COMMAND="${PYTHON} openl2m/manage.py collectstatic --no-input"
+COMMAND="python3 openl2m/manage.py collectstatic --no-input"
 echo "Collecting static files ($COMMAND)..."
 eval $COMMAND
 
 # Delete any stale content types
-COMMAND="${PYTHON} openl2m/manage.py remove_stale_contenttypes --no-input"
+COMMAND="python3 openl2m/manage.py remove_stale_contenttypes --no-input"
 echo "Removing stale content types ($COMMAND)..."
 eval $COMMAND
 
