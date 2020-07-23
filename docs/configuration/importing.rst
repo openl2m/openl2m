@@ -4,6 +4,14 @@
 Importing Switches, etc.
 ========================
 
+To run command-line scripts, make sure you activate the virtual environment first!
+
+.. code-block:: bash
+
+  cd /opt/openl2m
+  source venv/bin/activate
+  cd openl2m
+
 **Importing configuration**
 
 Most configuration objects can be imported from CSV.

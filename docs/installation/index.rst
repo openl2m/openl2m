@@ -42,3 +42,4 @@ However, this should work just fine on Ubuntu and other distributions.
    tasks.rst
    ldap.rst
    upgrading.rst
+   alt-python.rst

@@ -1,16 +1,10 @@
 .. image:: ../_static/openl2m_logo.png
 
-=====
-Nginx
-=====
+==================
+Nginx Installation
+==================
 
-Installation of the web server has two components:
-
-#. Nxgin web server
-#. Gunicorn WSGI process or gateway
-
-**WSGI Service Installation**
-OpenL2M has only been tested running as a WSGI service under the Nginx web server.
+OpenL2M is developed and tested running as a WSGI service under the Nginx web server.
 
 We use gunicorn_ as the WSGI gateway service. This basically runs the OpenL2m Python code as a service process
 with a WSGI interface. The Nginx web server talks in the backend to this WSGI interface to render client http requests.
@@ -19,15 +13,20 @@ Gunicorn is started as a service from systemd.
 
 .. _gunicorn: http://gunicorn.org/
 
-**Nginx Web Server Installation**
+Installation of the web server therefor has two components:
+
+#. Nxgin web server
+#. Gunicorn WSGI process or gateway
+
+
+Web Server Installation
+-----------------------
 
 The following will serve as a minimal nginx configuration.
 Be sure to modify your server name and installation path appropriately.
 
-CentOS
-======
-
 **CentOS 7**
+
 The following will serve as a minimal nginx configuration. The EPEL repo provides Nginx for CentOS7
 Be sure to modify your server name and installation path appropriately:
 
@@ -37,6 +36,7 @@ Be sure to modify your server name and installation path appropriately:
   # yum install nginx --enablerepo=epel
 
 **CentOS 8**
+
 Here, you need:
 
 .. code-block:: bash
@@ -44,6 +44,7 @@ Here, you need:
   # dnf install nginx
 
 (See more at https://linuxconfig.org/install-nginx-on-redhat-8)
+
 
 **Run OpenL2M on regular non-secured port**
 
@@ -131,11 +132,12 @@ make sure you open the proper port:
 
 
 
-**gunicorn Installation**
+Gunicorn Installation
+---------------------
 
-Gunicorn is already installed in your Python Virtual environment. You need to copy the Gunicorn configuration
-into the "root" openl2m installation path as `gunicorn_config.py` (e.g. `/opt/openl2m/gunicorn_config.py`
-per our example installation).
+The gunicorn program will be installed during the OpenL2M installation, and will be placed in your Python Virtual environment.
+You need to copy the Gunicorn configuration into the "root" openl2m installation path as `gunicorn_config.py`
+(e.g. `/opt/openl2m/gunicorn_config.py` per our example installation).
 
 .. code-block:: bash
 
@@ -149,7 +151,7 @@ Note the following:
 
 * The number of workers is related to how many users your site will service at the same time.
   If this is large, increase the 3 to something higher, and restart the service (see below)
-  
+
 * The timeout is increased from the default 30 seconds, to 150. This is to allow large switch stacks to be polled
   without causing a process timeout. You may need to adjust this timeout to suit your environment.
 
@@ -197,7 +199,8 @@ You can check the content of the error log file and see if there are timeout war
 If you, increase the timeout, and restart. Don't forget to turn off error logging when you have
 found the timeout value that works well in your environment.
 
-**Finish it**
+Finish it
+---------
 
 At this point, you should be able to connect to the nginx HTTP service at the server name or IP address you provided.
 If you are unable to connect, check that the nginx service is running and properly configured.
