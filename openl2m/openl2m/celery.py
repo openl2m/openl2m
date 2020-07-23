@@ -62,8 +62,13 @@ def is_celery_running():
     """
     if not settings.TASKS_ENABLED:
         return False
-    i = app.control.inspect()
-    stats = i.stats()
-    if stats:
-        return True
-    return False
+    # we have seen strange exception here, so catch them:
+    try:
+        i = app.control.inspect()
+        stats = i.stats()
+        if stats:
+            return True
+        return False
+    except Exception as e:
+        # anything go wrong just return False
+        return False
