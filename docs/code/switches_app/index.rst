@@ -42,13 +42,24 @@ work to handle urls is done. Please read :doc:`Views <views>`
 
 **Connections**
 
-Connections to the switch are typically done using Snmp. The snmp and other network related code is in the
-*switches/connections/* directory.
+Connections to the switch are based on a Connector() class.
 
 See :doc:`Connections <connections>`
 
+**SNMP specific implementation**
+
+Several vendors allow a pure Snmp connector. The base SnmpConnector() and related code is in the
+*switches/connect/* directory.
+
+See :doc:`SNMP Connector <snmp>`
 
 **Vendor specific implementations**
 
-See here how to add new vendors that require non-standard SNMP data.
+See here how to add new vendors that require non-standard connector classes.
 See :doc:`Vendor implementations <vendor_specific>`
+
+**Netmiko for CLI**
+
+We use the Netmiko framework to establish SSH CLI sessions to execute commands.
+
+See :doc:`Netmiko Connector <netmiko>`
