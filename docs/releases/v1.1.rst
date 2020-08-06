@@ -17,6 +17,7 @@ Release Date: TBD
   LOGOUT_ON_INACTIVITY = True
 
 * Warnings tab stands out more.
+* Update to FontAwesome v5.14.0
 
 Version 1.1.12
 --------------
