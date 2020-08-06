@@ -93,6 +93,7 @@ DATETIME_FORMAT = getattr(configuration, 'DATETIME_FORMAT', 'N j, Y g:i a')
 DEBUG = getattr(configuration, 'DEBUG', False)
 LOGGING = getattr(configuration, 'LOGGING', {})
 LOGIN_TIMEOUT = getattr(configuration, 'LOGIN_TIMEOUT', 1800)
+LOGOUT_ON_INACTIVITY = getattr(configuration, 'LOGOUT_ON_INACTIVITY', True)
 MAINTENANCE_MODE = getattr(configuration, 'MAINTENANCE_MODE', False)
 MAX_PAGE_SIZE = getattr(configuration, 'MAX_PAGE_SIZE', 1000)
 PAGINATE_COUNT = getattr(configuration, 'PAGINATE_COUNT', 50)
@@ -159,6 +160,9 @@ if LOGIN_TIMEOUT is not None:
         )
     # Django default is 1209600 seconds (14 days)
     SESSION_COOKIE_AGE = LOGIN_TIMEOUT
+    # if this is set, then the login timeout is treated as inactivity timeout:
+    if LOGOUT_ON_INACTIVITY:
+        SESSION_SAVE_EVERY_REQUEST = True
 if SESSION_FILE_PATH is not None:
     SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 

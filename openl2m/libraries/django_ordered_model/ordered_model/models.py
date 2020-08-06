@@ -7,6 +7,7 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 import django
 
+
 def get_lookup_value(obj, field):
     return reduce(lambda i, f: getattr(i, f), field.split(LOOKUP_SEP), obj)
 

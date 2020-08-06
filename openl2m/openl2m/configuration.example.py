@@ -71,8 +71,12 @@ CORS_ORIGIN_REGEX_WHITELIST = [
 ]
 
 # The length of time (in seconds) for which a user will remain logged into the web UI before being prompted to
-# re-authenticate. (Default: 1800 [30 minutes])
+# re-authenticate. (Default: 1800 [30 minutes]) See also LOGOUT_ON_INACTIVITY
 LOGIN_TIMEOUT = 1800
+
+# if this is set, then the login timeout is treated as inactivity timeout.
+# if False, default Django behaviour is LOGIN_TIMEOUT is max time session will last.
+LOGOUT_ON_INACTIVITY = True
 
 # Setting this to True will display a "maintenance mode" banner at the top of every page.
 MAINTENANCE_MODE = False

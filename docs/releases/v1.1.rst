@@ -4,6 +4,19 @@
 Version 1.1
 ===========
 
+Version 1.1.13
+--------------
+Release Date: TBD
+
+* Change in LOGIN_TIMEOUT behaviour in *configuration.py*, depending on LOGOUT_ON_INACTIVITY.
+  If this is set, then the login timeout is treated as inactivity timeout.
+  If False, default Django behaviour is LOGIN_TIMEOUT is max time session will last.
+
+.. code-block:: bash
+
+  LOGOUT_ON_INACTIVITY = True
+
+
 Version 1.1.12
 --------------
 Release Date: 2020-07-20
@@ -52,10 +65,10 @@ Release Date: 2020-05-17
 * access denied error page no longer shows denied switch name.
 * add switch search form on home page. This allows searches for switches through
   pattern or regular expression matching. This is useful when large numbers of
-  switches are configured and accesible by users (e.g. at a helpdesk).
+  switches are configured and accessible by users (e.g. at a help desk).
   This is enabled by default, but can be disabled in configuration.py by setting
 
-  .. code-block:: bash
+.. code-block:: bash
 
   SWITCH_SEARCH_FORM = False
 
@@ -185,6 +198,7 @@ See also the :doc:`the Tasks installation section<../installation/tasks>`.
 Run upgrade.sh first!
 
 To enable task scheduling via Celery, you need to add the following to configuration.py:
+
 .. code-block:: bash
 
   TASKS_ENABLED = True
