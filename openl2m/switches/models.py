@@ -20,7 +20,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
-from ordered_model.models import OrderedModelManager, OrderedModel
+from libraries.django_ordered_model.ordered_model.models import OrderedModelManager, OrderedModel
 
 from switches.constants import *
 from switches.connect.netmiko.constants import *

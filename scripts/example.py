@@ -150,9 +150,9 @@ def main():
                             print("   Error creating Command List '%s'" % row['command_list'])
                             print("   Error details: %s" % sys.exc_info()[0])
                             continue
+                g = False
                 if 'group' in row.keys() and row['group']:
                     # see if the group exists, if not, create it
-                    g = False
                     try:
                         g = SwitchGroup.objects.get(name=row['group'])
                     except Exception as e:
@@ -166,7 +166,7 @@ def main():
                             print("   Error creating SwitchGroup '%s'" % row['group'])
                             print("   Error details: %s" % sys.exc_info()[0])
                             continue
-
+                # save the new switch
                 try:
                     switch.save()
                 except Exception as e:

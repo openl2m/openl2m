@@ -13,7 +13,7 @@
 #
 from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
-from ordered_model.admin import OrderedStackedInline, OrderedInlineModelAdminMixin
+from libraries.django_ordered_model.ordered_model.admin import OrderedStackedInline, OrderedTabularInline, OrderedInlineModelAdminMixin
 
 # Register your models here.
 from switches.models import (Command, CommandList, Switch, SwitchGroup, SwitchGroupMembership,
@@ -43,7 +43,8 @@ class SwitchAdmin(admin.ModelAdmin):
     inlines = (SwitchInline,)
 
 
-class SwitchGroupMembershipStackedInline(OrderedStackedInline):
+# class SwitchGroupMembershipStackedInline(OrderedStackedInline):
+class SwitchGroupMembershipStackedInline(OrderedTabularInline):
     model = SwitchGroupMembership
     fields = ('switch', 'order', 'move_up_down_links',)
     readonly_fields = ('order', 'move_up_down_links',)
