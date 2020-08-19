@@ -84,6 +84,22 @@
 
       <div><strong>Snmp Id:</strong> {{ connection.system.object_id }} ({{ connection.system.enterprise_info }})</div>
 
+      <div><strong>Snmp Profile:</strong>
+      {% if switch.snmp_profile %}
+        {{ switch.snmp_profile.name }}
+      {% else %}
+        Not set
+      {% endif %}
+      </div>
+
+      <div><strong>Netmiko Profile:</strong>
+      {% if switch.netmiko_profile %}
+        {{ switch.netmiko_profile.name }}
+      {% else %}
+        Not set
+      {% endif %}
+      </div>
+
       <div><strong>Handler:</strong> {{ connection.name }}</div>
 
       <div><strong>Response (basic):</strong> {{ connection.basic_info_duration }} seconds</div>
