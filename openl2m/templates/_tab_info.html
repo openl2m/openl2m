@@ -8,7 +8,7 @@
   <div class="panel panel-default">
     <div class="panel-heading">
       <strong>Vlans defined (GVRP
-        {% if connection.system.gvrp_enabled %}
+        {% if connection.gvrp_enabled %}
           Enabled
         {% else %}
           disabled
@@ -50,9 +50,9 @@
   <div class="panel panel-default">
     <div class="panel-heading"><strong>Power over Ethernet Info</strong></div>
     <div class="panel-body">
-      {% if 1 or connection.system.poe_apable %}
-        <div><strong>Total:</strong> {{ connection.system.poe_max_power }}W Available, {{ connection.system.poe_power_consumed }}W Used</div>
-        {% for pse_index, pse in connection.system.poe_pse_devices.items %}
+      {% if 1 or connection.poe_apable %}
+        <div><strong>Total:</strong> {{ connection.poe_max_power }}W Available, {{ connection.poe_power_consumed }}W Used</div>
+        {% for pse_index, pse in connection.poe_pse_devices.items %}
           <div><strong>PSE #{{ pse_index }}:</strong> {{ pse.status|get_poe_pse_status }},
             Max {{ pse.max_power }} Watts, Drawing {{ pse.power_consumed }} Watts, Threshold = {{ pse.threshold }}%.
           </div>
@@ -72,44 +72,21 @@
       <strong>General Information</strong>
     </div>
     <div class="panel-body">
-      <div><strong>Basic info read:</strong> {{ time_since_last_read }} ago.</div>
-
-      <div><strong>Hostname:</strong> {{ connection.system.name }}</div>
-
-      <div><strong>Uptime:</strong> {{ connection.system.uptime }}</div>
-
-      <div><strong>Model:</strong> {{ connection.system.description }}</div>
-
-      <div><strong>Location:</strong> {{ connection.system.location }}</div>
-
-      <div><strong>Snmp Id:</strong> {{ connection.system.object_id }} ({{ connection.system.enterprise_info }})</div>
-
-      <div><strong>Snmp Profile:</strong>
-      {% if switch.snmp_profile %}
-        {{ switch.snmp_profile.name }}
-      {% else %}
-        Not set
-      {% endif %}
-      </div>
-
-      <div><strong>Netmiko Profile:</strong>
-      {% if switch.netmiko_profile %}
-        {{ switch.netmiko_profile.name }}
-      {% else %}
-        Not set
-      {% endif %}
-      </div>
-
-      <div><strong>Handler:</strong> {{ connection.name }}</div>
-
-      <div><strong>Response (basic):</strong> {{ connection.basic_info_duration }} seconds</div>
-      {% if connection.detailed_info_duration > 0 %}
-        <div><strong>Response (details):</strong> {{ connection.detailed_info_duration }} seconds</div>
-      {% endif %}
-      <div><strong>Switch Group:</strong> {{ group }}</div>
-      {% if connection.syslog_max_msgs %}
-      <div><strong>Log size:</strong> {{ connection.syslog_max_msgs }}</div>
-      {% endif %}
+      {% for category,items in connection.more_info.items %}
+        <table class="table table-striped w-auto">
+          <thead>
+            <tr><th colspan="2">{{ category }}</th></tr>
+          </thead>
+          <tbody>
+          {% for info in items %}
+            <tr>
+              <td><strong>{{ info.0 }}</strong></td>
+              <td>{{ info.1 }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% endfor%}
     </div>
   </div>
 
@@ -198,31 +175,6 @@
             , software rev. {{ dev.version }}
           {% endif %}
         </div>
-      {% endfor%}
-    </div>
-  </div>
-  {% endif %}
-
-  {% if connection.vendor_data.items %}
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <strong>{{ connection.vendor_name }} Vendor-Specific Information</strong>
-    </div>
-    <div class="panel-body">
-      {% for category,items in connection.vendor_data.items %}
-        <table class="table table-striped w-auto">
-          <thead>
-            <tr><th>{{ category }}</th></tr>
-          </thead>
-          <tbody>
-          {% for vendor_data in items %}
-            <tr>
-              <td>{{ vendor_data.name }}</td>
-              <td>{{ vendor_data.value }}</td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
       {% endfor%}
     </div>
   </div>

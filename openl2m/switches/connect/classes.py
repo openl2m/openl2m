@@ -42,32 +42,6 @@ class Error():
         self.details = ''      # more details about the error, typically a 'traceback'
 
 
-class System():
-    """
-    Represents the system, aka switch, and its various 'global' capabilities
-    """
-
-    def __init__(self):
-        self.name = ''
-        self.description = ''
-        self.location = ''
-        self.object_id = ''
-        self.enterprise_info = ''    # textual version of enterprise part of object ID
-        self.sys_uptime = 0          # sysUptime is in 1/100th of seconds since boot
-        self.time = 0                # datetime now() when sys_uptime was set
-        self.uptime = 0              # uptime will be calculated in seconds
-        self.contact = ''
-        # PoE related values
-        self.poe_capable = False     # can the switch deliver PoE
-        self.poe_enabled = False     # note: this needs more work, as we do not parse "units"/stack members
-        self.poe_max_power = 0       # maximum power (watts) availabe in this switch, combines all PSE units
-        self.poe_power_consumed = 0  # same for power consumed, across all PSE units
-        self.poe_pse_devices = {}    # list of PoePSE() objects
-        # VLAN Count, GVRP and other things
-        self.vlan_count = 0
-        self.gvrp_enabled = False    # global status of mvrp/gvrp
-
-
 class StackMember():
     """
     Represents what we know about a single device entity that is part of the switch stack.
@@ -82,16 +56,6 @@ class StackMember():
         self.serial = ''        # serial number
         self.version = ''       # software revision of this device
         self.model = ''         # vendor model number
-
-
-class VendorData():
-    """
-    Class to hold Vendor-specific data, represented by
-    data name and value
-    """
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
 
 
 LACP_IF_TYPE_NONE = 0        # not port of LACP aggregation

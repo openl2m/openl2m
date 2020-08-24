@@ -274,11 +274,12 @@ class SnmpConnectorCisco(SnmpConnector):
         # interface not found:
         return -1
 
-    def _get_vendor_data(self):
+    def _get_more_info(self):
         """
-        Implement the get_vendor_data() class from the base object
+        Implement the _get_more_info() class from the base object.
+        Does not return anything.
         """
-        dprint("_get_vendor_data(Cisco)")
+        dprint("_get_more_info(Cisco)")
         self._get_branch_by_name('ccmHistory', True, self._parse_mibs_cisco_config)
 
     def _parse_mibs_cisco_if_opermode(self, oid, val):
@@ -408,21 +409,21 @@ class SnmpConnectorCisco(SnmpConnector):
         if sub_oid:
             # ticks in 1/100th of a second
             ago = str(datetime.timedelta(seconds=(int(val) / 100)))
-            self.add_vendor_data("Configuration", "Running Last Modified", ago)
+            self.add_more_info("Configuration", "Running Last Modified", ago)
             return True
 
         sub_oid = oid_in_branch(ccmHistoryRunningLastSaved, oid)
         if sub_oid:
             # ticks in 1/100th of a second
             ago = str(datetime.timedelta(seconds=(int(val) / 100)))
-            self.add_vendor_data("Configuration", "Running Last Saved", ago)
+            self.add_more_info("Configuration", "Running Last Saved", ago)
             return True
 
         sub_oid = oid_in_branch(ccmHistoryStartupLastChanged, oid)
         if sub_oid:
             # ticks in 1/100th of a second
             ago = str(datetime.timedelta(seconds=(int(val) / 100)))
-            self.add_vendor_data("Configuration", "Startup Last Changed", ago)
+            self.add_more_info("Configuration", "Startup Last Changed", ago)
             return True
         return False
 
@@ -505,14 +506,14 @@ class SnmpConnectorCisco(SnmpConnector):
             if index in self.syslog_msgs.keys():
                 # approximate / calculate the datetime value:
                 # msg timestamp = time when sysUpTime was read minus seconds between sysUptime and msg timetick
-                dprint(f"TIMES ARE: {self.system.time}  {self.system.sys_uptime}  {timetick}")
-                self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(self.system.time - int((self.system.sys_uptime - timetick)/100))
+                dprint(f"TIMES ARE: {self.time}  {self.sys_uptime}  {timetick}")
+                self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(self.time - int((self.sys_uptime - timetick)/100))
             else:
                 # be save, create; "should" never happen
                 msg = SyslogMsg(index)
                 # approximate / calculate the datetime value:
                 # msg time = time when sysUpTime was read minus seconds between sysUptime and msg timetick
-                msg.datetime = datetime.datetime.fromtimestamp(self.system.time - int((self.system.sys_uptime - timetick)/100))
+                msg.datetime = datetime.datetime.fromtimestamp(self.time - int((self.sys_uptime - timetick)/100))
                 self.syslog_msgs[index] = msg
             return True
 
