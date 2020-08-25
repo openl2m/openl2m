@@ -67,9 +67,9 @@ class SnmpConnectorProcurve(SnmpConnector):
 
         return True
 
-    def _get_vendor_data(self):
+    def _get_more_info(self):
         """
-        Implement the get_vendor_data() class from the base object
+        Implement the _get_more_info() class from the base object
         """
         self._get_branch_by_name('hpnicfCfgLog', True, self._parse_mibs_procurve_config)
 
@@ -124,13 +124,13 @@ class SnmpConnectorProcurve(SnmpConnector):
         sub_oid = oid_in_branch(hpnicfCfgRunModifiedLast, oid)
         if sub_oid:
             ago = str(datetime.timedelta(seconds=int(val) / 100))
-            self.add_vendor_data("Configuration", "Running Last Modified", ago)
+            self.add_more_info("Configuration", "Running Last Modified", ago)
             return True
 
         sub_oid = oid_in_branch(hpnicfCfgRunSavedLast, oid)
         if sub_oid:
             ago = str(datetime.timedelta(seconds=int(val) / 100))
-            self.add_vendor_data("Configuration", "Running Last Saved", ago)
+            self.add_more_info("Configuration", "Running Last Saved", ago)
             return True
         return False
 

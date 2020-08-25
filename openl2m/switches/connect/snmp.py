@@ -505,6 +505,8 @@ class SnmpConnector(EasySNMP):
         super().__init__(switch)
 
         self.name = "Standard SNMP"  # what type of class is running!
+        self.object_id = ""     # SNMP system OID value, used to find type of switch
+        self.hostname = ""      # system hostname, from snmp or otherwize
         self.vendor_name = ''   # typically set in sub-classes
         self.request = request  # if running on web server, Django http request object, needed for request.user() and request.session[]
         self.group = group      # Django SwitchGroup object
@@ -512,10 +514,19 @@ class SnmpConnector(EasySNMP):
         self.error = Error()
         self.error.status = False   # we don't actually have an error yet :-)
         self.oid_cache = {}         # OIDs already read are stored here
-        self.system = System()      # the global system aka switch info
         self.interfaces = {}        # Interface() objects representing the ports on this switch, key is ifIndex
+
+        # PoE related values
+        self.poe_capable = False     # can the switch deliver PoE
+        self.poe_enabled = False     # note: this needs more work, as we do not parse "units"/stack members
+        self.poe_max_power = 0       # maximum power (watts) availabe in this switch, combines all PSE units
+        self.poe_power_consumed = 0  # same for power consumed, across all PSE units
+        self.poe_pse_devices = {}    # list of PoePSE() objects
         self.poe_port_entries = {}  # PoePort() port power entries, used to store until we can map to interface
 
+        # VLAN Count, GVRP and other things
+        self.vlan_count = 0
+        self.gvrp_enabled = False    # global status of mvrp/gvrp
         self.vlan_id_by_index = {}  # list of vlan indexes and their vlan ID's. Note on many switches these two are the same!
         self.vlans = {}             # Vlan() objects on this switch, key is vlan id (not index!)
         self.allowed_vlans = {}     # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
@@ -523,6 +534,7 @@ class SnmpConnector(EasySNMP):
         self.qbridge_port_to_if_index = {}  # this maps Q-Bridge port id to MIB-II ifIndex
         self.dot1tp_fdb_to_vlan_index = {}  # forwarding database index to vlan index mapping. Note many switches do not use this...
         self.stack_port_to_if_index = {}    # maps (Cisco) stacking port to ifIndex values
+
         self.ip4_to_if_index = {}   # the IPv4 addresses as keys, with stored value ifIndex; needed to map netmask to interface
         self.eth_addr_count = 0     # number of known mac addresses
         self.neighbor_count = 0     # number of lldp neighbors
@@ -530,7 +542,7 @@ class SnmpConnector(EasySNMP):
         self.mib_timing = {}        # dictionary to track how many vars and how long various MIBs take to read
         self._add_mib_timing('Total', 0, 0)     # initialize the 'total' count to 0 entries, 0 seconds!
 
-        # features that may or may noit be implemented:
+        # features that may or may not be implemented:
         self.vlan_change_implemented = True
         # set this flag is a save aka. 'write mem' is needed:
         self.save_needed = False
@@ -540,9 +552,10 @@ class SnmpConnector(EasySNMP):
 
         # physical device related:
         self.stack_members = {}     # list of StackMember() objects that are part of this switch
-        self.vendor_data = {}       # dict of categories with a list of VendorData() objects, to extend sytem info about this switch!
+        self.more_info = {}         # dict of categories with a tuples (name, value) of more info, to extend info about this switch!
 
         # some timestamps
+        self.sys_uptime = 0             # sys_uptime is tick count,  in 1/100th of second per tick
         self.basic_info_read_time = 0    # when the last 'basic' snmp read occured
         self.basic_info_duration = 0     # time in seconds for initial basic info gathering
         self.detailed_info_duration = 0  # time in seconds for each detailed info gathering
@@ -868,19 +881,19 @@ class SnmpConnector(EasySNMP):
         # these are part of "dot1qBase":
         sub_oid = oid_in_branch(dot1qNumVlans, oid)
         if sub_oid:
-            self.system.vlan_count = int(val)
+            self.vlan_count = int(val)
             return True
 
         sub_oid = oid_in_branch(dot1qGvrpStatus, oid)
         if sub_oid:
             if int(val) == GVRP_ENABLED:
-                self.system.gvrp_enabled = True
+                self.gvrp_enabled = True
             return True
 
         sub_oid = oid_in_branch(ieee8021QBridgeMvrpEnabledStatus, oid)
         if sub_oid:
             if int(val) == GVRP_ENABLED:
-                self.system.gvrp_enabled = True
+                self.gvrp_enabled = True
             return True
 
         # the per-switchport GVRP setting:
@@ -1154,13 +1167,13 @@ class SnmpConnector(EasySNMP):
 
         pse_id = int(oid_in_branch(pethMainPsePower, oid))
         if pse_id:
-            self.system.poe_capable = True
-            self.system.poe_max_power += int(val)
+            self.poe_capable = True
+            self.poe_max_power += int(val)
             # store data about individual PSE unit:
-            if pse_id not in self.system.poe_pse_devices.keys():
-                self.system.poe_pse_devices[pse_id] = PoePSE(pse_id)
+            if pse_id not in self.poe_pse_devices.keys():
+                self.poe_pse_devices[pse_id] = PoePSE(pse_id)
             # update max power
-            self.system.poe_pse_devices[pse_id].max_power = int(val)
+            self.poe_pse_devices[pse_id].max_power = int(val)
             return True
 
         pse_id = int(oid_in_branch(pethMainPseOperStatus, oid))
@@ -1169,34 +1182,34 @@ class SnmpConnector(EasySNMP):
                 self.switch.snmp_capabilities |= CAPABILITIES_POE_MIB
                 self.switch.save()
             # not yet sure how to handle this, for now just read
-            self.system.poe_capable = True
-            self.system.poe_enabled = int(val)
+            self.poe_capable = True
+            self.poe_enabled = int(val)
             # store data about individual PSE unit:
-            if pse_id not in self.system.poe_pse_devices.keys():
-                self.system.poe_pse_devices[pse_id] = PoePSE(pse_id)
+            if pse_id not in self.poe_pse_devices.keys():
+                self.poe_pse_devices[pse_id] = PoePSE(pse_id)
             # update status
-            self.system.poe_pse_devices[pse_id].status = int(val)
+            self.poe_pse_devices[pse_id].status = int(val)
             return True
 
         pse_id = int(oid_in_branch(pethMainPseConsumptionPower, oid))
         if pse_id:
-            self.system.poe_capable = True
-            self.system.poe_power_consumed += int(val)
+            self.poe_capable = True
+            self.poe_power_consumed += int(val)
             # store data about individual PSE unit:
-            if pse_id not in self.system.poe_pse_devices.keys():
-                self.system.poe_pse_devices[pse_id] = PoePSE(pse_id)
+            if pse_id not in self.poe_pse_devices.keys():
+                self.poe_pse_devices[pse_id] = PoePSE(pse_id)
             # update max power
-            self.system.poe_pse_devices[pse_id].power_consumed = int(val)
+            self.poe_pse_devices[pse_id].power_consumed = int(val)
             return True
 
         pse_id = int(oid_in_branch(pethMainPseUsageThreshold, oid))
         if pse_id:
-            self.system.poe_capable = True
+            self.poe_capable = True
             # store data about individual PSE unit:
-            if pse_id not in self.system.poe_pse_devices.keys():
-                self.system.poe_pse_devices[pse_id] = PoePSE(pse_id)
+            if pse_id not in self.poe_pse_devices.keys():
+                self.poe_pse_devices[pse_id] = PoePSE(pse_id)
             # update max power
-            self.system.poe_pse_devices[pse_id].threshold = int(val)
+            self.poe_pse_devices[pse_id].threshold = int(val)
             return True
 
         """
@@ -1585,17 +1598,23 @@ class SnmpConnector(EasySNMP):
         ie.sys-descr, object-id, uptime, contact, name & location
         """
         dprint("_parse_system_oids()")
-        self.system.description = self.get_cached_oid(sysDescr)
-        self.system.object_id = self.get_cached_oid(sysObjectID)
-        self.system.enterprise_info = get_switch_enterprise_info(self.system.object_id)
-        # sysUpTime is ticks in 1/100th of second since boot
-        self.system.sys_uptime = int(self.get_cached_oid(sysUpTime))
-        self.system.time = time.time()
-        # uptime is in seconds:
-        self.system.uptime = datetime.timedelta(seconds=int(self.system.sys_uptime / 100))
-        self.system.contact = self.get_cached_oid(sysContact)
-        self.system.name = self.get_cached_oid(sysName)
-        self.system.location = self.get_cached_oid(sysLocation)
+
+        self.add_more_info('System', 'Hostname', self.get_cached_oid(sysName))
+        self.add_more_info('System', 'Model', self.get_cached_oid(sysDescr))
+        self.add_more_info('System', 'IP', self.switch.primary_ip4)
+        self.add_more_info('System', 'Uptime', datetime.timedelta(seconds=int(self.get_cached_oid(sysUpTime)) / 100))
+        self.add_more_info('System', 'Object ID', self.get_cached_oid(sysObjectID))
+        self.add_more_info('System', 'Vendor ID', get_switch_enterprise_info(self.get_cached_oid(sysObjectID)))
+        self.add_more_info('System', 'Contact', self.get_cached_oid(sysContact))
+        self.add_more_info('System', 'Location', self.get_cached_oid(sysLocation))
+        self.add_more_info('System', 'Snmp Profile', self.switch.snmp_profile.name)
+        if self.switch.netmiko_profile:
+            self.add_more_info('System', 'Netmiko Profile', self.switch.netmiko_profile.name)
+        self.add_more_info('System', 'Handler', self.name)
+        self.add_more_info('System', 'Group', self.group.name)
+        # self.add_more_info('System', 'Response', f"{self.basic_info_duration} seconds")
+        # if self.detailed_info_duration > 0:
+        #    self.add_more_info('System', 'Response (details)', f"{self.detailed_info_duration} seconds")
 
     def _get_sys_uptime(self):
         """
@@ -1603,8 +1622,8 @@ class SnmpConnector(EasySNMP):
         """
         self._get(sysUpTime)
         # sysUpTime is ticks in 1/100th of second since boot
-        self.system.sys_uptime = int(self.get_cached_oid(sysUpTime))
-        self.system.time = time.time()
+        self.sys_uptime = int(self.get_cached_oid(sysUpTime))
+        self.time = time.time()
 
     def _get_system_data(self):
         """
@@ -1619,11 +1638,11 @@ class SnmpConnector(EasySNMP):
         self._parse_system_oids()
 
         # see if the ObjectID changed
-        if not self.system.object_id:
+        if not self.object_id:
             # this 'should' never happen
             return 1
-        if self.switch.snmp_oid != self.system.object_id:
-            self.switch.snmp_oid = self.system.object_id
+        if self.switch.snmp_oid != self.object_id:
+            self.switch.snmp_oid = self.object_id
             self.switch.save()
             log = Log(action=LOG_NEW_OID_FOUND,
                       description="New System ObjectID found",
@@ -1636,10 +1655,10 @@ class SnmpConnector(EasySNMP):
             log.save()
 
         # and see if the hostname changed
-        if not self.system.name:
+        if not self.hostname:
             return 1
-        if self.switch.snmp_hostname != self.system.name:
-            self.switch.snmp_hostname = self.system.name
+        if self.switch.snmp_hostname != self.hostname:
+            self.switch.snmp_hostname = self.hostname
             self.switch.save()
             log = Log(action=LOG_NEW_HOSTNAME_FOUND,
                       description="New System Hostname found",
@@ -1653,7 +1672,7 @@ class SnmpConnector(EasySNMP):
 
         return 1
 
-    def _get_vendor_data(self):
+    def _get_more_info(self):
         """
         Placeholder for vendor-specific data, to be implented in sub-classes.
         The sub-class is responsible for parsing and caching snmp data,
@@ -1830,7 +1849,7 @@ class SnmpConnector(EasySNMP):
         """
         # get the base 802.1q settings:
         retval = self._get_branch_by_name('dot1qBase')
-        if self.system.vlan_count > 0:
+        if self.vlan_count > 0:
             # first get vlan id and names
             self._get_vlans()
             # next, read the interface vlan data
@@ -1838,13 +1857,13 @@ class SnmpConnector(EasySNMP):
             if retval < 0:
                 return retval
             # if GVRP enabled, then read this data
-            if self.system.gvrp_enabled:
+            if self.gvrp_enabled:
                 retval = self._get_branch_by_name('dot1qPortGvrpStatus')
 
         # check MVRP status:
         retval = self._get_branch_by_name('ieee8021QBridgeMvrpEnabledStatus')
 
-        return self.system.vlan_count
+        return self.vlan_count
 
     def _get_my_ip4_addresses(self):
         """
@@ -2248,15 +2267,15 @@ class SnmpConnector(EasySNMP):
     # "Public" interface methods
     #
 
-    def add_vendor_data(self, category, name, value):
+    def add_more_info(self, category, name, value):
         """
-        This adds a vendor specific piece of information to the "Info" tab.
+        This adds a vendor specific piece of information to the "General Info" tab.
         Items are ordered by category heading, then name/value pairs
         """
-        vdata = VendorData(name, value)
-        if category not in self.vendor_data.keys():
-            self.vendor_data[category] = []
-        self.vendor_data[category].append(vdata)
+        if category not in self.more_info.keys():
+            self.more_info[category] = []
+        # add as a tuple:
+        self.more_info[category].append((name, value))
 
     def can_change_interface_vlan(self):
         """
@@ -2324,7 +2343,7 @@ class SnmpConnector(EasySNMP):
         Get all (possible) hardware info, stacking details, etc.
         """
         # call the vendor-specific data first, if implemented
-        self._get_vendor_data()
+        self._get_more_info()
         # read Syslog MIB
         self._get_syslog_msgs()
         # next read the standard Entity MIB hardware info
