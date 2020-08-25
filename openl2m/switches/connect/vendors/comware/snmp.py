@@ -130,12 +130,12 @@ class SnmpConnectorComware(SnmpConnector):
         #    return False
         return True
 
-    def _get_more_info(self):
+    def _get_vendor_data(self):
         """
-        Implement the _get_more_info() class from the base object
+        Implement the get_vendor_data() class from the base object
         Does not return anything!
         """
-        # dprint("Comware _get_more_info()")
+        # dprint("Comware _get_vendor_data()")
         self._get_branch_by_name('hh3cCfgLog', True, self._parse_mibs_comware_config)
 
     def set_interface_untagged_vlan(self, interface, new_vlan_id):
@@ -293,19 +293,19 @@ class SnmpConnectorComware(SnmpConnector):
         sub_oid = oid_in_branch(hh3cCfgRunModifiedLast, oid)
         if sub_oid:
             ago = str(datetime.timedelta(seconds=(int(val) / 100)))
-            self.add_more_info("Configuration", "Running Last Modified", ago)
+            self.add_vendor_data("Configuration", "Running Last Modified", ago)
             return True
 
         sub_oid = oid_in_branch(hh3cCfgRunSavedLast, oid)
         if sub_oid:
             ago = str(datetime.timedelta(seconds=(int(val) / 100)))
-            self.add_more_info("Configuration", "Running Last Saved", ago)
+            self.add_vendor_data("Configuration", "Running Last Saved", ago)
             return True
 
         sub_oid = oid_in_branch(hh3cCfgStartModifiedLast, oid)
         if sub_oid:
             ago = str(datetime.timedelta(seconds=(int(val) / 100)))
-            self.add_more_info("Configuration", "Startup Last Saved", ago)
+            self.add_vendor_data("Configuration", "Startup Last Saved", ago)
             return True
 
         return False

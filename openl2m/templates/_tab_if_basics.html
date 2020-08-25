@@ -12,7 +12,7 @@
         <th>Name</th>
         <th>Link</th>
         <th>Vlan</th>
-        {% if connection.poe_capable %}
+        {% if connection.system.poe_capable %}
         <th>PoE</th>
         {% endif %}
         <th>Description</th>
@@ -75,7 +75,7 @@
                   {% endif %}
                 </td>
 
-                {% if connection.poe_capable %}
+                {% if connection.system.poe_capable %}
                   <td>
                   {% if iface.poe_entry %}
                     {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
@@ -187,7 +187,7 @@
                   <span data-toggle="tooltip" title="Not applicable for this interface">n/a</span>
                 </td>
 
-                {% if connection.poe_capable %}
+                {% if connection.system.poe_capable %}
                   <td>
                     <span data-toggle="tooltip" title="Not applicable for this interface">n/a</span>
                   </td>
@@ -265,7 +265,7 @@
                 {% endif %}
               </td>
 
-              {% if connection.poe_capable %}
+              {% if connection.system.poe_capable %}
                 <td>
                   {% if iface.poe_entry %}
                     {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}

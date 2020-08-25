@@ -76,7 +76,7 @@
             <th>Name</th>
             <th>Link</th>
             <th>Vlan</th>
-            {% if connection.poe_capable %}
+            {% if connection.system.poe_capable %}
             <th>PoE</th>
             {% endif %}
             <th>Description</th>
@@ -110,7 +110,7 @@
               </span>
             </td>
 
-            {% if connection.poe_capable %}
+            {% if connection.system.poe_capable %}
             <td>
               <span data-toggle="tooltip" title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Down/Up' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE.">
                 <select name="poe_choice">
@@ -177,7 +177,7 @@
                   {% endif %}
                 </td>
 
-                {% if connection.poe_capable %}
+                {% if connection.system.poe_capable %}
                   <td>
                   {% if iface.poe_entry %}
                     {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
