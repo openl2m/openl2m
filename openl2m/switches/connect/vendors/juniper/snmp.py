@@ -36,7 +36,7 @@ class SnmpConnectorJuniper(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("Juniper Networks SnmpConnector __init__")
-        super().__init__(request, group, switch)
+        super(SnmpConnectorJuniper, self).__init__(request, group, switch)
         self.name = self.__class__.__name__
         self.vendor_name = 'Juniper Networks'
         # force READ-ONLY for now! We have not implemented changing settings.
@@ -79,7 +79,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                         warning = f"PoE FAULT status ({port_entry.detect_status} = " \
                                   "{poe_status_name[port_entry.detect_status]}) " \
                                   "on interface {iface.name}"
-                        self._add_warning(warning)
+                        self.add_warning(warning)
                         # log my activity
                         log = Log(user=self.request.user,
                                   type=LOG_TYPE_ERROR,
@@ -146,7 +146,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                 self.vlans[self.vlan_id_by_index[vlan_index]].name = val
             except KeyError:
                 # should not happen!
-                self._add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanName)")
+                self.add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanName)")
             return True
 
         # vlan type, static or dynamic
@@ -164,7 +164,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                 self.vlans[self.vlan_id_by_index[vlan_index]].status = status
             except KeyError:
                 # should not happen!
-                self._add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanType)")
+                self.add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanType)")
             return True
 
         # the filtering database, this maps 'vlan index' (sub-oid) to 'filter db index' (return value)
@@ -177,7 +177,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                 dprint(f"FDB entry:  {fdb_index}  =>  {vlan_index}")
             except KeyError:
                 # should not happen!
-                self._add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanFdbId)")
+                self.add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanFdbId)")
             return True
         return False
 

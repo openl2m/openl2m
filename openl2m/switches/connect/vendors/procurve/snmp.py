@@ -36,7 +36,7 @@ class SnmpConnectorProcurve(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("HP-Aruba/Procurve SnmpConnector __init__")
-        super().__init__(request, group, switch)
+        super(SnmpConnectorProcurve, self).__init__(request, group, switch)
         self.name = "HP-Aruba/Procurve SnmpConnector"  # what type of class is running!
         self.vendor_name = 'HP/Procurve'
 
@@ -146,7 +146,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         # now get HP specific info about power usage from HP-IFC-POE-MIB first
         retval = self._get_branch_by_name('hpicfPoePethPsePortPower', True, self._parse_mibs_hp_poe)
         if retval < 0:
-            self._add_warning("Error getting 'PoE-Port-Actual-Power' (hpicfPoePethPsePortActualPower)")
+            self.add_warning("Error getting 'PoE-Port-Actual-Power' (hpicfPoePethPsePortActualPower)")
         if retval == 0:
             # maybe this device supports HP-ENTITY-POWER-MIB
             retval = self._get_branch_by_name('hpEntPowerCurrentPowerUsage', True, self._parse_mibs_hp_poe)
@@ -172,7 +172,7 @@ class SnmpConnectorProcurve(SnmpConnector):
                     if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
                         warning = f"PoE FAULT status ({port_entry.detect_status} = " \
                                   "{poe_status_name[port_entry.status_name]}) on interface {iface.name}"
-                        self._add_warning(warning)
+                        self.add_warning(warning)
                         # log my activity
                         log = Log(user=self.request.user,
                                   type=LOG_TYPE_ERROR,

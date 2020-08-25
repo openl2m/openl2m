@@ -36,6 +36,7 @@ from django.shortcuts import redirect
 from openl2m.celery import get_celery_info, is_celery_running
 from switches.models import *
 from switches.constants import *
+from switches.connect.classes import clear_switch_cache
 from switches.connect.connect import *
 from switches.connect.constants import *
 from switches.connect.snmp import *
@@ -56,7 +57,7 @@ def switches(request):
 
     # back to the home screen, clear session cache
     # so we re-read switches as needed
-    clear_session_cache(request)
+    clear_switch_cache(request)
 
     # save remote ip in session, so we can use it in current user display!
     save_to_http_session(request, "remote_ip", get_remote_ip(request))
@@ -297,7 +298,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
         task_process_running = False
         tasks = False
 
-    time_since_last_read = time_duration(time.time() - conn.basic_info_read_time)
+    time_since_last_read = time_duration(time.time() - conn.basic_info_read_timestamp)
 
     # finally, verify what this user can do:
     bulk_edit = user_can_bulkedit(request.user, group, switch)
@@ -357,7 +358,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -562,7 +563,7 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({views})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -628,7 +629,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -727,7 +728,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -809,7 +810,7 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -888,7 +889,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -979,7 +980,7 @@ def switch_save_config(request, group_id, switch_id, view):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -987,8 +988,7 @@ def switch_save_config(request, group_id, switch_id, view):
 
     if conn.can_save_config() and conn.get_save_needed():
         # we can save
-        retval = conn.save_running_config()
-        if retval < 0:
+        if not conn.save_running_config():
             # an error happened!
             log.type = LOG_TYPE_ERROR
             log.save()
@@ -1053,7 +1053,7 @@ def switch_reload(request, group_id, switch_id, view):
               type=LOG_TYPE_VIEW)
     log.save()
 
-    clear_session_oid_cache(request)
+    clear_switch_cache(request)
 
     return switch_view(request, group_id, switch_id, view)
 

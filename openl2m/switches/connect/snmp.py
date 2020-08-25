@@ -209,17 +209,55 @@ class pysnmpHelper():
         return False
 
 
-class EasySNMP():
+class SnmpConnector(Connector):
     """
-    This is the base class that implements the EasySNMP interface for high-performing SNMP walks.
+    This is the base class where it all happens!
+    This class implements "Generic" standards-based snmp information.
+    Note: in "vendors" folder are several classes that implement vendor-specific
+    parts of this generic class.
     """
-    def __init__(self, switch):
+    def __init__(self, request=False, group=False, switch=False):
         """
-        Implements base functionality we need from EasySnmp
+        Initialize the object
         """
-        self.switch = switch    # the Switch() object
+        dprint("SnmpConnector() __init__")
+        super().__init__(request, group, switch)
+
+        self.name = "Standard SNMP"  # what type of class is running!
+        # SNMP specific attributes:
+        self.sys_uptime = 0          # sysUptime is in 1/100th of seconds since boot
+        self.oid_cache = {}         # OIDs already read are stored here
+        self.poe_port_entries = {}  # PoePort() port power entries, used to store until we can map to interface
+        self.vlan_id_by_index = {}  # list of vlan indexes and their vlan ID's. Note on many switches these two are the same!
+        self.vlan_id_context = 0    # non-zero if the current function is running in the context of a specific vlan (e.g. for certain Cisco mibs)
+        self.qbridge_port_to_if_index = {}  # this maps Q-Bridge port id to MIB-II ifIndex
+        self.dot1tp_fdb_to_vlan_index = {}  # forwarding database index to vlan index mapping. Note many switches do not use this...
+        self.stack_port_to_if_index = {}    # maps (Cisco) stacking port to ifIndex values
+        self.ip4_to_if_index = {}   # the IPv4 addresses as keys, with stored value ifIndex; needed to map netmask to interface
+
+        # features that may or may not be implemented:
+        self.vlan_change_implemented = True
+
+        self.has_oid_cache = False    # if True, we read switch data from the cache
+
+        """
+        attributes to track EasySnmp library
+        """
         self._snmp_session = False   # EasySNMP session object
-        self.error = Error()
+        self.start_time = 0     # start time of current action
+        self.stop_time = 0      # and the stop time
+        # initialize the snmp "connection/session"
+        if not self._set_snmp_session():
+            raise Exception("Cannot get SNMP session, did you configure a profile?")
+
+    """
+    The following 'internal' methods implement basic snmp functionality
+    based on the EasySnmp library (for speed reasons).
+    If you want to use some other snmp library, inherit from SnmpConnector()
+    and override the basic snmp interfaces _get(), _set(), _get_branch_by_name()
+    _set_multiple() and _set_snmp_session()
+    This would allow you to implement using pysnmp, netsnmp-python, etc.
+    """
 
     def _get(self, oid, update_oidcache=True, parser=False):
         """
@@ -244,7 +282,7 @@ class EasySNMP():
                                   str(retval.value), retval.snmp_type, update_oidcache, parser)
         # update the local cache as needed by saving in the session:
         if update_oidcache:
-            self._set_http_session_cache()
+            self.save_cache()
 
         return (False, retval)
 
@@ -258,8 +296,8 @@ class EasySNMP():
         Return count of objects returned from query, or -1 if error.
         """
         if branch_name not in snmp_mib_variables.keys():
-            warning = f"ERROR: invalid branch name '{branch_name}'"
-            self._add_warning(warning)
+            self.error.status = True
+            self.error.description = f"ERROR: invalid branch name '{branch_name}'"
             dprint(f"+++> INVALID BRANCH NAME: {branch_name}")
             return -1
 
@@ -268,10 +306,10 @@ class EasySNMP():
         self.error.clear()
         count = 0
         try:
-            start = time.time()
+            self.start_time = time.time()
             dprint(f"_get_branch_by_name({branch_name}) BulkWalk {start_oid}")
             items = self._snmp_session.bulkwalk(oids=start_oid, non_repeaters=0, max_repetitions=max_repetitions)
-            stop = time.time()
+            self.stop_time = time.time()
             # Each returned item can be used normally as its related type (str or int)
             # but also has several extended attributes with SNMP-specific information
             for item in items:
@@ -293,13 +331,9 @@ class EasySNMP():
             self.error.status = True
             self.error.description = "A timeout or network error occured!"
             self.error.details = f"SNMP Error: branch {branch_name}, {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            self._add_warning(self.error.details)
             dprint(f"   _get_branch_by_name({branch_name}): Exception: {e.__class__.__name__}\n{self.error.details}\n")
             return -1
 
-        # add to timing data, for admin use!
-        self._add_mib_timing(branch_name, count, stop - start)
-        self.switch.snmp_bulk_read_count += 1
         dprint(f"_get_branch_by_name returns {count}")
         return count
 
@@ -325,7 +359,7 @@ class EasySNMP():
         if update_oidcache:
             # we cache all values as strings, just like the original returns from get_branch()
             self._parse_oid_and_cache(str(oid), str(value), snmp_type, True, parser)
-            self._set_http_session_cache()
+            self.save_cache()
 
         self.switch.snmp_write_count += 1
         self.switch.save()
@@ -358,9 +392,11 @@ class EasySNMP():
         com_or_ctx - the community to override the snmp profile settings if v2,
                       or the snmp v3 context to use.
         """
+        dprint("_set_snmp_session()")
         snmp_profile = self.switch.snmp_profile
         if snmp_profile:
             if snmp_profile.version == SNMP_VERSION_2C:
+                dprint("version 2c")
                 # use specific given community, if set:
                 if com_or_ctx:
                     community = com_or_ctx
@@ -381,6 +417,7 @@ class EasySNMP():
             if snmp_profile.version == SNMP_VERSION_3:
                 # NoAuthNoPriv
                 if snmp_profile.sec_level == SNMP_V3_SECURITY_NOAUTH_NOPRIV:
+                    dprint("version 3 NoAuth-NoPriv")
                     self._snmp_session = easysnmp.Session(hostname=self.switch.primary_ip4,
                                                           version=snmp_profile.version,
                                                           remote_port=snmp_profile.udp_port,
@@ -393,6 +430,7 @@ class EasySNMP():
 
                 # AuthNoPriv
                 elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
+                    dprint("version 3 Auth-NoPriv")
                     if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
                         self._snmp_session = easysnmp.Session(hostname=self.switch.primary_ip4,
                                                               version=snmp_profile.version,
@@ -421,6 +459,7 @@ class EasySNMP():
 
                 # AuthPriv
                 elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_PRIV:
+                    dprint("version 3 Auth-Priv")
                     if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
                         if snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
                             self._snmp_session = easysnmp.Session(hostname=self.switch.primary_ip4,
@@ -482,176 +521,47 @@ class EasySNMP():
                                                                   privacy_password=snmp_profile.priv_passphrase,
                                                                   context=str(com_or_ctx),)
                             return True
-                # else:
-                #    dprint("  Unknown auth-priv")
+                else:
+                    dprint("  Unknown auth-priv")
 
         # snmp profile not set, or we cannot get session
         self._snmp_session = False
+        dprint("UNKNOWN snmp version!")
         return False
 
-
-class SnmpConnector(EasySNMP):
     """
-    This is the base class where it all happens! We inherit from a specific class that implements
-    the basic snmp interface. This allows for quick switching between easysnmp, pysnmp, netsnmp-python, etc.
-
-    This class implements "Generic" standards-based snmp information.
-    Below are several classes that implement vendor-specific parts of this generic class.
+    end of the EasySNMP interfaces
     """
-    def __init__(self, request=False, group=False, switch=False):
+
+    """
+    various methods from the base Connector() class implemented here.
+    """
+
+    def load_cache(self):
         """
-        Initialize the object
+        Override base class load_cache() so we can add more!
         """
-        super().__init__(switch)
-
-        self.name = "Standard SNMP"  # what type of class is running!
-        self.vendor_name = ''   # typically set in sub-classes
-        self.request = request  # if running on web server, Django http request object, needed for request.user() and request.session[]
-        self.group = group      # Django SwitchGroup object
-        # self.switch = switch    # Django Switch(), set in the base class __init__() above
-        self.error = Error()
-        self.error.status = False   # we don't actually have an error yet :-)
-        self.oid_cache = {}         # OIDs already read are stored here
-        self.system = System()      # the global system aka switch info
-        self.interfaces = {}        # Interface() objects representing the ports on this switch, key is ifIndex
-        self.poe_port_entries = {}  # PoePort() port power entries, used to store until we can map to interface
-
-        self.vlan_id_by_index = {}  # list of vlan indexes and their vlan ID's. Note on many switches these two are the same!
-        self.vlans = {}             # Vlan() objects on this switch, key is vlan id (not index!)
-        self.allowed_vlans = {}     # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
-        self.vlan_id_context = 0    # non-zero if the current function is running in the context of a specific vlan (e.g. for certain Cisco mibs)
-        self.qbridge_port_to_if_index = {}  # this maps Q-Bridge port id to MIB-II ifIndex
-        self.dot1tp_fdb_to_vlan_index = {}  # forwarding database index to vlan index mapping. Note many switches do not use this...
-        self.stack_port_to_if_index = {}    # maps (Cisco) stacking port to ifIndex values
-        self.ip4_to_if_index = {}   # the IPv4 addresses as keys, with stored value ifIndex; needed to map netmask to interface
-        self.eth_addr_count = 0     # number of known mac addresses
-        self.neighbor_count = 0     # number of lldp neighbors
-        self.warnings = []          # list of warning strings that may be shown to users
-        self.mib_timing = {}        # dictionary to track how many vars and how long various MIBs take to read
-        self._add_mib_timing('Total', 0, 0)     # initialize the 'total' count to 0 entries, 0 seconds!
-
-        # features that may or may noit be implemented:
-        self.vlan_change_implemented = True
-        # set this flag is a save aka. 'write mem' is needed:
-        self.save_needed = False
-        # syslog related info, if supported:
-        self.syslog_msgs = {}       # list of Syslog messages, if any
-        self.syslog_max_msgs = 0    # how many syslog msgs device will store
-
-        # physical device related:
-        self.stack_members = {}     # list of StackMember() objects that are part of this switch
-        self.vendor_data = {}       # dict of categories with a list of VendorData() objects, to extend sytem info about this switch!
-
-        # some timestamps
-        self.basic_info_read_time = 0    # when the last 'basic' snmp read occured
-        self.basic_info_duration = 0     # time in seconds for initial basic info gathering
-        self.detailed_info_duration = 0  # time in seconds for each detailed info gathering
-
-        self.cached_oid_data = False    # if True, we read switch data from the session cache
-
-        self.hwinfo_needed = True   # True if we still need to read the Entity tables
-
-        if not self._set_snmp_session():
-            raise Exception("Cannot get SNMP session, did you configure a profile?")
-
-    def load_caches(self):
-        """
-        Load various caches to improve performance.
-        For now, just http session cache.
-        In future, possibly add redis caching...
-        """
-        # now check to see if this switch snmp oid data is cached:
-        self._get_http_session_cache()
-        return True
-
-    def _add_mib_timing(self, mib, count, time):
-        """
-        Function to track MIB responses on switch
-        """
-        self.mib_timing[mib] = (count, time)
-        (total_count, total_time) = self.mib_timing['Total']
-        total_count += count
-        total_time += time
-        self.mib_timing['Total'] = (total_count, total_time)
-
-    def _set_http_session_cache(self):
-        """
-        Store the snmp switch data in the http session, if exists
-        """
-        if self.request:
-            self.request.session['switch_id'] = self.switch.id
-            self.request.session['oid_cache'] = self.oid_cache
-            self.request.session['basic_info_read_time'] = self.basic_info_read_time
-            self.request.session['basic_info_duration'] = self.basic_info_duration
-            self.request.session['hwinfo_needed'] = self.hwinfo_needed
-            self.request.session['mib_timing'] = self.mib_timing
-
-            # make sure this is stored, can also add this setting:
-            # SESSION_SAVE_EVERY_REQUEST=True
-            self.request.session.modified = True
-        # else:
-            # only happens if running in CLI or tasks
-            # dprint("_set_http_session_cache() called but NO http.request found!")
-
-    def _get_http_session_cache(self):
-        """
-        Read the snmp switch data from the http session,
-        return True is found, False otherwize.
-        """
-        if self.request and 'switch_id' in self.request.session.keys():
-            switch_id = self.request.session['switch_id']
-            if switch_id == self.switch.id:
-                # Session for same switch - read it
-                if 'hwinfo_needed' in self.request.session.keys():
-                    self.hwinfo_needed = self.request.session['hwinfo_needed']
-                if 'mib_timing' in self.request.session.keys():
-                    self.mib_timing = self.request.session['mib_timing']
-                self.save_needed = self.get_save_needed()
-                if 'oid_cache' in self.request.session.keys():
-                    self.oid_cache = self.request.session['oid_cache']
-                    # need to update the sysUptime value first, before reading the cache:
-                    self._get_sys_uptime()
-                    # now parse the cache:
-                    self._parse_oid_cache()
-                    self.cached_oid_data = True
-                    if 'basic_info_read_time' in self.request.session.keys():
-                        self.basic_info_read_time = self.request.session['basic_info_read_time']
-                    if 'basic_info_duration' in self.request.session.keys():
-                        self.basic_info_duration = self.request.session['basic_info_duration']
-                    return True
-                else:
-                    # this should "never" happen!
-                    dprint("SESSION DATA NOT FOUND!!!")
-                    return False
-            else:
-                # wrong switch id, i.e. we changed switches, clear session data!
-                self._clear_session_cache()
-        # else:
-        #    we are running from CLI or Celery task process!
-
-        return False
-
-    def set_save_needed(self, value=True):
-        """
-        Set a flag that this switch needs the config saved
-        """
-        if value:
-            if self.can_save_config() and self.request:
-                self.request.session['save_needed'] = True
-                self.request.session.modified = True
-            # else:
-            #    dprint("   save config NOT supported")
-        else:
-            _clear_session_save_needed(self.request)
-        return True
-
-    def get_save_needed(self):
-        """
-        Get the flag that this switch needs the config saved
-        """
-        if self.request and ('save_needed' in self.request.session.keys()):
+        if super().load_cache():
+            # now check to see if this switch snmp oid data is cached:
+            return True
+            self.oid_cache = self.get_cache_variable('oid_cache')
+            if self.oid_cache:
+                # need to update the sysUptime value first, before reading the cache:
+                self._get_sys_uptime()
+                # now parse the cache:
+                # self._parse_oid_cache()
+                # self.has_oid_cache = True
             return True
         return False
+
+    def save_cache(self):
+        """
+        Override base class save_cache() so we can add more!
+        """
+        if super().save_cache():
+            # self.set_cache_variable('oid_cache', self.oid_cache)
+            return True
+        return True
 
     def get_cached_oid(self, oid):
         """
@@ -1030,7 +940,7 @@ class SnmpConnector(EasySNMP):
                     self.interfaces[if_index].disabled = True
                     self.interfaces[if_index].disabled_reason = f"Untagged vlan {untagged_vlan} is NOT defined on switch"
                     warning = f"Undefined vlan {untagged_vlan} on {self.interfaces[if_index].name}"
-                    self._add_warning(warning)
+                    self.add_warning(warning)
                     # log this as well
                     log = Log(group=self.group,
                               switch=self.switch,
@@ -1503,9 +1413,9 @@ class SnmpConnector(EasySNMP):
                 if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system name
                     if self.interfaces[if_index].lldp[lldp_index].chassis_type > 0:
-                        self._add_warning(f"Chassis Type for {llp_index} already "
-                                          "{self.interfaces[if_index].lldp[lldp_index].chassis_type},"
-                                          " now {val}!")
+                        self.add_warning(f"Chassis Type for {llp_index} already "
+                                         "{self.interfaces[if_index].lldp[lldp_index].chassis_type},"
+                                         " now {val}!")
                     self.interfaces[if_index].lldp[lldp_index].chassis_type = val
             return True
 
@@ -1585,14 +1495,14 @@ class SnmpConnector(EasySNMP):
         ie.sys-descr, object-id, uptime, contact, name & location
         """
         dprint("_parse_system_oids()")
+        # first time when data was read:
+        self.system.time = time.time()
+        # now parse system data:
         self.system.description = self.get_cached_oid(sysDescr)
         self.system.object_id = self.get_cached_oid(sysObjectID)
         self.system.enterprise_info = get_switch_enterprise_info(self.system.object_id)
-        # sysUpTime is ticks in 1/100th of second since boot
-        self.system.sys_uptime = int(self.get_cached_oid(sysUpTime))
-        self.system.time = time.time()
-        # uptime is in seconds:
-        self.system.uptime = datetime.timedelta(seconds=int(self.system.sys_uptime / 100))
+        # sysUpTime is ticks in 1/100th of second since boot, but uptime is a string:
+        self.system.uptime = str(datetime.timedelta(seconds = (int(self.get_cached_oid(sysUpTime)) / 100)))
         self.system.contact = self.get_cached_oid(sysContact)
         self.system.name = self.get_cached_oid(sysName)
         self.system.location = self.get_cached_oid(sysLocation)
@@ -1602,8 +1512,8 @@ class SnmpConnector(EasySNMP):
         Get the current sysUpTime timetick for the device.
         """
         self._get(sysUpTime)
-        # sysUpTime is ticks in 1/100th of second since boot
-        self.system.sys_uptime = int(self.get_cached_oid(sysUpTime))
+        # sysUpTime is ticks in 1/100th of second since boot, but uptime is a string:
+        self.system.uptime = str(datetime.timedelta(seconds = (int(self.get_cached_oid(sysUpTime)) / 100)))
         self.system.time = time.time()
 
     def _get_system_data(self):
@@ -1611,9 +1521,9 @@ class SnmpConnector(EasySNMP):
         get just the System-MIB parts, ie OID, Location, etc.
         Return a negative value if error occured, or 1 if success
         """
-        retval = self._get_branch_by_name('system')
+        retval = self.read_snmp_branch('system')
         if retval < 0:
-            self._add_warning("Error getting 'System-Mib' (system)")
+            self.add_warning("Error getting 'System-Mib' (system)")
             return retval   # error of some kind
 
         self._parse_system_oids()
@@ -1668,21 +1578,21 @@ class SnmpConnector(EasySNMP):
         Return a negative value if error occured, or 1 if success
         """
         # get physical device info
-        retval = self._get_branch_by_name('entPhysicalClass')
+        retval = self.read_snmp_branch('entPhysicalClass')
         if retval < 0:
-            self._add_warning("Error getting 'Entity-Class' ('entPhysicalClass')")
+            self.add_warning("Error getting 'Entity-Class' ('entPhysicalClass')")
             return retval
-        retval = self._get_branch_by_name('entPhysicalSerialNum')
+        retval = self.read_snmp_branch('entPhysicalSerialNum')
         if retval < 0:
-            self._add_warning("Error getting 'Entity-Serial' (entPhysicalSerialNum)")
+            self.add_warning("Error getting 'Entity-Serial' (entPhysicalSerialNum)")
             return retval
-        retval = self._get_branch_by_name('entPhysicalSoftwareRev')
+        retval = self.read_snmp_branch('entPhysicalSoftwareRev')
         if retval < 0:
-            self._add_warning("Error getting 'Entity-Software' (entPhysicalSoftwareRev)")
+            self.add_warning("Error getting 'Entity-Software' (entPhysicalSoftwareRev)")
             return retval
-        retval = self._get_branch_by_name('entPhysicalModelName')
+        retval = self.read_snmp_branch('entPhysicalModelName')
         if retval < 0:
-            self._add_warning("Error getting 'Entity-Model' (entPhysicalModelName)")
+            self.add_warning("Error getting 'Entity-Model' (entPhysicalModelName)")
             return retval
 
         return 1
@@ -1694,61 +1604,61 @@ class SnmpConnector(EasySNMP):
         Returns 1 on succes, -1 on failure
         """
         # it all starts with the interface indexes
-        retval = self._get_branch_by_name('ifIndex')
+        retval = self.read_snmp_branch('ifIndex')
         if retval < 0:
-            self._add_warning(f"Error getting 'Interfaces' ({ifIndex})")
+            self.add_warning(f"Error getting 'Interfaces' ({ifIndex})")
             return retval
         # and the types
-        retval = self._get_branch_by_name('ifType')
+        retval = self.read_snmp_branch('ifType')
         if retval < 0:
-            self._add_warning(f"Error getting 'Interface-Type' ({ifType})")
+            self.add_warning(f"Error getting 'Interface-Type' ({ifType})")
             return retval
 
         # the status of the interface, admin up/down, link up/down
-        retval = self._get_branch_by_name('ifAdminStatus')
+        retval = self.read_snmp_branch('ifAdminStatus')
         if retval < 0:
-            self._add_warning(f"Error getting 'Interface-AdminStatus' ({ifAdminStatus})")
+            self.add_warning(f"Error getting 'Interface-AdminStatus' ({ifAdminStatus})")
             return retval
-        retval = self._get_branch_by_name('ifOperStatus')
+        retval = self.read_snmp_branch('ifOperStatus')
         if retval < 0:
-            self._add_warning(f"Error getting 'Interface-OperStatus' ({ifOperStatus})")
+            self.add_warning(f"Error getting 'Interface-OperStatus' ({ifOperStatus})")
             return retval
 
         # find the interface name, start with the newer IF-MIB
-        retval = self._get_branch_by_name('ifName')
+        retval = self.read_snmp_branch('ifName')
         if retval < 0:
-            self._add_warning(f"Error getting 'Interface-Names' ({ifName})")
+            self.add_warning(f"Error getting 'Interface-Names' ({ifName})")
             return retval
         if retval == 0:  # newer IF-MIB entries no found, try the old
-            retval = self._get_branch_by_name('ifDescr')
+            retval = self.read_snmp_branch('ifDescr')
             if retval < 0:
-                self._add_warning(f"Error getting 'Interface-Descriptions' ({ifDescr})")
+                self.add_warning(f"Error getting 'Interface-Descriptions' ({ifDescr})")
                 return retval
 
         # this is the interface description
-        retval = self._get_branch_by_name('ifAlias')
+        retval = self.read_snmp_branch('ifAlias')
         if retval < 0:
-            self._add_warning(f"Error getting 'Interface-Alias' ({ifAlias})")
+            self.add_warning(f"Error getting 'Interface-Alias' ({ifAlias})")
             return retval
 
         # speed is in new IF-MIB
-        retval = self._get_branch_by_name('ifHighSpeed')
+        retval = self.read_snmp_branch('ifHighSpeed')
         if retval < 0:
-            self._add_warning(f"Error getting 'Interface-HiSpeed' ({ifHighSpeed})")
+            self.add_warning(f"Error getting 'Interface-HiSpeed' ({ifHighSpeed})")
             return retval
         if retval == 0:    # new IF-MIB hcspeed entry not found, try old speed
-            retval = self._get_branch_by_name('ifSpeed')
+            retval = self.read_snmp_branch('ifSpeed')
             if retval < 0:
-                self._add_warning(f"Error getting 'Interface-Speed' ({ifSpeed})")
+                self.add_warning(f"Error getting 'Interface-Speed' ({ifSpeed})")
                 return retval
 
         # check the connector, if not, cannot be managed, another safety feature
-        # retval = self._get_branch_by_name('ifConnectorPresent')
+        # retval = self.read_snmp_branch('ifConnectorPresent')
         # if retval < 0:
-        #    self._add_warning(f"Error getting 'Interface-Connector' ({ifConnectorPresent})")
+        #    self.add_warning(f"Error getting 'Interface-Connector' ({ifConnectorPresent})")
         #    return retval
 
-        # if not self._get_branch_by_name('ifStackEntry'):   # LACP / Aggregate / Port-Channel interfaces
+        # if not self.read_snmp_branch('ifStackEntry'):   # LACP / Aggregate / Port-Channel interfaces
         #    return False
         return 1
 
@@ -1758,31 +1668,31 @@ class SnmpConnector(EasySNMP):
         Returns error value (if < 0), or count of vlans found (0 or greater)
         """
         # first map dot1D-Bridge ports to ifIndexes, needed for Q-Bridge port-id to ifIndex
-        retval = self._get_branch_by_name('dot1dBasePortIfIndex')
+        retval = self.read_snmp_branch('dot1dBasePortIfIndex')
         if retval < 0:
-            self._add_warning("Error getting 'Q-Bridge-PortId-Map' (dot1dBasePortIfIndex)")
+            self.add_warning("Error getting 'Q-Bridge-PortId-Map' (dot1dBasePortIfIndex)")
             return retval
         # read existing vlan id's
-        retval = self._get_branch_by_name('dot1qVlanStaticRowStatus')
+        retval = self.read_snmp_branch('dot1qVlanStaticRowStatus')
         if retval < 0:
-            self._add_warning("Error getting 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
+            self.add_warning("Error getting 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
             return retval
         vlan_count = retval
         # if there are vlans, read the name and type
         if retval > 0:
-            retval = self._get_branch_by_name('dot1qVlanStaticName')
+            retval = self.read_snmp_branch('dot1qVlanStaticName')
             if retval < 0:
                 # error occured (unlikely to happen)
-                self._add_warning("Error getting 'Q-Bridge-Vlan-Names' (dot1qVlanStaticName)")
+                self.add_warning("Error getting 'Q-Bridge-Vlan-Names' (dot1qVlanStaticName)")
                 # we have found VLANs, so we are going to ignore this!
             # read the vlan status, ie static, dynamic!
-            retval = self._get_branch_by_name('dot1qVlanStatus')
+            retval = self.read_snmp_branch('dot1qVlanStatus')
             if retval < 0:
-                self._add_warning("Error getting 'Q-Bridge-Vlan-Status' (dot1qVlanStatus)")
+                self.add_warning("Error getting 'Q-Bridge-Vlan-Status' (dot1qVlanStatus)")
                 # we have found VLANs, so we are going to ignore this!
         else:
             # retval = 0, no vlans found!
-            self._add_warning("No VLANs found at 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
+            self.add_warning("No VLANs found at 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
 
         # check if we can change vlans
         self.vlan_change_implemented = self.can_change_interface_vlan()
@@ -1796,29 +1706,29 @@ class SnmpConnector(EasySNMP):
         """
 
         # read the PVID of UNTAGGED interfaces.
-        retval = self._get_branch_by_name('dot1qPvid')
+        retval = self.read_snmp_branch('dot1qPvid')
         if retval < 0:
-            self._add_warning("Error getting 'Q-Bridge-Interface-PVID' (dot1qPvid)")
+            self.add_warning("Error getting 'Q-Bridge-Interface-PVID' (dot1qPvid)")
             return retval
 
         # THIS IS LIKELY NOT PROPERLY HANDLED !!!
         # read the current vlan untagged port mappings
-        # retval = self._get_branch_by_name(dot1qVlanCurrentUntaggedPorts)
+        # retval = self.read_snmp_branch(dot1qVlanCurrentUntaggedPorts)
         # if retval < 0:
-        #    self._add_warning(f"Error getting 'Q-Bridge-Vlan-Untagged-Interfaces' ({dot1qVlanCurrentUntaggedPorts})")
+        #    self.add_warning(f"Error getting 'Q-Bridge-Vlan-Untagged-Interfaces' ({dot1qVlanCurrentUntaggedPorts})")
         #    return retval
 
         # read the current vlan egress port mappings, tagged and untagged
-        retval = self._get_branch_by_name('dot1qVlanCurrentEgressPorts')
+        retval = self.read_snmp_branch('dot1qVlanCurrentEgressPorts')
         if retval < 0:
-            self._add_warning("Error getting 'Q-Bridge-Vlan-Egress-Interfaces' (dot1qVlanCurrentEgressPorts)")
+            self.add_warning("Error getting 'Q-Bridge-Vlan-Egress-Interfaces' (dot1qVlanCurrentEgressPorts)")
             return retval
 
         # read the 'static' vlan egress port mappings, tagged and untagged
         # this will be used when changing vlans on ports, could also ignore for now!
-        # retval = self._get_branch_by_name(dot1qVlanStaticEgressPorts)
+        # retval = self.read_snmp_branch(dot1qVlanStaticEgressPorts)
         # if retval < 0:
-        #    self._add_warning("Error getting 'Q-Bridge-Vlan-Static-Egress-Interfaces' ({dot1qVlanStaticEgressPorts})")
+        #    self.add_warning("Error getting 'Q-Bridge-Vlan-Static-Egress-Interfaces' ({dot1qVlanStaticEgressPorts})")
         #    return retval
 
         return 1
@@ -1829,7 +1739,7 @@ class SnmpConnector(EasySNMP):
         returns -1 on error, or number to indicate vlans found.
         """
         # get the base 802.1q settings:
-        retval = self._get_branch_by_name('dot1qBase')
+        retval = self.read_snmp_branch('dot1qBase')
         if self.system.vlan_count > 0:
             # first get vlan id and names
             self._get_vlans()
@@ -1839,10 +1749,10 @@ class SnmpConnector(EasySNMP):
                 return retval
             # if GVRP enabled, then read this data
             if self.system.gvrp_enabled:
-                retval = self._get_branch_by_name('dot1qPortGvrpStatus')
+                retval = self.read_snmp_branch('dot1qPortGvrpStatus')
 
         # check MVRP status:
-        retval = self._get_branch_by_name('ieee8021QBridgeMvrpEnabledStatus')
+        retval = self.read_snmp_branch('ieee8021QBridgeMvrpEnabledStatus')
 
         return self.system.vlan_count
 
@@ -1851,9 +1761,9 @@ class SnmpConnector(EasySNMP):
         Read the ipAddrEntry tables for the switch IP4 addresses
         Returns 1 on success, -1 on failure
         """
-        retval = self._get_branch_by_name('ipAddrTable')  # small mib, read all entries below it
+        retval = self.read_snmp_branch('ipAddrTable')  # small mib, read all entries below it
         if retval < 0:
-            self._add_warning("Error getting 'IP-Address-Entries' (ipAddrTable)")
+            self.add_warning("Error getting 'IP-Address-Entries' (ipAddrTable)")
             return retval
 
         return 1
@@ -1880,27 +1790,27 @@ class SnmpConnector(EasySNMP):
         Returns 1 on success, -1 on failure
         """
         # first the PSE entries, ie the power supplies
-        retval = self._get_branch_by_name('pethMainPseEntry')
+        retval = self.read_snmp_branch('pethMainPseEntry')
         if retval < 0:
-            self._add_warning("Error getting 'PoE-PSE-Data' (pethMainPseEntry)")
+            self.add_warning("Error getting 'PoE-PSE-Data' (pethMainPseEntry)")
             return retval
         if retval > 0:
             # found power supplies, look at port power data
             # this is under pethPsePortEntry, but we only need a few entries:
-            retval = self._get_branch_by_name('pethPsePortAdminEnable')
+            retval = self.read_snmp_branch('pethPsePortAdminEnable')
             if retval < 0:
-                self._add_warning("Error getting 'PoE-Port-Admin-Status' (pethPsePortAdminEnable)")
+                self.add_warning("Error getting 'PoE-Port-Admin-Status' (pethPsePortAdminEnable)")
             if retval > 0:  # ports with PoE capabilities found!
-                retval = self._get_branch_by_name('pethPsePortDetectionStatus')
+                retval = self.read_snmp_branch('pethPsePortDetectionStatus')
                 if retval < 0:
-                    self._add_warning("Error getting 'PoE-Port-Detect-Status' (pethPsePortDetectionStatus)")
+                    self.add_warning("Error getting 'PoE-Port-Detect-Status' (pethPsePortDetectionStatus)")
                 """ Currently not used:
-                retval = self._get_branch_by_name('pethPsePortPowerPriority')
+                retval = self.read_snmp_branch('pethPsePortPowerPriority')
                 if retval < 0:
-                    self._add_warning("Error getting 'PoE-Port-Detect-Status' (pethPsePortPowerPriority)")
-                retval = self._get_branch_by_name('pethPsePortType')
+                    self.add_warning("Error getting 'PoE-Port-Detect-Status' (pethPsePortPowerPriority)")
+                retval = self.read_snmp_branch('pethPsePortType')
                 if retval < 0:
-                    self._add_warning("Error getting 'PoE-Port-Description' (pethPsePortType)")
+                    self.add_warning("Error getting 'PoE-Port-Description' (pethPsePortType)")
                 """
         return 1
 
@@ -1914,15 +1824,15 @@ class SnmpConnector(EasySNMP):
         # Do NOT cache and use a custom parser for speed
 
         # First, the newer dot1q bridge mib
-        retval = self._get_branch_by_name('dot1qTpFdbPort', False, self._parse_mibs_q_bridge_eth)
+        retval = self.read_snmp_branch('dot1qTpFdbPort', False, self._parse_mibs_q_bridge_eth)
         if retval < 0:
-            self._add_warning("Error getting 'Q-Bridge-EthernetAddresses' (dot1qTpFdbPort)")
+            self.add_warning("Error getting 'Q-Bridge-EthernetAddresses' (dot1qTpFdbPort)")
             return -1
         # If nothing found,check the older dot1d bridge mib
         if retval == 0:
-            retval = self._get_branch_by_name('dot1dTpFdbPort', False, self._parse_mibs_dot1d_bridge_eth)
+            retval = self.read_snmp_branch('dot1dTpFdbPort', False, self._parse_mibs_dot1d_bridge_eth)
             if retval < 0:
-                self._add_warning("Error getting 'Bridge-EthernetAddresses' (dot1dTpFdbPort)")
+                self.add_warning("Error getting 'Bridge-EthernetAddresses' (dot1dTpFdbPort)")
                 return -1
         return 1
 
@@ -1932,9 +1842,9 @@ class SnmpConnector(EasySNMP):
         and eventually, new style ipNetToPhysical
         Returns 1 on success, -1 on failure
         """
-        retval = self._get_branch_by_name('ipNetToMediaPhysAddress', False, self._parse_mibs_net_to_media)
+        retval = self.read_snmp_branch('ipNetToMediaPhysAddress', False, self._parse_mibs_net_to_media)
         if retval < 0:
-            self._add_warning("Error getting 'ARP-Table' (ipNetToMediaPhysAddress)")
+            self.add_warning("Error getting 'ARP-Table' (ipNetToMediaPhysAddress)")
             return retval
         return 1
 
@@ -1946,50 +1856,50 @@ class SnmpConnector(EasySNMP):
         Returns 1 on success, -1 on failure
         """
         # Probably don't need this part, already got most from MIB-2
-        # retval = not self._get_branch_by_name(lldpLocPortTable):
+        # retval = not self.read_snmp_branch(lldpLocPortTable):
         #    return False
 
         # this does not appear to be implemented in most gear:
-        # retval = not self._get_branch_by_name(lldpRemLocalPortNum):
+        # retval = not self.read_snmp_branch(lldpRemLocalPortNum):
         #    return False
 
         # this should catch all the remote device info:
-        # retval = not self._get_branch_by_name(lldpRemEntry):
+        # retval = not self.read_snmp_branch(lldpRemEntry):
         #    return False
         # return True
 
         # go read and parse LLDP data, we do NOT (False) want to cache this data!
         # we have a custom parser, so we do not have to run this through the long and slow default parser!
-        retval = self._get_branch_by_name('lldpRemPortId', False, self._parse_mibs_lldp)
+        retval = self.read_snmp_branch('lldpRemPortId', False, self._parse_mibs_lldp)
         if retval < 0:
-            self._add_warning("Error getting 'LLDP-Remote-Ports' (lldpRemPortId)")
+            self.add_warning("Error getting 'LLDP-Remote-Ports' (lldpRemPortId)")
             return retval
         if retval > 0:  # there are neighbors entries! Go get the details.
-            retval = self._get_branch_by_name('lldpRemPortDesc', False, self._parse_mibs_lldp)
+            retval = self.read_snmp_branch('lldpRemPortDesc', False, self._parse_mibs_lldp)
             if retval < 0:
-                self._add_warning("Error getting 'LLDP-Remote-Port-Description' (lldpRemPortDesc)")
+                self.add_warning("Error getting 'LLDP-Remote-Port-Description' (lldpRemPortDesc)")
                 return retval
-            retval = self._get_branch_by_name('lldpRemSysName', False, self._parse_mibs_lldp)
+            retval = self.read_snmp_branch('lldpRemSysName', False, self._parse_mibs_lldp)
             if retval < 0:
-                self._add_warning("Error getting 'LLDP-Remote-System-Name' (lldpRemSysName)")
+                self.add_warning("Error getting 'LLDP-Remote-System-Name' (lldpRemSysName)")
                 return retval
-            retval = self._get_branch_by_name('lldpRemSysDesc', False, self._parse_mibs_lldp)
+            retval = self.read_snmp_branch('lldpRemSysDesc', False, self._parse_mibs_lldp)
             if retval < 0:
-                self._add_warning("Error getting 'LLDP-Remote-System-Decription' (lldpRemSysDesc)")
+                self.add_warning("Error getting 'LLDP-Remote-System-Decription' (lldpRemSysDesc)")
                 return retval
             # get the enabled remote device capabilities
-            retval = self._get_branch_by_name('lldpRemSysCapEnabled', False, self._parse_mibs_lldp)
+            retval = self.read_snmp_branch('lldpRemSysCapEnabled', False, self._parse_mibs_lldp)
             if retval < 0:
-                self._add_warning("Error getting 'LLDP-Remote-System-Capabilities' (lldpRemSysCapEnabled)")
+                self.add_warning("Error getting 'LLDP-Remote-System-Capabilities' (lldpRemSysCapEnabled)")
                 return retval
             # and info about the remote chassis:
-            retval = self._get_branch_by_name('lldpRemChassisIdSubtype', False, self._parse_mibs_lldp)
+            retval = self.read_snmp_branch('lldpRemChassisIdSubtype', False, self._parse_mibs_lldp)
             if retval < 0:
-                self._add_warning("Error getting 'LLDP-Remote-Chassis-Type' (lldpRemChassisIdSubtype)")
+                self.add_warning("Error getting 'LLDP-Remote-Chassis-Type' (lldpRemChassisIdSubtype)")
                 return retval
-            retval = self._get_branch_by_name('lldpRemChassisId', False, self._parse_mibs_lldp)
+            retval = self.read_snmp_branch('lldpRemChassisId', False, self._parse_mibs_lldp)
             if retval < 0:
-                self._add_warning("Error getting 'LLDP-Remote-Chassis-Id' (lldpRemChassisId)")
+                self.add_warning("Error getting 'LLDP-Remote-Chassis-Id' (lldpRemChassisId)")
                 return retval
 
         return 1
@@ -2001,23 +1911,23 @@ class SnmpConnector(EasySNMP):
         """
 
         # Get the admin key or "index" for aggregate interfaces
-        retval = self._get_branch_by_name('dot3adAggActorAdminKey')
+        retval = self.read_snmp_branch('dot3adAggActorAdminKey')
         if retval < 0:
-            self._add_warning("Error getting 'LACP-Aggregate-Admin-Key' (dot3adAggActorAdminKey)")
+            self.add_warning("Error getting 'LACP-Aggregate-Admin-Key' (dot3adAggActorAdminKey)")
             return retval
 
         # Get the admin key or "index" for physical member interfaces
         # this maps back to the logical or actor aggregates above in dot3adAggActorAdminKey
-        retval = self._get_branch_by_name('dot3adAggPortActorAdminKey')
+        retval = self.read_snmp_branch('dot3adAggPortActorAdminKey')
         if retval < 0:
-            self._add_warning("Error getting 'LACP-Port-Admin-Key' (dot3adAggPortActorAdminKey)")
+            self.add_warning("Error getting 'LACP-Port-Admin-Key' (dot3adAggPortActorAdminKey)")
             return retval
 
         """
         # this is a shortcut to find aggregates and members all in one, but does not work everyone.
-        retval = self._get_branch_by_name('dot3adAggPortAttachedAggID')
+        retval = self.read_snmp_branch('dot3adAggPortAttachedAggID')
         if retval < 0:
-            self._add_warning("Error getting 'LACP-Port-AttachedAggID' (dot3adAggPortAttachedAggID)")
+            self.add_warning("Error getting 'LACP-Port-AttachedAggID' (dot3adAggPortAttachedAggID)")
             return retval
         """
 
@@ -2027,9 +1937,9 @@ class SnmpConnector(EasySNMP):
         """
         Read the SYSLOG-MSG-MIB: note this is meant for notifications, but we can read log size!
         """
-        retval = self._get_branch_by_name('syslogMsgTableMaxSize')
+        retval = self.read_snmp_branch('syslogMsgTableMaxSize')
         if retval < 0:
-            self._add_warning("Error getting Log Size Info (syslogMsgTableMaxSize)")
+            self.add_warning("Error getting Log Size Info (syslogMsgTableMaxSize)")
         return retval
 
     def _test_read(self):
@@ -2054,165 +1964,6 @@ class SnmpConnector(EasySNMP):
             return True
         return False
 
-    def _set_allowed_vlans(self):
-        """
-        set the list of vlans defined on the switch that are allowed per the SwitchGroup.vlangroups/vlans
-        self.vlans = {} dictionary of vlans on the current switch, i.e. Vlan() objects, but
-        self.group.vlans and self.group.vlangroups is a list of allowed VLAN() Django objects (see switches/models.py)
-        """
-
-        dprint("_set_allowed_vlans()")
-        # check the vlans on the switch (self.vlans) agains switchgroup.vlan_groups and switchgroup.vlans
-        if self.group.read_only and self.request and not self.request.user.is_superuser:
-            # Read-Only Group, no vlan allowed!
-            return
-        for switch_vlan_id in self.vlans.keys():
-            if self.request and self.request.user.is_superuser:
-                self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
-            else:
-                # first the switchgroup.vlan_groups:
-                found_vlan = False
-                for vlan_group in self.group.vlan_groups.all():
-                    for group_vlan in vlan_group.vlans.all():
-                        if int(group_vlan.vid) == int(switch_vlan_id):
-                            self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
-                            found_vlan = True
-                            continue
-                # check if this switch vlan is in the list of allowed vlans
-                if not found_vlan:
-                    for group_vlan in self.group.vlans.all():
-                        if int(group_vlan.vid) == int(switch_vlan_id):
-                            # save using the switch vlan name, which is possibly different from the VLAN group name!
-                            self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
-                            continue
-        return
-
-    def _can_manage_interface(self, iface):
-        """
-        Function meant to check if this interface can be managed.
-        This allows for vendor-specific override in the vendor subclass, to detect e.g. stacking ports
-        called from _set_interfaces_permissions() to check for each interface.
-        Returns True by default, but if False, then _set_interfaces_permissions()
-        will not allow any attribute of this interface to be managed (even then admin!)
-        """
-        return True
-
-    def _set_interfaces_permissions(self):
-        """
-        For all found interfaces, check out rules to see if this user should be able see or edit them
-        """
-        dprint("_set_interfaces_permissions()")
-        switch = self.switch
-        group = self.group
-        if self.request:
-            user = self.request.user
-        else:
-            # we are running as a task, simulate 'admin'
-            # permissions were checked when form was generated/submitted
-            user = User.objects.get(pk=1)
-
-        # find allowed vlans for this user
-        self._set_allowed_vlans()
-
-        # apply the permission rules to all interfaces
-        for if_index in self.interfaces:
-            iface = self.interfaces[if_index]
-
-            # Layer 3 (routed mode) interfaces are denied (but shown)!
-            if iface.is_routed:
-                iface.manageable = False
-                iface.allow_poe_toggle = False
-                iface.can_edit_alias = False
-                iface.visible = True
-                iface.unmanage_reason = "Access denied: interface in routed mode!"
-                continue
-
-            if iface.type != IF_TYPE_ETHERNET and settings.HIDE_NONE_ETHERNET_INTERFACES:
-                iface.manageable = False
-                iface.allow_poe_toggle = False
-                iface.can_edit_alias = False
-                iface.visible = False
-                continue
-
-            # next check vendor-specific restrictions. This allows denying Stacking ports, etc.
-            if not self._can_manage_interface(iface):
-                iface.manageable = False
-                iface.allow_poe_toggle = False
-                iface.can_edit_alias = False
-                iface.visible = True
-                continue
-
-            # Read-Only switch cannot be overwritten, not even by SuperUser!
-            if group.read_only or switch.read_only or user.profile.read_only:
-                iface.manageable = False
-                iface.unmanage_reason = "Access denied: Read-Only"
-
-            # super-users have access to all other attributes of interfaces!
-            if user.is_superuser:
-                iface.visible = True
-                iface.allow_poe_toggle = True
-                iface.can_edit_alias = True
-                continue
-
-            # globally allow PoE toggle:
-            if settings.ALWAYS_ALLOW_POE_TOGGLE:
-                iface.allow_poe_toggle = True
-
-            # we can also enable PoE toggle on user, group or switch, if allowed somewhere:
-            if switch.allow_poe_toggle or group.allow_poe_toggle or user.profile.allow_poe_toggle:
-                iface.allow_poe_toggle = True
-
-            # we can also modify interface description, if allowed everywhere:
-            if switch.edit_if_descr and group.edit_if_descr and user.profile.edit_if_descr:
-                iface.can_edit_alias = True
-
-            # Next apply any rules that HIDE first !!!
-
-            # check interface types first, only show ethernet
-            # this hides vlan, loopback etc. interfaces for the regular user.
-            if iface.type not in visible_interfaces.keys():
-                iface.visible = False
-                iface.manageable = False  # just to be safe :-)
-                iface.unmanage_reason = "Switch is not visible!"    # should never show!
-                continue
-
-            # see if this _get_snmp_session matches the interface name, e.g. GigabitEthernetx/x/x
-            if settings.IFACE_HIDE_REGEX_IFNAME != "":
-                match = re.match(settings.IFACE_HIDE_REGEX_IFNAME, iface.name)
-                if match:
-                    iface.manageable = False  # match, so we cannot modify! Show anyway...
-                    iface.unmanage_reason = "Access denied: interface name matches admin setting!"
-                    continue
-
-            # see if this regex matches the interface 'ifAlias' aka. the interface description
-            if settings.IFACE_HIDE_REGEX_IFDESCR != "":
-                match = re.match(settings.IFACE_HIDE_REGEX_IFDESCR, iface.alias)
-                if match:
-                    iface.manageable = False  # match, so we cannot modify! Show anyway...
-                    iface.unmanage_reason = "Access denied: interface description matches admin setting!"
-                    continue
-
-            # see if we should hide interfaces with speeds above this value in Mbps.
-            if int(settings.IFACE_HIDE_SPEED_ABOVE) > 0 and int(iface.hc_speed) > int(settings.IFACE_HIDE_SPEED_ABOVE):
-                iface.manageable = False  # match, so we cannot modify! Show anyway...
-                iface.unmanage_reason = "Access denied: interface speed is denied by admin setting!"
-                continue
-
-            # check if this vlan is in the group allowed vlans list:
-            if int(iface.untagged_vlan) not in self.allowed_vlans.keys():
-                iface.manageable = False  # match, so we cannot modify! Show anyway...
-                iface.unmanage_reason = "Access denied: vlan is not allowed!"
-                continue
-
-        dprint("_set_interfaces_permissions() done!")
-        return
-
-    def _clear_session_cache(self):
-        """
-        call the static function to clear our our web session database
-        """
-        return clear_session_cache(self.request)
-
     def _probe_mibs(self):
         """
         Probe the various mibs to see if they are supported
@@ -2226,37 +1977,9 @@ class SnmpConnector(EasySNMP):
             return True
         return False
 
-    def _add_warning(self, warning):
-        """
-        Add a warning to the list!
-        """
-        self.warnings.append(warning)
-        # add a log message
-        log = Log(group=self.group,
-                  switch=self.switch,
-                  ip_address=get_remote_ip(self.request),
-                  type=LOG_TYPE_WARNING,
-                  action=LOG_WARNING_SNMP_ERROR,
-                  description=warning)
-        if self.request:
-            log.user = self.request.user
-        log.save()
-        # done!
-        return
-
     #
     # "Public" interface methods
     #
-
-    def add_vendor_data(self, category, name, value):
-        """
-        This adds a vendor specific piece of information to the "Info" tab.
-        Items are ordered by category heading, then name/value pairs
-        """
-        vdata = VendorData(name, value)
-        if category not in self.vendor_data.keys():
-            self.vendor_data[category] = []
-        self.vendor_data[category].append(vdata)
 
     def can_change_interface_vlan(self):
         """
@@ -2265,22 +1988,6 @@ class SnmpConnector(EasySNMP):
         # for standard MIB version, return True
         return True
 
-    def can_save_config(self):
-        """
-        If True, this instance can save the running config to startup
-        Ie. "write mem" is implemented via an SNMP interfaces
-        This should be implemented in a vendor-specific sub-class. We just return False here.
-        """
-        return False
-
-    def save_running_config(self):
-        """
-        Vendor-agnostic interface to save the current config to startup
-        To be implemented by sub-classes, eg CISCO-SNMP, H3C-SNMP
-        Returns 0 is this succeeds, -1 on failure. self.error() will be set in that case
-        """
-        return -1
-
     def get_switch_basic_info(self):
         """
         If not found in the local cache (from the session),
@@ -2288,8 +1995,10 @@ class SnmpConnector(EasySNMP):
         System, Interfaces, Aliases, Qbridge and PoE MIBs
         """
         self.error.clear()
-        if not self.cached_oid_data:
-            self.basic_info_read_time = time.time()
+        # if not self.has_oid_cache:
+        if not self.cache_loaded:
+            dprint("No Cache found, reading SNMP!")
+            self.basic_info_read_timestamp = time.time()
             retval = self._get_system_data()
             if retval != -1:
                 retval = self._get_interface_data()
@@ -2305,10 +2014,10 @@ class SnmpConnector(EasySNMP):
                                     # try to map poe port info to actual interfaces
                                     self._map_poe_port_entries_to_interface()
                                     # time it took to read all this.
-                                    self.basic_info_duration = int((time.time() - self.basic_info_read_time) + 0.5)
+                                    self.basic_info_read_duration = int((time.time() - self.basic_info_read_timestamp) + 0.5)
                                     # cache the data in the session,
                                     # so we can avoid reading the switch all the time
-                                    self._set_http_session_cache()
+                                    self.save_cache()
                                     # set the permissions to the interfaces:
                                     self._set_interfaces_permissions()
                                     self.switch.save()  # update counters
@@ -2332,7 +2041,7 @@ class SnmpConnector(EasySNMP):
         if retval > 0:
             # need to store this in the session
             self.hwinfo_needed = False
-            self._set_http_session_cache()
+            self.save_cache()
             return True
         return False
 
@@ -2488,6 +2197,17 @@ class SnmpConnector(EasySNMP):
         # interface not found, return False!
         return -1
 
+    def read_snmp_branch(self, branch_name):
+
+        count = self._get_branch_by_name(branch_name)
+        if count < 0:
+            self.add_warning(f"Error getting snmp branch '{branch_name})'")
+        else:
+            # add to timing data, for admin use!
+            self.add_timing(branch_name, count, self.stop_time - self.start_time)
+            self.switch.snmp_bulk_read_count += 1
+        return count
+
     def display_name(self):
         return f"{self.name} for {self.switch.name}"
 
@@ -2510,36 +2230,6 @@ def oid_in_branch(mib_branch, oid):
     if (oid_len > branch_len and oid[:branch_len] == mib_branch):  # need to check for trailing .
         return oid[branch_len:]    # get data past the "root" oid + the period (+1)
     return False
-
-
-def _clear_session_save_needed(request):
-    """
-    Clear the session variable that indicates the switch config needs saving
-    """
-    if request and 'save_needed' in request.session.keys():
-        del request.session['save_needed']
-        request.session.modified = True
-
-
-def clear_session_oid_cache(request):
-    """
-    clear session OID data storage, because we want to re-read switch
-    """
-    if request and 'oid_cache' in request.session.keys():
-        del request.session['oid_cache']
-        request.session.modified = True
-
-
-def clear_session_cache(request):
-    """
-    clear all session data storage, because we changed switches
-    """
-    if request:
-        clear_session_oid_cache(request)
-        _clear_session_save_needed(request)
-        if 'switch_id' in request.session.keys():
-            del request.session['switch_id']
-        request.session.modified = True
 
 
 def get_switch_enterprise_info(system_oid):

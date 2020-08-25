@@ -102,7 +102,7 @@
 
       <div><strong>Handler:</strong> {{ connection.name }}</div>
 
-      <div><strong>Response (basic):</strong> {{ connection.basic_info_duration }} seconds</div>
+      <div><strong>Response (basic):</strong> {{ connection.basic_info_read_duration }} seconds</div>
       {% if connection.detailed_info_duration > 0 %}
         <div><strong>Response (details):</strong> {{ connection.detailed_info_duration }} seconds</div>
       {% endif %}
@@ -238,7 +238,7 @@
 
     <div class="panel panel-default">
       <div class="panel-heading">
-        <strong>SNMP MIB Timing</strong>
+        <strong>Timing Info</strong>
       </div>
       <div class="panel-body">
         <table class="table table-striped w-auto">
@@ -246,7 +246,7 @@
           <tr><th>Name</th><th>Count</th><th>Time</th></tr>
           </thead>
           <tbody>
-          {% for name,info in connection.mib_timing.items %}
+          {% for name,info in connection.timing.items %}
             <tr><td>{{ name }}</td><td>{{ info.0 }}</td><td>{{ info.1|floatformat:3 }}</td></tr>
           {% endfor %}
           </tbody>

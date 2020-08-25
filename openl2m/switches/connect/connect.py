@@ -34,6 +34,9 @@ from switches.connect.vendors.juniper.snmp import SnmpConnectorJuniper
 from switches.connect.vendors.procurve.constants import *
 from switches.connect.vendors.procurve.snmp import SnmpConnectorProcurve
 
+from switches.connect.vendors.dummy.constants import *
+from switches.connect.vendors.dummy.dummy import DummyConnector
+
 
 def get_connection_object(request, group, switch):
     """
@@ -43,42 +46,47 @@ def get_connection_object(request, group, switch):
     If probing fails, we raise an exception!
     """
     dprint(f"get_connection_object() for {switch} at {datetime.datetime.now()}")
-    if not switch.snmp_oid:
-        # we don't know this switch yet, go probe it
-        conn = SnmpConnector(request, group, switch)
-        if not conn._probe_mibs():
-            raise Exception('Error probing device. Is the SNMP Profile correct?')
-            return  # for clarify
 
-    # now we should have the basics:
-    if switch.snmp_oid:
-        # we have the ObjectID, what kind of vendor is it:
-        dprint(f"   Checking device type for {switch.snmp_oid}")
-        sub_oid = oid_in_branch(enterprises, switch.snmp_oid)
-        if sub_oid:
-            parts = sub_oid.split('.', 1)  # 1 means one split, two elements!
-            enterprise_id = int(parts[0])
-            # here we go:
-            if enterprise_id == ENTERPRISE_ID_CISCO:
-                connection = SnmpConnectorCisco(request, group, switch)
-
-            elif enterprise_id == ENTERPRISE_ID_JUNIPER:
-                connection = SnmpConnectorJuniper(request, group, switch)
-
-            elif enterprise_id == ENTERPRISE_ID_HP:
-                connection = SnmpConnectorProcurve(request, group, switch)
-
-            elif enterprise_id == ENTERPRISE_ID_H3C:
-                connection = SnmpConnectorComware(request, group, switch)
-
-            else:
-                # system oid found, but unknwon vendor:
-                connection = SnmpConnector(request, group, switch)
-
-    # no system oid found, return a "generic" SNMP object
+    if switch.name == "Dummy":
+        connection = DummyConnector(request, group, switch)
     else:
-        connection = SnmpConnector(request, group, switch)
+        if not switch.snmp_oid:
+            # we don't know this switch yet, go probe it
+            conn = SnmpConnector(request, group, switch)
+            if not conn._probe_mibs():
+                raise Exception('Error probing device. Is the SNMP Profile correct?')
+                return  # for clarify
+
+        # now we should have the basics:
+        if switch.snmp_oid:
+            # we have the ObjectID, what kind of vendor is it:
+            dprint(f"   Checking device type for {switch.snmp_oid}")
+            sub_oid = oid_in_branch(enterprises, switch.snmp_oid)
+            if sub_oid:
+                parts = sub_oid.split('.', 1)  # 1 means one split, two elements!
+                enterprise_id = int(parts[0])
+                # here we go:
+                if enterprise_id == ENTERPRISE_ID_CISCO:
+                    connection = SnmpConnectorCisco(request, group, switch)
+
+                elif enterprise_id == ENTERPRISE_ID_JUNIPER:
+                    connection = SnmpConnectorJuniper(request, group, switch)
+
+                elif enterprise_id == ENTERPRISE_ID_HP:
+                    connection = SnmpConnectorProcurve(request, group, switch)
+
+                elif enterprise_id == ENTERPRISE_ID_H3C:
+                    connection = SnmpConnectorComware(request, group, switch)
+
+                else:
+                    # system oid found, but unknown vendor:
+                    connection = SnmpConnector(request, group, switch)
+
+        # no system oid found, return a "generic" SNMP object
+        else:
+            connection = SnmpConnector(request, group, switch)
+
     # load caches (http session, memory cache (future), whatever else for performance)
-    connection.load_caches()
+    connection.load_cache()
     # then return object
     return connection

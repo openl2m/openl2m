@@ -34,7 +34,7 @@ class SnmpConnectorCisco(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("CISCO SnmpConnector __init__")
-        super().__init__(request, group, switch)
+        super(SnmpConnectorCisco, self).__init__(request, group, switch)
         self.name = "Cisco SnmpConnector"  # what type of class is running!
         self.vendor_name = "Cisco"
 
@@ -205,7 +205,7 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         retval = self._get_branch_by_name('ciscoSyslogMIBObjects', True, self._parse_mibs_cisco_syslog_msg)
         if retval < 0:
-            self._add_warning("Error getting Cisco Syslog Messages (ciscoSyslogMIBObjects)")
+            self.add_warning("Error getting Cisco Syslog Messages (ciscoSyslogMIBObjects)")
             return 0    # for now
 
     def _map_poe_port_entries_to_interface(self):
@@ -226,7 +226,7 @@ class SnmpConnectorCisco(SnmpConnector):
                         self.interfaces[if_index].poe_entry = port_entry
                         if port_entry.detect_status == POE_PORT_DETECT_FAULT:
                             warning = f"PoE FAULT status ({port_entry.detect_status} = {poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
-                            self._add_warning(warning)
+                            self.add_warning(warning)
                             # log my activity
                             log = Log(user=self.request.user,
                                       type=LOG_TYPE_ERROR,
@@ -244,7 +244,7 @@ class SnmpConnectorCisco(SnmpConnector):
                         iface.poe_entry = port_entry
                         if port_entry.detect_status == POE_PORT_DETECT_FAULT:
                             warning = f"PoE FAULT status ({port_entry.status_name}) on interface {iface.name}"
-                            self._add_warning(warning)
+                            self.add_warning(warning)
                             # log my activity
                             log = Log(user=self.request.user,
                                       type=LOG_TYPE_ERROR,

@@ -40,7 +40,7 @@ class SnmpConnectorComware(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("Comware SnmpConnector __init__")
-        super().__init__(request, group, switch)
+        super(SnmpConnectorComware, self).__init__(request, group, switch)
         self.name = "SnmpConnectorComware"  # what type of class is running!
         self.vendor_name = "HPE/Comware"
         # needed for saving config file:
@@ -239,7 +239,7 @@ class SnmpConnectorComware(SnmpConnector):
                         else:
                             # no switchport? "should" not happen for a valid switch port interface
                             warning = f"Warning: {this_iface.name} - no port_id found in set_interface_untagged_vlan(Comware)!"
-                            self._add_warning(warning)
+                            self.add_warning(warning)
 
                 # send to the switch!
                 # Comware needs bits in opposite order inside each byte! (go figure)
@@ -392,7 +392,7 @@ class SnmpConnectorComware(SnmpConnector):
         # now get HP specific info from HP-IFC-POE-MIB first
         retval = self._get_branch_by_name('hh3cPsePortCurrentPower', True, self._parse_mibs_comware_poe)
         if retval < 0:
-            self._add_warning("Error getting 'PoE-Port-Current-Power' (hh3cPsePortCurrentPower)")
+            self.add_warning("Error getting 'PoE-Port-Current-Power' (hh3cPsePortCurrentPower)")
         return 1
 
     def _map_poe_port_entries_to_interface(self):
@@ -420,7 +420,7 @@ class SnmpConnectorComware(SnmpConnector):
                         warning = f"PoE FAULT status ({port_entry.detect_status} = " \
                                   "{poe_status_name[port_entry.detect_status]}) " \
                                   "on interface {iface.name}"
-                        self._add_warning(warning)
+                        self.add_warning(warning)
                         # log my activity
                         log = Log(user=self.request.user,
                                   type=LOG_TYPE_ERROR,
@@ -453,7 +453,7 @@ class SnmpConnectorComware(SnmpConnector):
         # run the Operations row status to find free slot to write to:
         retval = self._get_branch_by_name('hh3cCfgOperateRowStatus', True, self._parse_mibs_comware_configfile)
         if retval < 0:
-            self._add_warning("Error reading 'Config File MIB' (hh3cCfgOperateRowStatus)")
+            self.add_warning("Error reading 'Config File MIB' (hh3cCfgOperateRowStatus)")
             return 1
 
         # now figure out where we need to write to
@@ -464,6 +464,6 @@ class SnmpConnectorComware(SnmpConnector):
             (f"{hh3cCfgOperateRowStatus}.{row_place}", HH3C_createAndGo, 'i')
         ])
         if retval < 0:
-            self._add_warning("Error saving via SNMP (hh3cCfgOperateRowStatus)")
+            self.add_warning("Error saving via SNMP (hh3cCfgOperateRowStatus)")
             return -1
         return 0
