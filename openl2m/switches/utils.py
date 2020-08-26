@@ -23,8 +23,6 @@ import ipaddress
 from django.conf import settings
 from django.utils.timezone import get_default_timezone
 
-from switches.constants import ETH_FORMAT_COLON, ETH_FORMAT_HYPHEN, ETH_FORMAT_CISCO
-
 logger_debug = logging.getLogger("openl2m.debug")
 logger_console = logging.getLogger("openl2m.console")
 
@@ -53,92 +51,6 @@ def get_local_timezone_offset():
     This uses the settings.TIME_ZONE variable, if set.
     """
     return datetime.datetime.now(pytz.timezone(str(get_default_timezone()))).strftime('%z')
-
-
-def bytes_to_hex_string_ethernet(bytes):
-    """
-    Convert SNMP ethernet in 6-byte octetstring format to hex string.
-    Various final formats are supported, configured in settings
-    """
-    if len(bytes) == 6:
-        if settings.ETH_FORMAT_UPPERCASE:
-            format = '%02X'
-        else:
-            format = '%02x'
-
-        if(settings.ETH_FORMAT == ETH_FORMAT_COLON):
-            separator = ':'
-
-        if(settings.ETH_FORMAT == ETH_FORMAT_HYPHEN):
-            separator = '-'
-
-        if(settings.ETH_FORMAT == ETH_FORMAT_CISCO):
-            return "CISCO FORMAT TBD"
-
-        return separator.join(format % ord(b) for b in bytes)
-
-    return ''
-
-
-def decimal_to_hex_string_ethernet(decimal):
-    """
-    Convert SNMP decimal ethernet string "11.12.13.78.90.100"
-    to hex string. Various final formats are supported, configured in settings
-    """
-    format = settings.ETH_FORMAT
-    bytes = decimal.split('.')
-    if len(bytes) == 6:
-        mac = ''
-        for byte in bytes:
-            if settings.ETH_FORMAT_UPPERCASE:
-                h = "%02X" % int(byte)
-            else:
-                h = "%02x" % int(byte)
-
-            if(settings.ETH_FORMAT == ETH_FORMAT_COLON):
-                if not mac:
-                    mac += h
-                else:
-                    mac += ":%s" % h
-
-            if(settings.ETH_FORMAT == ETH_FORMAT_HYPHEN):
-                if not mac:
-                    mac += h
-                else:
-                    mac += "-%s" % h
-
-            if(settings.ETH_FORMAT == ETH_FORMAT_CISCO):
-                return "CISCO FORMAT TBD"
-
-        return mac
-    return False
-
-
-def bytes_ethernet_to_oui(bytes):
-    """
-    Convert SNMP ethernet in 6-byte octetstring
-    to the OUI string "AA-BB-CC"
-    """
-    if len(bytes) == 6:
-        oui_bytes = bytes[0:3]
-        separator = '-'
-        format = '%02X'
-        return separator.join(format % ord(b) for b in oui_bytes)
-    return ''
-
-
-def decimal_ethernet_to_oui(decimal):
-    """
-    Convert SNMP decimal ethernet string "11.12.13.78.90.100"
-    to the OUI string "AA-BB-CC"
-    """
-    bytes = decimal.split('.')
-    if len(bytes) == 6:
-        oui_bytes = bytes[0:3]
-        separator = '-'
-        format = '%02X'
-        return separator.join(format % int(b) for b in oui_bytes)
-    return ''
 
 
 def save_to_http_session(request, name, data):

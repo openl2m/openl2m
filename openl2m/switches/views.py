@@ -36,6 +36,7 @@ from django.shortcuts import redirect
 from openl2m.celery import get_celery_info, is_celery_running
 from switches.models import *
 from switches.constants import *
+from switches.connect.classes import clear_switch_cache
 from switches.connect.connect import *
 from switches.connect.constants import *
 from switches.connect.snmp import *
@@ -56,7 +57,7 @@ def switches(request):
 
     # back to the home screen, clear session cache
     # so we re-read switches as needed
-    clear_session_cache(request)
+    clear_switch_cache(request)
 
     # save remote ip in session, so we can use it in current user display!
     save_to_http_session(request, "remote_ip", get_remote_ip(request))
@@ -174,7 +175,7 @@ def switch_hw_info(request, group_id, switch_id):
     return switch_view(request, group_id, switch_id, 'hw_info')
 
 
-def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=-1):
+def switch_view(request, group_id, switch_id, view, command_id=-1, interface_name=""):
     """
     This shows the various data about a switch, either from a new SNMP read,
     from cached OID data, or an SSH command.
@@ -225,7 +226,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
         if not conn.get_switch_hardware_details():
             # errors
             log.type = LOG_TYPE_ERROR
-            log.description = "ERROR in get_hardware_details()"
+            log.description = "ERROR in get_switch_hardware_details()"
             log.save()
             # don't render error, since we have already read the basic interface data
             # Note that SNMP errors are already added to warnings!
@@ -263,9 +264,9 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
             cmd['id'] = int(command_id)
             c = get_object_or_404(Command, pk=command_id)
             cmd['command'] = c.command
-            if c.type == CMD_TYPE_INTERFACE and interface_id > 0:
-                if interface_id in conn.interfaces.keys():
-                    cmd['command'] = c.command % conn.interfaces[interface_id].name
+            if c.type == CMD_TYPE_INTERFACE and interface_name:
+                if interface_name in conn.interfaces.keys():
+                    cmd['command'] = c.command % conn.interfaces[interface_name].name
 
             # log it first!
             log.type = LOG_TYPE_COMMAND
@@ -297,7 +298,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_id=
         task_process_running = False
         tasks = False
 
-    time_since_last_read = time_duration(time.time() - conn.basic_info_read_time)
+    time_since_last_read = time_duration(time.time() - conn.basic_info_read_timestamp)
 
     # finally, verify what this user can do:
     bulk_edit = user_can_bulkedit(request.user, group, switch)
@@ -357,7 +358,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -437,20 +438,20 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         error.details = mark_safe("\n<br>".join(errors))
         return error_page(request, group, switch, error)
 
-    # get the name of the interfaces as well (with the submitted ifIndex values)
+    # get the name of the interfaces as well (with the submitted if_key values)
     # so that we can show the names in the Task() and Log() objects
     # additionally, also get the current state, to be able to "undo" the update
-    interfaces = {}
+    interfaces = {}     # dict() of interfaces to bulk edit
     undo_info = {}
-    for index in interface_list:
-        if_index = int(index)
-        if if_index in conn.interfaces.keys():
-            interface = conn.interfaces[if_index]
-            interfaces[if_index] = interface.name
+    for if_key in interface_list:
+        dprint(f"BulkEdit for {if_key}")
+        interface = conn.get_interface_by_key(if_key)
+        if interface:
+            interfaces[if_key] = interface.name
             if is_task:
                 # save the current state
                 current = {}
-                current['if_index'] = if_index
+                current['if_key'] = if_key
                 current['name'] = interface.name    # for readability
                 if new_pvid > 0:
                     current['pvid'] = interface.untagged_vlan
@@ -460,7 +461,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
                     current['poe_state'] = interface.poe_entry.admin_status
                 if interface_change != INTERFACE_STATUS_NONE:
                     current['admin_state'] = interface.admin_status
-                undo_info[if_index] = current
+                undo_info[if_key] = current
 
     if is_task:
         # log this first
@@ -540,7 +541,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
 # Change admin status, ie port Enable/Disable
 #
 @login_required(redirect_field_name=None)
-def interface_admin_change(request, group_id, switch_id, interface_id, new_state):
+def interface_admin_change(request, group_id, switch_id, interface_name, new_state):
     """
     Toggle the admin status of an interface, ie admin up or down.
     """
@@ -556,22 +557,22 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
               ip_address=get_remote_ip(request),
               switch=switch,
               group=group,
-              if_index=interface_id)
+              if_name=interface_name)
 
     try:
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({views})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request, group, switch, error)
 
-    interface = conn.get_interface_by_index(interface_id)
+    interface = conn.get_interface_by_key(interface_name)
     if not interface:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Admin-Change: Error getting interface data for if_index {interface_id}"
+        log.description = f"Admin-Change: Error getting interface data for {interface_name}"
         log.save()
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
@@ -587,8 +588,6 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
         log.description = f"Interface {interface.name}: Disabled"
         state = "Disabled"
 
-    # make sure we cast the proper type here! Ie this needs an Integer()
-    # retval = conn._set(ifAdminStatus + "." + str(interface_id), new_state, 'i')
     retval = conn.set_interface_admin_status(interface, new_state)
     if retval < 0:
         log.description = f"ERROR: {conn.error.description}"
@@ -606,7 +605,7 @@ def interface_admin_change(request, group_id, switch_id, interface_id, new_state
 
 
 @login_required(redirect_field_name=None)
-def interface_alias_change(request, group_id, switch_id, interface_id):
+def interface_alias_change(request, group_id, switch_id, interface_name):
     """
     Change the ifAlias aka description on an interfaces.
     """
@@ -622,22 +621,22 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
               ip_address=get_remote_ip(request),
               switch=switch,
               group=group,
-              if_index=interface_id)
+              if_name=interface_name)
 
     try:
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request, group, switch, error)
 
-    interface = conn.get_interface_by_index(interface_id)
+    interface = conn.get_interface_by_key(interface_name)
     if not interface:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Alias-Change: Error getting interface data for if_index {interface_id}"
+        log.description = f"Alias-Change: Error getting interface data for {interface_name}"
         log.save()
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
@@ -704,7 +703,7 @@ def interface_alias_change(request, group_id, switch_id, interface_id):
 
 
 @login_required(redirect_field_name=None)
-def interface_pvid_change(request, group_id, switch_id, interface_id):
+def interface_pvid_change(request, group_id, switch_id, interface_name):
     """
     Change the PVID untagged vlan on an interfaces.
     This still needs to handle dot1q trunked ports.
@@ -721,22 +720,22 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
               ip_address=get_remote_ip(request),
               switch=switch,
               group=group,
-              if_index=interface_id)
+              if_name=interface_name)
 
     try:
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request, group, switch, error)
 
-    interface = conn.get_interface_by_index(interface_id)
+    interface = conn.get_interface_by_key(interface_name)
     if not interface:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Pvid-Change: Error getting interface data for if_index {interface_id}"
+        log.description = f"Pvid-Change: Error getting interface data for {interface_name}"
         log.save()
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
@@ -785,7 +784,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_id):
 # Change PoE status, i.e. port power Enable/Disable
 #
 @login_required(redirect_field_name=None)
-def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
+def interface_poe_change(request, group_id, switch_id, interface_name, new_state):
     """
     Change the PoE status of an interfaces.
     This still needs to be tested for propper PoE port to interface ifIndex mappings.
@@ -803,22 +802,22 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
               ip_address=get_remote_ip(request),
               switch=switch,
               group=group,
-              if_index=interface_id)
+              if_name=interface_name)
 
     try:
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request, group, switch, error)
 
-    interface = conn.get_interface_by_index(interface_id)
+    interface = conn.get_interface_by_key(interface_name)
     if not interface:
         log.type = LOG_TYPE_ERROR
-        log.description = f"PoE-Change: Error getting interface data for if_index {interface_id}"
+        log.description = f"PoE-Change: Error getting interface data for {interface_name}"
         log.save()
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
@@ -865,7 +864,7 @@ def interface_poe_change(request, group_id, switch_id, interface_id, new_state):
 # Toggle PoE status Down then Up
 #
 @login_required(redirect_field_name=None)
-def interface_poe_down_up(request, group_id, switch_id, interface_id):
+def interface_poe_down_up(request, group_id, switch_id, interface_name):
     """
     Toggle the PoE status of an interfaces. I.e disable, wait some, then enable again.
     """
@@ -882,22 +881,22 @@ def interface_poe_down_up(request, group_id, switch_id, interface_id):
               ip_address=get_remote_ip(request),
               switch=switch,
               group=group,
-              if_index=interface_id)
+              if_name=interface_name)
 
     try:
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request, group, switch, error)
 
-    interface = conn.get_interface_by_index(interface_id)
+    interface = conn.get_interface_by_key(interface_name)
     if not interface:
         log.type = LOG_TYPE_ERROR
-        log.description = f"PoE-Down-Up: Error getting interface data for if_index {interface_id}"
+        log.description = f"PoE-Down-Up: Error getting interface data for {interface_name}"
         log.save()
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
@@ -979,7 +978,7 @@ def switch_save_config(request, group_id, switch_id, view):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Getting SNMP data ({view})"
+        log.description = "Could not get connection"
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -987,8 +986,7 @@ def switch_save_config(request, group_id, switch_id, view):
 
     if conn.can_save_config() and conn.get_save_needed():
         # we can save
-        retval = conn.save_running_config()
-        if retval < 0:
+        if not conn.save_running_config():
             # an error happened!
             log.type = LOG_TYPE_ERROR
             log.save()
@@ -1022,12 +1020,12 @@ def switch_cmd_output(request, group_id, switch_id):
 
 
 @login_required(redirect_field_name=None)
-def interface_cmd_output(request, group_id, switch_id, interface_id):
+def interface_cmd_output(request, group_id, switch_id, interface_name):
     """
     Parse the interface-specific form and build the commands
     """
     command_id = int(request.POST.get('command_id', -1))
-    return switch_view(request, group_id, switch_id, 'basic', command_id, interface_id)
+    return switch_view(request, group_id, switch_id, 'basic', command_id, interface_name)
 
 
 @login_required(redirect_field_name=None)
@@ -1053,7 +1051,7 @@ def switch_reload(request, group_id, switch_id, view):
               type=LOG_TYPE_VIEW)
     log.save()
 
-    clear_session_oid_cache(request)
+    clear_switch_cache(request)
 
     return switch_view(request, group_id, switch_id, view)
 

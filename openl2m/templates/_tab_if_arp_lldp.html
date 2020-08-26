@@ -2,20 +2,16 @@
 {% load static %}
 
 <div class="panel panel-default">
+{% if connection.eth_addr_count == 0 and connection.neighbor_count == 0 %}
   <div class="panel-heading">
-    <strong>Info by Interface</strong>
-    {% if connection.eth_addr_count == 0 %}(0 ethernet addr. found!){% endif %}
-    {% if not CAPABILITIES_LLDP_MIB|bitwise_and:switch.snmp_capabilities %}
-      (LLDP not implemented!)
-    {% elif connection.neighbor_count == 0 %}
-      (0 neighbors found!)
-    {% endif %}
+    <strong>No Ethernet addresses and no neighbors found!</strong>
   </div>
+{% else %}
   <div class="table-responsive">
     <table class="table table-hover table-headings">
       <thead>
         <tr>
-          <th>Name</th>
+          <th>Interface Name</th>
           <th>Link</th>
           <th>Vlan</th>
           {% if connection.eth_addr_count > 0 %}
@@ -27,7 +23,7 @@
         </tr>
       </thead>
       <tbody>
-      {% for if_index,iface in connection.interfaces.items %}
+      {% for key,iface in connection.interfaces.items %}
         {% if iface.visible %}
           <tr class="{% cycle 'odd' 'even' %}" >
 
@@ -81,10 +77,10 @@
               <img src="{% static 'img/lacp.png' %}"
                    alt="LACP Master Interface"
                    data-toggle="tooltip"
-                   title="This interface is an LACP interface! Members are: {% for if_index, if_name in iface.lacp_members.items %}{{ if_name }} {% endfor %}
+                   title="This interface is an LACP interface! Members are: {% for key,if_name in iface.lacp_members.items %}{{ if_name }} {% endfor %}
                     ">
             {% endif %}
-            <!-- ifIndex = {{ iface.index }} -->
+            <!-- ifkey = {{ iface.key }},  ifIndex = {{ iface.index }} -->
             </td>
 
             {% include "_tpl_iface_link_td.html" %}
@@ -137,4 +133,5 @@
     </table>
 
   </div> {# class table-responsive #}
+{% endif %}
 </div> {# class panel #}

@@ -72,16 +72,16 @@
       <strong>General Information</strong>
     </div>
     <div class="panel-body">
-      {% for category,items in connection.more_info.items %}
+      {% for category,values in connection.more_info.items %}
         <table class="table table-striped w-auto">
           <thead>
             <tr><th colspan="2">{{ category }}</th></tr>
           </thead>
           <tbody>
-          {% for info in items %}
+          {% for name,value in values.items %}
             <tr>
-              <td><strong>{{ info.0 }}</strong></td>
-              <td>{{ info.1 }}</td>
+              <td>{{ name }}</td>
+              <td>{{ value }}</td>
             </tr>
           {% endfor %}
           </tbody>
@@ -190,7 +190,7 @@
 
     <div class="panel panel-default">
       <div class="panel-heading">
-        <strong>SNMP MIB Timing</strong>
+        <strong>Timing Info</strong>
       </div>
       <div class="panel-body">
         <table class="table table-striped w-auto">
@@ -198,7 +198,7 @@
           <tr><th>Name</th><th>Count</th><th>Time</th></tr>
           </thead>
           <tbody>
-          {% for name,info in connection.mib_timing.items %}
+          {% for name,info in connection.timing.items %}
             <tr><td>{{ name }}</td><td>{{ info.0 }}</td><td>{{ info.1|floatformat:3 }}</td></tr>
           {% endfor %}
           </tbody>

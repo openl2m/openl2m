@@ -2,14 +2,16 @@
 {% load static %}
 
 <div class="panel panel-default">
+<!--
   <div class="panel-heading">
     <strong>Interface Info</strong>
   </div>
+-->
   <div class="table-responsive">
     <table class="table table-hover table-headings w-auto">
       <thead>
       <tr>
-        <th>Name</th>
+        <th>Interface Name</th>
         <th>Link</th>
         <th>Vlan</th>
         {% if connection.poe_capable %}
@@ -42,8 +44,8 @@
                 <td>
                   {% if iface.untagged_vlan > 0 %}
                     {% if connection.vlan_change_implemented and iface.lacp_master_index == -1  %}
-                      <form name="vlanchange_{{ iface.index }}"
-                            action="{% url 'switches:pvid_change' group.id switch.id iface.index %}"
+                      <form name="vlanchange_{{ iface.key }}"
+                            action="{% url 'switches:pvid_change' group.id switch.id iface.key %}"
                             method="post"
                             >
                         {% csrf_token %}
@@ -84,7 +86,7 @@
                       {% if request.user.profile.are_you_sure %}
                          onclick="return confirm_change('Are you sure you want to DISABLE POWER on interface {{ iface.name }}?')"
                       {% endif %}
-                         href="{% url 'switches:poe_change' group.id switch.id iface.index POE_PORT_ADMIN_DISABLED %}"
+                         href="{% url 'switches:poe_change' group.id switch.id iface.key POE_PORT_ADMIN_DISABLED %}"
                       {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
                         {# fault or something like that #}
                         title="PoE Enabled with FAULT! Click here to Disable PoE on interface {{ iface.name }}">
@@ -107,7 +109,7 @@
                         {% if request.user.profile.are_you_sure %}
                            onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
                         {% endif %}
-                           href="{% url 'switches:poe_down_up' group.id switch.id iface.index %}"
+                           href="{% url 'switches:poe_down_up' group.id switch.id iface.key %}"
                            title="Toggle PoE Off and then On again on interface {{ iface.name }}">
                           <img src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle">
                         </a>
@@ -118,7 +120,7 @@
                       {% if request.user.profile.are_you_sure %}
                          onclick="return confirm_change('Are you sure you want to ENABLE POWER on interface {{ iface.name }}?')"
                       {% endif %}
-                         href="{% url 'switches:poe_change' group.id switch.id iface.index POE_PORT_ADMIN_ENABLED %}"
+                         href="{% url 'switches:poe_change' group.id switch.id iface.key POE_PORT_ADMIN_ENABLED %}"
                          title="PoE Disabled! Click here to Enable PoE on interface {{ iface.name }}">
                           <img src="{% static 'img/disabled.png' %}" alt="PoE Disabled">
                       </a>
@@ -132,7 +134,7 @@
                 <td>
                   {% if iface.can_edit_alias %}
                     <form name="aliaschange"
-                      action="{% url 'switches:alias_change' group.id switch.id iface.index %}"
+                      action="{% url 'switches:alias_change' group.id switch.id iface.key %}"
                       method="post"
                       >
                       {% csrf_token %}
@@ -155,7 +157,7 @@
                 {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
                   <td>
                     <form name="command_form"
-                          action="{% url 'switches:interface_cmd_output' group.id switch.id iface.index %}"
+                          action="{% url 'switches:interface_cmd_output' group.id switch.id iface.key %}"
                           method="post">
                       {% csrf_token %}
                       <select name="command_id" data-toggle="tooltip" title="Select a command run!">
@@ -184,7 +186,7 @@
               {% else %} {# not Ethernet #}
 
                 <td>{# vlan info #}
-                  <span data-toggle="tooltip" title="Not applicable for this interface">n/a</span>
+                  <span data-toggle="tooltip" title="Not an ethernet interface">n/a</span>
                 </td>
 
                 {% if connection.poe_capable %}
@@ -201,7 +203,7 @@
               {% endif %}
 
             {% else %} {# not manageable #}
-
+              <!-- NOT MANAGEABLE -->
               <td
               {% if iface.admin_status ==  IF_ADMIN_STATUS_UP %}
                 {% if iface.oper_status == IF_OPER_STATUS_UP %}
@@ -250,7 +252,7 @@
                              alt="Voice VLAN"
                              data-toggle="tooltip" title="Voice VLAN {{ iface.voice_vlan }}">
                 {% endif %}
-                <!-- ifIndex = {{ iface.index }}, type = {{ iface.type }}, port_id = {{ iface.port_id }} -->
+                <!-- ifkey = {{ iface.key }},  ifIndex = {{ iface.index }}, type = {{ iface.type }}, port_id = {{ iface.port_id }} -->
               </td>
 
               {% include "_tpl_iface_link_td.html" %}
@@ -261,7 +263,7 @@
                       {{ iface.untagged_vlan }}
                   </span>
                 {% else %}
-                  <span data-toggle="tooltip" title="Not applicable for this interface">n/a</span>
+                  <span data-toggle="tooltip" title="No vlan information found">n/a</span>
                 {% endif %}
               </td>
 
@@ -280,7 +282,7 @@
                           {% if request.user.profile.are_you_sure %}
                               onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
                           {% endif %}
-                              href="/switches/{{ group.id }}/{{ switch.id }}/{{ iface.index }}/poetoggle/"
+                              href="/switches/{{ group.id }}/{{ switch.id }}/{{ iface.key }}/poetoggle/"
                               data-toggle="tooltip"
                               title="Toggle PoE Off and then On again on interface {{ iface.name }}">
                             <img src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle">
@@ -306,7 +308,7 @@
               {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
                 <td>
                   <form name="command_form"
-                        action="{% url 'switches:interface_cmd_output' group.id switch.id iface.index %}"
+                        action="{% url 'switches:interface_cmd_output' group.id switch.id iface.key %}"
                         method="post">
                     {% csrf_token %}
                     <select name="command_id" data-toggle="tooltip" title="Select command to run">

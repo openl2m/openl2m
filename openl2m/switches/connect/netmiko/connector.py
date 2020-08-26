@@ -81,7 +81,7 @@ class NetmikoConnector():
             return False
         except Exception as e:
             self.error.status = True
-            self.error.description = "Unknown error! Please inform your admin."
+            self.error.description = "SSH Connection denied! Please inform your admin."
             self.error.details = f"Netmiko Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             return False
 

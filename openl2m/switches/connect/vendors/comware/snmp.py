@@ -40,7 +40,7 @@ class SnmpConnectorComware(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("Comware SnmpConnector __init__")
-        super().__init__(request, group, switch)
+        super(SnmpConnectorComware, self).__init__(request, group, switch)
         self.name = "SnmpConnectorComware"  # what type of class is running!
         self.vendor_name = "HPE/Comware"
         # needed for saving config file:
@@ -75,7 +75,7 @@ class SnmpConnectorComware(SnmpConnector):
         super()._get_interface_data()
 
         # now add Comware data, and cache it:
-        if self._get_branch_by_name('hh3cIfLinkMode', True, self._parse_mibs_comware_if_linkmode) < 0:
+        if self.get_branch_by_name('hh3cIfLinkMode', True, self._parse_mibs_comware_if_linkmode) < 0:
             dprint("Comware hh3cIfLinkMode returned error!")
             return False
 
@@ -104,28 +104,28 @@ class SnmpConnectorComware(SnmpConnector):
         # now read some Comware specific items.
         # some Comware switches do not report vlan names in Q-Bridge mib
         # so read HH3C version
-        if self._get_branch_by_name('hh3cdot1qVlanName', True, self._parse_mibs_comware_vlan) < 0:
+        if self.get_branch_by_name('hh3cdot1qVlanName', True, self._parse_mibs_comware_vlan) < 0:
             dprint("Comware hh3cdot1qVlanName returned error!")
             return False
 
         # read the Comware port type:
-        if self._get_branch_by_name('hh3cifVLANType', True, self._parse_mibs_comware_if_type) < 0:
+        if self.get_branch_by_name('hh3cifVLANType', True, self._parse_mibs_comware_if_type) < 0:
             dprint("Comware hh3cifVLANType returned error!")
             return False
 
         # for each vlan, PortList bitmap of untagged ports
         """  NOT PARSED YET:
-        if self._get_branch_by_name('hh3cdot1qVlanPorts') < 0:
+        if self.get_branch_by_name('hh3cdot1qVlanPorts') < 0:
             dprint("Comware hh3cdot1qVlanPorts returned error!")
             return False
         """
 
         # tagged vlan types are next
-        # if not self._get_branch_by_name('hh3cifVLANTrunkAllowListLow'):
+        # if not self.get_branch_by_name('hh3cifVLANTrunkAllowListLow'):
         #    dprint("Comware Low VLAN PortList FALSE")
         #    return False
         # next, read vlan names
-        # if not self._get_branch_by_name('hh3cifVLANTrunkAllowListHigh'):
+        # if not self.get_branch_by_name('hh3cifVLANTrunkAllowListHigh'):
         #    dprint("Comware High VLAN PortList FALSE")
         #    return False
         return True
@@ -136,12 +136,12 @@ class SnmpConnectorComware(SnmpConnector):
         Does not return anything!
         """
         # dprint("Comware _get_more_info()")
-        self._get_branch_by_name('hh3cCfgLog', True, self._parse_mibs_comware_config)
+        self.get_branch_by_name('hh3cCfgLog', True, self._parse_mibs_comware_config)
 
     def set_interface_untagged_vlan(self, interface, new_vlan_id):
         """
         As an example, Override the VLAN change, this is done Comware specific using the Comware VLAN MIB
-        Return -1 if invalid interface, or value of _set() call
+        Return -1 if invalid interface, or value of set() call
         """
         dprint(f"Comware set_interface_untagged_vlan() port {interface.name} to {new_vlan_id}")
         new_vlan = self.get_vlan_by_id(new_vlan_id)
@@ -209,37 +209,51 @@ class SnmpConnectorComware(SnmpConnector):
                 # now set bit to 1 for this interface (i.e. set the port_id bit!):
                 dprint(f"interface.port_id = {interface.port_id}")
                 new_vlan_portlist[int(interface.port_id)] = 1
+
+                # next, read current Egress PortList bitmap first:
+                # note the 0 to hopefull deactivate time filter!
+                (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}")
+                if error_status:
+                    # Hmm, not sure what to do
+                    self.error.status = True
+                    self.error.description = "Error retrieving new vlan member portlist (dot1qVlanCurrentEgressPorts)"
+                    return -1
+                # now calculate new bitmap by removing this switch port
+                current_egress_portlist = PortList()
+                current_egress_portlist.from_unicode(snmpval.value)
+
                 # now loop to find other existing ports on this vlan:
-                # dprint("Finding other ports on this vlan:")
+                dprint("Finding other ports on this vlan:")
                 for (this_index, this_iface) in self.interfaces.items():
-                    # dprint(f"{this_iface.name} (port {this_iface.port_id}), Tagged {this_iface.is_tagged}, \
-                    #  untagged vlan {this_iface.untagged_vlan}, Vlan dict: {this_iface.vlans}")
                     if this_iface.type == IF_TYPE_ETHERNET:
                         if this_iface.port_id > -1:     # we have a valid PortId
                             if this_iface.is_tagged:
                                 # tagged interface
-                                # dprint("  Tagged")
                                 # is the new vlanId active on this port (i.e. PVID or on trunk) ?
                                 if (this_iface.untagged_vlan == new_vlan_id) or (new_vlan_id in this_iface.vlans):
-                                    # dprint(" This port is needed on new vlan")
+                                    dprint(f"   Tagged on VLAN: {this_iface.name} port {this_iface.port_id}, Vlan dict: {this_iface.vlans}")
                                     # is this port in Current Egress PortList?
                                     # if not, do NOT add!
                                     # this can happen with a PVID set on a port in trunk mode, but
                                     # the trunk does not allow that vlan! (edge use case)
+                                    """
                                     if self.vlans[new_vlan_id].current_egress_portlist[this_iface.port_id]:
                                         # dprint("  and in allow list!")
                                         new_vlan_portlist[this_iface.port_id] = 1
-                                    # else:
-                                    #    dprint("  but NOT in allow list!")
+                                    """
+                                    if current_egress_portlist[this_iface.port_id]:
+                                        # dprint("  and in allow list!")
+                                        new_vlan_portlist[this_iface.port_id] = 1
+
                             else:
                                 # untagged on this new vlanId ?
                                 if (this_iface.untagged_vlan == new_vlan_id):
-                                    # dprint("  Port PVID added to new vlan!")
+                                    dprint(f"  Untagged {this_iface.name} Port PVID added to new vlan!")
                                     new_vlan_portlist[this_iface.port_id] = 1
                         else:
                             # no switchport? "should" not happen for a valid switch port interface
                             warning = f"Warning: {this_iface.name} - no port_id found in set_interface_untagged_vlan(Comware)!"
-                            self._add_warning(warning)
+                            self.add_warning(warning)
 
                 # send to the switch!
                 # Comware needs bits in opposite order inside each byte! (go figure)
@@ -249,7 +263,7 @@ class SnmpConnectorComware(SnmpConnector):
                 # but we use it for extra clarity!
                 octet_string = OctetString(hexValue=new_vlan_portlist.to_hex_string())
                 pysnmp = pysnmpHelper(self.switch)
-                (error_status, details) = pysnmp.set(f"{hh3cdot1qVlanPorts}.{new_vlan_id}", octet_string)
+                (error_status, details) = pysnmp.set_oid(f"{hh3cdot1qVlanPorts}.{new_vlan_id}", octet_string)
                 if error_status:
                     self.error.status = True
                     self.error.description = "Error in setting vlan on access port!"
@@ -277,7 +291,7 @@ class SnmpConnectorComware(SnmpConnector):
         """
         if iface.type == IF_TYPE_ETHERNET:
             if iface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
-                dprint(f"Interface {iface.name}: mode={iface.if_vlan_mode}, NO MANAGEMENT ALLOWED!")
+                # dprint(f"Interface {iface.name}: mode={iface.if_vlan_mode}, NO MANAGEMENT ALLOWED!")
                 iface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
                 return False
             if iface.if_vlan_mode == HH3C_IF_MODE_HYBRID or iface.if_vlan_mode == HH3C_IF_MODE_FABRIC:
@@ -349,13 +363,12 @@ class SnmpConnectorComware(SnmpConnector):
         """
         Parse Comware specific Interface Type MIB
         """
-        if_index = int(oid_in_branch(hh3cifVLANType, oid))
+        if_index = oid_in_branch(hh3cifVLANType, oid)
         if if_index:
             # dprint(f"Comware if_index{if_index} if_type {val}"
-            if if_index in self.interfaces.keys():
-                self.interfaces[if_index].if_vlan_mode = int(val)
-                if int(val) == HH3C_IF_MODE_TRUNK:
-                    self.interfaces[if_index].is_tagged = True
+            self.set_interface_attribute_by_key(if_index, "if_vlan_mode", int(val))
+            if int(val) == HH3C_IF_MODE_TRUNK:
+                self.set_interface_attribute_by_key(if_index, "is_tagged", True)
             return True
         return False
 
@@ -363,12 +376,11 @@ class SnmpConnectorComware(SnmpConnector):
         """
         Parse Comware specific Interface Extension MIB for link mode, PoE info
         """
-        if_index = int(oid_in_branch(hh3cIfLinkMode, oid))
+        if_index = oid_in_branch(hh3cIfLinkMode, oid)
         if if_index:
             dprint(f"Comware LinkMode if_index {if_index} link_mode {val}")
-            if if_index in self.interfaces.keys():
-                if int(val) == HH3C_ROUTE_MODE:
-                    self.interfaces[if_index].is_routed = True
+            if int(val) == HH3C_ROUTE_MODE:
+                self.set_interface_attribute_by_key(if_index, "is_routed", True)
             return True
         return False
 
@@ -390,9 +402,9 @@ class SnmpConnectorComware(SnmpConnector):
         """
         super()._get_poe_data()
         # now get HP specific info from HP-IFC-POE-MIB first
-        retval = self._get_branch_by_name('hh3cPsePortCurrentPower', True, self._parse_mibs_comware_poe)
+        retval = self.get_branch_by_name('hh3cPsePortCurrentPower', True, self._parse_mibs_comware_poe)
         if retval < 0:
-            self._add_warning("Error getting 'PoE-Port-Current-Power' (hh3cPsePortCurrentPower)")
+            self.add_warning("Error getting 'PoE-Port-Current-Power' (hh3cPsePortCurrentPower)")
         return 1
 
     def _map_poe_port_entries_to_interface(self):
@@ -420,7 +432,7 @@ class SnmpConnectorComware(SnmpConnector):
                         warning = f"PoE FAULT status ({port_entry.detect_status} = " \
                                   "{poe_status_name[port_entry.detect_status]}) " \
                                   "on interface {iface.name}"
-                        self._add_warning(warning)
+                        self.add_warning(warning)
                         # log my activity
                         log = Log(user=self.request.user,
                                   type=LOG_TYPE_ERROR,
@@ -451,9 +463,9 @@ class SnmpConnectorComware(SnmpConnector):
 
         # According to the
         # run the Operations row status to find free slot to write to:
-        retval = self._get_branch_by_name('hh3cCfgOperateRowStatus', True, self._parse_mibs_comware_configfile)
+        retval = self.get_branch_by_name('hh3cCfgOperateRowStatus', True, self._parse_mibs_comware_configfile)
         if retval < 0:
-            self._add_warning("Error reading 'Config File MIB' (hh3cCfgOperateRowStatus)")
+            self.add_warning("Error reading 'Config File MIB' (hh3cCfgOperateRowStatus)")
             return 1
 
         # now figure out where we need to write to
@@ -464,6 +476,6 @@ class SnmpConnectorComware(SnmpConnector):
             (f"{hh3cCfgOperateRowStatus}.{row_place}", HH3C_createAndGo, 'i')
         ])
         if retval < 0:
-            self._add_warning("Error saving via SNMP (hh3cCfgOperateRowStatus)")
+            self.add_warning("Error saving via SNMP (hh3cCfgOperateRowStatus)")
             return -1
         return 0

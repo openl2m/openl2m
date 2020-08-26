@@ -9,7 +9,7 @@
       bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
     {% endif %}
     {{ switch|get_interface_info_links:iface }}
-    <a href="{% url 'switches:admin_change' group.id switch.id iface.index IF_ADMIN_STATUS_DOWN %}"
+    <a href="{% url 'switches:admin_change' group.id switch.id iface.key IF_ADMIN_STATUS_DOWN %}"
       data-toggle="tooltip"
       title="Click here to Disable {{ iface.name }}"
     {% if request.user.profile.are_you_sure %}
@@ -19,7 +19,7 @@
   {% else %}
     bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
     {{ switch|get_interface_info_links:iface }}
-    <a href="{% url 'switches:admin_change' group.id switch.id iface.index IF_ADMIN_STATUS_UP %}"
+    <a href="{% url 'switches:admin_change' group.id switch.id iface.key IF_ADMIN_STATUS_UP %}"
        data-toggle="tooltip"
        title="Click here to Enable {{ iface.name }}"
     {% if request.user.profile.are_you_sure %}
@@ -71,5 +71,5 @@
          data-toggle="tooltip"
          title="Voice VLAN {{ iface.voice_vlan }}">
   {% endif %}
-  <!-- ifIndex = {{ iface.index }}, port_id = {{ iface.port_id }} -->
+  <!-- ifkey = {{ iface.key }}, ifIndex = {{ iface.index }}, port_id = {{ iface.port_id }} -->
 </td>

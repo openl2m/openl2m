@@ -101,6 +101,7 @@ PREFER_IPV4 = getattr(configuration, 'PREFER_IPV4', False)
 SESSION_FILE_PATH = getattr(configuration, 'SESSION_FILE_PATH', None)
 SHORT_DATE_FORMAT = getattr(configuration, 'SHORT_DATE_FORMAT', 'Y-m-d')
 SHORT_DATETIME_FORMAT = getattr(configuration, 'SHORT_DATETIME_FORMAT', 'Y-m-d H:i')
+LONG_DATETIME_FORMAT = getattr(configuration, 'LONG_DATETIME_FORMAT', '%Y-%m-%d %H:%M:%S')
 SHORT_TIME_FORMAT = getattr(configuration, 'SHORT_TIME_FORMAT', 'H:i:s')
 TIME_FORMAT = getattr(configuration, 'TIME_FORMAT', 'g:i a')
 TIME_ZONE = getattr(configuration, 'TIME_ZONE', 'UTC')
@@ -165,6 +166,9 @@ if LOGIN_TIMEOUT is not None:
         SESSION_SAVE_EVERY_REQUEST = True
 if SESSION_FILE_PATH is not None:
     SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+
+# we use the PickleSerializer instead of JSON, so we can better cache objects:
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 # override the maximum GET/POST item count.
 # with large numbers of switches in a group, we may exceeed the default (1000):

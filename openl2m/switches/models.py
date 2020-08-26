@@ -767,6 +767,11 @@ class Log(models.Model):
         default=0,
         verbose_name='SNMP interface index',
     )
+    if_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name="Interface name",
+    )
     ip_address = models.TextField(
         max_length=20,
         default='0.0.0.0',

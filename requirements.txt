@@ -29,3 +29,4 @@ redis>=3.3,<3.4
 sphinx>=3.0,<4.0
 sphinx_rtd_theme
 textfsm>=0.4.1
+pyyaml

@@ -2,9 +2,11 @@
 {% load static %}
 
 <div class="panel panel-default">
-  <div class="panel-heading">
+<!--
+    <div class="panel-heading">
     <strong>Interface Bulk Edit</strong>
   </div>
+-->
   <form name="bulkedit_form"
         action="{% url 'switches:switch_bulkedit' group.id switch.id %}"
         method="post">
@@ -73,7 +75,7 @@
         <thead>
           <tr>
             <th>Select</th>
-            <th>Name</th>
+            <th>Interface Name</th>
             <th>Link</th>
             <th>Vlan</th>
             {% if connection.poe_capable %}
@@ -89,6 +91,7 @@
 
             <td colspan="2">
               <span data-toggle="tooltip" title="Change state of all selected interfaces.">
+                Status:
                 <select name="interface_change">
                   {% for choice,name in BULKEDIT_INTERFACE_CHOICES %}
                     <option value="{{ choice }}">{{ name }}</option>
