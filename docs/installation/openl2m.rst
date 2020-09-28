@@ -35,7 +35,7 @@ Install these:
 
 **OpenL2M**
 
-The easiest is to install OpenL2M by cloning the master branch of its repository on GitHub.
+The easiest is to install OpenL2M by cloning the main branch of its repository on GitHub.
 
 **Clone the Git Repository**
 
@@ -59,11 +59,11 @@ If `git` is not already installed, install it:
 
   # dnf install -y git
 
-Next, clone the **master** branch of the OpenL2M GitHub repository into the current directory:
+Next, clone the **main** branch of the OpenL2M GitHub repository into the current directory:
 
 .. code-block:: bash
 
-  # git clone -b master https://github.com/openl2m/openl2m.git .
+  # git clone -b main https://github.com/openl2m/openl2m.git .
   Cloning into '.'...
   ...
   Checking connectivity... done.

@@ -13,12 +13,11 @@ Stop the backend OpenL2M python process first. Also stop Celery if using schedul
   # systemctl stop openl2m
   # systemctl stop celery
 
-You can now upgrade by going to the latest version of the `master` branch
-of the git repo::
+You can now upgrade by going to the latest version of the `main` branch of the git repo::
 
   # cd /opt/openl2m
-  # git checkout master
-  # git pull origin master
+  # git checkout main
+  # git pull origin main
   # git status
 
 Next, you need to run the upgrade script. This is needed to install new
