@@ -1,4 +1,4 @@
-.. OpenL2M - Open Layer 2 Management documentation master file, created by
+.. OpenL2M - Open Layer 2 Management documentation entry file, created by
    sphinx-quickstart on Mon Sep 16 08:48:33 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
