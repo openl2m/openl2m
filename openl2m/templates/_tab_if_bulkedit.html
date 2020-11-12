@@ -127,6 +127,14 @@
                 <span data-toggle="tooltip" title="Enter a new description for all selected interfaces.">
                   <input type="text" class="form-control" name="new_alias" value="" placeholder="new description here...">
                 </span>
+                <span data-toggle="tooltip" title="Just edit, or append to end">
+                  <br />
+                  <select name="new_alias_type">
+                    {% for choice,name in BULKEDIT_ALIAS_TYPE_CHOICES %}
+                      <option value="{{ choice }}">{{ name }}</option>
+                    {% endfor %}
+                  </select>
+                </span>
               {% else %}
                 <i>No description edit allowed</i>
               {% endif %}
