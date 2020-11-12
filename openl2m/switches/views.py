@@ -280,7 +280,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
             else:
                 # error occured, pass it on
                 log.type = LOG_TYPE_ERROR
-                log.description = "{log.description}: {nm.error.description}"
+                log.description = f"{log.description}: {nm.error.description}"
                 cmd['error_descr'] = nm.error.description
                 cmd['error_details'] = nm.error.details
 
@@ -588,8 +588,7 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
         log.description = f"Interface {interface.name}: Disabled"
         state = "Disabled"
 
-    retval = conn.set_interface_admin_status(interface, new_state)
-    if retval < 0:
+    if not conn.set_interface_admin_status(interface, new_state):
         log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
@@ -686,8 +685,7 @@ def interface_alias_change(request, group_id, switch_id, interface_name):
     # log the work!
     log.description = f"Interface {interface.name}: Description = {new_alias}"
     # and do the work:
-    retval = conn.set_interface_description(interface, new_alias)
-    if retval < 0:
+    if not conn.set_interface_description(interface, new_alias):
         log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
@@ -763,8 +761,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
         return error_page(request, group, switch, error)
 
     # make sure we cast the proper type here! Ie this needs an Integer()
-    retval = conn.set_interface_untagged_vlan(interface, int(new_pvid))
-    if retval < 0:
+    if not conn.set_interface_untagged_vlan(interface, int(new_pvid)):
         log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
@@ -928,8 +925,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         return error_page(request, group, switch, error)
 
     # disable PoE:
-    retval = conn.set_interface_poe_status(interface, POE_PORT_ADMIN_DISABLED)
-    if retval < 0:
+    if not conn.set_interface_poe_status(interface, POE_PORT_ADMIN_DISABLED):
         log.description = f"ERROR: Toggle-Disable PoE on {interface.name} - {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
@@ -939,8 +935,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
     time.sleep(settings.POE_TOGGLE_DELAY)
 
     # and enable PoE again...
-    retval = conn.set_interface_poe_status(interface, POE_PORT_ADMIN_ENABLED)
-    if retval < 0:
+    if not conn.set_interface_poe_status(interface, POE_PORT_ADMIN_ENABLED):
         log.description = f"ERROR: Toggle-Enable PoE on {interface.name} - {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
@@ -986,7 +981,7 @@ def switch_save_config(request, group_id, switch_id, view):
 
     if conn.can_save_config() and conn.get_save_needed():
         # we can save
-        if not conn.save_running_config():
+        if conn.save_running_config() < 0:
             # an error happened!
             log.type = LOG_TYPE_ERROR
             log.save()

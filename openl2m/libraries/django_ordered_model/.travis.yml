@@ -1,0 +1,24 @@
+language: python
+dist: bionic
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+install:
+  - python setup.py sdist bdist_wheel
+  - pip install dist/*
+  - pip install tox-travis codecov
+script: tox
+after_success:
+  - codecov
+
+deploy:
+  provider: pypi
+  user: "django-ordered-model"
+  distributions: sdist bdist_wheel
+  password:
+    secure: dmhx2Z6M6k4O0pZsZ6oVpIkWf7/Vv4x36MDX35d8BmaDuD23rQZakm7ScMfHfrnJ8xTVcYsLQSciqMQyov1QfKa4/51YrJrZk63W2iAp1IjTb6FlPofbvworNcuXvEFbemYGHTeRW5S6+T6PPFN7YSJhhMJpyBIVu7rMBTk/bKE=
+  on:
+    tags: true
+  skip_existing: true

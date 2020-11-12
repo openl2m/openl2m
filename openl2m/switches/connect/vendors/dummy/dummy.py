@@ -35,14 +35,15 @@ class DummyConnector(Connector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("Dummy Connector __init__")
-        super(DummyConnector, self).__init__(request, group, switch)
+        super().__init__(request, group, switch)
         self.name = self.__class__.__name__
         self.vendor_name = 'Dummy'
         # force READ-ONLY for now! We have not implemented changing settings.
-        self.switch.read_only = True
+        self.switch.read_only = False
         self.add_more_info('System', 'Type', "Software Dummy Switch")
 
     def get_my_basic_info(self):
+        dprint("Dummy Connector get_my_basic_info()")
         # simulate getting switch data by hardcoding!
         # "load" some basic interface info...
         iface = Interface("eth0/0/0")
@@ -51,7 +52,7 @@ class DummyConnector(Connector):
         iface.admin_status = IF_ADMIN_STATUS_UP
         iface.oper_status = IF_OPER_STATUS_UP
         iface.speed = 10
-        iface.alias = "Test Interface"
+        iface.alias = "Interface eth0/0/0"
         iface.untagged_vlan = 10
         self.add_interface(iface)
 
@@ -61,7 +62,7 @@ class DummyConnector(Connector):
         iface.admin_status = IF_ADMIN_STATUS_UP
         iface.oper_status = IF_OPER_STATUS_DOWN
         iface.speed = 10
-        iface.alias = "10g Interface"
+        iface.alias = "Interface eth0/0/1"
         iface.untagged_vlan = 5
         self.add_interface(iface)
 
@@ -71,7 +72,7 @@ class DummyConnector(Connector):
         iface.admin_status = IF_ADMIN_STATUS_UP
         iface.oper_status = IF_OPER_STATUS_UP
         iface.speed = 100
-        iface.alias = "New Interface"
+        iface.alias = "Interface eth2"
         iface.untagged_vlan = 15
         self.add_interface(iface)
 
@@ -81,7 +82,7 @@ class DummyConnector(Connector):
         iface.admin_status = IF_ADMIN_STATUS_DOWN
         iface.oper_status = IF_OPER_STATUS_DOWN
         iface.speed = 10
-        iface.alias = "Another Interface"
+        iface.alias = "Interface eth3"
         iface.untagged_vlan = 5
         self.add_interface(iface)
 
@@ -94,6 +95,13 @@ class DummyConnector(Connector):
             self.get_arp_data()
             self.get_lldp_data()
         """
+        e = EthernetAddress()
+
+        self.interfaces["eth0/0/0"].eth = e
+
+        dprint("Dummy Connector get_my_client_data()")
+        # add some simulated data:
+
         return True
 
     def get_my_hardware_details(self):
@@ -101,9 +109,12 @@ class DummyConnector(Connector):
         placeholder for class-specific implementation to read things like:
             stacking info, serial #, and whatever you want to add.
         """
+        dprint("Dummy Connector get_my_hardware_details()")
         return True
 
-    def _get_more_info(self):
+    def get_more_info(self):
+
+        dprint("Dummy Connector get_more_info()")
 
         self.add_more_info('Dummy Heading', 'Element 1', 'Value 1')
         self.add_more_info('Dummy Heading', 'Element 2', 'Value 2')

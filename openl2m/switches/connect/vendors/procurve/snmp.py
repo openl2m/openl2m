@@ -36,7 +36,7 @@ class SnmpConnectorProcurve(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("HP-Aruba/Procurve SnmpConnector __init__")
-        super(SnmpConnectorProcurve, self).__init__(request, group, switch)
+        super().__init__(request, group, switch)
         self.name = "HP-Aruba/Procurve SnmpConnector"  # what type of class is running!
         self.vendor_name = 'HP/Procurve'
 
@@ -67,9 +67,9 @@ class SnmpConnectorProcurve(SnmpConnector):
 
         return True
 
-    def _get_more_info(self):
+    def get_more_info(self):
         """
-        Implement the _get_more_info() class from the base object
+        Implement the get_more_info() class from the base object
         """
         self.get_branch_by_name('hpnicfCfgLog', True, self._parse_mibs_procurve_config)
 

@@ -40,7 +40,7 @@ class SnmpConnectorComware(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("Comware SnmpConnector __init__")
-        super(SnmpConnectorComware, self).__init__(request, group, switch)
+        super().__init__(request, group, switch)
         self.name = "SnmpConnectorComware"  # what type of class is running!
         self.vendor_name = "HPE/Comware"
         # needed for saving config file:
@@ -130,12 +130,12 @@ class SnmpConnectorComware(SnmpConnector):
         #    return False
         return True
 
-    def _get_more_info(self):
+    def get_more_info(self):
         """
-        Implement the _get_more_info() class from the base object
+        Implement the get_more_info() class from the base object
         Does not return anything!
         """
-        # dprint("Comware _get_more_info()")
+        # dprint("Comware get_more_info()")
         self.get_branch_by_name('hh3cCfgLog', True, self._parse_mibs_comware_config)
 
     def set_interface_untagged_vlan(self, interface, new_vlan_id):
@@ -188,12 +188,12 @@ class SnmpConnectorComware(SnmpConnector):
                 # now send them all as an atomic set():
                 # get the PySNMP helper to do the work with the OctetString() BitMaps:
                 pysnmp = pysnmpHelper(self.switch)
-                (error_status, details) = pysnmp.set_multiple([low_oid, high_oid, pvid_oid])
-                if error_status:
+                return_value = pysnmp.set_multiple([low_oid, high_oid, pvid_oid])
+                if return_value == -1:
                     self.error.status = True
                     self.error.description = "Error in setting vlan on tagged port!"
-                    self.error.details = details
-                    return -1
+                    # we leave self.error.details as is!
+                    return False
 
             else:
                 # regular access mode untagged port:
@@ -210,6 +210,7 @@ class SnmpConnectorComware(SnmpConnector):
                 dprint(f"interface.port_id = {interface.port_id}")
                 new_vlan_portlist[int(interface.port_id)] = 1
 
+                """
                 # next, read current Egress PortList bitmap first:
                 # note the 0 to hopefull deactivate time filter!
                 (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}")
@@ -221,6 +222,7 @@ class SnmpConnectorComware(SnmpConnector):
                 # now calculate new bitmap by removing this switch port
                 current_egress_portlist = PortList()
                 current_egress_portlist.from_unicode(snmpval.value)
+                """
 
                 # now loop to find other existing ports on this vlan:
                 dprint("Finding other ports on this vlan:")
@@ -236,15 +238,14 @@ class SnmpConnectorComware(SnmpConnector):
                                     # if not, do NOT add!
                                     # this can happen with a PVID set on a port in trunk mode, but
                                     # the trunk does not allow that vlan! (edge use case)
-                                    """
                                     if self.vlans[new_vlan_id].current_egress_portlist[this_iface.port_id]:
-                                        # dprint("  and in allow list!")
+                                        dprint("  and in allow list, adding!")
                                         new_vlan_portlist[this_iface.port_id] = 1
                                     """
                                     if current_egress_portlist[this_iface.port_id]:
                                         # dprint("  and in allow list!")
                                         new_vlan_portlist[this_iface.port_id] = 1
-
+                                    """
                             else:
                                 # untagged on this new vlanId ?
                                 if (this_iface.untagged_vlan == new_vlan_id):
@@ -263,24 +264,24 @@ class SnmpConnectorComware(SnmpConnector):
                 # but we use it for extra clarity!
                 octet_string = OctetString(hexValue=new_vlan_portlist.to_hex_string())
                 pysnmp = pysnmpHelper(self.switch)
-                (error_status, details) = pysnmp.set_oid(f"{hh3cdot1qVlanPorts}.{new_vlan_id}", octet_string)
-                if error_status:
+                dprint("Setting via pysnmphelper()")
+                return_value = pysnmp.set(f"{hh3cdot1qVlanPorts}.{new_vlan_id}", octet_string)
+                if return_value == -1:
                     self.error.status = True
                     self.error.description = "Error in setting vlan on access port!"
-                    self.error.details = details
-                    return -1
+                    # we leave self.error.details as is!
+                    return False
 
             # now trick the next switch view into showing this as the vlan on the interface
             # without the need to re-read SNMP data! We could also just read it here :-)
             # self._parse_oid_and_cache(QBRIDGE_VLAN_IFACE_UNTAGGED_PVID + "." + str(if_index), str(new_vlan_id), 'u')
 
             # now we need to reread the interface to VLAN mib part
+            dprint("Re-reading vlan membership")
             self._get_port_vlan_membership()
-            # and force data to be added to session cache again!
-            self._set_http_session_cache()
-            return 0
+            return True
         # interface not found, return False!
-        return -1
+        return False
 
     def _can_manage_interface(self, iface):
         """
@@ -466,16 +467,19 @@ class SnmpConnectorComware(SnmpConnector):
         retval = self.get_branch_by_name('hh3cCfgOperateRowStatus', True, self._parse_mibs_comware_configfile)
         if retval < 0:
             self.add_warning("Error reading 'Config File MIB' (hh3cCfgOperateRowStatus)")
-            return 1
+            return -1
 
         # now figure out where we need to write to
         row_place = self.active_config_rows + 1
         # set_multiple() needs a list of tuples(oid, value, type)
-        retval = self._set_multiple([
+        dprint(f"row_place = {row_place}")
+        retval = self.set_multiple([
             (f"{hh3cCfgOperateType}.{row_place}", HH3C_running2Startup, 'i'),
             (f"{hh3cCfgOperateRowStatus}.{row_place}", HH3C_createAndGo, 'i')
         ])
         if retval < 0:
+            dprint(f"return = {ret_val}")
             self.add_warning("Error saving via SNMP (hh3cCfgOperateRowStatus)")
             return -1
+        dprint("All OK")
         return 0

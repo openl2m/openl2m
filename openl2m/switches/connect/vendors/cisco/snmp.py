@@ -34,7 +34,7 @@ class SnmpConnectorCisco(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("CISCO SnmpConnector __init__")
-        super(SnmpConnectorCisco, self).__init__(request, group, switch)
+        super().__init__(request, group, switch)
         self.name = "Cisco SnmpConnector"  # what type of class is running!
         self.vendor_name = "Cisco"
 
@@ -265,23 +265,26 @@ class SnmpConnectorCisco(SnmpConnector):
         if interface:
             if interface.is_tagged:
                 # set the TRUNK_NATIVE_VLAN OID:
-                return self.set(f"{vlanTrunkPortNativeVlan}.{interface.index}", int(new_vlan_id), "i")
+                retval = self.set(f"{vlanTrunkPortNativeVlan}.{interface.index}", int(new_vlan_id), "i")
             else:
                 # regular access mode port:
                 retval = self.set(f"{vmVlan}.{interface.index}", int(new_vlan_id), "i")
                 if retval < 0:
                     # some Cisco devices want unsigned integer value:
-                    return self.set(f"{vmVlan}.{interface.index}", int(new_vlan_id), "u")
-                return retval
+                    retval = self.set(f"{vmVlan}.{interface.index}", int(new_vlan_id), "u")
+            if retval == -1:
+                return False
+            else:
+                return True
         # interface not found:
-        return -1
+        return False
 
-    def _get_more_info(self):
+    def get_more_info(self):
         """
-        Implement the _get_more_info() class from the base object.
+        Implement the get_more_info() class from the base object.
         Does not return anything.
         """
-        dprint("_get_more_info(Cisco)")
+        dprint("get_more_info(Cisco)")
         self.get_branch_by_name('ccmHistory', True, self._parse_mibs_cisco_config)
 
     def _parse_mibs_cisco_if_opermode(self, oid, val):

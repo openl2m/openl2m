@@ -21,8 +21,7 @@ from switches.constants import ETH_FORMAT_COLON, ETH_FORMAT_HYPHEN, ETH_FORMAT_C
 
 def decimal_to_hex_string_ethernet(decimal):
     """
-    Convert SNMP decimal ethernet string "11.12.13.78.90.100"
-    to hex string. Various final formats are supported, configured in settings
+    Convert SNMP decimal ethernet string "11.12.13.78.90.100" to colon-string.
     """
     format = settings.ETH_FORMAT
     bytes = decimal.split('.')
@@ -53,26 +52,16 @@ def decimal_to_hex_string_ethernet(decimal):
     return False
 
 
-def bytes_to_hex_string_ethernet(bytes):
+def bytes_ethernet_to_string(bytes):
     """
-    Convert SNMP ethernet in 6-byte octetstring format to hex string.
-    Various final formats are supported, configured in settings
+    Convert SNMP ethernet in 6-byte octetstring format to colong-string format.
     """
     if len(bytes) == 6:
         if settings.ETH_FORMAT_UPPERCASE:
             format = '%02X'
         else:
             format = '%02x'
-
-        if(settings.ETH_FORMAT == ETH_FORMAT_COLON):
-            separator = ':'
-
-        if(settings.ETH_FORMAT == ETH_FORMAT_HYPHEN):
-            separator = '-'
-
-        if(settings.ETH_FORMAT == ETH_FORMAT_CISCO):
-            return "CISCO FORMAT TBD"
-
+        separator = ':'
         return separator.join(format % ord(b) for b in bytes)
 
     return ''
@@ -91,12 +80,12 @@ def bytes_ethernet_to_oui(bytes):
     return ''
 
 
-def decimal_ethernet_to_oui(decimal):
+def ethernet_to_oui(ethernet_string):
     """
-    Convert SNMP decimal ethernet string "11.12.13.78.90.100"
-    to the OUI string "AA-BB-CC"
+    Convert SNMP decimal ethernet string "11:AB:12:CD:13:EF"
+    to the OUI string "11-AA-12"
     """
-    bytes = decimal.split('.')
+    bytes = decimal.split(':')
     if len(bytes) == 6:
         oui_bytes = bytes[0:3]
         separator = '-'

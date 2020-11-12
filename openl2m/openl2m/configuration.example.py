@@ -317,8 +317,6 @@ ETHERNET_INFO_URLS = [
     },
 ]
 
-# Ethernet display format, either ETH_FORMAT_COLON = 0, ETH_FORMAT_HYPHEN = 1 or ETH_FORMAT_CISCO = 2
-ETH_FORMAT = 0
 # format ethernet address lower case or upper
 ETH_FORMAT_UPPERCASE = False
 

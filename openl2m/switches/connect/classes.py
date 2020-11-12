@@ -98,7 +98,7 @@ class Interface():
         # vlan related
         self.port_id = -1            # Q-Bridge MIB port id
         self.untagged_vlan = -1      # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
-        self.vlans = []              # array of vlanId's on this interface, from Q-Bridge. If size > 0 this is a tagged port!
+        self.vlans = []              # list (array) of vlanId's on this interface. If size > 0 this is a tagged port!
         self.vlan_count = 0
         self.is_tagged = False       # if 802.1q tagging or trunking is enabled
         self.if_vlan_mode = -1       # some vendors (e.g. Comware) have a interface vlan mode, such as access, trunk, hybrid
@@ -118,9 +118,9 @@ class Interface():
         self.poe_entry = False          # if interface has PoE capabilities, will be a PoePort() object
         self.allow_poe_toggle = False   # if set, any user can toggle PoE OFF-ON
         # a variety of data about what is happening on this interface:
-        self.eth = {}               # heard ethernet address on this interface, dictionay of EthernetAddress()
+        self.eth = {}               # heard ethernet address on this interface, dictionay of EthernetAddress() objects
         self.lldp = {}              # LLDP neighbors, dictionay of NeighborDevice() objects
-        self.arp4 = {}              # ARP table entries for ipv4, dictionay of IP4Address()
+        self.arp4 = {}              # ARP table entries for ipv4, dictionay of IP4Address() objects
 
     def display_name(self):
         s = self.name   # use the IF-MIB new interface name
@@ -155,9 +155,7 @@ class Vlan():
         self.type = VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
         self.status = VLAN_STATUS_OTHER     # 1-other-0, 2-permanent, 3-dynamic(gvrp)
         # dot1qVlanCurrentEgressPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
-        """
         self.current_egress_portlist = PortList()
-        """
         # dot1qVlanStaticPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
         # self.static_egress_portlist = PortList()
         # self.untagged_ports_bitmap = 0x0    # exactly what you think, PortList format ! :-)
@@ -336,12 +334,11 @@ class EthernetAddress():
     """
     Class to represents an Ethernet address, and whatever we know about it.
     """
-    def __init__(self, decimal_string):
+    def __init__(self, ethernet_string):
         """
-        EthernetAddress() requires passing in the SNMP decimal value of the 6 ethernet bytes.
+        EthernetAddress() requires passing in the "colon-string" value the 6 ethernet bytes.
         """
-        self.decimal_string = decimal_string
-        self.display_address = decimal_to_hex_string_ethernet(decimal_string)
+        self.display_address = ethernet_string
         self.vendor = self.get_vendor()
         self.vlan_id = 0        # the vlan id (number) this was heard on, if known
         self.address_ip4 = ""   # ipv4 address from arp table, if known
@@ -351,8 +348,7 @@ class EthernetAddress():
         """
         Lookup the vendor OUI, first 3 bytes
         """
-        oui = decimal_ethernet_to_oui(self.decimal_string)
-        return get_vendor_from_oui(oui)
+        return get_vendor_from_oui(ethernet_to_oui(self.display_address))
 
     def display_name(self):
         return self.display_address
@@ -561,6 +557,7 @@ class Connector():
                 switch, i.e. Interface() objects, indexed by a class-specific key (string).
             self.vlans = {} dictionary of vlans on the current switch, i.e. Vlan()
                 objects, indexed by vlan id (integer number)
+        return True on success, False on error and set self.error variables
         """
         self.error.clear()
         # set this to the time the switch data was actually read,
@@ -587,6 +584,7 @@ class Connector():
     def get_my_basic_info(self):
         """
         placeholder for class-specific implementation to read Interfaces() etc.
+        return True on success, False on error and set self.error variables
         """
         return True
 
@@ -595,12 +593,10 @@ class Connector():
         This loads the layer 2 switch tables, any ARP tables available,
         and LLDP neighbor data.
         Not intended to be cached, so we get fresh, "live" data anytime called!
+        return True on success, False on error and set self.error variables
         """
-
         start_time = time.time()
-
         self.get_my_client_data()   # to be implemented by device/vendor class!
-
         self.detailed_info_duration = int((time.time() - start_time) + 0.5)
         return True
 
@@ -608,15 +604,20 @@ class Connector():
         """
         placeholder for class-specific implementation to read things like:
             self.get_known_ethernet_addresses()
+                this should add EthernetAddress() =objects to the interface.eth dict(),
+                indexed by the ethernet address in string format
+
             self.get_arp_data()
+
             self.get_lldp_data()
+        return True on success, False on error and set self.error variables
         """
         return True
 
     def get_switch_hardware_details(self):
         """
         Get all (possible) hardware info, stacking details, etc.
-        return True if succedded, and False if not
+        return True on success, False on error and set self.error variables
         """
 
         # call the vendor-specific data first, if implemented
@@ -627,7 +628,6 @@ class Connector():
         self.hwinfo_needed = False
         # and cache it:
         self.save_cache()
-
         return True
 
     def get_my_hardware_details(self):
@@ -638,8 +638,8 @@ class Connector():
             self.stack_members
             self.syslog_max_msgs
             self.syslog_msgs
+        return True on success, False on error and set self.error variables
         """
-
         return True
 
     """
@@ -652,6 +652,7 @@ class Connector():
         set the interface to the requested state (up or down)
         interface = Interface() object for the requested port
         new_state = IF_ADMIN_STATUS_UP or IF_ADMIN_STATUS_DOWN
+        return True on success, False on error and set self.error variables
         """
         # interface.admin_status = new_state
         dprint(f"Connector.set_interface_admin_status() for {interface.name} to {new_state}")
@@ -664,6 +665,7 @@ class Connector():
         set the interface description (aka. alias) to the string
         interface = Interface() object for the requested port
         new_alias = a string with the requested text
+        return True on success, False on error and set self.error variables
         """
         dprint(f"Connector.set_interface_description() for {interface.name}")
         self.interfaces[interface.key].description = description
@@ -675,6 +677,7 @@ class Connector():
         set the interface untagged vlan to the given vlan
         interface = Interface() object for the requested port
         new_pvid = an integer with the requested untagged vlan
+        return True on success, False on error and set self.error variables
         """
         dprint(f"Connector.set_interface_untagged_vlan() for {interface.name} to vlan {new_pvid}")
         self.interfaces[interface.key].untagged_vlan = new_pvid
@@ -686,6 +689,7 @@ class Connector():
         add a tagged vlan to the interface trunk.
         interface = Interface() object for the requested port
         new_vlan = an integer with the requested tagged vlan
+        return True on success, False on error and set self.error variables
         """
         return True
 
@@ -694,6 +698,7 @@ class Connector():
         remove a tagged vlan from the interface trunk.
         interface = Interface() object for the requested port
         old_vlan = an integer with the tagged vlan to removes
+        return True on success, False on error and set self.error variables
         """
         return True
 
@@ -702,13 +707,28 @@ class Connector():
         set the interface Power-over-Ethernet status as given
         interface = Interface() object for the requested port
         new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
+        return True on success, False on error and set self.error variables
         """
         dprint(f"Connector.set_interface_poe_status() for {interface.name} to {new_state}")
         if interface.poe_entry:
             self.interfaces[interface.key].poe_entry.admin_status = int(new_state)
             dprint("   PoE set OK")
+            if new_state == POE_PORT_ADMIN_DISABLED:
+                self.interfaces[interface.key].poe_entry.power_consumed = 0
             self.save_cache()
         return True
+
+    def add_interface_learned_ethernet(self, if_key, ethernet_address):
+        """
+        add an learned/heard EthernetAddress()) object to the interface.eth{} dictionary.
+        """
+        return
+
+    def add_interface_neighbor(self, if_key, ethernet_address):
+        """
+        add and EthernetAddress) object to the interface.eth{} dictionary.
+        """
+        return
 
     #############################
     # various support functions #
@@ -718,6 +738,7 @@ class Connector():
         """
         Add and Interface() object to the self.interfaces{} dictionary,
         indexed by the interface key.
+        return True on success, False on error and set self.error variables
         """
         self.interfaces[interface.key] = interface
         return True
@@ -726,6 +747,7 @@ class Connector():
         """
         get an Interface() object from out self.interfaces{} dictionary,
         search based on the key that was used when it was added.
+        return Interface() if found, False if not found.
         """
         key = str(key)
         dprint(f"get_interface_by_key() for '{key}'")
@@ -734,6 +756,10 @@ class Connector():
         return False
 
     def set_interface_attribute_by_key(self, key, attribute, value):
+        """
+        set the value for a specified attribute of an interface indexed by key
+        return True on success, False on error
+        """
         key = str(key)
         dprint(f"set_interface_attribute_by_key() for {key}, {attribute} = {value}")
         try:
@@ -745,6 +771,7 @@ class Connector():
     def set_save_needed(self, value=True):
         """
         Set a flag that this switch needs the config saved
+        just return True
         """
         if value:
             if self.can_save_config():
@@ -760,6 +787,7 @@ class Connector():
         Does the switch need to execute a 'save config' command
         to save changes to the startup config.
         We store and read this from the http session.
+        Returns True or False
         """
         val = self.get_cache_variable("save_needed")
         if val is None:
@@ -801,6 +829,16 @@ class Connector():
         self.error.status = True
         self.error.description = "Not implemented!"
         return -1
+
+    def set_do_not_cache_attribute(self, name):
+        """
+        Add the name of one of our class object attributes
+        to the list of do not cache attributes.
+        Return nothing.
+        """
+        if name not in self.do_not_cache:
+            self.do_not_cache.append(name)
+        return
 
     def load_cache(self):
         """
@@ -1185,9 +1223,11 @@ class Connector():
                 continue
 
             # Read-Only switch cannot be overwritten, not even by SuperUser!
-            if group.read_only or switch.read_only or user.profile.read_only:
+            if switch.read_only or group.read_only or user.profile.read_only:
                 iface.manageable = False
                 iface.unmanage_reason = "Access denied: Read-Only"
+                iface.visible = True
+                continue
 
             # super-users have access to all other attributes of interfaces!
             if user.is_superuser:

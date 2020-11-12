@@ -96,12 +96,13 @@ class pysnmpHelper():
         Set a single OID value. Note that 'value' has to be properly typed, see
         http://snmplabs.com/pysnmp/docs/api-reference.html#pysnmp.smi.rfc1902.ObjectType
         Returns 1 if not error.
-        If error, sets the self.error variable, and returns -1
+        If error, sets the self.error variables, and returns -1
         """
         if not self._auth_data:
             self.error.status = True
             self.error.description = "Auth Data NOT set!"
-            self.error.details = ""
+            self.error.details = "SNMP authentication data NOT set in config, please update!"
+            dprint("pysnmp.set_vars() no auth_data!")
             return -1
 
         errorIndication, errorStatus, errorIndex, varBinds = next(
@@ -118,19 +119,22 @@ class pysnmpHelper():
             self.error.status = True
             self.error.description = "An SNMP error occurred!"
             self.error.details = f"ERROR with SNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+            dprint("pysnmp.set_vars() SNMP engine error!")
             return -1
 
         elif errorStatus:
             self.error.status = True
             self.error.description = "An SNMP error occurred!"
             self.error.details = f"ERROR in SNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+            dprint("pysnmp.set_vars() SNMP PDU error!")
             return -1
 
         # no errors
         self.error.clear()
+        dprint("pysnmp.set_vars() return 1")
         return 1
 
-    def set_oid(self, oid, value):
+    def set(self, oid, value):
         """
         Set a single OID value. Note that 'value' has to be properly typed, see
         http://snmplabs.com/pysnmp/docs/api-reference.html#pysnmp.smi.rfc1902.ObjectType
@@ -139,7 +143,7 @@ class pysnmpHelper():
         var.append(ObjectType(ObjectIdentity(ObjectName(oid)), value))
         return self.set_vars(var)
 
-    def set_multiple_oid(self, oid_tuples):
+    def set_multiple(self, oid_tuples):
         """
         Set multiple OIDs in a single atomic snmp set()
         oid_tuples is a list of tuples (oid, value) containing
@@ -229,9 +233,6 @@ class SnmpConnector(Connector):
 
         self.name = "Standard SNMP"  # what type of class is running!
 
-        # caching related. Add attributes that do not get cached:
-        self.do_not_cache.append("_snmp_session")
-
         # SNMP specific attributes:
         self.object_id = ""     # SNMP system OID value, used to find type of switch
         self.sys_uptime = 0          # sysUptime is a tick count in 1/100th of seconds per tick, since boot
@@ -255,6 +256,8 @@ class SnmpConnector(Connector):
         """
         attributes to track EasySnmp library
         """
+        # caching related. Add attributes that do not get cached:
+        self.set_do_not_cache_attribute("_snmp_session")
         self._snmp_session = False   # EasySNMP session object
         # initialize the snmp "connection/session"
         if not self._set_snmp_session():
@@ -521,7 +524,7 @@ class SnmpConnector(Connector):
     def set_multiple(self, oid_values, update_oidcache=True, parser=False):
         """
         Set multiple OIDs at the same time, in a single snmp request
-        oid_values is a list of (oid, value, type)
+        oid_values is a list of tuples (oid, value, type)
         Returns 1 if success, and if requested, then we also update the
         local oid cache to track the change.
         On failure, returns -1, and self.error.X will be set
@@ -868,12 +871,15 @@ class SnmpConnector(Connector):
         # dot1qVlanCurrentEgressPorts
         sub_oid = oid_in_branch(dot1qVlanCurrentEgressPorts, oid)
         if sub_oid:
+            # sub oid part is dot1qVlanCurrentEgressPorts.timestamp.vlan_id = bitmap
             (time_val, v) = sub_oid.split('.')
             vlan_id = int(v)
+            # check if vlan is globally defined on switch:
             if vlan_id not in self.vlans.keys():
                 # not likely, we should know vlan by now, but just in case!
                 self.vlans[vlan_id] = Vlan(vlan_id)
-            # self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
+            # store the egress port list, as some switches need this when setting untagged vlans
+            self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
             # now look at all the bits in this multi-byte value to find ports on this vlan:
             offset = 0
             for byte in val:
@@ -1000,6 +1006,7 @@ class SnmpConnector(Connector):
             if_index = self._get_if_index_from_port_id(port_id)
             # not yet sure how to handle this
             untagged_vlan = int(val)
+            # if the vlan is globally defined on switch:
             if untagged_vlan in self.vlans.keys():
                 self.set_interface_attribute_by_key(if_index, "untagged_vlan", untagged_vlan)
             else:
@@ -1512,9 +1519,12 @@ class SnmpConnector(Connector):
                 # interface already has this untagged vlan, not adding
                 return True
             else:
-                dprint("   Add as tagged!")
-                self.interfaces[if_index].vlans.append(vlan_id)
-                self.interfaces[if_index].is_tagged = True
+                dprint("   Add as tagged?")
+                # only add vlan once!
+                if vlan_id not in self.interfaces[if_index].vlans:
+                    dprint("      yes!")
+                    self.interfaces[if_index].vlans.append(vlan_id)
+                    self.interfaces[if_index].is_tagged = True
             return True
         return False
 
@@ -2025,10 +2035,7 @@ class SnmpConnector(Connector):
         Return True on success, False on failure
         """
         value = self.get(self.SYSLOCATION)
-        retval = self.set(self.SYSLOCATION, value, 's')
-        if retval != -1:
-            return True
-        return False
+        return self.set(self.SYSLOCATION, value, 's')
 
     def _probe_mibs(self):
         """
@@ -2077,16 +2084,17 @@ class SnmpConnector(Connector):
         Set the admin status to up or down.
         interface = Interface() object for the port/interface.
         status = IF_ADMIN_STATUS_UP or IF_ADMIN_STATUS_DOWN
+        return True on success, False on error and set self.error variables
         """
         if not interface:
             self.error = Error(status=True,
                                description=f"set_interface_admin_status(): Invalid interface!")
-            return -1
+            return False
 
         if status != IF_OPER_STATUS_UP and status != IF_OPER_STATUS_DOWN:
             self.error = Error(status=True,
                                description=f"set_interface_admin_status(): Invalid status: {status}")
-            return -1
+            return False
 
         # make sure we cast the proper type here! Ie this needs an Integer()
         return self.set(f"{ifAdminStatus}.{interface.index}", status, 'i')
@@ -2096,36 +2104,38 @@ class SnmpConnector(Connector):
         Set the PoE status to up or down.
         interface = Interface() object for the port/interface.
         status = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
+        return True on success, False on error and set self.error variables
         """
         if not interface:
             self.error = Error(status=True,
                                description=f"set_interface_poe_status(): Invalid interface!")
-            return -1
+            return False
         # the PoE index is kept in the iface.poe_entry
         if not interface.poe_entry:
             self.error = Error(status=True,
                                description=f"set_interface_poe_status(): interface has no poe_entry!")
-            return -1
+            return False
         # proper status value?
         if status != POE_PORT_ADMIN_ENABLED and status != POE_PORT_ADMIN_DISABLED:
             self.error = Error(status=True,
                                description=f"set_interface_poe_status(): Invalid status: {status}")
-            return -1
+            return False
 
         # make sure we cast the proper type here! Ie this needs an Integer()
-        retval = self.set(f"{pethPsePortAdminEnable}.{interface.poe_entry.index}", status, 'i')
-        if retval:
+        if self.set(f"{pethPsePortAdminEnable}.{interface.poe_entry.index}", status, 'i'):
             super().set_interface_poe_status(interface, status)
-        return retval
+            return True
+        return False
 
     def set_interface_description(self, interface=False, description=""):
         """
         Set a description on an interface.
+        return True on success, False on error and set self.error variables
         """
         if not interface:
             self.error = Error(status=True,
                                description=f"set_interface_description(): Invalid interface!")
-            return -1
+            return False
 
         # make sure we cast the proper type here! I.e. this needs an string
         return self.set(f"{ifAlias}.{interface.index}", description, 'OCTETSTRING')
@@ -2133,7 +2143,7 @@ class SnmpConnector(Connector):
     def set_interface_untagged_vlan(self, interface, new_vlan_id):
         """
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
-        Return -1 if invalid interface, or value of _set() call
+        return True on success, False on error and set self.error variables
         """
         # now check the Q-Bridge PortID
         if interface and interface.port_id > -1:
@@ -2141,9 +2151,8 @@ class SnmpConnector(Connector):
             # set this switch port on the new vlan:
             # Q-BIRDGE mib: VlanIndex = Unsigned32
             dprint("Setting NEW VLAN on port")
-            retval = self.set(f"{dot1qPvid}.{interface.port_id}", int(new_vlan_id), 'u')
-            if retval == -1:
-                return retval
+            if not self.set(f"{dot1qPvid}.{interface.port_id}", int(new_vlan_id), 'u'):
+                return False
 
             # some switches need a little "settling time" here (value is in seconds)
             time.sleep(0.5)
@@ -2153,7 +2162,7 @@ class SnmpConnector(Connector):
             (error_status, snmpval) = self.get(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}")
             if error_status:
                 # Hmm, not sure what to do
-                return -1
+                return False
 
             # now calculate new bitmap by removing this switch port
             old_vlan_portlist = PortList()
@@ -2166,11 +2175,10 @@ class SnmpConnector(Connector):
             # use PySNMP to do this work:
             octet_string = OctetString(hexValue=old_vlan_portlist.to_hex_string())
             pysnmp = pysnmpHelper(self.switch)
-            retval = pysnmp.set_oid(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", octet_string)
-            if error_status == -1:
+            if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", octet_string):
                 self.error.status = True
                 self.error.description += "\nError in setting port (dot1qVlanStaticEgressPorts)"
-                return -1
+                return False
 
             # and re-read the dot1qVlanCurrentEgressPorts, all ports
             # tagged/untagged on the old and new vlan
@@ -2179,10 +2187,10 @@ class SnmpConnector(Connector):
             (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{old_vlan_id}")
             dprint("Get NEW VLAN Current Egress Ports")
             (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}")
-            return 0
+            return True
 
         # interface not found, return False!
-        return -1
+        return False
 
     def read_snmp_branch(self, branch_name, cache_it=True, parser=False, max_repetitions=settings.SNMP_MAX_REPETITIONS):
 

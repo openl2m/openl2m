@@ -29,6 +29,6 @@ class NapalmConnector(Connector):
         """
         Initialize the object
         """
-        super(Connector, self).__init__(request, group, switch)
+        super().__init__(request, group, switch)
         self.name = "NaPalm Library Connector"
         return

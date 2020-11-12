@@ -33,10 +33,10 @@ import warnings
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
 
-# Django 2.1 requires Python 3.5+
-if sys.version_info < (3, 5):
+# Django 2.1 requires Python 3.6+
+if sys.version_info < (3, 6):
     raise RuntimeError(
-        "OpenL2M requires Python 3.5 or higher (current: Python {})".format(sys.version.split()[0])
+        "OpenL2M requires Python 3.6 or higher (current: Python {})".format(sys.version.split()[0])
     )
 
 # Check for configuration file
@@ -48,8 +48,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = '1.1.12'
-VERSION_DATE = '2020-07-20'
+VERSION = '2.0'
+VERSION_DATE = '2020-TBD'
 
 # Hostname
 HOSTNAME = platform.node()
@@ -124,7 +124,6 @@ IP4_INFO_URLS = getattr(configuration, 'IP4_INFO_URLS', False)
 IP6_INFO_URLS = getattr(configuration, 'IP6_INFO_URLS', False)
 ETHERNET_INFO_URLS = getattr(configuration, 'ETHERNET_INFO_URLS', False)
 
-ETH_FORMAT = getattr(configuration, 'ETH_FORMAT', 0)
 ETH_FORMAT_UPPERCASE = getattr(configuration, 'ETH_FORMAT_UPPERCASE', 0)
 
 IFACE_HIDE_REGEX_IFNAME = getattr(configuration, 'IFACE_HIDE_REGEX_IFNAME', '')

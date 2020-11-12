@@ -36,7 +36,7 @@ class SnmpConnectorJuniper(SnmpConnector):
     def __init__(self, request, group, switch):
         # for now, just call the super class
         dprint("Juniper Networks SnmpConnector __init__")
-        super(SnmpConnectorJuniper, self).__init__(request, group, switch)
+        super().__init__(request, group, switch)
         self.name = self.__class__.__name__
         self.vendor_name = 'Juniper Networks'
         # force READ-ONLY for now! We have not implemented changing settings.

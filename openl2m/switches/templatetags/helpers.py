@@ -20,7 +20,7 @@ from django.utils.html import mark_safe
 
 from switches.models import *
 from switches.constants import *
-from switches.connect.utils import bytes_to_hex_string_ethernet, bytes_ethernet_to_oui
+from switches.connect.utils import bytes_ethernet_to_string, bytes_ethernet_to_oui
 from switches.connect.constants import *
 from switches.connect.oui.oui import get_vendor_from_oui
 
@@ -458,7 +458,7 @@ def get_lldp_info(neighbor):
     if neighbor.chassis_string and neighbor.chassis_type:
         # use the chassis info, if found.
         if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
-            chassis_info = bytes_to_hex_string_ethernet(neighbor.chassis_string)
+            chassis_info = bytes_ethernet_to_string(neighbor.chassis_string)
         elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
             net_addr_type = int(ord(neighbor.chassis_string[0]))
             if net_addr_type == IANA_TYPE_IPV4:
