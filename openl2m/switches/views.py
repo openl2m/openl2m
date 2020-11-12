@@ -368,6 +368,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
     poe_choice = int(request.POST.get('poe_choice', BULKEDIT_POE_NONE))
     new_pvid = int(request.POST.get('new_pvid', -1))
     new_alias = str(request.POST.get('new_alias', ''))
+    new_alias_type = int(request.POST.get('new_alias_type', BULKEDIT_ALIAS_TYPE_REPLACE))
     interface_list = request.POST.getlist('interface_list')
     remote_ip = get_remote_ip(request)
     save_config = bool(request.POST.get('save_config', False))
@@ -383,7 +384,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
     errors = []
 
     # check if the new description/alias is allowed:
-    if new_alias and settings.IFACE_ALIAS_NOT_ALLOW_REGEX:
+    if new_alias and new_alias_type == BULKEDIT_ALIAS_TYPE_REPLACE and settings.IFACE_ALIAS_NOT_ALLOW_REGEX:
         match = re.match(settings.IFACE_ALIAS_NOT_ALLOW_REGEX, new_alias)
         if match:
             log = Log(user=request.user,
@@ -482,6 +483,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         args['poe_choice'] = poe_choice
         args['new_pvid'] = new_pvid
         args['new_alias'] = new_alias
+        args['new_alias_type'] = new_alias_type
         args['interfaces'] = interfaces
         args['save_config'] = save_config
         # create a task to track progress
@@ -499,7 +501,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         try:
             celery_task_id = bulkedit_task.apply_async((task.id, request.user.id, group_id, switch_id,
                                                        interface_change, poe_choice, new_pvid,
-                                                       new_alias, interfaces, save_config),
+                                                       new_alias, new_alias_type, interfaces, save_config),
                                                        eta=eta_datetime)
         except Exception as e:
             error = Error()
@@ -518,7 +520,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
     # handle regular submit, execute now!
     results = bulkedit_processor(request, request.user.id, group_id, switch_id,
                                  interface_change, poe_choice, new_pvid,
-                                 new_alias, interfaces, False)
+                                 new_alias, new_alias_type, interfaces, False)
 
     # indicate we need to save config!
     if results['success_count'] > 0:
