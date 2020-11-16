@@ -6,11 +6,11 @@ Version 1.1
 
 Version 1.1.13
 --------------
-Release Date: TBD
+Release Date: 2020-11-12
 
-* Change in LOGIN_TIMEOUT behaviour in *configuration.py*, depending on LOGOUT_ON_INACTIVITY.
+* Change in LOGIN_TIMEOUT behavior in *configuration.py*, depending on LOGOUT_ON_INACTIVITY.
   If this is set, then the login timeout is treated as inactivity timeout.
-  If False, default Django behaviour is LOGIN_TIMEOUT is max time session will last.
+  If False, default Django behavior is LOGIN_TIMEOUT is max time session will last.
 
 .. code-block:: bash
 
@@ -18,6 +18,7 @@ Release Date: TBD
 
 * Warnings tab stands out more.
 * Update to FontAwesome v5.14.0
+* bulk-edit form can now append to existing interface description
 
 Version 1.1.12
 --------------

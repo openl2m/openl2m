@@ -48,7 +48,7 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = '2.0'
+VERSION = '2.0-dev'
 VERSION_DATE = '2020-TBD'
 
 # Hostname

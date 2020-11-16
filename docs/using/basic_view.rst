@@ -205,7 +205,8 @@ the changes as a task at a later time.
 
 * You can toggle the interface up/down state (a admin-down interface will be brought up, and vice versa,
   an up interface will go admin-down, all at once!)
-* You can change the interface (untagged) vlan, and also the interface description.
+* You can change the interface (untagged) vlan
+* You can change or append to the interface description.
 * You can choose to either change the PoE state (PoE Enabled to Disabled, and PoE Disabled to Enabled),
   or on interfaces with power enabled, 'toggle' power down, and back up (with an admin configurable wait time)
   Note this is done serially, so if you perform this on many interfaces at once, it will take some time!

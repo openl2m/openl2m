@@ -34,7 +34,7 @@ from switches.utils import dprint
 @shared_task
 def bulkedit_task(task_id, user_id, group_id, switch_id,
                   interface_change, poe_choice, new_pvid,
-                  new_alias, interfaces, save_config):
+                  new_alias, new_alias_type, interfaces, save_config):
 
     try:
         task = Task.objects.get(pk=int(task_id))
@@ -94,7 +94,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
     settings.IN_CELERY_PROCESS = True
     results = bulkedit_processor(False, user_id, group_id, switch_id,
                                  interface_change, poe_choice, new_pvid,
-                                 new_alias, interfaces, save_config, task)
+                                 new_alias, new_alias_type, interfaces, save_config, task)
 
     task.completed = timezone.now()   # use Django time with support of timezone!
     task.results = json.dumps(results)
@@ -167,7 +167,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
 
 def bulkedit_processor(request, user_id, group_id, switch_id,
                        interface_change, poe_choice, new_pvid,
-                       new_alias, interfaces, save_config, task=False):
+                       new_alias, new_alias_type, interfaces, save_config, task=False):
     """
     Function to handle the bulk edit processing, from form-submission or scheduled job.
     This will log each individual action per interface.
@@ -198,6 +198,21 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
         remote_ip = get_remote_ip(request)
     else:
         remote_ip = "0.0.0.0"
+
+    # log bulk edit arguments:
+    log = Log(user=user,
+              switch=switch,
+              group=group,
+              ip_address=remote_ip,
+              action=LOG_BULK_EDIT_TASK_START,
+              description=f"Interface Status={ BULKEDIT_INTERFACE_CHOICES[interface_change] }, "
+                          f"PoE Status={ BULKEDIT_POE_CHOICES[poe_choice] }, "
+                          f"Vlan={ new_pvid }, "
+                          f"Descr Type={ BULKEDIT_ALIAS_TYPE_CHOICES[new_alias_type] }, "
+                          f"Descr={ new_alias }, "
+                          f"Save={ save_config }",
+              type=LOG_TYPE_CHANGE)
+    log.save()
 
     # this needs work:
     conn = get_connection_object(request, group, switch)
@@ -397,18 +412,34 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
 
         # tired of the old interface description?
         if new_alias:
-            iface_new_alias = new_alias
-            # check if the original alias starts with a string we have to keep
-            if settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX:
-                keep_format = f"(^{settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX})"
-                match = re.match(keep_format, iface.alias)
-                if match:
-                    # check of new submitted alias begins with this string:
-                    match_new = re.match(keep_format, iface_new_alias)
-                    if not match_new:
-                        # required start string NOT found on new alias, so prepend it!
-                        iface_new_alias = f"{match[1]} {iface_new_alias}"
-                        outputs.append(f"Interface {iface.name}: Bulk-Edit Description override: {iface_new_alias}")
+            iface_new_alias = ""
+            # what are we supposed to do with the alias/description?
+            if new_alias_type == BULKEDIT_ALIAS_TYPE_APPEND:
+                iface_new_alias = f"{iface.alias} {new_alias}"
+                # outputs.append(f"Interface {iface.name}: Bulk-Edit Description Append: {iface_new_alias}")
+            elif new_alias_type == BULKEDIT_ALIAS_TYPE_REPLACE:
+                # check if the original alias starts with a string we have to keep:
+                if settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX:
+                    keep_format = f"(^{settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX})"
+                    match = re.match(keep_format, iface.alias)
+                    if match:
+                        # beginning match, but check if new submitted alias matches requirement:
+                        match_new = re.match(keep_format, new_alias)
+                        if not match_new:
+                            # required start string NOT found on new alias, so prepend it!
+                            iface_new_alias = f"{match[1]} {new_alias}"
+                        else:
+                            # new description matches beginning format, keep as is:
+                            iface_new_alias = new_alias
+                    else:
+                        # no beginning match, just set new description:
+                        iface_new_alias = new_alias
+                else:
+                    # nothing special, just set new description:
+                    iface_new_alias = new_alias
+
+            # elif new_alias_type == BULKEDIT_ALIAS_TYPE_PREPEND:
+            # To be implemented
 
             log = Log(user=user,
                       ip_address=remote_ip,
