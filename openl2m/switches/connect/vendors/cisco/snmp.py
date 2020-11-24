@@ -16,6 +16,10 @@ Cisco specific implementation of the SNMP Connection object.
 This augments/re-implements some methods found in the base SNMP() class
 with Cisco specific ways of doing things...
 """
+import random
+import time
+from django.conf import settings
+
 from switches.models import Log
 from switches.constants import *
 from switches.connect.classes import *
@@ -533,4 +537,61 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         dprint("\nCISCO save_running_config()\n")
         # set this OID, but do not update local cache.
-        return self._set(ciscoWriteMem, int(1), 'i', False)
+        # first try old method, prios to IOS 12. This work on older 29xx and similar switches
+        retval = self._set(oid=ciscoWriteMem, value=int(1), snmp_type='i', update_oidcache=False)
+        if retval == -1:
+            # error occured, most likely timeout. Try Cisco-CONFIG-COPY mib
+            dprint("   Trying CONFIG-COPY method")
+            some_number = random.randint(1, 254)
+            # first, set source to running config
+            retval = self._set(oid=f"{ccCopySourceFileType}.{some_number}",
+                               value=int(runningConfig),
+                               snmp_type='i',
+                               update_oidcache=False)
+            # next, set destination to startup co -=nfig
+            retval = self._set(oid=f"{ccCopyDestFileType}.{some_number}",
+                               value=int(startupConfig),
+                               snmp_type="i",
+                               update_oidcache=False)
+            # and then activate the copy:
+            retval = self._set(oid=f"{ccCopyEntryRowStatus}.{some_number}",
+                               value=int(rowStatusActive),
+                               snmp_type="i",
+                               update_oidcache=False)
+            # now wait for this row to return success or fail:
+            waittime = settings.CISCO_WRITE_MEM_MAX_WAIT
+            while(waittime):
+                time.sleep(1)
+                (error_status, snmp_ret) = self._get(oid=f"{ccCopyState}.{some_number}",
+                                                     update_oidcache=False)
+                if error_status:
+                    break
+                if int(snmp_ret.value) == copyStateSuccess:
+                    # write completed, so we are done!
+                    return 0
+                if int(snmp_ret.value) == copyStateFailed:
+                    break
+                waittime -= 1
+
+            # we timed-out, or errored-out
+            self.error.status = True
+            if error_status:
+                self.error.description = "SNMP get copy-status returned error! (no idea why?)"
+            elif snmp_ret.value == copyStateFailed:
+                self.error.description = "Copy running to startup failed!"
+            elif snmp_ret.value == copyStateRunning:
+                self.error.description = "Copy running to startup not completed yet! (huh?)"
+            elif snmp_ret.value == copyStateWaiting:
+                self.error.description = "Copy running to startup still waiting! (for what?)"
+            # log error
+            log = Log(user=self.request.user,
+                      type=LOG_TYPE_ERROR,
+                      ip_address=get_remote_ip(self.request),
+                      action=LOG_SAVE_SWITCH,
+                      description=self.error.description)
+            log.save()
+            # return error status
+            return -1
+
+        # the original or new-style write-mem worked.
+        return 0

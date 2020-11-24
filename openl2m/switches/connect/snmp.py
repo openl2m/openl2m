@@ -317,7 +317,7 @@ class EasySNMP():
 
         except Exception as e:
             self.error.status = True
-            self.error.description = "Access denied"
+            self.error.description = "Timeout or Access denied"
             self.error.details = f"SNMP Error: oid {oid}, {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             return -1
 
