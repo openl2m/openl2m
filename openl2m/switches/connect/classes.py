@@ -498,7 +498,6 @@ class Connector():
             "do_not_cache", "request", "group", "switch", "error",
         ]
 
-        self.name = "Generic Connector"  # what type of class is running!
         self.hostname = ""      # system hostname, typically set in sub-class
         self.vendor_name = ""   # typically set in sub-classes
 
@@ -584,7 +583,7 @@ class Connector():
             # you have to set the permissions to the interfaces:
             self._set_interfaces_permissions()
 
-            self.add_more_info('System', 'Hostname', self.name)
+            # self.add_more_info('System', 'Hostname', self.hostname)
 
             # and save the switch cache:
             self.save_cache()
@@ -1313,11 +1312,34 @@ class Connector():
                   switch=self.switch,
                   ip_address=get_remote_ip(self.request),
                   type=LOG_TYPE_WARNING,
-                  action=LOG_WARNING_SNMP_ERROR,
+                  action=LOG_SNMP_ERROR,
                   description=warning)
         if self.request:
             log.user = self.request.user
         log.save()
+        # done!
+        return
+
+    def log_error(self, error=False):
+        """
+        Log the current error, either passed in, or as set in the object.
+        """
+        err = False
+        if error:
+            err = error
+        elif self.error.status:
+            err = self.error
+        if err:
+            # add a log message
+            log = Log(group=self.group,
+                      switch=self.switch,
+                      ip_address=get_remote_ip(self.request),
+                      type=LOG_TYPE_ERROR,
+                      action=LOG_SNMP_ERROR,
+                      description=f"{self.error.description}: {self.error.details}")
+            if self.request:
+                log.user = self.request.user
+                log.save()
         # done!
         return
 

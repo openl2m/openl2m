@@ -227,11 +227,15 @@ Something like this should work in a new shell (window):
 
 .. code-block:: bash
 
-  cd /opt/openl2m/openl2m
+  cd /opt/openl2m/
+  source venv/bin/activate
+  cd openl2m
   celery -A openl2m flower
 
 This should start a web server on port 5555. Now point a browser to
 http://localhost:5555/ to see lots of interesting details about your Celery tasks.
+
+NOTE: You will need to install the Python3 flower package in the virtual environment first!
 
 
 Time Format Customization

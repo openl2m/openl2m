@@ -39,7 +39,6 @@ class SnmpConnectorCisco(SnmpConnector):
         # for now, just call the super class
         dprint("CISCO SnmpConnector __init__")
         super().__init__(request, group, switch)
-        self.name = "Cisco SnmpConnector"  # what type of class is running!
         self.vendor_name = "Cisco"
 
     def _parse_oid(self, oid, val):
@@ -210,7 +209,9 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         retval = self.get_branch_by_name('ciscoSyslogMIBObjects', True, self._parse_mibs_cisco_syslog_msg)
         if retval < 0:
+            # something bad happened
             self.add_warning("Error getting Cisco Syslog Messages (ciscoSyslogMIBObjects)")
+            self.log_error()
             return 0    # for now
 
     def _map_poe_port_entries_to_interface(self):
@@ -513,8 +514,8 @@ class SnmpConnectorCisco(SnmpConnector):
             if index in self.syslog_msgs.keys():
                 # approximate / calculate the datetime value:
                 # msg timestamp = time when sysUpTime was read minus seconds between sysUptime and msg timetick
-                dprint(f"TIMES ARE: {self.time}  {self.sys_uptime}  {timetick}")
-                self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(self.time - int((self.sys_uptime - timetick)/100))
+                dprint(f"TIMES ARE: {self.sys_uptime_timestamp}  {self.sys_uptime}  {timetick}")
+                self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(self.sys_uptime_timestamp - int((self.sys_uptime - timetick)/100))
             else:
                 # be save, create; "should" never happen
                 msg = SyslogMsg(index)

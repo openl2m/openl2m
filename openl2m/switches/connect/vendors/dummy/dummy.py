@@ -36,7 +36,6 @@ class DummyConnector(Connector):
         # for now, just call the super class
         dprint("Dummy Connector __init__")
         super().__init__(request, group, switch)
-        self.name = self.__class__.__name__
         self.vendor_name = 'Dummy'
         # force READ-ONLY for now! We have not implemented changing settings.
         self.switch.read_only = False

@@ -11,7 +11,7 @@ django-ipware>=2.1.0
 django-ordered-model>=3.3,<4.0
 django_auth_ldap>=2.0.0
 easysnmp>=0.2.5
-flower
+#flower
 gitpython
 gunicorn==20.0.4
 ip_address>=1.0.23

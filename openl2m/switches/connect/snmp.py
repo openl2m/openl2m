@@ -234,13 +234,14 @@ class SnmpConnector(Connector):
         self.name = "Standard SNMP"  # what type of class is running!
 
         # SNMP specific attributes:
-        self.object_id = ""     # SNMP system OID value, used to find type of switch
-        self.sys_uptime = 0          # sysUptime is a tick count in 1/100th of seconds per tick, since boot
-        self.poe_port_entries = {}  # PoePort() port power entries, used to store until we can map to interface
+        self.object_id = ""                 # SNMP system OID value, used to find type of switch
+        self.sys_uptime = 0                 # sysUptime is a tick count in 1/100th of seconds per tick, since boot
+        self.sys_uptime_timestamp = 0       # timestamp when sysUptime was read.
+        self.poe_port_entries = {}          # PoePort() port power entries, used to store until we can map to interface
         self.qbridge_port_to_if_index = {}  # this maps Q-Bridge port id as key (int) to MIB-II ifIndex (string)
         self.dot1tp_fdb_to_vlan_index = {}  # forwarding database index to vlan index mapping. Note many switches do not use this...
         self.stack_port_to_if_index = {}    # maps (Cisco) stacking port to ifIndex values
-        self.ip4_to_if_index = {}   # the IPv4 addresses as keys, with stored value ifIndex (string); needed to map netmask to interface
+        self.ip4_to_if_index = {}           # the IPv4 addresses as keys, with stored value ifIndex (string); needed to map netmask to interface
         # self.has_connector = True   # value of IFMIB_CONNECTOR
 
         # VLAN related variables
@@ -685,6 +686,7 @@ class SnmpConnector(Connector):
         Set the read OID data in the local oid_cache store
         Also map from SNMP data type to Python data type we can handle
         EasySNMP returns everything as a Python str() object!
+        Function does not return anything.
         """
         dprint("\n_parse_oid_and_cache()")
         dprint(f"HANDLING OID: {str(oid)}")
@@ -1571,21 +1573,24 @@ class SnmpConnector(Connector):
         """
         dprint("_parse_system_oids()")
 
-        self.add_more_info('System', 'Hostname', self.get_cached_oid(sysName))
+        self.hostname = self.get_cached_oid(sysName)
+        self.sys_uptime = int(self.get_cached_oid(sysUpTime))
+        self.sys_uptime_timestamp = time.time()
+        self.add_more_info('System', 'Hostname', self.hostname)
         self.add_more_info('System', 'Model', self.get_cached_oid(sysDescr))
         self.add_more_info('System', 'IP', self.switch.primary_ip4)
-        self.add_more_info('System', 'Uptime', str(datetime.timedelta(seconds=int(self.get_cached_oid(sysUpTime)) / 100)))
-        self.add_more_info('System', 'Object ID', self.get_cached_oid(sysObjectID))
-        self.add_more_info('System', 'Vendor ID', get_switch_enterprise_info(self.get_cached_oid(sysObjectID)))
+        self.add_more_info('System', 'Uptime', str(datetime.timedelta(seconds=(self.sys_uptime / 100))))
         self.add_more_info('System', 'Contact', self.get_cached_oid(sysContact))
         self.add_more_info('System', 'Location', self.get_cached_oid(sysLocation))
         self.add_more_info('System', 'Snmp Profile', self.switch.snmp_profile.name)
         if self.switch.netmiko_profile:
             self.add_more_info('System', 'Netmiko Profile', self.switch.netmiko_profile.name)
-        self.add_more_info('System', 'Handler', self.name)
+        self.add_more_info('System', 'Vendor ID', get_switch_enterprise_info(self.get_cached_oid(sysObjectID)))
+        self.add_more_info('System', 'Class Handler', self.__class__.__name__)
         self.add_more_info('System', 'Group', self.group.name)
+        self.add_more_info('System', 'Object ID', self.get_cached_oid(sysObjectID))
         # first time when data was read:
-        self.add_more_info('System', 'Read Time', time.strftime(settings.LONG_DATETIME_FORMAT, time.localtime()))
+        self.add_more_info('System', 'Read Time', time.strftime(settings.LONG_DATETIME_FORMAT, time.localtime(self.sys_uptime_timestamp)))
 
         # self.add_more_info('System', 'Response', f"{self.basic_info_duration} seconds")
         # if self.detailed_info_duration > 0:
@@ -1598,6 +1603,7 @@ class SnmpConnector(Connector):
         self.get(sysUpTime)
         # sysUpTime is ticks in 1/100th of second since boot
         self.sys_uptime = int(self.get_cached_oid(sysUpTime))
+        self.sys_uptime_timestamp = time.time()
 
     def _get_system_data(self):
         """
