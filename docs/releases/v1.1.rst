@@ -4,6 +4,17 @@
 Version 1.1
 ===========
 
+Version 1.1.14
+--------------
+Release Date: 2020-11-23
+
+* Implement CISCO-CONFIG-COPY MIB, to save running config on device that support it.
+  You can set how many seconds we wait for the copy to finish:
+
+.. code-block:: bash
+
+  CISCO_WRITE_MEM_MAX_WAIT = 5
+
 Version 1.1.13
 --------------
 Release Date: 2020-11-12

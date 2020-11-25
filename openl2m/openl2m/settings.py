@@ -49,7 +49,7 @@ except ImportError:
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
 VERSION = '2.0-dev'
-VERSION_DATE = '2020-TBD'
+VERSION_DATE = '- TBD -'
 
 # Hostname
 HOSTNAME = platform.node()
@@ -386,3 +386,7 @@ EMAIL_TIMEOUT = getattr(configuration, 'EMAIL_TIMEOUT', 10)
 EMAIL_SUBJECT_PREFIX = getattr(configuration, 'EMAIL_SUBJECT_PREFIX', '[OpenL2M-Admin] ')
 EMAIL_SUBJECT_PREFIX_USER = getattr(configuration, 'EMAIL_SUBJECT_PREFIX_USER', '[OpenL2M] ')
 EMAIL_FROM_ADDRESS = getattr(configuration, 'EMAIL_FROM_ADDRESS', '<openl2m@localhost>')
+
+
+# Vendor specific settings:
+CISCO_WRITE_MEM_MAX_WAIT = getattr(configuration, 'CISCO_WRITE_MEM_MAX_WAIT', 5)

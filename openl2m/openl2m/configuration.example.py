@@ -453,3 +453,9 @@ EMAIL_FROM_ADDRESS = '<openl2m@localhost>'
 EMAIL_SUBJECT_PREFIX = '[OpenL2M-Admin] '
 # the subject Prefix for regular user emails:
 EMAIL_SUBJECT_PREFIX_USER = '[OpenL2M] '
+
+
+# Vendor specific setingss
+
+# the max time to wait, in seconds, for a new-style "cisco-copy-mib" "write mem" to complete:
+CISCO_WRITE_MEM_MAX_WAIT = 5

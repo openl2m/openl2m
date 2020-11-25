@@ -115,6 +115,27 @@ snmp_mib_variables['vmVlan'] = vmVlan
 vmVoiceVlanId = '.1.3.6.1.4.1.9.9.68.1.5.1.1.1'
 snmp_mib_variables['vmVoiceVlanId'] = vmVoiceVlanId
 
+# Cisco Config Copy MIB
+# http://www.circitor.fr/Mibs/Html/C/CISCO-CONFIG-COPY-MIB.php
+ccCopySourceFileType = '.1.3.6.1.4.1.9.9.96.1.1.1.1.3'
+snmp_mib_variables['ccCopySourceFileType'] = ccCopySourceFileType
+runningConfig = 4
+
+ccCopyDestFileType = '.1.3.6.1.4.1.9.9.96.1.1.1.1.4'
+snmp_mib_variables['ccCopyDestFileType'] = ccCopyDestFileType
+startupConfig = 3
+
+ccCopyEntryRowStatus = '.1.3.6.1.4.1.9.9.96.1.1.1.1.14'
+snmp_mib_variables['ccCopyEntryRowStatus'] = ccCopyEntryRowStatus
+rowStatusActive = 1
+
+ccCopyState = '.1.3.6.1.4.1.9.9.96.1.1.1.1.10'
+snmp_mib_variables['ccCopyState'] = ccCopyState
+copyStateWaiting = 1
+copyStateRunning = 2
+copyStateSuccess = 3
+copyStateFailed = 4
+
 
 # Cisco L2L3 Interface Config Mib
 # http://www.circitor.fr/Mibs/Html/C/CISCO-L2L3-INTERFACE-CONFIG-MIB.php

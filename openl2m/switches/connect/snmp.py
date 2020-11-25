@@ -427,7 +427,7 @@ class SnmpConnector(Connector):
             retval = self._snmp_session.get(oids=oid)
         except Exception as e:
             self.error.status = True
-            self.error.description = "Access denied"
+            self.error.description = "Timeout or Access denied"
             self.error.details = f"SNMP Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   _get({oid}): Exception: {e.__class__.__name__}\n{self.error.details}\n")
             return (True, None)
