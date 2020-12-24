@@ -1,0 +1,34 @@
+{% extends '_base.html' %}
+{% load helpers %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8">
+    <div class="panel panel-success">
+      <div class="panel-heading">
+        <strong>Your Profile</strong>
+      </div>
+      <div class="panel-body">
+        <small class="text-muted">User login</small>
+        <h5>{{ request.user.username }}</h5>
+        <small class="text-muted">Full name</small>
+        <h5>{{ request.user.first_name }} {{ request.user.last_name }}</h5>
+        <small class="text-muted">Email</small>
+        <h5>{{ request.user.email }}</h5>
+        {% if request.user.ldap_user %}
+        <small class="text-muted">LDAP DN</small>
+        <h5>{{ request.user.ldap_user.dn }}</h5>
+        {% endif %}
+        <small class="text-muted">Registered</small>
+        <h5>{{ request.user.date_joined }}</h5>
+        <small class="text-muted">Switch Groups</small>
+        <h5>{{ request.user.switchgroups.all|join:', ' }}</h5>
+        <small class="text-muted">Admin access</small>
+        <h5>{{ request.user.is_staff|yesno|capfirst }}</h5>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

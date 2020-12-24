@@ -206,60 +206,11 @@
       </div>
     </div>
 
-</div>{# col #}
+</div>{# col 1 #}
 <div class="col-md-8">
 
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <strong>Capabilities</strong>
-      </div>
-      <div class="panel-body">
-        <div>Q-Bridge MIB
-        {% if not CAPABILITIES_QBRIDGE_MIB|bitwise_and:switch.snmp_capabilities %}
-        NOT
-        {% endif %}
-        found.</div>
 
-        <div>LLDP MIB
-        {% if not CAPABILITIES_LLDP_MIB|bitwise_and:switch.snmp_capabilities %}
-        NOT
-        {% endif %}
-        found.</div>
-
-        <div>PoE MIB
-        {% if not CAPABILITIES_POE_MIB|bitwise_and:switch.snmp_capabilities %}
-        NOT
-        {% endif %}
-        found.</div>
-
-        <div>ARP MIB
-        {% if not CAPABILITIES_NET2MEDIA_MIB|bitwise_and:switch.snmp_capabilities %}
-        NOT
-        {% endif %}
-        found.</div>
-
-        <div>ARP MIB(new)
-        {% if not CAPABILITIES_NET2PHYS_MIB|bitwise_and:switch.snmp_capabilities %}
-          NOT
-        {% endif %}
-        found.</div>
-
-        {% if CAPABILITIES_CISCO_VTP_MIB|bitwise_and:switch.snmp_capabilities %}
-        <div>Cisco VTP MIB found.</div>
-        {% endif %}
-
-        {% if CAPABILITIES_CISCO_POE_MIB|bitwise_and:switch.snmp_capabilities %}
-        <div>Cisco PoE MIB found.</div>
-        {% endif %}
-
-        {% if CAPABILITIES_CISCO_STACK_MIB|bitwise_and:switch.snmp_capabilities %}
-        <div>Cisco Stack MIB found.</div>
-        {% endif %}
-
-        </div>
-      </div>
-
-</div> {# col #}
+</div> {# col 2 #}
 </div> {# row #}
 {% endif %} {# superuser #}
 

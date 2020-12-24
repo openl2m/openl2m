@@ -29,9 +29,9 @@ Including another URLconf
 """
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth.views import LoginView, PasswordChangeDoneView, PasswordChangeView
 from django.urls import include, path
 from django.conf.urls import include, url
-from django.contrib.auth import views as auth_views
 from django.http import HttpResponseRedirect
 
 from users.views import LogoutView
@@ -48,19 +48,25 @@ urlpatterns = [
     # our own customized form for logout
     # note that we capture login/logout signals in "users/models.py", so we can add log entries
     path(r'logout/', LogoutView.as_view(), name='logout'),
+    path(r'admin/logout/', LogoutView.as_view(), name='logout'),
 
-    # Login/logout - the built-in forms:
-    # see: https://wsvincent.com/django-user-authentication-tutorial-login-and-logout/
+    path(r'accounts/login/', LoginView.as_view(), name='login'),
+    # override some of the password templates, so we can disabled that for ldap
+    path(r'accounts/password_change/',
+         PasswordChangeView.as_view(template_name="registration/password_change.html"),
+         name='password_change'),
+    path(r'accounts/password_change/done/',
+         PasswordChangeDoneView.as_view(template_name="registration/password_change_done.html"),
+         name='password_change_done'),
+    # and the rest are not used:
     # url(r'^accounts/$', include('django.contrib.auth.urls')),
-    path('accounts/', include('django.contrib.auth.urls')),
 
     # application paths
-    path('switches/', include('switches.urls')),
+    path(r'switches/', include('switches.urls')),
 
     # user profiles, etc.
-    # path('users/', include('users.urls')),
-    # path('users/', include('django.contrib.auth.urls')),
+    path(r'users/', include('users.urls')),
 
     # Admin - customized, see admin.py
-    path('admin/', admin_site.urls),
+    path(r'admin/', admin_site.urls),
 ]

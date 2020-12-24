@@ -34,7 +34,7 @@ from switches.utils import dprint
 @shared_task
 def bulkedit_task(task_id, user_id, group_id, switch_id,
                   interface_change, poe_choice, new_pvid,
-                  new_alias, new_alias_type, interfaces, save_config):
+                  new_description, new_description_type, interfaces, save_config):
 
     try:
         task = Task.objects.get(pk=int(task_id))
@@ -94,7 +94,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
     settings.IN_CELERY_PROCESS = True
     results = bulkedit_processor(False, user_id, group_id, switch_id,
                                  interface_change, poe_choice, new_pvid,
-                                 new_alias, new_alias_type, interfaces, save_config, task)
+                                 new_description, new_description_type, interfaces, save_config, task)
 
     task.completed = timezone.now()   # use Django time with support of timezone!
     task.results = json.dumps(results)
@@ -167,7 +167,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
 
 def bulkedit_processor(request, user_id, group_id, switch_id,
                        interface_change, poe_choice, new_pvid,
-                       new_alias, new_alias_type, interfaces, save_config, task=False):
+                       new_description, new_description_type, interfaces, save_config, task=False):
     """
     Function to handle the bulk edit processing, from form-submission or scheduled job.
     This will log each individual action per interface.
@@ -199,18 +199,20 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
     else:
         remote_ip = "0.0.0.0"
 
+    dprint(f"BULK-EDIT: interface_change = {interface_change}")
+    dprint(f"{BULKEDIT_INTERFACE_CHOICES[interface_change]}")
     # log bulk edit arguments:
     log = Log(user=user,
               switch=switch,
               group=group,
               ip_address=remote_ip,
               action=LOG_BULK_EDIT_TASK_START,
-              description=f"Interface Status={ BULKEDIT_INTERFACE_CHOICES[interface_change] }, "
-                          f"PoE Status={ BULKEDIT_POE_CHOICES[poe_choice] }, "
-                          f"Vlan={ new_pvid }, "
-                          f"Descr Type={ BULKEDIT_ALIAS_TYPE_CHOICES[new_alias_type] }, "
-                          f"Descr={ new_alias }, "
-                          f"Save={ save_config }",
+              description=f"Interface Status={BULKEDIT_INTERFACE_CHOICES[interface_change]}, "
+                          f"PoE Status={BULKEDIT_POE_CHOICES[poe_choice]}, "
+                          f"Vlan={new_pvid}, "
+                          f"Descr Type={BULKEDIT_ALIAS_TYPE_CHOICES[new_description_type]}, "
+                          f"Descr={new_description}, "
+                          f"Save={save_config}",
               type=LOG_TYPE_CHANGE)
     log.save()
 
@@ -219,7 +221,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
     if not request:
         # running asynchronously (as task), we need to read the device
         # to get access to interfaces.
-        conn.get_switch_basic_info()
+        conn.get_basic_info()
 
     # now do the work, and log each change
     runtime_undo_info = {}
@@ -250,22 +252,22 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                       group=group)
             current_state['admin_state'] = iface.admin_status
             if interface_change == INTERFACE_STATUS_CHANGE:
-                if iface.admin_status == IF_ADMIN_STATUS_UP:
-                    new_state = IF_ADMIN_STATUS_DOWN
+                if iface.admin_status:
+                    new_state = False
                     new_state_name = "Down"
                     log.action = LOG_CHANGE_INTERFACE_DOWN
                 else:
-                    new_state = IF_ADMIN_STATUS_UP
+                    new_state = True
                     new_state_name = "Up"
                     log.action = LOG_CHANGE_INTERFACE_UP
 
             elif interface_change == INTERFACE_STATUS_DOWN:
-                new_state = IF_ADMIN_STATUS_DOWN
+                new_state = False
                 new_state_name = "Down"
                 log.action = LOG_CHANGE_INTERFACE_DOWN
 
             elif interface_change == INTERFACE_STATUS_UP:
-                new_state = IF_ADMIN_STATUS_UP
+                new_state = True
                 new_state_name = "Up"
                 log.action = LOG_CHANGE_INTERFACE_UP
 
@@ -273,14 +275,14 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
             if new_state != current_state['admin_state']:
                 # yes, apply the change:
                 retval = conn.set_interface_admin_status(iface, new_state)
-                if retval < 0:
-                    error_count += 1
-                    log.type = LOG_TYPE_ERROR
-                    log.description = f"Interface {iface.name}: Bulk-Edit Admin {new_state_name} ERROR: {conn.error.description}"
-                else:
+                if retval:
                     success_count += 1
                     log.type = LOG_TYPE_CHANGE
                     log.description = f"Interface {iface.name}: Bulk-Edit Admin set to {new_state_name}"
+                else:
+                    error_count += 1
+                    log.type = LOG_TYPE_ERROR
+                    log.description = f"Interface {iface.name}: Bulk-Edit Admin {new_state_name} ERROR: {conn.error.description}"
             else:
                 # already in wanted admin state:
                 log.type = LOG_TYPE_CHANGE
@@ -305,7 +307,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                         log.action = LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP
                         # the PoE index is kept in the iface.poe_entry
                         # First disable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
-                        # retval = conn._set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_DISABLED, 'i')
+                        # retval = conn.set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_DISABLED, 'i')
                         # First disable PoE
                         retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_DISABLED)
                         if retval < 0:
@@ -317,7 +319,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                             # successful power down, now delay
                             time.sleep(settings.POE_TOGGLE_DELAY)
                             # Now enable PoE again...
-                            # retval = conn._set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_ENABLED, 'i')
+                            # retval = conn.set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_ENABLED, 'i')
                             retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_ENABLED)
                             if retval < 0:
                                 log.description = f"ERROR: Bulk-Edit Toggle-Enable PoE on interface {iface.name} - {conn.error.description}"
@@ -411,34 +413,34 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                 log.save()
 
         # tired of the old interface description?
-        if new_alias:
-            iface_new_alias = ""
-            # what are we supposed to do with the alias/description?
-            if new_alias_type == BULKEDIT_ALIAS_TYPE_APPEND:
-                iface_new_alias = f"{iface.alias} {new_alias}"
-                # outputs.append(f"Interface {iface.name}: Bulk-Edit Description Append: {iface_new_alias}")
-            elif new_alias_type == BULKEDIT_ALIAS_TYPE_REPLACE:
-                # check if the original alias starts with a string we have to keep:
+        if new_description:
+            iface_new_description = ""
+            # what are we supposed to do with the description/description?
+            if new_description_type == BULKEDIT_ALIAS_TYPE_APPEND:
+                iface_new_description = f"{iface.description} {new_description}"
+                # outputs.append(f"Interface {iface.name}: Bulk-Edit Description Append: {iface_new_description}")
+            elif new_description_type == BULKEDIT_ALIAS_TYPE_REPLACE:
+                # check if the original description starts with a string we have to keep:
                 if settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX:
                     keep_format = f"(^{settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX})"
-                    match = re.match(keep_format, iface.alias)
+                    match = re.match(keep_format, iface.description)
                     if match:
-                        # beginning match, but check if new submitted alias matches requirement:
-                        match_new = re.match(keep_format, new_alias)
+                        # beginning match, but check if new submitted description matches requirement:
+                        match_new = re.match(keep_format, new_description)
                         if not match_new:
-                            # required start string NOT found on new alias, so prepend it!
-                            iface_new_alias = f"{match[1]} {new_alias}"
+                            # required start string NOT found on new description, so prepend it!
+                            iface_new_description = f"{match[1]} {new_description}"
                         else:
                             # new description matches beginning format, keep as is:
-                            iface_new_alias = new_alias
+                            iface_new_description = new_description
                     else:
                         # no beginning match, just set new description:
-                        iface_new_alias = new_alias
+                        iface_new_description = new_description
                 else:
                     # nothing special, just set new description:
-                    iface_new_alias = new_alias
+                    iface_new_description = new_description
 
-            # elif new_alias_type == BULKEDIT_ALIAS_TYPE_PREPEND:
+            # elif new_description_type == BULKEDIT_ALIAS_TYPE_PREPEND:
             # To be implemented
 
             log = Log(user=user,
@@ -447,8 +449,8 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                       switch=switch,
                       group=group,
                       action=LOG_CHANGE_INTERFACE_ALIAS)
-            current_state['description'] = iface.alias
-            retval = conn.set_interface_description(iface, iface_new_alias)
+            current_state['description'] = iface.description
+            retval = conn.set_interface_description(iface, iface_new_description)
             if retval < 0:
                 error_count += 1
                 log.type = LOG_TYPE_ERROR
@@ -477,8 +479,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                   switch=switch,
                   group=group,
                   action=LOG_SAVE_SWITCH)
-        retval = conn.save_running_config()  # we are not checking errors here!
-        if retval < 0:
+        if not conn.save_running_config():
             # an error happened!
             log.type = LOG_TYPE_ERROR
             log.description = "Bulk-Edit Error Saving Config"

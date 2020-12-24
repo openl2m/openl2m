@@ -29,6 +29,7 @@ import socket
 import platform
 import sys
 import warnings
+import netaddr
 
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
@@ -48,8 +49,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = '2.0-dev'
-VERSION_DATE = '- TBD -'
+VERSION = '2.0.0-rc1'
+VERSION_DATE = '2021-02-23'
 
 # Hostname
 HOSTNAME = platform.node()
@@ -124,7 +125,14 @@ IP4_INFO_URLS = getattr(configuration, 'IP4_INFO_URLS', False)
 IP6_INFO_URLS = getattr(configuration, 'IP6_INFO_URLS', False)
 ETHERNET_INFO_URLS = getattr(configuration, 'ETHERNET_INFO_URLS', False)
 
-ETH_FORMAT_UPPERCASE = getattr(configuration, 'ETH_FORMAT_UPPERCASE', 0)
+ETH_FORMAT = getattr(configuration, 'ETH_FORMAT', 0)
+if ETH_FORMAT == 1:     # Hyphen 00-11-22-33-44-55
+    MAC_DIALECT = None
+elif ETH_FORMAT == 2:   # Cisco 0011.2233.4455
+    MAC_DIALECT = netaddr.mac_cisco
+else:
+    # default:
+    MAC_DIALECT = netaddr.mac_unix_expanded     # 00:11:22:33:44:55
 
 IFACE_HIDE_REGEX_IFNAME = getattr(configuration, 'IFACE_HIDE_REGEX_IFNAME', '')
 IFACE_HIDE_REGEX_IFDESCR = getattr(configuration, 'IFACE_HIDE_REGEX_IFDESCR', '')
@@ -168,6 +176,12 @@ if SESSION_FILE_PATH is not None:
 
 # we use the PickleSerializer instead of JSON, so we can better cache objects:
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
+# if using SSL, these should be set to True:
+CSRF_COOKIE_SECURE = getattr(configuration, 'CSRF_COOKIE_SECURE', False)
+SESSION_COOKIE_SECURE = getattr(configuration, 'SESSION_COOKIE_SECURE', False)
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # override the maximum GET/POST item count.
 # with large numbers of switches in a group, we may exceeed the default (1000):

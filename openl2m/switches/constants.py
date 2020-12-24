@@ -11,6 +11,15 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+
+# Connector type for device (Snmp, Napalm)
+CONNECTOR_TYPE_SNMP = 0
+CONNECTOR_TYPE_NAPALM = 1
+CONNECTOR_TYPE_CHOICES = [
+    [CONNECTOR_TYPE_SNMP, 'SNMP'],
+    [CONNECTOR_TYPE_NAPALM, 'Napalm'],
+]
+
 # SNMP constants, v1 not supported!
 SNMP_VERSION_2C = 2
 SNMP_VERSION_3 = 3
@@ -77,21 +86,6 @@ SWITCH_STATUS_CHOICES = [
     [SWITCH_STATUS_DECOMMISSIONING, 'Decommissioning'],
 ]
 
-# Switch capabilities. This is a bit map.
-# Specific bits if set indicate a certain MIB is supported.
-CAPABILITIES_NONE = 0x0
-CAPABILITIES_IF_MIB = 0x00000001          # 1 the newer IF-MIB spec
-CAPABILITIES_QBRIDGE_MIB = 0x00000002     # 2
-CAPABILITIES_NET2MEDIA_MIB = 0x00000004   # 4 old ARP mib
-CAPABILITIES_POE_MIB = 0x00000010         # 8
-CAPABILITIES_LLDP_MIB = 0x00000020        # 16
-CAPABILITIES_NET2PHYS_MIB = 0x00000040    # 32 new ARP mib :-)
-# vendor specific mib
-# Cisco
-CAPABILITIES_CISCO_VTP_MIB = 0x00010000
-CAPABILITIES_CISCO_POE_MIB = 0x00020000
-CAPABILITIES_CISCO_STACK_MIB = 0x00040000
-
 
 CMD_TYPE_GLOBAL = 0
 CMD_TYPE_INTERFACE = 1
@@ -121,6 +115,7 @@ INTERFACE_STATUS_UP = 4
 BULKEDIT_INTERFACE_CHOICES = [
     [INTERFACE_STATUS_NONE, 'No Change'],
     [INTERFACE_STATUS_CHANGE, 'Change'],
+    [INTERFACE_STATUS_DOWN_UP, 'Down/Up'],
     [INTERFACE_STATUS_DOWN, 'Down'],
     [INTERFACE_STATUS_UP, 'Up']
 ]
@@ -132,7 +127,7 @@ BULKEDIT_ALIAS_TYPE_CHOICES = [
     [BULKEDIT_ALIAS_TYPE_REPLACE, 'Replace'],
     [BULKEDIT_ALIAS_TYPE_APPEND, 'Append'],
 ]
-#    [BULKEDIT_ALIAS_TYPE_PREPEND, 'Prepend before existing'],
+#    [BULKEDIT_ALIAS_TYPE_PREPEND, 'Prepend'],
 
 # Types of log entries
 LOG_TYPE_VIEW = 0
@@ -166,6 +161,7 @@ LOG_LOGIN = 90
 LOG_LOGOUT = 91
 LOG_LOGOUT_INACTIVE = 92
 LOG_LOGIN_FAILED = 93
+LOG_LOGIN_LDAP = 94
 LOG_RELOAD_SWITCH = 100
 LOG_NEW_OID_FOUND = 101
 LOG_NEW_HOSTNAME_FOUND = 102
@@ -198,7 +194,18 @@ LOG_LDAP_ERROR_CREATE_GROUP = 260
 LOG_BULK_EDIT_TASK_ERROR = 261
 LOG_EMAIL_ERROR = 262
 
+LOG_NAPALM_ERROR_DRIVER = 301
+LOG_NAPALM_ERROR_OPEN = 302
+LOG_NAPALM_ERROR_FACTS = 303
+LOG_NAPALM_ERROR_INTERFACES = 304
+LOG_NAPALM_ERROR_VLANS = 305
+LOG_NAPALM_ERROR_IF_IP = 306
+LOG_NAPALM_ERROR_MAC = 307
+LOG_NAPALM_ERROR_ARP = 308
+LOG_NAPALM_ERROR_LLDP = 309
+
 LOG_DENIED = 512
+
 
 # nice descriptions of the various log entries
 LOG_ACTION_CHOICES = [
@@ -220,6 +227,7 @@ LOG_ACTION_CHOICES = [
     [LOG_LOGOUT, 'Logout'],
     [LOG_LOGOUT_INACTIVE, 'Inactivity Logout'],
     [LOG_LOGIN_FAILED, 'Login Failed'],
+    [LOG_LOGIN_LDAP, 'LDAP Login'],
     [LOG_CHANGE_INTERFACE_DOWN, 'Interface Disable'],
     [LOG_CHANGE_INTERFACE_UP, 'Interface Enable'],
     [LOG_CHANGE_INTERFACE_TOGGLE_DOWN_UP, 'Interface Toggle'],
@@ -247,6 +255,15 @@ LOG_ACTION_CHOICES = [
     [LOG_LDAP_ERROR_CREATE_GROUP, 'LDAP SwitchGroup Error'],
     [LOG_BULK_EDIT_TASK_ERROR, 'Bulk Edit Job Start Error'],
     [LOG_EMAIL_ERROR, 'Email Error'],
+    [LOG_NAPALM_ERROR_DRIVER, 'Napalm Driver'],
+    [LOG_NAPALM_ERROR_OPEN, 'Napalm Open'],
+    [LOG_NAPALM_ERROR_FACTS, 'Napalm Facts'],
+    [LOG_NAPALM_ERROR_INTERFACES, 'Napalm Interfaces'],
+    [LOG_NAPALM_ERROR_VLANS, 'Napalm Vlans'],
+    [LOG_NAPALM_ERROR_IF_IP, 'Napalm Interface IP'],
+    [LOG_NAPALM_ERROR_MAC, 'Napalm MAC'],
+    [LOG_NAPALM_ERROR_ARP, 'Napalm ARP'],
+    [LOG_NAPALM_ERROR_LLDP, 'Napalm LLDP'],
 ]
 
 # tasks related constants

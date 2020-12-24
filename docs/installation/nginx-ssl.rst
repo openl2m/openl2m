@@ -6,9 +6,19 @@ Nginx with SSL Certificates
 
 We highly recommend that you run the OpenL2M application on a secure web server.
 Here are steps to add a CA-signed SSL certificate to the Nginx configuration.
-You can also use a self-signed certificate, but that is left as an excercise to the reader.
+You can also use a self-signed certificate, but that is left as an exercise to the reader.
 
 For more details, also see https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-16-04
+
+**Django Configuration**
+
+When you enable SSL, you need to add two settings to *openl2m/configuration.py* make SSL more secure:
+
+.. code-block:: bash
+
+  # if using SSL, these should be set to True:
+  CSRF_COOKIE_SECURE = True
+  SESSION_COOKIE_SECURE = True
 
 **Prepare Nginx for SSL**
 

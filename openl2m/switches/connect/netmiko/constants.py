@@ -92,3 +92,20 @@ NETMIKO_DEVICE_TYPES = (
     ('vyatta_vyos', 'vyatta_vyos'),
     ('vyos', 'vyos'),
 )
+
+"""
+the vendors supported by our Napalm libraries.
+Note: if you add a vendor here, you will also need to add the proper commands
+to the napalm_commands dictionary in napalm/commands.py
+"""
+NAPALM_DEVICE_TYPES = (
+    ('', 'None'),
+    ('eos', 'Arista EOS'),
+    ('aoscx', 'Aruba AOS-CX'),
+    ('ios', 'Cisco IOS'),
+    ('iosxr', 'Cisco IOS-XR'),
+    ('nxos_ssh', 'Cisco NX-OS SSH'),
+    ('dellos10', 'Dell OS10'),
+    ('procurve', 'HP Procurve'),
+    ('junos', 'Juniper JunOS'),
+)

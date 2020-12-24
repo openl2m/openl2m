@@ -20,7 +20,9 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
-from libraries.django_ordered_model.ordered_model.models import OrderedModelManager, OrderedModel
+# local copy of django-ordered-model, with some fixes:
+# from libraries.django_ordered_model.ordered_model.models import OrderedModelManager, OrderedModel
+from ordered_model.models import OrderedModelManager, OrderedModel
 
 from switches.constants import *
 from switches.connect.netmiko.constants import *
@@ -32,7 +34,7 @@ from switches.utils import is_valid_hostname_or_ip
 #
 class SnmpProfile(models.Model):
     """
-    An SNMP profile defines a series of settings for management access.
+    An SNMP profile defines a series of settings for SNMP-based management access.
     A switch can have exactly one snmp profile assigned to it.
     """
     def __init__(self, *args, **kwargs):
@@ -132,8 +134,9 @@ class SnmpProfile(models.Model):
 #
 class NetmikoProfile(models.Model):
     """
-    An Netmiko(SSH) profile defines a series of settings for management access.
-    A switch can have exactly one netmiko profile assigned to it.
+    An Netmiko(SSH) profile defines a series of settings for management access over SSH.
+    A switch can have exactly one netmiko/ssh profile assigned to it.
+    Note this is ALSO used for the Napalm library!
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -183,8 +186,8 @@ class NetmikoProfile(models.Model):
 
     class Meta:
         ordering = ['name']
-        verbose_name = 'Netmiko Profile'
-        verbose_name_plural = 'Netmiko Profiles'
+        verbose_name = 'Netmiko/SSH Profile'
+        verbose_name_plural = 'Netmiko/SSH Profiles'
 
     def display_name(self):
         """
@@ -426,11 +429,20 @@ class Switch(models.Model):
         max_length=100,
         blank=True,
     )
-    indent_level = models.SmallIntegerField(
-        default=0,
-        verbose_name='Indentation level',
-        validators=[MinValueValidator(0), MaxValueValidator(10)],
-        help_text='Tab indentation level, helps organize the switchgroup view.',
+    connector_type = models.PositiveSmallIntegerField(
+        choices=CONNECTOR_TYPE_CHOICES,
+        default=CONNECTOR_TYPE_SNMP,
+        verbose_name='Connector Type',
+        help_text='How we connect to this device.',
+    )
+    napalm_device_type = models.CharField(
+        max_length=64,
+        choices=NAPALM_DEVICE_TYPES,
+        default='',
+        blank=True,
+        null=True,
+        verbose_name='Napalm Device Type',
+        help_text='The device type to use if Napalm connector is used.',
     )
     snmp_profile = models.ForeignKey(
         to='SnmpProfile',
@@ -438,7 +450,8 @@ class Switch(models.Model):
         related_name='snmp_profile',
         blank=True,
         null=True,
-        help_text='The SNMP Profile has all the settings to read/write data on the switch.',
+        verbose_name='SNMP Profile',
+        help_text='The SNMP Profile has all the settings to read/write data on the switch. Not used for Napalm.',
     )
     netmiko_profile = models.ForeignKey(
         to='NetmikoProfile',
@@ -446,7 +459,8 @@ class Switch(models.Model):
         related_name='netmiko_profile',
         blank=True,
         null=True,
-        help_text='The Netmiko Profile has all the settings to access the switch via SSH for additional command access.',
+        verbose_name='Netmiko/SSH Profile',
+        help_text='The Netmiko/SSH Profile has all the settings to access the switch via SSH for additional command access. Also used for Napalm connections.',
     )
     command_list = models.ForeignKey(
         to='CommandList',
@@ -454,7 +468,7 @@ class Switch(models.Model):
         related_name='command_list',
         blank=True,
         null=True,
-        help_text='This is the list of commands (if any) that can be executed on the switch.',
+        help_text='This is the list of commands (if any) that can be executed on the switch. Requires a Netmike/SSH profile.',
     )
     read_only = models.BooleanField(
         default=False,
@@ -465,6 +479,12 @@ class Switch(models.Model):
         default=True,
         verbose_name='Bulk-editing of interfaces',
         help_text='If Bulk Edit is set, we allow multiple interfaces on this switch to be edited at once.',
+    )
+    indent_level = models.SmallIntegerField(
+        default=0,
+        verbose_name='Indentation level',
+        validators=[MinValueValidator(0), MaxValueValidator(10)],
+        help_text='Tab indentation level, helps organize the switchgroup view.',
     )
     default_view = models.PositiveSmallIntegerField(
         choices=SWITCH_VIEW_CHOICES,
@@ -517,30 +537,30 @@ class Switch(models.Model):
         verbose_name='External NMS Id',
         help_text='ID or Label in an external Network Management System. To be used in admin-configurable links. See configuration.py',
     )
-    # some fields that are read from SNMP
-    snmp_hostname = models.CharField(
+    # some fields that are set by the proper connector class:
+    hostname = models.CharField(
         max_length=64,
         default='',
         blank=True,
         null=True,
-        verbose_name='SNMP Hostname',
-        help_text='The switch hostname as reported via snmp.',
+        verbose_name='Hostname',
+        help_text='The switch hostname as reported via snmp, ssh, etc.',
     )
-    # some fields to track access and capabilities
-    snmp_bulk_read_count = models.PositiveIntegerField(
+    # some fields to track access
+    read_count = models.PositiveIntegerField(
         default=0,
-        verbose_name='SNMP Bulk Reads',
-        help_text='SNMP Bulks read count performed on the switch.',
+        verbose_name='Reads',
+        help_text='Basic read count performed on the switch.',
     )
-    snmp_read_count = models.PositiveIntegerField(
+    details_read_count = models.PositiveIntegerField(
         default=0,
-        verbose_name='SNMP Reads',
-        help_text='SNMP read count performed on the switch.',
+        verbose_name='Details(arp/lldp) Reads',
+        help_text='Details read count performed on the switch.',
     )
-    snmp_write_count = models.PositiveIntegerField(
+    write_count = models.PositiveIntegerField(
         default=0,
-        verbose_name='SNMP Writes',
-        help_text='SNMP write count performed on the switch.',
+        verbose_name='Writes',
+        help_text='Write count performed on the switch.',
     )
     snmp_oid = models.CharField(
         max_length=100,
@@ -548,11 +568,6 @@ class Switch(models.Model):
         blank=True,
         verbose_name='SNMP systemOID for this switch',
         help_text='The switch OID as reported via snmp.',
-    )
-    snmp_capabilities = models.BigIntegerField(      # gives us 64 bits to use!
-        default=CAPABILITIES_NONE,
-        verbose_name='Bitmap of switch snmp capabilities',
-        help_text='Bitmap of switch snmp capabilities.',
     )
 
     class Meta:
@@ -575,12 +590,56 @@ class Switch(models.Model):
     def get_switchgroups(self):
         return ",".join([str(g) for g in self.switchgroups.all()])
 
+    def is_valid_command_id(self, command_id, is_staff=False):
+        """
+        Verify that a command_id is actually valid(ie assigned) to this device.
+        Returns True or False.
+        """
+        # to be implemented!
+        return True
+
+    def has_interface_commands(self):
+        """
+        Simple check to see if this device has been assigned interface commands.
+        Requires valid NetMiko profile!
+        Returns True or False.
+        """
+        if self.netmiko_profile and self.command_list:
+            if self.command_list.global_commands.count or \
+               self.command_list.global_commands_staff.count:
+                # Looks like we do!
+                return True
+        return False
+
+    def has_global_commands(self):
+        """
+        Simple check to see if this device has been assigned valid global commands.
+        Requires valid NetMiko profile!
+        Returns True or False.
+        """
+        if self.netmiko_profile and self.command_list:
+            if self.command_list.global_commands.count or \
+               self.command_list.global_commands_staff.count:
+                # Looks like we do!
+                return True
+        return False
+
     # basic validation
     # see also https://docs.djangoproject.com/en/2.2/ref/models/instances/#validating-objects
     def clean(self):
         # check if IPv4 address or hostname given is valid!
         if not is_valid_hostname_or_ip(self.primary_ip4):
             raise ValidationError('Invalid Management IPv4 address or hostname.')
+        # if SNMP, we need snmp_profile
+        if self.connector_type == CONNECTOR_TYPE_SNMP:
+            if not self.snmp_profile:
+                raise ValidationError('SNMP Connector needs an SNMP Profile!')
+
+        elif self.connector_type == CONNECTOR_TYPE_NAPALM:
+            if not self.napalm_device_type:
+                raise ValidationError('Napalm Connector needs a Napalm device type!')
+            if not self.netmiko_profile:
+                raise ValidationError('Napalm Connector needs a Netmiko/SSH Profile!')
 
     @property
     def primary_ip(self):

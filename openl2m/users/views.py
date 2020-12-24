@@ -13,8 +13,8 @@
 #
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import logout as auth_logout, update_session_auth_hash
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -44,3 +44,15 @@ class LogoutView(View):
         response.delete_cookie('session_key')
 
         return response
+
+
+#
+# User profiles
+#
+
+class ProfileView(LoginRequiredMixin, View):
+    template_name = 'users/profile.html'
+
+    def get(self, request):
+
+        return render(request, self.template_name)

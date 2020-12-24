@@ -1,0 +1,45 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 2.0
+===========
+
+Version 2.0.0-rc1
+-----------------
+Release Date: 2021-02-23
+
+* Complete rewrite of the internal code. There now is a generic Connector() class
+  that implements an interface that is called from the Django views. Technology and/or vendor
+  specific implementations inherit from this class to implement their version of that interface.
+  Additionally, a new session caching strategy is implemented. This should make it easier to
+  implement a device cache, so others can have quick access to device settings, without
+  the need to re-read the device.
+* To **demonstrate the use of the above API class** we implemented a very basic Python Napalm library
+  interface on top of this API class. This is **solely intented to show how to implement new drivers***. The NapalmConnector()
+  supports a few vendors (Arista, Cisco, Dell, HP, Juniper), but only in read-only mode.
+  **NOTE** the Napalm library does not properly support trunked or 802.1q tagged interfaces.
+  We try to 'catch' this, but the untagged vlan is likely incorrect on trunked/tagged interfaces
+  due to this library shortcoming. It also does not support PoE.
+* if LDAP enabled, add log entry showing DN of authenticated ldap account.
+* password change option for local accounts
+* add user profile view
+
+Bug fixes:
+
+* show (missing) vlans on tagged Cisco interfaces
+* many other miscellaneous fixes
+
+Upgrades:
+
+* upgrade to Django v3.2, and recent version of web libraries.
+* upgrade to most recent versions of python packages used.
+* using more 'native' python libraries (e.g. netaddr)
+* add two configuration settings to make SSL more secure:
+
+.. code-block:: bash
+
+  # if using SSL, these should be set to True:
+  CSRF_COOKIE_SECURE = False
+  SESSION_COOKIE_SECURE = False
+
+ * use tmpfiles.d configuration file for celeryd installation

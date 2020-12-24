@@ -11,7 +11,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.utils import timezone

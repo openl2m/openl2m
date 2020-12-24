@@ -42,24 +42,13 @@ work to handle urls is done. Please read :doc:`Views <views>`
 
 **Connections**
 
-Connections to the switch are based on a Connector() class.
+Connections to the switch are derived from a base Connector() class.
+We currently provide several sub-classes, some based on SNMP and one based on the Napalm automation framework.
 
 See :doc:`Connections <connections>`
 
-**SNMP specific implementation**
-
-Several vendors allow a pure Snmp connector. The base SnmpConnector() and related code is in the
-*switches/connect/* directory.
-
-See :doc:`SNMP Connector <snmp>`
-
-**Vendor specific implementations**
-
-See here how to add new vendors that require non-standard connector classes.
-See :doc:`Vendor implementations <vendor_specific>`
-
 **Netmiko for CLI**
 
-We use the Netmiko framework to establish SSH CLI sessions to execute commands.
+We use the Netmiko framework to establish SSH CLI sessions, and execute CLI commands.
 
 See :doc:`Netmiko Connector <netmiko>`

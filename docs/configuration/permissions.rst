@@ -19,18 +19,17 @@ This tool is not intended to be a full-blown network management tool!
 * an interface that does not have a physical connection (eg Loopback, Vlan, etc) cannot be managed.
   For 'regular' users, it will not even be shown.
 
-* users with the 'superuser' flag set, can manage any aspect of any other
-  interface on all switches in all groups, UNLESS a switch or group is marked as Read-Only!
-  The Read-Only switch or group flag cannot be overwritten, not even by the SuperUser!
+* users with the 'Superuser' flag set can manage the application via the Adminstration menu item.
+  Ie. they can add users, switches, groups, etc.
 
-* users with the 'Staff' flag set, are automatically 'members' of all groups,
-  and have the rights as set for all those groups. One exception is 'Staff' users with
-  the 'Read-Only' user profile flag: these can see all groups and switches, but get a 'Read-Only' view.
+* users with the 'Superuser' or 'Staff' flag set can manage any aspect of any manageable
+  interface on all switches in all groups, UNLESS a switch, group, or user is marked as Read-Only!
+  The Read-Only flag cannot be overwritten, not even by the SuperUser!
 
-The 'Staff' flag is useful for central service desk personnel that need to be able to
-help any user or distributed IT member. Read-Only staff could be e.g. students at that
-central service desk that can see all, but cannot modify. This obviously depends on your
-internal management policies.
+  The 'Staff' flag is useful for central service desk personnel that need to be able to
+  help any user or distributed IT member. Read-Only staff could be e.g. students at that
+  central service desk that can see all, but cannot modify. This obviously depends on your
+  internal management policies.
 
 * the Bulk-Edit flag is enabled by default on Users, Switch Groups, and Switches. If disabled on
   any of those, the user will not see the Bulk Edit tab (web form).

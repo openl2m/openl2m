@@ -38,11 +38,34 @@ def dprint(var):
         logger_console.debug(var)
 
 
+def ddump(obj, header=False):
+    if settings.DEBUG:
+        if header:
+            logger_console.debug(header)
+        logger_console.debug(f"Object = {type(obj)}")
+        for attr in dir(obj):
+            if hasattr(obj, attr):
+                logger_console.debug("obj.%s = %s" % (attr, getattr(obj, attr)))
+
+
 def time_duration(seconds):
     """
     show a nice string with the time duration from the seconds given
     """
     return str(datetime.timedelta(seconds=seconds)).rsplit('.', 2)[0]
+
+
+def uptime_to_string(uptime):
+    """
+    Convert uptime in seconds to a nice string with days, hrs, mins, seconds
+    """
+    days = uptime // (24 * 3600)
+    uptime = uptime % (24 * 3600)   # the "left over" seconds beyond the days
+    hours = uptime // 3600
+    uptime %= 3600                  # the "left over" seconds beyond the hours
+    minutes = uptime // 60
+    uptime %= 60                    # the remaining seconds
+    return f"{days} Days {hours} Hrs {minutes} Mins {uptime} Secs"
 
 
 def get_local_timezone_offset():

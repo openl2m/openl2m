@@ -17,7 +17,7 @@ The particular commands needed to install dependencies on other distributions ma
 Unfortunately, this is outside the control of the OpenL2M maintainers.
 Please consult your distribution's documentation for assistance with any errors.
 
-OpenL2M requires PostgreSQL 9.4 or higher.
+OpenL2M v2 requires PostgreSQL 9.5 or higher.
 
 **Installation - CentOS 7**
 

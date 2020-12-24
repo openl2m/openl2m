@@ -128,11 +128,11 @@
             <td>
               {% if switch.edit_if_descr and group.edit_if_descr or user.profile.edit_if_descr %}
                 <span data-toggle="tooltip" title="Enter a new description for all selected interfaces.">
-                  <input type="text" class="form-control" name="new_alias" value="" placeholder="new description here...">
+                  <input type="text" class="form-control" name="new_description" value="" placeholder="new description here...">
                 </span>
                 <span data-toggle="tooltip" title="Just edit, or append to end">
                   <br />
-                  <select name="new_alias_type">
+                  <select name="new_description_type">
                     {% for choice,name in BULKEDIT_ALIAS_TYPE_CHOICES %}
                       <option value="{{ choice }}">{{ name }}</option>
                     {% endfor %}
@@ -155,8 +155,8 @@
                          title="Check to add interface {{ iface.name }} to list">
               </td>
               <td
-                {% if iface.admin_status ==  IF_ADMIN_STATUS_UP %}
-                  {% if iface.oper_status == IF_OPER_STATUS_UP %}
+                {% if iface.admin_status %}
+                  {% if iface.oper_status %}
                     bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
                   {% else %}
                     bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
@@ -176,7 +176,7 @@
 
               {% include "_tpl_iface_link_td.html" %}
 
-              {# only show vlan, poe, alias and command capabilities for Ethernet interfaces #}
+              {# only show vlan, poe, description and command capabilities for Ethernet interfaces #}
               {% if iface.type == IF_TYPE_ETHERNET %}
                 <td>
                   {% if iface.untagged_vlan > 0 %}
@@ -222,7 +222,7 @@
                 {% endif %}
 
                 <td>
-                  {{ iface.alias }}
+                  {{ iface.description }}
                 </td>
 
               {% endif %}

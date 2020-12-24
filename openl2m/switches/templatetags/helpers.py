@@ -20,9 +20,9 @@ from django.utils.html import mark_safe
 
 from switches.models import *
 from switches.constants import *
-from switches.connect.utils import bytes_ethernet_to_string, bytes_ethernet_to_oui
+from switches.connect.snmp.utils import bytes_ethernet_to_string
 from switches.connect.constants import *
-from switches.connect.oui.oui import get_vendor_from_oui
+from switches.connect.snmp.constants import *
 
 # see https://docs.djangoproject.com/en/2.2/ref/templates/api/
 # and https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/
@@ -55,23 +55,21 @@ def get_switch_link(group, switch):
     """
     Build custom html link to switch, based on switch attributes
     """
-    s = ''
-    if switch.status == SWITCH_STATUS_ACTIVE and switch.snmp_profile:
-        s = "<li class=\"list-group-item\">"
-        if switch.description:
-            s = s + f"<span data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"{switch.description}\">"
-        # do proper indenting:
-        indent = ''
-        for i in range(switch.indent_level):
-            indent = indent + "&nbsp;&nbsp;&nbsp;"
-        if switch.default_view == SWITCH_VIEW_BASIC:
-            s = s + f"{indent}<a href=\"/switches/{group.id}/{switch.id}/\">"
-        else:
-            s = s + f"<a href=\"/switches/{group.id}/{switch.id}/details/\">"
-        s = s + f"{switch.name}</a>"
-        if switch.description:
-            s = s + "</span>"
-        s = s + "</li>"
+    s = "<li class=\"list-group-item\">"
+    if switch.description:
+        s = s + f"<span data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"{switch.description}\">"
+    # do proper indenting:
+    indent = ''
+    for i in range(switch.indent_level):
+        indent = indent + "&nbsp;&nbsp;&nbsp;"
+    if switch.default_view == SWITCH_VIEW_BASIC:
+        s = s + f"{indent}<a href=\"/switches/{group.id}/{switch.id}/\">"
+    else:
+        s = s + f"<a href=\"/switches/{group.id}/{switch.id}/details/\">"
+    s = s + f"{switch.name}</a>"
+    if switch.description:
+        s = s + "</span>"
+    s = s + "</li>"
     return s
 
 
@@ -378,7 +376,7 @@ def get_interface_link(switch, iface):
     Return the HTML data for this interface, including status/type images, etc.
     """
     # start with up/down color for interface
-    if iface.admin_status == IF_ADMIN_STATUS_UP:
+    if iface.admin_status:
         info = f" bgcolor=\"{settings.BGCOLOR_IF_ADMIN_UP}\" "
     else:
         info = f" bgcolor=\"{settings.BGCOLOR_IF_ADMIN_DOWN}\" "
@@ -386,20 +384,20 @@ def get_interface_link(switch, iface):
     info += get_interface_info_links(switch, iface)
     # next make linkable if we can manage it
     if iface.manageable:
-        if iface.admin_status == IF_ADMIN_STATUS_UP:
+        if iface.admin_status:
             info = info + f"<a onclick=\"return confirm_change('Are you sure you want to DISABLE {iface.name} ?')\" \
-                     href=\"/switches/{group.id}/{switch.id}/{iface.index}/admin/{IF_ADMIN_STATUS_DOWN}/\" \
+                     href=\"/switches/{group.id}/{switch.id}/{iface.index}/admin/0/\" \
                      data-toggle=\"tooltip\" title=\"Click here to Disable {iface.name}\">{iface.name}</a>"
         else:
             info = info + f"<a onclick=\"return confirm_change('Are you sure you want to ENABLE {iface.name} ?')\" \
-                     href=\"/switches/{group.id}/{switch.id}/{iface.index}/admin/{IF_ADMIN_STATUS_UP}/\" \
+                     href=\"/switches/{group.id}/{switch.id}/{iface.index}/admin/1/\" \
                      data-toggle=\"tooltip\" title=\"Click here to Enable {iface.name}\">{iface.name}</a>"
 
     else:
         info = info + f" {iface.name} "
 
     # start with up/down color for interface
-    if iface.admin_status == IF_ADMIN_STATUS_UP:
+    if iface.admin_status:
         info = info + "&nbsp;&nbsp;<img src=\"/static/img/enabled.png\" \
                  alt=\"Interface Enabled\" data-toggle=\"tooltip\" title=\"Interface is Enabled\">"
     else:
@@ -465,14 +463,20 @@ def get_lldp_info(neighbor):
                 bytes = neighbor.chassis_string[1:]
                 chassis_info = ".".join("%d" % ord(b) for b in bytes)
             elif net_addr_type == IANA_TYPE_IPV6:
+                # to be dealt with!
                 chassis_info = 'IPv6 Address'
             else:
                 chassis_info = 'Unknown Address Type'
 
     if neighbor.sys_descr:
-        info = info + f"<abbr data-toggle=\"tooltip\" title=\"{neighbor.sys_descr}\">{name} - {chassis_info}</abbr>"
+        info = info + f"<abbr data-toggle=\"tooltip\" title=\"{neighbor.sys_descr}\">{name}"
+        if chassis_info:
+            info += f" - {chassis_info}"
+        info += "</abbr>"
     else:
-        info = info + f"{name} - {chassis_info}"
+        info = info + f"{name}"
+        if chassis_info:
+            info += " - {chassis_info}"
 
     return mark_safe(info)
 

@@ -8,13 +8,13 @@ Installation
 
 OpenL2M has some requirements:
 
-* Python 3.6 (Higher may work, but we only test with v3.6)
+* Python 3.6 or 3.7 (Higher may work, but we only test with v3.6 and 3.7)
 * net-snmp v5.7 or greater, including net-snmp-devel
 * the Python "easysnmp" package v0.2.5 or greater.
 * a web server, with the WSGI capability. We use Nginx in all our documentation.
   Apache may work but is not tested.
-* a Postgresql database, running at least version 9. We use v9.6 in our testing.
-* the Django framework, v2.2 or greater. v2.2 is used in development.
+* a PostgreSQL database, running at least version 9.6. We use v9.6 and v10.15 in our testing.
+* the Django framework, v3.1 or greater. v3.1 is used in testing.
 
 **Application Stack Overview**
 
@@ -25,9 +25,11 @@ to get a working OpenL2M application:
 * Gunicorn WSGI Process with Python
 * Postgresql database
 
+At the end of this page is an image showing the application stack.
+
 **Installation**
 
-OpenL2m is developed and tested in a CentOS Linux v7 and v8 environment.
+OpenL2M is developed and tested in a CentOS Linux v7 and v8 environment.
 All instructions are related to that.
 However, this should work just fine on Ubuntu and other distributions.
 
@@ -43,3 +45,8 @@ However, this should work just fine on Ubuntu and other distributions.
    ldap.rst
    upgrading.rst
    alt-python.rst
+
+
+** Application Stack Overview **
+
+.. image:: ../_static/openl2m-application-stack.png

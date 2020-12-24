@@ -5,6 +5,13 @@ Code Introduction
 
 This document attempts to describe how OpenL2M is functioning inside the Django framework
 
+As of version 2, we have a base API class called Connector(). This class implements
+all the functions that are called by the Django application to extra data from and perform actions on a network device.
+This class, implemented in the 'switches' app, and its derived vendor-specific classes is where all the funs happens!
+And you will also need to know a little about how we use the Django framework.
+
+**Django**
+
 As is Django custom, all Django files are stored in the *openl2m/* sub-directory.
 From here forward, all references to other directories will be relative to this location.
 
@@ -42,8 +49,8 @@ object. It is in the users/ directory.
 
 * :doc:`switches <switches_app/index>`
 
-This is where most of the work with SNMP and the GUI is handled.
-It is in the switches/ directory.
+This is where most of the work of the Web GUI is handled. Also the Connector() class and its derived classes and code
+that handle SNMP, Napalm, SSH, etc. are located in the switches/ directory.
 
 
 **Additional directories**

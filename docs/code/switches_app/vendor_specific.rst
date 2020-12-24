@@ -7,9 +7,12 @@ Vendor Specific Customizations
 Supporting a new vendor device
 ==============================
 
-In openl2m/switches/connect/vendor/, you can create you own vendor subdirectory.
-This folder needs to contain a python file that inherits from the main SnmpConnector() class.
-Suggested name is *snmp.py*  Call the class SnmpConnector*VendorName*
+In openl2m/switches/connect/[snmp]/vendor/, you can create you own vendor subdirectory.
+This folder needs to contain a python file that inherits from the main Connector() class,
+or the SnmpConnector() class as needed.
+
+If your class is SNMP based, create a new directory under snmp/vendor, and inherit from SnmpConnector().
+Suggested name is *connector.py*. Call the class SnmpConnector*VendorName*
 
 Override whatever function are needed (see the samples in vendor/cisco, vendor/procurve and vendor/comware)
 Then add your code as follows:
@@ -18,8 +21,8 @@ Then add your code as follows:
 
 .. code-block:: bash
 
-    from switches.connect.vendors.procurve.constants import *
-    from switches.connect.vendors.procurve.snmp import SnmpConnectorProcurve
+    from switches.connect.snmp.vendors.procurve.constants import *
+    from switches.connect.snmp.vendors.procurve.snmp import SnmpConnectorProcurve
 
 * in the get_connection_object() function in the same connect/connect.py,
   add code to call the new vendor class when that vendor is detected. E.g.:

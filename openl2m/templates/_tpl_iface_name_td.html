@@ -2,14 +2,14 @@
 {% load static %}
 
 <td
-  {% if iface.admin_status ==  IF_ADMIN_STATUS_UP %}
-    {% if iface.oper_status == IF_OPER_STATUS_UP %}
+  {% if iface.admin_status %}
+    {% if iface.oper_status %}
       bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
     {% else %}
       bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
     {% endif %}
     {{ switch|get_interface_info_links:iface }}
-    <a href="{% url 'switches:admin_change' group.id switch.id iface.key IF_ADMIN_STATUS_DOWN %}"
+    <a href="{% url 'switches:admin_change' group.id switch.id iface.key 0 %}"
       data-toggle="tooltip"
       title="Click here to Disable {{ iface.name }}"
     {% if request.user.profile.are_you_sure %}
@@ -19,7 +19,7 @@
   {% else %}
     bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
     {{ switch|get_interface_info_links:iface }}
-    <a href="{% url 'switches:admin_change' group.id switch.id iface.key IF_ADMIN_STATUS_UP %}"
+    <a href="{% url 'switches:admin_change' group.id switch.id iface.key 1 %}"
        data-toggle="tooltip"
        title="Click here to Enable {{ iface.name }}"
     {% if request.user.profile.are_you_sure %}

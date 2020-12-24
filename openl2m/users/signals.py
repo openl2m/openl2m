@@ -29,6 +29,12 @@ def ldap_auth_handler(user, ldap_user, **kwargs):
     This signal gets called after Django Auth LDAP Package has populated
     the user with its data, but before the user is saved to the database.
     """
+    # Log the ldap path used to authenticate this user
+    log = Log(user=user,
+              action=LOG_LOGIN_LDAP,
+              description=f"LDAP authenticated from '{ldap_user.dn}'",
+              type=LOG_TYPE_LOGIN_OUT)
+    log.save()
     # Check all of the user's group names to see if they belong
     # in a group that match what we're looking for.
     for group_name in ldap_user.group_names:
@@ -72,6 +78,6 @@ def ldap_auth_handler(user, ldap_user, **kwargs):
                 # how to handle this other then log message?
                 log = Log(user=user,
                           action=LOG_LDAP_ERROR_USER_TO_GROUP,
-                          description="Error adding user to switchgroup '{switchgroup_name}' from LDAP",
+                          description=f"Error adding user to switchgroup '{switchgroup_name}' from LDAP",
                           type=LOG_TYPE_ERROR)
                 log.save()

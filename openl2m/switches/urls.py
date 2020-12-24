@@ -55,7 +55,7 @@ urlpatterns = [
     path('<int:group_id>/<int:switch_id>/save/<str:view>/', views.switch_save_config, name='switch_save_config'),
 
     path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/admin/<int:new_state>/', views.interface_admin_change, name='admin_change'),
-    path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/newalias/', views.interface_alias_change, name='alias_change'),
+    path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/newdescription/', views.interface_description_change, name='description_change'),
     path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/newpvid/', views.interface_pvid_change, name='pvid_change'),
     path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/poe/<int:new_state>/', views.interface_poe_change, name='poe_change'),
     path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/poetoggle/', views.interface_poe_down_up, name='poe_down_up'),

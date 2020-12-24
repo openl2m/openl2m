@@ -4,7 +4,7 @@
 Using LDAP authentication
 =========================
 
-NOTE: this is a copy of the NetBox LDAP installation document.
+NOTE: this is a (modified) copy of the NetBox LDAP installation document.
 
 This guide explains how to implement *optional* LDAP authentication using an external server.
 User authentication will fall back to built-in Django users in the event of a failure.

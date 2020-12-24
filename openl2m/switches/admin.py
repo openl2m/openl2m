@@ -13,7 +13,9 @@
 #
 from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
-from libraries.django_ordered_model.ordered_model.admin import OrderedStackedInline, OrderedTabularInline, OrderedInlineModelAdminMixin
+# local copy of django-ordered-model, with some fixes:
+# from libraries.django_ordered_model.ordered_model.admin import OrderedStackedInline, OrderedTabularInline, OrderedInlineModelAdminMixin
+from ordered_model.admin import OrderedStackedInline, OrderedTabularInline, OrderedInlineModelAdminMixin
 
 # Register your models here.
 from switches.models import (Command, CommandList, Switch, SwitchGroup, SwitchGroupMembership,
@@ -37,8 +39,8 @@ class SwitchInline(admin.TabularInline):
 class SwitchAdmin(admin.ModelAdmin):
     save_on_top = True
     list_display = ('name', 'get_switchgroups')
-    readonly_fields = ('snmp_hostname', 'snmp_bulk_read_count', 'snmp_read_count',
-                       'snmp_write_count', 'snmp_oid', 'snmp_capabilities',)
+    readonly_fields = ('hostname', 'read_count', 'details_read_count',
+                       'write_count', 'snmp_oid', )
     search_fields = ['name']
     inlines = (SwitchInline,)
 
@@ -53,14 +55,6 @@ class SwitchGroupMembershipStackedInline(OrderedTabularInline):
 
 
 # Change the SwitchGroup admin page to show horizontal listing of selected items:
-class SwitchGroupAdmin_OLD(admin.ModelAdmin):
-    save_on_top = True
-    search_fields = ['name']
-    filter_horizontal = ('users', 'vlan_groups', 'vlans', 'switches',)
-    # we just want all fields:
-    # list_display = ('name', 'vid', 'description')
-
-
 class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
     # we just want all fields:
     # list_display = ('name', )

@@ -20,6 +20,12 @@
 # PYTHON="/usr/local/bin/python3.7"
 PYTHON="/usr/bin/python3"
 
+# See if the user want an alternate version of Python
+if [ -f "altpython.sh" ]; then
+  source "altpython.sh"
+  echo "Using Alternate Python version at '${PYTHON}'"
+fi
+
 cd "$(dirname "$0")"
 VIRTUALENV="$(pwd -P)/venv"
 
@@ -91,6 +97,7 @@ eval $COMMAND || exit 1
 #eval $COMMAND || exit 1
 
 # All done!
+echo
 echo "OpenL2M upgrade complete! Don't forget to restart the OpenL2M service:"
 echo "    sudo systemctl restart openl2m"
 echo

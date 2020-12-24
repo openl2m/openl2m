@@ -19,23 +19,30 @@ if we cannot do it all using snmp.
 import datetime
 
 from switches.utils import dprint
-from switches.connect.snmp import *
+from switches.connect.connector import *
 from switches.connect.classes import Error
 import switches.views
-# here are the vendor specific snmp classes:
-# this should be made dynamic at some point!
-from switches.connect.vendors.constants import *
-from switches.connect.vendors.cisco.constants import *
-from switches.connect.vendors.cisco.snmp import SnmpConnectorCisco
-from switches.connect.vendors.comware.constants import *
-from switches.connect.vendors.comware.snmp import SnmpConnectorComware
-from switches.connect.vendors.juniper.constants import *
-from switches.connect.vendors.juniper.snmp import SnmpConnectorJuniper
-from switches.connect.vendors.procurve.constants import *
-from switches.connect.vendors.procurve.snmp import SnmpConnectorProcurve
 
-from switches.connect.vendors.dummy.constants import *
-from switches.connect.vendors.dummy.dummy import DummyConnector
+# here are the SNMP specific classes:
+# this should be made dynamic at some point!
+from switches.connect.snmp.connector import *
+from switches.connect.snmp.constants import *
+from switches.connect.snmp.cisco.constants import *
+from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
+from switches.connect.snmp.dell.constants import *
+from switches.connect.snmp.dell.connector import SnmpConnectorDell
+from switches.connect.snmp.comware.constants import *
+from switches.connect.snmp.comware.connector import SnmpConnectorComware
+from switches.connect.snmp.juniper.constants import *
+from switches.connect.snmp.juniper.connector import SnmpConnectorJuniper
+from switches.connect.snmp.procurve.constants import *
+from switches.connect.snmp.procurve.connector import SnmpConnectorProcurve
+
+# Napalm drivers are here:
+from switches.connect.napalm.connector import NapalmConnector
+
+# a dummy 'test connector'
+from switches.connect.dummy.connector import DummyConnector
 
 
 def get_connection_object(request, group, switch):
@@ -47,44 +54,57 @@ def get_connection_object(request, group, switch):
     """
     dprint(f"get_connection_object() for {switch} at {datetime.datetime.now()}")
 
-    if switch.name == "Dummy":
+    # hardcode the dummy switch :-)
+    if switch.name.lower() == "dummy":
         connection = DummyConnector(request, group, switch)
     else:
-        if not switch.snmp_oid:
-            # we don't know this switch yet, go probe it
-            conn = SnmpConnector(request, group, switch)
-            if not conn._probe_mibs():
-                raise Exception('Error probing device. Is the SNMP Profile correct?')
-                return  # for clarify
+        if switch.connector_type == CONNECTOR_TYPE_SNMP:
+            if not switch.snmp_oid:
+                # we don't know this switch yet, go probe it
+                conn = SnmpConnector(request, group, switch)
+                if not conn._probe_mibs():
+                    raise Exception('Error probing device. Is the SNMP Profile correct?')
+                    return  # for clarify
 
-        # now we should have the basics:
-        if switch.snmp_oid:
-            # we have the ObjectID, what kind of vendor is it:
-            dprint(f"   Checking device type for {switch.snmp_oid}")
-            sub_oid = oid_in_branch(enterprises, switch.snmp_oid)
-            if sub_oid:
-                parts = sub_oid.split('.', 1)  # 1 means one split, two elements!
-                enterprise_id = int(parts[0])
-                # here we go:
-                if enterprise_id == ENTERPRISE_ID_CISCO:
-                    connection = SnmpConnectorCisco(request, group, switch)
+            # now we should have the basics:
+            if switch.snmp_oid:
+                # we have the ObjectID, what kind of vendor is it:
+                dprint(f"   Checking device type for {switch.snmp_oid}")
+                sub_oid = oid_in_branch(enterprises, switch.snmp_oid)
+                if sub_oid:
+                    parts = sub_oid.split('.', 1)  # 1 means one split, two elements!
+                    enterprise_id = int(parts[0])
+                    # here we go:
+                    if enterprise_id == ENTERPRISE_ID_CISCO:
+                        connection = SnmpConnectorCisco(request, group, switch)
 
-                elif enterprise_id == ENTERPRISE_ID_JUNIPER:
-                    connection = SnmpConnectorJuniper(request, group, switch)
+                    elif enterprise_id == ENTERPRISE_ID_JUNIPER:
+                        connection = SnmpConnectorJuniper(request, group, switch)
 
-                elif enterprise_id == ENTERPRISE_ID_HP:
-                    connection = SnmpConnectorProcurve(request, group, switch)
+                    elif enterprise_id == ENTERPRISE_ID_HP:
+                        connection = SnmpConnectorProcurve(request, group, switch)
 
-                elif enterprise_id == ENTERPRISE_ID_H3C:
-                    connection = SnmpConnectorComware(request, group, switch)
+                    elif enterprise_id == ENTERPRISE_ID_H3C:
+                        connection = SnmpConnectorComware(request, group, switch)
 
-                else:
-                    # system oid found, but unknown vendor:
-                    connection = SnmpConnector(request, group, switch)
+                    # Dell is yet top be tested!
+                    # elif enterprise_id == ENTERPRISE_ID_DELL:
+                    #    connection = SnmpConnectorDell(request, group, switch)
 
-        # no system oid found, return a "generic" SNMP object
+                    else:
+                        # system oid found, but unknown vendor:
+                        connection = SnmpConnector(request, group, switch)
+
+            # no system oid found, return a "generic" SNMP object
+            else:
+                connection = SnmpConnector(request, group, switch)
+
+        elif switch.connector_type == CONNECTOR_TYPE_NAPALM:
+            connection = NapalmConnector(request, group, switch)
+
         else:
-            connection = SnmpConnector(request, group, switch)
+            # should not happen!
+            raise Exception("Invalid connector type configured on switch!")
 
     # load caches (http session, memory cache (future), whatever else for performance)
     connection.load_cache()

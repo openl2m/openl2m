@@ -106,13 +106,24 @@ Run Celery as a Service:
 You will need to configure systemd to run the Celery process.
 (See more at https://docs.celeryproject.org/en/latest/userguide/daemonizing.html)
 
-We need a user to run this process. You will need sudo (or root) access. Run:
+We need a user to run this process. You will need sudo (or root) access to run:
 
 .. code-block:: bash
 
   sudo useradd celery
 
 Next, we need directories for the logs and PID files:
+
+**Most systems support tmpfiles.d, follow these steps:**
+
+.. code-block:: bash
+
+  sudo cp ./scripts/celery-tmp.conf /etc/tmpfiles.d/celery.conf
+
+Upon reboot, the needed directories will be created.
+
+**If your system does NOT support tmpfiles.d***, or you do not want to reboot after install,
+  run the following commands:
 
 .. code-block:: bash
 
@@ -124,7 +135,7 @@ Next, we need directories for the logs and PID files:
   sudo chown celery:celery /var/log/celery
 
 
-Copy the Celery configuration file celery.default to /etc/default/celeryd
+Next, copy the Celery configuration file celery.default to /etc/default/celeryd
 
 .. code-block:: bash
 

@@ -37,3 +37,19 @@ SNMP Introductions
 While there are many, this one has a good basic explanation and includes a
 good example of the GetBulk non-repeaters and max-repetitions parameters:
 https://www.snmpsharpnet.com/?page_id=30
+
+
+**Napalm Automation**
+
+The Napalm documentation is at https://napalm.readthedocs.io/
+
+We also use a few community libraries as documented here
+https://napalm.readthedocs.io/en/latest/contributing/drivers.html
+
+For Aruba AOS-CX support, we use this: https://developer.arubanetworks.com/aruba-aoscx/docs/installing-arubas-napalm-drivers
+
+For Dell OS10 support, we use this: https://dellos10-napalm.readthedocs.io/en/latest/index.html
+
+For HP Procurve support, we use this: https://github.com/ixs/napalm-procurve
+
+A possible Comware Napalm driver is at https://github.com/firefly-serenity/napalm-flexfabric

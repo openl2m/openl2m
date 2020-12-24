@@ -2,7 +2,7 @@
 {% load static %}
 
 <td>
-  {% if iface.oper_status == IF_OPER_STATUS_UP %}
+  {% if iface.oper_status %}
     {% if iface.speed > 0 %}
       {{ iface.speed|humanize_speed }}
     {% else %}
