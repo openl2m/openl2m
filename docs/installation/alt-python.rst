@@ -4,8 +4,9 @@
 Using Alternate Python Versions
 ===============================
 
-On CentOS 8, the stock python is version 3.6 While we have only tested minimally,
-you can use other versions of Python, e.g. v3.7
+On CentOS 8, the stock python is version 3.6 This version will not be supported past 2021.
+While at this time we have only tested minimally,
+you can use newer versions of Python, e.g. v3.8
 
 Follow these steps:
 
@@ -15,10 +16,36 @@ Python Installation
 Install the alternate version of Python. The details are left to the user,
 but in general, this will be something like:
 
-#. install required development packages for your OS.
-#. download latest python source (e.g. v3.7.8 or v3.8.5 at the time of this writing).
-#. compile it.
+#. install required development packages for your OS. Probably something like:
+
+.. code-block:: bash
+  sudo dnf groupinstall 'development tools'
+
+#. download latest python source from https://www.python.org/downloads/
+   (e.g. v3.8.7 at the time of this writing).
+   E.g
+
+.. code-block:: bash
+  cd <your src installation directory>
+  VER=3.8.7
+  wget https://www.python.org/ftp/python/${VER}/Python-${VER}.tgz
+  tar -zxvf Python-${VER}.tgz
+  cd Python-${VER}
+
+#. compile it, by following instructions in Readme.1st
+
+.. code-block:: bash
+  ./configure --enable-optimizations
+  make
+  make test
+
 #. install as 'alternate' version, so as to not overwrite the system python 3.
+
+.. code-block:: bash
+  sudo make altinstall
+
+#. or, if you know what you are doing, change your system's python version to be v3.8
+   In this case you can ignore the following step!
 
 OpenL2M Configuration
 ---------------------
@@ -27,20 +54,22 @@ Find the full path to your new Python:
 
 .. code-block:: bash
 
-  which python3.7
+  which python3.8
 
-Modify the *upgrade.sh* file to point to this alternate python:
+Copy the file **altpython.sh** to the top level directory (where upgrade.sh is),
+and modify it to point the PYTHON variable to this alternate python:
 
 .. code-block:: bash
 
   cd /opt/openl2m
-  vi upgrade.sh
+  cp scripts/altpython.sh .
+  vi altpython.sh
 
-and change this line to point to the proper python 3:
+Change this line to point to the proper python 3:
 
 .. code-block:: bash
 
-  PYTHON="/usr/local/bin/python3.7"
+  PYTHON="/usr/local/bin/python3.8"
 
 
 Verify
@@ -73,7 +102,3 @@ If this is all correct, you can restart the services, and should be good to go!
 
   sudo systemctl start openl2m
   sudo systemctl start celery
-
-**NOTE** if you use an alternate python version, make sure you check the
-*upgrade.sh* after every code update, as it may have changed and
-overwritten your modification!

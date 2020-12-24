@@ -38,6 +38,16 @@ def dprint(var):
         logger_console.debug(var)
 
 
+def ddump(obj, header=False):
+    if settings.DEBUG:
+        if header:
+            logger_console.debug(header)
+        logger_console.debug(f"Object = {type(obj)}")
+        for attr in dir(obj):
+            if hasattr(obj, attr):
+                logger_console.debug("obj.%s = %s" % (attr, getattr(obj, attr)))
+
+
 def time_duration(seconds):
     """
     show a nice string with the time duration from the seconds given

@@ -100,7 +100,7 @@
               {% for macaddr, eth in iface.eth.items %}
                 <div>
                   {{ eth|get_ethernet_info_links }}
-                  {{ eth.display_address }}
+                  {{ eth }}
                   {% if eth.vlan_id > 0 %}
                     (Vlan {{ eth.vlan_id }})
                   {% endif %}
@@ -108,7 +108,7 @@
                      / {{ eth.address_ip4|get_ip4_info_links }}
                        {{ eth.address_ip4 }}
                   {% endif %}
-                  {% if eth.vendor != "" %}&nbsp;&nbsp;<small>({{ eth.vendor }})</small>{% endif %}
+                  {% if eth.vendor != "" %}&nbsp;<small>({{ eth.vendor }})</small>{% endif %}
                 </div>
               {% endfor %}
             </td>

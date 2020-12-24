@@ -11,13 +11,13 @@ application designed to provide a consistent web interface for Layer 2 device
 management, *independent of the underlying switch vendor*. OpenL2M can distribute
 the management of Layer 2 network switches to various users and groups. The
 distributed management approach taken by OpenL2M is based on Vlans and switch
-groups. OpenL2M uses only SNMP to accomplish all of its regular tasks.
+groups. OpenL2M can use a variety device communications methods to accomplish all of its regular tasks.
 
 **Features**
 
 :doc:`Click here for OpenL2M screenshots <screenshots>`, showing most features.
 
-OpenL2M can manage interfaces on switches using SNMP v2 and v3, including:
+OpenL2M can manage interfaces on switches, including:
 
 * **enabling / disabling** of interfaces  (i.e. admin-shutdown/enable).
 * **change vlan** of the interface.
@@ -37,6 +37,9 @@ OpenL2M can manage interfaces on switches using SNMP v2 and v3, including:
 * configurable links on the switch, or interfaces to external tools such as an NMS
 * configurable menus
 * easily extended architecture to support other vendors that require custom snmp variables (mibs)
+
+OpenL2M uses a variety of methods, including SNMP v2 and v3 for device that support it; SSH; Napalm.
+There is a generic object interface that makes it straight forward to support new devices by implementing a device or vendor specific drivers
 
 **What OpenL2M Is Not**
 
@@ -71,7 +74,7 @@ matching "Trunk", or with port speeds above 9.5Gbps can be matched to be off-lim
 **Getting Started**
 
 OpenL2M uses the Django_ framework with a PostgreSQL_ database.
-It uses the Python_ v3 programming language. Switches need to support SNMP v3 or v2c.
+It uses the Python_ v3 programming language. Most common switches are supported via SNMP v3 or v2c, and SSH.
 
 .. _Django: https://www.djangoproject.com/
 .. _PostgreSQL: http://www.postgresql.org/

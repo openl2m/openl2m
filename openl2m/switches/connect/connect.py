@@ -19,6 +19,7 @@ if we cannot do it all using snmp.
 import datetime
 
 from switches.utils import dprint
+from switches.connect.connector import *
 from switches.connect.snmp import *
 from switches.connect.classes import Error
 import switches.views
@@ -47,7 +48,7 @@ def get_connection_object(request, group, switch):
     """
     dprint(f"get_connection_object() for {switch} at {datetime.datetime.now()}")
 
-    if switch.name == "Dummy":
+    if switch.name.lower() == "dummy":
         connection = DummyConnector(request, group, switch)
     else:
         if not switch.snmp_oid:

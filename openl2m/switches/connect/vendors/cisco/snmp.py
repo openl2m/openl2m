@@ -23,6 +23,7 @@ from django.conf import settings
 from switches.models import Log
 from switches.constants import *
 from switches.connect.classes import *
+from switches.connect.connector import *
 from switches.connect.snmp import SnmpConnector, oid_in_branch
 from switches.utils import *
 
@@ -101,7 +102,8 @@ class SnmpConnectorCisco(SnmpConnector):
     def _get_vlan_data(self):
         """
         Implement an override of vlan parsing to read Cisco specific MIB
-        Return 1 on success, -1 on failure
+        Get all neccesary vlan info (names, id, ports on vlans, etc.) from the switch.
+        Returns -1 on error, or number to indicate vlans found.
         """
         dprint("_get_vlan_data(Cisco)\n")
         # first, read existing vlan id's
@@ -115,30 +117,45 @@ class SnmpConnectorCisco(SnmpConnector):
         # next, read vlan names
         retval = self.get_branch_by_name('vtpVlanName', True, self._parse_mibs_cisco_vtp)
         if retval < 0:
-            return False
+            return retval
         # find out if a port is configured as trunk or not, read port trunk(802.1q tagged) status
         retval = self.get_branch_by_name('vlanTrunkPortDynamicState', True, self._parse_mibs_cisco_vtp)
         if retval < 0:
-            return False
+            return retval
         # now, find out if interfaces are access or trunk (tagged) mode
         # this is the actual status, not what is configured; ie NOT trunk if interface is down!!!
         # retval = self.get_branch_by_name(vlanTrunkPortDynamicStatus):  # read port trunk(802.1q tagged) status
         #    dprint("Cisco PORT TRUNK STATUS data FALSE")
         #    return False
         # and read the native vlan for trunked ports
-        retval = self.get_branch_by_name('vlanTrunkPortNativeVlan', True, self._parse_mibs_cisco_vtp)  # read trunk native vlan membership
+        retval = self.get_branch_by_name('vlanTrunkPortNativeVlan', True, self._parse_mibs_cisco_vtp)
         if retval < 0:
-            return False
+            return retval
+        # also read the vlans on all trunk interfaces:
+        retval = self.get_branch_by_name('vlanTrunkPortVlansEnabled', True, self._parse_mibs_cisco_vtp)
+        if retval < 0:
+            return retval
+        # now read 2k, 3k and 4k vlans as well:
+        retval = self.get_branch_by_name('vlanTrunkPortVlansEnabled2k', True, self._parse_mibs_cisco_vtp)
+        if retval < 0:
+            return retval
+        # if the 2k vlan mibs exist, then also read 3k & 4k vlans
+        elif retval > 0:
+            retval = self.get_branch_by_name('vlanTrunkPortVlansEnabled3k', True, self._parse_mibs_cisco_vtp)
+            if retval > 0:
+                retval = self.get_branch_by_name('vlanTrunkPortVlansEnabled4k', True, self._parse_mibs_cisco_vtp)
+
         # finally, if not trunked, read untagged interfaces vlan membership
         retval = self.get_branch_by_name('vmVlan')
         if retval < 0:
-            return False
+            return retval
         # and just for giggles, read Voice vlan
         retval = self.get_branch_by_name('vmVoiceVlanId')
         if retval < 0:
-            return False
-
-        return 1
+            return retval
+        # set vlan count
+        self.vlan_count = len(self.vlans)
+        return self.vlan_count
 
     def _get_known_ethernet_addresses(self):
         """
@@ -393,6 +410,67 @@ class SnmpConnectorCisco(SnmpConnector):
                 else:
                     dprint("  TRUNK NATIVE found, but NOT TRUNK PORT")
             return True
+        # if trunk, what vlans are on the trunk?
+        if_index = oid_in_branch(vlanTrunkPortVlansEnabled, oid)
+        if if_index:
+            # trunk/tagged port native vlan
+            dprint(f"TRUNK PORT {if_index} HAS VLANS:")
+            iface = self.get_interface_by_key(if_index)
+            if iface:
+                dprint(f"   INTERFACE = {iface.name}")
+                if iface.is_tagged:
+                    # now parse the bitmap. Note the bit place values are vlan indexes, NOT vlan ID!!!
+                    dprint("   BITMAP to parse here!")
+                    self._cisco_parse_vlan_bitmap(val, 0, iface)
+                else:
+                    dprint("     IGNORING, NOT TRUNK PORT")
+
+            return True
+        if_index = oid_in_branch(vlanTrunkPortVlansEnabled2k, oid)
+        if if_index:
+            # trunk/tagged port native vlan
+            dprint(f"TRUNK PORT {if_index} HAS 2k VLANS:")
+            iface = self.get_interface_by_key(if_index)
+            if iface:
+                dprint(f"   INTERFACE = {iface.name}")
+                if iface.is_tagged:
+                    # now parse the bitmap. Note the bit place values are vlan indexes, NOT vlan ID!!!
+                    dprint("   BITMAP to parse here!")
+                    self._cisco_parse_vlan_bitmap(val, 1024, iface)
+                else:
+                    dprint("     IGNORING, NOT TRUNK PORT")
+
+            return True
+        if_index = oid_in_branch(vlanTrunkPortVlansEnabled3k, oid)
+        if if_index:
+            # trunk/tagged port native vlan
+            dprint(f"TRUNK PORT {if_index} HAS 3k VLANS:")
+            iface = self.get_interface_by_key(if_index)
+            if iface:
+                dprint(f"   INTERFACE = {iface.name}")
+                if iface.is_tagged:
+                    # now parse the bitmap. Note the bit place values are vlan indexes, NOT vlan ID!!!
+                    dprint("   BITMAP to parse here!")
+                    self._cisco_parse_vlan_bitmap(val, 2048, iface)
+                else:
+                    dprint("     IGNORING, NOT TRUNK PORT")
+
+            return True
+        if_index = oid_in_branch(vlanTrunkPortVlansEnabled4k, oid)
+        if if_index:
+            # trunk/tagged port native vlan
+            dprint(f"TRUNK PORT {if_index} HAS 4k VLANS:")
+            iface = self.get_interface_by_key(if_index)
+            if iface:
+                dprint(f"   INTERFACE = {iface.name}")
+                if iface.is_tagged:
+                    # now parse the bitmap. Note the bit place values are vlan indexes, NOT vlan ID!!!
+                    dprint("   BITMAP to parse here!")
+                    self._cisco_parse_vlan_bitmap(val, 3072, iface)
+                else:
+                    dprint("     IGNORING, NOT TRUNK PORT")
+
+            return True
 
         if_index = oid_in_branch(vmVlan, oid)
         if if_index:
@@ -407,6 +485,48 @@ class SnmpConnectorCisco(SnmpConnector):
             return True
 
         return False
+
+    def _cisco_parse_vlan_bitmap(self, val, vlan_base, iface):
+        """
+        Parse the 128 byte vlan bitmap entry from vlanTrunkPortVlansEnabled* entries
+        to find the vlans on a trunk interface.
+        val - the snmp return value for the vlanTrunkPortVlansEnabled* mib value.
+        vlan_base - 0, 1024, 2048 or 3072, for the 0, 2k, 3k, or 4k versions
+        iface -  the interface these vlans belong to.
+        return -1 on error, 0 otherwize
+        """
+        offset = 0  # bit-offset in the byte
+        for byte in val:
+            byte = ord(byte)
+            # which bits are set? A hack but it works!
+            # note that the bits are actually in system order,
+            # ie. bit 1 is first bit in stream, i.e. HIGH order bit!
+            if(byte & 128):
+                vlan_id = (offset * 8) + vlan_base
+                self.add_vlan_to_interface(iface, vlan_id)
+            if(byte & 64):
+                vlan_id = (offset * 8) + 1 + vlan_base
+                self.add_vlan_to_interface(iface, vlan_id)
+            if(byte & 32):
+                vlan_id = (offset * 8) + 2 + vlan_base
+                self.add_vlan_to_interface(iface, vlan_id)
+            if(byte & 16):
+                vlan_id = (offset * 8) + 3 + vlan_base
+                self.add_vlan_to_interface(iface, vlan_id)
+            if(byte & 8):
+                vlan_id = (offset * 8) + 4 + vlan_base
+                self.add_vlan_to_interface(iface, vlan_id)
+            if(byte & 4):
+                vlan_id = (offset * 8) + 5 + vlan_base
+                self.add_vlan_to_interface(iface, vlan_id)
+            if(byte & 2):
+                vlan_id = (offset * 8) + 6 + vlan_base
+                self.add_vlan_to_interface(iface, vlan_id)
+            if(byte & 1):
+                vlan_id = (offset * 8) + 7 + vlan_base
+                self.add_vlan_to_interface(iface, vlan_id)
+            offset += 1
+        return True
 
     def _parse_mibs_cisco_config(self, oid, val):
         """
@@ -537,65 +657,64 @@ class SnmpConnectorCisco(SnmpConnector):
     def save_running_config(self):
         """
         Cisco interface to save the current config to startup
-        Returns 0 is this succeeds, -1 on failure. self.error() will be set in that case
+        Returns True is this succeeds, False on failure. self.error() will be set in that case
         """
         dprint("\nCISCO save_running_config()\n")
-        # set this OID, but do not update local cache.
         # first try old method, prios to IOS 12. This work on older 29xx and similar switches
-        retval = self._set(oid=ciscoWriteMem, value=int(1), snmp_type='i', update_oidcache=False)
-        if retval == -1:
-            # error occured, most likely timeout. Try Cisco-CONFIG-COPY mib
-            dprint("   Trying CONFIG-COPY method")
-            some_number = random.randint(1, 254)
-            # first, set source to running config
-            retval = self._set(oid=f"{ccCopySourceFileType}.{some_number}",
-                               value=int(runningConfig),
-                               snmp_type='i',
-                               update_oidcache=False)
-            # next, set destination to startup co -=nfig
-            retval = self._set(oid=f"{ccCopyDestFileType}.{some_number}",
-                               value=int(startupConfig),
-                               snmp_type="i",
-                               update_oidcache=False)
-            # and then activate the copy:
-            retval = self._set(oid=f"{ccCopyEntryRowStatus}.{some_number}",
-                               value=int(rowStatusActive),
-                               snmp_type="i",
-                               update_oidcache=False)
-            # now wait for this row to return success or fail:
-            waittime = settings.CISCO_WRITE_MEM_MAX_WAIT
-            while(waittime):
-                time.sleep(1)
-                (error_status, snmp_ret) = self._get(oid=f"{ccCopyState}.{some_number}",
-                                                     update_oidcache=False)
-                if error_status:
-                    break
-                if int(snmp_ret.value) == copyStateSuccess:
-                    # write completed, so we are done!
-                    return 0
-                if int(snmp_ret.value) == copyStateFailed:
-                    break
-                waittime -= 1
+        # set this OID, but do not update local cache.
+        if self.set(oid=ciscoWriteMem, value=int(1), snmp_type='i', update_oidcache=False) == 1:
+            # the original old-style write-mem worked.
+            return True
 
-            # we timed-out, or errored-out
-            self.error.status = True
+        # error occured, most likely not supported call. Try Cisco-CONFIG-COPY mib
+        dprint("   Trying CONFIG-COPY method")
+        some_number = random.randint(1, 254)
+        # first, set source to running config
+        retval = self.set(oid=f"{ccCopySourceFileType}.{some_number}",
+                          value=int(runningConfig),
+                          snmp_type='i',
+                          update_oidcache=False)
+        # next, set destination to startup co -=nfig
+        retval = self.set(oid=f"{ccCopyDestFileType}.{some_number}",
+                          value=int(startupConfig),
+                          snmp_type="i",
+                          update_oidcache=False)
+        # and then activate the copy:
+        retval = self.set(oid=f"{ccCopyEntryRowStatus}.{some_number}",
+                          value=int(rowStatusActive),
+                          snmp_type="i",
+                          update_oidcache=False)
+        # now wait for this row to return success or fail:
+        waittime = settings.CISCO_WRITE_MEM_MAX_WAIT
+        while(waittime):
+            time.sleep(1)
+            (error_status, snmp_ret) = self.get(oid=f"{ccCopyState}.{some_number}",
+                                                update_oidcache=False)
             if error_status:
-                self.error.description = "SNMP get copy-status returned error! (no idea why?)"
-            elif snmp_ret.value == copyStateFailed:
-                self.error.description = "Copy running to startup failed!"
-            elif snmp_ret.value == copyStateRunning:
-                self.error.description = "Copy running to startup not completed yet! (huh?)"
-            elif snmp_ret.value == copyStateWaiting:
-                self.error.description = "Copy running to startup still waiting! (for what?)"
-            # log error
-            log = Log(user=self.request.user,
-                      type=LOG_TYPE_ERROR,
-                      ip_address=get_remote_ip(self.request),
-                      action=LOG_SAVE_SWITCH,
-                      description=self.error.description)
-            log.save()
-            # return error status
-            return -1
+                break
+            if int(snmp_ret.value) == copyStateSuccess:
+                # write completed, so we are done!
+                return True
+            if int(snmp_ret.value) == copyStateFailed:
+                break
+            waittime -= 1
 
-        # the original or new-style write-mem worked.
-        return 0
+        # we timed-out, or errored-out
+        self.error.status = True
+        if error_status:
+            self.error.description = "SNMP get copy-status returned error! (no idea why?)"
+        elif snmp_ret.value == copyStateFailed:
+            self.error.description = "Copy running to startup failed!"
+        elif snmp_ret.value == copyStateRunning:
+            self.error.description = "Copy running to startup not completed yet! (huh?)"
+        elif snmp_ret.value == copyStateWaiting:
+            self.error.description = "Copy running to startup still waiting! (for what?)"
+        # log error
+        log = Log(user=self.request.user,
+                  type=LOG_TYPE_ERROR,
+                  ip_address=get_remote_ip(self.request),
+                  action=LOG_SAVE_SWITCH,
+                  description=self.error.description)
+        log.save()
+        # return error status
+        return False

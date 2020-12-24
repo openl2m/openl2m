@@ -18,10 +18,10 @@
         <th>PoE</th>
         {% endif %}
         <th>Description</th>
-        {% if switch.command_list.interface_commands.count %}
+        {% if connection.can_run_commands and switch.command_list.interface_commands.count %}
           <th>Commands</th>
         {% elif request.user.is_staff or request.user.is_superuser %}
-            {% if switch.command_list.interface_commands_staff.count %}
+            {% if connection.can_run_commands and switch.command_list.interface_commands_staff.count %}
             <th>Commands</th>
             {% endif %}
         {% endif %}
@@ -110,7 +110,7 @@
                            onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
                         {% endif %}
                            href="{% url 'switches:poe_down_up' group.id switch.id iface.key %}"
-                           title="Toggle PoE Off and then On again on interface {{ iface.name }}">
+                           title="Toggle PoE Off and then On on interface {{ iface.name }}">
                           <img src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle">
                         </a>
                       {% endif %}
@@ -154,33 +154,35 @@
                   {% endif %}
                 </td>
 
-                {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
-                  <td>
-                    <form name="command_form"
-                          action="{% url 'switches:interface_cmd_output' group.id switch.id iface.key %}"
-                          method="post">
-                      {% csrf_token %}
-                      <select name="command_id" data-toggle="tooltip" title="Select a command run!">
-                        <optgroup label="Commands available:">
-                        {% for c in switch.command_list.interface_commands.all %}
-                          <option value="{{ c.id }}">{{ c.name }}</option>
-                        {% endfor %}
-                        </optgroup>
-                        {% if request.user.is_superuser or request.user.is_staff %}
-                          {% if switch.command_list.interface_commands_staff.count %}
-                            <optgroup label="Staff commands:">
-                            {% for c in switch.command_list.interface_commands_staff.all %}
-                              <option value="{{ c.id }}">{{ c.name }}</option>
-                            {% endfor %}
-                            </optgroup>
+                {% if connection.can_run_commands %}
+                  {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
+                    <td>
+                      <form name="command_form"
+                            action="{% url 'switches:interface_cmd_output' group.id switch.id iface.key %}"
+                            method="post">
+                        {% csrf_token %}
+                        <select name="command_id" data-toggle="tooltip" title="Select a command run!">
+                          <optgroup label="Commands available:">
+                          {% for c in switch.command_list.interface_commands.all %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                          {% endfor %}
+                          </optgroup>
+                          {% if request.user.is_superuser or request.user.is_staff %}
+                            {% if switch.command_list.interface_commands_staff.count %}
+                              <optgroup label="Staff commands:">
+                              {% for c in switch.command_list.interface_commands_staff.all %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                              {% endfor %}
+                              </optgroup>
+                            {% endif %}
                           {% endif %}
-                        {% endif %}
-                      </select>
-                      <input type="hidden" name="if_name" value="{{ iface.name }}">
-                      &nbsp;<input type="submit" value="Run" class="btn btn-primary"
-                                   data-toggle="tooltip" title="Click here run command!">
-                    </form>
-                  </td>
+                        </select>
+                        <input type="hidden" name="if_name" value="{{ iface.name }}">
+                        &nbsp;<input type="submit" value="Run" class="btn btn-primary"
+                                     data-toggle="tooltip" title="Click here run command!">
+                      </form>
+                    </td>
+                  {% endif %}
                 {% endif %}
 
               {% else %} {# not Ethernet #}
@@ -284,7 +286,7 @@
                           {% endif %}
                               href="/switches/{{ group.id }}/{{ switch.id }}/{{ iface.key }}/poetoggle/"
                               data-toggle="tooltip"
-                              title="Toggle PoE Off and then On again on interface {{ iface.name }}">
+                              title="Toggle PoE Off and then On on interface {{ iface.name }}">
                             <img src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle">
                           </a>
                         {% endif %}

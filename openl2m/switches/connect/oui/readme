@@ -1,6 +1,0 @@
-The OUI is the Ethernet Vendor ID, in the first 3 bytes of an ethernet address.
-
-The oui.txt file in this folder comes from the sanitized list at
-    https://linuxnet.ca/ieee/oui.txt
-
-The script make_oui_dict.py creates the oui.py file for inclusion in OpenL2M.

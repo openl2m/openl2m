@@ -19,6 +19,7 @@ with Procurve specific ways of doing things...
 from switches.models import Log
 from switches.constants import *
 from switches.connect.classes import *
+from switches.connect.connector import *
 from switches.connect.snmp import SnmpConnector, oid_in_branch
 from switches.connect.constants import *
 from switches.utils import *

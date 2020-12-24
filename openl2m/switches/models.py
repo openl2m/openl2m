@@ -517,30 +517,30 @@ class Switch(models.Model):
         verbose_name='External NMS Id',
         help_text='ID or Label in an external Network Management System. To be used in admin-configurable links. See configuration.py',
     )
-    # some fields that are read from SNMP
-    snmp_hostname = models.CharField(
+    # some fields that are set by the proper connector class:
+    hostname = models.CharField(
         max_length=64,
         default='',
         blank=True,
         null=True,
-        verbose_name='SNMP Hostname',
-        help_text='The switch hostname as reported via snmp.',
+        verbose_name='Hostname',
+        help_text='The switch hostname as reported via snmp, ssh, etc.',
     )
-    # some fields to track access and capabilities
-    snmp_bulk_read_count = models.PositiveIntegerField(
+    # some fields to track access
+    read_count = models.PositiveIntegerField(
         default=0,
-        verbose_name='SNMP Bulk Reads',
-        help_text='SNMP Bulks read count performed on the switch.',
+        verbose_name='Reads',
+        help_text='Basic read count performed on the switch.',
     )
-    snmp_read_count = models.PositiveIntegerField(
+    details_read_count = models.PositiveIntegerField(
         default=0,
-        verbose_name='SNMP Reads',
-        help_text='SNMP read count performed on the switch.',
+        verbose_name='Details(arp/lldp) Reads',
+        help_text='Details read count performed on the switch.',
     )
-    snmp_write_count = models.PositiveIntegerField(
+    write_count = models.PositiveIntegerField(
         default=0,
-        verbose_name='SNMP Writes',
-        help_text='SNMP write count performed on the switch.',
+        verbose_name='Writes',
+        help_text='Write count performed on the switch.',
     )
     snmp_oid = models.CharField(
         max_length=100,
@@ -548,11 +548,6 @@ class Switch(models.Model):
         blank=True,
         verbose_name='SNMP systemOID for this switch',
         help_text='The switch OID as reported via snmp.',
-    )
-    snmp_capabilities = models.BigIntegerField(      # gives us 64 bits to use!
-        default=CAPABILITIES_NONE,
-        verbose_name='Bitmap of switch snmp capabilities',
-        help_text='Bitmap of switch snmp capabilities.',
     )
 
     class Meta:
@@ -574,6 +569,40 @@ class Switch(models.Model):
     # called from SwitchAdmin 'list_display':
     def get_switchgroups(self):
         return ",".join([str(g) for g in self.switchgroups.all()])
+
+    def is_valid_command_id(self, command_id, is_staff=False):
+        """
+        Verify that a command_id is actually valid(ie assigned) to this device.
+        Returns True or False.
+        """
+        # to be implemented!
+        return True
+
+    def has_interface_commands(self):
+        """
+        Simple check to see if this device has been assigned interface commands.
+        Requires valid NetMiko profile!
+        Returns True or False.
+        """
+        if self.netmiko_profile and self.command_list:
+            if self.command_list.global_commands.count or \
+               self.command_list.global_commands_staff.count:
+                # Looks like we do!
+                return True
+        return False
+
+    def has_global_commands(self):
+        """
+        Simple check to see if this device has been assigned valid global commands.
+        Requires valid NetMiko profile!
+        Returns True or False.
+        """
+        if self.netmiko_profile and self.command_list:
+            if self.command_list.global_commands.count or \
+               self.command_list.global_commands_staff.count:
+                # Looks like we do!
+                return True
+        return False
 
     # basic validation
     # see also https://docs.djangoproject.com/en/2.2/ref/models/instances/#validating-objects

@@ -20,9 +20,8 @@ from django.utils.html import mark_safe
 
 from switches.models import *
 from switches.constants import *
-from switches.connect.utils import bytes_ethernet_to_string, bytes_ethernet_to_oui
+from switches.connect.classes import bytes_ethernet_to_string
 from switches.connect.constants import *
-from switches.connect.oui.oui import get_vendor_from_oui
 
 # see https://docs.djangoproject.com/en/2.2/ref/templates/api/
 # and https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/
@@ -465,6 +464,7 @@ def get_lldp_info(neighbor):
                 bytes = neighbor.chassis_string[1:]
                 chassis_info = ".".join("%d" % ord(b) for b in bytes)
             elif net_addr_type == IANA_TYPE_IPV6:
+                # to be dealt with!
                 chassis_info = 'IPv6 Address'
             else:
                 chassis_info = 'Unknown Address Type'

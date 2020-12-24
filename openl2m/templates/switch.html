@@ -200,7 +200,7 @@
         </a>
       </li>
       {% endif %}
-      {% if switch.command_list.global_commands.count or switch.command_list.global_commands_staff.count %}
+      {% if connection.can_run_commands and switch.has_global_commands %}
       <li>
         <a href="#tab_cmd_list" data-toggle="tab">
           <strong data-toggle="tooltip" title="Possible show commands for the switch">
@@ -276,7 +276,7 @@
           {% include "_tab_cmd_output.html" %}
         </div>
       {% endif %}
-      {% if switch.command_list.global_commands.count or switch.command_list.global_commands_staff.count %}
+      {% if connection.can_run_commands and switch.has_global_commands %}
       <div class="tab-pane" id="tab_cmd_list">
         {% include "_tab_cmd_list.html" %}
       </div>

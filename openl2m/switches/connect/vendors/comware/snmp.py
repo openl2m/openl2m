@@ -23,6 +23,7 @@ from pysnmp.proto.rfc1902 import ObjectName, OctetString, Gauge32
 from switches.models import Log
 from switches.constants import *
 from switches.connect.classes import *
+from switches.connect.connector import *
 from switches.connect.snmp import pysnmpHelper, SnmpConnector, oid_in_branch
 from switches.connect.constants import *
 from switches.utils import *
@@ -457,7 +458,7 @@ class SnmpConnectorComware(SnmpConnector):
         or Google the H3C file
         "Configuration_Examples_for_Configuration_File_Management_Using_SNMP.pdf"
         see page 11!
-        Returns 0 is this succeeds, -1 on failure. self.error() will be set in that case
+        Returns True is this succeeds, False on failure. self.error() will be set in that case
         """
         dprint("save_running_config(Comware)")
 
@@ -466,7 +467,7 @@ class SnmpConnectorComware(SnmpConnector):
         retval = self.get_branch_by_name('hh3cCfgOperateRowStatus', True, self._parse_mibs_comware_configfile)
         if retval < 0:
             self.add_warning("Error reading 'Config File MIB' (hh3cCfgOperateRowStatus)")
-            return -1
+            return False
 
         # now figure out where we need to write to
         row_place = self.active_config_rows + 1
@@ -479,6 +480,6 @@ class SnmpConnectorComware(SnmpConnector):
         if retval < 0:
             dprint(f"return = {ret_val}")
             self.add_warning("Error saving via SNMP (hh3cCfgOperateRowStatus)")
-            return -1
+            return False
         dprint("All OK")
-        return 0
+        return True

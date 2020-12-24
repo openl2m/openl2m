@@ -1,0 +1,30 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 2.0
+===========
+
+Version 2.0.0-dev
+--------------
+Release Date: 2021-TBD
+
+* Complete rewrite of the internal code. There now is a generic Connector() class
+  that implements an interface that is called from the Django views. Technology and/or vendor
+  specific implementations inherit from this class to implement their version of that interface.
+  Additionally, a new session caching strategy is implemented. This should make it easier to
+  implement a device cache, so others can have quick access to device settings, without
+  the need to re-read the device.
+
+* if LDAP enabled, add log entry showing DN of ldap authentication used.
+* password change option for local accounts
+
+Bug fixes:
+
+* many miscellaneous fixes
+* show (missing) vlans on tagged Cisco interfaces
+
+Upgrades:
+
+* upgrade to Django v3.1
+* upgrade to most recent versions of python packages used.
+* using more 'native' python libraries (e.g. netaddr)

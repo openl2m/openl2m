@@ -20,6 +20,7 @@ from switches.models import Log
 from switches.constants import *
 from switches.connect.constants import *
 from switches.connect.classes import *
+from switches.connect.connector import *
 from switches.utils import *
 
 from .constants import *
@@ -43,6 +44,14 @@ class DummyConnector(Connector):
 
     def get_my_basic_info(self):
         dprint("Dummy Connector get_my_basic_info()")
+
+        self.add_poe_powersupply(1, 45)  # simulate a 45W power supply
+
+        self.add_vlan(1, "Default!")
+        self.add_vlan(5, "Vlan Five")
+        self.add_vlan(15, "Vlan Fifteen")
+        self.add_vlan(20, "Twenty")
+
         # simulate getting switch data by hardcoding!
         # "load" some basic interface info...
         iface = Interface("eth0/0/0")
@@ -74,6 +83,8 @@ class DummyConnector(Connector):
         iface.alias = "Interface eth2"
         iface.untagged_vlan = 15
         self.add_interface(iface)
+        self.set_interface_poe_available(iface, 15000)
+        self.set_interface_poe_consumed(iface, 4500)
 
         iface = Interface("eth3")
         iface.name = "eth3"
@@ -120,3 +131,10 @@ class DummyConnector(Connector):
         self.add_more_info('Dummy Heading', 'Element 3', 'Value 3')
         self.add_more_info('Dummy Heading', 'Element 4', 'Value 4')
         self.add_more_info('Some Other Heading', 'Element 1', 'Value 1')
+
+    def can_run_commands(self):
+        """
+        Does the switch have the ability to execute a 'cli command'
+        Returns True or False
+        """
+        return False

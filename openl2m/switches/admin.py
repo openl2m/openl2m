@@ -37,8 +37,8 @@ class SwitchInline(admin.TabularInline):
 class SwitchAdmin(admin.ModelAdmin):
     save_on_top = True
     list_display = ('name', 'get_switchgroups')
-    readonly_fields = ('snmp_hostname', 'snmp_bulk_read_count', 'snmp_read_count',
-                       'snmp_write_count', 'snmp_oid', 'snmp_capabilities',)
+    readonly_fields = ('hostname', 'read_count', 'details_read_count',
+                       'write_count', 'snmp_oid', )
     search_fields = ['name']
     inlines = (SwitchInline,)
 

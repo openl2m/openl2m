@@ -71,6 +71,8 @@ snmp_mib_variables['ccmHistoryStartupLastChanged'] = ccmHistoryStartupLastChange
 
 
 # VTP MIB:
+# http://www.circitor.fr/Mibs/Html/C/CISCO-VTP-MIB.php
+#
 vtpVlanState = '.1.3.6.1.4.1.9.9.46.1.3.1.1.2.1'
 snmp_mib_variables['vtpVlanState'] = vtpVlanState
 
@@ -88,6 +90,11 @@ snmp_mib_variables['vtpVlanName'] = vtpVlanName
 # VTP trunk ports start at .1.3.6.1.4.1.9.9.46.1.6
 # details about ports start at .1.3.6.1.4.1.9.9.46.1.6.1.1
 
+# the vlans in a trunk port, using the switchport bitmap format:
+vlanTrunkPortVlansEnabled = '.1.3.6.1.4.1.9.9.46.1.6.1.1.4'
+snmp_mib_variables['vlanTrunkPortVlansEnabled'] = vlanTrunkPortVlansEnabled
+
+# native/untagged vlan on a trunk port
 vlanTrunkPortNativeVlan = '.1.3.6.1.4.1.9.9.46.1.6.1.1.5'
 snmp_mib_variables['vlanTrunkPortNativeVlan'] = vlanTrunkPortNativeVlan
 
@@ -105,6 +112,18 @@ vlanTrunkPortDynamicStatus = '.1.3.6.1.4.1.9.9.46.1.6.1.1.14'
 snmp_mib_variables['vlanTrunkPortDynamicStatus'] = vlanTrunkPortDynamicStatus
 VTP_PORT_TRUNK_ENABLED = 1
 VTP_PORT_TRUNK_DISABLED = 2
+
+# the high-numbered vlans 1024-2047 in a trunk port, using the switchport bitmap format:
+vlanTrunkPortVlansEnabled2k = '.1.3.6.1.4.1.9.9.46.1.6.1.1.17'
+snmp_mib_variables['vlanTrunkPortVlansEnabled2k'] = vlanTrunkPortVlansEnabled2k
+
+# the high-numbered vlans 2048-3071 in a trunk port, using the switchport bitmap format:
+vlanTrunkPortVlansEnabled3k = '.1.3.6.1.4.1.9.9.46.1.6.1.1.18'
+snmp_mib_variables['vlanTrunkPortVlansEnabled3k'] = vlanTrunkPortVlansEnabled3k
+
+# the high-numbered vlans 3072-4095 in a trunk port, using the switchport bitmap format:
+vlanTrunkPortVlansEnabled4k = '.1.3.6.1.4.1.9.9.46.1.6.1.1.19'
+snmp_mib_variables['vlanTrunkPortVlansEnabled4k'] = vlanTrunkPortVlansEnabled4k
 
 # this is the untagged or native vlan for a Cisco switch port
 # this will NOT show ports in trunk mode!!!

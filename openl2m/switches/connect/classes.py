@@ -14,16 +14,17 @@
 import array
 import re
 import time
+import netaddr
+
+from django.conf import settings
 
 """
 All the generic classes we use to represent
 switch vlans, switch interfaces, switch neighbor devices, etc.
 """
-from switches.models import Log
+from switches.models import Command, Log
 from switches.constants import *
 from switches.connect.constants import *
-from switches.connect.oui.oui import get_vendor_from_oui
-from switches.connect.utils import *
 from switches.utils import *
 
 
@@ -66,8 +67,10 @@ class StackMember():
 
 class VendorData():
     """
-    Class to hold Vendor-specific data, represented by
-    data name and value
+    Class to hold generic Vendor-specific data, represented by
+    data name and value. this can be added to any device with a call to
+    connector.add_vendor_data(self, category, name, value)
+    This gets added to connector.vendor_data{} with category as key.
     """
     def __init__(self, name, value):
         self.name = name
@@ -81,7 +84,7 @@ LACP_IF_TYPE_AGGREGATOR = 2  # this is an aggregator port (Port-Channel or Bridg
 
 class Interface():
     """
-    Class to represent all the attributes of a single switch interface.
+    Class to represent all the attributes of a single device (switch) interface.
     """
     def __init__(self, key):
         """
@@ -312,59 +315,37 @@ class PortList():
             return (self.portlist[block] << shift) & 128 and 1 or 0
 
 
-class IP4Address():
-    """
-    Class to represent an IPv4 address
-    """
-    def __init__(self, ip, netmask="255.255.255.255"):
-        """
-        Initialize the object
-        """
-        self.ip = ip
-        self.netmask = netmask
-        self.cyder_bits = 32
-        self.if_index = 0
-
-    def set_netmask(self, netmask):
-        self.netmask = netmask
-        # set bits as well
-        self.cyder_bits = (sum([bin(int(bits)).count("1") for bits in self.netmask.split(".")]))
-
-    def set_if_index(self, if_index):
-        self.if_index = if_index
-
-    def display_name(self):
-        return self.ip + "/" + self.netmask
-
-    def __str__(self):
-        return self.display_name()
-
-
-class EthernetAddress():
+class EthernetAddress(netaddr.EUI):
     """
     Class to represents an Ethernet address, and whatever we know about it.
+    We reuse most of the netaddr library abilities to find vendor.
     """
     def __init__(self, ethernet_string):
         """
-        EthernetAddress() requires passing in the "colon-string" value the 6 ethernet bytes.
+        EthernetAddress() requires passing in the hyphen or colon format of the 6 ethernet bytes.
         """
-        self.display_address = ethernet_string
-        self.vendor = self.get_vendor()
+        # initiate netaddr EUI class parent object
+        super().__init__(ethernet_string)
+        try:
+            self.vendor = self.oui.registration().org
+        except Exception as e:
+            self.vendor = "Unknown"
         self.vlan_id = 0        # the vlan id (number) this was heard on, if known
         self.address_ip4 = ""   # ipv4 address from arp table, if known
         self.address_ip6 = ""   # ipv6 address, if known
 
-    def get_vendor(self):
-        """
-        Lookup the vendor OUI, first 3 bytes
-        """
-        return get_vendor_from_oui(ethernet_to_oui(self.display_address))
+    def set_ip(self, ip4):
+        self.address_ip4 = ip4
 
-    def display_name(self):
-        return self.display_address
+    def set_ip6(self, ip6):
+        self.address_ip6 = ip6
 
     def __str__(self):
-        return self.display_name()
+        """
+        Print the ethernet string, formatted per the settings value.
+        """
+        self.dialect = settings.MAC_DIALECT
+        return super().__str__()
 
 
 class NeighborDevice():
@@ -473,927 +454,37 @@ class SyslogMsg():
 
 
 """
-Base Connector() class for OpenL2M.
-This implements the interface that is expected by the higher level code
-that calls this (e.g in the view.py functions that implement the url handling)
+Helper functions
 """
 
 
-class Connector():
+def decimal_to_hex_string_ethernet(decimals):
     """
-    This base class defines the basic interface for all switch connections.
+    Convert SNMP decimal ethernet string "11.12.13.78.90.100"
+    to hex value and colon-string "aa-bb-cc-11-22-33".
     """
-    def __init__(self, request=False, group=False, switch=False):
-
-        dprint("Connector() __init__")
-
-        self.request = request  # if running on web server, Django http request object, needed for request.user() and request.session[]
-        self.group = group      # Django SwitchGroup object
-        self.switch = switch    # Django Switch()
-        self.error = Error()
-        self.error.status = False   # we don't actually have an error yet :-)
-
-        # caching related. All attributes but these will be cached:
-        self.do_not_cache = [
-            "do_not_cache", "request", "group", "switch", "error",
-        ]
-
-        self.hostname = ""      # system hostname, typically set in sub-class
-        self.vendor_name = ""   # typically set in sub-classes
-
-        # data we collect and potentially cache:
-        self.interfaces = {}        # Interface() objects representing the ports on this switch, key is if_name
-        self.vlans = {}             # Vlan() objects on this switch, key is vlan id (not index!)
-        self.ip4_to_if_index = {}   # the IPv4 addresses as keys, with stored value if_index; needed to map netmask to interface
-        self.syslog_msgs = {}       # list of Syslog messages, if any
-        self.syslog_max_msgs = 0    # how many syslog msgs device will store
-        # some flags:
-        self.save_needed = False    # set this flag if a save aka. 'write mem' is needed:
-        self.hwinfo_needed = True   # True if we still need to read the Entity tables
-        self.cache_loaded = False   # if True, system data was loaded from cache
-        # some timestamps:
-        self.basic_info_read_timestamp = 0    # when the last 'basic' snmp read occured
-        self.basic_info_read_duration = 0     # time in seconds for initial basic info gathering
-        self.detailed_info_duration = 0  # time in seconds for each detailed info gathering
-
-        # data we calculate or collect without caching:
-        self.allowed_vlans = {}     # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
-        self.eth_addr_count = 0     # number of known mac/ethernet addresses
-        self.neighbor_count = 0     # number of lldp neighbors
-        self.warnings = []          # list of warning strings that may be shown to users
-        # timing related attributes:
-        self.start_time = 0     # start time of current action
-        self.stop_time = 0      # and the stop time
-        self.timing = {}            # dictionary to track how long various calls take to read. Key = name, value = tuple()
-        self.add_timing("Total", 0, 0)     # initialize the 'total' count to 0 entries, 0 seconds!
-
-        # PoE related values
-        self.poe_capable = False     # can the switch deliver PoE
-        self.poe_enabled = False     # note: this needs more work, as we do not parse "units"/stack members
-        self.poe_max_power = 0       # maximum power (watts) availabe in this switch, combines all PSE units
-        self.poe_power_consumed = 0  # same for power consumed, across all PSE units
-        self.poe_pse_devices = {}    # list of PoePSE() objects
-        self.poe_port_entries = {}  # PoePort() port power entries, used to store until we can map to interface
-
-        # features that may or may not be implemented:
-        self.vlan_change_implemented = self.can_change_interface_vlan()     # if True, enables vlan editing if permissions allow it
-        self.gvrp_enabled = False
-        # set this flag is a save aka. 'write mem' is needed:
-        self.save_needed = False
-
-        # physical device related:
-        self.hwinfo_needed = True   # True if we still need to read more hardware info (eg. the Entity tables)
-        self.stack_members = {}     # list of StackMember() objects that are part of this switch
-        # syslog related info, if supported:
-        self.syslog_msgs = {}       # list of Syslog messages, if any
-        self.syslog_max_msgs = 0    # how many syslog msgs device will store
-        # generic info for the "Switch Information" tab:
-        self.more_info = {}         # dict of categories string, each a list of tuples (name, value), to extend sytem info about this switch!
-
-        # self.add_warning("Test Warning, Ignore!")
-
-    """
-    These are the high level "viewing" interfaces.
-    These are called by the switches.view functions to display data.
-    """
-
-    def get_switch_basic_info(self):
-        """
-        This is called from view.py to load the basic set of information about the switch.
-        We call an device implementation specific function "get_my_basic_info()"
-        that should load the following class attributes:
-            self.interfaces = {} dictionary of interfaces (ports) on the current
-                switch, i.e. Interface() objects, indexed by a class-specific key (string).
-            self.vlans = {} dictionary of vlans on the current switch, i.e. Vlan()
-                objects, indexed by vlan id (integer number)
-        return True on success, False on error and set self.error variables
-        """
-        self.error.clear()
-        # set this to the time the switch data was actually read,
-        # including when this may have been read before it got cached:
-        if not self.cache_loaded:
-            # we need to read the device class:
-            self.basic_info_read_timestamp = time.time()
-
-            self.get_my_basic_info()
-
-            # update the time it took to read the basic info when it was first read:
-            self.basic_info_read_duration = int((time.time() - self.basic_info_read_timestamp) + 0.5)
-
-            # you have to set the permissions to the interfaces:
-            self._set_interfaces_permissions()
-
-            # self.add_more_info('System', 'Hostname', self.hostname)
-
-            # and save the switch cache:
-            self.save_cache()
-
-        return True
-
-    def get_my_basic_info(self):
-        """
-        placeholder for class-specific implementation to read Interfaces() etc.
-        return True on success, False on error and set self.error variables
-        """
-        return True
-
-    def get_switch_client_data(self):
-        """
-        This loads the layer 2 switch tables, any ARP tables available,
-        and LLDP neighbor data.
-        Not intended to be cached, so we get fresh, "live" data anytime called!
-        return True on success, False on error and set self.error variables
-        """
-        start_time = time.time()
-        self.get_my_client_data()   # to be implemented by device/vendor class!
-        self.detailed_info_duration = int((time.time() - start_time) + 0.5)
-        return True
-
-    def get_my_client_data(self):
-        """
-        placeholder for class-specific implementation to read things like:
-            self.get_known_ethernet_addresses()
-                this should add EthernetAddress() =objects to the interface.eth dict(),
-                indexed by the ethernet address in string format
-
-            self.get_arp_data()
-
-            self.get_lldp_data()
-        return True on success, False on error and set self.error variables
-        """
-        return True
-
-    def get_switch_hardware_details(self):
-        """
-        Get all (possible) hardware info, stacking details, etc.
-        return True on success, False on error and set self.error variables
-        """
-
-        # call the vendor-specific data first, if implemented
-        self.get_my_hardware_details()
-
-        # set the flag to indicate we read this already, and store in session
-        # if flag is set, the button will not be shown in menu bar!
-        self.hwinfo_needed = False
-        # and cache it:
-        self.save_cache()
-        return True
-
-    def get_my_hardware_details(self):
-        """
-        placeholder for class-specific implementation to read things like:
-            stacking info, serial #, and whatever you want to add:
-            Attributes:
-            self.stack_members
-            self.syslog_max_msgs
-            self.syslog_msgs
-        return True on success, False on error and set self.error variables
-        """
-        return True
-
-    """
-    These are the functions that implement changes on the device.
-    This needs to be implement by the device/vendor specific class.
-    """
-
-    def set_interface_admin_status(self, interface, new_state):
-        """
-        set the interface to the requested state (up or down)
-        interface = Interface() object for the requested port
-        new_state = IF_ADMIN_STATUS_UP or IF_ADMIN_STATUS_DOWN
-        return True on success, False on error and set self.error variables
-        """
-        # interface.admin_status = new_state
-        dprint(f"Connector.set_interface_admin_status() for {interface.name} to {new_state}")
-        self.interfaces[interface.key].admin_status = int(new_state)
-        self.save_cache()
-        return True
-
-    def set_interface_description(self, interface, description):
-        """
-        set the interface description (aka. alias) to the string
-        interface = Interface() object for the requested port
-        new_alias = a string with the requested text
-        return True on success, False on error and set self.error variables
-        """
-        dprint(f"Connector.set_interface_description() for {interface.name}")
-        self.interfaces[interface.key].description = description
-        self.save_cache()
-        return True
-
-    def set_interface_untagged_vlan(self, interface, new_pvid):
-        """
-        set the interface untagged vlan to the given vlan
-        interface = Interface() object for the requested port
-        new_pvid = an integer with the requested untagged vlan
-        return True on success, False on error and set self.error variables
-        """
-        dprint(f"Connector.set_interface_untagged_vlan() for {interface.name} to vlan {new_pvid}")
-        self.interfaces[interface.key].untagged_vlan = new_pvid
-        self.save_cache()
-        return True
-
-    def add_interface_tagged_vlan(self, interface, new_vlan):
-        """
-        add a tagged vlan to the interface trunk.
-        interface = Interface() object for the requested port
-        new_vlan = an integer with the requested tagged vlan
-        return True on success, False on error and set self.error variables
-        """
-        return True
-
-    def remove_interface_tagged_vlan(self, interface, old_vlan):
-        """
-        remove a tagged vlan from the interface trunk.
-        interface = Interface() object for the requested port
-        old_vlan = an integer with the tagged vlan to removes
-        return True on success, False on error and set self.error variables
-        """
-        return True
-
-    def set_interface_poe_status(self, interface, new_state):
-        """
-        set the interface Power-over-Ethernet status as given
-        interface = Interface() object for the requested port
-        new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
-        return True on success, False on error and set self.error variables
-        """
-        dprint(f"Connector.set_interface_poe_status() for {interface.name} to {new_state}")
-        if interface.poe_entry:
-            self.interfaces[interface.key].poe_entry.admin_status = int(new_state)
-            dprint("   PoE set OK")
-            if new_state == POE_PORT_ADMIN_DISABLED:
-                self.interfaces[interface.key].poe_entry.power_consumed = 0
-            self.save_cache()
-        return True
-
-    def add_interface_learned_ethernet(self, if_key, ethernet_address):
-        """
-        add an learned/heard EthernetAddress()) object to the interface.eth{} dictionary.
-        """
-        return
-
-    def add_interface_neighbor(self, if_key, ethernet_address):
-        """
-        add and EthernetAddress) object to the interface.eth{} dictionary.
-        """
-        return
-
-    #############################
-    # various support functions #
-    #############################
-
-    def add_interface(self, interface):
-        """
-        Add and Interface() object to the self.interfaces{} dictionary,
-        indexed by the interface key.
-        return True on success, False on error and set self.error variables
-        """
-        self.interfaces[interface.key] = interface
-        return True
-
-    def get_interface_by_key(self, key):
-        """
-        get an Interface() object from out self.interfaces{} dictionary,
-        search based on the key that was used when it was added.
-        return Interface() if found, False if not found.
-        """
-        key = str(key)
-        dprint(f"get_interface_by_key() for '{key}'")
-        if key in self.interfaces.keys():
-            return self.interfaces[key]
-        return False
-
-    def set_interface_attribute_by_key(self, key, attribute, value):
-        """
-        set the value for a specified attribute of an interface indexed by key
-        return True on success, False on error
-        """
-        key = str(key)
-        dprint(f"set_interface_attribute_by_key() for {key}, {attribute} = {value}")
-        try:
-            setattr(self.interfaces[key], attribute, value)
-            return True
-        except Exception as e:
-            return False
-
-    def set_save_needed(self, value=True):
-        """
-        Set a flag that this switch needs the config saved
-        just return True
-        """
-        if value:
-            if self.can_save_config():
-                self.set_cache_variable("save_needed", True)
-            # else:
-            #    dprint("   save config NOT supported")
-        else:
-            self.clear_cache_variable("save_needed")
-        return True
-
-    def get_save_needed(self):
-        """
-        Does the switch need to execute a 'save config' command
-        to save changes to the startup config.
-        We store and read this from the http session.
-        Returns True or False
-        """
-        val = self.get_cache_variable("save_needed")
-        if val is None:
-            return False
-        return val
-
-    def can_save_config(self):
-        """
-        Does the switch have the ability (or need) to execute a 'save config'
-        or 'write memory' as it known on many platforms. This should be overwritten
-        in a vendor-specific sub-class. We just return False here.
-        Returns True or False
-        """
-        return False
-
-    def can_change_interface_vlan(self):
-        """
-        Return True if we can change a vlan on an interface, False if not
-        """
-        return False
-
-    def save_running_config(self):
-        """
-        Vendor-agnostic interface to save the current config to startup
-        To be implemented by sub-classes, eg CISCO-SNMP, H3C-SNMP
-        Returns True is this succeeds. On Failure, set self.error() and
-        return False
-        NOTE: does NOT clear 'save-needed' flag.
-        Upstream needs to call self.set_save_needed(False)
-        """
-        return True
-
-    def save_running_config(self):
-        """
-        Execute a 'save config' command. This is switch dependent.
-        To be implemented by sub-classes, eg CISCO-SNMP, H3C-SNMP
-        Returns 0 is this succeeds, -1 on failure. self.error() will be set in that case
-        """
-        self.error.status = True
-        self.error.description = "Not implemented!"
-        return -1
-
-    def set_do_not_cache_attribute(self, name):
-        """
-        Add the name of one of our class object attributes
-        to the list of do not cache attributes.
-        Return nothing.
-        """
-        if name not in self.do_not_cache:
-            self.do_not_cache.append(name)
-        return
-
-    def load_cache(self):
-        """
-        Load cached data to improve performance.
-        Returns True if cache was read and variables set.
-        False if this fails, primarily when the switch id is not correct!
-        """
-        dprint("load_cache()")
-
-        if self.request and "switch_id" in self.request.session.keys():
-            switch_id = -1
-            # is the cached data for the current switch ?
-            if "switch_id" in self.request.session.keys():
-                if self.request.session["switch_id"] != self.switch.id:
-                    # wrong switch id, i.e. we changed switches, clear session data!
-                    dprint("load_cache() for new switch! so clearing cache...")
-                    self.clear_cache()
-                    return False
-
-            # Yes - read it
-            dprint("load_cache() for current switch!")
-            start_time = time.time()
-            count = 0
-            # get myself from cache :-)
-            for attr_name, value in self.__dict__.items():
-                dprint(f"Reading cached attribute '{attr_name}'")
-                if attr_name not in self.do_not_cache:
-                    if attr_name in self.request.session.keys():
-                        dprint("   Found!")
-                        self.__setattr__(attr_name, self.request.session[attr_name])
-                        count += 1
-                else:
-                    dprint("   Ignoring (do_not_cache)!")
-
-            # call the child-class specific load_my_cache()
-            self.load_my_cache()
-            self.cache_loaded = True
-            stop_time = time.time()
-            self.add_timing("Cache load", count, stop_time - start_time)
-            return True
-
-        return False
-
-    def load_cache_OLD(self):
-        """
-        Load cached data to improve performance.
-        Returns True if cache was read and variables set.
-        False if this fails, primarily when the switch id is not correct!
-        """
-        dprint("load_cache()")
-        switch_id = self.get_cache_variable("switch_id")
-        # is the cached data for the current switch ?
-        if switch_id == self.switch.id:
-            # Yes - read it
-            dprint("load_cache() for current switch!")
-            self.hwinfo_needed = self.get_cache_variable("hwinfo_needed")
-            self.timing = self.get_cache_variable("timing")
-            self.save_needed = self.get_save_needed()
-            self.basic_info_read_timestamp = self.get_cache_variable("basic_info_read_timestamp")
-            self.basic_info_read_duration = self.get_cache_variable("basic_info_read_duration")
-
-            self.poe_capable = self.get_cache_variable("poe_capable")
-            self.poe_enabled = self.get_cache_variable("poe_enabled")
-            self.poe_max_power = self.get_cache_variable("poe_max_power")
-            self.poe_power_consumed = self.get_cache_variable("poe_power_consumed")
-
-            self.poe_pse_devices = self.get_cache_variable("poe_pse_devices")
-            self.poe_port_entries = self.get_cache_variable("poe_port_entries")
-            self.interfaces = self.get_cache_variable("interfaces")
-            dprint(f"READ YAML interfaces: {self.interfaces}")
-            for (key, iface) in self.interfaces.items():
-                dprint(f"    Interface: {key} => {iface.name}")
-
-            self.vlans = self.get_cache_variable("vlans")
-            self.allowed_vlans = self.get_cache_variable("allowed_vlans")
-            self.ip4_to_if_index = self.get_cache_variable("ip4_to_if_index")
-            self.syslog_msgs = self.get_cache_variable("syslog_msgs")
-            self.stack_members = self.get_cache_variable("stack_members")
-            self.more_info = self.get_cache_variable("more_info")
-
-            # now give child-classes opportunity to load cache
-            self.load_my_cache()
-
-            self.cache_loaded = True
-            return True
-        else:
-            # wrong switch id, i.e. we changed switches, clear session data!
-            dprint("load_cache() for new switch! so clearing cache...")
-            self.clear_cache()
-            return False
-
-    def load_my_cache(self):
-        """
-        To be implemented by child classes.
-        Allows them to load more cached data.
-        """
-        return
-
-    def save_cache(self):
-        """
-        Save various data in a cache for access by the next page.
-        By default, we store in the HTTP request session, see also
-        add_to_cache() below.
-        Can be overriden by sub-class to use other cache mechanisms, eg Redis.
-        Return True on success, False on failure.
-        """
-        """
-        Store the snmp switch data in the http session, if exists
-        """
-        dprint("save_cache()")
-        # for name, value in self.__dict__.items():
-        #    dprint(f"dict caching:  { name }")
-
-        if self.request:
-            # save switch ID, it all triggers around that!
-            start_time = time.time()
-            count = 0
-            self.request.session["switch_id"] = self.switch.id
-            # can I cache myself :-) ?
-            for attr_name, value in self.__dict__.items():
-                if attr_name not in self.do_not_cache:
-                    dprint(f"Caching Attrib = {attr_name}")
-                    self.request.session[attr_name] = value
-                    count += 1
-                else:
-                    dprint(f"NOT caching attrib = {attr_name}")
-            # now notify we changed the session data:
-            self.request.session.modified = True
-
-            # call the child-class specific save_my_cache()
-            self.save_my_cache()
-            stop_time = time.time()
-            self.add_timing("Cache save", count, stop_time - start_time)
-        # else:
-            # only happens if running in CLI or tasks
-            # dprint("_set_http_session_cache() called but NO http.request found!")
-        return True
-
-    def save_cache_OLD(self):
-        """
-        Save various data in a cache for access by the next page.
-        By default, we store in the HTTP request session, see also
-        add_to_cache() below.
-        Can be overriden by sub-class to use other cache mechanisms, eg Redis.
-        Return True on success, False on failure.
-        """
-        """
-        Store the snmp switch data in the http session, if exists
-        """
-        dprint("save_cache()")
-        # for name, value in self.__dict__.items():
-        #    dprint(f"dict caching:  { name }")
-
-        if self.request:
-
-            # can I cache myself ?
-            for attr_name in self.__dict__:
-                dprint(f"Caching Attrib = {attr_name}")
-
-            self.set_cache_variable("switch_id", self.switch.id)
-            self.set_cache_variable("basic_info_read_timestamp", self.basic_info_read_timestamp)
-            self.set_cache_variable("basic_info_read_duration", self.basic_info_read_duration)
-            self.set_cache_variable("hwinfo_needed", self.hwinfo_needed)
-            self.set_cache_variable("timing", self.timing)
-
-            self.set_cache_variable("poe_capable", self.poe_capable)
-            self.set_cache_variable("poe_enabled", self.poe_enabled)
-            self.set_cache_variable("poe_max_power", self.poe_max_power)
-            self.set_cache_variable("poe_power_consumed", self.poe_power_consumed)
-            self.set_cache_variable("poe_pse_devices", self.poe_pse_devices)
-            self.set_cache_variable("poe_port_entries", self.poe_port_entries)
-
-            self.set_cache_variable("interfaces", self.interfaces)
-            self.set_cache_variable("vlans", self.vlans)
-            self.set_cache_variable("allowed_vlans", self.allowed_vlans)
-            self.set_cache_variable("ip4_to_if_index", self.ip4_to_if_index)
-            self.set_cache_variable("syslog_msgs", self.syslog_msgs)
-            self.set_cache_variable("stack_members", self.stack_members)
-            self.set_cache_variable("more_info", self.more_info)
-
-            # call the child-class specific save_my_cache()
-            self.save_my_cache()
-        # else:
-            # only happens if running in CLI or tasks
-            # dprint("_set_http_session_cache() called but NO http.request found!")
-        return True
-
-    def save_my_cache(self):
-        """
-        To be implemented by child classes.
-        Allows them to add more cached data.
-        """
-        return
-
-    def clear_cache(self):
-        """
-        clear all cached data, likely because we changed switches
-        """
-        dprint("clear_cache()")
-        clear_switch_cache(self.request)
-        # call child-class specific clear-clear_my_cache()
-        self.clear_my_cache()
-        return
-
-    def clear_my_cache(self):
-        """
-        To be implemented by child classes.
-        Allows them to override and clear their cached data.
-        """
-        return
-
-    def set_cache_variable(self, name, value):
-        """
-        Store a variable 'name' in the session cache.
-        By default, we use the HTTP request session to cache data.
-        Returns True if set, False is an error occurs.
-
-        Note: we access the session store via the request object.
-        We could also access it direct, for possibly better performance:
-        https://docs.djangoproject.com/en/3.1/topics/http/sessions/#session-serialization
-        """
-        dprint(f"set_cache_variable(): {name}")
-
-        if self.request:
-            # store this variable
-            self.request.session[name] = value
-            # and append the name to the list of cached variable names
-            if "cache_var_names" in self.request.session.keys():
-                cache_var_names = self.request.session["cache_var_names"]
+    bytes = decimals.split('.')
+    if len(bytes) == 6:
+        mac = ''
+        for byte in bytes:
+            h = "%02X" % int(byte)
+            if not mac:
+                mac += h
             else:
-                cache_var_names = {}
-            # safe this variable name
-            cache_var_names[name] = True
-            self.request.session["cache_var_names"] = cache_var_names
-            # make sure this is stored, can also add this setting:
-            # SESSION_SAVE_EVERY_REQUEST=True
-            self.request.session.modified = True
-            return True
-        return False
-
-    def get_cache_variable(self, name):
-        """
-        Read a variable 'name' from the session cache.
-        This returns the value if found, or None if not found.
-
-        Note: we access the session store via the request object.
-        We could also access it direct, for possibly better performance:
-        https://docs.djangoproject.com/en/3.1/topics/http/sessions/#session-serialization
-        """
-        dprint(f"get_cache_variable(): {name}")
-        if name in self.request.session.keys():
-            dprint("   ... found!")
-            return self.request.session[name]
-        else:
-            return None
-
-    def clear_cache_variable(self, name):
-        """
-        remove variable from cache
-        Returns True is succeeds, False is fails
-        """
-        dprint(f"clear_cache_variable(): {name}")
-        if self.request and name in self.request.session.keys():
-            dprint("   ... found and deleted!")
-            del self.request.session[name]
-            # update cached variable names
-            cache_var_names = self.request.session["cache_var_names"]
-            cache_var_names.pop(name)
-            self.request.session["cache_var_names"] = cache_var_names
-            # and mark session
-            self.request.session.modified = True
-            return True
-        return False
-
-    def add_timing(self, name, count, time):
-        """
-        Function to track response time of the switch
-        This add/updates self.timing {}, dictionary to track how long various calls
-        take to read. Key = name, value = tuple(item_count, time)
-        """
-        self.timing[name] = (count, time)
-        (total_count, total_time) = self.timing["Total"]
-        total_count += count
-        total_time += time
-        self.timing["Total"] = (total_count, total_time)
-
-    def add_more_info(self, category, name, value):
-        """
-        This adds specific pieces of information to the "General Info" tab.
-        Items are ordered by category heading, then name/value pairs
-        """
-        if category not in self.more_info.keys():
-            self.more_info[category] = {}
-        self.more_info[category][name] = value
-
-    def _can_manage_interface(self, iface):
-        """
-        Function meant to check if this interface can be managed.
-        This allows for vendor-specific override in the vendor subclass, to detect e.g. stacking ports
-        called from _set_interfaces_permissions() to check for each interface.
-        Returns True by default, but if False, then _set_interfaces_permissions()
-        will not allow any attribute of this interface to be managed (even then admin!)
-        """
-        return True
-
-    def _set_allowed_vlans(self):
-        """
-        set the list of vlans defined on the switch that are allowed per the SwitchGroup.vlangroups/vlans
-        self.vlans = {} dictionary of vlans on the current switch, i.e. Vlan() objects, but
-        self.group.vlans and self.group.vlangroups is a list of allowed VLAN() Django objects (see switches/models.py)
-        """
-        dprint("_set_allowed_vlans()")
-        # check the vlans on the switch (self.vlans) agains switchgroup.vlan_groups and switchgroup.vlans
-        if self.group.read_only and self.request and not self.request.user.is_superuser:
-            # Read-Only Group, no vlan allowed!
-            return
-        for switch_vlan_id in self.vlans.keys():
-            if self.request and self.request.user.is_superuser:
-                self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
-            else:
-                # first the switchgroup.vlan_groups:
-                found_vlan = False
-                for vlan_group in self.group.vlan_groups.all():
-                    for group_vlan in vlan_group.vlans.all():
-                        if int(group_vlan.vid) == int(switch_vlan_id):
-                            self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
-                            found_vlan = True
-                            continue
-                # check if this switch vlan is in the list of allowed vlans
-                if not found_vlan:
-                    for group_vlan in self.group.vlans.all():
-                        if int(group_vlan.vid) == int(switch_vlan_id):
-                            # save using the switch vlan name, which is possibly different from the VLAN group name!
-                            self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
-                            continue
-        return
-
-    def _set_interfaces_permissions(self):
-        """
-        For all found interfaces, check out rules to see if this user should be able see or edit them
-        """
-        dprint("_set_interfaces_permissions()")
-        switch = self.switch
-        group = self.group
-        if self.request:
-            user = self.request.user
-        else:
-            # we are running as a task, simulate 'admin'
-            # permissions were checked when form was generated/submitted
-            user = User.objects.get(pk=1)
-
-        # find allowed vlans for this user
-        self._set_allowed_vlans()
-
-        # apply the permission rules to all interfaces
-        for key in self.interfaces:
-            iface = self.interfaces[key]
-            # dprint(f"  checking {iface.name}")
-
-            # Layer 3 (routed mode) interfaces are denied (but shown)!
-            if iface.is_routed:
-                iface.manageable = False
-                iface.allow_poe_toggle = False
-                iface.can_edit_alias = False
-                iface.visible = True
-                iface.unmanage_reason = "Access denied: interface in routed mode!"
-                continue
-
-            if iface.type != IF_TYPE_ETHERNET and settings.HIDE_NONE_ETHERNET_INTERFACES:
-                iface.manageable = False
-                iface.allow_poe_toggle = False
-                iface.can_edit_alias = False
-                iface.visible = False
-                continue
-
-            # next check vendor-specific restrictions. This allows denying Stacking ports, etc.
-            if not self._can_manage_interface(iface):
-                iface.manageable = False
-                iface.allow_poe_toggle = False
-                iface.can_edit_alias = False
-                iface.visible = True
-                continue
-
-            # Read-Only switch cannot be overwritten, not even by SuperUser!
-            if switch.read_only or group.read_only or user.profile.read_only:
-                iface.manageable = False
-                iface.unmanage_reason = "Access denied: Read-Only"
-                iface.visible = True
-                continue
-
-            # super-users have access to all other attributes of interfaces!
-            if user.is_superuser:
-                iface.manageable = True
-                iface.visible = True
-                iface.allow_poe_toggle = True
-                iface.can_edit_alias = True
-                continue
-
-            # globally allow PoE toggle:
-            if settings.ALWAYS_ALLOW_POE_TOGGLE:
-                iface.allow_poe_toggle = True
-
-            # we can also enable PoE toggle on user, group or switch, if allowed somewhere:
-            if switch.allow_poe_toggle or group.allow_poe_toggle or user.profile.allow_poe_toggle:
-                iface.allow_poe_toggle = True
-
-            # we can also modify interface description, if allowed everywhere:
-            if switch.edit_if_descr and group.edit_if_descr and user.profile.edit_if_descr:
-                iface.can_edit_alias = True
-
-            # Next apply any rules that HIDE first !!!
-
-            # check interface types first, only show ethernet
-            # this hides vlan, loopback etc. interfaces for the regular user.
-            if iface.type not in visible_interfaces.keys():
-                iface.visible = False
-                iface.manageable = False  # just to be safe :-)
-                iface.unmanage_reason = "Switch is not visible!"    # should never show!
-                continue
-
-            # see if this regex matches the interface name, e.g. GigabitEthernetx/x/x
-            if settings.IFACE_HIDE_REGEX_IFNAME != "":
-                match = re.match(settings.IFACE_HIDE_REGEX_IFNAME, iface.name)
-                if match:
-                    iface.manageable = False  # match, so we cannot modify! Show anyway...
-                    iface.unmanage_reason = "Access denied: interface name matches admin setting!"
-                    continue
-
-            # see if this regex matches the interface 'ifAlias' aka. the interface description
-            if settings.IFACE_HIDE_REGEX_IFDESCR != "":
-                match = re.match(settings.IFACE_HIDE_REGEX_IFDESCR, iface.alias)
-                if match:
-                    iface.manageable = False  # match, so we cannot modify! Show anyway...
-                    iface.unmanage_reason = "Access denied: interface description matches admin setting!"
-                    continue
-
-            # see if we should hide interfaces with speeds above this value in Mbps.
-            if int(settings.IFACE_HIDE_SPEED_ABOVE) > 0 and int(iface.speed) > int(settings.IFACE_HIDE_SPEED_ABOVE):
-                iface.manageable = False  # match, so we cannot modify! Show anyway...
-                iface.unmanage_reason = "Access denied: interface speed is denied by admin setting!"
-                continue
-
-            # check if this vlan is in the group allowed vlans list:
-            if int(iface.untagged_vlan) not in self.allowed_vlans.keys():
-                iface.manageable = False  # match, so we cannot modify! Show anyway...
-                iface.unmanage_reason = "Access denied: vlan is not allowed!"
-                continue
-
-            # finally, we can edit this interface!
-            iface.manageable = True
-
-        dprint("_set_interfaces_permissions() done!")
-        return
-
-    def add_warning(self, warning):
-        """
-        Add a warning to the list, and log it as well!
-        """
-        self.warnings.append(warning)
-        # add a log message
-        log = Log(group=self.group,
-                  switch=self.switch,
-                  ip_address=get_remote_ip(self.request),
-                  type=LOG_TYPE_WARNING,
-                  action=LOG_SNMP_ERROR,
-                  description=warning)
-        if self.request:
-            log.user = self.request.user
-        log.save()
-        # done!
-        return
-
-    def log_error(self, error=False):
-        """
-        Log the current error, either passed in, or as set in the object.
-        """
-        err = False
-        if error:
-            err = error
-        elif self.error.status:
-            err = self.error
-        if err:
-            # add a log message
-            log = Log(group=self.group,
-                      switch=self.switch,
-                      ip_address=get_remote_ip(self.request),
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_SNMP_ERROR,
-                      description=f"{self.error.description}: {self.error.details}")
-            if self.request:
-                log.user = self.request.user
-                log.save()
-        # done!
-        return
-
-    def add_vendor_data(self, category, name, value):
-        """
-        This adds a vendor specific piece of information to the "Info" tab.
-        Items are ordered by category heading, then name/value pairs
-        """
-        vdata = VendorData(name, value)
-        if category not in self.vendor_data.keys():
-            self.vendor_data[category] = []
-        self.vendor_data[category].append(vdata)
-
-    def get_switch_vlans(self):
-        """
-        Return the vlans defined on this switch
-        """
-        return self.vlans
-
-    def get_vlan_by_id(self, vlan_id):
-        """
-        Return the Vlan() object for the given id
-        """
-        if int(vlan_id) in self.vlans.keys():
-            return self.vlans[vlan_id]
-        return False
-
-    def display_name(self):
-        return f"{self.name} for {self.switch.name}"
-
-    def __str__(self):
-        return self.display_name
-
-# --- End of Connector() ---
+                mac += "-%s" % h
+        return mac
+    return "00-00-00-00-00-00"
 
 
-"""
-We need one helper function, since we will need to clear the cache outside
-the context of a class...
-"""
-
-
-def clear_switch_cache(request):
+def bytes_ethernet_to_string(bytes):
     """
-    Clear all cached data for the current switch.
-    Does not return anything.
+    Convert SNMP ethernet in 6-byte octetstring to defined ethernet string format.
     """
-    dprint("clear_switch_cache() called:")
-    if request:
-        dprint("   http request found!")
-        # all we have to do it clear the "switch_id" !
-        try:
-            del request.session["switch_id"]
-            request.session.modified = True
-        except Exception:
-            # this means we did not have anything set, we can ignore!
-            dprint("   cached 'switch_id' cleared (not found!)")
+    if len(bytes) == 6:
+        format = '%02X'
+        separator = '-'
+        eth_string = separator.join(format % ord(b) for b in bytes)
+        dprint(f"bytes_ethernet_to_string() for {eth_string}")
+        eth = EthernetAddress(eth_string)
+        return str(eth)
+    return ''

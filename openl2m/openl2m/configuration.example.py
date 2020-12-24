@@ -131,14 +131,14 @@ HIDE_NONE_ETHERNET_INTERFACES = False
 
 # Switch Info Urls is a list dictionaries with one or more links to put in front of the switch name.
 # you can use the following template strings:
-# {{ switch.name }}
+# {{ switch.name }} - name as configured by admin switch object
+# {{ switch.hostname }} - hostname as set on device (read via snmp, ssh, etc.)
 # {{ switch.primary_ip4 }}
 # {{ switch.nms_id }}
-# {{ switch.snmp_hostname }}
 SWITCH_INFO_URLS = [
     # This example is for Akips, and provides a direct link to the switch page in Akips:
     {
-        'url': 'https://akips.yoursite.com/dashboard?mode=device;device_list={{ switch.name }};',
+        'url': 'https://akips.yoursite.com/dashboard?mode=device;device_list={{ switch.hostname }};',
         'hint': 'Click here to see AKIPS data for this switch',
         'target': '_blank',
         'icon': '/static/img/nms.png',
@@ -183,7 +183,7 @@ SWITCH_INFO_URLS_STAFF = [
     },
     # this would be a link to a another management tool for admins.
     {
-        'url': 'https://yourtool.yoursite.com/device/device={{ switch.snmp_hostname }}/',
+        'url': 'https://yourtool.yoursite.com/device/device={{ switch.hostname }}/',
         'hint': 'Click here to go to some tool!',
         'target': '_blank',
         'icon': '/static/img/nms.png',
@@ -210,7 +210,7 @@ SWITCH_INFO_URLS_ADMINS = [
     },
     # this would be a link to a another management tool for admins.
     {
-        'url': 'https://yourtool.yoursite.com/device/device={{ switch.snmp_hostname }}/',
+        'url': 'https://yourtool.yoursite.com/device/device={{ switch.hostname }}/',
         'hint': 'Click here to go to some tool!',
         'target': '_blank',
         'icon': '/static/img/nms.png',
@@ -229,7 +229,7 @@ SWITCH_INFO_URLS_ADMINS = [
 INTERFACE_INFO_URLS = [
     {
         'name': 'Akips',
-        'url': 'https://akips.yoursite.com/dashboard?mode=interface;time=last3h;controls=interface;device={{ switch.snmp_hostname }};child={{ iface.name }}',
+        'url': 'https://akips.yoursite.com/dashboard?mode=interface;time=last3h;controls=interface;device={{ switch.hostname }};child={{ iface.name }}',
         'hint': 'Click here to see AKIPS data for this interface',
         'target': '_akips',
         'icon': '/static/img/nms.png',
@@ -317,8 +317,11 @@ ETHERNET_INFO_URLS = [
     },
 ]
 
-# format ethernet address lower case or upper
-ETH_FORMAT_UPPERCASE = False
+# Ethernet display format, either
+# COLON = 0  e.g. 00:11:22:33:44:55
+# HYPHEN = 1 e.g. 00-11-22-33-44-55
+# CISCO = 2  e.g.  0011.2233.4455
+ETH_FORMAT = 0
 
 # various regular expression to remove interfaces from the user
 # this uses the Python 're' module.
