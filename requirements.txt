@@ -15,7 +15,7 @@ flower
 gitpython
 gunicorn==20.0.4
 ip_address>=1.0.23
-Jinja2==2.11.2
+Jinja2==2.11.3
 netaddr==0.7.19
 netmiko>=3.0.0
 psycopg2-binary==2.8.5
