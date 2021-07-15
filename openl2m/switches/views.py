@@ -981,7 +981,7 @@ def switch_save_config(request, group_id, switch_id, view):
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request=request, group=group, switch=switch, error=error)
 
-    if conn.can_save_config() and conn.get_save_needed():
+    if conn.save_needed and conn.can_save_config():
         # we can save
         if conn.save_running_config() < 0:
             # an error happened!
@@ -991,6 +991,9 @@ def switch_save_config(request, group_id, switch_id, view):
 
         # clear save flag
         conn.set_save_needed(False)
+
+        # save cachable/session data
+        conn.save_cache()
 
     else:
         log.type = LOG_TYPE_ERROR

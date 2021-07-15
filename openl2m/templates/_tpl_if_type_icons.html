@@ -1,0 +1,43 @@
+{% load static %}
+
+{% if iface.is_routed %}
+  &nbsp;
+  <i class="fas fa-cogs" aria-hidden="true"
+       alt="Routed Mode Interface"
+       data-toggle="tooltip"
+       title="Routed Mode Interface">
+  </i>
+{% endif %}
+{% if iface.is_tagged %}
+  &nbsp;
+  <i class="fas fa-ellipsis-v" aria-hidden="true"
+       alt="Tagged/Trunked Interface"
+       data-toggle="tooltip"
+       title="Tagged/Trunked Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
+  </i>
+{% endif %}
+{% if iface.lacp_master_index > 0 %}
+  &nbsp;
+  <i class="fas fa-link" aria-hidden="true"
+       alt="LACP Member Interface"
+       data-toggle="tooltip"
+       title="This interface is a member of LACP interface {{ iface.lacp_master_name }}">
+  </i>
+{% endif %}
+{% if iface.type == IF_TYPE_LAGG %}
+  &nbsp;
+  <i class="fas fa-link" aria-hidden="true"
+       alt="LACP Master Interface"
+       data-toggle="tooltip"
+       title="This interface is an LACP interface! Members are: {% for if_index, if_name in iface.lacp_members.items %}{{ if_name }} {% endfor %}
+       ">
+  </i>
+{% endif %}
+{% if iface.voice_vlan %}
+  &nbsp;
+  <i class="fas fa-phone" aria-hidden="true"
+       alt="Voice VLAN"
+       data-toggle="tooltip"
+       title="Voice VLAN {{ iface.voice_vlan }}">
+  </i>
+{% endif %}

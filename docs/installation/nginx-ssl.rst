@@ -10,6 +10,10 @@ You can also use a self-signed certificate, but that is left as an exercise to t
 
 For more details, also see https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-16-04
 
+Note: if you want to run OpenL2M on an existing Nginx install that already has an SSL website on it,
+you will need to look at the SNI or "Server Name Indication" capability. There are numerous tutorials
+around that show you how to configure this.
+
 **Django Configuration**
 
 When you enable SSL, you need to add two settings to *openl2m/configuration.py* make SSL more secure:

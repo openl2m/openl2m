@@ -106,18 +106,17 @@ class SnmpConnectorComware(SnmpConnector):
         # so read HH3C version
         if self.get_snmp_branch('hh3cdot1qVlanName', self._parse_mibs_comware_vlan) < 0:
             dprint("Comware hh3cdot1qVlanName returned error!")
-            return False
+            self.add_warning("Error getting 'HH3C-Vlan-Names' (hh3cdot1qVlanName)")
 
         # read the Comware port type:
         if self.get_snmp_branch('hh3cifVLANType', self._parse_mibs_comware_if_type) < 0:
             dprint("Comware hh3cifVLANType returned error!")
-            return False
+            self.add_warning("Error getting 'HH3C-Vlan-Types' (hh3cifVLANType)")
 
         # for each vlan, PortList bitmap of untagged ports
         """  NOT PARSED YET:
         if self.get_snmp_branch('hh3cdot1qVlanPorts') < 0:
             dprint("Comware hh3cdot1qVlanPorts returned error!")
-            return False
         """
 
         # tagged vlan types are next
@@ -291,7 +290,7 @@ class SnmpConnectorComware(SnmpConnector):
         Returns True for normal interfaces, but False for IRF ports.
         """
         if iface.type == IF_TYPE_ETHERNET:
-            if iface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
+            if iface.if_vlan_mode == HH3C_IF_MODE_INVALID:
                 # dprint(f"Interface {iface.name}: mode={iface.if_vlan_mode}, NO MANAGEMENT ALLOWED!")
                 iface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
                 return False
@@ -304,6 +303,7 @@ class SnmpConnectorComware(SnmpConnector):
         """
         Parse Comware specific ConfigMan MIB
         Mostly entries under 'hh3cCfgLog'
+        return True if we parse it, False if not.
         """
         sub_oid = oid_in_branch(hh3cCfgRunModifiedLast, oid)
         if sub_oid:
@@ -336,6 +336,7 @@ class SnmpConnectorComware(SnmpConnector):
     def _parse_mibs_comware_poe(self, oid, val):
         """
         Parse the Comware extended HH3C-POWER-ETH MIB, power usage extension
+        return True if we parse it, False if not.
         """
         dprint(f"_parse_mibs_comware_poe() {oid}, len = {val}, type = {type(val)}")
         pe_index = oid_in_branch(hh3cPsePortCurrentPower, oid)
@@ -350,6 +351,7 @@ class SnmpConnectorComware(SnmpConnector):
     def _parse_mibs_comware_vlan(self, oid, val):
         """
         Parse Comware specific VLAN MIB
+        return True if we parse it, False if not.
         """
         vlan_id = int(oid_in_branch(hh3cdot1qVlanName, oid))
         if vlan_id > 0:
@@ -363,10 +365,11 @@ class SnmpConnectorComware(SnmpConnector):
     def _parse_mibs_comware_if_type(self, oid, val):
         """
         Parse Comware specific Interface Type MIB
+        return True if we parse it, False if not.
         """
         if_index = oid_in_branch(hh3cifVLANType, oid)
         if if_index:
-            # dprint(f"Comware if_index{if_index} if_type {val}"
+            dprint(f"Comware if_index{if_index} if_type {val}")
             self.set_interface_attribute_by_key(if_index, "if_vlan_mode", int(val))
             if int(val) == HH3C_IF_MODE_TRUNK:
                 self.set_interface_attribute_by_key(if_index, "is_tagged", True)
@@ -376,6 +379,7 @@ class SnmpConnectorComware(SnmpConnector):
     def _parse_mibs_comware_if_linkmode(self, oid, val):
         """
         Parse Comware specific Interface Extension MIB for link mode, PoE info
+        return True if we parse it, False if not.
         """
         if_index = oid_in_branch(hh3cIfLinkMode, oid)
         if if_index:
@@ -388,6 +392,7 @@ class SnmpConnectorComware(SnmpConnector):
     def _parse_mibs_comware_configfile(self, oid, val):
         """
         Parse Comware specific ConfigMan MIB
+        return True if we parse it, False if not.
         """
         dprint("_parse_mibs_comware_configfile(Comware)")
         sub_oid = oid_in_branch(hh3cCfgOperateRowStatus, oid)

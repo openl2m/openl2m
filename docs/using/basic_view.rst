@@ -82,27 +82,35 @@ System. This is configured by the admin.
 
 Interface names can also have several icons behind them. They are:
 
-|trunk|  This means the interface is in trunking or 802.1Q tagged mode.
+.. raw:: html
+
+  <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
+
+This means the interface is in trunking or 802.1Q tagged mode.
 Hovering over the icon will show the tagged Vlans on this port.
 
-.. |trunk| image:: ../_static/trunk.png
+.. raw:: html
 
-|lacp|  This means the interface is an LACP bridge-aggregate interface, or a member of an LACP
+  <i class="fas fa-link" aria-hidden="true"></i>
+
+This means the interface is an LACP bridge-aggregate interface, or a member of an LACP
 aggregation interface. Hovering over the icon will either show the member interfaces
 for a virtual aggregate interface, or for a physical interface the bridge aggregate it is part of.
 
-.. |lacp| image:: ../_static/lacp.png
+.. raw:: html
 
-|voicevlan|  This means the interface has a voice vlan defined on it. This is Cisco
+  <i class="fas fa-phone" aria-hidden="true"></i>
+
+This means the interface has a voice vlan defined on it. This is Cisco
 specific. Hovering over the icon will
 show the Voice Vlan.
 
-.. |voicevlan| image:: ../_static/voice-vlan.png
+.. raw:: html
 
-|routedmode|  This means the interface is in routed mode (i.e. layer 3).
+  <i class="fas fa-cogs" aria-hidden="true"></i>
+
+This means the interface is in routed mode (i.e. layer 3).
 Routed Mode interfaces can not be managed.
-
-.. |routedmode| image:: ../_static/routed-mode.png
 
 **Enabling or Disabling the Interface**
 

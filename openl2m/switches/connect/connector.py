@@ -146,7 +146,6 @@ class Connector():
             # update counters
             # self.switch.save()
 
-
         return True
 
     def get_my_basic_info(self):
@@ -426,26 +425,8 @@ class Connector():
         just return True
         """
         dprint(f"Connector.set_save_needed({value})")
-        if value:
-            if self.can_save_config():
-                self.set_cache_variable("save_needed", True)
-            # else:
-            #    dprint("   save config NOT supported")
-        else:
-            self.clear_cache_variable("save_needed")
+        self.save_needed = value
         return True
-
-    def get_save_needed(self):
-        """
-        Does the switch need to execute a 'save config' command
-        to save changes to the startup config.
-        We store and read this from the http session.
-        Returns True or False
-        """
-        val = self.get_cache_variable("save_needed")
-        if val is None:
-            return False
-        return val
 
     def can_change_interface_vlan(self):
         """

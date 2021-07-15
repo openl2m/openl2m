@@ -25,8 +25,10 @@
         <h5>{{ request.user.date_joined }}</h5>
         <small class="text-muted">Switch Groups</small>
         <h5>{{ request.user.switchgroups.all|join:', ' }}</h5>
-        <small class="text-muted">Admin access</small>
+        <small class="text-muted">Staff access</small>
         <h5>{{ request.user.is_staff|yesno|capfirst }}</h5>
+        <small class="text-muted">Admin access</small>
+        <h5>{{ request.user.is_admin|yesno|capfirst }}</h5>
       </div>
     </div>
   </div>

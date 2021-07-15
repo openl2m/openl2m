@@ -1176,7 +1176,9 @@ class SnmpConnector(Connector):
         """
 
         # this gets the aggregator interface admin key or "index"
-        aggr_if_index = int(oid_in_branch(dot3adAggActorAdminKey, oid))
+        # note that aggregator index is an integer according to MIB, but
+        # we use it as a string value for the interfaces{} dictionary key!!!
+        aggr_if_index = oid_in_branch(dot3adAggActorAdminKey, oid)
         if aggr_if_index:
             # this interface is a aggregator!
             if aggr_if_index in self.interfaces.keys():
@@ -1185,10 +1187,13 @@ class SnmpConnector(Connector):
                 # some vendors (certain Cisco switches) set the IF-MIB::ifType to Virtual (53) instead of LAGG (161)
                 # hardcode to LAGG:
                 self.interfaces[aggr_if_index].type = IF_TYPE_LAGG
+                dprint("LACP MEMBER FOUND!!!")
             return True
 
         # this get the member interfaces admin key ("index"), which maps back to the aggregator interface above!
-        member_if_index = int(oid_in_branch(dot3adAggPortActorAdminKey, oid))
+        member_if_index = oid_in_branch(dot3adAggPortActorAdminKey, oid)
+        # note that member_index is an integer according to MIB, but
+        # we use it as a string value for the interfaces{} dictionary key!!!
         if member_if_index:
             # this interface is an lacp member!
             if member_if_index in self.interfaces.keys():
@@ -1198,10 +1203,13 @@ class SnmpConnector(Connector):
                     if iface.lacp_type == LACP_IF_TYPE_AGGREGATOR and iface.lacp_admin_key == lacp_key:
                         # the current interface is a member of this aggregate iface !
                         self.interfaces[member_if_index].lacp_type = LACP_IF_TYPE_MEMBER
-                        self.interfaces[member_if_index].lacp_master_index = lacp_index
+                        # note that lacp_index is an integer according to MIB, but
+                        # we use it as a string value for the interfaces{} dictionary key!!!
+                        self.interfaces[member_if_index].lacp_master_index = int(lacp_index)
                         self.interfaces[member_if_index].lacp_master_name = iface.name
                         # add our name to the list of the aggregate interface
                         self.interfaces[lacp_index].lacp_members[member_if_index] = self.interfaces[member_if_index].name
+                        dprint("LACP MASTER FOUND!!!")
             return True
 
         """
