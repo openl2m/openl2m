@@ -114,173 +114,131 @@
   {# here are the tabs of this page, depending on "view", see https://codepen.io/sinairv/pen/XjZyWP #}
 
   <ul class="nav nav-tabs">
-    {% if view == 'arp_lldp' %}
-    <li>
-      <a href="#tab_interfaces" data-toggle="tab">
-        <strong data-toggle="tooltip"  title="Interfaces information">
-          <i class="fas fa-ethernet" aria-hidden="true"></i>
-          Interfaces
-        </strong>
-      </a>
-    </li>
+    {% if cmd and cmd.state == 'run' %}
+
+      <li>{% include "_menu_interfaces.html" %}</li>
       {% if bulk_edit %}
-      <li>
-         <a href="#tab_bulkedit" data-toggle="tab">
-           <strong data-toggle="tooltip" title="The interfaces Bulk Edit form">
-             <i class="fas fa-pencil" aria-hidden="true"></i>
-             Bulk Edit
-           </strong>
-         </a>
-      </li>
+        <li>{% include "_menu_bulk_edit.html" %}</li>
       {% endif %}
-      {% if cmd.state != 'run' %}
-      <li class="active">
-      {% else %}
-      <li>
-      {% endif %}
-        <a href="#tab_arp_lldp" data-toggle="tab">
-          <strong data-toggle="tooltip"  title="Interface details such as ethernet address, ARP, LLDP, etc.">
-            <i class="fas fa-sitemap" aria-hidden="true"></i>
-            Eth/ARP/LLDP
-          </strong>
-        </a>
-      </li>
-    {% else %} {# not arp_lldp #}
-      {% if view != 'hw_info' and cmd.state != 'run' %}
-      <li class="active">
-      {% else %}
-      <li>
-      {% endif %}
-        <a href="#tab_interfaces" data-toggle="tab">
-          <strong data-toggle="tooltip" title="Interfaces information">
-            <i class="fas fa-ethernet" aria-hidden="true"></i>
-            Interfaces
-          </strong>
-        </a>
-      </li>
-      {% if bulk_edit %}
-        <li>
-          <a href="#tab_bulkedit" data-toggle="tab">
-            <strong data-toggle="tooltip" title="The interfaces Bulk Edit form">
-              <i class="fas fa-edit" aria-hidden="true"></i>
-              Bulk Edit
-            </strong>
-          </a>
-        </li>
-       {% endif %}
-    {% endif %}
-    {% if view == 'hw_info' %}
-    <li class="active">
+      <li>{% include "_menu_switch_info.html" %}</li>
+      <li class="active">{% include "_menu_command_output.html" %}</li>
+
     {% else %}
-    <li>
-    {% endif %}
-      <a href="#tab_info" data-toggle="tab">
-        <strong data-toggle="tooltip" title="General switch information, such as OS, etc.">
-          <i class="fas fa-info" aria-hidden="true"></i>
-          Switch Information
-        </strong>
-      </a>
-    </li>
-    <li>
-      <a href="#tab_logs" data-toggle="tab">
-        <strong data-toggle="tooltip" title="Most Recent {{ settings.RECENT_SWITCH_LOG_COUNT }} OpenL2M activity logs for this switch">
-          <i class="fas fa-list-ul" aria-hidden="true"></i>
-          Activity Logs
-        </strong>
-      </a>
-    </li>
-    {% if cmd %}
-      {% if cmd.state == 'run' %}
-      <li class="active">
-        <a href="#tab_cmd_output" data-toggle="tab">
-          <strong data-toggle="tooltip" title="Show command output">
-            <i class="fas fa-cog" aria-hidden="true"></i>
-            Command Output
-          </strong>
-        </a>
-      </li>
+
+      {% if view == 'basic' %}
+        <li class="active">{% include "_menu_interfaces.html" %}</li>
+        {% if bulk_edit %}
+            <li>{% include "_menu_bulk_edit.html" %}</li>
+        {% endif %}
+        <li>{% include "_menu_switch_info.html" %}</li>
       {% endif %}
-      {% if connection.can_run_commands and switch.has_global_commands %}
-      <li>
-        <a href="#tab_cmd_list" data-toggle="tab">
-          <strong data-toggle="tooltip" title="Possible show commands for the switch">
-            <i class="fas fa-cogs" aria-hidden="true"></i>
-            Switch Commands
-          </strong>
-        </a>
-      </li>
+
+      {% if view == 'arp_lldp' %}
+        <li>{% include "_menu_interfaces.html" %}</li>
+        {% if bulk_edit %}
+            <li>{% include "_menu_bulk_edit.html" %}</li>
+        {% endif %}
+        <li class="active">{% include "_menu_arp_lldp.html" %}</li>
+        <li>{% include "_menu_switch_info.html" %}</li>
       {% endif %}
+
+      {% if view == 'hw_info' %}
+        <li>{% include "_menu_interfaces.html" %}</li>
+        {% if bulk_edit %}
+            <li>{% include "_menu_bulk_edit.html" %}</li>
+        {% endif %}
+        <li class="active">{% include "_menu_switch_info.html" %}</li>
+      {% endif %}
+
     {% endif %}
+
+    {% if connection.can_run_commands and switch.has_global_commands %}
+      <li>{% include "_menu_switch_commands.html" %}</li>
+    {% endif %}
+
+    <li>{% include "_menu_logs.html" %}</li>
+
     {% if connection.warnings %}
-      <li>
-        <a href="#tab_warnings" data-toggle="tab"><strong data-toggle="tooltip" title="Errors or Warnings have been found!">
-          <font color="orange">
-            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
-            Warnings/Errors
-          </font>
-        </strong>
-        </a>
-      </li>
+      <li>{% include "_menu_warnings.html" %}</li>
     {% endif %}
+
   </ul>
 
   {# and tab content, obviously! #}
   <div class="tab-content">
 
-
-
-
-
-    {% if view == 'basic' %}
-      {% if cmd.state != 'run' %}
-        <div class="tab-pane active" id="tab_interfaces">
-      {% else %}
-        <div class="tab-pane" id="tab_interfaces">
-      {% endif %}
-        {% include "_tab_if_basics.html" %}
-        </div>
-    {% else %}
+    {% if cmd and cmd.state == 'run' %}
       <div class="tab-pane" id="tab_interfaces">
         {% include "_tab_if_basics.html" %}
       </div>
-    {% endif %}
-
-    {% if bulk_edit %}
-      <div class="tab-pane" id="tab_bulkedit">
-        {% include "_tab_if_bulkedit.html" %}
-      </div>
-    {% endif %}
-
-    {% if view == 'arp_lldp' %}
-
-        {% if cmd.state != 'run' %}
-          <div class="tab-pane active" id="tab_arp_lldp">
-        {% else %}
-          <div class="tab-pane" id="tab_arp_lldp">
-        {% endif %}
-        {% include "_tab_if_arp_lldp.html" %}
-        </div>
-    {% endif %}
-
-    {% if view == 'hw_info' %}
-      <div class="tab-pane active" id="tab_info">
-    {% else %}
-      <div class="tab-pane" id="tab_info">
-    {% endif %}
-      {% include "_tab_info.html" %}
-      </div>
-
-    {% if cmd %}
-      {% if cmd.state == 'run' %}
-        <div class="tab-pane active" id="tab_cmd_output">
-          {% include "_tab_cmd_output.html" %}
+      {% if bulk_edit %}
+        <div class="tab-pane" id="tab_bulkedit">
+          {% include "_tab_if_bulkedit.html" %}
         </div>
       {% endif %}
-      {% if connection.can_run_commands and switch.has_global_commands %}
+      <div class="tab-pane" id="tab_info">
+        {% include "_tab_info.html" %}
+      </div>
+      <div class="tab-pane active" id="tab_cmd_output">
+        {% include "_tab_cmd_output.html" %}
+      </div>
+
+    {% else %}
+
+      {% if view == 'basic' %}
+        <div class="tab-pane active" id="tab_interfaces">
+          {% include "_tab_if_basics.html" %}
+        </div>
+        {% if bulk_edit %}
+          <div class="tab-pane" id="tab_bulkedit">
+            {% include "_tab_if_bulkedit.html" %}
+          </div>
+        {% endif %}
+        <div class="tab-pane" id="tab_info">
+          {% include "_tab_info.html" %}
+        </div>
+        <div class="tab-pane" id="tab_logs">
+            {% include "_tab_logs.html" %}
+        </div>
+      {% endif %}
+
+      {% if view == 'arp_lldp' %}
+        <div class="tab-pane" id="tab_interfaces">
+          {% include "_tab_if_basics.html" %}
+        </div>
+        {% if bulk_edit %}
+          <div class="tab-pane" id="tab_bulkedit">
+            {% include "_tab_if_bulkedit.html" %}
+          </div>
+        {% endif %}
+        <div class="tab-pane active" id="tab_arp_lldp">
+          {% include "_tab_if_arp_lldp.html" %}
+        </div>
+        <div class="tab-pane" id="tab_info">
+          {% include "_tab_info.html" %}
+        </div>
+      {% endif %}
+
+      {% if view == 'hw_info' %}
+        <div class="tab-pane" id="tab_interfaces">
+          {% include "_tab_if_basics.html" %}
+        </div>
+        {% if bulk_edit %}
+          <div class="tab-pane" id="tab_bulkedit">
+            {% include "_tab_if_bulkedit.html" %}
+          </div>
+        {% endif %}
+        <div class="tab-pane active" id="tab_info">
+          {% include "_tab_info.html" %}
+        </div>
+      {% endif %}
+
+    {% endif %}
+
+    {% if connection.can_run_commands and switch.has_global_commands %}
       <div class="tab-pane" id="tab_cmd_list">
         {% include "_tab_cmd_list.html" %}
       </div>
-      {% endif %}
     {% endif %}
 
     <div class="tab-pane" id="tab_logs">

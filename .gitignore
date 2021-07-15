@@ -13,3 +13,5 @@ venv/
 .DS_Store
 ._*
 .vscode
+docs/releases/Release-Test-Plan-2.0.ods
+docs/releases/.~lock.Release-Test-Plan-2.0.ods#

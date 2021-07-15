@@ -35,9 +35,9 @@
 
             {% if iface.manageable %}
 
-              {% include "_tpl_iface_name_td.html" %}
+              {% include "_tpl_if_name_td.html" %}
 
-              {% include "_tpl_iface_link_td.html" %}
+              {% include "_tpl_if_linkspeed_td.html" %}
 
               {# only show vlan, poe, description and command capabilities for Ethernet interfaces #}
               {% if iface.type == IF_TYPE_ETHERNET %}
@@ -122,11 +122,11 @@
                       {% endif %}
                          href="{% url 'switches:poe_change' group.id switch.id iface.key POE_PORT_ADMIN_ENABLED %}"
                          title="PoE Disabled! Click here to Enable PoE on interface {{ iface.name }}">
-                          <img src="{% static 'img/disabled.png' %}" alt="PoE Disabled">
+                          <img src="{% static 'img/poe-disabled-0.png' %}" alt="PoE Disabled">
                       </a>
                     {% endif %}
                   {% else %}
-                     <span data-toggle="tooltip" title="Not supported on this interface">n/s</span>
+                     <span data-toggle="tooltip" title="PoE not supported on this interface">n/s</span>
                   {% endif %}
                   </td>
                 {% endif %}
@@ -207,7 +207,7 @@
             {% else %} {# not manageable #}
               <!-- NOT MANAGEABLE -->
               <td
-              {% if iface.admin_status ==  IF_ADMIN_STATUS_UP %}
+              {% if iface.admin_status == IF_ADMIN_STATUS_UP %}
                 {% if iface.oper_status == IF_OPER_STATUS_UP %}
                   bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
                 {% else %}
@@ -218,46 +218,17 @@
               {% endif %}
                 {{ switch|get_interface_info_links:iface }}
                 {% if iface.unmanage_reason %}
-                <span data-toggle="tooltip" title="{{ iface.unmanage_reason }}">
+                  <span data-toggle="tooltip" title="{{ iface.unmanage_reason }}">
                 {% endif %}
                 {{ iface.name }}
                 {% if iface.unmanage_reason %}
-                </span>
+                  </span>
                 {% endif %}
-                {% if iface.is_routed %}
-                  &nbsp;
-                  <img src="{% static 'img/routed-mode.png' %}"
-                       alt="Routed Mode Interface"
-                       data-toggle="tooltip" title="Routed Mode Interface">
-                {% endif %}
-                {% if iface.is_tagged %}
-                  &nbsp;
-                  <img src="{% static 'img/trunk.png' %}"
-                       alt="Tagged/Trunked Interface"
-                       data-toggle="tooltip" title="Tagged/Trunked Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }}&nbsp;{% endfor %}">
-                {% endif %}
-                {% if iface.lacp_master_index > 0 %}
-                  &nbsp;
-                  <img src="{% static 'img/lacp.png' %}"
-                       alt="LACP Member Interface"
-                       data-toggle="tooltip" title="This interface is a member of LACP interface {{ iface.lacp_master_name }}">
-                {% endif %}
-                {% if iface.type == IF_TYPE_LAGG %}
-                  &nbsp;
-                  <img src="{% static 'img/lacp.png' %}"
-                       alt="LACP Master Interface"
-                       data-toggle="tooltip" title="This interface is an LACP interface! Members are: {% for if_index, if_name in iface.lacp_members.items %}{{ if_name }} {% endfor %}
-                       ">
-                {% endif %}
-                {% if iface.voice_vlan %}
-                  &nbsp;<img src="{% static 'img/voice-vlan.png' %}"
-                             alt="Voice VLAN"
-                             data-toggle="tooltip" title="Voice VLAN {{ iface.voice_vlan }}">
-                {% endif %}
+                {% include "_tpl_if_type_icons.html" %}
                 <!-- ifkey = {{ iface.key }},  ifIndex = {{ iface.index }}, type = {{ iface.type }}, port_id = {{ iface.port_id }} -->
               </td>
 
-              {% include "_tpl_iface_link_td.html" %}
+              {% include "_tpl_if_linkspeed_td.html" %}
 
               <td>
                 {% if iface.untagged_vlan > 0 %}
@@ -297,10 +268,10 @@
                         <img src="{% static 'img/poe-enabled.png' %}" alt="PoE Enabled" data-toggle="tooltip" title="PoE Enabled!">
                       {% endif %}
                     {% else %} {# disabled #}
-                      <img src="{% static 'img/disabled.png' %}" alt="PoE Disabled" data-toggle="tooltip" title="PoE Disabled!">
+                      <img src="{% static 'img/poe-disabled-0.png' %}" alt="PoE Disabled" data-toggle="tooltip" title="PoE Disabled!">
                     {% endif %}
                   {% else %}
-                     <span data-toggle="tooltip" title="Not supported on this interface">n/s</span>
+                     <span data-toggle="tooltip" title="PoE not supported on this interface">n/s</span>
                   {% endif %}
                 </td>
               {% endif %} {# poe_capable #}

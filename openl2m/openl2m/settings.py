@@ -49,8 +49,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = '2.0.0-rc1'
-VERSION_DATE = '2021-02-23'
+VERSION = '2.0.0-rc2'
+VERSION_DATE = '2021-07-20'
 
 # Hostname
 HOSTNAME = platform.node()

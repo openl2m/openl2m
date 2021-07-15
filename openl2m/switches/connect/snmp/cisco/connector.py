@@ -362,7 +362,7 @@ class SnmpConnectorCisco(SnmpConnector):
         vlan_id = int(oid_in_branch(vtpVlanState, oid))
         if vlan_id:
             if (int(val) == 1):
-                self.vlans[vlan_id] = Vlan(vlan_id)
+                self.add_vlan_by_id(vlan_id)
             return True
 
         # vlan type

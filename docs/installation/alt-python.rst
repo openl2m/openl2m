@@ -5,8 +5,8 @@ Using Alternate Python Versions
 ===============================
 
 On CentOS 8, the stock python is version 3.6 This version will not be supported past 2021.
-While at this time we have only tested minimally,
-you can use newer versions of Python, e.g. v3.8
+While at this time we have only tested minimally, you can use newer versions of Python,
+e.g. v3.7 or v3.8
 
 Follow these steps:
 
@@ -15,7 +15,8 @@ Python Installation
 
 Install the alternate version of Python. The details are left to the user,
 but in general, this will be something like below (note that your package manager
-will be yum, dnf, or apt, depending on Linux distro and version):
+will be yum, dnf, or apt, depending on Linux distro and version). Please read the
+readme file that comes with the Python sources:
 
 #. install required development packages for your OS. Probably something like:
 
@@ -32,14 +33,14 @@ will be yum, dnf, or apt, depending on Linux distro and version):
   sudo yum install openssl-devel bzip2-devel libffi libffi-devel
 
 #. download latest python source from https://www.python.org/downloads/
-   (e.g. latest v3.8 is v3.8.9 at the time of this writing; we have not tested
+   (e.g. latest v3.8 is v3.8.10 at the time of this writing; we have not tested
    with v3.9 yet...).
    E.g
 
 .. code-block:: bash
 
   cd <your src installation directory, e.g. /opt/src/>
-  VER=3.9.4
+  VER=3.9.10
   wget https://www.python.org/ftp/python/${VER}/Python-${VER}.tgz
   tar -zxvf Python-${VER}.tgz
   cd Python-${VER}
@@ -49,6 +50,8 @@ will be yum, dnf, or apt, depending on Linux distro and version):
 .. code-block:: bash
 
   ./configure
+  # or if you choose to enable all stable optimizations, run
+  # ./configure --enable-optimizations
   make -j `nproc`
   make test
 

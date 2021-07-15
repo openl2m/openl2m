@@ -406,10 +406,10 @@ def get_interface_link(switch, iface):
 
     # finally, add icons representing interface 'features'
     if iface.is_tagged:
-        info = info + "&nbsp;&nbsp;<img src=\"/static/img/trunk.png\" \
-                 alt=\"Tagged/Trunked Interface\" data-toggle=\"tooltip\" title=\"Tagged/Trunked Interface\">"
+        info = info + "&nbsp;&nbsp;<i class=\"fas fa-ellipsis-v\" aria-hidden=\"true\" \
+                 alt=\"Tagged/Trunked Interface\" data-toggle=\"tooltip\" title=\"Tagged/Trunked Interface\"></i>"
     if iface.voice_vlan:
-        info = info + f"&nbsp;&nbsp;<img src=\"/static/img/voice-vlan.png\" \
+        info = info + f"&nbsp;&nbsp;<i class=\"fas fa-phone\" aria-hidden=\"true\" \
                  alt=\"Voice VLAN\" data-toggle=\"tooltip\" title=\"Voice VLAN {iface.voice_vlan}>\""
 
     return mark_safe(info)

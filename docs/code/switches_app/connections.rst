@@ -51,10 +51,10 @@ interfaces, vlans, lacp info, PoE, and more.
 
 *get_my_client_data()* is called when the user click the related button when the device is shown. Is it called to load
 information about the know ethernet addresses, arp tables, lldp neighbors, and more. It should load additional data
- structures of the Connection() object, such as
+structures of the Connection() object, such as
 
- A good example is in switches/connect/snmp/connector.py, where get_my_client_data() uses snmp to get information on
- switch tables (ethernet addresses), arp tables and neighbor devices via lldp.
+A good example is in switches/connect/snmp/connector.py, where get_my_client_data() uses snmp to get information on
+switch tables (ethernet addresses), arp tables and neighbor devices via lldp.
 
 
 **Data Caching**

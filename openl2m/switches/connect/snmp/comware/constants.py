@@ -69,6 +69,10 @@ snmp_mib_variables['hh3cIfIsPoe'] = hh3cIfIsPoe
 # Start of the Extended interface information table.
 hh3cifXXEntry = '.1.3.6.1.4.1.25506.8.35.1.1.1'
 
+# hh3cifAggregatePort
+hh3cifAggregatePort = '.1.3.6.1.4.1.25506.8.35.1.1.1.3'  # + ifIndex = True if aggregate port
+snmp_mib_variables['hh3cifAggregatePort'] = hh3cifAggregatePort  # + ifIndex = True if aggregate port
+
 # This OID DEFINES THE PORT TYPE!
 hh3cifVLANType = '.1.3.6.1.4.1.25506.8.35.1.1.1.5'
 snmp_mib_variables['hh3cifVLANType'] = hh3cifVLANType
@@ -77,10 +81,6 @@ HH3C_IF_MODE_TRUNK = 1
 HH3C_IF_MODE_ACCESS = 2
 HH3C_IF_MODE_HYBRID = 3
 HH3C_IF_MODE_FABRIC = 4    # not used!
-
-# hh3cifAggregatePort
-hh3cifAggregatePort = '.1.3.6.1.4.1.25506.8.35.1.1.1.3'  # + ifIndex = True if aggregate port
-snmp_mib_variables['hh3cifAggregatePort'] = hh3cifAggregatePort  # + ifIndex = True if aggregate port
 
 # HH3C LswVLAN MIB - VLAN related
 # See http://www.circitor.fr/Mibs/Html/H/HH3C-LswVLAN-MIB.php

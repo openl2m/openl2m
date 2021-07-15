@@ -146,7 +146,6 @@ class Connector():
             # update counters
             # self.switch.save()
 
-
         return True
 
     def get_my_basic_info(self):
@@ -156,7 +155,7 @@ class Connector():
         """
         return True
 
-    def get_switch_client_data(self):
+    def get_client_data(self):
         """
         This loads the layer 2 switch tables, any ARP tables available,
         and LLDP neighbor data.
@@ -358,17 +357,46 @@ class Connector():
         # self.save_cache()
         return True
 
+    def add_neighbor_to_interface_by_name(self, if_name, neighbor):
+        '''
+        Add an lldp neighbor to an interface.
+        if_name = interface name
+        neighbor = NeighborDevice() object.
+        It gets stored on the interface.lldp dict.
+        return True on success, False on failure.
+        '''
+        dprint(f"conn.add_neighbor_to_interface_by_name() for {str(neighbor)} on {if_name}")
+        iface = self.get_interface_by_key(if_name)
+        if iface:
+            iface.add_neighbor(neighbor)
+            self.neighbor_count += 1
+            return True
+        else:
+            dprint(f"conn.add_neighbor_to_interface_by_name(): Interface {if_name} does NOT exist!")
+            return False
+
     #############################
     # various support functions #
     #############################
 
-    def add_vlan(self, vlan_id, vlan_name):
+    def add_vlan_by_id(self, vlan_id, vlan_name="Not set"):
         """
-        Add a Vlan() object to the device, indexed by vlan_id
+        Add a Vlan() object to the device, based on vlan ID and name (if set).
+        Store it in the vlans{} dictionary, indexed by vlan_id
+        return True
         """
-        v = Vlan(id)
+        v = Vlan(vlan_id)
         v.name = vlan_name
         self.vlans[vlan_id] = v
+        return True
+
+    def add_vlan(self, vlan):
+        """
+        vlan is a Vlan() object to add to the device
+        Store it in the vlans{} dictionary, indexed by vlan.id
+        return True
+        """
+        self.vlans[vlan.id] = vlan
         return True
 
     def add_interface(self, interface):
@@ -426,26 +454,8 @@ class Connector():
         just return True
         """
         dprint(f"Connector.set_save_needed({value})")
-        if value:
-            if self.can_save_config():
-                self.set_cache_variable("save_needed", True)
-            # else:
-            #    dprint("   save config NOT supported")
-        else:
-            self.clear_cache_variable("save_needed")
+        self.save_needed = value
         return True
-
-    def get_save_needed(self):
-        """
-        Does the switch need to execute a 'save config' command
-        to save changes to the startup config.
-        We store and read this from the http session.
-        Returns True or False
-        """
-        val = self.get_cache_variable("save_needed")
-        if val is None:
-            return False
-        return val
 
     def can_change_interface_vlan(self):
         """
@@ -482,22 +492,6 @@ class Connector():
         else:
             dprint(f"conn.add_learned_ethernet_address(): Interface {if_name} does NOT exist!")
             return False
-
-    def add_neighbor(self, if_name, neighbor):
-        '''
-        Add an lldp neighbor to an interface.
-        if_name = interface name
-        neighbor = NeighborDevice() object.
-        It gets stored on the interface.lldp dict.
-        return True on success, False on failure.
-        '''
-        dprint(f"conn.add_neighbor() for {str(neighbor)} on {if_name}")
-        iface = self.get_interface_by_key(if_name)
-        if iface:
-            iface.add_neighbor(neighbor)
-            self.neighbor_count += 1
-        else:
-            dprint(f"conn.add_neighbor(): Interface {if_name} does NOT exist!")
 
     def can_save_config(self):
         """

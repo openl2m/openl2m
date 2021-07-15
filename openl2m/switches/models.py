@@ -598,6 +598,8 @@ class Switch(models.Model):
         # to be implemented!
         return True
 
+    # this needs to be accessed from templates:
+    @property
     def has_interface_commands(self):
         """
         Simple check to see if this device has been assigned interface commands.
@@ -611,6 +613,8 @@ class Switch(models.Model):
                 return True
         return False
 
+    # this needs to be accessed from templates:
+    @property
     def has_global_commands(self):
         """
         Simple check to see if this device has been assigned valid global commands.
@@ -641,6 +645,7 @@ class Switch(models.Model):
             if not self.netmiko_profile:
                 raise ValidationError('Napalm Connector needs a Netmiko/SSH Profile!')
 
+    # this needs to be accessed from templates:
     @property
     def primary_ip(self):
         if settings.PREFER_IPV4 and self.primary_ip4:

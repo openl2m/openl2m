@@ -42,46 +42,11 @@
             {% else %}
               {{ iface.name }}
             {% endif %}
-            {% if iface.is_routed %}
-              &nbsp;
-              <img src="{% static 'img/routed-mode.png' %}"
-                   alt="Routed Mode Interface"
-                   data-toggle="tooltip"
-                   title="Routed Mode Interface">
-            {% endif %}
-            {% if iface.is_tagged %}
-              &nbsp;
-              <img src="{% static 'img/trunk.png' %}"
-                   alt="Tagged/Trunked Interface"
-                   data-toggle="tooltip"
-                   title="Tagged/Trunked Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
-            {% endif %}
-            {% if iface.voice_vlan %}
-              &nbsp;
-              <img src="{% static 'img/voice-vlan.png' %}"
-                   alt="Voice VLAN"
-                   data-toggle="tooltip"
-                   title="Voice VLAN {{ iface.voice_vlan }}">
-            {% endif %}
-            {% if iface.lacp_master_index > 0 %}
-              &nbsp;
-              <img src="{% static 'img/lacp.png' %}"
-                   alt="LACP Member Interface"
-                   data-toggle="tooltip"
-                   title="This interface is a member of LACP interface {{ iface.lacp_master_name }}">
-            {% endif %}
-            {% if iface.type == IF_TYPE_LAGG %}
-              &nbsp;
-              <img src="{% static 'img/lacp.png' %}"
-                   alt="LACP Master Interface"
-                   data-toggle="tooltip"
-                   title="This interface is an LACP interface! Members are: {% for key,if_name in iface.lacp_members.items %}{{ if_name }} {% endfor %}
-                    ">
-            {% endif %}
+            {% include "_tpl_if_type_icons.html" %}
             <!-- ifkey = {{ iface.key }},  ifIndex = {{ iface.index }} -->
             </td>
 
-            {% include "_tpl_iface_link_td.html" %}
+            {% include "_tpl_if_linkspeed_td.html" %}
 
             <td>
               {% if iface.untagged_vlan > 0 %}

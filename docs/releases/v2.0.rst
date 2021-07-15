@@ -4,6 +4,13 @@
 Version 2.0
 ===========
 
+Version 2.0.0-rc2
+-----------------
+Release Date: 2021-07-20
+
+* Various fixes.
+* Rewrite of various templates for performance and simplicity
+
 Version 2.0.0-rc1
 -----------------
 Release Date: 2021-02-23

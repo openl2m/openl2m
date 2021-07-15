@@ -834,7 +834,7 @@ class SnmpConnector(Connector):
             # check if vlan is globally defined on switch:
             if vlan_id not in self.vlans.keys():
                 # not likely, we should know vlan by now, but just in case!
-                self.vlans[vlan_id] = Vlan(vlan_id)
+                self.add_vlan_by_id(vlan_id)
             # store the egress port list, as some switches need this when setting untagged vlans
             self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
             # now look at all the bits in this multi-byte value to find ports on this vlan:
@@ -879,7 +879,7 @@ class SnmpConnector(Connector):
             vlan_id = int(v)
             if vlan_id not in self.vlans.keys():
                 # not likely, but just in case:
-                self.vlans[vlan_id] = Vlan(vlan_id)
+                self.add_vlan_by_id(vlan_id)
             # store bitmap for later use
             self.vlans[vlan_id].untagged_ports_bitmap = val
             return True
@@ -895,7 +895,7 @@ class SnmpConnector(Connector):
                 self.vlans[vlan_id].status = status
             else:
                 # unlikely to happen, we should know vlan by now!
-                self.vlans[vlan_id] = Vlan(vlan_id)
+                self.add_vlan_by_id(vlan_id)
                 self.vlans[vlan_id].status = int(val)
             return True
 
@@ -907,7 +907,7 @@ class SnmpConnector(Connector):
                 self.vlans[vlan_id].name = str(val)
             else:
                 # vlan not found yet, create it
-                self.vlans[vlan_id] = Vlan(vlan_id)
+                self.add_vlan_by_id(vlan_id)
                 self.vlans[vlan_id].name = str(val)
             return True
 
@@ -919,7 +919,7 @@ class SnmpConnector(Connector):
         if vlan_id:
             if vlan_id not in self.vlans.keys():
                 # not likely, we should know by now, but just in case.
-                self.vlans[vlan_id] = Vlan(vlan_id)
+                self.add_vlan_by_id(vlan_id)
             # store it!
             self.vlans[vlan_id].static_egress_portlist.from_unicode(val)
             return True
@@ -931,7 +931,7 @@ class SnmpConnector(Connector):
         if vlan_id:
             if vlan_id not in self.vlans.keys():
                 # unlikely, we should know by now, but just in case
-                self.vlans[vlan_id] = Vlan(vlan_id)
+                self.add_vlan_by_id(vlan_id)
             # store for later use:
             # self.vlans[vlan_id].untagged_ports_bitmap = val
             return True
@@ -946,7 +946,7 @@ class SnmpConnector(Connector):
                 # currently we don't parse the status, so nothing to do here
                 return True
             # else add entry, should never happen!
-            self.vlans[vlan_id] = Vlan(vlan_id)
+            self.add_vlan_by_id(vlan_id)
             # assume vlan_id = vlan_index = fdb_index, unless we learn otherwize
             self.vlan_id_by_index[vlan_id] = vlan_id
             self.dot1tp_fdb_to_vlan_index[vlan_id] = vlan_id
@@ -1176,7 +1176,9 @@ class SnmpConnector(Connector):
         """
 
         # this gets the aggregator interface admin key or "index"
-        aggr_if_index = int(oid_in_branch(dot3adAggActorAdminKey, oid))
+        # note that aggregator index is an integer according to MIB, but
+        # we use it as a string value for the interfaces{} dictionary key!!!
+        aggr_if_index = oid_in_branch(dot3adAggActorAdminKey, oid)
         if aggr_if_index:
             # this interface is a aggregator!
             if aggr_if_index in self.interfaces.keys():
@@ -1185,10 +1187,13 @@ class SnmpConnector(Connector):
                 # some vendors (certain Cisco switches) set the IF-MIB::ifType to Virtual (53) instead of LAGG (161)
                 # hardcode to LAGG:
                 self.interfaces[aggr_if_index].type = IF_TYPE_LAGG
+                dprint("LACP MEMBER FOUND!!!")
             return True
 
         # this get the member interfaces admin key ("index"), which maps back to the aggregator interface above!
-        member_if_index = int(oid_in_branch(dot3adAggPortActorAdminKey, oid))
+        member_if_index = oid_in_branch(dot3adAggPortActorAdminKey, oid)
+        # note that member_index is an integer according to MIB, but
+        # we use it as a string value for the interfaces{} dictionary key!!!
         if member_if_index:
             # this interface is an lacp member!
             if member_if_index in self.interfaces.keys():
@@ -1198,10 +1203,13 @@ class SnmpConnector(Connector):
                     if iface.lacp_type == LACP_IF_TYPE_AGGREGATOR and iface.lacp_admin_key == lacp_key:
                         # the current interface is a member of this aggregate iface !
                         self.interfaces[member_if_index].lacp_type = LACP_IF_TYPE_MEMBER
-                        self.interfaces[member_if_index].lacp_master_index = lacp_index
+                        # note that lacp_index is an integer according to MIB, but
+                        # we use it as a string value for the interfaces{} dictionary key!!!
+                        self.interfaces[member_if_index].lacp_master_index = int(lacp_index)
                         self.interfaces[member_if_index].lacp_master_name = iface.name
                         # add our name to the list of the aggregate interface
                         self.interfaces[lacp_index].lacp_members[member_if_index] = self.interfaces[member_if_index].name
+                        dprint("LACP MASTER FOUND!!!")
             return True
 
         """
@@ -1572,12 +1580,9 @@ class SnmpConnector(Connector):
         self.add_more_info('System', 'Read Time', time.strftime(settings.LONG_DATETIME_FORMAT, time.localtime(self.sys_uptime_timestamp)))
 
         # see if the ObjectID changed
-        dprint("Got here - 1")
         if self.object_id:
-            dprint("Got here - 2")
             # compare database entry (self.switch) with snmp read value:
             if self.switch.snmp_oid != self.object_id:
-                dprint("Got here - 3")
                 self.switch.snmp_oid = self.object_id
                 self.switch.save()
                 log = Log(action=LOG_NEW_OID_FOUND,
@@ -1591,11 +1596,8 @@ class SnmpConnector(Connector):
                 log.save()
 
         # and see if the hostname changed
-        dprint("Got here - 4")
         if self.hostname:
-            dprint("Got here - 5")
             if self.switch.hostname != self.hostname:
-                dprint("Got here - 6")
                 self.switch.hostname = self.hostname
                 self.switch.save()
                 log = Log(action=LOG_NEW_HOSTNAME_FOUND,

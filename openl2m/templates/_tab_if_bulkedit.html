@@ -165,16 +165,10 @@
                   bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
                 {% endif %}
                 {{ iface.name }}
-                {% if iface.lacp_master_index > 0 %}
-                  &nbsp;
-                  <img src="{% static 'img/lacp.png' %}"
-                       alt="LACP Member Interface"
-                       data-toggle="tooltip"
-                       title="This interface is a member of LACP interface {{ iface.lacp_master_name }}">
-                {% endif %}
+                {% include "_tpl_if_type_icons.html" %}
               </td>
 
-              {% include "_tpl_iface_link_td.html" %}
+              {% include "_tpl_if_linkspeed_td.html" %}
 
               {# only show vlan, poe, description and command capabilities for Ethernet interfaces #}
               {% if iface.type == IF_TYPE_ETHERNET %}
@@ -216,7 +210,7 @@
                            title="PoE Disabled">
                     {% endif %}
                   {% else %}
-                     <span data-toggle="tooltip" title="Not supported on this interface">n/s</span>
+                     <span data-toggle="tooltip" title="PoE not supported on this interface">n/s</span>
                   {% endif %}
                   </td>
                 {% endif %}

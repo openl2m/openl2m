@@ -136,7 +136,7 @@ class NapalmConnector(Connector):
         # parse
         for vlan_id, vlan_data in vlan_list.items():
             dprint(f"\nVlan {vlan_id}: {vlan_data}")
-            self.add_vlan(vlan_id, vlan_data['name'])
+            self.add_vlan_by_id(vlan_id, vlan_data['name'])
             # add this vlan to the specified interfaces:
             for if_name in vlan_data['interfaces']:
                 dprint(f"\nInterface {if_name} = vlan {vlan_id}")
@@ -334,7 +334,7 @@ class NapalmConnector(Connector):
                         neighbor.capabilities |= LLDP_CAPA_BITS_OTHER
                 '''
                 dprint(f"Adding LLDP neighbor: {neighbor}")
-                self.add_neighbor(if_name, neighbor)
+                self.add_neighbor_to_interface_by_name(if_name, neighbor)
 
         return True
 

@@ -16,6 +16,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+import re
 import traceback
 
 from django.conf import settings
@@ -28,7 +29,8 @@ from switches.models import Switch, SwitchGroup, Log, Task
 from switches.constants import *
 from switches.connect.connect import get_connection_object
 from switches.connect.snmp import *
-from switches.utils import dprint
+from switches.connect.constants import *
+from switches.utils import *
 
 
 @shared_task

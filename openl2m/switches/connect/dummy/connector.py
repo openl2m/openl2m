@@ -46,10 +46,10 @@ class DummyConnector(Connector):
 
         self.add_poe_powersupply(1, 45)  # simulate a 45W power supply
 
-        self.add_vlan(1, "Default!")
-        self.add_vlan(5, "Vlan Five")
-        self.add_vlan(15, "Vlan Fifteen")
-        self.add_vlan(20, "Twenty")
+        self.add_vlan_by_id(1, "Default!")
+        self.add_vlan_by_id(5, "Vlan Five")
+        self.add_vlan_by_id(15, "Vlan Fifteen")
+        self.add_vlan_by_id(20, "Twenty")
 
         # simulate getting switch data by hardcoding!
         # "load" some basic interface info...
