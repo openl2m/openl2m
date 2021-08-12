@@ -64,8 +64,8 @@ This process is very CA dependent, and will be left up to the reader.
 
 **Install the Signed Certificate**
 
-Once the certificate is issues or generated, download the X509 format file to the /etc/nginx/ssl directory.
-Name this file openl2m.cer
+Once the certificate is issues or generated, download the X509 format file (*.cer) to the /etc/nginx/ssl directory.
+Name this file openl2m.crt
 
 
 **Reconfigure for SSL**
@@ -137,3 +137,9 @@ and replace the content with the following. Note this is available in the script
 Solve any errors that may show. If all is OK, restart Nginx, and you should have an SSL web site up::
 
   systemctl restart nginx
+
+
+**Renewing your SSL certificate**
+
+Renew the certificate at your CA> Download the new certificate in X509/.cer format. Replace the content of /etc/nginx/ssl/openl2m.crt with this new certificate.
+Then restart nginx per the above.
