@@ -60,7 +60,6 @@ class pysnmpHelper():
     def get(self, oid):
         """
         Get a single specific OID value via SNMP
-        Update the local OID cache by default.
         Returns a tuple with (error_status (bool), return_value)
         if error, then return_value is string with reason for error
         """
@@ -80,11 +79,11 @@ class pysnmpHelper():
         )
 
         if errorIndication:
-            details = f"ERROR with SNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+            details = f"ERROR with pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             return (True, details)
 
         elif errorStatus:
-            details = f"ERROR in SNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+            details = f"ERROR in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             return (True, details)
 
         else:
@@ -96,15 +95,15 @@ class pysnmpHelper():
         """
         Set a single OID value. Note that 'value' has to be properly typed, see
         http://snmplabs.com/pysnmp/docs/api-reference.html#pysnmp.smi.rfc1902.ObjectType
-        Returns 1 if not error.
-        If error, sets the self.error variables, and returns -1
+        Returns True if success.
+        On failure, returns False, and self.error.X will be set
         """
         if not self._auth_data:
             self.error.status = True
             self.error.description = "Auth Data NOT set!"
             self.error.details = "SNMP authentication data NOT set in config, please update!"
             dprint("pysnmp.set_vars() no auth_data!")
-            return -1
+            return False
 
         errorIndication, errorStatus, errorIndex, varBinds = next(
             setCmd(SnmpEngine(),
@@ -119,26 +118,28 @@ class pysnmpHelper():
         if errorIndication:
             self.error.status = True
             self.error.description = "An SNMP error occurred!"
-            self.error.details = f"ERROR with SNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+            self.error.details = f"ERROR with pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             dprint("pysnmp.set_vars() SNMP engine error!")
-            return -1
+            return False
 
         elif errorStatus:
             self.error.status = True
             self.error.description = "An SNMP error occurred!"
-            self.error.details = f"ERROR in SNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+            self.error.details = f"ERROR in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             dprint("pysnmp.set_vars() SNMP PDU error!")
-            return -1
+            return False
 
         # no errors
         self.error.clear()
-        dprint("pysnmp.set_vars() return 1")
-        return 1
+        dprint("pysnmp.set_vars() OK")
+        return True
 
     def set(self, oid, value):
         """
         Set a single OID value. Note that 'value' has to be properly typed, see
         http://snmplabs.com/pysnmp/docs/api-reference.html#pysnmp.smi.rfc1902.ObjectType
+        Returns True if success.
+        On failure, returns False, and self.error.X will be set
         """
         var = []
         var.append(ObjectType(ObjectIdentity(ObjectName(oid)), value))
@@ -150,6 +151,8 @@ class pysnmpHelper():
         oid_tuples is a list of tuples (oid, value) containing
         the oid as a string, and a properly typed value,
         e.g. OctetString, Integer32, etc...
+        Returns True if success.
+        On failure, returns False, and self.error.X will be set
         """
         # first format in the varBinds format needed by pysnmp:
         vars = []
@@ -522,8 +525,7 @@ class SnmpConnector(Connector):
     def set(self, oid, value, snmp_type, parser=False):
         """
         Set a single OID value. Note that 'value' has to be properly typed!
-        Returns True if success, and if requested, then we also update the
-        local oid cache to track the change.
+        Returns True if success.
         On failure, returns False, and self.error.X will be set
         """
         # Set a variable using an SNMP SET
@@ -2148,6 +2150,8 @@ class SnmpConnector(Connector):
             if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", octet_string):
                 self.error.status = True
                 self.error.description += "\nError in setting port (dot1qVlanStaticEgressPorts)"
+                # copy over the error details from the call:
+                self.error.details = pysnmp.error.details
                 return False
 
             # and re-read the dot1qVlanCurrentEgressPorts, all ports

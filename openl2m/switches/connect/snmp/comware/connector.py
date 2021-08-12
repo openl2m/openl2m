@@ -167,10 +167,11 @@ class SnmpConnectorComware(SnmpConnector):
                 # now send them all as an atomic set():
                 # get the PySNMP helper to do the work with the OctetString() BitMaps:
                 pysnmp = pysnmpHelper(self.switch)
-                return_value = pysnmp.set_multiple([low_oid, high_oid, pvid_oid])
-                if return_value == -1:
+                if not pysnmp.set_multiple([low_oid, high_oid, pvid_oid]):
                     self.error.status = True
                     self.error.description = f"Error setting vlan '{new_vlan_id}' on tagged port!"
+                    # copy over the error details from the call:
+                    self.error.details = pysnmp.error.details
                     # we leave self.error.details as is!
                     return False
 
@@ -244,11 +245,11 @@ class SnmpConnectorComware(SnmpConnector):
                 octet_string = OctetString(hexValue=new_vlan_portlist.to_hex_string())
                 pysnmp = pysnmpHelper(self.switch)
                 dprint("Setting via pysnmpHelper()")
-                return_value = pysnmp.set(f"{hh3cdot1qVlanPorts}.{new_vlan_id}", octet_string)
-                if return_value == -1:
+                if not pysnmp.set(f"{hh3cdot1qVlanPorts}.{new_vlan_id}", octet_string):
                     self.error.status = True
                     self.error.description = f"Error setting vlan '{new_vlan_id}' on access port!"
-                    # we leave self.error.details as is!
+                    # copy over the error details from the call:
+                    self.error.details = pysnmp.error.details
                     return False
 
             # now trick the next switch view into showing this as the vlan on the interface
