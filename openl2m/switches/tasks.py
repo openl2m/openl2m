@@ -369,6 +369,8 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                             error_count += 1
                             log.type = LOG_TYPE_ERROR
                             log.description = f"Interface {iface.name}: Bulk-Edit PoE {new_state_name} ERROR: {conn.error.description}"
+                            outputs.append(log.description)
+                            log.save()
                         else:
                             success_count += 1
                             log.type = LOG_TYPE_CHANGE
@@ -395,24 +397,29 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                 log.save()
             else:
                 # make sure we cast the proper type here! Ie this needs an Integer()
-                current_state['pvid'] = iface.untagged_vlan
-                retval = conn.set_interface_untagged_vlan(iface, new_pvid)
                 log = Log(user=user,
                           ip_address=remote_ip,
                           if_name=iface.name,
                           switch=switch,
                           group=group,
                           action=LOG_CHANGE_INTERFACE_PVID)
-                if retval < 0:
-                    error_count += 1
-                    log.type = LOG_TYPE_ERROR
-                    log.description = f"Interface {iface.name}: Bulk-Edit Vlan change ERROR: {conn.error.description}"
+                current_state['pvid'] = iface.untagged_vlan
+                if new_pvid != iface.untagged_vlan:
+                    # new vlan, go set it:
+                    retval = conn.set_interface_untagged_vlan(iface, new_pvid)
+                    if retval < 0:
+                        error_count += 1
+                        log.type = LOG_TYPE_ERROR
+                        log.description = f"Interface {iface.name}: Bulk-Edit Vlan change ERROR: {conn.error.description}"
+                    else:
+                        success_count += 1
+                        log.type = LOG_TYPE_CHANGE
+                        log.description = f"Interface {iface.name}: Bulk-Edit Vlan set to {new_pvid}"
+                    outputs.append(log.description)
+                    log.save()
                 else:
-                    success_count += 1
-                    log.type = LOG_TYPE_CHANGE
-                    log.description = f"Interface {iface.name}: Bulk-Edit Vlan set to {new_pvid}"
-                outputs.append(log.description)
-                log.save()
+                    # already on desired vlan:
+                    outputs.append(f"Interface {iface.name}: Bulk-Edit ignored, VLAN already {new_pvid}")
 
         # tired of the old interface description?
         if new_description:
