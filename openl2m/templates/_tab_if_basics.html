@@ -207,8 +207,8 @@
             {% else %} {# not manageable #}
               <!-- NOT MANAGEABLE -->
               <td
-              {% if iface.admin_status == IF_ADMIN_STATUS_UP %}
-                {% if iface.oper_status == IF_OPER_STATUS_UP %}
+              {% if iface.admin_status %}
+                {% if iface.oper_status %}
                   bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
                 {% else %}
                   bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
