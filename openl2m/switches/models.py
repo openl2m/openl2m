@@ -607,8 +607,8 @@ class Switch(models.Model):
         Returns True or False.
         """
         if self.netmiko_profile and self.command_list:
-            if self.command_list.global_commands.count or \
-               self.command_list.global_commands_staff.count:
+            if self.command_list.interface_commands.count > 0 or \
+               self.command_list.interface_commands_staff.count > 0:
                 # Looks like we do!
                 return True
         return False
@@ -622,8 +622,8 @@ class Switch(models.Model):
         Returns True or False.
         """
         if self.netmiko_profile and self.command_list:
-            if self.command_list.global_commands.count or \
-               self.command_list.global_commands_staff.count:
+            if self.command_list.global_commands.count > 0 or \
+               self.command_list.global_commands_staff.count > 0:
                 # Looks like we do!
                 return True
         return False
