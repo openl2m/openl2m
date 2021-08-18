@@ -1001,6 +1001,7 @@ def switch_save_config(request, group_id, switch_id, view):
         log.save()
         error = Error()
         error.description = "This switch model cannot save or does not need to save the config"
+        conn.set_save_needed(False)     # clear flag that should not be set in the first place!
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # all OK

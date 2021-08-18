@@ -62,7 +62,6 @@ class Connector():
         self.syslog_msgs = {}       # list of Syslog messages, if any
         self.syslog_max_msgs = 0    # how many syslog msgs device will store
         # some flags:
-        self.save_needed = False    # set this flag if a save aka. 'write mem' is needed:
         self.hwinfo_needed = True   # True if we still need to read the Entity tables
         self.cache_loaded = False   # if True, system data was loaded from cache
         # some timestamps:
@@ -454,7 +453,8 @@ class Connector():
         just return True
         """
         dprint(f"Connector.set_save_needed({value})")
-        self.save_needed = value
+        if self.can_save_config():
+            self.save_needed = value
         return True
 
     def can_change_interface_vlan(self):
