@@ -476,7 +476,7 @@ def get_lldp_info(neighbor):
     else:
         info = info + f"{name}"
         if chassis_info:
-            info += " - {chassis_info}"
+            info += f" - {chassis_info}"
 
     return mark_safe(info)
 
