@@ -15,7 +15,7 @@ groups.
 
 OpenL2M can use a variety device communications methods to accomplish all of its regular tasks.
 As of v2.0, there is an extensible API that allows for a variety of methods to be used to communicate
-with devices. At present, SNMP and SSH are supported, and Napalm support is on the roadmap.
+with devices. At present, SNMP and SSH (via Netmiko) are supported. Napalm support is implemented as an example of the new API.
 
 **Features**
 
@@ -31,16 +31,18 @@ OpenL2M can manage interfaces on switches, including:
 * show **Ethernet addresses** on the interfaces (i.e. MAC address, or the layer 2 switch tables).
 * show **LLDP neighbor** information on interfaces.
 * **bulk edit** of vlan, interface state, Power-over-Ethernet state, and description on multiple interfaces at once.
-* **scheduling of bulk edits**
-* using SSH under the hood, we can configure **any switch CLI 'show' command** to be runnable by users from the web interface,
+* **scheduling of bulk edits**.
+* using SSH/Netmiko under the hood, we can configure **any switch CLI 'show' command** to be runnable by users from the web interface,
   shown with 'friendly' names in a drop-down menu.
 * switch **device import via csv files**, or fully programmable import via Python scripts.
 * switches can be Read-Only.
 * support for Cisco, HP-Procurve, HP-Comware and generic switches.
 * *show recent log entries* for properly configured Cisco switches.
-* configurable links on the switch, or interfaces to external tools such as an NMS
-* configurable menus
-* easily extended architecture to support other vendors that require custom snmp variables (mibs)
+* configurable links on the switch, or interfaces to external tools such as an NMS.
+* configurable menus.
+* easily extended architecture to support other vendors that require custom snmp variables (mibs).
+* API to extend architecture to support any device using any method supportable by Python.
+* local and LDAP-based user accounts, including automatic LDAP-based group membership.
 
 OpenL2M uses a variety of methods, including SNMP v2 and v3 for device that support it; SSH; Napalm.
 There is a generic object interface that makes it straight forward to support new devices

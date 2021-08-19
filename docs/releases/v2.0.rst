@@ -4,6 +4,12 @@
 Version 2.0
 ===========
 
+Version 2.0.0-rc3
+-----------------
+Release Date: 2021-08-19
+
+* Various fixes.
+
 Version 2.0.0-rc2
 -----------------
 Release Date: 2021-07-20
@@ -22,7 +28,7 @@ Release Date: 2021-02-23
   implement a device cache, so others can have quick access to device settings, without
   the need to re-read the device.
 * To **demonstrate the use of the above API class** we implemented a very basic Python Napalm library
-  interface on top of this API class. This is **solely intented to show how to implement new drivers***. The NapalmConnector()
+  interface on top of this API class. This is **solely intended to show how to implement new drivers***. The NapalmConnector()
   supports a few vendors (Arista, Cisco, Dell, HP, Juniper), but only in read-only mode.
   **NOTE** the Napalm library does not properly support trunked or 802.1q tagged interfaces.
   We try to 'catch' this, but the untagged vlan is likely incorrect on trunked/tagged interfaces
