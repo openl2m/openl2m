@@ -546,22 +546,6 @@ class Switch(models.Model):
         verbose_name='Hostname',
         help_text='The switch hostname as reported via snmp, ssh, etc.',
     )
-    # some fields to track access
-    read_count = models.PositiveIntegerField(
-        default=0,
-        verbose_name='Reads',
-        help_text='Basic read count performed on the switch.',
-    )
-    details_read_count = models.PositiveIntegerField(
-        default=0,
-        verbose_name='Details(arp/lldp) Reads',
-        help_text='Details read count performed on the switch.',
-    )
-    write_count = models.PositiveIntegerField(
-        default=0,
-        verbose_name='Writes',
-        help_text='Write count performed on the switch.',
-    )
     snmp_oid = models.CharField(
         max_length=100,
         default='',
