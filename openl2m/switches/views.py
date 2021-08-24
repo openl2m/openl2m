@@ -78,14 +78,14 @@ def switches(request):
         if group.switches.count():
             switchgroups[group.name] = group
             # set this group, and the switches, in web session to track permissions
-            permissions[group.id] = {}
+            permissions[int(group.id)] = {}
             for switch in group.switches.all():
                 if switch.status == SWITCH_STATUS_ACTIVE:
                     # do we have a valid config:
                     if ((switch.connector_type == CONNECTOR_TYPE_SNMP and switch.snmp_profile) or
                        (switch.connector_type == CONNECTOR_TYPE_NAPALM and switch.napalm_device_type)):
                         # we save the names as well, so we can search them!
-                        permissions[group.id][switch.id] = (switch.name, switch.hostname, switch.description)
+                        permissions[int(group.id)][int(switch.id)] = (switch.name, switch.hostname, switch.description)
 
     save_to_http_session(request, "permissions", permissions)
 
@@ -195,6 +195,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
         error.description = "Access denied!"
+        error.details = "You do not have access to this device!"
         return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(user=request.user,
@@ -334,6 +335,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
         error.description = "Access denied!"
+        error.details = "You do not have access to this device!"
         return error_page(request=request, group=False, switch=False, error=error)
 
     try:
@@ -344,6 +346,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
+        error.details = "This is likely a configuration error, such as wrong SNMP settings."
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # read the submitted form data:
@@ -539,6 +542,7 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
         error.description = "Access denied!"
+        error.details = "You do not have access to this device!"
         return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(user=request.user,
@@ -555,6 +559,7 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
+        error.details = "This is likely a configuration error, such as incorrect SNMP settings."
         return error_page(request=request, group=group, switch=switch, error=error)
 
     interface = conn.get_interface_by_key(interface_name)
@@ -564,6 +569,7 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
         log.save()
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
+        error.details = "Sorry, no more details available!"
         return error_page(request=request, group=group, switch=switch, error=error)
 
     log.type = LOG_TYPE_CHANGE
@@ -605,6 +611,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
         error.description = "Access denied!"
+        error.details = "You do not have access to this device!"
         return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(user=request.user,
@@ -621,6 +628,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
+        error.details = "This is likely a configuration error, such as incorrect SNMP settings!"
         return error_page(request=request, group=group, switch=switch, error=error)
 
     interface = conn.get_interface_by_key(interface_name)
@@ -630,6 +638,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
         log.save()
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
+        error.details = "Sorry, no more details available!"
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # read the submitted form data:
@@ -649,6 +658,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
         log.save()
         error = Error()
         error.description = "You are not allowed to change the interface description"
+        error.details = "Sorry, you do not have access!"
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # check if the description is allowed:
@@ -1505,16 +1515,15 @@ def rights_to_group_and_switch(request, group_id, switch_id):
     Check if the current user has rights to this switch in this group
     Returns True if allowed, False if not!
     """
-
     if request.user.is_superuser or request.user.is_staff:
         return True
     # for regular users, check permissions:
     permissions = get_from_http_session(request, 'permissions')
     if permissions and isinstance(permissions, dict) and \
-       str(group_id) in permissions.keys():
-        switches = permissions[str(group_id)]
-        if isinstance(switches, dict) and str(switch_id) in switches.keys():
-            return True
+       int(group_id) in permissions.keys():
+       switches = permissions[int(group_id)]
+       if isinstance(switches, dict) and int(switch_id) in switches.keys():
+           return True
     return False
 
 
