@@ -1521,9 +1521,9 @@ def rights_to_group_and_switch(request, group_id, switch_id):
     permissions = get_from_http_session(request, 'permissions')
     if permissions and isinstance(permissions, dict) and \
        int(group_id) in permissions.keys():
-       switches = permissions[int(group_id)]
-       if isinstance(switches, dict) and int(switch_id) in switches.keys():
-           return True
+        switches = permissions[int(group_id)]
+        if isinstance(switches, dict) and int(switch_id) in switches.keys():
+            return True
     return False
 
 
