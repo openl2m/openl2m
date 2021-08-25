@@ -36,9 +36,9 @@ class SnmpConnectorProcurve(SnmpConnector):
 
     def __init__(self, request, group, switch):
         # for now, just call the super class
-        dprint("HP/Aruba/Procurve SnmpConnector __init__")
+        dprint("HP/Procurve SnmpConnector __init__")
         super().__init__(request, group, switch)
-        self.vendor_name = 'HP/Aruba'
+        self.vendor_name = 'HP/ProCurve(Aruba)'
 
     def _parse_oid(self, oid, val, parser=False):
         """
