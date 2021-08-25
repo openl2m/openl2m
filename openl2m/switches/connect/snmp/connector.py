@@ -1737,6 +1737,8 @@ class SnmpConnector(Connector):
             # retval = 0, no vlans found!
             self.add_warning("No VLANs found at 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
 
+        # set vlan count
+        self.vlan_count = len(self.vlans)
         return vlan_count
 
     def _get_port_vlan_membership(self):
