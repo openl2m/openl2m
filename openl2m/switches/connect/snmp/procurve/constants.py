@@ -18,7 +18,7 @@ from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_in
 # HP-ProCurve / Aruba
 #
 ENTERPRISE_ID_HP = 11
-enterprise_id_info[ENTERPRISE_ID_HP] = 'HP/Aruba'
+enterprise_id_info[ENTERPRISE_ID_HP] = 'HP/ProCurve'
 
 # SOME SWITCHES IMPLEMENTE THIS:
 # http://www.circitor.fr/Mibs/Html/H/HPN-ICF-CONFIG-MAN-MIB.php
