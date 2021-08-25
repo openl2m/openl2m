@@ -5,12 +5,29 @@ The OpenL2M Application
 =======================
 
 This section of the documentation discusses installing and configuring the
-OpenL2M application. CentOS 7 & 8: Begin by installing all system packages
-required by OpenL2M and its dependencies.
+OpenL2M application.
+
+Dependencies
+------------
+
+Begin by installing all system packages required by OpenL2M and its dependencies.
+
+**Ubuntu 20.04 LTS**
+
+.. code-block:: bash
+
+  sudo apt install -y python3 python3-pip python3-venv python3-dev build-essential libxml2-dev libxslt1-dev libffi-dev libpq-dev libssl-dev zlib1g-dev
+  sudo apt install -y libldap2-dev libsasl2-dev libssl-dev snmpd snmp libsnmp-dev
+
+**CentOS 8**
+
+.. code-block:: bash
+
+  # dnf install -y gcc make net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel python36-devel
+
 
 **CentOS 7**
 
-Install the following:
 
 .. code-block:: bash
 
@@ -24,18 +41,18 @@ You then need the following Python v3 packages:
   # easy_install-3.6 pip
   # ln -s /usr/bin/python36 /usr/bin/python3
 
-**CentOS 8**
 
-Install these:
+OpenL2M Install
+---------------
 
-.. code-block:: bash
+First, create the user environment for OpenL2M:
 
-  # dnf install -y gcc make net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel python36-devel
+.. code-bloc:: bash
+
+  sudo adduser --system --group openl2m
 
 
-**OpenL2M**
-
-The easiest is to install OpenL2M by cloning the main branch of its repository on GitHub.
+Next, install OpenL2M. The easiest is cloning the main branch of its repository on GitHub.
 
 **Clone the Git Repository**
 
@@ -43,9 +60,16 @@ Create the base directory for the OpenL2M installation. For this guide, we'll us
 
 .. code-block:: bash
 
-  # mkdir -p /opt/openl2m/ && cd /opt/openl2m/
+  sudo mkdir -p /opt/openl2m/ && cd /opt/openl2m/
+
 
 If `git` is not already installed, install it:
+
+**CentOS 8**
+
+.. code-block:: bash
+
+  # dnf install -y git
 
 **CentOS 7**
 
@@ -53,11 +77,6 @@ If `git` is not already installed, install it:
 
   # yum install -y git
 
-  **CentOS 8**
-
-.. code-block:: bash
-
-  # dnf install -y git
 
 Next, clone the **main** branch of the OpenL2M GitHub repository into the current directory:
 
@@ -67,28 +86,6 @@ Next, clone the **main** branch of the OpenL2M GitHub repository into the curren
   Cloning into '.'...
   ...
   Checking connectivity... done.
-
-**Install Packages in Python Virtual Environment**
-
-We will install the required Python packages in a virtual environment, so we do
-not interfere with the system-wide python packages.
-Next we activate this environment, upgrade the pip installer, and finally we
-install the required packages.
-If you encounter any compilation errors during this last step, ensure that
-you've installed all of the system dependencies listed above! :
-
-.. code-block:: bash
-
-  # cd /opt/openl2m
-  # python3 -m venv /opt/openl2m/venv
-  # source venv/bin/activate
-  (venv) # pip3 install --upgrade pip
-  (venv) # pip3 install -r requirements.txt
-
-
-If you encounter errors while installing the required packages, check that
-you're running a recent version of pip with the command `pip3 -V`.
-
 
 **Configuration**
 
@@ -158,6 +155,25 @@ Set this to the appropriate time, to get logs, etc. in the local time. Note that
 tasks, you need to set this appropriately, as using UTC will result in tasks running at unexpected times!
 
 
+
+**Run Upgrade**
+
+The upgrade.sh script will install all required packages in a Python Virtual Environment.
+(This means we do not interfere with the system-wide python packages.)
+If you encounter any compilation errors during this last step, ensure that
+you've installed all of the system dependencies listed above! :
+
+.. code-block:: bash
+
+  # pip3 install --upgrade pip
+  # cd /opt/openl2m
+  # ./upgrade.sh
+
+If you encounter errors while installing the required packages, check that
+you're running a recent version of pip with the command `pip3 -V`.
+
+
+
 **Run Database Migrations**
 
 Before OpenL2M can run, we need to install the database schema.
@@ -186,38 +202,14 @@ create a super user to be able to log into OpenL2M:
 
 .. code-block:: bash
 
-  (venv) # python3 manage.py createsuperuser
+  $ source venv/bin/activate
+  (venv) $ python3 manage.py createsuperuser
   Username: admin
   Email address: admin@example.com
   Password:
   Password (again):
   Superuser created successfully.
 
-**Collect Static Files**
-
-Run:
-
-.. code-block:: bash
-
-  (venv) # python3 manage.py collectstatic --no-input
-
-  You have requested to collect static files at the destination
-  location as specified in your settings:
-
-      /opt/openl2m/openl2m/static
-
-  This will overwrite existing files!
-  Are you sure you want to do this?
-
-  Type 'yes' to continue, or 'no' to cancel: yes
-
-**Generate the HTML documentation**
-
-  Run:
-
-  .. code-block:: bash
-
-    (venv) # cd ../docs; make html; cd ../openl2m
 
 **Load Initial Data (Optional)**
 

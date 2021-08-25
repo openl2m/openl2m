@@ -15,7 +15,7 @@ Gunicorn is started as a service from systemd.
 
 Installation of the web server therefor has two components:
 
-#. Nxgin web server
+#. Nginx web server
 #. Gunicorn WSGI process or gateway
 
 
@@ -24,6 +24,13 @@ Web Server Installation
 
 The following will serve as a minimal nginx configuration.
 Be sure to modify your server name and installation path appropriately.
+
+**Ubuntu 20.04 LTS**
+
+.. code-block:: bash
+
+  sudo apt install -y nginx
+
 
 **CentOS 7**
 
@@ -35,6 +42,7 @@ Be sure to modify your server name and installation path appropriately:
   # yum install epel-release
   # yum install nginx --enablerepo=epel
 
+
 **CentOS 8**
 
 Here, you need:
@@ -44,6 +52,7 @@ Here, you need:
   # dnf install nginx
 
 (See more at https://linuxconfig.org/install-nginx-on-redhat-8)
+
 
 
 **Run OpenL2M on regular non-secured port**
@@ -141,7 +150,7 @@ You need to copy the Gunicorn configuration into the "root" openl2m installation
 
 .. code-block:: bash
 
-  cp ./scripts/gunicorn_config.py .
+  cp /opt/openl2m/scripts/gunicorn_config.py /opt/openl2m/gunicorn_config.py
 
 Modify this file as needed for your environment.
 Note the following:
@@ -169,15 +178,15 @@ Now activate this service:
 
 .. code-block:: bash
 
-  systemctl daemon-reload
-  systemctl start openl2m
-  systemctl enable openl2m
+  sudo systemctl daemon-reload
+  sudo systemctl start openl2m
+  sudo systemctl enable openl2m
 
 And verify:
 
 .. code-block:: bash
 
-  systemctl status openl2m
+  sudo systemctl status openl2m
 
 **Debugging**
 
@@ -193,7 +202,7 @@ and don't forget to restart the process with:
 
 .. code-block:: bash
 
-  systemctl restart openl2m
+  sudo systemctl restart openl2m
 
 You can check the content of the error log file and see if there are timeout warnings in it.
 If you, increase the timeout, and restart. Don't forget to turn off error logging when you have
