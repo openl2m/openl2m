@@ -37,6 +37,8 @@ from switches.connect.snmp.juniper.constants import *
 from switches.connect.snmp.juniper.connector import SnmpConnectorJuniper
 from switches.connect.snmp.procurve.constants import *
 from switches.connect.snmp.procurve.connector import SnmpConnectorProcurve
+from switches.connect.snmp.aruba.constants import *
+from switches.connect.snmp.aruba.connector import SnmpConnectorAruba
 
 # Napalm drivers are here:
 from switches.connect.napalm.connector import NapalmConnector
@@ -87,7 +89,10 @@ def get_connection_object(request, group, switch):
                     elif enterprise_id == ENTERPRISE_ID_H3C:
                         connection = SnmpConnectorComware(request, group, switch)
 
-                    # Dell is yet top be tested!
+                    elif enterprise_id == ENTERPRISE_ID_HP_ENTERPRISE:
+                        connection = SnmpConnectorAruba(request, group, switch)
+
+                    # Dell is yet to be tested!
                     # elif enterprise_id == ENTERPRISE_ID_DELL:
                     #    connection = SnmpConnectorDell(request, group, switch)
 
