@@ -1251,7 +1251,8 @@ class SnmpConnector(Connector):
             port_id = int(val)
             # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
             if port_id:
-                if_index = self.qbridge_port_to_if_index[int(val)]
+                # if_index = self.qbridge_port_to_if_index[int(val)]
+                if_index = self._get_if_index_from_port_id(port_id)
                 if if_index in self.interfaces.keys():
                     e = EthernetAddress(eth_string)
                     if self.vlan_id_context > 0:
@@ -1284,7 +1285,8 @@ class SnmpConnector(Connector):
             port_id = int(val)
             # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
             if port_id:
-                if_index = self.qbridge_port_to_if_index[int(val)]
+                # if_index = self.qbridge_port_to_if_index[int(val)]
+                if_index = self._get_if_index_from_port_id(port_id)
                 if if_index in self.interfaces.keys():
                     e = EthernetAddress(eth_string)
                     if self.vlan_id_context > 0:
