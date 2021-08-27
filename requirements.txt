@@ -15,6 +15,7 @@ napalm-procurve
 netaddr
 netmiko>=3.0.0
 psycopg2-binary
+pyaoscx
 pyasn1
 pycodestyle>=2.5.0
 pysnmp>=4.4.12
