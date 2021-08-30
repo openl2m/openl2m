@@ -15,9 +15,11 @@
 # Connector type for device (Snmp, Napalm)
 CONNECTOR_TYPE_SNMP = 0
 CONNECTOR_TYPE_NAPALM = 1
+CONNECTOR_TYPE_AOSCX = 2
 CONNECTOR_TYPE_CHOICES = [
     [CONNECTOR_TYPE_SNMP, 'SNMP'],
     [CONNECTOR_TYPE_NAPALM, 'Napalm'],
+    [CONNECTOR_TYPE_AOSCX, 'Aruba AOS-CX'],
 ]
 
 # SNMP constants, v1 not supported!

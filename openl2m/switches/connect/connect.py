@@ -39,6 +39,8 @@ from switches.connect.snmp.procurve.constants import *
 from switches.connect.snmp.procurve.connector import SnmpConnectorProcurve
 from switches.connect.snmp.aruba.constants import *
 from switches.connect.snmp.aruba.connector import SnmpConnectorAruba
+from switches.connect.aruba_aoscx.constants import *
+from switches.connect.aruba_aoscx.connector import AosCxConnector
 
 # Napalm drivers are here:
 from switches.connect.napalm.connector import NapalmConnector
@@ -103,6 +105,9 @@ def get_connection_object(request, group, switch):
             # no system oid found, return a "generic" SNMP object
             else:
                 connection = SnmpConnector(request, group, switch)
+
+        elif switch.connector_type == CONNECTOR_TYPE_AOSCX:
+            connection = AosCxConnector(request, group, switch)
 
         elif switch.connector_type == CONNECTOR_TYPE_NAPALM:
             connection = NapalmConnector(request, group, switch)

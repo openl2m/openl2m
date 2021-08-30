@@ -12,12 +12,12 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-Aruba (new style) specific implementation of the SNMP object
-This re-implements some methods found in the HP/ProCurve SNMP() class
-with Aruba specific ways of doing things...
+Aruba-AOS (new style) specific implementation of the SNMP object
 Note that the SNMP implementation in AOS-CX is read-only.
 We will implement many features via the REST API of the product, See
 https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
+This will be done as part of the 'Aruba-AOS' configuration type, coded in
+/switches/connect/aruba_aoscx/
 """
 from switches.models import Log
 from switches.constants import *
