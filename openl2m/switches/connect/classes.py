@@ -435,7 +435,7 @@ class NeighborDevice():
         # the above can be set from lldp data via SNMP, when these three fields are found:
         self.chassis_type = 0    # integer, LldpChassisIdSubtype
         self.chassis_string = ""        # LldpChassisId, OctetString format depends on type.
-        self.capabilities = bytes(2, 'utf-8')   # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
+        self.capabilities = bytes(2)    # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
         self.port_name = ""             # remote port name
         self.port_descr = ""            # remote port description, as set by config
         self.sys_name = "Unknown Device"
