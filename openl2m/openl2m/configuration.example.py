@@ -281,7 +281,7 @@ IP4_INFO_URLS = [
     # note this is completely fictitious!
     {
         'name': 'ELK Stack',
-        'url': 'https://elkstack.yoursite.com/search?eipv4={{ ip4 }}',
+        'url': 'https://elkstack.yoursite.com/search?ipv4={{ ip4 }}',
         'hint': 'Click here to see ELK Stack log data about this IPv4 address',
         'target': '_elk',
         'icon': '/static/img/general-info.png',
@@ -295,11 +295,11 @@ IP4_INFO_URLS = [
 # Ethernet Info Urls is a list of dictionaries that will be links shown on found ethernet addresses.
 # The idea is that you may want to provide a link to your device registration site, as well as your logging (eg Splunk)
 # you can use the following templates:
-# {{ ethernet.display_name }} - the formatted string xx:xx:xx:xx:xx:xx or xx-xx-xx-xx-xx-xx
+# {{ ethernet }} - the formatted ethernet string
 ETHERNET_INFO_URLS = [
     {
         'name': 'IPAM',
-        'url': 'https://ipam.yoursite.com/something/search?ethernet={{ ethernet.address }}',
+        'url': 'https://ipam.yoursite.com/something/search?ethernet={{ ethernet }}',
         'hint': 'Click here to see IPAM data about this ethernet address',
         'target': '_ipam',
         'icon': '/static/img/ipam.png',
@@ -311,7 +311,7 @@ ETHERNET_INFO_URLS = [
     # note this is completely fictitious!
     {
         'name': 'ELK Stack',
-        'url': 'https://elkstack.yoursite.com/search?ethernet={{ ethernet.address }}',
+        'url': 'https://elkstack.yoursite.com/search?ethernet={{ ethernet }}',
         'hint': 'Click here to see ELK Stack log data about this eithernet address',
         'target': '_elk',
         'icon': '/static/img/general-info.png',
