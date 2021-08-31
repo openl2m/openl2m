@@ -1257,7 +1257,11 @@ class SnmpConnector(Connector):
                     e = EthernetAddress(eth_string)
                     if self.vlan_id_context > 0:
                         e.vlan_id = self.vlan_id_context
-                    self.interfaces[if_index].eth[eth_string] = e
+                        # we use string representation of the EthernetAddress() object
+                        # to make sure we use a consistent key.
+                        # See below were we find this entry in _parse_mibs_net_to_media()
+                        # and _parse_mibs_q_bridge_eth()
+                    self.interfaces[if_index].eth[str(e)] = e
                     self.eth_addr_count += 1
                 # else:
                 #    dprint(f"  if_index = {if_index}: NOT FOUND!")
@@ -1301,7 +1305,7 @@ class SnmpConnector(Connector):
                         dprint(f"Eth found in fdb_index {int(fdb_index)} => vlan_index {vlan_index} => vlan_id {vlan_id}")
                         """
                         e.vlan_id = self.vlan_id_by_index.get(self.dot1tp_fdb_to_vlan_index.get(int(fdb_index), 0), 0)
-                    self.interfaces[if_index].eth[eth_string] = e
+                    self.interfaces[if_index].eth[str(e)] = e
                     self.eth_addr_count += 1
                 # else:
                 #    dprint(f"  if_index = {if_index}: NOT FOUND!")
@@ -1319,10 +1323,12 @@ class SnmpConnector(Connector):
         if_ip_string = oid_in_branch(ipNetToMediaPhysAddress, oid)
         if if_ip_string:
             parts = if_ip_string.split('.', 1)  # 1 means one split, two elements!
-            if_index = int(parts[0])
+            if_index = str(parts[0])
             ip = str(parts[1])
+            dprint(f"IfIndex={if_index}, IP={ip}")
             if if_index in self.interfaces.keys():
-                mac_addr = bytes_to_hex_string_ethernet(val)
+                mac_addr = bytes_ethernet_to_string(val)
+                dprint(f"   MAC={mac_addr}")
                 self.interfaces[if_index].arp4[ip] = mac_addr
                 # see if we can add this to a known ethernet address
                 # time consuming, but useful
