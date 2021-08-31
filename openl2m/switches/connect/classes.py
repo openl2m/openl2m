@@ -395,7 +395,9 @@ class EthernetAddress(netaddr.EUI):
         try:
             self.vendor = self.oui.registration().org
         except Exception as e:
-            self.vendor = "Unknown"
+            self.vendor = ''
+        if not self.vendor:
+            self.vendor = ''
         self.vlan_id = 0        # the vlan id (number) this was heard on, if known
         self.address_ip4 = ""   # ipv4 address from arp table, if known
         self.address_ip6 = ""   # ipv6 address, if known
@@ -433,7 +435,7 @@ class NeighborDevice():
         # the above can be set from lldp data via SNMP, when these three fields are found:
         self.chassis_type = 0    # integer, LldpChassisIdSubtype
         self.chassis_string = ""        # LldpChassisId, OctetString format depends on type.
-        self.capabilities = bytes(2, 'utf-8')   # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
+        self.capabilities = bytes(2)    # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
         self.port_name = ""             # remote port name
         self.port_descr = ""            # remote port description, as set by config
         self.sys_name = "Unknown Device"
