@@ -395,7 +395,9 @@ class EthernetAddress(netaddr.EUI):
         try:
             self.vendor = self.oui.registration().org
         except Exception as e:
-            self.vendor = "Unknown"
+            self.vendor = ''
+        if not self.vendor:
+            self.vendor = ''
         self.vlan_id = 0        # the vlan id (number) this was heard on, if known
         self.address_ip4 = ""   # ipv4 address from arp table, if known
         self.address_ip6 = ""   # ipv6 address, if known
