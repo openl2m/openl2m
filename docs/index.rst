@@ -23,7 +23,7 @@ Welcome to the documentation for the "Open Layer 2 Management" project.
    releases/index.rst
    screenshots.rst
    faq.rst
-   howto/maintain.rst
+   howto/index.rst
    roadmap.rst
    references.rst
 
