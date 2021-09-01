@@ -202,6 +202,7 @@ INSTALLED_APPS = [
     'ordered_model',
     'users.apps.UsersConfig',
     'switches.apps.SwitchesConfig',
+    'counters.apps.CountersConfig',
 ]
 
 MIDDLEWARE = [

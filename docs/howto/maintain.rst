@@ -1,8 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-========
-How To's
-========
+=======
+Backups
+=======
 
 **Backing up the OpenL2M database**
 
@@ -24,6 +24,7 @@ Note this does NOT backup the log objects!:
 For automatic backups, you need to create some user cron file. First, create a file ~/.pgpass in the user's home directory, and enter your password data:
 
 .. code-block:: bash
+
   vi ~/.pgpass
 
 Now enter the following lines, and replace the database password:
