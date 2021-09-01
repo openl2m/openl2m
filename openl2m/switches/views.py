@@ -44,6 +44,8 @@ from switches.connect.connect import *
 from switches.utils import *
 from switches.tasks import bulkedit_task, bulkedit_processor
 from users.utils import *
+from counters.models import *
+from counters.constants import *
 
 
 @login_required(redirect_field_name=None)
@@ -157,6 +159,7 @@ def switch_basics(request, group_id, switch_id):
     "basic" switch view, i.e. interface data only.
     Simply call switch_view() with proper parameter
     """
+    counter_increment(COUNTER_VIEWS)
     return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='basic')
 
 
@@ -166,6 +169,7 @@ def switch_arp_lldp(request, group_id, switch_id):
     "details" switch view, i.e. with Ethernet/ARP/LLDP data.
     Simply call switch_view() with proper parameter
     """
+    counter_increment(COUNTER_DETAILVIEWS)
     return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='arp_lldp')
 
 
@@ -175,6 +179,7 @@ def switch_hw_info(request, group_id, switch_id):
     "hardware info" switch view, i.e. read detailed system hardware ("entity") data.
     Simply call switch_view() with proper parameter
     """
+    counter_increment(COUNTER_HWINFO)
     return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='hw_info')
 
 
@@ -256,6 +261,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
     if command_id > -1:
         # Exexute a specific Command object by ID, note rights are checked in run_command()!
         dprint("CALLING RUN_COMMAND()")
+        counter_increment(COUNTER_COMMANDS)
         cmd = conn.run_command(command_id=command_id, interface_name=interface_name)
         if conn.error.status:
             # log it!
@@ -314,6 +320,7 @@ def switch_bulkedit(request, group_id, switch_id):
     """
     Change several interfaces at once.
     """
+    counter_increment(COUNTER_BULKEDITS)
     return bulkedit_form_handler(request, group_id, switch_id, False)
 
 
@@ -336,6 +343,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         error = Error()
         error.description = "Access denied!"
         error.details = "You do not have access to this device!"
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     try:
@@ -384,6 +392,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
                       description=f"Description not allowed: {new_description}")
             log.save()
             new_description = ''
+            counter_increment(COUNTER_ERRORS)
             errors.append(f"The description is not allowed: {new_description}")
 
     # safety-check: is the new PVID allowed:
@@ -400,6 +409,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
             log.save()
             new_pvid = -1   # force no change!
             errors.append(f"New vlan '{new_pvid}' is not allowed!")
+            counter_increment(COUNTER_ERRORS)
 
     if is_task:
         # we need a description
@@ -419,6 +429,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
             except Exception as e:
                 # unsupported time format!
                 errors.append("Invalid date/time format, please use YYYY-MM-DD HH:MM !")
+                counter_increment(COUNTER_ERRORS)
 
     if len(errors) > 0:
         error = Error()
@@ -543,6 +554,7 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
         error = Error()
         error.description = "Access denied!"
         error.details = "You do not have access to this device!"
+        counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(user=request.user,
@@ -557,6 +569,7 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
         log.type = LOG_TYPE_ERROR
         log.description = "Could not get connection"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         error.details = "This is likely a configuration error, such as incorrect SNMP settings."
@@ -567,6 +580,7 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
         log.type = LOG_TYPE_ERROR
         log.description = f"Admin-Change: Error getting interface data for {interface_name}"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
         error.details = "Sorry, no more details available!"
@@ -586,6 +600,7 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
         log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
+        counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=group, switch=switch, error=conn.error)
 
     # indicate we need to save config!
@@ -595,6 +610,7 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
     conn.save_cache()
 
     log.save()
+    counter_increment(COUNTER_CHANGES)
 
     description = f"Interface {interface.name} is now {state}"
     return success_page(request, group, switch, description)
@@ -612,6 +628,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
         error = Error()
         error.description = "Access denied!"
         error.details = "You do not have access to this device!"
+        counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(user=request.user,
@@ -626,6 +643,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
         log.type = LOG_TYPE_ERROR
         log.description = "Could not get connection"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         error.details = "This is likely a configuration error, such as incorrect SNMP settings!"
@@ -636,6 +654,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
         log.type = LOG_TYPE_ERROR
         log.description = f"Alias-Change: Error getting interface data for {interface_name}"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
         error.details = "Sorry, no more details available!"
@@ -656,6 +675,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
         log.description = f"Interface {interface.name} description edit not allowed"
         log.type = LOG_TYPE_ERROR
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "You are not allowed to change the interface description"
         error.details = "Sorry, you do not have access!"
@@ -668,6 +688,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
             log.type = LOG_TYPE_ERROR
             log.description = "New description matches admin deny setting!"
             log.save()
+            counter_increment(COUNTER_ERRORS)
             error = Error()
             error.description = f"The description '{new_description}' is not allowed!"
             return error_page(request=request, group=group, switch=switch, error=error)
@@ -690,6 +711,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
         log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
+        counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=group, switch=switch, error=conn.error)
 
     # indicate we need to save config!
@@ -699,6 +721,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
     conn.save_cache()
 
     log.save()
+    counter_increment(COUNTER_CHANGES)
 
     description = f"Interface {interface.name} description changed"
     return success_page(request, group, switch, description)
@@ -716,6 +739,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
         error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(user=request.user,
@@ -730,6 +754,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
         log.type = LOG_TYPE_ERROR
         log.description = "Could not get connection"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request=request, group=group, switch=switch, error=error)
@@ -739,6 +764,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
         log.type = LOG_TYPE_ERROR
         log.description = f"Pvid-Change: Error getting interface data for {interface_name}"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
         return error_page(request=request, group=group, switch=switch, error=error)
@@ -759,6 +785,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
     if not int(new_pvid) in conn.allowed_vlans.keys():
         log.action = LOG_CHANGE_INTERFACE_PVID + LOG_DENIED
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.status = True
         error.description = f"New vlan {new_pvid} is not valid on this switch"
@@ -769,6 +796,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
         log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
+        counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=group, switch=switch, error=conn.error)
 
     # indicate we need to save config!
@@ -779,6 +807,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
 
     # all OK, save log
     log.save()
+    counter_increment(COUNTER_CHANGES)
 
     description = f"Interface {interface.name} changed to vlan {new_pvid}"
     return success_page(request, group, switch, description)
@@ -800,6 +829,7 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
         error = Error()
         error.status = True
         error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(user=request.user,
@@ -814,6 +844,7 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
         log.type = LOG_TYPE_ERROR
         log.description = "Could not get connection"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request=request, group=group, switch=switch, error=error)
@@ -823,6 +854,7 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
         log.type = LOG_TYPE_ERROR
         log.description = f"PoE-Change: Error getting interface data for {interface_name}"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
         return error_page(request=request, group=group, switch=switch, error=error)
@@ -845,6 +877,7 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
         error.status = True
         error.description = log.descr
         log.save()
+        counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # do the work:
@@ -853,6 +886,7 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
         log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
+        counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=group, switch=switch, error=conn.error)
 
     # indicate we need to save config!
@@ -862,6 +896,7 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
     conn.save_cache()
 
     log.save()
+    counter_increment(COUNTER_CHANGES)
 
     description = f"Interface {interface.name} PoE is now {state}"
     return success_page(request, group, switch, description)
@@ -882,6 +917,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         error = Error()
         error.status = True
         error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(user=request.user,
@@ -896,6 +932,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         log.type = LOG_TYPE_ERROR
         log.description = "Could not get connection"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request=request, group=group, switch=switch, error=error)
@@ -905,6 +942,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         log.type = LOG_TYPE_ERROR
         log.description = f"PoE-Down-Up: Error getting interface data for {interface_name}"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
         return error_page(request=request, group=group, switch=switch, error=error)
@@ -921,6 +959,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         error.status = True
         error.description = log.descr
         log.save()
+        counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # the PoE information (index) is kept in the interface.poe_entry
@@ -932,6 +971,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         error.status = True
         error.description = log.descr
         log.save()
+        counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # disable PoE:
@@ -939,6 +979,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         log.description = f"ERROR: Toggle-Disable PoE on {interface.name} - {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
+        counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=group, switch=switch, error=conn.error)
 
     # delay to let the device cold-boot properly
@@ -949,6 +990,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         log.description = f"ERROR: Toggle-Enable PoE on {interface.name} - {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
+        counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=group, switch=switch, error=conn.error)
 
     # no state change, so no save needed!
@@ -956,6 +998,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
 
     # and save cachable/session data
     conn.save_cache()
+    counter_increment(COUNTER_CHANGES)
 
     description = f"Interface {interface.name} PoE was toggled!"
     return success_page(request, group, switch, description)
@@ -972,6 +1015,7 @@ def switch_save_config(request, group_id, switch_id, view):
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
         error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(user=request.user,
@@ -988,6 +1032,7 @@ def switch_save_config(request, group_id, switch_id, view):
         log.type = LOG_TYPE_ERROR
         log.description = "Could not get connection"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request=request, group=group, switch=switch, error=error)
@@ -998,6 +1043,7 @@ def switch_save_config(request, group_id, switch_id, view):
             # an error happened!
             log.type = LOG_TYPE_ERROR
             log.save()
+            counter_increment(COUNTER_ERRORS)
             return error_page(request=request, group=group, switch=switch, error=conn.error)
 
         # clear save flag
@@ -1010,6 +1056,7 @@ def switch_save_config(request, group_id, switch_id, view):
         log.type = LOG_TYPE_ERROR
         log.description = "Can not save config"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "This switch model cannot save or does not need to save the config"
         conn.set_save_needed(False)     # clear flag that should not be set in the first place!
@@ -1052,6 +1099,7 @@ def switch_reload(request, group_id, switch_id, view):
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
         error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(user=request.user,
@@ -1064,6 +1112,7 @@ def switch_reload(request, group_id, switch_id, view):
     log.save()
 
     clear_switch_cache(request)
+    counter_increment(COUNTER_VIEWS)
 
     return switch_view(request=request, group_id=group_id, switch_id=switch_id, view=view)
 
@@ -1081,6 +1130,7 @@ def switch_activity(request, group_id, switch_id):
     if not rights_to_group_and_switch(request, group_id, switch_id):
         error = Error()
         error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     # only show this switch. May add more filters later...
@@ -1237,6 +1287,7 @@ def admin_activity(request):
         error = Error()
         error.status = True
         error.description = "You do not have access to this page!"
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     # log my activity
@@ -1299,6 +1350,7 @@ def tasks(request):
     if not user_can_access_task(request, False):
         error = Error()
         error.description = "You cannot schedule tasks. If this is an error, please contact your administrator!"
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     template_name = 'tasks.html'
@@ -1352,6 +1404,7 @@ def task_details(request, task_id):
         log.save()
         error = Error()
         error.description = log.description
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     # log my activity
@@ -1387,6 +1440,7 @@ def task_delete(request, task_id):
         log.save()
         error = Error()
         error.description = log.description
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     if not is_celery_running():
@@ -1426,6 +1480,7 @@ def task_terminate(request, task_id):
         log.save()
         error = Error()
         error.description = log.description
+        counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
     task = get_object_or_404(Task, pk=task_id)
@@ -1442,11 +1497,13 @@ def task_terminate(request, task_id):
         log.type = LOG_TYPE_CHANGE
         log.description = f"Task {task_id} terminated"
         log.save()
+        counter_increment(COUNTER_CHANGES)
         return success_page(request, False, False, f"Task {task_id} has been terminated (killed)!")
     else:
         log.type = LOG_TYPE_ERROR
         log.description = f"Error terminating task {task_id}"
         log.save()
+        counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = log.description
         return error_page(request=request, group=False, switch=False, error=error)

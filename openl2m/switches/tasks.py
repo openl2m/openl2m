@@ -31,6 +31,7 @@ from switches.connect.connect import get_connection_object
 from switches.connect.snmp import *
 from switches.connect.constants import *
 from switches.utils import *
+from counters.models import counter_increment
 
 
 @shared_task
@@ -281,10 +282,12 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                     success_count += 1
                     log.type = LOG_TYPE_CHANGE
                     log.description = f"Interface {iface.name}: Bulk-Edit Admin set to {new_state_name}"
+                    counter_increment(COUNTER_CHANGES)
                 else:
                     error_count += 1
                     log.type = LOG_TYPE_ERROR
                     log.description = f"Interface {iface.name}: Bulk-Edit Admin {new_state_name} ERROR: {conn.error.description}"
+                    counter_increment(COUNTER_ERRORS)
             else:
                 # already in wanted admin state:
                 log.type = LOG_TYPE_CHANGE
@@ -317,8 +320,11 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                             log.type = LOG_TYPE_ERROR
                             outputs.append(log.description)
                             log.save()
+                            counter_increment(COUNTER_ERRORS)
                         else:
-                            # successful power down, now delay
+                            # successful power down
+                            counter_increment(COUNTER_CHANGES)
+                            # now delay
                             time.sleep(settings.POE_TOGGLE_DELAY)
                             # Now enable PoE again...
                             # retval = conn.set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_ENABLED, 'i')
@@ -328,6 +334,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                                 log.type = LOG_TYPE_ERROR
                                 outputs.append(log.description)
                                 log.save()
+                                counter_increment(COUNTER_ERRORS)
                             else:
                                 # all went well!
                                 success_count += 1
@@ -335,6 +342,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                                 log.description = f"Interface {iface.name}: Bulk-Edit PoE Toggle Down/Up OK"
                                 outputs.append(log.description)
                                 log.save()
+                                counter_increment(COUNTER_CHANGES)
                     else:
                         outputs.append(f"Interface {iface.name}: Bulk-Edit PoE Down/Up IGNORED, PoE NOT enabled")
 
@@ -371,12 +379,14 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                             log.description = f"Interface {iface.name}: Bulk-Edit PoE {new_state_name} ERROR: {conn.error.description}"
                             outputs.append(log.description)
                             log.save()
+                            counter_increment(COUNTER_ERRORS)
                         else:
                             success_count += 1
                             log.type = LOG_TYPE_CHANGE
                             log.description = f"Interface {iface.name}: Bulk-Edit PoE {new_state_name}"
                             outputs.append(log.description)
                             log.save()
+                            counter_increment(COUNTER_CHANGES)
                     else:
                         # already in wanted power state:
                         outputs.append(f"Interface {iface.name}: Bulk-Edit ignored, PoE already {new_state_name}")
@@ -411,12 +421,14 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                         error_count += 1
                         log.type = LOG_TYPE_ERROR
                         log.description = f"Interface {iface.name}: Bulk-Edit Vlan change ERROR: {conn.error.description}"
+                        counter_increment(COUNTER_ERRORS)
                     else:
                         success_count += 1
                         log.type = LOG_TYPE_CHANGE
                         log.description = f"Interface {iface.name}: Bulk-Edit Vlan set to {new_pvid}"
                     outputs.append(log.description)
                     log.save()
+                    counter_increment(COUNTER_CHANGES)
                 else:
                     # already on desired vlan:
                     outputs.append(f"Interface {iface.name}: Bulk-Edit ignored, VLAN already {new_pvid}")
@@ -465,11 +477,13 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
                 log.type = LOG_TYPE_ERROR
                 log.description = f"Interface {iface.name}: Bulk-Edit Descr ERROR: {conn.error.description}"
                 log.save()
+                counter_increment(COUNTER_ERRORS)
                 return error_page(request, group, switch, conn.error)
             else:
                 success_count += 1
                 log.type = LOG_TYPE_CHANGE
                 log.description = f"Interface {iface.name}: Bulk-Edit Descr set OK"
+                counter_increment(COUNTER_CHANGES)
             outputs.append(log.description)
             log.save()
 
