@@ -1,8 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-=============
-Ethernet OUIs
-=============
+======================
+Updating Ethernet OUIs
+======================
 
 **Updating the Ethernet OUI database**
 
