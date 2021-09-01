@@ -47,7 +47,7 @@ OpenL2M Install
 
 First, create the user environment for OpenL2M:
 
-.. code-bloc:: bash
+.. code-block:: bash
 
   sudo adduser --system --group openl2m
 
