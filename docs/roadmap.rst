@@ -4,8 +4,10 @@
 Roadmap / To Do
 ===============
 
-Planned for version 1.2
------------------------
+Planned for version 2 and beyond
+--------------------------------
+
+* Aruba AOS-CX support via the device REST API.
 
 * Single-Sign-On (SSO) via SAML, and possibly OAUTH for authorization (switch group membership)
   with as primary SSO compatibility target Shiboleth SAML SSO

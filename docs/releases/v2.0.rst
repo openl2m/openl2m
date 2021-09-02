@@ -4,14 +4,15 @@
 Version 2.0
 ===========
 
-Version 2.0.0-rc4
------------------
-Release Date: 2021-08-31
 
-* fix for missing arp info
-* fix of ethernet/oui vendor display
-* other fixes
-* configuration example update
+Version 2.0.0
+-----------------
+Release Date: 2021-09-02
+
+* simple read-only support for Aruba AOS-CX switches.
+  Note: as SNMP in AOS-CX is read-only, this will need a dedicated driver
+  using the Aruba REST interface (pyaoscx module). Implementation TBD.
+* documentation updates.
 
 Version 2.0.0-rc3
 -----------------
