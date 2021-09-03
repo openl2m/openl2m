@@ -31,6 +31,7 @@ from switches.connect.connect import get_connection_object
 from switches.connect.snmp import *
 from switches.connect.constants import *
 from switches.utils import *
+from counters.constants import *
 from counters.models import counter_increment
 
 
