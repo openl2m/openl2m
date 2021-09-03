@@ -49,7 +49,7 @@ class Connector():
 
         # caching related. All attributes but these will be cached:
         self.do_not_cache = [
-            "do_not_cache", "request", "group", "switch", "error",
+            "do_not_cache", "request", "group", "switch", "error", "eth_addr_count", "neighbor_count",
         ]
 
         self.hostname = ""      # system hostname, typically set in sub-class
