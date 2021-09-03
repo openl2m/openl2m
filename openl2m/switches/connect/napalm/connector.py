@@ -334,7 +334,7 @@ class NapalmConnector(Connector):
                         neighbor.capabilities |= LLDP_CAPA_BITS_OTHER
                 '''
                 dprint(f"Adding LLDP neighbor: {neighbor}")
-                self.add_neighbor_to_interface_by_name(if_name, neighbor)
+                self.add_neighbor_object(if_name, neighbor)
 
         return True
 

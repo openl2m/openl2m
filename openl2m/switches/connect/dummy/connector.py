@@ -20,6 +20,7 @@ from switches.models import Log
 from switches.constants import *
 from switches.connect.classes import *
 from switches.connect.connector import *
+from switches.connect.snmp.constants import *
 from switches.utils import *
 
 from .constants import *
@@ -104,12 +105,18 @@ class DummyConnector(Connector):
             self.get_arp_data()
             self.get_lldp_data()
         """
-        e = EthernetAddress()
-
-        self.interfaces["eth0/0/0"].eth = e
-
         dprint("Dummy Connector get_my_client_data()")
         # add some simulated data:
+        self.add_learned_ethernet_address("eth0/0/0", "00:11:22:33:44:55")
+        self.add_learned_ethernet_address("eth0/0/1", "0000.1111.2222")
+        self.add_learned_ethernet_address("eth2", "aa-bb-cc-dd-ee-ff")
+
+        neighbor = NeighborDevice("0000.aabb.1111")
+        neighbor.sys_name = "Simulated Remote Device"
+        neighbor.sys_descr = "LLDP Simulation"
+        neighbor.port_name = "remote-eth0"
+        neighbor.port_descr = "simulated remote port"
+        self.add_neighbor_object("eth2", neighbor)
 
         return True
 

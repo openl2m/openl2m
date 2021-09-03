@@ -335,46 +335,6 @@ class Connector():
         # self.save_cache()
         return True
 
-    def add_interface_learned_ethernet(self, interface, ethernet_address):
-        """
-        add a learned/heard EthernetAddress) object to the interface.eth{} dictionary.
-        interface = Interface() object for the requested port
-        ethernet_address = EthernetAddress() object with details set
-        return True on success, False on error and set self.error variables
-        """
-        interface.add_learned_ethernet_address(ethernet_address)
-        # self.save_cache()
-        return
-
-    def add_interface_neighbor(self, interface, neighbor):
-        """
-        add a NeighborDevice() object to the interface.lldp{} dictionary.
-        interface = Interface() object for the requested port
-        neighbor = LldpNeighbor() object with details set
-        return True on success, False on error and set self.error variables
-        """
-        interface.add_neighbor(neighbor)
-        # self.save_cache()
-        return True
-
-    def add_neighbor_to_interface_by_name(self, if_name, neighbor):
-        '''
-        Add an lldp neighbor to an interface.
-        if_name = interface name
-        neighbor = NeighborDevice() object.
-        It gets stored on the interface.lldp dict.
-        return True on success, False on failure.
-        '''
-        dprint(f"conn.add_neighbor_to_interface_by_name() for {str(neighbor)} on {if_name}")
-        iface = self.get_interface_by_key(if_name)
-        if iface:
-            iface.add_neighbor(neighbor)
-            self.neighbor_count += 1
-            return True
-        else:
-            dprint(f"conn.add_neighbor_to_interface_by_name(): Interface {if_name} does NOT exist!")
-            return False
-
     #############################
     # various support functions #
     #############################
@@ -479,8 +439,8 @@ class Connector():
         Add an ethernet address to an interface, as given by the layer2 CAM/Switching tables.
         Creates a new EthernetAddress() object and returns it. If the ethernet address already
         exists on the interface, just return the object.
-        if_name = interface name (key)
-        eth_address_obj = EthernetAddress() object.
+        if_name = interface name (key) as string
+        eth_address = ethernet address as string.
         It gets stored indexed by address on the interface.eth dict.
         return EthernetAddress() on success, False on failure.
         '''
@@ -492,6 +452,24 @@ class Connector():
             return a
         else:
             dprint(f"conn.add_learned_ethernet_address(): Interface {if_name} does NOT exist!")
+            return False
+
+    def add_neighbor_object(self, if_name, neighbor):
+        '''
+        Add an lldp neighbor to an interface.
+        if_name = interface name
+        neighbor = NeighborDevice() object.
+        It gets stored on the interface.lldp dict.
+        return True on success, False on failure.
+        '''
+        dprint(f"conn.add_neighbor_object() for {str(neighbor)} on {if_name}")
+        iface = self.get_interface_by_key(if_name)
+        if iface:
+            iface.add_neighbor(neighbor)
+            self.neighbor_count += 1
+            return True
+        else:
+            dprint(f"conn.add_neighbor_object(): Interface {if_name} does NOT exist!")
             return False
 
     def can_save_config(self):
