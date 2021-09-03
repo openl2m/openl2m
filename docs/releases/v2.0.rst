@@ -13,6 +13,7 @@ Release Date: 2021-09-02
   Note: as SNMP in AOS-CX is read-only, this will need a dedicated driver
   using the Aruba REST interface (pyaoscx module). Implementation TBD.
 * documentation updates.
+* lldp parsing fix for multiple capabilities.
 
 Version 2.0.0-rc3
 -----------------
