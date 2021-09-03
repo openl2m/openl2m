@@ -116,6 +116,10 @@ class DummyConnector(Connector):
         neighbor.sys_descr = "LLDP Simulation"
         neighbor.port_name = "remote-eth0"
         neighbor.port_descr = "simulated remote port"
+        neighbor.caps += LLDP_CAPABILITIES_WLAN
+        neighbor.caps += LLDP_CAPABILITIES_ROUTER
+        neighbor.caps += LLDP_CAPABILITIES_PHONE
+
         self.add_neighbor_object("eth2", neighbor)
 
         return True

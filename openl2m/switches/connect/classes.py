@@ -436,6 +436,7 @@ class NeighborDevice():
         self.chassis_type = 0    # integer, LldpChassisIdSubtype
         self.chassis_string = ""        # LldpChassisId, OctetString format depends on type.
         self.capabilities = bytes(2)    # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
+        self.caps = LLDP_CAPABILITIES_NONE  # integer representation of lldp capabilities
         self.port_name = ""             # remote port name
         self.port_descr = ""            # remote port description, as set by config
         self.sys_name = "Unknown Device"

@@ -1436,7 +1436,9 @@ class SnmpConnector(Connector):
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system name
-                    self.interfaces[if_index].lldp[lldp_index].capabilities = bytes(val, 'utf-8')
+                    cap_bytes = bytes(val, 'utf-8')
+                    # self.interfaces[if_index].lldp[lldp_index].capabilities = cap_bytes
+                    self.interfaces[if_index].lldp[lldp_index].capabilities = int(cap_bytes[0])
             return True
 
         lldp_index = oid_in_branch(lldpRemChassisIdSubtype, oid)

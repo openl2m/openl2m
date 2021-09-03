@@ -17,6 +17,7 @@ from napalm import *
 
 from switches.connect.classes import *
 from switches.connect.connector import *
+from switches.connect.constants import *
 from switches.connect.utils import interface_name_to_long
 
 """
@@ -313,27 +314,23 @@ class NapalmConnector(Connector):
                 neighbor.port_name = device['remote_port']
                 neighbor.port_descr = device['remote_port_description']
                 # and the enabled capabilities:
-                '''
-                 this needs re-writing due to bytes() being used for device.capabilities
                 for cap in device['remote_system_enable_capab']:
                     if cap == 'bridge':
-                        neighbor.capabilities |= bytes(LLDP_CAPA_BITS_BRIDGE)
+                        neighbor.caps += LLDP_CAPABILITIES_BRIDGE
                     elif cap == 'repeater':
-                        neighbor.capabilities |= LLDP_CAPA_BITS_REPEATER
+                        neighbor.caps += LLDP_CAPABILITIES_REPEATER
                     elif cap == 'wlan-access-point':
-                        neighbor.capabilities |= LLDP_CAPA_BITS_WLAN
+                        neighbor.caps += LLDP_CAPABILITIES_WLAN
                     elif cap == 'router':
-                        neighbor.capabilities |= LLDP_CAPA_BITS_ROUTER
+                        neighbor.caps += LLDP_CAPABILITIES_ROUTER
                     elif cap == 'telephone':
-                        neighbor.capabilities |= LLDP_CAPA_BITS_PHONE
+                        neighbor.caps += LLDP_CAPABILITIES_PHONE
                     elif cap == 'docsis-cable-device':
-                        neighbor.capabilities |= LLDP_CAPA_BITS_DOCSIS
+                        neighbor.caps += LLDP_CAPABILITIES_DOCSIS
                     elif cap == 'station':
-                        neighbor.capabilities |= LLDP_CAPA_BITS_STATION
+                        neighbor.caps += LLDP_CAPABILITIES_STATION
                     elif cap == 'other':
-                        neighbor.capabilities |= LLDP_CAPA_BITS_OTHER
-                '''
-                dprint(f"Adding LLDP neighbor: {neighbor}")
+                        neighbor.caps += LLDP_CAPABILITIES_OTHER
                 self.add_neighbor_object(if_name, neighbor)
 
         return True

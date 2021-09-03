@@ -425,26 +425,31 @@ def get_lldp_info(neighbor):
     info = ''
     # add an image for the capabilities
     img_format = "<img src=\"/static/img/%s\" data-toggle=\"tooltip\" title=\"%s\" height=\"24\" width=\"24\">&nbsp;"
-    capabilities = int(neighbor.capabilities[0])
-    if capabilities & LLDP_CAPA_BITS_WLAN:
-        info += img_format % ('device-wifi.png', 'Wireless AP')
-    elif capabilities & LLDP_CAPA_BITS_PHONE:
-        info += img_format % ('device-phone.png', 'VOIP Phone')
-    elif capabilities & LLDP_CAPA_BITS_ROUTER:
-        info += img_format % ('device-router.png', 'Router or Switch')
-    elif capabilities & LLDP_CAPA_BITS_STATION:
-        info += img_format % ('device-station.png', 'Workstation or Server')
-    elif capabilities & LLDP_CAPA_BITS_BRIDGE:
-        info += img_format % ('device-switch.png', 'Switch')
-    elif capabilities & LLDP_CAPA_BITS_REPEATER:
-        info += img_format % ('device-switch.png', 'Hub or Repeater')
-    # elif capabilities & LLDP_CAPA_BITS_DOCSIS:
-    # unlikely to see this!
-    #    icon = "unknown"
-    elif capabilities & LLDP_CAPA_BITS_OTHER:
-        info += img_format % ('device-unknown.png', 'Other Capabilities')
-    else:
+    capabilities = neighbor.capabilities
+    if capabilities == LLDP_CAPABILITIES_NONE:
         info += img_format % ('device-unknown.png', 'Capabilities NOT Advertized ')
+    else:
+        if capabilities & LLDP_CAPABILITIES_WLAN:
+            info += img_format % ('device-wifi.png', 'Wireless AP')
+        if capabilities & LLDP_CAPABILITIES_PHONE:
+            info += img_format % ('device-phone.png', 'VOIP Phone')
+        if capabilities & LLDP_CAPABILITIES_ROUTER:
+            info += img_format % ('device-router.png', 'Router or Switch')
+        if capabilities & LLDP_CAPABILITIES_STATION:
+            info += img_format % ('device-station.png', 'Workstation or Server')
+        if capabilities & LLDP_CAPABILITIES_BRIDGE and not capabilities & LLDP_CAPABILITIES_ROUTER \
+           and not capabilities & LLDP_CAPABILITIES_PHONE:
+            # We only show Switch if no routing or phone capabilities listed.
+            # Most phones and routers also show switch capabilities.
+            # In those cases we only show the above Router or Phone icons!
+            info += img_format % ('device-switch.png', 'Switch')
+        if capabilities & LLDP_CAPABILITIES_REPEATER:
+            info += img_format % ('device-switch.png', 'Hub or Repeater')
+        # elif capabilities & LLDP_CAPABILITIES_DOCSIS:
+        # unlikely to see this!
+        #    icon = "unknown"
+        if capabilities & LLDP_CAPABILITIES_OTHER:
+            info += img_format % ('device-unknown.png', 'Other Capabilities')
 
     name = ''
     if neighbor.sys_name:

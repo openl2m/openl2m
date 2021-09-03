@@ -52,15 +52,16 @@ IANA_TYPE_IPV6 = 2
 LLDP_CHASSIC_TYPE_IFNAME = 6    # interfaceName(6), ifName from IF-MIB
 LLDP_CHASSIC_TYPE_LOCAL = 7    # local(7)
 
-# Capabilities as announced via lldp bits.
-LLDP_CAPABILITIES_OTHER = 0     # other(0),
-LLDP_CAPABILITIES_REPEATER = 1  # repeater(1),
-LLDP_CAPABILITIES_BRIDGE = 2    # bridge(2),
-LLDP_CAPABILITIES_WLAN = 3      # wlanAccessPoint(3),
-LLDP_CAPABILITIES_ROUTER = 4    # router(4),
-LLDP_CAPABILITIES_PHONE = 5     # telephone(5)
-LLDP_CAPABILITIES_DOCSIS = 6    # docsisCableDevice(6),
-LLDP_CAPABILITIES_STATION = 7   # stationOnly(7)
+# Capabilities as announced via lldp bits in SNMP data, translated to integer:
+LLDP_CAPABILITIES_OTHER = 128     # other(0),
+LLDP_CAPABILITIES_REPEATER = 64  # repeater(1),
+LLDP_CAPABILITIES_BRIDGE = 32    # bridge(2),
+LLDP_CAPABILITIES_WLAN = 16      # wlanAccessPoint(3),
+LLDP_CAPABILITIES_ROUTER = 8    # router(4),
+LLDP_CAPABILITIES_PHONE = 4     # telephone(5)
+LLDP_CAPABILITIES_DOCSIS = 2    # docsisCableDevice(6),
+LLDP_CAPABILITIES_STATION = 1   # stationOnly(7)
+LLDP_CAPABILITIES_NONE = 0
 
 # PoE PowerSupply related
 POE_PSE_STATUS_ON = 1
