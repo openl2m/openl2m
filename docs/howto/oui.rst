@@ -22,3 +22,9 @@ This will download new data files from the IEEE website, and update the database
 the netaddr package.
 
 You should not need to restart the OpenL2M service after this.
+
+Note that you should also be able to run this as a cron job, to automatically update eg. at 6AM on the first of every month:
+
+.. code-block:: bash
+
+    0 6 1 * * /opt/openl2m/scripts/update_oui.sh > /tmp/update_oui.sh.out 2>&1
