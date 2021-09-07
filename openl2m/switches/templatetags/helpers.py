@@ -424,32 +424,32 @@ def get_lldp_info(neighbor):
 
     info = ''
     # add an image for the capabilities
-    img_format = "<img src=\"/static/img/%s\" data-toggle=\"tooltip\" title=\"%s\" height=\"24\" width=\"24\">&nbsp;"
+    fa_format = "<i class=\"fas %s\" data-toggle=\"tooltip\" title=\"%s\"></i>&nbsp;"
     capabilities = neighbor.capabilities
     if capabilities == LLDP_CAPABILITIES_NONE:
-        info += img_format % ('device-unknown.png', 'Capabilities NOT Advertized ')
+        info += fa_format % ('fa-question', 'Capabilities NOT Advertized')
     else:
         if capabilities & LLDP_CAPABILITIES_WLAN:
-            info += img_format % ('device-wifi.png', 'Wireless AP')
+            info += fa_format % ('fa-wifi', 'Wireless AP')
         if capabilities & LLDP_CAPABILITIES_PHONE:
-            info += img_format % ('device-phone.png', 'VOIP Phone')
+            info += fa_format % ('fa-phone', 'VOIP Phone')
         if capabilities & LLDP_CAPABILITIES_ROUTER:
-            info += img_format % ('device-router.png', 'Router or Switch')
+            info += fa_format % ('fa-cogs', 'Router or Switch')
         if capabilities & LLDP_CAPABILITIES_STATION:
-            info += img_format % ('device-station.png', 'Workstation or Server')
+            info += fa_format % ('fa-desktop', 'Workstation or Server')
         if capabilities & LLDP_CAPABILITIES_BRIDGE and not capabilities & LLDP_CAPABILITIES_ROUTER \
            and not capabilities & LLDP_CAPABILITIES_PHONE:
             # We only show Switch if no routing or phone capabilities listed.
             # Most phones and routers also show switch capabilities.
             # In those cases we only show the above Router or Phone icons!
-            info += img_format % ('device-switch.png', 'Switch')
+            info += fa_format % ('fa-ethernet', 'Switch')
         if capabilities & LLDP_CAPABILITIES_REPEATER:
-            info += img_format % ('device-switch.png', 'Hub or Repeater')
+            info += fa_format % ('fa-ethernet', 'Hub or Repeater')
         # elif capabilities & LLDP_CAPABILITIES_DOCSIS:
         # unlikely to see this!
         #    icon = "unknown"
         if capabilities & LLDP_CAPABILITIES_OTHER:
-            info += img_format % ('device-unknown.png', 'Other Capabilities')
+            info += fa_format % ('fa-question', 'Other Capabilities')
 
     name = ''
     if neighbor.sys_name:
