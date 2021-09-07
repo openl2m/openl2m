@@ -41,7 +41,7 @@
                     <li><a href="{% static 'docs/html/using/index.html' %}" target="_docs"><i class="fas fa-book" aria-hidden="true"></i> Documentation</a></li>
                     {% if request.user.is_superuser %}
                       <li class="divider"></li>
-                      <li><a href="{% url 'admin:index' %}"><i class="fas fa-cog fa-fw"></i> Administration</a></li>
+                      <li><a href="{% url 'admin:index' %}"><i class="fas fa-pen"></i> Administration</a></li>
                       <li><a href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true"></i> Activity Logs</a></li>
                     {% elif request.user.is_staff %}
                       <li class="divider"></li>
