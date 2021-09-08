@@ -4,7 +4,13 @@ __OpenL2M, Open Layer 2 Management__, is an open source switch management
 application designed to provide a consistent web interface for Layer 2 device
 management, independent of the underlying switch vendor.  
 
-OpenL2M was developed in an attempt to learn
+__What's New:__
+v2 implements a new plug-in API that will allow for easy add-on drivers.
+This makes is easy to add support for any kind of network device,
+whether the interface is SSH, REST, NetConf, or other methods.
+See the documentation for more information.
+
+__Why OpenL2M__: OpenL2M was developed in an attempt to learn
 Django, and in the hope that it may some day provide a possibly useful
 application for distributed "basic" network switch management.
 It is developed to address the needs of distributed IT groups managing parts
