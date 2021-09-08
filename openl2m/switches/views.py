@@ -1247,10 +1247,6 @@ def show_stats(request):
     filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
     usage['Changes last 31 days'] = Log.objects.filter(**filter).count()
 
-    filter = {}
-    filter['type'] = int(LOG_TYPE_CHANGE)
-    usage['Changes logged'] = Log.objects.filter(**filter).count()
-
     user_list = get_current_users()
 
     # render the template
