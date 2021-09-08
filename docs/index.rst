@@ -5,11 +5,16 @@
 
 .. image:: _static/openl2m_logo.png
 
-==================
-Welcome to OpenL2M
-==================
+=====================
+Welcome to OpenL2M v2
+=====================
 
 Welcome to the documentation for the "Open Layer 2 Management" project.
+
+**What's New:**
+v2 implements a new plug-in API that will allow for easy add-on drivers.
+This makes is easy to add support for any kind of network device,
+whether the interface is SSH, REST, NetConf, or other methods. See more below.
 
 .. toctree::
    :maxdepth: 1
@@ -28,7 +33,7 @@ Welcome to the documentation for the "Open Layer 2 Management" project.
    references.rst
 
 
-If you are interesting in contributing, or just learning how this works, read the following.
+If you are interesting in contributing, writing drivers for new devices, or just learning about the internals of OpenL2M, read the following.
 
 .. toctree::
   :maxdepth: 2

@@ -39,9 +39,9 @@ Release Date: 2021-02-23
   implement a device cache, so others can have quick access to device settings, without
   the need to re-read the device.
 * To **demonstrate the use of the above API class** we implemented a very basic Python Napalm library
-  interface on top of this API class. This is **solely intended to show how to implement new drivers***. The NapalmConnector()
+  interface on top of this API class. This is **solely intended to show how to implement new drivers**. The NapalmConnector()
   supports a few vendors (Arista, Cisco, Dell, HP, Juniper), but only in read-only mode.
-  **NOTE** the Napalm library does not properly support trunked or 802.1q tagged interfaces.
+  **NOTE**: the Napalm library does not properly support trunked or 802.1q tagged interfaces.
   We try to 'catch' this, but the untagged vlan is likely incorrect on trunked/tagged interfaces
   due to this library shortcoming. It also does not support PoE.
 * if LDAP enabled, add log entry showing DN of authenticated ldap account.
@@ -58,6 +58,7 @@ Upgrades:
 * upgrade to Django v3.2, and recent version of web libraries.
 * upgrade to most recent versions of python packages used.
 * using more 'native' python libraries (e.g. netaddr)
+* use tmpfiles.d configuration file for celeryd installation
 * add two configuration settings to make SSL more secure:
 
 .. code-block:: bash
@@ -65,5 +66,3 @@ Upgrades:
   # if using SSL, these should be set to True:
   CSRF_COOKIE_SECURE = False
   SESSION_COOKIE_SECURE = False
-
- * use tmpfiles.d configuration file for celeryd installation
