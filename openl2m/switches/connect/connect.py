@@ -18,6 +18,8 @@ if we cannot do it all using snmp.
 """
 import datetime
 
+from django.utils import timezone
+
 from switches.utils import dprint
 from switches.connect.connector import *
 from switches.connect.classes import Error
@@ -56,7 +58,7 @@ def get_connection_object(request, group, switch):
     If switch objectID is not known yet, we will probe the switch first.
     If probing fails, we raise an exception!
     """
-    dprint(f"get_connection_object() for {switch} at {datetime.datetime.now()}")
+    dprint(f"get_connection_object() for {switch} at {timezone.now()}")
 
     # What type of connector are we using?
     if switch.connector_type == CONNECTOR_TYPE_SNMP:
