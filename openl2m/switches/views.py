@@ -1247,6 +1247,12 @@ def show_stats(request):
     filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
     usage['Changes last 31 days'] = Log.objects.filter(**filter).count()
 
+    # show some of totals counters:
+    # the total change count since install from Counter()'changes') object:
+    usage['Total Changes'] = Counter.objects.get(name='changes').value
+    # total number of commands run:
+    usage['Total Commands'] = Counter.objects.get(name='commands').value
+
     user_list = get_current_users()
 
     # render the template
