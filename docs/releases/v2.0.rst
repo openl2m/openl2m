@@ -4,6 +4,13 @@
 Version 2.0
 ===========
 
+Version 2.0.1
+-----------------
+Release Date: 2021-09-09
+
+* add command to remove old logs, docs HowTo section
+* add a few total use counters to usage statistics view
+* some documentation updates
 
 Version 2.0.0
 -----------------
