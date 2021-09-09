@@ -8,4 +8,5 @@ How To's
    :maxdepth: 2
 
    maintain.rst
+   logs.rst
    oui.rst

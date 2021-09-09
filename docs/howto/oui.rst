@@ -23,7 +23,12 @@ the netaddr package.
 
 You should not need to restart the OpenL2M service after this.
 
-Note that you should also be able to run this as a cron job, to automatically update eg. at 6AM on the first of every month:
+IMPORTANT: this script assumes the default install location of /opt/openl2m. If you have a different install path, please modify this script as needed!
+
+
+**Automatically update the OUI database**
+
+You should also be able to run this script as a cron job, to automatically update eg. at 6AM on the first of every month:
 
 .. code-block:: bash
 

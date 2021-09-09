@@ -43,7 +43,7 @@ Next set this to be accesible only by the user that will run the cron job:
   chmod 600 ~/.pgpass
 
 And finally, create a shell script that will create a backup file. Note that this
-example create a backup without the log files, and adds a datastamp to the backup filename.
+example create a backup without the log files, and adds a timestamp to the backup filename.
 
 .. code-block:: bash
 
@@ -56,7 +56,7 @@ and add this:
 
   # backup OpenL2M database
 
-  DATETIME=`date +%F-%T`
+  DATETIME=`date +%F-%H%M%S`
   FILE=/opt/openl2m/backups/openl2m_no_log.$DATETIME.sql
 
   #here we go:
