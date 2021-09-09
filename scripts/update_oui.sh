@@ -1,3 +1,18 @@
+#!/usr/bin/env bash
+#
+# This file is part of Open Layer 2 Management (OpenL2M).
+#
+# OpenL2M is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 3 as published by
+# the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.  You should have received a copy of the GNU General Public
+# License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
+#
+#
 # Script to update the Python netaddr module's Ethernet IAB/OUI library.
 # See more at https://www.redelijkheid.com/blog/2019/5/10/update-python-netaddr-oui-database
 #
