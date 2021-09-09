@@ -10,12 +10,13 @@ OpenL2M, or Open Layer 2 Management, is an open source switch management
 application designed to provide a consistent web interface for Layer 2 device
 management, *independent of the underlying switch vendor*. OpenL2M can distribute
 the management of Layer 2 network switches to various users and groups. The
-distributed management approach taken by OpenL2M is based on Vlans and switch
+distributed management approach taken by OpenL2M is based on vlans and device
 groups.
 
-OpenL2M can use a variety device communications methods to accomplish all of its regular tasks.
-As of v2.0, there is an extensible API that allows for a variety of methods to be used to communicate
-with devices. At present, SNMP and SSH (via Netmiko) are supported. Napalm support is implemented as an example of the new API.
+OpenL2M can use various device communication methods. As of v2.0, there is an
+extensible API that allows for custom drivers to communicate with devices. Using this API,
+drivers can be developed that support Netconf, REST and other ways to communicate with switches.
+At present, SNMP and SSH (via Netmiko) are supported. Napalm support is implemented as an example of the new API.
 
 **Features**
 
@@ -40,13 +41,10 @@ OpenL2M can manage interfaces on switches, including:
 * *show recent log entries* for properly configured Cisco switches.
 * configurable links on the switch, or interfaces to external tools such as an NMS.
 * configurable menus.
-* easily extended architecture to support other vendors that require custom snmp variables (mibs).
-* API to extend architecture to support any device using any method supportable by Python.
+* easily extended snmp driver architecture to support other vendors that require custom snmp variables (mibs).
+* **API to extend architecture** to support any device using any method supportable by Python.
 * local and LDAP-based user accounts, including automatic LDAP-based group membership.
 
-OpenL2M uses a variety of methods, including SNMP v2 and v3 for device that support it; SSH; Napalm.
-There is a generic object interface that makes it straight forward to support new devices
-by implementing a device or vendor specific driver.
 
 **What OpenL2M Is Not**
 

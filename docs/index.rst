@@ -12,9 +12,10 @@ Welcome to OpenL2M v2
 Welcome to the documentation for the "Open Layer 2 Management" project.
 
 **What's New:**
-v2 implements a new plug-in API that will allow for easy add-on drivers.
+v2 implements a new plug-in API that will allow add-on drivers.
 This makes is easy to add support for any kind of network device,
-whether the interface is SSH, REST, NetConf, or other methods. See more below.
+whether the interface is SSH, REST, NetConf, or other methods.
+See more in the development section below.
 
 .. toctree::
    :maxdepth: 1
