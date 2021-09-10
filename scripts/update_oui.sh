@@ -22,6 +22,12 @@
 WORKDIR="/opt/openl2m"
 PYTHONVERSION="python3.6"
 
+# check for alternate python version
+if [ -f "../altpython.sh" ]; then
+  source "../altpython.sh"
+  echo "Using Alternate Python version '${PYTHONVERSION}'"
+fi
+
 # here we go:
 cd $WORKDIR
 
@@ -31,12 +37,6 @@ then
     echo " netaddr package directory 'venv/lib/$PYTHONVERSION/site-packages/netaddr/eui' not found!"
     echo " NOT updating the OUI database."
     exit 1
-fi
-
-# check for alternate python version
-if [ -f "../altpython.sh" ]; then
-  source "../altpython.sh"
-  echo "Using Alternate Python version '${PYTHONVERSION}'"
 fi
 
 # make sure the virtual environment is activated!
