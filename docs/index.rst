@@ -9,7 +9,8 @@
 Welcome to OpenL2M v2
 =====================
 
-Welcome to the documentation for the "Open Layer 2 Management" project.
+Welcome to the documentation for the "Open Layer 2 Management" project,
+a distributed network device management application written in Django and Python 3.
 
 **What's New:**
 v2 implements a new plug-in API that will allow add-on drivers.

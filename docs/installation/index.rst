@@ -8,7 +8,7 @@ Installation
 
 OpenL2M has some requirements:
 
-* Python 3.6 or 3.7 (Higher may work, but we only test with v3.6 and 3.7)
+* Python 3.6 or 3.8 (Others may work, but we only test with v3.6 and 3.8)
 * net-snmp v5.7 or greater, including net-snmp-devel
 * the Python "easysnmp" package v0.2.5 or greater.
 * a web server, with the WSGI capability. We use Nginx in all our documentation.
@@ -31,7 +31,8 @@ At the end of this page is an image showing the application stack.
 
 OpenL2M v2.0 is developed and tested in a Ubuntu 20.04 LTS environment.
 (Previous versions were developed and tested in CentOS Linux v7 and v8 environments.)
-All instructions are related to that. However, this should work just fine other distributions.
+All instructions are related to that. However, this should work just fine on other
+distributions as long as the requirements are met.
 
 .. toctree::
    :maxdepth: 1

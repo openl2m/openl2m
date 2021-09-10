@@ -4,9 +4,9 @@
 Using Alternate Python Versions
 ===============================
 
-On CentOS 8, the stock python is version 3.6 This version will not be supported past 2021.
-While at this time we have only tested minimally, you can use newer versions of Python,
-e.g. v3.7 or v3.8
+On Ubuntu 20.04 LTS the stock python version is 3.8. On CentOS 8, the stock python is version 3.6
+Both versions have been tested, but not that v3.6 will not be supported by the Python maintainers past 2021.
+While at this time we have only tested minimally, you can likely use other, newer versions of Python.
 
 Follow these steps:
 
