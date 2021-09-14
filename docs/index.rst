@@ -9,8 +9,14 @@
 Welcome to OpenL2M v2
 =====================
 
-Welcome to the documentation for the "Open Layer 2 Management" project,
-a distributed network device management application written in Django and Python 3.
+Welcome to the documentation for the "Open Layer 2 Management" project.
+
+OpenL2M, is an open source switch management
+application designed to allow users with minimal training to perform a set of basic
+configuration changes on network switches. It does so by providing a consistent web interface
+for Layer 2 device management, independent of the underlying switch vendor.
+
+OpenL2M is written in Django 3 and Python 3.
 
 **What's New:**
 v2 implements a new plug-in API that will allow add-on drivers.
