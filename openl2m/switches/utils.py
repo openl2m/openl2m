@@ -19,6 +19,7 @@ import pytz
 import logging
 import socket
 import ipaddress
+import re
 
 from django.conf import settings
 from django.utils.timezone import get_default_timezone
@@ -136,3 +137,20 @@ def is_valid_hostname_or_ip(data):
             # fail gracefully!
             return False
     return False
+
+
+def validate_string_with_regex(data, regex):
+    """
+    Validate data with the given regular expression.
+    data: the string to match
+    regex: the regular expression to match the data to.
+    returns True if match or no regex given. False otherwize
+    """
+    if regex:
+        # check data against regex
+        match = re.match(regex, data)
+        if match:
+            return True
+        else:
+            return False
+    return True

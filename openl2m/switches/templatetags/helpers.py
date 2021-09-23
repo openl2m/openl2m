@@ -500,6 +500,19 @@ def get_poe_pse_status(status):
     return 'Unknown'
 
 
+@register.filter
+def get_options_from_comma_string(comma_string):
+    """
+    Return an HTML string with select options for the defined CommandTemplate() pick list.
+    """
+    choices = ""
+    options = comma_string.split(',')
+    for val in options:
+        v = val.strip()
+        choices += f"<option value=\"{v}\">{v}</option>\n"
+    return mark_safe(choices)
+
+
 @register.simple_tag()
 def querystring(request, **kwargs):
     """

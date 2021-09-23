@@ -49,6 +49,7 @@ urlpatterns = [
     path('<int:group_id>/<int:switch_id>/bulkedit/', views.switch_bulkedit, name='switch_bulkedit'),
     path('<int:group_id>/<int:switch_id>/bulkedit_task/', views.switch_bulkedit_task, name='switch_bulkedit_task'),
     path('<int:group_id>/<int:switch_id>/command/', views.switch_cmd_output, name='switch_cmd_output'),
+    path('<int:group_id>/<int:switch_id>/command_template/', views.switch_cmd_template_output, name='switch_cmd_template_output'),
     path('<int:group_id>/<int:switch_id>/details/', views.switch_arp_lldp, name='switch_arp_lldp'),
     path('<int:group_id>/<int:switch_id>/hwinfo/', views.switch_hw_info, name='switch_hw_info'),
     path('<int:group_id>/<int:switch_id>/reload/<str:view>/', views.switch_reload, name='switch_reload'),

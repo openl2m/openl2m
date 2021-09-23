@@ -509,6 +509,8 @@ class Connector():
         On error, self.error() will also be set.
         Note: if you override and implement, you are responsible
         for checking rights by calling switch.is_valid_command_id() !
+        command_id = the id (pk) of the Command() object we will execute,
+        interface_name = the device interface name, as string.
         """
         dprint(f"run_command() called, id='{command_id}', interface=''{interface_name}''")
         # default command result dictionary info:
@@ -565,6 +567,40 @@ class Connector():
         # now go do it:
         nm = NetmikoExecute(self.switch)
         if nm.execute_command(cmd['command']):
+            cmd['output'] = nm.output
+            del nm
+        else:
+            # error occured, pass it on
+            cmd['error_descr'] = nm.error.description
+            cmd['error_details'] = nm.error.details
+            self.error.status = True
+            self.error.description = nm.error.description
+            self.error.details = nm.error.details
+        return cmd
+
+    def run_command_string(self, command_string):
+        """
+        Execute a cli command. This is switch dependent,
+        but by default handled via Netmiko library.
+        Returns a command as a string, with results.
+        On error, self.error() will also be set.
+        Note: if you override and implement, you are responsible
+        command_string = the string we will execute
+        """
+        dprint(f"run_command_string() called, str='{command_string}'")
+        # default command result dictionary info:
+        cmd = {
+            'command': command_string,
+            'state': 'run',        # 'list' or 'run'
+            'id': 0,                # command chosen to run
+            'output': '',           # output of chosen command
+            'error_descr': '',      # if set, error that occured running command
+            'error_details': '',    # and the details for above
+        }
+        self.error.clear()
+        # now go do it:
+        nm = NetmikoExecute(self.switch)
+        if nm.execute_command(command_string):
             cmd['output'] = nm.output
             del nm
         else:

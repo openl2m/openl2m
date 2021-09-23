@@ -273,7 +273,7 @@ class CommandList(models.Model):
     global_commands = models.ManyToManyField(
         to='Command',
         limit_choices_to={'type': CMD_TYPE_GLOBAL},
-        blank=True,      # we don't require to have a vlan
+        blank=True,      # we don't require to have a command
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
         related_name='global_commands',      # from Commands object, we can now reference "Command.global_commands"
         verbose_name='Global commands to send to switch.',
@@ -317,6 +317,266 @@ class CommandList(models.Model):
         This is used in templates, so we can 'annotate' as needed
         """
         return self.name
+
+    def __str__(self):
+        return self.display_name()
+
+    def __unicode__(self):
+        return unicode(self.display_name)
+
+
+class CommandTemplate(models.Model):
+    """
+    A "long" command template that can be send to a switch.
+    Up to 8 fields and 3 pick-lists can be defined for the user to fill in values.
+    """
+    name = models.CharField(
+        max_length=32,
+        help_text="The name as shown to the user",
+    )
+    os = models.CharField(
+        max_length=32,
+        blank=True,
+        help_text="The switch OS name, for easier displaying & sorting",
+    )
+    description = models.CharField(
+        max_length=250,
+        blank=True,
+        help_text="Explanation of command template, shown as hover-over to user",
+    )
+    template = models.CharField(
+        max_length=64,
+        verbose_name='Command Template',
+        help_text='The command template. Use {{field[1-8]}} or {{list[1-3]}} as needed.',
+    )
+    field1_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template field 1 name.',
+    )
+    field1_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template field 1 description.',
+    )
+    field1_regex = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Regex',
+        help_text='Command template field 1 validation regular expression.',
+    )
+    field2_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template field 2 name.',
+    )
+    field2_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template field 2 description.',
+    )
+    field2_regex = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Regex',
+        help_text='Command template field 2 validation regular expression.',
+    )
+    field3_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template field 3 name.',
+    )
+    field3_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template field 3 description.',
+    )
+    field3_regex = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Regex',
+        help_text='Command template field 3 validation regular expression.',
+    )
+    field4_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template field 4 name.',
+    )
+    field4_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template field41 description.',
+    )
+    field4_regex = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Regex',
+        help_text='Command template field 4 validation regular expression.',
+    )
+    field5_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template field 5 name.',
+    )
+    field5_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template field 5 description.',
+    )
+    field5_regex = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Regex',
+        help_text='Command template field 5 validation regular expression.',
+    )
+    field6_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template field 6 name.',
+    )
+    field6_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template field 6 description.',
+    )
+    field6_regex = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Regex',
+        help_text='Command template field 6 validation regular expression.',
+    )
+    field7_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template field 7 name.',
+    )
+    field7_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template field 7 description.',
+    )
+    field7_regex = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Regex',
+        help_text='Command template field 7 validation regular expression.',
+    )
+    field8_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template field 8 name.',
+    )
+    field8_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template field 8 description.',
+    )
+    field8_regex = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Regex',
+        help_text='Command template field 8 validation regular expression.',
+    )
+    list1_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template pick list 1 name.',
+    )
+    list1_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template pick list 1 description.',
+    )
+    list1_values = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Values',
+        help_text='Command template pick list 1 comma-separated values.',
+    )
+    list2_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template pick list 2 name.',
+    )
+    list2_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template pick list 2 description.',
+    )
+    list2_values = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Values',
+        help_text='Command template pick list 2 comma-separated values.',
+    )
+    list3_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template pick list 3 name.',
+    )
+    list3_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template pick list 3 description.',
+    )
+    list3_values = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Values',
+        help_text='Command template pick list 3 comma-separated values.',
+    )
+    list4_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template pick list 4 name.',
+    )
+    list4_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template pick list 4 description.',
+    )
+    list4_values = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Values',
+        help_text='Command template pick list 4 comma-separated values.',
+    )
+
+    class Meta:
+        ordering = ['name', 'os']
+        unique_together = ['name', 'os']
+        verbose_name = 'Command Template'
+        verbose_name_plural = 'Command Templates'
+
+    def display_name(self):
+        """
+        This is used in templates, so we can 'annotate' as needed
+        """
+        return f"{self.name} ({self.os})"
 
     def __str__(self):
         return self.display_name()
@@ -470,6 +730,15 @@ class Switch(models.Model):
         null=True,
         help_text='This is the list of commands (if any) that can be executed on the switch. Requires a Netmike/SSH profile.',
     )
+    command_templates = models.ManyToManyField(
+        to='CommandTemplate',
+        # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
+        related_name='command_templates',
+        blank=True,     # we don't require to have them
+        verbose_name='Assigned Command Templates',
+        help_text="These are the command templates assigned. Users in a group this device belongs to "
+                  "can run these command templates."
+    )
     read_only = models.BooleanField(
         default=False,
         verbose_name='Read-Only access',
@@ -546,6 +815,11 @@ class Switch(models.Model):
         verbose_name='Hostname',
         help_text='The switch hostname as reported via snmp, ssh, etc.',
     )
+    # dont_show_interfaces = models.BooleanField(
+    #    default=False,
+    #    verbose_name='Do NOT Show Interfaces',
+    #    help_text='If checked, do not ever show interfaces of this device! Mostly useful for command-only devices!'
+    # )
     snmp_oid = models.CharField(
         max_length=100,
         default='',

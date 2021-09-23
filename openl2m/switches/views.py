@@ -33,6 +33,7 @@ from django.views.generic import View
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.shortcuts import redirect
+from django.template import Template, Context
 
 from openl2m.celery import get_celery_info, is_celery_running
 from switches.models import *
@@ -183,7 +184,7 @@ def switch_hw_info(request, group_id, switch_id):
     return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='hw_info')
 
 
-def switch_view(request, group_id, switch_id, view, command_id=-1, interface_name=''):
+def switch_view(request, group_id, switch_id, view, command_id=-1, interface_name='', command_string=''):
     """
     This shows the various data about a switch, either from a new SNMP read,
     from cached OID data, or an SSH command.
@@ -263,6 +264,21 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
         dprint("CALLING RUN_COMMAND()")
         counter_increment(COUNTER_COMMANDS)
         cmd = conn.run_command(command_id=command_id, interface_name=interface_name)
+        if conn.error.status:
+            # log it!
+            log.type = LOG_TYPE_ERROR
+            log.action = LOG_EXECUTE_COMMAND
+            log.description = f"{cmd['error_descr']}: {cmd['error_details']}"
+        else:
+            # success !
+            log.type = LOG_TYPE_COMMAND
+            log.action = LOG_EXECUTE_COMMAND
+            log.description = cmd['command']
+        log.save()
+    elif command_string:
+        dprint("CALLING RUN_COMMAND_STRING")
+        counter_increment(COUNTER_COMMANDS)
+        cmd = conn.run_command_string(command_string=command_string)
         if conn.error.status:
             # log it!
             log.type = LOG_TYPE_ERROR
@@ -1076,6 +1092,128 @@ def switch_cmd_output(request, group_id, switch_id):
     """
     command_id = int(request.POST.get('command_id', -1))
     return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='basic', command_id=command_id)
+
+
+@login_required(redirect_field_name=None)
+def switch_cmd_template_output(request, group_id, switch_id):
+    """
+    Go parse a switch command template that was submitted in the form
+    """
+    group = get_object_or_404(SwitchGroup, pk=group_id)
+    switch = get_object_or_404(Switch, pk=switch_id)
+
+    if not rights_to_group_and_switch(request, group_id, switch_id):
+        error = Error()
+        error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
+        return error_page(request=request, group=False, switch=False, error=error)
+
+    template_id = int(request.POST.get('template_id', -1))
+    t = get_object_or_404(CommandTemplate, pk=template_id)
+
+    # now build the command template:
+    values = {}
+    errors = False
+    error_string = ""
+    field1 = request.POST.get('field1', False)
+    if field1:
+        if validate_string_with_regex(field1, t.field1_regex):
+            values['field1'] = str(field1)
+        else:
+            errors = True
+            error_string = f"{ t.field1_name } - Invalid entry: { field1 }"
+
+    # field 2:
+    field2 = request.POST.get('field2', False)
+    if field2:
+        if validate_string_with_regex(field2, t.field2_regex):
+            values['field2'] = str(field2)
+        else:
+            errors = True
+            error_string += f"<br/>{ t.field2_name } - Invalid entry: { field2 }"
+
+    # field 3:
+    field3 = request.POST.get('field3', False)
+    if field3:
+        if validate_string_with_regex(field3, t.field3_regex):
+            values['field3'] = str(field3)
+        else:
+            errors = True
+            error_string += f"<br/>{ t.field3_name } - Invalid entry: { field3 }"
+
+    # field 4:
+    field4 = request.POST.get('field4', False)
+    if field4:
+        if validate_string_with_regex(field4, t.field4_regex):
+            values['field4'] = str(field4_regex)
+        else:
+            errors = True
+            error_string += f"<br/>{ t.field4_name } - Invalid entry: { field4 } "
+
+    # field 5:
+    field5 = request.POST.get('field5_regex', False)
+    if field5:
+        if validate_string_with_regex(field5, t.field5_regex):
+            values['field5'] = str(field5)
+        else:
+            errors = True
+            error_string += f"<br/>{t.field5_name} - Invalid entry: { field5 }"
+
+    # field 6:
+    field6 = request.POST.get('field6', False)
+    if field6:
+        if validate_string_with_regex(field1, t.field6_regex):
+            values['field6'] = str(field6)
+        else:
+            errors = True
+            error_string += f"<br/>{t.field6_name} - Invalid entry: { field6 } "
+
+    # field 7:
+    field7 = request.POST.get('field7', False)
+    if field7:
+        if validate_string_with_regex(field7, t.field7_regex):
+            values['field7'] = str(field1)
+        else:
+            errors = True
+            error_string += f"<br/>{t.field7_name} - Invalid entry: { field7 }"
+
+    # field 8:
+    field8 = request.POST.get('field8', False)
+    if field8:
+        if validate_string_with_regex(field8, t.field8_regex):
+            values['field8'] = str(field8)
+        else:
+            errors = True
+            error_string += f"<br/>{t.field8_name} - Invalid entry: { field8 }"
+
+    # and the pick lists:
+    list1 = request.POST.get('list1', False)
+    if list1:
+        values['list1'] = str(list1)
+    # list 2:
+    list2 = request.POST.get('list2', False)
+    if list2:
+        values['list2'] = str(list2)
+    # list 3:
+    list3 = request.POST.get('list3', False)
+    if list3:
+        values['list3'] = str(list3)
+    # list 4:
+    list4 = request.POST.get('list4', False)
+    if list4:
+        values['list4'] = str(list4)
+
+    if errors:
+        error = Error()
+        error.description = mark_safe(error_string)
+        return error_page(request=request, group=group, switch=switch, error=error)
+
+    # now do the template expansion, ie Jinja2 rendering:
+    template = Template(t.template)
+    context = Context(values)
+    command = template.render(context)
+
+    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='basic', command_id=-1, interface_name='', command_string=command)
 
 
 @login_required(redirect_field_name=None)
