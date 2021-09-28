@@ -18,6 +18,7 @@ Here is the order in which you should create the configuration items:
    profiles.rst
    vlans.rst
    commands.rst
+   cmd_templates.rst
    switches.rst
    switchgroups.rst
    users.rst

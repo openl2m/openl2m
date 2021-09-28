@@ -19,7 +19,12 @@ for Layer 2 device management, independent of the underlying switch vendor.
 OpenL2M is written in Django 3 and Python 3.
 
 **What's New:**
-v2 implements a new plug-in API that will allow add-on drivers.
+
+v2.1 implements command templates, a controlled method to give users variable input on commands.
+This gives tremendous flexibility in giving users in a controlled fashion more visibility into the device.
+See the Configuration section for more.
+
+v2.0 implements a new plug-in API for add-on device drivers.
 This makes is easy to add support for any kind of network device,
 whether the interface is SSH, REST, NetConf, or other methods.
 See more in the development section below.

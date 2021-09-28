@@ -1,0 +1,20 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 2.1
+===========
+
+Version 2.1.0
+-------------
+Release Date: 2021-TBD
+
+New Feature:  Command templates.
+
+We have added the ability to define command templates that allow input from users before they are run.
+This can be used to allow users to fill in eg. an ip address before a specific command is run on the device.
+
+Command Templates allow you to administratively define commands with variables in them. These variables can be filled in
+using a form presented in the switch view. This provides tremendous flexibility giving users in a
+controlled fashion more visibility into the device.
+
+:doc:`See the documentation for more.<../configuration/cmd_templates>`
