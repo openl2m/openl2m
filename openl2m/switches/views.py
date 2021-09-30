@@ -290,6 +290,9 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
             log.action = LOG_EXECUTE_COMMAND
             log.description = cmd['command']
         log.save()
+    else:
+        # log the access:
+        log.save()
 
     # get recent "non-viewing" activity for this switch
     # for now, show most recent 25 activities
