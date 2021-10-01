@@ -120,6 +120,16 @@
                           </td>
                         </tr>
                         {% endif %}
+                        {% if t.list5_name %}
+                        <tr>
+                          <td>{{ t.list5_name }}</td>
+                          <td>
+                            <select name="list5" data-toggle="tooltip" title="{{ t.list5_description }}">
+                              {{ t.list5_values | get_options_from_comma_string }}
+                            </select>
+                          </td>
+                        </tr>
+                        {% endif %}
                       </tbody>
                     </table>
                     <input type="hidden" id="id" name="template_id" value="{{ t.id }}">

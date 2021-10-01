@@ -1205,6 +1205,10 @@ def switch_cmd_template_output(request, group_id, switch_id):
     list4 = request.POST.get('list4', False)
     if list4:
         values['list4'] = str(list4)
+    # list 5:
+    list5 = request.POST.get('list5', False)
+    if list5:
+        values['list5'] = str(list5)
 
     if errors:
         error = Error()

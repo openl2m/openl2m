@@ -347,7 +347,7 @@ class CommandTemplate(models.Model):
     template = models.CharField(
         max_length=64,
         verbose_name='Command Template',
-        help_text='The command template. Use {{field[1-8]}} or {{list[1-3]}} as needed.',
+        help_text='The command template. Use {{field[1-8]}} or {{list[1-5]}} as needed.',
     )
     field1_name = models.CharField(
         max_length=64,
@@ -564,6 +564,24 @@ class CommandTemplate(models.Model):
         blank=True,
         verbose_name='Values',
         help_text='Command template pick list 4 comma-separated values.',
+    )
+    list5_name = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Name',
+        help_text='Command template pick list 5 name.',
+    )
+    list5_description = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Description',
+        help_text='Command template pick list 5 description.',
+    )
+    list5_values = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Values',
+        help_text='Command template pick list 5 comma-separated values.',
     )
 
     class Meta:
