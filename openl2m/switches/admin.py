@@ -43,6 +43,29 @@ class SwitchAdmin(admin.ModelAdmin):
     filter_horizontal = ('command_templates', )
     search_fields = ['name']
     inlines = (SwitchInline,)
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', 'primary_ip4')
+        }),
+        ('Connection Configuration', {
+            'fields': ('connector_type', 'napalm_device_type', 'snmp_profile', 'netmiko_profile',)
+        }),
+        ('Commands Configuration', {
+            'fields': ('command_list', 'command_templates',)
+        }),
+        ('View Options', {
+            'fields': ('indent_level', 'default_view', )
+        }),
+        ('Access', {
+            'fields': ('status', 'read_only', 'bulk_edit', 'allow_poe_toggle', 'edit_if_descr',)
+        }),
+        ('Other Options', {
+            'fields': ('nms_id',)
+        }),
+        ('Read-Only Fields', {
+            'fields': ('hostname', 'snmp_oid')
+        }),
+    )
 
 
 # class SwitchGroupMembershipStackedInline(OrderedStackedInline):
@@ -63,6 +86,20 @@ class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
     list_display = ('name', 'get_switchgroup_users')
     # inlines = (SwitchGroupSwitchesThroughModelTabularInline, )
     inlines = (SwitchGroupMembershipStackedInline, )
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'display_name', 'description', )
+        }),
+        ('Users in this group', {
+            'fields': ('users',),
+        }),
+        ('VLAN Allowances', {
+            'fields': ('vlan_groups', 'vlans', ),
+        }),
+        ('Other options', {
+            'fields': ('read_only', 'bulk_edit', 'allow_poe_toggle', 'edit_if_descr', 'comments', ),
+        }),
+    )
 
 
 # Change the VLAN() admin display to add the list of groups where this is used:
@@ -96,16 +133,49 @@ class VlanGroupAdmin(admin.ModelAdmin):
     # we just want all fields:
     # list_display = ('name', 'vid', 'description')
     inlines = (VlanGroupInline, )
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', )
+        }),
+        ('VLANs Allowed', {
+            'fields': ('vlans',),
+        }),
+    )
 
 
 class SnmpProfileAdmin(admin.ModelAdmin):
     save_on_top = True
     search_fields = ['name']
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', 'version',)
+        }),
+        ('Version 2 options', {
+            'fields': ('community',),
+        }),
+        ('Version 3 options', {
+            'fields': ('username', 'passphrase', 'priv_passphrase', 'auth_protocol', 'priv_protocol', 'sec_level', 'context_name', 'context_engine_id'),
+        }),
+        ('Other options', {
+            'fields': ('udp_port', ),
+        }),
+    )
 
 
 class NetmikoProfileAdmin(admin.ModelAdmin):
     save_on_top = True
     search_fields = ['name']
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', )
+        }),
+        ('Account settings', {
+            'fields': ('username', 'password', 'enable_password', ),
+        }),
+        ('Connection Options', {
+            'fields': ('verify_hostkey', 'tcp_port', ),
+        }),
+    )
 
 
 class CommandAdmin(admin.ModelAdmin):
@@ -117,6 +187,17 @@ class CommandListAdmin(admin.ModelAdmin):
     save_on_top = True
     search_fields = ['name']
     filter_horizontal = ('global_commands', 'interface_commands', 'global_commands_staff', 'interface_commands_staff',)
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', )
+        }),
+        ('Global System Commands', {
+            'fields': ('global_commands', 'global_commands_staff', ),
+        }),
+        ('Interface Level Commands', {
+            'fields': ('interface_commands', 'interface_commands_staff', ),
+        }),
+    )
 
 
 class CommandTemplateAdmin(admin.ModelAdmin):
@@ -126,28 +207,28 @@ class CommandTemplateAdmin(admin.ModelAdmin):
         (None, {
             'fields': ('name', 'os', 'description', 'template')
         }),
-        ('Field 1', {
+        ('Field 1 (free form)', {
             'fields': ('field1_name', 'field1_description', 'field1_regex'),
         }),
-        ('Field 2', {
+        ('Field 2 (free form)', {
             'fields': ('field2_name', 'field2_description', 'field2_regex'),
         }),
-        ('Field 3', {
+        ('Field 3 (free form)', {
             'fields': ('field3_name', 'field3_description', 'field3_regex'),
         }),
-        ('Field 4', {
+        ('Field 4 (free form)', {
             'fields': ('field4_name', 'field4_description', 'field4_regex'),
         }),
-        ('Field 5', {
+        ('Field 5 (free form)', {
             'fields': ('field5_name', 'field5_description', 'field5_regex'),
         }),
-        ('Field 6', {
+        ('Field 6 (free form)', {
             'fields': ('field6_name', 'field6_description', 'field6_regex'),
         }),
-        ('Field 7', {
+        ('Field 7 (free form)', {
             'fields': ('field7_name', 'field7_description', 'field7_regex'),
         }),
-        ('Field 8', {
+        ('Field 8 (free form)', {
             'fields': ('field8_name', 'field8_description', 'field8_regex'),
         }),
         ('List 1', {
@@ -172,6 +253,9 @@ class TaskAdmin(admin.ModelAdmin):
     # readonly_fields = []
 
     def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj=None):
         return False
 
 
