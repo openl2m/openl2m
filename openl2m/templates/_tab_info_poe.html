@@ -1,0 +1,20 @@
+{% load helpers %}
+{% load static %}
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <strong>Power over Ethernet Info</strong>
+      </div>
+      <div class="panel-body">
+        {% if 1 or connection.poe_apable %}
+          <div><strong>Total:</strong> {{ connection.poe_max_power }}W Available, {{ connection.poe_power_consumed }}W Used</div>
+          {% for pse_index, pse in connection.poe_pse_devices.items %}
+            <div><strong>PSE #{{ pse_index }}:</strong> {{ pse.status|get_poe_pse_status }},
+              Max {{ pse.max_power }} Watts, Drawing {{ pse.power_consumed }} Watts, Threshold = {{ pse.threshold }}%.
+            </div>
+          {% endfor %}
+        {% else %}
+          <div>Not found.</div>
+        {% endif %}
+      </div>
+    </div>

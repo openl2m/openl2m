@@ -1,0 +1,29 @@
+{% load helpers %}
+{% load static %}
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <strong>Vlans defined (GVRP
+          {% if connection.gvrp_enabled %}
+            Enabled
+          {% else %}
+            disabled
+          {% endif %}
+          )</strong>
+      </div>
+      <div class="panel-body">
+        {% for vlanid,vlan in connection.vlans.items %}
+          {% if vlan.type == VLAN_TYPE_NORMAL %}
+            <div>{{ vlan|get_vlan_info_links }} {{ vlanid }}{% if vlan.name %} - {{ vlan.name }} {% endif %}
+            {% if vlan.status == VLAN_STATUS_DYNAMIC %}
+              <i class="fas cloud-download-alt" aria-hidden="true"
+                  alt="MVRP/GVRP Image"
+                  data-toggle="tooltip"
+                  title="Vlan learned via MVRP or GVRP">
+              </i>
+            {% endif %}
+            </div>
+          {% endif %}
+        {% endfor%}
+      </div>
+    </div>

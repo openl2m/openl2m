@@ -44,6 +44,9 @@ from switches.connect.snmp.aruba.connector import SnmpConnectorAruba
 from switches.connect.aruba_aoscx.constants import *
 from switches.connect.aruba_aoscx.connector import AosCxConnector
 
+from switches.connect.commands_only.constants import *
+from switches.connect.commands_only.connector import CommandsOnlyConnector
+
 # Napalm drivers are here:
 from switches.connect.napalm.connector import NapalmConnector
 
@@ -109,6 +112,11 @@ def get_connection_object(request, group, switch):
     # this implementation is planned, ETA is TBD :-)
     elif switch.connector_type == CONNECTOR_TYPE_AOSCX:
         connection = AosCxConnector(request, group, switch)
+
+    # This is the "custom" connector that handles SSH commands, but does not load
+    # interface data!
+    elif switch.connector_type == CONNECTOR_TYPE_COMMANDS_ONLY:
+        connection = CommandsOnlyConnector(request, group, switch)
 
     # The Napalm connector uses the Python Napalm package. It is read-only.
     # Mostly implemented to test and show the new Connector() API class.

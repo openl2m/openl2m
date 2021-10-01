@@ -1,0 +1,20 @@
+{% load helpers %}
+{% load static %}
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <strong>Timing Info</strong>
+      </div>
+      <div class="panel-body">
+        <table class="table table-striped w-auto">
+          <thead>
+          <tr><th>Name</th><th>Count</th><th>Time</th></tr>
+          </thead>
+          <tbody>
+          {% for name,info in connection.timing.items %}
+            <tr><td>{{ name }}</td><td>{{ info.0 }}</td><td>{{ info.1|floatformat:3 }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>

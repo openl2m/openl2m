@@ -55,6 +55,7 @@ class Connector():
         self.hostname = ""      # system hostname, typically set in sub-class
         self.vendor_name = ""   # typically set in sub-classes
 
+        self.show_interfaces = True     # If False, do NOT show interfaces, vlans etc... for command-only devices.
         # data we collect and potentially cache:
         self.interfaces = {}        # Interface() objects representing the ports on this switch, key is if_name
         self.vlans = {}             # Vlan() objects on this switch, key is vlan id (not index!)
