@@ -18,8 +18,8 @@ The top series of fields are the template name, and OS, to allow easier displayi
 
 The description will be shown as a hover-over text over the name.
 
-The Command Template is the special sauce. Here you can use up to 8 freely definable input fields, and up to 4 pick lists, ie lists
-where you can preconfigure the selectable values.
+The Command Template is the special sauce. Here you can use up to 8 freely definable input fields, and up to 5 pick lists, i.e lists
+where you can pre-configure the selectable values.
 
 You can reference these fields by enclosing them in double curlies, ie between {{ and }}
 
