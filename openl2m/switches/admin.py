@@ -207,6 +207,9 @@ class CommandTemplateAdmin(admin.ModelAdmin):
         (None, {
             'fields': ('name', 'os', 'description', 'template')
         }),
+        ('Output Matching', {
+            'fields': ('output_match_regex', 'output_match_text', 'output_fail_text', 'output_lines_keep_regex'),
+        }),
         ('Field 1 (free form)', {
             'fields': ('field1_name', 'field1_description', 'field1_regex'),
         }),

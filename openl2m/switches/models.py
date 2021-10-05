@@ -583,6 +583,30 @@ class CommandTemplate(models.Model):
         verbose_name='Values',
         help_text='Command template pick list 5 comma-separated values.',
     )
+    output_match_regex = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Match Regex',
+        help_text='If command template output matches this regular expression, the \'match text\' will be shown, instead of output.',
+    )
+    output_match_text = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Match Text',
+        help_text='Text to show (instead of output) if output matches the regular expression.',
+    )
+    output_fail_text = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Fail Text',
+        help_text='Text to show (instead of output) if output does not match the regular expression.',
+    )
+    output_lines_keep_regex = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Output Lines Filter',
+        help_text='If an output line matches this regular expression, the line will be shown. Otherwize, it will be removed from the output. If blank, all output is shown.',
+    )
 
     class Meta:
         ordering = ['name', 'os']

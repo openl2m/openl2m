@@ -184,7 +184,7 @@ def switch_hw_info(request, group_id, switch_id):
     return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='hw_info')
 
 
-def switch_view(request, group_id, switch_id, view, command_id=-1, interface_name='', command_string=''):
+def switch_view(request, group_id, switch_id, view, command_id=-1, interface_name='', command_string='', command_template=False):
     """
     This shows the various data about a switch, either from a new SNMP read,
     from cached OID data, or an SSH command.
@@ -279,6 +279,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
         dprint("CALLING RUN_COMMAND_STRING")
         counter_increment(COUNTER_COMMANDS)
         cmd = conn.run_command_string(command_string=command_string)
+        dprint(f"OUTPUT = {cmd}")
         if conn.error.status:
             # log it!
             log.type = LOG_TYPE_ERROR
@@ -290,6 +291,25 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
             log.action = LOG_EXECUTE_COMMAND
             log.description = cmd['command']
         log.save()
+        if command_template:
+            # do we need to match output to show match/fail result?
+            output = cmd['output']
+            if command_template.output_match_regex:
+                if string_contains_regex(cmd['output'], command_template.output_match_regex):
+                    cmd['output'] = command_template.output_match_text if command_template.output_match_text else "OK!"
+                else:
+                    cmd['output'] = command_template.output_fail_text if command_template.output_fail_text else "FAIL!"
+            # do we need to filter (original) output to keep only matching lines?
+            if command_template.output_lines_keep_regex:
+                matched_lines = ''
+                lines = output.splitlines()
+                for line in lines:
+                    # we can probably improve performance by compiling the regex first...
+                    if string_contains_regex(line, command_template.output_lines_keep_regex):
+                        matched_lines = f"{matched_lines}\n{line}"
+                if matched_lines:
+                    cmd['output'] += "\nPartial output:\n" + matched_lines
+
     else:
         # log the access:
         log.save()
@@ -1220,7 +1240,7 @@ def switch_cmd_template_output(request, group_id, switch_id):
     context = Context(values)
     command = template.render(context)
 
-    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='basic', command_id=-1, interface_name='', command_string=command)
+    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='basic', command_id=-1, interface_name='', command_string=command, command_template=t)
 
 
 @login_required(redirect_field_name=None)

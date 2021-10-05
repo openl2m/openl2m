@@ -139,17 +139,37 @@ def is_valid_hostname_or_ip(data):
     return False
 
 
-def validate_string_with_regex(data, regex):
+def validate_string_with_regex(string, regex):
     """
     Validate data with the given regular expression.
-    data: the string to match
+    string: the string to match
     regex: the regular expression to match the data to.
     returns True if match or no regex given. False otherwize
     """
+    dprint(f"validate_string_with_regex(): string={string} regex={regex}")
     if regex:
-        # check data against regex
-        match = re.match(regex, data)
+        # match string against regex.
+        # Note re.match() starts at beginning of string!
+        match = re.match(regex, string)
         if match:
+            return True
+        else:
+            return False
+    return True
+
+
+def string_contains_regex(string, regex):
+    """
+    Search string for an occurance of the given regular expression.
+    string: the string to match
+    regex: the regular expression to find anywhere in the (multi-line) string.
+    returns True if found, or no regex given. False otherwize
+    """
+    dprint(f"string_contains_regex(): string={string} regex={regex}")
+    if regex:
+        # search string for regex
+        found = re.search(regex, string)
+        if found:
             return True
         else:
             return False

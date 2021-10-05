@@ -39,7 +39,7 @@ class CommandsOnlyConnector(Connector):
         self.vendor_name = 'Commands-Only'
         # force READ-ONLY for now! We have not implemented changing settings.
         self.switch.read_only = True
-        self.add_more_info('System', 'Type', "This device is an SSH-only connected device!")
+        self.add_more_info('System', 'Type', "SSH-only connected device!")
         if switch.description:
             self.add_more_info('System', 'Description', switch.description)
         self.show_interfaces = False    # do NOT show interfaces, vlans etc...

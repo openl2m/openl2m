@@ -9,6 +9,9 @@
       {% include "_tab_info_vlans.html" %}
       {% include "_tab_info_ip.html" %}
       {% include "_tab_info_poe.html" %}
+      {% if request.user.is_superuser %}
+        {% include "_tab_info_timing.html" %}
+      {% endif %} {# superuser #}
 
     </div> {# column 1 #}
 
@@ -19,19 +22,9 @@
     </div> {# col 2 #}
   </div> {# row #}
 
-  {% if request.user.is_superuser %}
-    <div class="row">
-      <div class="col-md-4">
-
-        {% include "_tab_info_timing.html" %}
-
-      </div>{# col 1 #}
-    </div> {# row #}
-  {% endif %} {# superuser #}
-
 {% else %}  {# if show_interfaces #}
 
-  <div class="row">
+  <div class="row form-group">
     <div class="col-md-8"> {# column 1 #}
 
       {% include "_tab_info_general.html" %}
