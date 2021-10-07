@@ -7,6 +7,6 @@ How To's
 .. toctree::
    :maxdepth: 2
 
-   maintain.rst
-   logs.rst
-   oui.rst
+   Various maintenance items (backups, data cleanup, etc.) <maintain.rst>
+   Managing logs <logs.rst>
+   Updating Ethernet OUI's <oui.rst>

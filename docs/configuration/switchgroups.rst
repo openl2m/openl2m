@@ -1,14 +1,14 @@
 .. image:: ../_static/openl2m_logo.png
 
-===================
-Create SwitchGroups
-===================
+=============
+Switch Groups
+=============
 
-SwitchGroups are how OpenL2M gives permissions to Users.
+Switch Groups are how OpenL2M gives permissions to Users.
 
-From the Admin menu option, go to SwitchGroups or click the "+ Add" option
+From the Admin menu option, go to Switch Groups or click the "+ Add" option
 
-Give the SwitchGroup a name. If you have added switches and vlans,
+Give the Switch Group a name. If you have added switches and vlans,
 you can then select the switches and vlans/vlangroups to add to this switch group.
 
 On the selected switches, selected users will only be able to manage ports that are on the Vlans
@@ -31,7 +31,7 @@ access based on their vlan rules.
 **LDAP Groups**
 
 If you configured :doc:`LDAP login <../installation/ldap>`,
-switchgroups can be auto-created based on the ldap group
+switch groups can be auto-created based on the ldap group
 membership for the user. You can then use these groups to assign switches,
 vlans, etc. This allows you to manage rights in a central location,
 e.g. an active directory domain, or via Grouper integration,
@@ -39,4 +39,4 @@ see https://www.internet2.edu/products-services/trust-identity/grouper/
 
 If the switch group is 'auto' created from LDAP, you may want to override the
 display name to show a more user-friendly group name.
-(OpenL2M Admin -> SwitchGroups -> select -> Display Name)
+(OpenL2M Admin -> Switch Groups -> select -> Display Name)

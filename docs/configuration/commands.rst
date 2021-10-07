@@ -1,8 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-=====================================
-Create the Commands and Command Lists
-=====================================
+==========================
+Commands and Command Lists
+==========================
 
 Command are 'show' or 'display' commands that can be executed on a switch once a Netmiko profile as been applied.
 They are meant to 'show' or 'display' more information about a switch or an interface on the switch that

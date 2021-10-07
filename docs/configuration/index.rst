@@ -15,13 +15,13 @@ Here is the order in which you should create the configuration items:
 .. toctree::
    :maxdepth: 1
 
-   profiles.rst
-   vlans.rst
-   commands.rst
-   cmd_templates.rst
-   switches.rst
-   switchgroups.rst
-   users.rst
+   Create SNMP and Netmiko profiles <profiles.rst>
+   Create VLANs <vlans.rst>
+   Create Commands and Command Lists <commands.rst>
+   Create Command Templates <cmd_templates.rst>
+   Create Switches <switches.rst>
+   Create Switch Groups to add switches to <switchgroups.rst>
+   Create Users and give them access to Switch Groups <users.rst>
 
 Permissions
 -----------
@@ -31,7 +31,7 @@ To understand permissions, please read:
 .. toctree::
    :maxdepth: 1
 
-   permissions.rst
+   Understanding Permissions <permissions.rst>
 
 Other Topics
 ------------
@@ -41,7 +41,7 @@ These are some other useful topics:
 .. toctree::
    :maxdepth: 1
 
-   importing.rst
-   scripts.rst
-   debugging.rst
-   snmp_configs.rst
+   Importing Switches, etc. <importing.rst>
+   Writing custom scripts <scripts.rst>
+   Debugging <debugging.rst>
+   Sample SNMP Configurations <snmp_configs.rst>

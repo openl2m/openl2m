@@ -1,9 +1,9 @@
 .. image:: ../_static/openl2m_logo.png
 
 
-=========================
-Understanding permissions
-=========================
+===========
+Permissions
+===========
 
 **What can a user modify in OpenL2M?**
 

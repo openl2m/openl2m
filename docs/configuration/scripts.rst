@@ -1,8 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-===============
-Writing Scripts
-===============
+=======
+Scripts
+=======
 
 **Writing your own scripts**
 

@@ -1,8 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-===================
-Create the Switches
-===================
+========
+Switches
+========
 
 Adding switches
 ===============
