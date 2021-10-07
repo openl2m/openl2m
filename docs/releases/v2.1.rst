@@ -6,7 +6,7 @@ Version 2.1
 
 Version 2.1.0
 -------------
-Release Date: 2021-TBD
+Release Date: 2021-10-07
 
 New Feature:  Command templates.
 
@@ -19,6 +19,5 @@ controlled fashion more visibility into the device.
 
 Also adds a Commands-Only connector: if you want to add a device where users can only run pre-defined commands.
 This device will read interfaces and not show the Interface and Bulk Edit tabs.
-
 
 :doc:`See the documentation for more.<../configuration/cmd_templates>`
