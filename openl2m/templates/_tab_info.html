@@ -2,217 +2,46 @@
 {% load static %}
 <div class="panel-group">
 
-<div class="row">
-<div class="col-md-4">
+{% if connection.show_interfaces %}
+  <div class="row">
+    <div class="col-md-4">
 
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <strong>Vlans defined (GVRP
-        {% if connection.gvrp_enabled %}
-          Enabled
-        {% else %}
-          disabled
-        {% endif %}
-        )</strong>
-    </div>
-    <div class="panel-body">
-      {% for vlanid,vlan in connection.vlans.items %}
-        {% if vlan.type == VLAN_TYPE_NORMAL %}
-          <div>{{ vlan|get_vlan_info_links }} {{ vlanid }}{% if vlan.name %} - {{ vlan.name }} {% endif %}
-          {% if vlan.status == VLAN_STATUS_DYNAMIC %}
-            <i class="fas cloud-download-alt" aria-hidden="true"
-                alt="MVRP/GVRP Image"
-                data-toggle="tooltip"
-                title="Vlan learned via MVRP or GVRP">
-            </i>
-          {% endif %}
-          </div>
-        {% endif %}
-      {% endfor%}
-    </div>
-  </div>
+      {% include "_tab_info_vlans.html" %}
+      {% include "_tab_info_ip.html" %}
+      {% include "_tab_info_poe.html" %}
+      {% if request.user.is_superuser %}
+        {% include "_tab_info_timing.html" %}
+      {% endif %} {# superuser #}
 
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <strong>Device IPv4 Addresses</strong>
-    </div>
-    <div class="panel-body">
-    {% for if_index,iface in connection.interfaces.items %}
-      {% if iface.addresses_ip4 %}
-        {% for ip,addr in iface.addresses_ip4.items %}
-          <div>{{ connection.switch|get_interface_info_links:iface }} {{iface.name}}: {{ addr.ip|get_ip4_info_links }} {{ addr.ip }} / {{ addr.netmask }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
-    </div>
-  </div>
+    </div> {# column 1 #}
 
-  <div class="panel panel-default">
-    <div class="panel-heading"><strong>Power over Ethernet Info</strong></div>
-    <div class="panel-body">
-      {% if 1 or connection.poe_apable %}
-        <div><strong>Total:</strong> {{ connection.poe_max_power }}W Available, {{ connection.poe_power_consumed }}W Used</div>
-        {% for pse_index, pse in connection.poe_pse_devices.items %}
-          <div><strong>PSE #{{ pse_index }}:</strong> {{ pse.status|get_poe_pse_status }},
-            Max {{ pse.max_power }} Watts, Drawing {{ pse.power_consumed }} Watts, Threshold = {{ pse.threshold }}%.
-          </div>
-        {% endfor %}
-      {% else %}
-        <div>Not found.</div>
-      {% endif %}
-    </div>
-  </div>
+    <div class="col-md-8"> {# column 2 #}
 
-</div> {# column 1 #}
+      {% include "_tab_info_general.html" %}
 
-<div class="col-md-8"> {# column 2 #}
+    </div> {# col 2 #}
+  </div> {# row #}
 
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <strong>General Information</strong>
-    </div>
-    <div class="panel-body">
-      {% for category,values in connection.more_info.items %}
-        <table class="table table-striped w-auto">
-          <thead>
-            <tr><th colspan="2">{{ category }}</th></tr>
-          </thead>
-          <tbody>
-          {% for name,value in values.items %}
-            <tr>
-              <td>{{ name }}</td>
-              <td>{{ value }}</td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      {% endfor%}
-    </div>
-  </div>
+{% else %}  {# if show_interfaces #}
 
-  {% if tasks %}
-  <div class="panel {% if task_process_running %}panel-default{% else %}panel-warning{% endif %}">
-    <div class="panel-heading"><strong>Scheduled Tasks{% if not task_process_running %} - Task process is not running! <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>{% endif %}</strong></div>
-    <div class="panel-body">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Scheduled at</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for task in tasks %}
-          <tr>
-            <td>
-              {% if task_process_running and allow_tasks %}
-                <a href="{% url 'switches:task_delete' task.id %}"
-                   data-toggle="tooltip"
-                   title="Click here to delete this scheduled task..."
-                {% if request.user.profile.are_you_sure %}
-                   onclick="return confirm_change('Are you sure you want to DELETE this task?')"
-                {% endif %}
-                   >
-                   <i class="fas fa-trash" aria-hidden="true"></i>
-                </a>
-              {% endif %}
-              {{ task.eta }}
-            </td>
-            <td>
-              <a href="{% url 'switches:task_details' task.id %}"
-                 data-toggle="tooltip"
-                 title="Click here to show the details of this scheduled task...">
-                 {{ task.description }}
-              </a>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  {% endif %}
+  <div class="row form-group">
+    <div class="col-md-8"> {# column 1 #}
 
-  {% if connection.syslog_msgs.items %}
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <strong>Recent Syslog Entries ({{ connection.syslog_max_msgs }} max)</strong>
-    </div>
-    <div class="panel-body">
-        <table class="table table-striped w-auto">
-          <thead>
-            <tr><th>Approx. Time</th><th>Message</th></tr>
-          </thead>
-          <tbody>
-          {% for index,msg in connection.syslog_msgs.items %}
-            <tr>
-              <td>{{ msg.datetime|date:"SHORT_DATETIME_FORMAT" }}</td>
-              <td>{{ msg.message }}</td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-    </div>
-  </div>
-  {% endif %}
+      {% include "_tab_info_general.html" %}
 
+    </div> {# col 1 #}
+  </div> {# row #}
 
-  {% if connection.stack_members.items %}
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <strong>Device/Stacking Info</strong>
-    </div>
-    <div class="panel-body">
-      {% for dev_id,dev in connection.stack_members.items %}
-        <div>ID {{ dev_id }} - {{ dev|get_device_class }}
-          {% if dev.model %}
-            , model no. {{ dev.model }}
-          {% endif %}
-          {% if dev.serial %}
-            , serial no. {{ dev.serial }}
-          {% endif %}
-          {% if dev.version %}
-            , software rev. {{ dev.version }}
-          {% endif %}
-        </div>
-      {% endfor%}
-    </div>
-  </div>
-  {% endif %}
+  {% if request.user.is_superuser %}
+    <div class="row">
+      <div class="col-md-4">
 
-</div> {# col 2 #}
-</div> {# row #}
+        {% include "_tab_info_timing.html" %}
 
+      </div>{# col 1 #}
+    </div> {# row #}
+  {% endif %} {# superuser #}
 
-{% if request.user.is_superuser %}
-<div class="row">
-<div class="col-md-4">
-
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <strong>Timing Info</strong>
-      </div>
-      <div class="panel-body">
-        <table class="table table-striped w-auto">
-          <thead>
-          <tr><th>Name</th><th>Count</th><th>Time</th></tr>
-          </thead>
-          <tbody>
-          {% for name,info in connection.timing.items %}
-            <tr><td>{{ name }}</td><td>{{ info.0 }}</td><td>{{ info.1|floatformat:3 }}</td></tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-</div>{# col 1 #}
-<div class="col-md-8">
-
-
-</div> {# col 2 #}
-</div> {# row #}
-{% endif %} {# superuser #}
-
+{% endif %} {# if show_interfaces #}
 
 </div>{# class panel-group #}

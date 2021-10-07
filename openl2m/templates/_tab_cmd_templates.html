@@ -1,0 +1,146 @@
+{% load helpers %}
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <strong>Command Templates</strong>
+  </div>
+  <div class="panel-body">
+    <div class="table-responsive">
+      <table class="table table-hover table-headings w-auto">
+        <tbody>
+        {% for t in switch.command_templates.all %}
+          <tr class="{% cycle 'odd' 'even' %}" >
+            <td>
+            <div>
+              <a data-toggle="collapse" href="#details{{ t.id }}" aria-expanded="false" aria-controls="details">
+                <span data-toggle="tooltip" title="{{ t.description }}">{{ t.name }}</span>
+              </a>
+            </div>
+            <div id="details{{ t.id }}" class="collapse">
+              {{ t.description }}
+              <form name="command_template_{{ t.id }}_form"
+                    action="{% url 'switches:switch_cmd_template_output' group.id switch.id %}"
+                    method="post">
+                    {% csrf_token %}
+                    <table class="table table-hover table-headings w-auto">
+                      <tbody>
+                        {% if t.field1_name %}
+                        <tr>
+                          <td>{{ t.field1_name }}</td>
+                          <td><input type="text" size=40 name="field1" value=""
+                                   data-toggle="tooltip" title="{{ t.field1_description }}"></td>
+                         </tr>
+                        {% endif %}
+                        {% if t.field2_name %}
+                        <tr>
+                          <td>{{ t.field2_name }}</td>
+                          <td><input type="text" size=40 name="field2" value=""
+                                   data-toggle="tooltip" title="{{ t.field2_description }}"></td>
+                        </tr>
+                        {% endif %}
+                        {% if t.field3_name %}
+                        <tr>
+                          <td>{{ t.field3_name }}</td>
+                          <td><input type="text" size=40 name="field3" value=""
+                                   data-toggle="tooltip" title="{{ t.field3_description }}"></td>
+                        </tr>
+                        {% endif %}
+                        {% if t.field4_name %}
+                        <tr>
+                          <td>{{ t.field4_name }}</td>
+                          <td><input type="text" size=40 name="field4" value=""
+                                   data-toggle="tooltip" title="{{ t.field4_description }}"></td>
+                        </tr>
+                        {% endif %}
+                        {% if t.field5_name %}
+                        <tr>
+                          <td>{{ t.field5_name }}</td>
+                          <td><input type="text" size=40 name="field5" value=""
+                                   data-toggle="tooltip" title="{{ t.field5_description }}"></td>
+                        </tr>
+                        {% endif %}
+                        {% if t.field6_name %}
+                        <tr>
+                          <td>{{ t.field6_name }}</td>
+                          <td><input type="text" size=40 name="field6" value=""
+                                   data-toggle="tooltip" title="{{ t.field6_description }}"></td>
+                        </tr>
+                        {% endif %}
+                        {% if t.field7_name %}
+                        <tr>
+                          <td>{{ t.field7_name }}</td>
+                          <td><input type="text" size=40 name="field7" value=""
+                                   data-toggle="tooltip" title="{{ t.field7_description }}"></td>
+                        </tr>
+                        {% endif %}
+                        {% if t.field8_name %}
+                        <tr>
+                          <td>{{ t.field8_name }}</td>
+                          <td><input type="text" size=40 name="field8" value=""
+                                   data-toggle="tooltip" title="{{ t.field8_description }}"></td>
+                        </tr>
+                        {% endif %}
+                        {% if t.list1_name %}
+                        <tr>
+                          <td>{{ t.list1_name }}</td>
+                          <td>
+                            <select name="list1" data-toggle="tooltip" title="{{ t.list1_description }}">
+                              {{ t.list1_values | get_options_from_comma_string }}
+                            </select>
+                          </td>
+                        </tr>
+                        {% endif %}
+                        {% if t.list2_name %}
+                        <tr>
+                          <td>{{ t.list2_name }}</td>
+                          <td>
+                            <select name="list2" data-toggle="tooltip" title="{{ t.list2_description }}">
+                              {{ t.list2_values | get_options_from_comma_string }}
+                            </select>
+                          </td>
+                        </tr>
+                        {% endif %}
+                        {% if t.list3_name %}
+                        <tr>
+                          <td>{{ t.list3_name }}</td>
+                          <td>
+                            <select name="list3" data-toggle="tooltip" title="{{ t.list3_description }}">
+                              {{ t.list3_values | get_options_from_comma_string }}
+                            </select>
+                          </td>
+                        </tr>
+                        {% endif %}
+                        {% if t.list4_name %}
+                        <tr>
+                          <td>{{ t.list4_name }}</td>
+                          <td>
+                            <select name="list4" data-toggle="tooltip" title="{{ t.list4_description }}">
+                              {{ t.list4_values | get_options_from_comma_string }}
+                            </select>
+                          </td>
+                        </tr>
+                        {% endif %}
+                        {% if t.list5_name %}
+                        <tr>
+                          <td>{{ t.list5_name }}</td>
+                          <td>
+                            <select name="list5" data-toggle="tooltip" title="{{ t.list5_description }}">
+                              {{ t.list5_values | get_options_from_comma_string }}
+                            </select>
+                          </td>
+                        </tr>
+                        {% endif %}
+                      </tbody>
+                    </table>
+                    <input type="hidden" id="id" name="template_id" value="{{ t.id }}">
+                  &nbsp;<input type="submit" value="Run" class="btn btn-primary" data-toggle="tooltip" title="Click to run command template">
+              </form>
+            </div>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

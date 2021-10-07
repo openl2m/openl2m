@@ -11,15 +11,21 @@ Welcome to OpenL2M v2
 
 Welcome to the documentation for the "Open Layer 2 Management" project.
 
-OpenL2M, is an open source switch management
+OpenL2M is an open source network device management
 application designed to allow users with minimal training to perform a set of basic
-configuration changes on network switches. It does so by providing a consistent web interface
-for Layer 2 device management, independent of the underlying switch vendor.
+configuration changes on those devices. It does so by providing a consistent web interface
+for Layer 2 device management, independent of the underlying vendor. While primary intended to manage
+network switches, OpenL2M can handle any device that has some sort of network API (e.g. SSH, Netconf, REST, etc.)
 
 OpenL2M is written in Django 3 and Python 3.
 
 **What's New:**
-v2 implements a new plug-in API that will allow add-on drivers.
+
+v2.1 implements command templates, a controlled method to give users variable input on commands.
+This gives tremendous flexibility in giving users in a controlled fashion more visibility into the device.
+See the Configuration section for more.
+
+v2.0 implements a new plug-in API for add-on device drivers.
 This makes is easy to add support for any kind of network device,
 whether the interface is SSH, REST, NetConf, or other methods.
 See more in the development section below.

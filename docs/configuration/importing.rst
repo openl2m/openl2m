@@ -1,8 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-========================
-Importing Switches, etc.
-========================
+=========
+Importing
+=========
 
 To run command-line scripts, make sure you activate the virtual environment first!
 

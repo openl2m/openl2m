@@ -100,8 +100,13 @@ completely 'standard' SNMP. We have tested OpenL2M on the following hardware, wi
 
 * *HPE 1950* series switches, running Comware 7; single and IRF-stacked units.
 * *HPE 5130* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5140* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5500* series switches, running Comware 5; single units.
-* *HPE 5900AF* series switches, running Comware 7; single units.
+* *HPE 5510* series switches, running Comware 7; single units.
+* *HPE 5900AF* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5930* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5945* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5950* series switches, running Comware 7; single and IRF-Stacked units.
 
 **Juniper Networks**
 

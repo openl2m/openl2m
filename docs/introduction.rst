@@ -37,6 +37,7 @@ OpenL2M can manage interfaces on switches, including:
 * **scheduling of bulk edits**.
 * using SSH/Netmiko under the hood, we can configure **any switch CLI 'show' command** to be runnable by users from the web interface,
   shown with 'friendly' names in a drop-down menu.
+* using command templates and validated fields and pick lists, commands to run on the device can be defined with certain user input.
 * switch **device import via csv files**, or fully programmable import via Python scripts.
 * switches can be Read-Only.
 * support for Cisco, HP-Procurve, HP-Comware and generic switches.

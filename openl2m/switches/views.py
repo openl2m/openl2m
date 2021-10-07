@@ -33,6 +33,7 @@ from django.views.generic import View
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.shortcuts import redirect
+from django.template import Template, Context
 
 from openl2m.celery import get_celery_info, is_celery_running
 from switches.models import *
@@ -183,7 +184,7 @@ def switch_hw_info(request, group_id, switch_id):
     return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='hw_info')
 
 
-def switch_view(request, group_id, switch_id, view, command_id=-1, interface_name=''):
+def switch_view(request, group_id, switch_id, view, command_id=-1, interface_name='', command_string='', command_template=False):
     """
     This shows the various data about a switch, either from a new SNMP read,
     from cached OID data, or an SSH command.
@@ -273,6 +274,44 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
             log.type = LOG_TYPE_COMMAND
             log.action = LOG_EXECUTE_COMMAND
             log.description = cmd['command']
+        log.save()
+    elif command_string:
+        dprint("CALLING RUN_COMMAND_STRING")
+        counter_increment(COUNTER_COMMANDS)
+        cmd = conn.run_command_string(command_string=command_string)
+        dprint(f"OUTPUT = {cmd}")
+        if conn.error.status:
+            # log it!
+            log.type = LOG_TYPE_ERROR
+            log.action = LOG_EXECUTE_COMMAND
+            log.description = f"{cmd['error_descr']}: {cmd['error_details']}"
+        else:
+            # success !
+            log.type = LOG_TYPE_COMMAND
+            log.action = LOG_EXECUTE_COMMAND
+            log.description = cmd['command']
+        log.save()
+        if command_template:
+            # do we need to match output to show match/fail result?
+            output = cmd['output']
+            if command_template.output_match_regex:
+                if string_contains_regex(cmd['output'], command_template.output_match_regex):
+                    cmd['output'] = command_template.output_match_text if command_template.output_match_text else "OK!"
+                else:
+                    cmd['output'] = command_template.output_fail_text if command_template.output_fail_text else "FAIL!"
+            # do we need to filter (original) output to keep only matching lines?
+            if command_template.output_lines_keep_regex:
+                matched_lines = ''
+                lines = output.splitlines()
+                for line in lines:
+                    # we can probably improve performance by compiling the regex first...
+                    if string_contains_regex(line, command_template.output_lines_keep_regex):
+                        matched_lines = f"{matched_lines}\n{line}"
+                if matched_lines:
+                    cmd['output'] += "\nPartial output:\n" + matched_lines
+
+    else:
+        # log the access:
         log.save()
 
     # get recent "non-viewing" activity for this switch
@@ -1076,6 +1115,207 @@ def switch_cmd_output(request, group_id, switch_id):
     """
     command_id = int(request.POST.get('command_id', -1))
     return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='basic', command_id=command_id)
+
+
+@login_required(redirect_field_name=None)
+def switch_cmd_template_output(request, group_id, switch_id):
+    """
+    Go parse a switch command template that was submitted in the form
+    """
+    group = get_object_or_404(SwitchGroup, pk=group_id)
+    switch = get_object_or_404(Switch, pk=switch_id)
+
+    if not rights_to_group_and_switch(request, group_id, switch_id):
+        error = Error()
+        error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
+        return error_page(request=request, group=False, switch=False, error=error)
+
+    template_id = int(request.POST.get('template_id', -1))
+    t = get_object_or_404(CommandTemplate, pk=template_id)
+
+    # now build the command template:
+    values = {}
+    errors = False
+    error_string = ""
+
+    """
+    do field / list validation here. This can likely be simplified - needs work!
+    """
+    # do we need to parse field1:
+    if "{{field1}}" in t.template:
+        field1 = request.POST.get('field1', False)
+        if field1:
+            if string_matches_regex(field1, t.field1_regex):
+                values['field1'] = str(field1)
+            else:
+                errors = True
+                error_string = f"{ t.field1_name } - Invalid entry: { field1 }"
+        else:
+            # not found in form (or empty), but reqired!
+            errors = True
+            error_string = f"{ t.field1_name } - cannot be blank!"
+
+    # do we need to parse field2:
+    if "{{field2}}" in t.template:
+        field2 = request.POST.get('field2', False)
+        if field2:
+            if string_matches_regex(field2, t.field2_regex):
+                values['field2'] = str(field2)
+            else:
+                errors = True
+                error_string += f"<br/>{ t.field2_name } - Invalid entry: { field2 }"
+        else:
+            # not found in form (or empty), but reqired!
+            errors = True
+            error_string += f"<br/>{ t.field2_name } - cannot be blank!"
+
+    # do we need to parse field3:
+    if "{{field3}}" in t.template:
+        field3 = request.POST.get('field3', False)
+        if field3:
+            if string_matches_regex(field3, t.field3_regex):
+                values['field3'] = str(field3)
+            else:
+                errors = True
+                error_string += f"<br/>{ t.field3_name } - Invalid entry: { field3 }"
+        else:
+            # not found in form (or empty), but reqired!
+            errors = True
+            error_string += f"<br/>{ t.field3_name } - cannot be blank!"
+
+    # do we need to parse field4:
+    if "{{field4}}" in t.template:
+        field4 = request.POST.get('field4', False)
+        if field4:
+            if string_matches_regex(field4, t.field4_regex):
+                values['field4'] = str(field4_regex)
+            else:
+                errors = True
+                error_string += f"<br/>{ t.field4_name } - Invalid entry: { field4 } "
+        else:
+            # not found in form (or empty), but reqired!
+            errors = True
+            error_string += f"<br/>{ t.field4_name } - cannot be blank!"
+
+    # do we need to parse field5:
+    if "{{field5}}" in t.template:
+        field5 = request.POST.get('field5_regex', False)
+        if field5:
+            if string_matches_regex(field5, t.field5_regex):
+                values['field5'] = str(field5)
+            else:
+                errors = True
+                error_string += f"<br/>{t.field5_name} - Invalid entry: { field5 }"
+        else:
+            # not found in form (or empty), but reqired!
+            errors = True
+            error_string += f"<br/>{ t.field5_name } - cannot be blank!"
+
+    # do we need to parse field6:
+    if "{{field6}}" in t.template:
+        field6 = request.POST.get('field6', False)
+        if field6:
+            if string_matches_regex(field1, t.field6_regex):
+                values['field6'] = str(field6)
+            else:
+                errors = True
+                error_string += f"<br/>{t.field6_name} - Invalid entry: { field6 } "
+        else:
+            # not found in form (or empty), but reqired!
+            errors = True
+            error_string += f"<br/>{ t.field6_name } - cannot be blank!"
+
+    # do we need to parse field7:
+    if "{{field7}}" in t.template:
+        field7 = request.POST.get('field7', False)
+        if field7:
+            if string_matches_regex(field7, t.field7_regex):
+                values['field7'] = str(field1)
+            else:
+                errors = True
+                error_string += f"<br/>{t.field7_name} - Invalid entry: { field7 }"
+        else:
+            # not found in form (or empty), but reqired!
+            errors = True
+            error_string += f"<br/>{ t.field7_name } - cannot be blank!"
+
+    # do we need to parse field8:
+    if "{{field8}}" in t.template:
+        field8 = request.POST.get('field8', False)
+        if field8:
+            if string_matches_regex(field8, t.field8_regex):
+                values['field8'] = str(field8)
+            else:
+                errors = True
+                error_string += f"<br/>{t.field8_name} - Invalid entry: { field8 }"
+        else:
+            # not found in form (or empty), but reqired!
+            errors = True
+            error_string += f"<br/>{ t.field8_name } - cannot be blank!"
+
+    # and the pick lists:
+    # do we need to parse list1:
+    if "{{list1}}" in t.template:
+        list1 = request.POST.get('list1', False)
+        if list1:
+            values['list1'] = str(list1)
+        else:
+            # not found in form (or empty), but reqired (unlikely to happen for list)!
+            errors = True
+            error_string += f"<br/>{ t.list1_name } - cannot be blank!"
+
+    # do we need to parse list2:
+    if "{{list2}}" in t.template:
+        list2 = request.POST.get('list2', False)
+        if list2:
+            values['list2'] = str(list2)
+        else:
+            # not found in form (or empty), but reqired (unlikely to happen for list)!
+            errors = True
+            error_string += f"<br/>{ t.list2_name } - cannot be blank!"
+
+    # do we need to parse list3:
+    if "{{list3}}" in t.template:
+        list3 = request.POST.get('list3', False)
+        if list3:
+            values['list3'] = str(list3)
+        else:
+            # not found in form (or empty), but reqired (unlikely to happen for list)!
+            errors = True
+            error_string += f"<br/>{ t.list3_name } - cannot be blank!"
+
+    # do we need to parse list4:
+    if "{{list4}}" in t.template:
+        list4 = request.POST.get('list4', False)
+        if list4:
+            values['list4'] = str(list4)
+        else:
+            # not found in form (or empty), but reqired (unlikely to happen for list)!
+            errors = True
+            error_string += f"<br/>{ t.list4_name } - cannot be blank!"
+
+    # do we need to parse list5:
+    if "{{list5}}" in t.template:
+        list5 = request.POST.get('list5', False)
+        if list5:
+            values['list5'] = str(list5)
+        else:
+            # not found in form (or empty), but reqired (unlikely to happen for list)!
+            errors = True
+            error_string += f"<br/>{ t.list5_name } - cannot be blank!"
+
+    if errors:
+        error = Error()
+        error.description = mark_safe(error_string)
+        return error_page(request=request, group=group, switch=switch, error=error)
+
+    # now do the template expansion, i.e. Jinja2 rendering:
+    template = Template(t.template)
+    context = Context(values)
+    command = template.render(context)
+
+    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='basic', command_id=-1, interface_name='', command_string=command, command_template=t)
 
 
 @login_required(redirect_field_name=None)

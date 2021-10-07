@@ -304,6 +304,30 @@ When complete, the page will refresh and a new 'Command Output' tab will show th
 .. |command_output_tab| image:: ../_static/command-output-tab.png
 
 
+
+Command Templates Tab
+---------------------
+
+.. image:: ../_static/command-templates-tab.png
+
+On devices that have Command Templates associated, this tab will show a list of one or more
+Command Templates names. The name, and the associated description
+hover-over text, should explain what the command can be used for.
+
+.. image:: ../_static/command-templates.png
+
+Once you click on the name, the form with the associated input fields will be showing.
+
+.. image:: ../_static/command-template-form.png
+
+Once the user fills in the form, and clicks Run, the data will be validated according the any regular expression set.
+If all matches, the command will run on the device.
+
+|command_output_tab|
+
+When complete, the page will refresh and a new 'Command Output' tab will show the output from the switch.
+
+
 Warnings/Errors Tab
 -------------------
 

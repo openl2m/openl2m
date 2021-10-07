@@ -147,4 +147,6 @@ class DummyConnector(Connector):
         Does the switch have the ability to execute a 'cli command'
         Returns True or False
         """
+        if self.switch.primary_ip4 and self.switch.netmiko_profile:
+            return True
         return False

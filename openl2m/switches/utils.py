@@ -19,6 +19,7 @@ import pytz
 import logging
 import socket
 import ipaddress
+import re
 
 from django.conf import settings
 from django.utils.timezone import get_default_timezone
@@ -136,3 +137,44 @@ def is_valid_hostname_or_ip(data):
             # fail gracefully!
             return False
     return False
+
+
+def string_matches_regex(string, regex):
+    """
+    Validate data with the given regular expression.
+    string: the string to match
+    regex: the regular expression to match the data to.
+    returns True if match or no regex given. False otherwize
+    """
+    dprint(f"string_matches_regex(): string={string} regex={regex}")
+    if regex:
+        # match string against regex.
+        # Note re.match() starts at beginning of string!
+        match = re.match(regex, string)
+        if match:
+            dprint("  ==> PASS!")
+            return True
+        else:
+            dprint("  ==> FAIL!")
+            return False
+    return True
+
+
+def string_contains_regex(string, regex):
+    """
+    Search string for an occurance of the given regular expression.
+    string: the string to match
+    regex: the regular expression to find anywhere in the (multi-line) string.
+    returns True if found, or no regex given. False otherwize
+    """
+    dprint(f"string_contains_regex(): string={string} regex={regex}")
+    if regex:
+        # search string for regex, anywhere in string, hence we use re.search()!
+        found = re.search(regex, string)
+        if found:
+            dprint("  ==> PASS!")
+            return True
+        else:
+            dprint("  ==> FAIL!")
+            return False
+    return True

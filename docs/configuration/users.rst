@@ -1,10 +1,10 @@
 .. image:: ../_static/openl2m_logo.png
 
-================
-Create the Users
-================
+=====
+Users
+=====
 
-**Users**
+**Adding Users**
 
 From Admin, go to Users or click the "+ Add" option
 You only need to set a username, and password. You can then add the user

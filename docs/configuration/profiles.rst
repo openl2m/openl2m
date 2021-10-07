@@ -1,9 +1,9 @@
 .. image:: ../_static/openl2m_logo.png
 
 
-====================================
-Create the SNMP and Netmiko Profiles
-====================================
+========
+Profiles
+========
 
 Profiles are configuration settings that are related to each other.
 Once you have created one or more of the profiles below,
@@ -30,8 +30,8 @@ if your intention is to allow users to make changes. E.g. for routers you could
 configure a read-only SNMP Profile, if that device will only be read from!
 
 
-Netmiko Profiles
-================
+Netmiko (SSH) Profiles
+======================
 
 OpenL2M has the ability to execute command-line commands on switches, if configured.
 For this, we use the `Netmiko Python library <https://github.com/ktbyers/netmiko>`_.
