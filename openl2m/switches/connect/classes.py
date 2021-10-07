@@ -37,7 +37,7 @@ class Error():
         """
         self.status = True
         self.description = "An Unknown Error Occured!"  # simple description of error
-        self.details = "No details known!"      # more details about the error, typically a 'traceback'
+        self.details = ""   # more details about the error, typically a 'traceback'
 
     def clear(self):
         """
