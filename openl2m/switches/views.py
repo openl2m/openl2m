@@ -1138,104 +1138,179 @@ def switch_cmd_template_output(request, group_id, switch_id):
     values = {}
     errors = False
     error_string = ""
-    field1 = request.POST.get('field1', False)
-    if field1:
-        if validate_string_with_regex(field1, t.field1_regex):
-            values['field1'] = str(field1)
-        else:
-            errors = True
-            error_string = f"{ t.field1_name } - Invalid entry: { field1 }"
 
-    # field 2:
-    field2 = request.POST.get('field2', False)
-    if field2:
-        if validate_string_with_regex(field2, t.field2_regex):
-            values['field2'] = str(field2)
+    """
+    do field / list validation here. This can likely be simplified - needs work!
+    """
+    # do we need to parse field1:
+    if "{{field1}}" in t.template:
+        field1 = request.POST.get('field1', False)
+        if field1:
+            if string_matches_regex(field1, t.field1_regex):
+                values['field1'] = str(field1)
+            else:
+                errors = True
+                error_string = f"{ t.field1_name } - Invalid entry: { field1 }"
         else:
+            # not found in form (or empty), but reqired!
             errors = True
-            error_string += f"<br/>{ t.field2_name } - Invalid entry: { field2 }"
+            error_string = f"{ t.field1_name } - cannot be blank!"
 
-    # field 3:
-    field3 = request.POST.get('field3', False)
-    if field3:
-        if validate_string_with_regex(field3, t.field3_regex):
-            values['field3'] = str(field3)
+    # do we need to parse field2:
+    if "{{field2}}" in t.template:
+        field2 = request.POST.get('field2', False)
+        if field2:
+            if string_matches_regex(field2, t.field2_regex):
+                values['field2'] = str(field2)
+            else:
+                errors = True
+                error_string += f"<br/>{ t.field2_name } - Invalid entry: { field2 }"
         else:
+            # not found in form (or empty), but reqired!
             errors = True
-            error_string += f"<br/>{ t.field3_name } - Invalid entry: { field3 }"
+            error_string += f"<br/>{ t.field2_name } - cannot be blank!"
 
-    # field 4:
-    field4 = request.POST.get('field4', False)
-    if field4:
-        if validate_string_with_regex(field4, t.field4_regex):
-            values['field4'] = str(field4_regex)
+    # do we need to parse field3:
+    if "{{field3}}" in t.template:
+        field3 = request.POST.get('field3', False)
+        if field3:
+            if string_matches_regex(field3, t.field3_regex):
+                values['field3'] = str(field3)
+            else:
+                errors = True
+                error_string += f"<br/>{ t.field3_name } - Invalid entry: { field3 }"
         else:
+            # not found in form (or empty), but reqired!
             errors = True
-            error_string += f"<br/>{ t.field4_name } - Invalid entry: { field4 } "
+            error_string += f"<br/>{ t.field3_name } - cannot be blank!"
 
-    # field 5:
-    field5 = request.POST.get('field5_regex', False)
-    if field5:
-        if validate_string_with_regex(field5, t.field5_regex):
-            values['field5'] = str(field5)
+    # do we need to parse field4:
+    if "{{field4}}" in t.template:
+        field4 = request.POST.get('field4', False)
+        if field4:
+            if string_matches_regex(field4, t.field4_regex):
+                values['field4'] = str(field4_regex)
+            else:
+                errors = True
+                error_string += f"<br/>{ t.field4_name } - Invalid entry: { field4 } "
         else:
+            # not found in form (or empty), but reqired!
             errors = True
-            error_string += f"<br/>{t.field5_name} - Invalid entry: { field5 }"
+            error_string += f"<br/>{ t.field4_name } - cannot be blank!"
 
-    # field 6:
-    field6 = request.POST.get('field6', False)
-    if field6:
-        if validate_string_with_regex(field1, t.field6_regex):
-            values['field6'] = str(field6)
+    # do we need to parse field5:
+    if "{{field5}}" in t.template:
+        field5 = request.POST.get('field5_regex', False)
+        if field5:
+            if string_matches_regex(field5, t.field5_regex):
+                values['field5'] = str(field5)
+            else:
+                errors = True
+                error_string += f"<br/>{t.field5_name} - Invalid entry: { field5 }"
         else:
+            # not found in form (or empty), but reqired!
             errors = True
-            error_string += f"<br/>{t.field6_name} - Invalid entry: { field6 } "
+            error_string += f"<br/>{ t.field5_name } - cannot be blank!"
 
-    # field 7:
-    field7 = request.POST.get('field7', False)
-    if field7:
-        if validate_string_with_regex(field7, t.field7_regex):
-            values['field7'] = str(field1)
+    # do we need to parse field6:
+    if "{{field6}}" in t.template:
+        field6 = request.POST.get('field6', False)
+        if field6:
+            if string_matches_regex(field1, t.field6_regex):
+                values['field6'] = str(field6)
+            else:
+                errors = True
+                error_string += f"<br/>{t.field6_name} - Invalid entry: { field6 } "
         else:
+            # not found in form (or empty), but reqired!
             errors = True
-            error_string += f"<br/>{t.field7_name} - Invalid entry: { field7 }"
+            error_string += f"<br/>{ t.field6_name } - cannot be blank!"
 
-    # field 8:
-    field8 = request.POST.get('field8', False)
-    if field8:
-        if validate_string_with_regex(field8, t.field8_regex):
-            values['field8'] = str(field8)
+    # do we need to parse field7:
+    if "{{field7}}" in t.template:
+        field7 = request.POST.get('field7', False)
+        if field7:
+            if string_matches_regex(field7, t.field7_regex):
+                values['field7'] = str(field1)
+            else:
+                errors = True
+                error_string += f"<br/>{t.field7_name} - Invalid entry: { field7 }"
         else:
+            # not found in form (or empty), but reqired!
             errors = True
-            error_string += f"<br/>{t.field8_name} - Invalid entry: { field8 }"
+            error_string += f"<br/>{ t.field7_name } - cannot be blank!"
+
+    # do we need to parse field8:
+    if "{{field8}}" in t.template:
+        field8 = request.POST.get('field8', False)
+        if field8:
+            if string_matches_regex(field8, t.field8_regex):
+                values['field8'] = str(field8)
+            else:
+                errors = True
+                error_string += f"<br/>{t.field8_name} - Invalid entry: { field8 }"
+        else:
+            # not found in form (or empty), but reqired!
+            errors = True
+            error_string += f"<br/>{ t.field8_name } - cannot be blank!"
 
     # and the pick lists:
-    list1 = request.POST.get('list1', False)
-    if list1:
-        values['list1'] = str(list1)
-    # list 2:
-    list2 = request.POST.get('list2', False)
-    if list2:
-        values['list2'] = str(list2)
-    # list 3:
-    list3 = request.POST.get('list3', False)
-    if list3:
-        values['list3'] = str(list3)
-    # list 4:
-    list4 = request.POST.get('list4', False)
-    if list4:
-        values['list4'] = str(list4)
-    # list 5:
-    list5 = request.POST.get('list5', False)
-    if list5:
-        values['list5'] = str(list5)
+    # do we need to parse list1:
+    if "{{list1}}" in t.template:
+        list1 = request.POST.get('list1', False)
+        if list1:
+            values['list1'] = str(list1)
+        else:
+            # not found in form (or empty), but reqired (unlikely to happen for list)!
+            errors = True
+            error_string += f"<br/>{ t.list1_name } - cannot be blank!"
+
+    # do we need to parse list2:
+    if "{{list2}}" in t.template:
+        list2 = request.POST.get('list2', False)
+        if list2:
+            values['list2'] = str(list2)
+        else:
+            # not found in form (or empty), but reqired (unlikely to happen for list)!
+            errors = True
+            error_string += f"<br/>{ t.list2_name } - cannot be blank!"
+
+    # do we need to parse list3:
+    if "{{list3}}" in t.template:
+        list3 = request.POST.get('list3', False)
+        if list3:
+            values['list3'] = str(list3)
+        else:
+            # not found in form (or empty), but reqired (unlikely to happen for list)!
+            errors = True
+            error_string += f"<br/>{ t.list3_name } - cannot be blank!"
+
+    # do we need to parse list4:
+    if "{{list4}}" in t.template:
+        list4 = request.POST.get('list4', False)
+        if list4:
+            values['list4'] = str(list4)
+        else:
+            # not found in form (or empty), but reqired (unlikely to happen for list)!
+            errors = True
+            error_string += f"<br/>{ t.list4_name } - cannot be blank!"
+
+    # do we need to parse list5:
+    if "{{list5}}" in t.template:
+        list5 = request.POST.get('list5', False)
+        if list5:
+            values['list5'] = str(list5)
+        else:
+            # not found in form (or empty), but reqired (unlikely to happen for list)!
+            errors = True
+            error_string += f"<br/>{ t.list5_name } - cannot be blank!"
 
     if errors:
         error = Error()
         error.description = mark_safe(error_string)
         return error_page(request=request, group=group, switch=switch, error=error)
 
-    # now do the template expansion, ie Jinja2 rendering:
+    # now do the template expansion, i.e. Jinja2 rendering:
     template = Template(t.template)
     context = Context(values)
     command = template.render(context)

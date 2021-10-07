@@ -242,7 +242,9 @@ class Command(models.Model):
         """
         This is used in templates, so we can 'annotate' as needed
         """
-        return f"{self.name} ({self.os} - {self.get_type_display()})"
+        if self.os:
+            return f"{self.name} ({self.os} - {self.get_type_display()})"
+        return f"{self.name} ({self.get_type_display()})"
 
     def __str__(self):
         return self.display_name()
@@ -345,7 +347,7 @@ class CommandTemplate(models.Model):
         help_text="Explanation of command template, shown as hover-over to user",
     )
     template = models.CharField(
-        max_length=64,
+        max_length=512,
         verbose_name='Command Template',
         help_text='The command template. Use {{field[1-8]}} or {{list[1-5]}} as needed.',
     )
@@ -618,7 +620,9 @@ class CommandTemplate(models.Model):
         """
         This is used in templates, so we can 'annotate' as needed
         """
-        return f"{self.name} ({self.os})"
+        if self.os:
+            return f"{self.name} ({self.os})"
+        return self.name
 
     def __str__(self):
         return self.display_name()
