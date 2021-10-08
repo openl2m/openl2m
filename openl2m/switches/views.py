@@ -285,30 +285,32 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
             log.type = LOG_TYPE_ERROR
             log.action = LOG_EXECUTE_COMMAND
             log.description = f"{cmd['error_descr']}: {cmd['error_details']}"
+            log.save()
         else:
             # success !
             log.type = LOG_TYPE_COMMAND
             log.action = LOG_EXECUTE_COMMAND
             log.description = cmd['command']
-        log.save()
-        if command_template:
-            # do we need to match output to show match/fail result?
-            output = cmd['output']
-            if command_template.output_match_regex:
-                if string_contains_regex(cmd['output'], command_template.output_match_regex):
-                    cmd['output'] = command_template.output_match_text if command_template.output_match_text else "OK!"
-                else:
-                    cmd['output'] = command_template.output_fail_text if command_template.output_fail_text else "FAIL!"
-            # do we need to filter (original) output to keep only matching lines?
-            if command_template.output_lines_keep_regex:
-                matched_lines = ''
-                lines = output.splitlines()
-                for line in lines:
-                    # we can probably improve performance by compiling the regex first...
-                    if string_contains_regex(line, command_template.output_lines_keep_regex):
-                        matched_lines = f"{matched_lines}\n{line}"
-                if matched_lines:
-                    cmd['output'] += "\nPartial output:\n" + matched_lines
+            log.save()
+            # if the result of a command template, we may need to parse the output:
+            if command_template:
+                # do we need to match output to show match/fail result?
+                output = cmd['output']
+                if command_template.output_match_regex:
+                    if string_contains_regex(cmd['output'], command_template.output_match_regex):
+                        cmd['output'] = command_template.output_match_text if command_template.output_match_text else "OK!"
+                    else:
+                        cmd['output'] = command_template.output_fail_text if command_template.output_fail_text else "FAIL!"
+                # do we need to filter (original) output to keep only matching lines?
+                if command_template.output_lines_keep_regex:
+                    matched_lines = ''
+                    lines = output.splitlines()
+                    for line in lines:
+                        # we can probably improve performance by compiling the regex first...
+                        if string_contains_regex(line, command_template.output_lines_keep_regex):
+                            matched_lines = f"{matched_lines}\n{line}"
+                    if matched_lines:
+                        cmd['output'] += "\nPartial output:\n" + matched_lines
 
     else:
         # log the access:
