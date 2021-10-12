@@ -159,6 +159,11 @@ SNMP_TIMEOUT = getattr(configuration, 'SNMP_TIMEOUT', 4)    # seconds before ret
 SNMP_RETRIES = getattr(configuration, 'SNMP_RETRIES', 3)    # retries before fail
 SNMP_MAX_REPETITIONS = getattr(configuration, 'SNMP_MAX_REPETITIONS', 10)   # SNMP get_bulk max_repetitions
 
+# Syslog related fields:
+SYSLOG_HOST = getattr(configuration, 'SYSLOG_HOST', False)
+SYSLOG_PORT = getattr(configuration, 'SYSLOG_PORT', 514)
+SYSLOG_JSON = getattr(configuration, 'SYSLOG_JSON', True)
+
 # Sessions
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 if LOGIN_TIMEOUT is not None:

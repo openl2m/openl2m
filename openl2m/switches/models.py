@@ -12,6 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import logging.handlers
+import json
 
 from django.db import models
 from django.conf import settings
@@ -1172,32 +1173,60 @@ class Log(models.Model):
                 # not found (should not happen!)
                 self.description = "Unknown action!"
 
-        # if requested, also sent to Syslog host
-        # if settings.SYSLOG_HOST:
-        #    syslog = logging.handlers.SysLogHandler(address=settings.SYSLOG_HOST)
-        #    logger = logging.getLogger('OpenL2M')
-        #    logger.addHandler(syslog)
-        #    logger.info(self.activity_as_string())
-
         # here is the actual work of saving:
         # see https://docs.djangoproject.com/en/2.2/topics/db/models/#overriding-predefined-model-methods
         super().save(*args, **kwargs)
 
-    def activity_as_string(self):
+        # if requested, also sent to Syslog host
+        if settings.SYSLOG_HOST:
+            # we are defining a logger, and then check if it has a handler.
+            # each time you create a named logger, python will add handler to existing,
+            # even if you delete the object. this is a 'globally' defined logger in apps.py :
+            syslogger = logging.getLogger('log_to_syslog')
+            if not syslogger.hasHandlers():
+                handler = logging.handlers.SysLogHandler(address=(settings.SYSLOG_HOST, settings.SYSLOG_PORT))
+                syslogger.addHandler(handler)
+            syslogger.setLevel(logging.DEBUG)
+            if settings.SYSLOG_JSON:
+                syslogger.info(self.as_json())
+            else:
+                syslogger.info(self.as_string())
+
+    def as_string(self):
         """
-        return all the details of this activity entry as a string
+        return all the details of this log entry as a string
         """
-        info = f"User={self.user.username}, Type={self.type}, Action={self.action}, "
+        info = (f'OpenL2M Log: User={self.user.username}, IP={self.ip_address}, '
+                f'Type={self.get_type_display()}, Action={self.get_action_display()}, ')
         if self.switch:
-            info = info + f"Switch={self.switch.name}, ifIndex={self.if_index}, "
+            info = info + f"Switch={self.switch.name}, ifIndex={self.if_index}, Interface={self.if_name}, "
         info = info + f"Descr={self.description}"
         return info
+
+    def as_json(self):
+        """
+        return all the details of this log entry as a JSON formatted string
+        """
+        log_dict = {}
+        log_dict['application'] = f'OpenL2M v{settings.VERSION}'
+        log_dict['username'] = self.user.username
+        log_dict['ip'] = self.ip_address
+        log_dict['type='] = self.get_type_display()
+        log_dict['action'] = self.get_action_display()
+        if self.switch:
+            log_dict['switch'] = self.switch.name
+            if self.if_index:
+                log_dict['if_index'] = self.if_index
+            if self.if_name:
+                log_dict['interface'] = self.if_name
+        log_dict['description'] = self.description
+        return json.dumps(log_dict)
 
     def display_name(self):
         """
         This is used in templates, so we can 'annotate' as needed
         """
-        return f"{self.user}-{self.switch}-{self.action}"
+        return f"{self.user}-{self.switch}-{self.get_action_display()}"
 
     def __str__(self):
         return self.display_name()

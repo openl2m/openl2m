@@ -226,14 +226,14 @@ LOG_ACTION_CHOICES = [
     [LOG_VIEW_TASKS, 'Viewing Tasks'],
     [LOG_VIEW_TASK_DETAILS, 'Viewing Task Details'],
     [LOG_VIEW_SWITCH_SEARCH, 'Searching for Switch Name'],
-    [LOG_RELOAD_SWITCH, 'Reloading Switch Data'],
-    [LOG_NEW_OID_FOUND, 'New System ObjectID Found'],
-    [LOG_NEW_HOSTNAME_FOUND, 'New System Name Found'],
     [LOG_LOGIN, 'Login'],
     [LOG_LOGOUT, 'Logout'],
     [LOG_LOGOUT_INACTIVE, 'Inactivity Logout'],
     [LOG_LOGIN_FAILED, 'Login Failed'],
     [LOG_LOGIN_LDAP, 'LDAP Login'],
+    [LOG_RELOAD_SWITCH, 'Reloading Switch Data'],
+    [LOG_NEW_OID_FOUND, 'New System ObjectID Found'],
+    [LOG_NEW_HOSTNAME_FOUND, 'New System Name Found'],
     [LOG_CHANGE_INTERFACE_DOWN, 'Interface Disable'],
     [LOG_CHANGE_INTERFACE_UP, 'Interface Enable'],
     [LOG_CHANGE_INTERFACE_TOGGLE_DOWN_UP, 'Interface Toggle'],
@@ -270,6 +270,7 @@ LOG_ACTION_CHOICES = [
     [LOG_NAPALM_ERROR_MAC, 'Napalm MAC'],
     [LOG_NAPALM_ERROR_ARP, 'Napalm ARP'],
     [LOG_NAPALM_ERROR_LLDP, 'Napalm LLDP'],
+    [LOG_DENIED, 'Denied'],
 ]
 
 # tasks related constants

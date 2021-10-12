@@ -421,6 +421,15 @@ SNMP_RETRIES = 3
 # see the references in the documentation for more information.
 SNMP_MAX_REPETITIONS = 25
 
+# Syslog settings
+# if SYSLOG_HOST is defined (default=False), log entries will also be sent here, to the 'user' facility:
+# SYSLOG_HOST = 'localhost'
+# if needed, you can change the UDP port:
+# SYSLOG_PORT = 514
+# By default SYSLOG_JSON=True, and syslog entries will be send in Json format for easier parsing.
+# If not, a textual version of log event will be sent.
+# SYSLOG_JSON = True
+
 # task scheduling via Celery. If you want to use this, set this to True
 TASKS_ENABLED = False
 # send task result emails as bcc to admins (if email enabled, see below)
