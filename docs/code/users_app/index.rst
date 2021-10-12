@@ -13,12 +13,12 @@ We also register the signal-handlers to catch notifications when the original ob
 Here we create a relationship to the User() class, to add new attributes to them.
 
 The Profile() class defines the one-to-one relationship to the original Django User() object.
-It adds the 'Read-Only' attribute to the User() object, and handles the proper signals for creation and updating.
+It adds the severals attributes to the User() object (e.g. the 'Read-Only' flag), and handles the proper signals for creation and updating.
 
 * *admin.py*
 
-Here we create custom admin view for the above expanded User() object. We also define a so-called "inline"
-for the Profile object, and then add this to the User admin view. We then register this as the handler
+Here we create a custom admin view for the above expanded User() object. We also define a so-called "inline"
+for the Profile object, and then add this to the User admin view. We register this as the handler
 in the custom "admin_site" that was created in the projects' openl2m/admin.py
 
 At the top of this file, we create the "inline" object that represent the 'inline add-on view' of

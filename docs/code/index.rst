@@ -14,6 +14,7 @@ permits. Meanwhile, the source code is your best bet!
 
    requirements.rst
    code_explained.rst
+   authentication.rst
    switches_app/index.rst
    users_app/index.rst
    templating.rst

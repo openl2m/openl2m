@@ -96,7 +96,8 @@ Move into the OpenL2M configuration directory and make a copy of `configuration.
   (venv) # cd openl2m/openl2m/
   (venv) # cp configuration.example.py configuration.py
 
-Open `configuration.py` with your preferred editor and at the minimum set the following variables:
+Open `configuration.py` with your preferred editor and go through all possible options.
+At the minimum set the following variables:
 
 .. code-block:: bash
 

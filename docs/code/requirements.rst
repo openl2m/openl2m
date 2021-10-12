@@ -8,11 +8,11 @@ how the OpenL2M project works "under the hood".
 
 **Python 3**
 
-All the code is written and tested in Python v3.6. There are numerous places to learn this.
+As of v2.0, all the code is written and tested in Python v3.8. There are numerous places to learn this.
 
 **Django**
 
-We use the Django web framework, v3.1. For a good introduction, see
+We use the Django web framework, v3.2. For a good introduction, see
 `the Django Tutorial <https://docs.djangoproject.com/>`_
 If you follow this tutorial, you will have enough of an Django understanding
 to start digging into the code.
@@ -51,5 +51,4 @@ to provide admin-configurable command line output to users.
 **Napalm**
 
 `Napalm <https://napalm-automation.net/>`_ is a Network Automation framework.
-After OpenL2M updates implemented an API, we intend to add functionality to support
-the Napalm library for device management.
+In v2.0, we implemented a Napalm interface, in read-only mode, to show how the new API functions.
