@@ -14,7 +14,7 @@
 
 # there are the pre-defined counters available:
 COUNTER_LOGINS = "logins"
-COUNTER_LOGINSFAILED = "logins_failed"
+COUNTER_LOGINS_FAILED = "logins_failed"
 COUNTER_CHANGES = "changes"
 COUNTER_BULKEDITS = "bulkedits"
 COUNTER_ERRORS = "errors"
