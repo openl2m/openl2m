@@ -1196,8 +1196,10 @@ class Log(models.Model):
         """
         return all the details of this log entry as a string
         """
-        info = (f'OpenL2M Log: User={self.user.username}, IP={self.ip_address}, '
-                f'Type={self.get_type_display()}, Action={self.get_action_display()}, ')
+        info = 'OpenL2M Log: '
+        if self.user:
+            info += f'User={self.user.username}, '
+        info += f'IP={self.ip_address}, Type={self.get_type_display()}, Action={self.get_action_display()}, '
         if self.switch:
             info = info + f"Switch={self.switch.name}, ifIndex={self.if_index}, Interface={self.if_name}, "
         info = info + f"Descr={self.description}"
@@ -1209,12 +1211,16 @@ class Log(models.Model):
         """
         log_dict = {}
         log_dict['application'] = f'OpenL2M v{settings.VERSION}'
-        log_dict['username'] = self.user.username
+        if self.user:
+            log_dict['username'] = self.user.username
         log_dict['ip'] = self.ip_address
-        log_dict['type='] = self.get_type_display()
+        log_dict['type_id'] = self.type
+        log_dict['type'] = self.get_type_display()
+        log_dict['action_id'] = self.action
         log_dict['action'] = self.get_action_display()
         if self.switch:
             log_dict['switch'] = self.switch.name
+            log_dict['switch_id'] = self.switch.id
             if self.if_index:
                 log_dict['if_index'] = self.if_index
             if self.if_name:
