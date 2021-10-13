@@ -84,13 +84,10 @@ def switches(request):
             permissions[int(group.id)] = {}
             for switch in group.switches.all():
                 if switch.status == SWITCH_STATUS_ACTIVE:
-                    # do we have a valid config:
-                    if ((switch.connector_type == CONNECTOR_TYPE_SNMP and switch.snmp_profile) or
-                       (switch.connector_type == CONNECTOR_TYPE_NAPALM and switch.napalm_device_type)):
-                        # we save the names as well, so we can search them!
-                        permissions[int(group.id)][int(switch.id)] = (switch.name, switch.hostname, switch.description)
+                    # we save the names as well, so we can search them!
+                    permissions[int(group.id)][int(switch.id)] = (switch.name, switch.hostname, switch.description)
 
-    save_to_http_session(request, "permissions", permissions)
+    save_to_http_session(request, 'permissions', permissions)
 
     # log my activity
     log = Log(user=request.user,
