@@ -6,12 +6,14 @@ What is OpenL2M
 
 **What is OpenL2M?**
 
-OpenL2M, or Open Layer 2 Management, is an open source switch management
-application designed to provide a consistent web interface for Layer 2 device
-management, *independent of the underlying switch vendor*. OpenL2M can distribute
-the management of Layer 2 network switches to various users and groups. The
-distributed management approach taken by OpenL2M is based on vlans and device
-groups.
+OpenL2M, or Open Layer 2 Management, is an open source network device management
+application. OpenL2M is designed to allow users with minimal training to perform a set of basic
+mostly Layer 2 configuration changes on those devices via a consistent web interface,
+ *independent of the underlying device vendor*. OpenL2M can distribute
+the management of network devices to various users and device groups. The
+permissions approach taken by OpenL2M is based on vlans and device
+groups. While primary intended to manage network switches, OpenL2M can handle any device
+that has some sort of network API (e.g. SSH, Netconf, REST, etc.)
 
 OpenL2M can use various device communication methods. As of v2.0, there is an
 extensible API that allows for custom drivers to communicate with devices. Using this API,
@@ -37,7 +39,7 @@ OpenL2M can manage interfaces on switches, including:
 * **scheduling of bulk edits**.
 * using SSH/Netmiko under the hood, we can configure **any switch CLI 'show' command** to be runnable by users from the web interface,
   shown with 'friendly' names in a drop-down menu.
-* using command templates and validated fields and pick lists, commands to run on the device can be defined with certain user input.
+* using command templates and validated fields and pick lists, commands to run on the device can be defined with some amount of user input.
 * switch **device import via csv files**, or fully programmable import via Python scripts.
 * switches can be Read-Only.
 * support for Cisco, HP-Procurve, HP-Comware and generic switches.
