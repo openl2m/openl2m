@@ -245,6 +245,35 @@ def get_my_switchgroups(groups):
     return mark_safe(s)
 
 
+def validate_info_url_fields(info_url, switch, interface=False):
+    """
+    Check that the fields used in the URL definition are set.
+    Return True if set, False if not
+    Currently checks nms_id and hostname, since those are not always defined.
+    """
+
+    if 'url' not in info_url.keys():
+        return False
+    # not check fields in the url:
+    # the switch.nms_id field is optional. If used in URL, check that it is set!
+    if info_url['url'].find('switch.nms_id') > -1:
+        # found it, but is the value set:
+        if not switch.nms_id:
+            # nms_id not set, skipping this url
+            return False
+    # the switch.hostname field is optional. If used in URL, check that it is set!
+    if info_url['url'].find('switch.hostname') > -1:
+        # found it, but is the value set:
+        if not switch.hostname:
+            # skipping the url
+            return False
+    if interface:
+        # there is actually nothing to check here:
+        return True
+    # all OK
+    return True
+
+
 @register.filter
 def get_switch_info_url_links(switch, user):
     """
@@ -252,42 +281,30 @@ def get_switch_info_url_links(switch, user):
     """
     links = ''
     if settings.SWITCH_INFO_URLS:
-        for u in settings.SWITCH_INFO_URLS:
-            # the switch.nms_id field is optional. If used in URL, check that it is set!
-            if 'url' in u.keys():
-                if u['url'].find('switch.nms_id') > -1:
-                    # found it, but is the value set:
-                    if not switch.nms_id:
-                        # nms_id not set, skipping this switch
-                        continue
-            template = Template(build_url_string(u))
+        for info_url in settings.SWITCH_INFO_URLS:
+            # if we have a url defined, make sure used fields are set:
+            if not validate_info_url_fields(info_url, switch):
+                continue
+            template = Template(build_url_string(info_url))
             context = Context({'switch': switch})
             links += template.render(context)
 
     if user.is_superuser or user.is_staff:
         if settings.SWITCH_INFO_URLS_STAFF:
-            for u in settings.SWITCH_INFO_URLS_STAFF:
-                # the switch.nms_id field is optional. If used in URL, check that it is set!
-                if 'url' in u.keys():
-                    if u['url'].find('switch.nms_id') > -1:
-                        # found it, but is the value set:
-                        if not switch.nms_id:
-                            # nms_id not set, skipping this switch
-                            continue
-                template = Template(build_url_string(u))
+            for info_url in settings.SWITCH_INFO_URLS_STAFF:
+                # if we have a url defined, make sure used fields are set:
+                if not validate_info_url_fields(info_url, switch):
+                    continue
+                template = Template(build_url_string(info_url))
                 context = Context({'switch': switch})
                 links += template.render(context)
 
     if user.is_superuser and settings.SWITCH_INFO_URLS_ADMINS:
-        for u in settings.SWITCH_INFO_URLS_ADMINS:
-            # the switch.nms_id field is optional. If used in URL, check that it is set!
-            if 'url' in u.keys():
-                if u['url'].find('switch.nms_id') > -1:
-                    # found it, but is the value set:
-                    if not switch.nms_id:
-                        # nms_id not set, skipping this switch
-                        continue
-            template = Template(build_url_string(u))
+        for info_url in settings.SWITCH_INFO_URLS_ADMINS:
+            # if we have a url defined, make sure used fields are set:
+            if not validate_info_url_fields(info_url, switch):
+                continue
+            template = Template(build_url_string(info_url))
             context = Context({'switch': switch})
             links += template.render(context)
 
@@ -301,8 +318,10 @@ def get_interface_info_links(switch, iface):
     """
     links = ''
     if settings.INTERFACE_INFO_URLS:
-        for u in settings.INTERFACE_INFO_URLS:
-            template = Template(build_url_string(u))
+        for info_url in settings.INTERFACE_INFO_URLS:
+            if not validate_info_url_fields(info_url, switch, iface):
+                continue
+            template = Template(build_url_string(info_url))
             context = Context({
                 'switch': switch,
                 'iface': iface})
@@ -318,8 +337,8 @@ def get_vlan_info_links(vlan):
     links = ''
     if settings.VLAN_INFO_URLS:
         # do this for all URLs listed:
-        for u in settings.VLAN_INFO_URLS:
-            template = Template(build_url_string(u))
+        for info_url in settings.VLAN_INFO_URLS:
+            template = Template(build_url_string(info_url))
             context = Context({'vlan': vlan, })
             links += template.render(context)
     return mark_safe(links)
@@ -333,8 +352,8 @@ def get_ethernet_info_links(ethernet):
     links = ''
     if settings.ETHERNET_INFO_URLS:
         # do this for all URLs listed:
-        for u in settings.ETHERNET_INFO_URLS:
-            template = Template(build_url_string(u))
+        for info_url in settings.ETHERNET_INFO_URLS:
+            template = Template(build_url_string(info_url))
             context = Context({'ethernet': ethernet, })
             links += template.render(context)
     return mark_safe(links)
@@ -348,8 +367,8 @@ def get_ip4_info_links(ip4_address):
     links = ''
     if settings.IP4_INFO_URLS:
         # do this for all URLs listed:
-        for u in settings.IP4_INFO_URLS:
-            template = Template(build_url_string(u))
+        for info_url in settings.IP4_INFO_URLS:
+            template = Template(build_url_string(info_url))
             context = Context({'ip4': ip4_address, })
             links += template.render(context)
     return mark_safe(links)
@@ -363,8 +382,8 @@ def get_ip6_info_links(ip4_address):
     links = ''
     if settings.IP6_INFO_URLS:
         # do this for all URLs listed:
-        for u in settings.IP6_INFO_URLS:
-            template = Template(build_url_string(u))
+        for info_url in settings.IP6_INFO_URLS:
+            template = Template(build_url_string(info_url))
             context = Context({'ip6': ip6_address, })
             links += template.render(context)
     return mark_safe(links)
