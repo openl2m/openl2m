@@ -76,16 +76,15 @@ class Profile(models.Model):
         return self.user.username + " Profile"
 
 
-# and the signal handlers to auto-create and auto-update
+# and the signal handler to auto-create or auto-update
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
+def create_or_save_user_profile(sender, instance, created, **kwargs):
     if created:
+        # newly saved user object instance
         Profile.objects.create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    else:
+        # pre-existing user object
+        instance.profile.save()
 
 
 def create_logged_in_log_entry(sender, user, request, **kwargs):

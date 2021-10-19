@@ -29,6 +29,9 @@ def ldap_auth_handler(user, ldap_user, **kwargs):
     This signal gets called after Django Auth LDAP Package has populated
     the user with its data, but before the user is saved to the database.
     """
+    # Since this signal is called BEFORE the user object is saved to the database,
+    # we have to save it first so that we then can assign groups to it.
+    user.save()
     # Log the ldap path used to authenticate this user
     log = Log(user=user,
               action=LOG_LOGIN_LDAP,
@@ -45,9 +48,6 @@ def ldap_auth_handler(user, ldap_user, **kwargs):
                 continue
             # get the switchgroup name:
             switchgroup_name = match.group(1).strip()
-            # Since this signal is called BEFORE the user object is saved to the database,
-            # we have to save it first so that we then can assign groups to it.
-            user.save()
             # Add user to the SwitchGroup.
             try:
                 group = SwitchGroup.objects.get(name=switchgroup_name)
