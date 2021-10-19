@@ -24,6 +24,10 @@ If defined, all logs can also be sent to a syslog server. From the configuration
   # If not, a textual version of log event will be sent.
   # SYSLOG_JSON = True
 
+Bug fixes:
+
+  * fix long-standing LDAP login error, creating profile failed under certain situations.
+  * various other small fixes
 
 Version 2.1.0
 -------------
