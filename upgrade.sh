@@ -96,6 +96,9 @@ eval $COMMAND || exit 1
 #echo "Clearing cache data ($COMMAND)..."
 #eval $COMMAND || exit 1
 
+# update the netaddr OUI database
+source scripts/update_oui.sh
+
 # All done!
 echo
 echo "OpenL2M upgrade complete! Don't forget to restart the OpenL2M service:"

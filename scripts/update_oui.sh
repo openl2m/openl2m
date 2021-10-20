@@ -60,8 +60,8 @@ cp oui.txt oui.txt.old
 
 # download new iab and oui files
 echo "Downloading updates to two OUI files..."
-curl http://standards-oui.ieee.org/iab/iab.txt --output iab.txt
-curl http://standards-oui.ieee.org/oui/oui.txt --output oui.txt
+curl --silent http://standards-oui.ieee.org/iab/iab.txt --output iab.txt
+curl --silent http://standards-oui.ieee.org/oui/oui.txt --output oui.txt
 
 # run the 'index creation script'
 echo "Creating new database files for netaddr package..."
