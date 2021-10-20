@@ -92,9 +92,16 @@ completely 'standard' SNMP. We have tested OpenL2M on the following hardware, wi
 
 **HP/Aruba**
 
-* *HP 2520G* series; single units.
-* *HP 4200vl* series, specifically 4204vl (J8770A).
-* *Aruba 2930F* series; single units.
+* *HP 2520* series; single units.
+* *HP 2530* series; single units.
+* *HP 2540* series; single units.
+* *HP 4200* series, specifically 4204vl (J8770A).
+* *Aruba 2930* F/M series; single units.
+* *Aruba 5400* series; chassis based, rev 1 and 2.
+
+**Aruba AOS-CX**
+
+* *Aruba CX 6200* series; single units. (R/O support)
 
 **HP Enterprise (HPE)**
 
@@ -110,7 +117,7 @@ completely 'standard' SNMP. We have tested OpenL2M on the following hardware, wi
 
 **Juniper Networks**
 
-* *EX2300* series switch, running JUNOS 18.2R3-S2.9; single unit.
+* *EX2300* series switch, running JUNOS 18.2R3-S2.9; single unit. (R/O support)
 
 **Generic**
 

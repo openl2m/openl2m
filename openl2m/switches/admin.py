@@ -48,7 +48,7 @@ class SwitchAdmin(admin.ModelAdmin):
             'fields': ('name', 'description', 'primary_ip4')
         }),
         ('Connection Configuration', {
-            'fields': ('connector_type', 'napalm_device_type', 'snmp_profile', 'netmiko_profile',)
+            'fields': ('connector_type', 'snmp_profile', 'netmiko_profile', 'napalm_device_type',)
         }),
         ('Commands Configuration', {
             'fields': ('command_list', 'command_templates',)
