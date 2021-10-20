@@ -78,7 +78,7 @@ class SnmpConnectorProcurve(SnmpConnector):
     HP has 2 possible MIBs with port(interface) power information:
     the hpicfPoePethPsePortPower or hpEntPowerCurrentPowerUsage tables.
     OID is followed by PortEntry index (pe_index). This is typically
-    or module_num.port_num for modules switch chassis, or
+    or module_num.port_num for a modular switch chassis, or
     device_id.port_num for stack members.
     This gets mapped to an interface later on in
     self._map_poe_port_entries_to_interface()
@@ -90,6 +90,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         dprint("HP _parse_mibs_hp_poe()")
         pe_index = oid_in_branch(hpicfPoePethPsePortPower, oid)
         if pe_index:
+            dprint(f"Found hpicfPoePethPsePortPower, pe_index = {pe_index}")
             if pe_index in self.poe_port_entries.keys():
                 self.poe_port_entries[pe_index].power_consumption_supported = True
                 self.poe_port_entries[pe_index].power_consumed = int(val)
@@ -97,6 +98,7 @@ class SnmpConnectorProcurve(SnmpConnector):
 
         pe_index = oid_in_branch(hpEntPowerCurrentPowerUsage, oid)
         if pe_index:
+            dprint(f"Found branch hpEntPowerCurrentPowerUsage, pe_index = {pe_index}")
             if pe_index in self.poe_port_entries.keys():
                 self.poe_port_entries[pe_index].power_consumption_supported = True
                 self.poe_port_entries[pe_index].power_consumed = int(val)
@@ -161,30 +163,35 @@ class SnmpConnectorProcurve(SnmpConnector):
         """
         This function maps the "pethPsePortEntry" indices that are stored in self.poe_port_entries{}
         to interface ifIndex values, so we can store them with the interface and display as needed.
-        In general, you can generate the interface ending "x/y" from the index by substituting "." for "/"
-        E.g. "5.12" from the index becomes "5/12", and you then search for an interface with matching ending
-        e.g. GigabitEthernet5/12
+        In general, for traditional Procurve devices, the power index is "modules.port", eg 1.12
+        The power indices for modular or stacked devices is 1.1 - 1.24, then 2.25 - 2.48, 3.49 - 3.72, etc.
+        I.e. the first digit is the module or stack member, and the port numbers continue to count up,
+        and is likely the ifIndex!
         """
         dprint("Procurve _map_poe_port_entries_to_interface()\n")
         for (pe_index, port_entry) in self.poe_port_entries.items():
             # we take the ending part of "5.12" as the index
-            (module, port) = port_entry.index.split('.')
-            for (if_index, iface) in self.interfaces.items():
-                if iface.name == port:
-                    dprint(f"   PoE Port Map FOUND {iface.name}")
-                    iface.poe_entry = port_entry
-                    if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                        warning = f"PoE FAULT status ({port_entry.detect_status} = " \
-                                  "{poe_status_name[port_entry.status_name]}) on interface {iface.name}"
-                        self.add_warning(warning)
-                        # log my activity
-                        log = Log(user=self.request.user,
-                                  type=LOG_TYPE_ERROR,
-                                  ip_address=get_remote_ip(self.request),
-                                  action=LOG_PORT_POE_FAULT,
-                                  description=warning)
-                        log.save()
-                    break
+            (module, index) = port_entry.index.split('.')
+            # for the SnmpConnector() class and sub-classes, the "index" is the key to the Interface()
+            if index in self.interfaces.keys():
+                iface = self.interfaces[index]
+                dprint(f"   PoE Port Map FOUND {iface.name}")
+                # add this poe entry to the interface
+                iface.poe_entry = port_entry
+                if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
+                    warning = f"PoE FAULT status ({port_entry.detect_status} = " \
+                              "{poe_status_name[port_entry.status_name]}) on interface {iface.name}"
+                    self.add_warning(warning)
+                    # log my activity
+                    log = Log(user=self.request.user,
+                              type=LOG_TYPE_ERROR,
+                              ip_address=get_remote_ip(self.request),
+                              action=LOG_PORT_POE_FAULT,
+                              description=warning)
+                    log.save()
+            else:
+                # should not happen!
+                dprint(f"ERROR: PoE entry NOT FOUND for pe_index={pe_index}")
 
 
 """
