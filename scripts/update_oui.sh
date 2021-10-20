@@ -19,41 +19,52 @@
 # NOTE: you should run this *every* time you run upgrade.sh !!!
 #
 
+# this is where OpenL2M is installed. If you used a different path, update as needed:
 WORKDIR="/opt/openl2m"
-PYTHONVERSION="python3.6"
-
-# check for alternate python version
-if [ -f "../altpython.sh" ]; then
-  source "../altpython.sh"
-  echo "Using Alternate Python version '${PYTHONVERSION}'"
-fi
 
 # here we go:
 cd $WORKDIR
 
-# check if a netaddr directory inside the virtual env exists
-if [ ! -d "venv/lib/$PYTHONVERSION/site-packages/netaddr/eui" ]
+echo "Updating the OUI files for the netaddr package."
+# activate the virtual environment
+source venv/bin/activate
+
+# get the path to the netaddr package
+NETADDR_PATH=`python3 scripts/get_netaddr_path.py`
+
+# double-check if a netaddr/eui directory inside the virtual env exists
+if [ ! -d "$NETADDR_PATH/eui" ]
 then
-    echo " netaddr package directory 'venv/lib/$PYTHONVERSION/site-packages/netaddr/eui' not found!"
+    echo " netaddr package directory '$NETADDR_PATH' not found!"
     echo " NOT updating the OUI database."
     exit 1
 fi
 
-# make sure the virtual environment is activated!
-source venv/bin/activate
 
 # go to the netaddr install location inside the Virtual Environment:
-cd venv/lib/$PYTHONVERSION/site-packages/netaddr/eui
+cd "$NETADDR_PATH/eui"
 
-# copy old files
+# check that we are in the proper folder
+if [ ! -f "ieee.py" ]
+then
+    echo " ieee.py does not exist in '$NETADDR_PATH/eui'!"
+    echo " NOT updating the OUI database."
+    exit 1
+fi
+
+# create backup copy of old files
 cp iab.idx iab.idx.old
 cp iab.txt iab.txt.old
 cp oui.idx oui.idx.old
 cp oui.txt oui.txt.old
 
 # download new iab and oui files
+echo "Downloading updates to two OUI files..."
 curl http://standards-oui.ieee.org/iab/iab.txt --output iab.txt
 curl http://standards-oui.ieee.org/oui/oui.txt --output oui.txt
 
 # run the 'index creation script'
+echo "Creating new database files for netaddr package..."
 python3 ieee.py
+
+echo "OUI updates finished!"
