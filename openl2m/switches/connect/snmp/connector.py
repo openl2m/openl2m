@@ -682,13 +682,6 @@ class SnmpConnector(Connector):
             # default parser
             retval = self._parse_oid(oid, newvalue)
 
-    def get_ifindex_as_key(self, if_index):
-        """
-        create a unique 'key' string from the index.
-        Used as the key in the self.interfaces {} dict.
-        """
-        return f"if_index_{if_index}"
-
     def _parse_oid(self, oid, val, parser=False):
         """
         Parse a single OID with data returned from a switch through some "get" or "getbulk" function
@@ -720,7 +713,6 @@ class SnmpConnector(Connector):
         # this is the old ifDescr, superceded by the IF-MIB name
         if_index = oid_in_branch(ifDescr, oid)
         if if_index:
-            # self.interfaces[self.get_ifindex_as_key(if_index)].ifDescr = str(val)
             # set new 'name'. Latter will later be overwritten with ifName bulkwalk
             return self.set_interface_attribute_by_key(if_index, "name", str(val))
 
