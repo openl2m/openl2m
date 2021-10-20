@@ -13,16 +13,17 @@ Configure the name to show in the menu (does not need to be the switch hostname)
 and add a description if so desired.
 
 In the Connection Type, choose:
-- SNMP: for fully snmp manageable devices (Cisco, HP/Procurce, HPE)
-- Commands-Only: if you want to add a device where users can only run pre-defined commands. This device will not show the interface and BulkEdit tabs.
-- Napalm: add a device that is not supported bvia SNMP. The Napalm library supports lots of devices, to some extent or another.
+
+* SNMP: for fully snmp manageable devices (Cisco, HP/Procurce, HPE)
+* Commands-Only: if you want to add a device where users can only run pre-defined commands. This device will not show the interface and BulkEdit tabs.
+* Napalm: add a device that is not supported via SNMP. The Napalm library supports lots of devices, to some extent or another.
   *This is a Read-Only driver!* For Napalm, the following field sets the Napalm device type.
 
 Add the IP v4 address or resolvable DNS name, and the SNMP profile as a minimum.
 If you want to allow 'show/display' commands, you need to add a Netmiko (SSH)
 profile as well.
 
-Note: switches will only show in the list if their status is active,
+*Note:* switches will only show in the list if their status is active,
 and for SNMP devices, they have an SNMP Profile applied! Likewise, if a switch does not have
 a Netmiko profile, interface commands and global commands options will not show.
 

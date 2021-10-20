@@ -9,7 +9,7 @@ What is OpenL2M
 OpenL2M, or Open Layer 2 Management, is an open source network device management
 application. OpenL2M is designed to allow users with minimal training to perform a set of basic
 mostly Layer 2 configuration changes on those devices via a consistent web interface,
- *independent of the underlying device vendor*. OpenL2M can distribute
+*independent of the underlying device vendor*. OpenL2M can distribute
 the management of network devices to various users and device groups. The
 permissions approach taken by OpenL2M is based on vlans and device
 groups. While primary intended to manage network switches, OpenL2M can handle any device

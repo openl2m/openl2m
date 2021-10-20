@@ -64,7 +64,7 @@ This process is very CA dependent, and will be left up to the reader.
 
 **Install the Signed Certificate**
 
-Once the certificate is issues or generated, download the X509 format file (*.cer) to the /etc/nginx/ssl directory.
+Once the certificate is issues or generated, download the X509 format file (\*.cer) to the /etc/nginx/ssl directory.
 Name this file openl2m.crt
 
 

@@ -38,6 +38,7 @@ See more in the development section below.
    using/index.rst
    installation/index.rst
    configuration/index.rst
+   switch_requirements.rst
    switches.rst
    releases/index.rst
    screenshots.rst
