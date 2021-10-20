@@ -9,7 +9,7 @@ Version 2.1.1
 
 Release date: 2021-10-12
 
-New feature: Syslog functionality.
+* *New feature:* Syslog functionality.
 
 If defined, all logs can also be sent to a syslog server. From the configuration file:
 
@@ -24,16 +24,17 @@ If defined, all logs can also be sent to a syslog server. From the configuration
   # If not, a textual version of log event will be sent.
   # SYSLOG_JSON = True
 
-Bug fixes:
+* Bug fixes:
 
   * fix long-standing LDAP login error, creating profile failed under certain situations.
+  * ethernet OUI update script auto-senses python version
   * various other small fixes
 
 Version 2.1.0
 -------------
 Release Date: 2021-10-07
 
-New Feature:  Command templates.
+* *New Feature:* Command Templates.
 
 We have added the ability to define command templates that allow input from users before they are run.
 This can be used to allow users to fill in eg. an ip address before a specific command is run on the device.
@@ -46,3 +47,16 @@ Also adds a Commands-Only connector: if you want to add a device where users can
 This device will read interfaces and not show the Interface and Bulk Edit tabs.
 
 :doc:`See the documentation for more.<../configuration/cmd_templates>`
+
+
+* *New Feature:* update the Ethernet OUI library
+
+The python netaddr library is used to get the vendor for a specific ethernet address (i.e. the OUI part). The database provided
+with the package is old. We have created a script to update this database. This is automatically run during the upgrade.sh script.
+If you want to manually upgrade (even when OpenL2M is running!), run the update_oui script as follows:
+
+.. code-block:: bash
+
+  # manually upgrade OUI database
+  cd /opt/openl2m/scripts
+  ./update_oui.sh

@@ -8,9 +8,10 @@ Ethernet OUIs
 
 OpenL2M uses the python netaddr package for IP and Ethernet parsing and display functionality.
 This include the mapping of Ethernet OUI's to the registered vendor. This database as distributed
-with the netaddr package is out of date. You can update this with a script in the ./scripts directory.
+with the netaddr package is out of date.
 
-Run the following after each upgrade:
+The upgrade script will now automatically update this database. You can alos choose to update this manually at any time.
+To upgrade, run the following from the ./scripts directory.
 
 .. code-block:: bash
 
