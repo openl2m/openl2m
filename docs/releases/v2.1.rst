@@ -24,6 +24,10 @@ If defined, all logs can also be sent to a syslog server. From the configuration
   # If not, a textual version of log event will be sent.
   # SYSLOG_JSON = True
 
+* *New feature:* Allow All Vlans setting per group
+
+You can now define an attribute at the group level that allows all vlans on all devices in that group.
+
 * Bug fixes:
 
   * fix long-standing LDAP login error, creating profile failed under certain situations.

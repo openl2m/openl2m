@@ -843,7 +843,9 @@ class Connector():
             # Read-Only group or user, no vlan allowed!
             return
         for switch_vlan_id in self.vlans.keys():
-            if self.request and (self.request.user.is_superuser or self.request.user.is_staff):
+            # if allow_all is set, or we are staff or supervisor, allow this vlan:
+            if self.group.allow_all_vlans or \
+               (self.request and (self.request.user.is_superuser or self.request.user.is_staff)):
                 self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
             else:
                 # 'regular' user, first check the switchgroup.vlan_groups:

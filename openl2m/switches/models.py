@@ -1035,7 +1035,11 @@ class SwitchGroup(models.Model):
     # @property
     # def sorted_switches(self):
     #    return self.switches.order_by("order")
-
+    allow_all_vlans = models.BooleanField(
+        default=False,
+        verbose_name='Allow All Vlans',
+        help_text='If set, allow access to all vlans.'
+    )
     vlan_groups = models.ManyToManyField(
         to='VlanGroup',
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name

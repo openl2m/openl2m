@@ -94,7 +94,7 @@ class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
             'fields': ('users',),
         }),
         ('VLAN Allowances', {
-            'fields': ('vlan_groups', 'vlans', ),
+            'fields': ('allow_all_vlans', 'vlan_groups', 'vlans', ),
         }),
         ('Other options', {
             'fields': ('read_only', 'bulk_edit', 'allow_poe_toggle', 'edit_if_descr', 'comments', ),

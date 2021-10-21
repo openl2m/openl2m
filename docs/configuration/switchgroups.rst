@@ -14,6 +14,8 @@ you can then select the switches and vlans/vlangroups to add to this switch grou
 On the selected switches, selected users will only be able to manage ports that are on the Vlans
 in the 'Allowed VLANs' or 'Vlan Groups' list. Other ports will show, but will not be manageable.
 
+If you check 'Allow All VLANs', regardless of the above settings, users can access all vlans defined on the device.
+
 If a switch group is marked Read-Only, no user (not even admin), can change settings
 on the switches in this group. However, if commands are configured, they can be executed.
 This is useful for e.g. routers, or a special switch group for helpdesk users that only need to view data.
