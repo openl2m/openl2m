@@ -1,18 +1,20 @@
 {% load helpers %}
 {% if settings.SWITCH_SEARCH_FORM %}
-  <h4>Search for switch:</h4>
-  <form name="switch_search_form"
-        action="{% url 'switches:switch_search' %}"
-        method="post"
-        >
-    {% csrf_token %}
-    <input type="text" size=40 name="switchname" id="switchname"
-           placeholder="switch name or reg-ex here..."
-           data-toggle="tooltip" title="Type the name or regular expression of the switch(es) you are looking for here!">
-    <input type="submit"
-           value="Search"
-           class="btn btn-primary"
-           data-toggle="tooltip" title="Click here to search for a switch!"
-    >
-  </form>
+  {% if groups|length > 0 %}
+    <h4>Search for switch:</h4>
+    <form name="switch_search_form"
+          action="{% url 'switches:switch_search' %}"
+          method="post"
+          >
+      {% csrf_token %}
+      <input type="text" size=40 name="switchname" id="switchname"
+             placeholder="switch name or reg-ex here..."
+             data-toggle="tooltip" title="Type the name or regular expression of the switch(es) you are looking for here!">
+      <input type="submit"
+             value="Search"
+             class="btn btn-primary"
+             data-toggle="tooltip" title="Click here to search for a switch!"
+      >
+    </form>
+  {% endif %}
 {% endif %}
