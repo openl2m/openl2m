@@ -13,7 +13,6 @@
 #
 import sys
 import os
-import socket
 import time
 import datetime
 import traceback
@@ -1427,8 +1426,8 @@ def show_stats(request):
     environment['Python'] = f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
     uname = os.uname()
     environment['OS'] = f"{uname.sysname} ({uname.release})"
-    hostname = socket.gethostname()
-    environment['Hostname'] = f"{hostname}"
+    # environment['Version'] = uname.version
+    environment['Hostname'] = uname.nodename
     environment['Django'] = django.get_version()
     import git
     try:
