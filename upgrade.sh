@@ -57,7 +57,7 @@ echo "Installing latest pip ($COMMAND)..."
 eval $COMMAND || exit 1
 
 # Install necessary system packages
-COMMAND="pip3 install wheel"
+COMMAND="pip3 install --upgrade wheel setuptools"
 echo "Installing Python system packages ($COMMAND)..."
 eval $COMMAND || exit 1
 
