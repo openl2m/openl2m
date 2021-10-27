@@ -163,13 +163,14 @@ SNMP_MAX_REPETITIONS = getattr(configuration, 'SNMP_MAX_REPETITIONS', 10)   # SN
 SYSLOG_HOST = getattr(configuration, 'SYSLOG_HOST', False)
 SYSLOG_PORT = getattr(configuration, 'SYSLOG_PORT', 514)
 SYSLOG_JSON = getattr(configuration, 'SYSLOG_JSON', True)
-# validate host:
-try:
-    syslog_ip = socket.gethostbyname(SYSLOG_HOST)
-except Exception as e:
-    raise ImproperlyConfigured(
-        "SYSLOG_HOST is not a valid host name"
-    )
+if SYSLOG_HOST:
+    # validate host:
+    try:
+        syslog_ip = socket.gethostbyname(SYSLOG_HOST)
+    except Exception as e:
+        raise ImproperlyConfigured(
+            "SYSLOG_HOST is not a valid host name"
+        )
 
 # Sessions
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
