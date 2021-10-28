@@ -9,6 +9,7 @@ NOTE: this is a (modified) copy of the NetBox LDAP installation document.
 This guide explains how to implement *optional* LDAP authentication using an external server.
 User authentication will fall back to built-in Django users in the event of a failure.
 
+If you do *NOT* want to enable this feature, and only use local application accounts, simple ignore the rest of this page!
 
 Requirements
 ------------

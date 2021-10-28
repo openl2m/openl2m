@@ -16,8 +16,9 @@ Begin by installing all system packages required by OpenL2M and its dependencies
 
 .. code-block:: bash
 
-  sudo apt install -y python3 python3-pip python3-venv python3-dev build-essential libxml2-dev libxslt1-dev libffi-dev libpq-dev libssl-dev zlib1g-dev
-  sudo apt install -y libldap2-dev libsasl2-dev libssl-dev snmpd snmp libsnmp-dev
+  sudo apt install -y python3 python3-pip python3-venv python3-dev build-essential
+  sudo apt install -y libxml2-dev libxslt1-dev libffi-dev libpq-dev libssl-dev zlib1g-dev
+  sudo apt install -y libldap2-dev libsasl2-dev snmpd snmp libsnmp-dev git curl
 
 **CentOS 8**
 
@@ -173,29 +174,6 @@ you've installed all of the system dependencies listed above! :
 If you encounter errors while installing the required packages, check that
 you're running a recent version of pip with the command `pip3 -V`.
 
-
-
-**Run Database Migrations**
-
-Before OpenL2M can run, we need to install the database schema.
-This is done by running `python3 manage.py migrate` from the
-`OpenL2M` directory (`/opt/openl2m/openl2m/` in our example):
-
-.. code-block:: bash
-
-  (venv) # cd /opt/openl2m/openl2m/
-  (venv) # python3 manage.py migrate
-  Operations to perform:
-    Apply all migrations: ...
-  Running migrations:
-    Rendering model states... DONE
-    Applying ... OK
-    ...
-
-If this step results in a PostgreSQL authentication error, ensure that the
-username and password created in the database match what has been
-specified in `configuration.py`
-
 **Create a Super User**
 
 OpenL2M does not come with any predefined user accounts. You'll need to
@@ -204,7 +182,7 @@ create a super user to be able to log into OpenL2M:
 .. code-block:: bash
 
   $ source venv/bin/activate
-  (venv) $ python3 manage.py createsuperuser
+  (venv) $ python3 openl2m/manage.py createsuperuser
   Username: admin
   Email address: admin@example.com
   Password:
@@ -230,29 +208,55 @@ if you'd rather create everything from scratch in the admin interface.
 **Test the Application**
 
 At this point, OpenL2M should be able to run. We can verify this by starting
-a development instance:
+a development instance. For this, you will need to enable Django Debug Mode:
+
+Edit the config file at openl2m/openl2m/configuration.py, and add at the top of the file:
 
 .. code-block:: bash
 
-  (venv) # python3 manage.py runserver 0:8000 --insecure
+  DEBUG = True
+
+Now start the development web server as such:
+
+.. code-block:: bash
+
+  (venv) # python3 openl2m/manage.py runserver 0:8000 --insecure
   Performing system checks...
 
   System check identified no issues (0 silenced).
-  February 10, 2020 - 19:21:07
-  Django version 2.2.10, using settings 'openl2m.settings'
+  October 26, 2021 - 19:21:07
+  Django version 3.2.8, using settings 'openl2m.settings'
   Starting development server at http://0:8000/
   Quit the server with CONTROL-C.
 
 Next, connect to the name or IP of the server (as defined in `ALLOWED_HOSTS`) on port 8000;
 for example, <http://127.0.0.1:8000/>. You should be greeted with the OpenL2M home page.
-Note that this built-in web service is for development and testing purposes only.
-**It is not suited for production use.**
+
+.. warning::
+
+  This built-in web service is for development and testing purposes only.
+  **It is not suited for production use.**
 
 If the test service does not run, or you cannot reach the OpenL2M home page, something has gone wrong.
 Do not proceed with the rest of this guide until the installation has been corrected.
 
 Note that you may need to open the proper firewall port,
-or disable the firewalld process temporarily:
+or disable the firewall process temporarily.
+
+** Unbuntu 20.04 **
+
+.. code-block:: bash
+
+  # ufw alow 8000
+
+or:
+
+.. code-block:: bash
+
+  # systemctl disable ufw
+
+
+** CentOS 8 **
 
 .. code-block:: bash
 
@@ -265,6 +269,7 @@ or:
 
   # systemctl stop firewalld
 
-Make sure you restart or undo the configuration changes when done testing!
+
+Make sure you restart or undo the configuration changes (Both DEBUG and firewall settings!) when done testing!
 
 If all is well, you are now ready to install the :doc:`webserver <nginx>`.

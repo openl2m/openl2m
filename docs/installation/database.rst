@@ -129,6 +129,6 @@ You can verify that authentication works issuing the following command and provi
   \q
 
 
-If successful, you will enter a `openl2m` prompt. Type `\q` to exit.
+If successful, you will enter a `openl2m` prompt. Type `\\q` to exit.
 
 If all is well, you are now ready to install the :doc:`OpenL2M application components <openl2m>`

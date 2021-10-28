@@ -3,24 +3,7 @@
 ==================
 Nginx Installation
 ==================
-
-OpenL2M is developed and tested running as a WSGI service under the Nginx web server.
-
-We use gunicorn_ as the WSGI gateway service. This basically runs the OpenL2m Python code as a service process
-with a WSGI interface. The Nginx web server talks in the backend to this WSGI interface to render client http requests.
-Gunicorn is started as a service from systemd.
-(Note that Apache web server should work fine, but is left as an exercise to the reader.)
-
-.. _gunicorn: http://gunicorn.org/
-
-Installation of the web server therefor has two components:
-
-#. Nginx web server
-#. Gunicorn WSGI process or gateway
-
-
-Web Server Installation
------------------------
+At this time, the Gunicorn Python gateway service should be running. Nginx will be used to proxy that WSGI service.
 
 The following will serve as a minimal nginx configuration.
 Be sure to modify your server name and installation path appropriately.
@@ -54,62 +37,38 @@ Here, you need:
 (See more at https://linuxconfig.org/install-nginx-on-redhat-8)
 
 
+Configure nginx
+---------------
 
 **Run OpenL2M on regular non-secured port**
 
-Once nginx is installed, save the following configuration to `/etc/nginx/conf.d/openl2m.conf`.
-Be sure to replace `openl2m.yourcompany.com` with the domain name or IP address of your installation.
-(This should match the value configured for `ALLOWED_HOSTS` in `configuration.py`.)
-Adjust the listening port as needed (e.g. change 80 to 8000)
-The content below is also available in *./scripts/openl2m.conf*:
+Once nginx is installed, we need to configure the site. The following assumed OpenL2M is the *only* web site running on this server.
+*If you are using a multi-site setup of nginx, we assume you know what you need to configure to get OpenL2M functional!*
+
+Copy the configuration file:
 
 .. code-block:: bash
 
-  server {
-    listen 80;
+  cp ./scripts/openl2m.conf /etc/nginx/sites-available/openl2m
 
-    server_name openl2m.yourcompany.com;
 
-    client_max_body_size 25m;
+(For multi-site, edit /etc/nginx/sites-enabled/openl2m, and set listen and hostname fields. The domain name or IP address should match the value configured for `ALLOWED_HOSTS` in `configuration.py`.)
 
-    location /static/ {
-        alias /opt/openl2m/openl2m/static/;
-    }
 
-    location / {
-        proxy_pass http://127.0.0.1:8001;
-        proxy_pass_header X-CSRFToken;
-        proxy_set_header X-Forwarded-Host $server_name;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        add_header P3P 'CP="ALL DSP COR PSAa PSDa OUR NOR ONL UNI COM NAV"';
-        proxy_connect_timeout       300;
-        proxy_send_timeout          300;
-        proxy_read_timeout          300;
-        send_timeout                300;
-    }
-  }
-
-Note that the configuration above sets various timeouts to 5 minutes.
-This is to make sure the OpenL2M django process has enough time to poll the switch SNMP tables.
-Large stacks of switches can take up to 1 minute or more to poll data via SNMP.
-Please adjust these timeouts as appropriate for your environment
-
-Next, if you do not want the default web site, edit the `/etc/nginx/nginx.conf` file,
-and remove or comment out this section:
+Now remove the default site config, and set openl2m as the new default:
 
 .. code-block:: bash
 
-  server {
-      listen       80 default_server;
-      ...
-    }
+  rm /etc/nginx/site-enabled/default
+  ln -s /etc/nginx/sites-available/openl2m /etc/nginx/sites-enabled/openl2m
+
 
 Test the new config:
 
 .. code-block:: bash
 
   # nginx -t
+
 
 Restart the nginx service to use the new configuration:
 
@@ -118,12 +77,31 @@ Restart the nginx service to use the new configuration:
   # systemctl restart nginx
   # systemctl enable nginx
 
+
 We highly recommend you `enable SSL <nginx-ssl>`
 
-**firewalld configuration**
+**Notes**
+
+The configuration used sets various timeouts to 5 minutes.
+This is to make sure the OpenL2M django process has enough time to poll the switch SNMP tables.
+Large stacks of switches can take up to 1 minute or more to poll data via SNMP.
+Please adjust these timeouts as appropriate for your environment
+
+
+**Firewall configuration**
 
 You will need to allow the standard http (and https) ports through the firewall, assuming you run this.
 To configure allowing this, run:
+
+** Ubuntu 20.04 **
+
+.. code-block:: bash
+
+  # ufw allow http
+  # ufw allow https
+
+
+** CentOS 8 **
 
 .. code-block:: bash
 
@@ -131,64 +109,9 @@ To configure allowing this, run:
   # firewall-cmd --zone=public --permanent --add-service=https
   # firewall-cmd --reload
 
-If you do any kind of testing with the django built-in web server (e.g. python3 manage.py runserver 0:8000),
-make sure you open the proper port:
 
-.. code-block:: bash
-
-  # firewall-cmd --zone=public --permanent --add-port=8000/tcp
-  # firewall-cmd --reload
-
-
-
-Gunicorn Installation
----------------------
-
-The gunicorn program will be installed during the OpenL2M installation, and will be placed in your Python Virtual environment.
-You need to copy the Gunicorn configuration into the "root" openl2m installation path as `gunicorn_config.py`
-(e.g. `/opt/openl2m/gunicorn_config.py` per our example installation).
-
-.. code-block:: bash
-
-  cp /opt/openl2m/scripts/gunicorn_config.py /opt/openl2m/gunicorn_config.py
-
-Modify this file as needed for your environment.
-Note the following:
-
-* If you change the service port from 8001, you will also need to change the
-  corresponding nginx configuration!
-
-* The number of workers is related to how many users your site will service at the same time.
-  If this is large, increase the 3 to something higher, and restart the service (see below)
-
-* The timeout is increased from the default 30 seconds, to 150. This is to allow large switch stacks to be polled
-  without causing a process timeout. You may need to adjust this timeout to suit your environment.
-
-**systemd configuration**
-
-We will install Gunicorn as a service under systemd. The systemd service definition is in the file 'openl2m.service'.
-
-Copy the file *openl2m.service* to the */etc/systemd/system* directory:
-
-.. code-block:: bash
-
-  # cp ./scripts/openl2m.service /etc/systemd/system
-
-Now activate this service:
-
-.. code-block:: bash
-
-  sudo systemctl daemon-reload
-  sudo systemctl start openl2m
-  sudo systemctl enable openl2m
-
-And verify:
-
-.. code-block:: bash
-
-  sudo systemctl status openl2m
-
-**Debugging**
+Debugging
+---------
 
 First of all, if you get a 502-Bad Gateway, you should check your SeLinux setup. It is likely that
 your gunicorn process needs to be white-listed. Something like this may work:
@@ -207,6 +130,7 @@ and don't forget to restart the process with:
 You can check the content of the error log file and see if there are timeout warnings in it.
 If you, increase the timeout, and restart. Don't forget to turn off error logging when you have
 found the timeout value that works well in your environment.
+
 
 Finish it
 ---------
@@ -230,5 +154,3 @@ Finally, Have Fun!
 If you decide to do so, you can now optionally :doc:`use LDAP for authentication. <ldap>`
 
 Also optionally, you can allow users to :doc:`schedule bulk changes at some time in the future. <tasks>`
-
-If all is well, you are now ready to install the :doc:`webserver <nginx>`.

@@ -70,49 +70,20 @@ Name this file openl2m.crt
 
 **Reconfigure for SSL**
 
-Create the "openl2m-ssl.conf" nginx config file as follows:
+Copy the "openl2m-ssl.conf" to nginx as a new site, and enable it:
 
 .. code-block:: bash
 
-  vi /etc/nginx/conf.d/openl2m-ssl.conf
+  cp ./scripts/openl2m-ssl.conf /etc/nginx/sites-available/openl2m-ssl
+  ln -s /etc/nginx/sites-available/openl2m-ssl /etc/nginx/sites-enabled/openl2m-ssl
 
-Add the following section to this file. Note the complete file *openl2m-ssl.conf* is available in the scripts directory:
+Modify this files to set your proper domain name!
 
-.. code-block:: bash
-
-  server {
-    listen 443 http2 ssl;
-
-    server_name openl2m.yourcompany.com;
-    ssl_certificate /etc/nginx/ssl/openl2m.crt;
-    ssl_certificate_key /etc/nginx/ssl/openl2m.key;
-    ssl_dhparam /etc/ssl/certs/dhparam.pem;
-
-    client_max_body_size 25m;
-
-    location /static/ {
-        alias /opt/openl2m/openl2m/static/;
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:8001;
-        proxy_set_header X-Forwarded-Host $server_name;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        add_header P3P 'CP="ALL DSP COR PSAa PSDa OUR NOR ONL UNI COM NAV"';
-        proxy_connect_timeout       300;
-        proxy_send_timeout          300;
-        proxy_read_timeout          300;
-        send_timeout                300;
-    }
-  }
-
-
-Now modify the regular port to do a redirect to the SSL site:
+Next modify the regular port 80 default site to do a redirect to the SSL site:
 
 .. code-block:: bash
 
-  vi /etc/nginx/conf.d/openl2m.conf
+  vi /etc/nginx/sites-available/openl2m
 
 
 and replace the content with the following. Note this is available in the scripts directory as *openl2m-redirect.conf*:
@@ -125,6 +96,8 @@ and replace the content with the following. Note this is available in the script
       server_name openl2m.yourcompany.com;
       return 301 https://openl2m.yourcompany.com/;
   }
+
+Again, modify your domain name accordingly!
 
 
 **Finally, test the config**:

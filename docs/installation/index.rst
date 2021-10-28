@@ -40,6 +40,7 @@ distributions as long as the requirements are met.
 
    database.rst
    openl2m.rst
+   gunicorn.rst
    nginx.rst
    nginx-ssl.rst
    tasks.rst
