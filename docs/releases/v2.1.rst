@@ -4,6 +4,20 @@
 Version 2.1
 ===========
 
+Version 2.1.2
+-------------
+
+Release date: 2021-10-28
+
+Bug fixes:
+
+* properly validate syslog host configuration.
+* fix to generate_key.py to run with Python 3.
+* fix file permissions on some included shell scripts.
+* add some build packages to python virtual environment.
+* fix readthedocs.io documentation build.
+* update to installation documentation.
+
 Version 2.1.1
 -------------
 
