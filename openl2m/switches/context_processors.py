@@ -25,8 +25,11 @@ from switches.connect.constants import *
 def add_variables(request):
     # the list of variables and constants that need to be available in all templates
     return {
+        'IF_TYPE_NONE': IF_TYPE_NONE,
         'IF_TYPE_ETHERNET': IF_TYPE_ETHERNET,
         'IF_TYPE_LAGG': IF_TYPE_LAGG,
+        'IF_TYPE_VIRTUAL': IF_TYPE_VIRTUAL,
+        'IF_TYPE_LOOPBACK': IF_TYPE_LOOPBACK,
 
         'VLAN_TYPE_NORMAL': VLAN_TYPE_NORMAL,
         'VLAN_STATUS_DYNAMIC': VLAN_STATUS_DYNAMIC,
