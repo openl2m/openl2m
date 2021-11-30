@@ -1,0 +1,11 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 2.2
+===========
+
+Version 2.2-dev
+-------------
+Release Date: 2021-11-30
+
+* *New Feature:* Support for Aruba AOS-CX switches using the REST API.
