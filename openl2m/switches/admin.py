@@ -48,7 +48,10 @@ class SwitchAdmin(admin.ModelAdmin):
             'fields': ('name', 'description', 'primary_ip4')
         }),
         ('Connection Configuration', {
-            'fields': ('connector_type', 'snmp_profile', 'netmiko_profile', 'napalm_device_type',)
+            'fields': ('connector_type', 'snmp_profile', 'netmiko_profile', )
+        }),
+        ('Napalm Options', {
+            'fields': ('napalm_device_type',)
         }),
         ('Commands Configuration', {
             'fields': ('command_list', 'command_templates',)
@@ -56,7 +59,7 @@ class SwitchAdmin(admin.ModelAdmin):
         ('View Options', {
             'fields': ('indent_level', 'default_view', )
         }),
-        ('Access', {
+        ('Access Options', {
             'fields': ('status', 'read_only', 'bulk_edit', 'allow_poe_toggle', 'edit_if_descr',)
         }),
         ('Other Options', {
@@ -167,14 +170,21 @@ class NetmikoProfileAdmin(admin.ModelAdmin):
     search_fields = ['name']
     fieldsets = (
         (None, {
-            'fields': ('name', 'description', )
+            'fields': ('name', 'description', ),
         }),
-        ('Account settings', {
-            'fields': ('username', 'password', 'enable_password', ),
+        ('SSH/REST/API Account settings', {
+            'fields': ('username', 'password', ),
         }),
-        ('Connection Options', {
-            'fields': ('verify_hostkey', 'tcp_port', ),
+        ('Netmiko/SSH Options', {
+            'fields': ('tcp_port', 'device_type', ),
         }),
+        ('Security Options', {
+            'fields': ('verify_hostkey', ),
+        }),
+        ('Cisco-Specific Options', {
+            'fields': ('enable_password', ),
+        }),
+
     )
 
 

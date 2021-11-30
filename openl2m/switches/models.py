@@ -130,14 +130,13 @@ class SnmpProfile(models.Model):
 
 
 #
-# Netmiko Profile is a complete description of a Netmiko/SSH configuration
-# see more at https://github.com/ktbyers/netmiko
+# Netmiko Profile contains credentials to connect to devices, via Netmiko/SSH, REST, Napalm or other API's
 #
 class NetmikoProfile(models.Model):
     """
-    An Netmiko(SSH) profile defines a series of settings for management access over SSH.
-    A switch can have exactly one netmiko/ssh profile assigned to it.
-    Note this is ALSO used for the Napalm library!
+    A NetmikoProfile defines a series of credentials for remote access to devices,
+    via SSH(Netmiko), REST, Napam, or other API's
+    A device can have exactly one NetmikoProfile assigned to it.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -176,19 +175,21 @@ class NetmikoProfile(models.Model):
         null=True,
         verbose_name='Netmiko/SSH enable password, e.g. for Cisco devices (optional)',
     )
+    # SSH connection option
     tcp_port = models.PositiveIntegerField(
         default=22,
         verbose_name='Tcp port',
     )
+    # security/encryption options
     verify_hostkey = models.BooleanField(
         default=False,
-        verbose_name='Verify the ssl host key',
+        verbose_name='Verify the host key',
     )
 
     class Meta:
         ordering = ['name']
-        verbose_name = 'Netmiko/SSH Profile'
-        verbose_name_plural = 'Netmiko/SSH Profiles'
+        verbose_name = 'Credentials Profile'
+        verbose_name_plural = 'Credentials Profiles'
 
     def display_name(self):
         """
@@ -766,8 +767,8 @@ class Switch(models.Model):
         related_name='netmiko_profile',
         blank=True,
         null=True,
-        verbose_name='Netmiko/SSH Profile',
-        help_text='The Netmiko/SSH Profile has all the settings to access the switch via SSH for additional command access. Also used for Napalm connections.',
+        verbose_name='Credentials Profile',
+        help_text='The Credentials Profile has all the settings to access the switch via Netmiko/SSH/REST/API/Napalm.',
     )
     command_list = models.ForeignKey(
         to='CommandList',

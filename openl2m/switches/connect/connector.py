@@ -11,10 +11,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+from collections import OrderedDict
 import array
+import natsort
+import netaddr
 import re
 import time
-import netaddr
 
 from django.conf import settings
 
@@ -132,7 +134,9 @@ class Connector():
             self.basic_info_read_timestamp = time.time()
 
             # call the implementation-specific function:
-            self.get_my_basic_info()
+            success = self.get_my_basic_info()
+            if not success:
+                self.add_warning(f"WARNING: cannot get basic info - {self.error.description}")
 
             # update the time it took to read the basic info when it was first read:
             read_duration = int((time.time() - self.basic_info_read_timestamp) + 0.5)
@@ -396,6 +400,17 @@ class Connector():
         dprint(f"get_interface_by_key() for '{key}' => NOT Found!")
         return False
 
+    def get_interface_by_name(self, name):
+        """
+        get an Interface() object from out self.interfaces{} dictionary,
+        search based on the name.
+        return Interface() if found, False if not found.
+        """
+        for (key, iface) in self.interfaces.items():
+            if iface.name == name:
+                return iface
+        return False
+
     def set_interface_attribute_by_key(self, key, attribute, value):
         """
         set the value for a specified attribute of an interface indexed by key
@@ -434,6 +449,14 @@ class Connector():
             dprint(f"   add_vlan_to_interface(): Adding Vlan {vlan_id} to {iface.name}!")
             iface.vlans.append(vlan_id)
             iface.is_tagged = True
+
+    def set_interfaces_natural_sort_order(self):
+        '''
+        Some APIs give responses in alphbetic order, eg 1/1/10 before 1/1/2.
+        Sort interfaces by their key in natural sort order.
+        '''
+        self.interfaces = OrderedDict({key: self.interfaces[key] for key in natsort.natsorted(self.interfaces)})
+        return True
 
     def add_learned_ethernet_address(self, if_name, eth_address):
         '''
