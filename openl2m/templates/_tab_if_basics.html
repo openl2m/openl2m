@@ -43,7 +43,7 @@
               {% if iface.type == IF_TYPE_ETHERNET %}
                 <td>
                   {% if iface.untagged_vlan > 0 %}
-                    {% if connection.vlan_change_implemented and iface.lacp_master_index == -1  %}
+                    {% if connection.vlan_change_implemented and iface.lacp_type == LACP_IF_TYPE_NONE  %}
                       <form name="vlanchange_{{ iface.key }}"
                             action="{% url 'switches:pvid_change' group.id switch.id iface.key %}"
                             method="post"
