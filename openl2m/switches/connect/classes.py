@@ -134,13 +134,16 @@ class Interface():
         self.lldp = {}              # LLDP neighbors, dictionay of NeighborDevice() objects
         self.arp4 = {}              # ARP table entries for ipv4, dictionay of IP4Address() objects
 
-    def add_ip4_network(self, address, prefix_len):
+    def add_ip4_network(self, address, prefix_len=''):
         '''
         Add an IPv4 address to this interface, as given by the IPv4 address and prefix_len
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
         return True on success, False on failure.
         '''
-        self.addresses_ip4[address] = netaddr.IPNetwork(f"{address}/{prefix_len}")
+        if prefix_len:
+            self.addresses_ip4[address] = netaddr.IPNetwork(f"{address}/{prefix_len}")
+        else:
+            self.addresses_ip4[address] = netaddr.IPNetwork(address)
         return True
 
     def add_ip6_network(self, address, prefix_len):
@@ -223,14 +226,14 @@ class Vlan():
     """
     Class to represent a vlan found on the switch
     """
-    def __init__(self, id=0, index=0):
+    def __init__(self, id=0, index=0, name=''):
         """
         Vlan() requires passing in the vlan id
         """
         self.id = id            # the vlan ID as sent on the wire
         self.index = index      # the internal vlan index, used by some MIBs
         self.fdb_index = 0      # the Forward-DB index, from maps switch database to vlan index
-        self.name = ""
+        self.name = name
         self.type = VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
         self.status = VLAN_STATUS_OTHER     # 1-other-0, 2-permanent, 3-dynamic(gvrp)
         # dot1qVlanCurrentEgressPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
