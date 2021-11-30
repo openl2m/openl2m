@@ -13,6 +13,7 @@ permits. Meanwhile, the source code is your best bet!
    :caption: Here is what is available at this time:
 
    requirements.rst
+   code_style.rst
    code_explained.rst
    authentication.rst
    switches_app/index.rst

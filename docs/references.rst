@@ -11,6 +11,9 @@ Various projects that have played a role in the development of OpenL2M
 Sphinx is used to handle the ReStructuredText this documentation is written in.
 Get started here:  https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html
 
+Python doc string options are nicely described here:
+https://stackoverflow.com/questions/3898572/what-is-the-standard-python-docstring-format
+
 **Web frameworks and projects**
 
 Django, the web framework used. See https://docs.djangoproject.com/
@@ -37,6 +40,11 @@ SNMP Introductions
 While there are many, this one has a good basic explanation and includes a
 good example of the GetBulk non-repeaters and max-repetitions parameters:
 https://www.snmpsharpnet.com/?page_id=30
+
+
+**Aruba AOS-CX**
+
+AOS-CX 10.04 REST v10.04 API Guide: https://support.hpe.com/hpsc/doc/public/display?docId=a00091710en_us
 
 
 **Napalm Automation**
