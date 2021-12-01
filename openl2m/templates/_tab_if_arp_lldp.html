@@ -37,8 +37,8 @@
                 bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
             {% endif %}
             {{ switch|get_interface_info_links:iface }}
-            {% if iface.alias %}
-              <span data-toggle="tooltip" title="{{ iface.alias }}">{{ iface.name }}</span>
+            {% if iface.description %}
+              <abbr data-toggle="tooltip" title="{{ iface.description }}">{{ iface.name }}</abbr>
             {% else %}
               {{ iface.name }}
             {% endif %}
