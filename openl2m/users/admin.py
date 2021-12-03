@@ -41,8 +41,12 @@ class SwitchGroupInline(admin.TabularInline):
 
 # Define a new User admin
 class MyUserAdmin(UserAdmin):
+
     # add the Profile view
     inlines = (SwitchGroupInline, ProfileInline,)
+
+    # add last_login
+    list_display = ('username', 'email', 'first_name', 'last_name', 'last_login', 'is_staff')
 
     # this removes the object 'permissions' stuff
     fieldsets = (
@@ -51,6 +55,17 @@ class MyUserAdmin(UserAdmin):
         (('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',)}),
         (('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
+
+    # add action to deactive users
+    actions = ['deactivate_user']
+
+    # this does the work of deactivating users
+    @admin.action(description='Deactivate selected users')
+    def deactivate_user(modeladmin, request, queryset):
+        queryset.update(is_active=False)
+        # also remove admin or staff rights, if any
+        queryset.update(is_staff=False)
+        queryset.update(is_superuser=False)
 
 
 # we have a custom admin site, i.e. register with admin_site, not with default "admin.site"!
