@@ -77,8 +77,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                     iface.poe_entry = port_entry
                     if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
                         warning = f"PoE FAULT status ({port_entry.detect_status} = " \
-                                  f"{poe_status_name[port_entry.detect_status]}) " \
-                                  f"on interface {iface.name}"
+                                  f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
                         self.add_warning(warning)
                         # log my activity
                         log = Log(user=self.request.user,
