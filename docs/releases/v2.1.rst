@@ -62,7 +62,7 @@ using a form presented in the switch view. This provides tremendous flexibility 
 controlled fashion more visibility into the device.
 
 Also adds a Commands-Only connector: if you want to add a device where users can only run pre-defined commands.
-This device will read interfaces and not show the Interface and Bulk Edit tabs.
+This device will not read interfaces and not show the Interface and Bulk Edit tabs.
 
 :doc:`See the documentation for more.<../configuration/cmd_templates>`
 

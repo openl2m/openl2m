@@ -5,6 +5,15 @@ application designed to allow users with minimal training to perform a set of ba
 configuration changes on network switches. It does so by providing a consistent web interface
 for Layer 2 device management, independent of the underlying switch vendor.  
 
+__Basic Features:__
+* enable/disable interface
+* change vlan
+* enable/disable PoE
+* change description
+* see ethernet addresses, lldp neighbors
+* run commands as defined by the OpenL2M administrator
+* and more...
+
 __What's New:__
 v2 implements a new plug-in API that will allow for easy add-on drivers.
 This makes is easy to add support for any kind of network device,

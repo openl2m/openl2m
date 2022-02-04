@@ -4,8 +4,18 @@
 Version 2.2
 ===========
 
-Version 2.2-dev
+Version 2.2-dev1
 -------------
-Release Date: 2021-11-30
+Release Date: 2021-02-04
 
-* *New Feature:* Support for Aruba AOS-CX switches using the REST API.
+* *New Feature:* Support for Aruba AOS-CX switches using the REST API. R/O for now, Write TBD.
+* bulk deactivation of accounts
+* some icon updates
+
+Bug Fixes:
+
+* output display fixes for PoE vault status.
+* several information/status display fixes in lacp, lldp, search, lacp
+* Aruba AOS-CX read vlan info over snmp
+* various package updates
+* other misc. fixes
