@@ -22,6 +22,10 @@ IF_TYPE_LOOPBACK = 24   # interface Loopback X (softwareLoopback)
 IF_TYPE_VIRTUAL = 53    # interface Vlan X (proprietary virtual/internal)
 IF_TYPE_LAGG = 161      # IEEE 802.3ad Link Aggregate
 
+LACP_IF_TYPE_NONE = 0        # not port of LACP aggregation
+LACP_IF_TYPE_MEMBER = 1      # this is a physical port and member
+LACP_IF_TYPE_AGGREGATOR = 2  # this is an aggregator port (Port-Channel or Bridge-Aggregation)
+
 # the list of interfaces visible to a regular user!
 visible_interfaces = {
     IF_TYPE_ETHERNET: True,
