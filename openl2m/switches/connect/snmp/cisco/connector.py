@@ -256,6 +256,8 @@ class SnmpConnectorCisco(SnmpConnector):
                             self.add_warning(warning)
                             # log my activity
                             log = Log(user=self.request.user,
+                                      group=self.group,
+                                      switch=self.switch,
                                       type=LOG_TYPE_ERROR,
                                       ip_address=get_remote_ip(self.request),
                                       action=LOG_PORT_POE_FAULT,
@@ -276,6 +278,8 @@ class SnmpConnectorCisco(SnmpConnector):
                             self.add_warning(warning)
                             # log my activity
                             log = Log(user=self.request.user,
+                                      group=self.group,
+                                      switch=self.switch,
                                       type=LOG_TYPE_ERROR,
                                       ip_address=get_remote_ip(request),
                                       action=LOG_PORT_POE_FAULT,
