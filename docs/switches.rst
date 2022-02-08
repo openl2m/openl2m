@@ -27,7 +27,7 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 * *HP 2540* series; single units.
 * *HP 4200* series, specifically 4204vl (J8770A).
 * *Aruba 2930* F/M series; single units.
-* *Aruba 5400* series; chassis based, rev 1 and 2.
+* *Aruba 5400* series; chassis based, regular, zl, and zl2.
 
 **Aruba AOS-CX**
 

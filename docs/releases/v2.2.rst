@@ -5,7 +5,8 @@ Version 2.2
 ===========
 
 Version 2.2-dev1
--------------
+----------------
+
 Release Date: 2021-02-04
 
 * *New Feature:* Support for Aruba AOS-CX switches using the REST API. R/O for now, Write TBD.
