@@ -36,11 +36,21 @@ that calls this (e.g in the view.py functions that implement the url handling)
 
 
 class Connector():
-    """
+    '''
     This base class defines the basic interface for all switch connections.
-    """
+    '''
     def __init__(self, request=False, group=False, switch=False):
+        '''
+        Initialized the connector class.
 
+        Args:
+            request (http_request): the Django request object.
+            switch (Switch): the switch object to connect to.
+            group (Group): the group this switch belongs to.
+
+        Returns:
+            Connector() object with a valid connection.
+        '''
         dprint("Connector() __init__")
 
         self.request = request  # if running on web server, Django http request object, needed for request.user() and request.session[]
@@ -1010,21 +1020,38 @@ class Connector():
         dprint("_set_interfaces_permissions() done!")
         return
 
+    def add_log(self, description, type, action):
+        '''
+        Log a message about some event on this device to the log table.
+
+        Args:
+            description (str): a string describing the log entry.
+            type (int): the log type, as defined by the LOG_TYPE_xxx values.
+            action (int): the action this message pertains to, as defined by the LOG_xxx values.
+
+        Returns:
+            none
+        '''
+        log = Log(group=self.group,
+                  switch=self.switch,
+                  ip_address=get_remote_ip(self.request),
+                  type=type,
+                  action=action,
+                  description=description)
+        if self.request:
+            log.user = self.request.user
+        log.save()
+        return
+
     def add_warning(self, warning):
         """
         Add a warning to the list, and log it as well!
         """
         self.warnings.append(warning)
         # add a log message
-        log = Log(group=self.group,
-                  switch=self.switch,
-                  ip_address=get_remote_ip(self.request),
-                  type=LOG_TYPE_WARNING,
-                  action=LOG_SNMP_ERROR,
-                  description=warning)
-        if self.request:
-            log.user = self.request.user
-        log.save()
+        self.add_log(type=LOG_TYPE_WARNING,
+                     action=LOG_SNMP_ERROR,
+                     description=warning)
         # done!
         return
 
@@ -1039,15 +1066,9 @@ class Connector():
             err = self.error
         if err:
             # add a log message
-            log = Log(group=self.group,
-                      switch=self.switch,
-                      ip_address=get_remote_ip(self.request),
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_SNMP_ERROR,
-                      description=f"{self.error.description}: {self.error.details}")
-            if self.request:
-                log.user = self.request.user
-                log.save()
+            self.add_log(type=LOG_TYPE_ERROR,
+                         action=LOG_SNMP_ERROR,
+                         description=f"{self.error.description}: {self.error.details}")
         # done!
         return
 
