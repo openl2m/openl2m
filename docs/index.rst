@@ -55,3 +55,9 @@ If you are interesting in contributing, writing drivers for new devices, or just
   :caption: For Developers:
 
   code/index.rst
+
+
+.. |date| date::
+.. |time| date:: %H:%M
+
+These documents were generated on |date| at |time|.
