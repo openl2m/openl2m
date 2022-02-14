@@ -14,7 +14,11 @@
         <small class="text-muted">User login</small>
         <h5>{{ request.user.username }}</h5>
         <small class="text-muted">Full name</small>
-        <h5>{{ request.user.first_name }} {{ request.user.last_name }}</h5>
+        {% if request.user.first_name and request.user.last_name %}
+          <h65>{{ request.user.first_name }} {{ request.user.last_name }}</h5>
+        {% else %}
+          <h6>(not set)</h6>
+        {% endif %}
         <small class="text-muted">Email</small>
         <h5>{{ request.user.email }}</h5>
         {% if request.user.ldap_user %}
