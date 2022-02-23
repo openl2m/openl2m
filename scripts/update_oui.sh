@@ -42,7 +42,7 @@ fi
 
 
 # go to the netaddr install location inside the Virtual Environment:
-echo "Changing to '$NETADDR_PATH/eui'!"
+echo "Changing to '$NETADDR_PATH/eui'"
 cd "$NETADDR_PATH/eui"
 
 # check that we are in the proper folder
@@ -61,8 +61,8 @@ cp oui.txt oui.txt.old
 
 # download new iab and oui files
 echo "Downloading updates to two OUI files..."
-curl --silent http://standards-oui.ieee.org/iab/iab.txt --output iab.txt
-curl --silent http://standards-oui.ieee.org/oui/oui.txt --output oui.txt
+wget http://standards-oui.ieee.org/iab/iab.txt --output-document=iab.txt --output-file=iab.wget.out
+wget http://standards-oui.ieee.org/oui/oui.txt --output-document=oui.txt --output-file=oui.wget.out
 
 # run the 'index creation script'
 echo "Creating new database files for netaddr package..."
