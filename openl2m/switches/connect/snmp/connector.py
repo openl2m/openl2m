@@ -954,13 +954,11 @@ class SnmpConnector(Connector):
             if_index = self._get_if_index_from_port_id(port_id)
             # not yet sure how to handle this
             untagged_vlan = int(val)
-            # if the vlan is globally defined on switch:
-            if untagged_vlan in self.vlans.keys():
-                self.set_interface_attribute_by_key(if_index, "untagged_vlan", untagged_vlan)
-            else:
+            self.set_interface_attribute_by_key(if_index, "untagged_vlan", untagged_vlan)
+            if untagged_vlan not in self.vlans.keys():
                 # vlan not defined on switch!
                 self.set_interface_attribute_by_key(if_index, "disabled", True)
-                self.set_interface_attribute_by_key(if_index, "disabled_reason",
+                self.set_interface_attribute_by_key(if_index, "unmanage_reason",
                                                     f"Untagged vlan {untagged_vlan} is NOT defined on switch")
                 warning = f"Undefined vlan {untagged_vlan} on {self.interfaces[if_index].name}"
                 self.add_warning(warning)

@@ -920,6 +920,13 @@ class Connector():
             iface = self.interfaces[key]
             # dprint(f"  checking {iface.name}")
 
+            # if disabled by the Connector() driver:
+            if iface.disabled:
+                iface.manageable = False
+                iface.allow_poe_toggle = False
+                iface.can_edit_description = False
+                continue
+
             # we can only manage ethernet interfaces!
             if iface.type != IF_TYPE_ETHERNET:
                 iface.manageable = False

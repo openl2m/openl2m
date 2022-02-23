@@ -87,7 +87,8 @@ class Interface():
         self.key = str(key)         # the key used to find the index in the connector.interfaces{} dict
         self.visible = True         # if True, this user can "see" this interface
         self.manageable = False      # if True, this interface is manageable by the current user
-        self.unmanage_reason = "Access denied!"     # string with reason why interface is not manageable
+        self.disabled = False       # if True, this interface is disabled by the Connector() driver.
+        self.unmanage_reason = "Access denied!"     # string with reason why interface is not manageable or disabled
         self.can_edit_description = False  # if True, can change interface description (snmp ifAlias)
         self.index = key            # ifIndex, the key to all MIB-2 data!
         # self.ifDescr = ""           # the old name of the interface, NOT the "description" attribute which is the ifAlias !!!

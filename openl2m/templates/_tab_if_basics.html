@@ -72,7 +72,7 @@
                         {{ iface.untagged_vlan }}
                       </span>
                     {% endif %}
-                  {% else %} {# untagged_vlan = 0 #}
+                  {% else %} {# untagged_vlan <= 0 #}
                     <span data-toggle="tooltip" title="Configured vlan {{ iface.untagged_vlan }} is not defined on this switch. See warnings tab!">Not defined!</span>
                   {% endif %}
                 </td>
