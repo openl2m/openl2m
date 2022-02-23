@@ -42,6 +42,7 @@ fi
 
 
 # go to the netaddr install location inside the Virtual Environment:
+echo "Changing to '$NETADDR_PATH/eui'!"
 cd "$NETADDR_PATH/eui"
 
 # check that we are in the proper folder
