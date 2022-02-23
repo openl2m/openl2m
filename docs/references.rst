@@ -14,6 +14,17 @@ Get started here:  https://docs.readthedocs.io/en/stable/intro/getting-started-w
 Python doc string options are nicely described here:
 https://stackoverflow.com/questions/3898572/what-is-the-standard-python-docstring-format
 
+RST Tutorial:  https://docs.typo3.org/m/typo3/docs-how-to-document/main/en-us/WritingReST/
+
+RST Directives (ie. tags): https://docutils.sourceforge.io/docs/ref/rst/directives.html
+
+Intro to Sphynx: https://www.writethedocs.org/guide/tools/sphinx/
+
+Using Sphynx: https://www.sphinx-doc.org/en/master/contents.html
+
+Sphynx-specific Directives: https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html
+
+
 **Web frameworks and projects**
 
 Django, the web framework used. See https://docs.djangoproject.com/
