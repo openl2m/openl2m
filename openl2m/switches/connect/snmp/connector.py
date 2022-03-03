@@ -193,23 +193,25 @@ class pysnmpHelper():
 
             # AuthPriv
             elif self.switch.snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_PRIV:
-                authOptions = {}
                 # authentication protocol
+                authProtocol = usmHMACSHAAuthProtocol   # default to SHA-1
                 if self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                    authOptions[authProtocol] = usmHMACMD5AuthProtocol
-                elif elf.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                    authOptions[authProtocol] = usmHMACSHAAuthProtocol
+                    authProtocol = usmHMACMD5AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
+                    authProtocol = usmHMACSHAAuthProtocol
 
                 # privacy protocol
+                privProtocol = usmAesCfb128Protocol     # default to AES-128
                 if self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
-                    authOptions[privProtocol] = usmDESPrivProtocol
+                    privProtocol = usmDESPrivProtocol
                 elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
-                    authOptions[privProtocol] = usmAesCfb128Protocol
+                    privProtocol = usmAesCfb128Protocol
 
                 self._auth_data = UsmUserData(self.switch.snmp_profile.username,
                                               self.switch.snmp_profile.passphrase,
                                               self.switch.snmp_profile.priv_passphrase,
-                                              authOptions)
+                                              authProtocol=authProtocol,
+                                              privProtocol=privProtocol)
                 return True
             else:
                 # unknown security level!
@@ -2148,7 +2150,13 @@ class SnmpConnector(Connector):
             # now send update to switch:
             # use PySNMP to do this work:
             octet_string = OctetString(hexValue=old_vlan_portlist.to_hex_string())
-            pysnmp = pysnmpHelper(self.switch)
+            try:
+                pysnmp = pysnmpHelper(self.switch)
+            except Exception as err:
+                self.error.status = True
+                self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+                self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                return False
             if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", octet_string):
                 self.error.status = True
                 self.error.description += "\nError in setting port (dot1qVlanStaticEgressPorts)"

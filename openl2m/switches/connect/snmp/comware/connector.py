@@ -166,7 +166,14 @@ class SnmpConnectorComware(SnmpConnector):
 
                 # now send them all as an atomic set():
                 # get the PySNMP helper to do the work with the OctetString() BitMaps:
-                pysnmp = pysnmpHelper(self.switch)
+                try:
+                    pysnmp = pysnmpHelper(self.switch)
+                except Exception as err:
+                    self.error.status = True
+                    self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+                    self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                    return False
+
                 if not pysnmp.set_multiple([low_oid, high_oid, pvid_oid]):
                     self.error.status = True
                     self.error.description = f"Error setting vlan '{new_vlan_id}' on tagged port!"
@@ -243,7 +250,14 @@ class SnmpConnectorComware(SnmpConnector):
                 # note that to_hex_string() is same as .__str__ representation,
                 # but we use it for extra clarity!
                 octet_string = OctetString(hexValue=new_vlan_portlist.to_hex_string())
-                pysnmp = pysnmpHelper(self.switch)
+                try:
+                    pysnmp = pysnmpHelper(self.switch)
+                except Exception as err:
+                    self.error.status = True
+                    self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+                    self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                    return False
+
                 dprint("Setting via pysnmpHelper()")
                 if not pysnmp.set(f"{hh3cdot1qVlanPorts}.{new_vlan_id}", octet_string):
                     self.error.status = True
