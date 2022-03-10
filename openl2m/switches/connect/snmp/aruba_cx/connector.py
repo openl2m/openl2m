@@ -13,7 +13,7 @@
 #
 """
 Aruba-AOS-CX (new style) specific implementation of the SNMP object
-Note that the SNMP implementation in AOS-CX is read-only.
+Note that the SNMP implementation in AOS-CX switches is read-only.
 We will implement many features via the REST API of the product, See
 https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
 This will be done as part of the 'Aruba-AOS' configuration type, coded in
@@ -30,9 +30,10 @@ from switches.utils import *
 from .constants import *
 
 
-class SnmpConnectorAruba(SnmpConnector):
+class SnmpConnectorArubaCx(SnmpConnector):
     """
-    Aruba specific implementation of the SNMP object, for now a derivative of the default SNMP connector.
+    Aruba AOS-CX specific implementation of the SNMP object,
+    for now a derivative of the default SNMP connector.
     """
 
     def __init__(self, request, group, switch):
@@ -84,7 +85,9 @@ class SnmpConnectorAruba(SnmpConnector):
                     iface.untagged_vlan = untagged_vlan
                     iface.untagged_vlan_name = self.vlans[untagged_vlan].name
             else:
-                self.add_warning(f"Vieee8021QBridgePortVlanEntry VLAN {val} found, but port {name} NOT found!")
+                # AOS-CX appears to report all interfaces for all possible stack members.
+                # even when less then max-stack-members are actualy present!
+                self.add_warning(f"IEEE802.1QBridgePortVlanEntry found, but interface {name} NOT found!")
             return True
 
         return False
@@ -95,7 +98,7 @@ class SnmpConnectorAruba(SnmpConnector):
         Get all neccesary vlan info (names, id, ports on vlans, etc.) from the switch.
         Returns -1 on error, or number to indicate vlans found.
         """
-        dprint("_get_vlan_data(Aruba)\n")
+        dprint("_get_vlan_data(ArubaAosCx)\n")
         # get the generic vlan data:
         super()._get_vlan_data()
 

@@ -58,7 +58,7 @@ class AosCxConnector(Connector):
         self.aoscx_session = False
         # and we dont want to cache this:
         self.set_do_not_cache_attribute('aoscx_session')
-        self.switch.read_only = True    # read-only for now. Write-access to come...
+        self.switch.read_only = False
 
     def get_my_basic_info(self):
         '''
@@ -72,8 +72,16 @@ class AosCxConnector(Connector):
 
         # get facts of device first, ie OS, model, etc.!
         # see https://github.com/aruba/pyaoscx/blob/master/pyaoscx/device.py
-        device = AosDevice(session=self.aoscx_session)
-        device.get()
+        try:
+            device = AosDevice(session=self.aoscx_session)
+            device.get()
+        except Exception as error:
+            self.error.status = True
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"Cannot read device information: {format(error)}"
+            dprint("  get_my_basic_info(): AosDevice.get() failed!")
+            return False
+
         # the create call (__init__()) already calls get_firmware_version
         # firmware = device.get_firmware_version()
 
@@ -100,7 +108,15 @@ class AosCxConnector(Connector):
         #    print(f"        attribute: {key}")
 
         # get the VLAN info
-        vlans = AosVlan.get_facts(session=self.aoscx_session)
+        try:
+            vlans = AosVlan.get_facts(session=self.aoscx_session)
+        except Exception as error:
+            self.error.status = True
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"Cannot read device vlans: {format(error)}"
+            dprint("  get_my_basic_info(): AosVlan.get_facts() failed!")
+            return False
+
         for id in vlans:
             vlan = vlans[id]
             dprint(f"Vlan {id}: {vlan['name']}")
@@ -111,7 +127,14 @@ class AosCxConnector(Connector):
                 dprint("  VLAN is down!")
 
         # and get the interfaces:
-        aos_interfaces = AosInterface.get_facts(session=self.aoscx_session)
+        try:
+            aos_interfaces = AosInterface.get_facts(session=self.aoscx_session)
+        except Exception as error:
+            self.error.status = True
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"Cannot read device interfaces: {format(error)}"
+            dprint("  get_my_basic_info(): AosInterface.get_facts() failed!")
+            return False
         for if_name in aos_interfaces:
             dprint(f"Interface: {if_name}")
             aos_interface = aos_interfaces[if_name]
@@ -211,7 +234,7 @@ class AosCxConnector(Connector):
         # sort this to the human natural order we expect:
         self.set_interfaces_natural_sort_order()
 
-        # fix up some things that are not know at time of interface discovery,
+        # fix up some things that are not known at time of interface discovery,
         # such as LACP master interfaces:
         for name, iface in self.interfaces.items():
             if iface.lacp_type == LACP_IF_TYPE_MEMBER:
@@ -230,9 +253,164 @@ class AosCxConnector(Connector):
         return True on success, False on error and set self.error variables
         '''
         if not self._open_device():
+            dprint("_open_device() failed!")
             return False
         # get mac address table
+        # TBD
+        #
+        self._close_device()
         return False
+
+    def set_interface_admin_status(self, interface, new_state):
+        """
+        set the interface to the requested state (up or down)
+        interface = Interface() object for the requested port
+        new_state = True / False  (enabled/disabled)
+        return True on success, False on error and set self.error variables
+        """
+        # interface.admin_status = new_state
+        dprint(f"AosCxConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+        try:
+            aoscx_interface = AosInterface(session=self.aoscx_session, name=interface.name)
+            aoscx_interface.get()
+        except Exception as error:
+            self.error.status = True
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"Cannot read device interface: {format(error)}"
+            dprint("  set_interface_admin_status(): AosInterface.get() failed!")
+            self._close_device()
+            return False
+
+        if new_state:
+            state = "up"
+        else:
+            state = "down"
+        # changed = aoscx_interface.set_state(state=state)
+        aoscx_interface.admin_state = state
+        changed = aoscx_interface.apply()
+        self._close_device()
+        if changed:
+            dprint(f"  Interface change '{state}' OK!")
+            # call the super class for bookkeeping.
+            super().set_interface_admin_status(interface, new_state)
+            return True
+        else:
+            dprint(f"   Interface change '{state}' FAILED!")
+            # we need to add error info here!!!
+            return False
+
+    def set_interface_description(self, interface, description):
+        """
+        set the interface description (aka. description) to the string
+        interface = Interface() object for the requested port
+        new_description = a string with the requested text
+        return True on success, False on error and set self.error variables
+        """
+        dprint(f"AosCxConnector.set_interface_description() for {interface.name} to '{description}'")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+        try:
+            aoscx_interface = AosInterface(session=self.aoscx_session, name=interface.name)
+            aoscx_interface.get()
+        except Exception as error:
+            self.error.status = True
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"Cannot read device interface: {format(error)}"
+            dprint("  set_interface_description(): AosInterface.get() failed!")
+            self._close_device()
+            return False
+
+        aoscx_interface.description = description
+        changed = aoscx_interface.apply()
+        self._close_device()
+        if changed:
+            dprint("   Descr OK!")
+            # call the super class for bookkeeping.
+            super().set_interface_description(interface, description)
+            return True
+        else:
+            dprint("   Descr FAILED!")
+            # we need to add error info here!!!
+            return False
+
+    def set_interface_poe_status(self, interface, new_state):
+        """
+        set the interface Power-over-Ethernet status as given
+        interface = Interface() object for the requested port
+        new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
+        return True on success, False on error and set self.error variables
+        """
+        dprint(f"AosCxConnector.set_interface_poe_status() for {interface.name} to {new_state}")
+        if interface.poe_entry:
+            if not self._open_device():
+                dprint("_open_device() failed!")
+                return False
+            # go get PoE info:
+            try:
+                aoscx_interface = AosInterface(session=self.aoscx_session, name=interface.name)
+                aoscx_poe = AosPoEInterface(session=self.aoscx_session, parent_interface=aoscx_interface)
+                aoscx_poe.get()
+            except Exception as error:
+                self.error.status = True
+                self.error.description = "Error establishing connection!"
+                self.error.details = f"Cannot read device interface: {format(error)}"
+                dprint("  set_interface_poe_status(): AosInterface or AosPoEInterface.get() failed!")
+                self._close_device()
+                return False
+
+            dprint(f"  +++ POE Exists for {ifname} ===")
+            changed = aoscx_poe.set_power(state=new_state)
+            self._close_device()
+            if changed:
+                dprint("   PoE change OK!")
+                # call the super class for bookkeeping.
+                super().set_interface_poe_status(interface, new_state)
+                return True
+            else:
+                dprint("   PoE change FAILED!")
+                # we need to add error info here!!!
+                return False
+
+    def set_interface_untagged_vlan(self, interface, new_pvid):
+        """
+        set the interface untagged vlan to the given vlan
+        interface = Interface() object for the requested port
+        new_pvid = an integer with the requested untagged vlan
+        return True on success, False on error and set self.error variables
+        """
+        dprint(f"AosCxConnector.set_interface_untagged_vlan() for {interface.name} to vlan {new_pvid}")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+        try:
+            aoscx_interface = AosInterface(session=self.aoscx_session, name=interface.name)
+            aoscx_interface.get()
+        except Exception as error:
+            self.error.status = True
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"Cannot read device interface: {format(error)}"
+            dprint("  set_interface_untagged_vlan(): AosInterface.get() failed!")
+            self._close_device()
+            return False
+
+        aoscx_vlan = AosVlan(session=self.aoscx_session, vlan_id=504)
+        # aoscx_vlan.get()
+        changed = aoscx_interface.set_untagged_vlan(aoscx_vlan)
+        # change = aoscs_vlan.apply()
+        self._close_device()
+        if changed:
+            dprint("   Vlan Change OK!")
+            # call the super class for bookkeeping.
+            super().set_interface_untagged_vlan(interface, new_pvid)
+            return True
+        else:
+            dprint("   Vlan Change FAILED!")
+            # we need to add error info here!!!
+            return False
 
     def _open_device(self):
         '''
@@ -256,6 +434,7 @@ class AosCxConnector(Connector):
         try:
             dprint('Getting AOS-CX session...')
             self.aoscx_session.open(self.switch.netmiko_profile.username, self.switch.netmiko_profile.password)
+            dprint("  session OK!")
         except Exception as error:
             self.error.status = True
             self.error.description = "Error establishing connection!"

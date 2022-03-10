@@ -39,8 +39,8 @@ from switches.connect.snmp.juniper.constants import *
 from switches.connect.snmp.juniper.connector import SnmpConnectorJuniper
 from switches.connect.snmp.procurve.constants import *
 from switches.connect.snmp.procurve.connector import SnmpConnectorProcurve
-from switches.connect.snmp.aruba.constants import *
-from switches.connect.snmp.aruba.connector import SnmpConnectorAruba
+from switches.connect.snmp.aruba_cx.constants import *
+from switches.connect.snmp.aruba_cx.connector import SnmpConnectorArubaCx
 from switches.connect.aruba_aoscx.constants import *
 from switches.connect.aruba_aoscx.connector import AosCxConnector
 
@@ -94,7 +94,7 @@ def get_connection_object(request, group, switch):
                     connection = SnmpConnectorComware(request, group, switch)
 
                 elif enterprise_id == ENTERPRISE_ID_HP_ENTERPRISE:
-                    connection = SnmpConnectorAruba(request, group, switch)
+                    connection = SnmpConnectorArubaCx(request, group, switch)
 
                 # Dell is yet to be tested!
                 # elif enterprise_id == ENTERPRISE_ID_DELL:

@@ -12,9 +12,13 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-HP-Procurve specific implementation of the SNMP object
+HP-Procurve specific implementation of the SNMP object.
+This also support recent "Aruba" branded switches.
+Note that this does NOT support "Aruba CX" switches.
+The latter are supported via connect/snmp/aruba-cx/ (read-only), or connect/aruba_aoscx/
+
 This re-implements some methods found in the base SNMP() class
-with Procurve specific ways of doing things...
+with Procurve/Aruba specific ways of doing things...
 """
 from switches.models import Log
 from switches.constants import *
