@@ -7,18 +7,21 @@ Debugging
 Debugging is mostly to assist the developers with troubleshooting. This can
 come in handy when you have a new device that is not properly rendering.
 
+The source uses the *dprint(<string>)* function to print debugging output.
+If *settings.DEBUG* is enabled, this will output to the *openl2m.console* Python logger.
+
 To enable lots of debugging output, add the following to the
 configuration file in *openl2m/configuration.py*
 
-This configuration below enables the following debugging:
+This configuration below enables the following debugging, depending on *handler* chosen:
 
-* Debug output goes to /tmp/openl2m-debug.log. Modify this path as needed.
-* This implementents time-based rotation, with a new log every day. You can also change
+* *file* output goes to /tmp/openl2m-debug.log. Modify this path as needed.
+  This implementents time-based rotation, with a new log every day. You can also change
   to size-based rotation. See the Python 3 logging docs for more details.
-* if running in DEBUG mode (for developers), the same output also goes to
-  the console screen.
-* you can also log to syslog, Sentry.io, or anything else supported by the
-  Python logging library. Configuration is left as an exercise to the reader.
+* *console* goes to the console screen. Use this when using 'django runserver' for testing.
+* *syslog* goes to a configured local syslog receiver.
+* you can also log to remote syslog, Sentry.io, or anything else supported by the
+  Python logging library. Further configuration is left as an exercise to the reader.
 
 Add this to configuration.py:
 
@@ -78,12 +81,6 @@ Add this to configuration.py:
               'handlers': ['console'],
               'level': 'DEBUG',
           },
-          'openl2m.debug': {
-              # with Celery use:
-              #'handlers': ['syslog'],
-              'handlers': ['file'],
-              'level': 'DEBUG',
-          },
       },
   }
 
@@ -95,6 +92,6 @@ If you have this enabled, for debugging please stop that process:
   sudo systemctl stop celery
 
 Alternatively, you can use a syslog config, or the like, that does NOT write files directly.
-See more at https://docs.djangoproject.com/en/2.2/topics/logging/
+See more at https://docs.djangoproject.com/en/3.2/topics/logging/
 
 **Don't forget to remove this configuration when you are done!** (and start Celery, if needed)

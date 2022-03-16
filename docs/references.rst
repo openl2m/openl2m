@@ -36,6 +36,7 @@ Introduction to the Bootstrap framework used for web rendering. See https://www.
 The Netbox project. This is the original project that inspired the birth of OpenL2M :-).
 See https://github.com/netbox-community/netbox
 
+HP/Aruba vlan management tool. https://sourceforge.net/projects/procurve-admin/
 
 **SNMP related**
 
@@ -55,7 +56,9 @@ https://www.snmpsharpnet.com/?page_id=30
 
 **Aruba AOS-CX**
 
-AOS-CX 10.04 REST v10.04 API Guide: https://support.hpe.com/hpsc/doc/public/display?docId=a00091710en_us
+AOS-CX REST API v10.04 Guide: http://www.arubanetworks.com/techdocs/AOS-CX/10.07/PDF/5200-7883.pdf
+
+The pyasocx library is at https://github.com/aruba/pyaoscx/
 
 
 **Napalm Automation**
