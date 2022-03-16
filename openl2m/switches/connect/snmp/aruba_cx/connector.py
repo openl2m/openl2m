@@ -87,7 +87,9 @@ class SnmpConnectorArubaCx(SnmpConnector):
             else:
                 # AOS-CX appears to report all interfaces for all possible stack members.
                 # even when less then max-stack-members are actualy present!
-                self.add_warning(f"IEEE802.1QBridgePortVlanEntry found, but interface {name} NOT found!")
+                # so we are ignoring this warning for now...
+                # self.add_warning(f"IEEE802.1QBridgePortVlanEntry found, but interface {name} NOT found!")
+                dprint(f"IEEE802.1QBridgePortVlanEntry found, but interface {name} NOT found!")
             return True
 
         return False
