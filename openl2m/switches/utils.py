@@ -24,17 +24,14 @@ import re
 from django.conf import settings
 from django.utils.timezone import get_default_timezone
 
-logger_debug = logging.getLogger("openl2m.debug")
 logger_console = logging.getLogger("openl2m.console")
 
 
 def dprint(var):
     """
-    log to file if configured in settings.LOGGING
-    via the Django/Python Logger() class.
-    Additionally, print to console logger if debugging is Enabled
+    Output to the configured console logger if debugging is Enabled
+    See settings.LOGGING as defined in openl2m/configuration.py
     """
-    logger_debug.debug(var)
     if settings.DEBUG:
         logger_console.debug(var)
 
