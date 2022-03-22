@@ -231,6 +231,7 @@ class Vlan():
         self.fdb_index = 0      # the Forward-DB index, from maps switch database to vlan index
         self.name = name
         self.type = VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
+        self.admin_status = VLAN_ADMIN_ENABLED     # ENABLED or DISABLED
         self.status = VLAN_STATUS_OTHER     # 1-other-0, 2-permanent, 3-dynamic(gvrp)
         # dot1qVlanCurrentEgressPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
         self.current_egress_portlist = PortList()

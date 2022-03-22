@@ -124,23 +124,19 @@ class DummyConnector(Connector):
 
         return True
 
-    def get_my_detailed_info(self):
+    def get_my_hardware_details(self):
         """
         placeholder for class-specific implementation to read things like:
             stacking info, serial #, and whatever you want to add.
         """
-        dprint("Dummy Connector get_my_detailed_info()")
-        return True
-
-    def get_more_info(self):
-
-        dprint("Dummy Connector get_more_info()")
+        dprint("Dummy Connector get_my_hardware_details()")
 
         self.add_more_info('Dummy Heading', 'Element 1', 'Value 1')
         self.add_more_info('Dummy Heading', 'Element 2', 'Value 2')
         self.add_more_info('Dummy Heading', 'Element 3', 'Value 3')
         self.add_more_info('Dummy Heading', 'Element 4', 'Value 4')
         self.add_more_info('Some Other Heading', 'Element 1', 'Value 1')
+        return True
 
     def can_run_commands(self):
         """

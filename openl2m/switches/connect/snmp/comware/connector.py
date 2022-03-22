@@ -43,6 +43,7 @@ class SnmpConnectorComware(SnmpConnector):
         dprint("Comware SnmpConnector __init__")
         super().__init__(request, group, switch)
         self.vendor_name = "HPE/Comware"
+        self.can_save_config = True
         # needed for saving config file:
         self.active_config_rows = 0
 
@@ -109,12 +110,12 @@ class SnmpConnectorComware(SnmpConnector):
         #    return False
         return True
 
-    def get_more_info(self):
+    def get_my_hardware_details(self):
         """
-        Implement the get_more_info() class from the base object
+        Implement the get_my_hardware_details() called from from the base object get_hardware_details()
         Does not return anything!
         """
-        # dprint("Comware get_more_info()")
+        # dprint("Comware get_my_hardware_details()")
         self.get_snmp_branch('hh3cCfgLog', self._parse_mibs_comware_config)
 
     def set_interface_untagged_vlan(self, interface, new_vlan_id):
@@ -444,13 +445,6 @@ class SnmpConnectorComware(SnmpConnector):
                                   description=warning)
                         log.save()
                     break
-
-    def can_save_config(self):
-        """
-        If True, this instance can save the running config to startup
-        Ie. "write mem / save" is implemented via an SNMP interfaces
-        """
-        return True
 
     def save_running_config(self):
         """

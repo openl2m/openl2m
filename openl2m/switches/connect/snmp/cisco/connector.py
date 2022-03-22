@@ -41,6 +41,7 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint("CISCO SnmpConnector __init__")
         super().__init__(request, group, switch)
         self.vendor_name = "Cisco"
+        self.can_save_config = True
 
     def _parse_oid(self, oid, val):
         """
@@ -312,12 +313,12 @@ class SnmpConnectorCisco(SnmpConnector):
         # interface not found:
         return False
 
-    def get_more_info(self):
+    def get_my_hardware_details(self):
         """
-        Implement the get_more_info() class from the base object.
+        Implement the get_my_hardware_details() function called from the base object get_hardware_details().
         Does not return anything.
         """
-        dprint("get_more_info(Cisco)")
+        dprint("get_my_hardware_details(Cisco)")
         self.get_snmp_branch('ccmHistory', self._parse_mibs_cisco_config)
 
     def _parse_mibs_cisco_if_opermode(self, oid, val):
@@ -657,13 +658,6 @@ class SnmpConnectorCisco(SnmpConnector):
             return True
 
         return False
-
-    def can_save_config(self):
-        """
-        If True, this instance can save the running config to startup
-        Ie. "write mem" is implemented via an SNMP interfaces
-        """
-        return True
 
     def save_running_config(self):
         """

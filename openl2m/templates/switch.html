@@ -57,7 +57,7 @@
 
         {% if connection.show_interfaces %}
 
-          {% if request.user.is_superuser and connection.hwinfo_needed %}
+          {% if request.user.is_superuser and connection.can_get_hardware_details and connection.hardware_details_needed %}
           <td>
             <a href="{% url 'switches:switch_hw_info' group.id switch.id %}"
               data-toggle="tooltip"
@@ -69,6 +69,7 @@
           </td>
           {% endif %}
 
+          {% if connection.can_get_client_data %}
           <td>
             <a href="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
                data-toggle="tooltip"
@@ -83,7 +84,8 @@
               {% endif %} Eth/Arp/LLDP
             </a>
           </td>
-
+          {% endif %}
+          
           {% if connection.save_needed %}
           <td>
             <a href="{% url 'switches:switch_save_config' group.id switch.id view %}"

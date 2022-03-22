@@ -462,7 +462,8 @@ class SnmpConnector(Connector):
             dprint(f"+++> INVALID BRANCH NAME: {branch_name}")
             self.add_warning(f"Invalid snmp branch '{branch_name}'")
             # log this as well
-            log = Log(group=self.group,
+            log = Log(user=self.request.user,
+                      group=self.group,
                       switch=self.switch,
                       ip_address=get_remote_ip(self.request),
                       type=LOG_TYPE_ERROR,
@@ -512,7 +513,8 @@ class SnmpConnector(Connector):
             self.error.details = f"SNMP Error: branch {branch_name}, {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   get_snmp_branch({branch_name}): Exception: {e.__class__.__name__}\n{self.error.details}\n")
             # log this as well
-            log = Log(group=self.group,
+            log = Log(user=self.request.user,
+                      group=self.group,
                       switch=self.switch,
                       ip_address=get_remote_ip(self.request),
                       type=LOG_TYPE_ERROR,
@@ -623,7 +625,7 @@ class SnmpConnector(Connector):
                     return True
         return False
 
-    def get_my_detailed_info(self):
+    def get_my_hardware_details(self):
         """
         Get all (possible) hardware info, stacking details, etc.
         return True if succedded, and False if not
@@ -965,7 +967,8 @@ class SnmpConnector(Connector):
                 warning = f"Undefined vlan {untagged_vlan} on {self.interfaces[if_index].name}"
                 self.add_warning(warning)
                 # log this as well
-                log = Log(group=self.group,
+                log = Log(user=self.request.user,
+                          group=self.group,
                           switch=self.switch,
                           ip_address=get_remote_ip(self.request),
                           if_index=if_index,
@@ -1592,6 +1595,7 @@ class SnmpConnector(Connector):
                 log = Log(action=LOG_NEW_OID_FOUND,
                           description="New System ObjectID found",
                           switch=self.switch,
+                          user=self.request.user,
                           group=self.group,
                           ip_address=get_remote_ip(self.request),
                           type=LOG_TYPE_WARNING)
@@ -1607,6 +1611,7 @@ class SnmpConnector(Connector):
                 log = Log(action=LOG_NEW_HOSTNAME_FOUND,
                           description="New System Hostname found",
                           switch=self.switch,
+                          user=self.request.user,
                           group=self.group,
                           ip_address=get_remote_ip(self.request),
                           type=LOG_TYPE_WARNING)

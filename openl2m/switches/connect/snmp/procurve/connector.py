@@ -72,9 +72,9 @@ class SnmpConnectorProcurve(SnmpConnector):
 
         return True
 
-    def get_more_info(self):
+    def get_my_hardware_details(self):
         """
-        Implement the get_more_info() class from the base object
+        Implement the get_my_hardware_details(), called from the base object get_hardware_details()
         """
         self.get_snmp_branch('hpnicfCfgLog', self._parse_mibs_procurve_config)
 
@@ -198,11 +198,3 @@ class SnmpConnectorProcurve(SnmpConnector):
             else:
                 # should not happen!
                 dprint(f"ERROR: PoE entry NOT FOUND for pe_index={pe_index}")
-
-
-"""
-    def can_save_config(self):
-        # If True, this instance can save the running config to startup
-        # Procurve has auto-save, so no save needed, i.e. return False
-        return False
-"""

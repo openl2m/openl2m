@@ -47,29 +47,10 @@ class CommandsOnlyConnector(Connector):
     def get_my_basic_info(self):
         """
         placeholder, we are not actually gathering information here
+        Implemented to surpress the warning if not implemented.
         """
         dprint("Commands-Only Connector get_my_basic_info()")
         return True
-
-    def get_my_client_data(self):
-        """
-        placeholder, this should never be called!
-        """
-        dprint("Commands-Only Connector get_my_client_data()")
-        return True
-
-    def get_my_detailed_info(self):
-        """
-        placeholder, this should never be called!
-        """
-        dprint("Commands-Only Connector get_my_detailed_info()")
-        return True
-
-    def get_more_info(self):
-        """
-        placeholder, this should never be called!
-        """
-        dprint("Commands-Only Connector get_more_info()")
 
     def can_run_commands(self):
         """

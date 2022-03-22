@@ -76,7 +76,6 @@ class Connector():
         self.syslog_msgs = {}       # list of Syslog messages, if any
         self.syslog_max_msgs = 0    # how many syslog msgs device will store
         # some flags:
-        self.hwinfo_needed = True   # True if we still need to read the Entity tables
         self.cache_loaded = False   # if True, system data was loaded from cache
         # some timestamps:
         self.basic_info_read_timestamp = 0    # when the last 'basic' snmp read occured
@@ -108,7 +107,7 @@ class Connector():
         self.save_needed = False
 
         # physical device related:
-        self.hwinfo_needed = True   # True if we still need to read more hardware info (eg. the Entity tables)
+        self.hardware_details_needed = True   # True if we still need to read more hardware info (eg. the Entity tables)
         self.stack_members = {}     # list of StackMember() objects that are part of this switch
         # syslog related info, if supported:
         self.syslog_msgs = {}       # list of Syslog messages, if any
@@ -116,7 +115,14 @@ class Connector():
         # generic info for the "Switch Information" tab:
         self.more_info = {}         # dict of categories string, each a list of tuples (name, value), to extend sytem info about this switch!
 
-        # self.add_warning("Test Warning, Ignore!")
+        # capabilities of the vendor or tech-specific driver, we assume Yes for all changing:
+        self.can_change_admin_status = True
+        self.can_change_vlan = True
+        self.can_change_poe_status = True
+        self.can_change_description = True
+        self.can_save_config = False    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_get_client_data = hasattr(self, 'get_my_client_data')  # do we implement reading arp/lldp/etc?
+        self.can_get_hardware_details = hasattr(self, 'get_my_hardware_details')    # can we get more then basic device info?
 
     """
     These are the high level functions used to "get" interface information.
@@ -141,20 +147,21 @@ class Connector():
         if not self.cache_loaded:
             dprint("  => Cache did NOT load!")
             # we need to read the device class:
-            self.basic_info_read_timestamp = time.time()
 
             # call the implementation-specific function:
-            success = self.get_my_basic_info()
-            if not success:
-                self.add_warning(f"WARNING: cannot get basic info - {self.error.description}")
+            if hasattr(self, 'get_my_basic_info'):
+                self.basic_info_read_timestamp = time.time()
+                success = self.get_my_basic_info()
+                # update the time it took to read the basic info when it was first read:
+                read_duration = int((time.time() - self.basic_info_read_timestamp) + 0.5)
+                if not success:
+                    self.add_warning(f"WARNING: cannot get basic info - {self.error.description}")
+                # you have to set the permissions to the interfaces:
+                self._set_interfaces_permissions()
 
-            # update the time it took to read the basic info when it was first read:
-            read_duration = int((time.time() - self.basic_info_read_timestamp) + 0.5)
-
-            # you have to set the permissions to the interfaces:
-            self._set_interfaces_permissions()
-
-            self.add_more_info('System', 'Basic Info Read', f"{read_duration} seconds")
+                self.add_more_info('System', 'Basic Info Read', f"{read_duration} seconds")
+            else:
+                self.add_warning("WARNING: device driver does not support 'get_my_basic_info()' !")
 
             # and save the switch cache:
             # self.save_cache()
@@ -163,13 +170,14 @@ class Connector():
 
         return True
 
+    """
+    This placeholder needs to be implemented by vendor or tech specific drivers.
+    return True on success, False on error and set self.error variables
+
     def get_my_basic_info(self):
-        """
-        placeholder for class-specific implementation to read Interfaces() etc.
-        return True on success, False on error and set self.error variables
-        """
         return True
 
+    """
     def get_client_data(self):
         """
         This loads the layer 2 switch tables, any ARP tables available,
@@ -177,55 +185,61 @@ class Connector():
         Not intended to be cached, so we get fresh, "live" data anytime called!
         return True on success, False on error and set self.error variables
         """
-        start_time = time.time()
 
         # call the implementation-specific function:
-        self.get_my_client_data()   # to be implemented by device/vendor class!
+        if hasattr(self, 'get_my_client_data'):
+            start_time = time.time()
+            self.get_my_client_data()   # to be implemented by device/vendor class!
+            self.detailed_info_duration = int((time.time() - start_time) + 0.5)
+            return True
+        self.add_warning("WARNING: device driver does not support 'get_my_basic_info()'' !")
+        return False
 
-        self.detailed_info_duration = int((time.time() - start_time) + 0.5)
-        return True
+    """
+    placeholder for class-specific implementation to read things like:
+        self.get_known_ethernet_addresses()
+            this should add EthernetAddress() =objects to the interface.eth dict(),
+            indexed by the ethernet address in string format
+
+        self.get_arp_data()
+
+        self.get_lldp_data()
+    return True on success, False on error and set self.error variables
 
     def get_my_client_data(self):
-        """
-        placeholder for class-specific implementation to read things like:
-            self.get_known_ethernet_addresses()
-                this should add EthernetAddress() =objects to the interface.eth dict(),
-                indexed by the ethernet address in string format
-
-            self.get_arp_data()
-
-            self.get_lldp_data()
-        return True on success, False on error and set self.error variables
-        """
         return True
+    """
 
-    def get_detailed_info(self):
+    def get_hardware_details(self):
         """
         Get all (possible) hardware info, stacking details, etc.
         return True on success, False on error and set self.error variables
         """
 
         # call the vendor-specific data first, if implemented
-        self.get_my_detailed_info()
+        if hasattr(self, 'get_my_hardware_details'):
+            self.get_my_hardware_details()
+            # set the flag to indicate we read this already, and store in session
+            # if flag is set, the button will not be shown in menu bar!
+            self.hardware_details_needed = False
+            # and cache it:
+            # self.save_cache()
+            return True
+        self.add_warning("WARNING: device driver does not support 'get_my_hardware_details()' !")
+        return False
 
-        # set the flag to indicate we read this already, and store in session
-        # if flag is set, the button will not be shown in menu bar!
-        self.hwinfo_needed = False
-        # and cache it:
-        # self.save_cache()
-        return True
+    """
+    placeholder for class-specific implementation to read things like:
+        stacking info, serial #, and whatever you want to add:
+        Attributes:
+        self.stack_members
+        self.syslog_max_msgs
+        self.syslog_msgs
+    return True on success, False on error and set self.error variables
 
-    def get_my_detailed_info(self):
-        """
-        placeholder for class-specific implementation to read things like:
-            stacking info, serial #, and whatever you want to add:
-            Attributes:
-            self.stack_members
-            self.syslog_max_msgs
-            self.syslog_msgs
-        return True on success, False on error and set self.error variables
-        """
+    def get_my_hardware_details(self):
         return True
+    """
 
     """
     These are the "set" functions that implement changes on the device.
@@ -275,6 +289,8 @@ class Connector():
             if new_state == POE_PORT_ADMIN_DISABLED:
                 interface.poe_entry.power_consumed = 0
             # self.save_cache()
+        else:
+            dprint("WARNING: set_interface_poe_status() called on Non-PoE interface!")
         return True
 
     def set_interface_poe_available(self, interface, power_available):
@@ -440,7 +456,7 @@ class Connector():
         just return True
         """
         dprint(f"Connector.set_save_needed({value})")
-        if self.can_save_config():
+        if self.can_save_config:
             self.save_needed = value
         return True
 
@@ -505,15 +521,6 @@ class Connector():
         else:
             dprint(f"conn.add_neighbor_object(): Interface {if_name} does NOT exist!")
             return False
-
-    def can_save_config(self):
-        """
-        Does the switch have the ability (or need) to execute a 'save config'
-        or 'write memory' as it known on many platforms. This should be overwritten
-        in a vendor-specific sub-class. We just return False here.
-        Returns True or False
-        """
-        return False
 
     def save_running_config(self):
         """
@@ -664,15 +671,13 @@ class Connector():
         """
         dprint("load_cache()")
 
-        if self.request and "switch_id" in self.request.session.keys():
-            switch_id = -1
+        if self.request and 'switch_id' in self.request.session.keys():
             # is the cached data for the current switch ?
-            if "switch_id" in self.request.session.keys():
-                if self.request.session["switch_id"] != self.switch.id:
-                    # wrong switch id, i.e. we changed switches, clear session data!
-                    dprint("load_cache() for new switch! so clearing cache...")
-                    self.clear_cache()
-                    return False
+            if self.request.session['switch_id'] != self.switch.id:
+                # wrong switch id, i.e. we changed switches, clear session data!
+                dprint("load_cache() for new switch! so clearing cache...")
+                self.clear_cache()
+                return False
 
             # Yes - read it
             dprint("load_cache() for current switch!")
@@ -724,7 +729,7 @@ class Connector():
             # save switch ID, it all triggers around that!
             start_time = time.time()
             count = 0
-            self.request.session["switch_id"] = self.switch.id
+            self.request.session['switch_id'] = self.switch.id
             # can I cache myself :-) ?
             for attr_name, value in self.__dict__.items():
                 if attr_name not in self.do_not_cache:
@@ -874,12 +879,14 @@ class Connector():
         # if self.group.read_only and self.request and not self.request.user.is_superuser:
         if self.group.read_only or (self.request and self.request.user.profile.read_only):
             # Read-Only group or user, no vlan allowed!
+            dprint("  read-only, no vlans allowed!")
             return
         for switch_vlan_id in self.vlans.keys():
             # if allow_all is set, or we are staff or supervisor, allow this vlan:
             if self.group.allow_all_vlans or \
                (self.request and (self.request.user.is_superuser or self.request.user.is_staff)):
                 self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
+                dprint(f"  {switch_vlan_id}: allowed per allow-all or superuser or staff")
             else:
                 # 'regular' user, first check the switchgroup.vlan_groups:
                 found_vlan = False
@@ -888,6 +895,7 @@ class Connector():
                         if int(group_vlan.vid) == int(switch_vlan_id):
                             self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
                             found_vlan = True
+                            dprint(f"  {switch_vlan_id}: allowed per group.vlan_groups")
                             continue
                 # check if this switch vlan is in the list of allowed vlans
                 if not found_vlan:
@@ -895,6 +903,7 @@ class Connector():
                         if int(group_vlan.vid) == int(switch_vlan_id):
                             # save using the switch vlan name, which is possibly different from the VLAN group name!
                             self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
+                            dprint(f"  {switch_vlan_id}: allowed per group.vlans(individual)")
                             continue
         return
 
@@ -1125,8 +1134,8 @@ def clear_switch_cache(request):
     """
     dprint("clear_switch_cache() called:")
     if request:
-        # all we have to do it clear the "switch_id" !
+        # all we have to do it clear the 'switch_id' !
         if 'switch_id' in request.session:
-            del request.session["switch_id"]
+            del request.session['switch_id']
             request.session.modified = True
         # if not found, we had not selected a switch before. ie upon login!

@@ -103,5 +103,8 @@ VLAN_STATUS_OTHER = 1
 VLAN_STATUS_PERMANENT = 2
 VLAN_STATUS_DYNAMIC = 3
 
+VLAN_ADMIN_ENABLED = 1
+VLAN_ADMIN_DISABLED = 2
+
 # mostly used for Cisco vlans, to avoid the 1000-1003 range. This is "regular(1)" in the Cisco VTP mib
 VLAN_TYPE_NORMAL = 1    # used to indicate 'normal' vlans,

@@ -206,13 +206,13 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
               group=group,
               action=LOG_VIEW_SWITCH,
               type=LOG_TYPE_VIEW,
-              description=f"Viewing switch ({view})")
+              description=f"Viewing device ({view})")
 
     try:
         conn = get_connection_object(request, group, switch)
     except Exception as e:
         log.type = LOG_TYPE_ERROR
-        log.description = f"SNMP ERROR: Viewing switch ({view})"
+        log.description = f"CONNECTION ERROR: Viewing device ({view})"
         log.save()
         error = Error()
         error.description = "There was a failure communicating with this switch. Please contact your administrator to make sure switch data is correct in the database!"
@@ -229,10 +229,10 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
     dprint("Basic Info OK")
 
     if view == 'hw_info':
-        if not conn.get_detailed_info():
+        if not conn.get_hardware_details():
             # errors
             log.type = LOG_TYPE_ERROR
-            log.description = "ERROR in get_detailed_info()"
+            log.description = "ERROR in get_hardware_details()"
             log.save()
             # don't render error, since we have already read the basic interface data
             # Note that SNMP errors are already added to warnings!
@@ -1074,7 +1074,7 @@ def switch_save_config(request, group_id, switch_id, view):
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         return error_page(request=request, group=group, switch=switch, error=error)
 
-    if conn.save_needed and conn.can_save_config():
+    if conn.save_needed and conn.can_save_config:
         # we can save
         if conn.save_running_config() < 0:
             # an error happened!
@@ -1344,7 +1344,7 @@ def switch_reload(request, group_id, switch_id, view):
               ip_address=get_remote_ip(request),
               switch=switch,
               group=group,
-              description="Reloading SNMP (basic)",
+              description=f"Reloading device ({view})",
               action=LOG_RELOAD_SWITCH,
               type=LOG_TYPE_VIEW)
     log.save()

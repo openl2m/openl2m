@@ -44,6 +44,7 @@ class SnmpConnectorDell(SnmpConnector):
         dprint("Dell SnmpConnector __init__")
         super().__init__(request, group, switch)
         self.vendor_name = 'Dell Networking'
+        self.can_save_config = True
         # force READ-ONLY for now! We have not implemented changing settings.
         self.switch.read_only = True
 
@@ -84,10 +85,6 @@ class SnmpConnectorDell(SnmpConnector):
                     return False
             # update interface() for view and caching
             interface.untagged_vlan = int(new_vlan_id)
-        return True
-
-    def can_save_config(self):
-        # If True, this instance can save the running config to startup
         return True
 
     def save_running_config(self):

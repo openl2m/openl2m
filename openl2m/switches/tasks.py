@@ -498,7 +498,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
         task.save()
 
     # do we need to save the config?
-    if save_config and error_count == 0 and conn.can_save_config():
+    if save_config and error_count == 0 and conn.can_save_config:
         log = Log(user=user,
                   ip_address=remote_ip,
                   switch=switch,
