@@ -8,34 +8,45 @@
   <div class="col-md-8">
     <div class="panel panel-success">
       <div class="panel-heading">
-        <strong>Your Profile</strong>
+      {% if request.user.id == user.id %}
+        <strong>Your User Profile</strong>
+      {% else %}
+        <strong>User Profile for '{{ user.username }}'</strong>
+      {% endif %}
       </div>
       <div class="panel-body">
-        <small class="text-muted">User login</small>
-        <h5>{{ request.user.username }}</h5>
-        <small class="text-muted">Full name</small>
-        {% if request.user.first_name and request.user.last_name %}
-          <h65>{{ request.user.first_name }} {{ request.user.last_name }}</h5>
-        {% else %}
-          <h6>(not set)</h6>
-        {% endif %}
-        <small class="text-muted">Email</small>
-        <h5>{{ request.user.email }}</h5>
-        {% if request.user.ldap_user %}
-          <small class="text-muted">LDAP DN</small>
-          <h5>{{ request.user.ldap_user.dn }}</h5>
-        {% else %}
-          <small class="text-muted">Local Login</small>
-          <h5>Yes</h5>
-        {% endif %}
-        <small class="text-muted">Registered</small>
-        <h5>{{ request.user.date_joined }}</h5>
-        <small class="text-muted">Switch Groups</small>
-        <h5>{{ request.user.switchgroups.all|join:', ' }}</h5>
-        <small class="text-muted">Staff access</small>
-        <h5>{{ request.user.is_staff|yesno|capfirst }}</h5>
-        <small class="text-muted">Admin access</small>
-        <h5>{{ request.user.is_superuser|yesno|capfirst }}</h5>
+        <table class="table table-hover table-headings w-auto">
+          <tbody>
+          <tr><td class="text-muted">Login Name</td><td>{{ user.username }}</td></tr>
+          <tr><td class="text-muted">Full Name</td>
+            {% if user.first_name and user.last_name %}
+            <td>{{ user.first_name }} {{ user.last_name }}</td>
+            {% else %}
+            <td>(not set)</td>
+            {% endif %}
+          </tr>
+          <tr><td class="text-muted">Email</td><td>{{ user.email }}</td></tr>
+          <tr><td class="text-muted">Last Login</td><td>{{ user.last_login }}</td></tr>
+          {% if user.ldap_user %}
+          <tr><td class="text-muted">LDAP DN</td><td>{{ user.ldap_user.dn }}</td></tr>
+          {% elif user.profile.last_ldap_dn %}
+          <tr><td class="text-muted">Last LDAP DN</td><td>{{ user.profile.last_ldap_dn }}</td></tr>
+          {% else %}
+          <tr><td class="text-muted">Local Login</td><td>Yes</td></tr>
+          {% endif %}
+          <tr><td class="text-muted">Registered</td><td>{{ user.date_joined }}</td></tr>
+          <tr><td><strong>Settings:</strong></td><td></td></tr>
+          <tr><td class="text-muted">Switch Groups</td><td>{{ user.switchgroups.all|join:', ' }}</td></tr>
+          <tr><td class="text-muted">Staff Access</td><td>{{ user.is_staff|yesno|capfirst }}</td></tr>
+          <tr><td class="text-muted">Admin Access</td><td>{{ user.is_superuser|yesno|capfirst }}</td></tr>
+          <tr><td class="text-muted">Read-Only Access</td><td>{{ user.profile.read_only|yesno|capfirst }}</td></tr>
+          <tr><td class="text-muted">Bulk-Edit Access</td><td>{{ user.profile.bulk_edit|yesno|capfirst }}</td></tr>
+          <tr><td class="text-muted">Tasks Access</td><td>{{ user.profile.tasks|yesno|capfirst }}</td></tr>
+          <tr><td class="text-muted">PoE Toggle</td><td>{{ user.profile.allow_poe_toggle|yesno|capfirst }}</td></tr>
+          <tr><td class="text-muted">Edit Description</td><td>{{ user.profile.edit_if_descr|yesno|capfirst }}</td></tr>
+          <tr><td class="text-muted">Ask Are You Sure?</td><td>{{ user.profile.are_you_sure|yesno|capfirst }}</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

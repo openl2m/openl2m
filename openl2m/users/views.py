@@ -15,8 +15,9 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.contrib.auth.models import User
+from django.http import HttpResponseRedirect, HttpResponseNotFound
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
@@ -47,7 +48,7 @@ class LogoutView(View):
 
 
 #
-# User profiles
+# Class to show the user their profiles
 #
 
 class ProfileView(LoginRequiredMixin, View):
@@ -55,4 +56,24 @@ class ProfileView(LoginRequiredMixin, View):
 
     def get(self, request):
 
-        return render(request, self.template_name)
+        return render(request, self.template_name, {
+            'user': request.user,
+        })
+
+
+#
+# Class to show admin/staff info about another user.
+#
+
+class InfoView(LoginRequiredMixin, View):
+    template_name = 'users/profile.html'
+
+    def get(self, request, user_id):
+
+        if request.user.is_superuser or request.user.is_staff:
+            user = get_object_or_404(User, pk=user_id)
+            return render(request, self.template_name, {
+                'user': user,
+            })
+        else:
+            return HttpResponseNotFound("You do not have access to this page!")

@@ -67,6 +67,18 @@ class Profile(models.Model):
         verbose_name='Are You Sure?',
         help_text="If checked, user will get 'Are You Sure?' question on changes"
     )
+    last_ldap_dn = models.CharField(
+        max_length=128,
+        blank=True,
+        verbose_name="Last LDAP DN",
+        help_text="The LDAP DN of the last LDAP login (if any)"
+    )
+    last_ldap_login = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name="Last LDAP login",
+        help_text="The time of the most recent LDAP login (if any)"
+    )
 
     class Meta:
         pass

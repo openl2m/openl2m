@@ -34,6 +34,9 @@ class ProfileInline(admin.StackedInline):
     can_delete = False
     verbose_name_plural = 'profile'
 
+    # do not allow edit of ldap info fields.
+    readonly_fields = ('last_ldap_dn', 'last_ldap_login', )
+
 
 class SwitchGroupInline(admin.TabularInline):
     model = SwitchGroup.users.through

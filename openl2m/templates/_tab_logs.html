@@ -19,8 +19,8 @@
           <td>{{ l.get_type_display }}</td>
           <td>{{ l.get_action_display }}</td>
           <td>{{ l.ip_address }}</td>
-          {% if request.user.is_superuser %}
-          <td><a href="{% url 'admin:auth_user_changelist' %}{{ l.user.id }}"
+          {% if request.user.is_superuser and l.user %}
+          <td><a href="{% url 'users:info' l.user.id %}"
              data-toggle="tooltip"
              title="Click here to go to this user account...">
              {{ l.user }}
