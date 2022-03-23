@@ -167,7 +167,8 @@ class Connector():
             # self.save_cache()
             # update counters
             # self.switch.save()
-
+        else:
+            dprint("  ==> Already loaded from cache!")
         return True
 
     """
