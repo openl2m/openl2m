@@ -19,7 +19,15 @@
           <td>{{ l.get_type_display }}</td>
           <td>{{ l.get_action_display }}</td>
           <td>{{ l.ip_address }}</td>
+          {% if request.user.is_superuser %}
+          <td><a href="{% url 'admin:auth_user_changelist' %}{{ l.user.id }}"
+             data-toggle="tooltip"
+             title="Click here to go to this user account...">
+             {{ l.user }}
+          </a></td>
+          {% else %}
           <td>{{ l.user }}</td>
+          {% endif %}
           <td>
             {% if l.switch and request.user.is_superuser %}
               <a href="{% url 'switches:switch_basics' l.group.id l.switch.id %}"
