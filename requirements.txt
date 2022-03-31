@@ -17,7 +17,7 @@ natsort
 netaddr
 netmiko>=3.0.0
 psycopg2-binary
-pyaoscx
+pyaoscx>=2.2.1
 pyasn1
 pycodestyle>=2.5.0
 pysnmp>=4.4.12
