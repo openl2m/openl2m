@@ -62,6 +62,9 @@ def get_current_users():
         remote_ip = data.get('remote_ip', None)
         if user_id and remote_ip:
             user = User.objects.get(pk=int(user_id))
-            # dprint(f"Current User = {user}")
-            user_list.append(f"{user.username} ({remote_ip})")
+            u = {}
+            u['id'] = user.id
+            u['remote_ip'] = remote_ip
+            u['username'] = user.username
+            user_list.append(u)
     return user_list

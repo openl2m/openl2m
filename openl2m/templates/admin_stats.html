@@ -66,8 +66,16 @@
         </div>
         <div class="table-responsive">
           <table class="table table-hover table-headings">
-          {% for info in user_list %}
-            <tr><td>{{ info }}</td></tr>
+          {% for u in user_list %}
+            <tr><td>
+              {% if request.user.is_superuser or request.user.is_staff %}
+              <a href="{% url 'users:info' u.id %}"
+               data-toggle="tooltip"
+               title="Click here to see info on this user...">{{ u.username }}</a>
+              {% else %}
+              {{ u.username }}
+              {% endif %}
+               ({{ u.remote_ip }})</td></tr>
           {% endfor %}
           </table>
         </div>
