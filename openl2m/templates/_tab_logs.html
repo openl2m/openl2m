@@ -22,7 +22,7 @@
           {% if request.user.is_superuser and l.user %}
           <td><a href="{% url 'users:info' l.user.id %}"
              data-toggle="tooltip"
-             title="Click here to go to this user account...">
+             title="Click here to see info on this user...">
              {{ l.user }}
           </a></td>
           {% else %}
