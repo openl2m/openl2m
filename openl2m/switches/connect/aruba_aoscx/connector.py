@@ -37,7 +37,7 @@ from pyaoscx.poe_interface import PoEInterface as AosCxPoEInterface
 # used to disable unknown SSL cert warnings:
 import urllib3
 
-API_VERSION = '10.08'
+API_VERSION = '10.04'   # '10.08' does not appear to function!
 
 
 class AosCxConnector(Connector):
@@ -58,6 +58,9 @@ class AosCxConnector(Connector):
         self.aoscx_session = False
         # and we dont want to cache this:
         self.set_do_not_cache_attribute('aoscx_session')
+
+        # capabilities of current driver:
+        self.can_reload_all = False
 
     def can_change_interface_vlan(self):
         """
