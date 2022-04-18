@@ -372,7 +372,7 @@ class Connector():
     # various support functions #
     #############################
 
-    def add_vlan_by_id(self, vlan_id, vlan_name="Not set"):
+    def add_vlan_by_id(self, vlan_id, vlan_name=''):
         """
         Add a Vlan() object to the device, based on vlan ID and name (if set).
         Store it in the vlans{} dictionary, indexed by vlan_id
