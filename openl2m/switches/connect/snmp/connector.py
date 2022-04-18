@@ -1720,7 +1720,7 @@ class SnmpConnector(Connector):
         # first map dot1D-Bridge ports to ifIndexes, needed for Q-Bridge port-id to ifIndex
         retval = self.get_snmp_branch('dot1dBasePortIfIndex')
         if retval < 0:
-            self.add_warning("Error getting 'Q-Bridge-PortId-Map' (dot1dBasePortIfIndex)")
+            self.add_warning("Error getting 'Q-Bridge-PortId-Map' (dot1dBasePortIfIndex), NOT reading VLAN mibs dot1qVlanStaticRowStatus, dot1qVlanStaticName, dot1qVlanStatus, dot1qVlanStaticRowStatus")
             return retval
         # read existing vlan id's
         retval = self.get_snmp_branch('dot1qVlanStaticRowStatus')
