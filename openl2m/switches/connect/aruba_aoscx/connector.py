@@ -50,9 +50,9 @@ class AosCxConnector(Connector):
         """
         dprint("AosCxConnector() __init__")
         super().__init__(request, group, switch)
-        self.name = "AOS-CX REST API Connector"
+        self.name = "AOS-CX API Connector"
         self.switch.read_only = False
-        self.add_more_info('System', 'Type', f"AOS-CX REST Connector for '{self.switch.name}'")
+        self.add_more_info('System', 'Type', f"AOS-CX API Connector for '{self.switch.name}'")
 
         # this will be the pyaoscx driver session object
         self.aoscx_session = False
