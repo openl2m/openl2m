@@ -4,12 +4,34 @@
 Version 2.2
 ===========
 
+Note: from this version on, we are now developing and testing in Python v3.8.
+Python v3.6 is no longer supported!
+
+
+Version 2.2-dev2
+----------------
+
+Release Date: 2022-04-18
+
+* *New Feature:* Aruba AOS-CX switches are now supported with Read/Write via their REST API, v10.04
+  At this time, this driver does NOT support PoE yet. Port enable/disable, vlan/description change
+  are functional.
+* Python 3.8 is now required
+* user profile shows last LDAP authentication time stamp (if used)
+
+Bug Fixes:
+
+* fix auth-priv config in snmp driver
+* update ethernet OUI info during update.sh
+* fix PoE fault logging
+
+
 Version 2.2-dev1
 ----------------
 
 Release Date: 2021-02-04
 
-* *New Feature:* Support for Aruba AOS-CX switches using the REST API. R/O for now, Write TBD.
+* *New Feature:* Support for Aruba AOS-CX switches using the REST API v10.04. R/O for now, Write TBD.
 * bulk deactivation of accounts
 * some icon updates
 

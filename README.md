@@ -5,13 +5,24 @@ application designed to allow users with minimal training to perform a set of ba
 configuration changes on network switches. It does so by providing a consistent web interface
 for Layer 2 device management, independent of the underlying switch vendor.  
 
+__Devices Supported:__
+* Aruba AOS-CX switches
+* HP/Aruba Procurve switches
+* HPE Comware switches
+* Cisco switches (some)
+* Generic SNMP devices
+* Any device support by Netmiko library (see SSH devices)
+* Most devices supported by Napalm (read-only)
+See the documentation for more information.
+
 __Basic Features:__
 * enable/disable interface
 * change vlan
 * enable/disable PoE
 * change description
 * see ethernet addresses, lldp neighbors
-* run commands as defined by the OpenL2M administrator
+* run configurable pre-defined 'static' commands on the device
+* run configurable pre-defined 'form input' commands on the device
 * and more...
 
 __What's New:__

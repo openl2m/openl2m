@@ -30,25 +30,32 @@ if your intention is to allow users to make changes. E.g. for routers you could
 configure a read-only SNMP Profile, if that device will only be read from!
 
 
-Netmiko (SSH) Profiles
-======================
+Credential Profiles
+===================
 
-OpenL2M has the ability to execute command-line commands on switches, if configured.
+OpenL2M uses credentials for a variety of authentications: SSH logins (with Netmiko library),
+and various API accounts such as REST, NetConf, and more.
+
+Netmiko has the ability to execute command-line commands on switches, if configured.
 For this, we use the `Netmiko Python library <https://github.com/ktbyers/netmiko>`_.
 This library allows us to establish SSH connections to the switch to execute the commands.
 
-To configure, go to Admin, then go to Netmiko Profiles in the Switches section,
+For Aruba AOS-CX switch support, we communicate via their REST API. Set the proper username and password for accessing these devices.
+
+Junos device will be supported via the Junos PyEZ library. This requires a username and password set.
+
+To configure this, go to Admin, then go to *Credential Profiles* in the Switches section,
 or click the "+ Add" option behind the menu entry.
 
 At a minimum, you will need to give the new profile a name,
-and a username and password for the SSH login.
+and a username and password for the API, NetConf or SSH login.
 
-Select the proper Netmiko device type. If Cisco, you can give the 'enable'
+Select the proper Netmiko device type (if applicable). If Cisco, you can give the 'enable'
 password. This is currently not used yet, so you can leave it blank as well.
 
-If you run SSH on a non-standard port, enter it. If you want SSL host key checking,
+If you run SSH (Netmiko) on a non-standard port, enter it. If you want SSL host key checking,
 select the option. Note this is not tested, but should work if you have
 the proper SSH known hosts config files in the user profile that runs your web server.
 
 **Note that firewall rules, switch ACLs etc. will need to
-allow SSH connections from the web server.**
+allow SSH/API connections from the web server.**

@@ -18,8 +18,11 @@ for device management, independent of the underlying vendor. While primary inten
 network switches, OpenL2M can handle any device that has some sort of network API (e.g. SSH, Netconf, REST, etc.)
 
 OpenL2M is written in Django 3 and Python 3.
+Documentation is written in ReStructured Text format, which is rendered with the Sphynx documentation generator.
 
 **What's New:**
+
+v2.2 add support for Aruba AOS-CX switches.
 
 v2.1 implements command templates, a controlled method to give users variable input on commands.
 This gives tremendous flexibility in giving users in a controlled fashion more visibility into the device.
