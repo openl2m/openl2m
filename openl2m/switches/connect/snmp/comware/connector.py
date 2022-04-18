@@ -79,15 +79,16 @@ class SnmpConnectorComware(SnmpConnector):
         Implement an override of vlan parsing to read Comware specific MIB
         """
         dprint("Comware _get_vlan_data()\n")
-        # first, call the standard vlan reader
-        super()._get_vlan_data()
 
-        # now read some Comware specific items.
+        # read some Comware specific items.
         # some Comware switches do not report vlan names in Q-Bridge mib
         # so read HH3C version
         if self.get_snmp_branch('hh3cdot1qVlanName', self._parse_mibs_comware_vlan) < 0:
             dprint("Comware hh3cdot1qVlanName returned error!")
             self.add_warning("Error getting 'HH3C-Vlan-Names' (hh3cdot1qVlanName)")
+
+        # call the standard vlan reader
+        super()._get_vlan_data()
 
         # read the Comware port type:
         if self.get_snmp_branch('hh3cifVLANType', self._parse_mibs_comware_if_type) < 0:
@@ -351,10 +352,12 @@ class SnmpConnectorComware(SnmpConnector):
         """
         vlan_id = int(oid_in_branch(hh3cdot1qVlanName, oid))
         if vlan_id > 0:
-            if vlan_id in self.vlans.keys():
-                # some Comware switches only report "VLAN xxxx", skip that!
-                if not val.startswith('VLAN '):
-                    self.vlans[vlan_id].name = val
+            if vlan_id not in self.vlans.keys():
+                # define vlan:
+                self.add_vlan_by_id(vlan_id)
+            # some Comware switches only report "VLAN xxxx", skip that!
+            if not val.startswith('VLAN '):
+                self.vlans[vlan_id].name = val
             return True
         return False
 
