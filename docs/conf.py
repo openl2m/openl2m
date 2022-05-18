@@ -69,3 +69,6 @@ html_css_files = [
 # html_js_files = [
 #     'js/custom.js',
 # ]
+
+# time format for the |today| output:
+today_fmt = '%b %d %Y at %H:%M'
