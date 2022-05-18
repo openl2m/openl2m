@@ -17,7 +17,10 @@ natsort
 netaddr
 netmiko>=3.0.0
 psycopg2-binary
-pyaoscx>=2.2.1
+# We are using a clone of the Aruba pyaoscx library from github.com,
+# as there always seems to be some fix in there that we need that has
+# not been released yet to ! :-(
+git+https://github.com/aruba/pyaoscx
 pyasn1
 pycodestyle>=2.5.0
 pysnmp>=4.4.12
