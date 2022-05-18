@@ -37,7 +37,7 @@ from pyaoscx.poe_interface import PoEInterface as AosCxPoEInterface
 # used to disable unknown SSL cert warnings:
 import urllib3
 
-API_VERSION = '10.04'   # '10.08' does not appear to function!
+API_VERSION = '10.08'   # '10.08' or '10.04'
 
 
 class AosCxConnector(Connector):
@@ -239,7 +239,7 @@ class AosCxConnector(Connector):
                 # go get PoE info:
                 aoscx_iface = AosCxInterface(session=self.aoscx_session, name=if_name)
                 aoscx_poe_iface = AosCxPoEInterface(session=self.aoscx_session, parent_interface=aoscx_iface)
-                aoscx_poe_iface.get()
+                aoscx_poe_iface.get(selector='status')
                 dprint(f"   +++ POE Exists for {if_name} ===")
                 # there is probably a more 'global' system/device way to see if PoE capabilities exist:
                 self.poe_capable = True
@@ -279,22 +279,55 @@ class AosCxConnector(Connector):
 
         return True
 
-    def get_my_client_data_to_be_implemented(self):
+    def get_my_client_data(self):
         '''
         read mac addressess, and lldp neigbor info.
         Not yet fully supported in AOS-CX API.
         return True on success, False on error and set self.error variables
         '''
-        """
+
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
-        # get mac address table
-        # TBD
-        #
+        # get mac address table, this is based on vlans:
+        dprint("Getting MAC table per VLAN:")
+        for vlan_id in self.vlans.keys():
+            dprint(f"Vlan {vlan_id}:")
+            try:
+                v = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
+                v.get()
+                if hasattr(v, 'name'):
+                    # vlan 1 does not typically have a name!
+                    print(f"  VLAN {v.name}")
+            except Exception as err:
+                dprint(f"v = Vlan() error: {err}")
+                description = f"Cannot get ethernet table for vlan {vlan_id}"
+                details = f"pyaoscx Vlan() Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                self.add_warning(description)
+                log = Log(group=self.group,
+                          switch=self.switch,
+                          ip_address=get_remote_ip(self.request),
+                          type=LOG_TYPE_ERROR,
+                          action=LOG_AOSCX_ERROR_GENERIC,
+                          description=details)
+                continue
+            # this gets ethernet addresses by vlan:
+            vlan_macs = AosCxMac.get_all(session=self.aoscx_session, parent_vlan=v)
+            for key, mac in vlan_macs.items():
+                mac.get()   # materialize the object from the device
+                dprint(f"  MAC Address: key={key}, {mac} -> {mac.port}")
+                for name in mac.__dict__:
+                    dprint(f"      attribute: {name} = {mac.__dict__[name]}")
+                # add this to the known addressess:
+                a = self.add_learned_ethernet_address(mac.port.name, mac.mac_address)
+                dprint("ethernet added, setting vlan!")
+                if a:
+                    dprint("about to set vlan")
+                    a.set_vlan(vlan_id)
+
+        # done...
         self._close_device()
-        """
-        return False
+        return True
 
     def set_interface_admin_status(self, interface, new_state):
         """
@@ -471,15 +504,16 @@ class AosCxConnector(Connector):
 
         # do we want to check SSL certificates ?
         if not self.switch.netmiko_profile.verify_hostkey:
+            # disable unknown cert warnings
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             # or all warnings:
             # urllib3.disable_warnings()
 
         try:
-            dprint('Creating AosCxSession()...')
-            self.aoscx_session = AosCxSession(self.switch.primary_ip4, API_VERSION)
-            dprint('Calling session.open()')
-            self.aoscx_session.open(self.switch.netmiko_profile.username, self.switch.netmiko_profile.password)
+            dprint(f"Creating AosCxSession(ip_address={self.switch.primary_ip4}, api={API_VERSION})")
+            self.aoscx_session = AosCxSession(ip_address=self.switch.primary_ip4, api=API_VERSION)
+            dprint(f"Calling session.open(username={self.switch.netmiko_profile.username}, password={self.switch.netmiko_profile.password})")
+            self.aoscx_session.open(username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password)
             dprint("  session OK!")
         except Exception as error:
             self.error.status = True
