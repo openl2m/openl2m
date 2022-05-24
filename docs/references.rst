@@ -18,11 +18,11 @@ RST Tutorial:  https://docs.typo3.org/m/typo3/docs-how-to-document/main/en-us/Wr
 
 RST Directives (ie. tags): https://docutils.sourceforge.io/docs/ref/rst/directives.html
 
-Intro to Sphynx: https://www.writethedocs.org/guide/tools/sphinx/
+Intro to Sphinx: https://www.writethedocs.org/guide/tools/sphinx/
 
-Using Sphynx: https://www.sphinx-doc.org/en/master/contents.html
+Using Sphinx: https://www.sphinx-doc.org/en/master/contents.html
 
-Sphynx-specific Directives: https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html
+Sphinx-specific Directives: https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html
 
 
 **Web frameworks and projects**

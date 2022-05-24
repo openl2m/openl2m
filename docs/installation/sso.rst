@@ -6,6 +6,6 @@ Single Sign On
 
 To be implemented:
 
-OpenL2M uses the Django Social Authentication framework.
+OpenL2M will at some point in time use the Django Social Authentication framework.
 
 https://python-social-auth.readthedocs.io/en/latest/configuration/django.html

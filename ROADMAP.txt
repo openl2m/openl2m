@@ -1,6 +1,4 @@
-Clean Ups:
-
-- code optimization (move duplicates to functions, etc.)
+v2.3 will support Juniper EX switches, via the Junos PyEZ library.
 
 New Features Wish List (in no particular order):
 

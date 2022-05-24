@@ -10,7 +10,7 @@ and is written in ReStructuredText. We use the Sphinx documentation
 generator to generate our html pages, which are live available in the
 application at *<your_base_url>/static/docs/*
 
-`See this page for a Sphynx tutorial. <https://matplotlib.org/sampledoc/>`_
+`See this page for a Sphinx tutorial. <https://matplotlib.org/sampledoc/>`_
 
 We installed::
 

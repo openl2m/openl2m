@@ -28,16 +28,11 @@ from switches.connect.constants import *
 from switches.connect.netmiko.execute import NetmikoExecute
 
 
-"""
-Base Connector() class for OpenL2M.
-This implements the interface that is expected by the higher level code
-that calls this (e.g in the view.py functions that implement the url handling)
-"""
-
-
 class Connector():
     '''
     This base class defines the basic interface for all switch connections.
+    This implements the interface that is expected by the higher level code
+    that calls this (e.g in the view.py functions that implement the url handling)
     '''
     def __init__(self, request=False, group=False, switch=False):
         '''
@@ -125,22 +120,28 @@ class Connector():
         self.can_get_client_data = hasattr(self, 'get_my_client_data')  # do we implement reading arp/lldp/etc?
         self.can_get_hardware_details = hasattr(self, 'get_my_hardware_details')    # can we get more then basic device info?
 
-    """
+    '''
     These are the high level functions used to "get" interface information.
     These are called by the switches.view functions to display data.
-    """
+    '''
 
     def get_basic_info(self):
-        """
+        '''
         This is called from view.py to load the basic set of information about the switch.
         We call an device implementation specific function "get_my_basic_info()"
         that should load the following class attributes:
             self.interfaces = {} dictionary of interfaces (ports) on the current
-                switch, i.e. Interface() objects, indexed by a class-specific key (string).
+              switch, i.e. Interface() objects, indexed by a class-specific key (string).
+
             self.vlans = {} dictionary of vlans on the current switch, i.e. Vlan()
                 objects, indexed by vlan id (integer number)
-        return True on success, False on error and set self.error variables
-        """
+
+        Args:
+            none
+
+        Returns:
+            return True on success, False on error and set self.error variables
+        '''
         self.error.clear()
         dprint("Connector.get_basic_info()")
         # set this to the time the switch data was actually read,
@@ -172,21 +173,26 @@ class Connector():
             dprint("  ==> Already loaded from cache!")
         return True
 
-    """
+    '''
     This placeholder needs to be implemented by vendor or tech specific drivers.
     return True on success, False on error and set self.error variables
 
     def get_my_basic_info(self):
         return True
 
-    """
+    '''
     def get_client_data(self):
-        """
+        '''
         This loads the layer 2 switch tables, any ARP tables available,
         and LLDP neighbor data.
         Not intended to be cached, so we get fresh, "live" data anytime called!
-        return True on success, False on error and set self.error variables
-        """
+
+        Args:
+            none
+
+        Returns:
+            return True on success, False on error and set self.error variables
+        '''
 
         # call the implementation-specific function:
         if hasattr(self, 'get_my_client_data'):
@@ -197,7 +203,7 @@ class Connector():
         self.add_warning("WARNING: device driver does not support 'get_my_basic_info()'' !")
         return False
 
-    """
+    '''
     placeholder for class-specific implementation to read things like:
         self.get_known_ethernet_addresses()
             this should add EthernetAddress() =objects to the interface.eth dict(),
@@ -210,13 +216,18 @@ class Connector():
 
     def get_my_client_data(self):
         return True
-    """
+    '''
 
     def get_hardware_details(self):
-        """
+        '''
         Get all (possible) hardware info, stacking details, etc.
-        return True on success, False on error and set self.error variables
-        """
+
+        Args:
+            none
+
+        Returns:
+            return True on success, False on error and set self.error variables
+        '''
 
         # call the vendor-specific data first, if implemented
         if hasattr(self, 'get_my_hardware_details'):
@@ -230,7 +241,7 @@ class Connector():
         self.add_warning("WARNING: device driver does not support 'get_my_hardware_details()' !")
         return False
 
-    """
+    '''
     placeholder for class-specific implementation to read things like:
         stacking info, serial #, and whatever you want to add:
         Attributes:
@@ -241,24 +252,28 @@ class Connector():
 
     def get_my_hardware_details(self):
         return True
-    """
+    '''
 
-    """
+    '''
     These are the "set" functions that implement changes on the device.
     The base-class implemention updates the neccessary data that is used by
     the 'views'.
     The actual 'physical' changes on the device need to be implemented
     by the device/vendor specific class, which upon success need to call
     the relevant base-class functions
-    """
+    '''
 
     def set_interface_admin_status(self, interface, new_state):
-        """
-        set the interface to the requested state (up or down)
-        interface = Interface() object for the requested port
-        new_state = True / False  (enabled/disabled)
-        return True on success, False on error and set self.error variables
-        """
+        '''
+        Set the interface to the requested state (up or down)
+
+        Args:
+            interface = Interface() object for the requested port
+            new_state = True / False  (enabled/disabled)
+
+        Returns:
+            return True on success, False on error and set self.error variables
+        '''
         # interface.admin_status = new_state
         dprint(f"Connector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
         interface.admin_status = bool(new_state)
@@ -266,24 +281,32 @@ class Connector():
         return True
 
     def set_interface_description(self, interface, description):
-        """
-        set the interface description (aka. description) to the string
-        interface = Interface() object for the requested port
-        new_description = a string with the requested text
-        return True on success, False on error and set self.error variables
-        """
+        '''
+        Set the interface description (aka. description) to the string
+
+        Args:
+            interface = Interface() object for the requested port
+            new_description = a string with the requested text
+
+        Returns:
+            return True on success, False on error and set self.error variables
+        '''
         dprint(f"Connector.set_interface_description() for {interface.name} to '{description}'")
         interface.description = description
         # self.save_cache()
         return True
 
     def set_interface_poe_status(self, interface, new_state):
-        """
-        set the interface Power-over-Ethernet status as given
-        interface = Interface() object for the requested port
-        new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
-        return True on success, False on error and set self.error variables
-        """
+        '''
+        Set the interface Power-over-Ethernet status as given
+
+        Args:
+            interface = Interface() object for the requested port
+            new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
+
+        Returns:
+            return True on success, False on error and set self.error variables
+        '''
         dprint(f"Connector.set_interface_poe_status() for {interface.name} to {new_state}")
         if interface.poe_entry:
             interface.poe_entry.admin_status = int(new_state)
@@ -296,12 +319,16 @@ class Connector():
         return True
 
     def set_interface_poe_available(self, interface, power_available):
-        """
-        set the interface Power-over-Ethernet available power
-        interface = Interface() object for the requested port
-        power_availablr = in milli-watts (eg 4.5W = 4500)
-        returns True on success, False on error and set self.error variables
-        """
+        '''
+        Set the interface Power-over-Ethernet available power
+
+        Args:
+            interface = Interface() object for the requested port
+            power_availablr = in milli-watts (eg 4.5W = 4500)
+
+        Returns:
+            True on success, False on error and set self.error variables
+        '''
         dprint(f"Connector.set_interface_poe_available() for {interface.name} to {power_available}")
         if not interface.poe_entry:
             interface.poe_entry = PoePort(interface.index, POE_PORT_ADMIN_ENABLED)
@@ -315,12 +342,16 @@ class Connector():
         return True
 
     def set_interface_poe_consumed(self, interface, power_consumed):
-        """
-        set the interface Power-over-Ethernet consumed power
-        interface = Interface() object for the requested port
-        power_consumed = in milli-watts (eg 4.5W = 4500)
-        returns True on success, False on error and set self.error variables
-        """
+        '''
+        Set the interface Power-over-Ethernet consumed power
+
+        Args:
+            interface = Interface() object for the requested port
+            power_consumed = in milli-watts (eg 4.5W = 4500)
+
+        Returns:
+            True on success, False on error and set self.error variables
+        '''
         dprint(f"Connector.set_interface_poe_consumed() for {interface.name} to {power_consumed}")
         if not interface.poe_entry:
             interface.poe_entry = PoePort(interface.index, POE_PORT_ADMIN_ENABLED)
@@ -335,35 +366,47 @@ class Connector():
         return True
 
     def set_interface_untagged_vlan(self, interface, new_pvid):
-        """
-        set the interface untagged vlan to the given vlan
-        interface = Interface() object for the requested port
-        new_pvid = an integer with the requested untagged vlan
-        return True on success, False on error and set self.error variables
-        """
+        '''
+        Set the interface untagged vlan to the given vlan
+
+        Args:
+            interface = Interface() object for the requested port
+            new_pvid = an integer with the requested untagged vlan
+
+        Returns:
+            True on success, False on error and set self.error variables
+        '''
         dprint(f"Connector.set_interface_untagged_vlan() for {interface.name} to vlan {new_pvid}")
         interface.untagged_vlan = int(new_pvid)
         # self.save_cache()
         return True
 
     def add_interface_tagged_vlan(self, interface, new_vlan):
-        """
-        add a tagged vlan to the interface trunk.
-        interface = Interface() object for the requested port
-        new_vlan = an integer with the requested tagged vlan
-        return True on success, False on error and set self.error variables
-        """
+        '''
+        Add a tagged vlan to the interface trunk.
+
+        Args:
+            interface = Interface() object for the requested port
+            new_vlan = an integer with the requested tagged vlan
+
+        Returns:
+            True on success, False on error and set self.error variables
+        '''
         interface.vlans.append(int(new_vlan))
         # self.save_cache()
         return True
 
     def remove_interface_tagged_vlan(self, interface, old_vlan):
-        """
-        remove a tagged vlan from the interface trunk.
-        interface = Interface() object for the requested port
-        old_vlan = an integer with the tagged vlan to removes
-        return True on success, False on error and set self.error variables
-        """
+        '''
+        Remove a tagged vlan from the interface trunk.
+
+        Args:
+            interface = Interface() object for the requested port
+            old_vlan = an integer with the tagged vlan to removes
+
+        Returns:
+            True on success, False on error and set self.error variables
+        '''
         interface.vlans.remove(int(old_vlan))
         # self.save_cache()
         return True
@@ -373,41 +416,62 @@ class Connector():
     #############################
 
     def add_vlan_by_id(self, vlan_id, vlan_name=''):
-        """
+        '''
         Add a Vlan() object to the device, based on vlan ID and name (if set).
         Store it in the vlans{} dictionary, indexed by vlan_id
-        return True
-        """
+
+        Args:
+            vlan_id: integeer os the vlan to add
+            vlan_name (str): string representing the vlan name
+
+        Returns:
+            True
+        '''
         v = Vlan(vlan_id)
         v.name = vlan_name
         self.vlans[vlan_id] = v
         return True
 
     def add_vlan(self, vlan):
-        """
-        vlan is a Vlan() object to add to the device
+        '''
+        Add a new vlan as an object.
         Store it in the vlans{} dictionary, indexed by vlan.id
-        return True
-        """
+
+        Args:
+            vlan: a Vlan() object to add to the device
+
+        Returns:
+            True
+        '''
         self.vlans[vlan.id] = vlan
         return True
 
     def add_interface(self, interface):
-        """
+        '''
         Add and Interface() object to the self.interfaces{} dictionary,
         indexed by the interface key.
-        return True on success, False on error and set self.error variables
-        """
+
+        Args:
+        interface: Interface() object to add
+
+
+        Returns:
+            True on success, False on error and set self.error variables
+        '''
         self.interfaces[interface.key] = interface
         return True
 
     def add_poe_powersupply(self, id, power_available):
-        """
+        '''
         Add a power supply PoePse() object to the device,
-        id = index of power supply
-        power_available = max power in Watts
-        return True on success, False on error and set self.error variables
-        """
+
+        Args:
+            id = index of power supply
+            power_available = max power in Watts
+
+        Returns:
+            True on success, False on error and set self.error variables
+        '''
         self.poe_pse_devices[id] = PoePSE(id)
         self.poe_pse_devices[id].max_power = int(power_available)
         self.poe_max_power += int(power_available)
@@ -416,11 +480,16 @@ class Connector():
         return True
 
     def get_interface_by_key(self, key):
-        """
+        '''
         get an Interface() object from out self.interfaces{} dictionary,
         search based on the key that was used when it was added.
-        return Interface() if found, False if not found.
-        """
+
+        Args:
+            key (str): the key used when the Interface() was created.
+
+        Returns:
+            Interface() if found, False if not found.
+        '''
         key = str(key)
         if key in self.interfaces.keys():
             dprint(f"get_interface_by_key() for '{key}' => Found!")
@@ -429,21 +498,33 @@ class Connector():
         return False
 
     def get_interface_by_name(self, name):
-        """
+        '''
         get an Interface() object from out self.interfaces{} dictionary,
         search based on the name.
-        return Interface() if found, False if not found.
-        """
+
+        Args:
+            name (str): the value of the Interface().name attribute
+
+        Returns:
+            Interface() if found, False if not found.
+        '''
         for (key, iface) in self.interfaces.items():
             if iface.name == name:
                 return iface
         return False
 
     def set_interface_attribute_by_key(self, key, attribute, value):
-        """
+        '''
         set the value for a specified attribute of an interface indexed by key
-        return True on success, False on error
-        """
+
+        Args:
+            key (str): the index key of the Interface() when created.
+            attribute (str): the attribute name of the Interface() object to look for.
+            value: the value to set the Interface() attribute to.
+
+        Returns:
+            True on success, False on error
+        '''
         key = str(key)
         dprint(f"set_interface_attribute_by_key() for {key}, {attribute} = {value}")
         try:
@@ -453,26 +534,47 @@ class Connector():
             return False
 
     def set_save_needed(self, value=True):
-        """
+        '''
         Set a flag that this switch needs the config saved
-        just return True
-        """
+
+        Args:
+            value(boolean): True or False to set or clear save-needed flag.
+
+        Returns:
+            True
+        '''
         dprint(f"Connector.set_save_needed({value})")
         if self.can_save_config:
             self.save_needed = value
         return True
 
     def can_change_interface_vlan(self):
-        """
+        '''
         Return True if we can change a vlan on an interface, False if not
-        """
+
+        This method should be implemented by sub-classes to reflect if that class
+        can change interface vlan settings.
+
+        Args:
+            none
+
+        Returns:
+            True or False
+        '''
         return False
 
     def add_vlan_to_interface(self, iface, vlan_id):
-        """
+        '''
         Generic function to add a vlan to the list of vlans on the given interface
         This implies the interface is in 802.1q tagged mode (ie 'trunked')
-        """
+
+        Args:
+            iface: Interface() object to update
+            vlan_id: the vlan id to add to this interface.
+
+        Returns:
+            none
+        '''
         if vlan_id in self.vlans.keys() and self.vlans[vlan_id].type == VLAN_TYPE_NORMAL and vlan_id not in iface.vlans:
             dprint(f"   add_vlan_to_interface(): Adding Vlan {vlan_id} to {iface.name}!")
             iface.vlans.append(vlan_id)
@@ -482,6 +584,12 @@ class Connector():
         '''
         Some APIs give responses in alphbetic order, eg 1/1/10 before 1/1/2.
         Sort interfaces by their key in natural sort order.
+
+        Args:
+            none
+
+        Returns:
+            none
         '''
         self.interfaces = OrderedDict({key: self.interfaces[key] for key in natsort.natsorted(self.interfaces)})
         return True
@@ -491,10 +599,14 @@ class Connector():
         Add an ethernet address to an interface, as given by the layer2 CAM/Switching tables.
         Creates a new EthernetAddress() object and returns it. If the ethernet address already
         exists on the interface, just return the object.
-        if_name = interface name (key) as string
-        eth_address = ethernet address as string.
         It gets stored indexed by address on the interface.eth dict.
-        return EthernetAddress() on success, False on failure.
+
+        Args:
+            if_name = interface name (key) as string
+            eth_address = ethernet address as string.
+
+        Returns:
+            EthernetAddress() on success, False on failure.
         '''
         dprint(f"conn.add_learned_ethernet_address() for {eth_address} on {if_name}")
         iface = self.get_interface_by_key(if_name)
@@ -509,10 +621,13 @@ class Connector():
     def add_neighbor_object(self, if_name, neighbor):
         '''
         Add an lldp neighbor to an interface.
-        if_name = interface name
-        neighbor = NeighborDevice() object.
         It gets stored on the interface.lldp dict.
-        return True on success, False on failure.
+
+        Args:
+            if_name = interface name
+            neighbor = NeighborDevice() object.
+        Returns:
+            True on success, False on failure.
         '''
         dprint(f"conn.add_neighbor_object() for {str(neighbor)} on {if_name}")
         iface = self.get_interface_by_key(if_name)
@@ -525,36 +640,50 @@ class Connector():
             return False
 
     def save_running_config(self):
-        """
+        '''
         Execute a 'save config' command. This is switch dependent.
         To be implemented by technology or vendor sub-classes, e.g. SnmpConnector()
-        Returns True if this succeeds, False on failure. self.error() will be set in that case
-        """
+
+        Args:
+            none
+
+        Returns:
+            True if this succeeds, False on failure. self.error() will be set in that case
+        '''
         self.error.status = True
         self.error.description = "Save is NOT implemented!"
         return False
 
     def can_run_commands(self):
-        """
+        '''
         Does the switch have the ability to execute a 'cli command'
         This should be overwritten in a vendor-specific sub-class.
         The default implementation of run_command() is with Netmiko library,
         and we assume that we can indeed run commands.
-        Returns True or False
-        """
+
+        Args:
+            none
+
+        Returns:
+            True or False
+        '''
         return True
 
     def run_command(self, command_id, interface_name=''):
-        """
+        '''
         Execute a cli command. This is switch dependent,
         but by default handled via Netmiko library.
-        Returns a command dictionary with results.
         On error, self.error() will also be set.
         Note: if you override and implement, you are responsible
         for checking rights by calling switch.is_valid_command_id() !
-        command_id = the id (pk) of the Command() object we will execute,
-        interface_name = the device interface name, as string.
-        """
+
+        Args:
+            command_id = the id (pk) of the Command() object we will execute,
+            interface_name = the device interface name, as string.
+
+        Returns:
+            a dictionary with result attributes.
+        '''
         dprint(f"run_command() called, id='{command_id}', interface=''{interface_name}''")
         # default command result dictionary info:
         cmd = {
@@ -622,14 +751,18 @@ class Connector():
         return cmd
 
     def run_command_string(self, command_string):
-        """
+        '''
         Execute a cli command. This is switch dependent,
         but by default handled via Netmiko library.
-        Returns a command as a string, with results.
         On error, self.error() will also be set.
         Note: if you override and implement, you are responsible
-        command_string = the string we will execute
-        """
+
+        Args:
+            command_string = the string we will execute
+
+        Returns:
+             a disctionary with return result attributes.
+        '''
         dprint(f"run_command_string() called, str='{command_string}'")
         # default command result dictionary info:
         cmd = {
@@ -656,21 +789,30 @@ class Connector():
         return cmd
 
     def set_do_not_cache_attribute(self, name):
-        """
+        '''
         Add the name of one of our class object attributes
         to the list of do not cache attributes.
-        Return nothing.
-        """
+
+        Args:
+            name (str): name of attribute to no cache
+
+        Return:
+            none
+        '''
         if name not in self.do_not_cache:
             self.do_not_cache.append(name)
         return
 
     def load_cache(self):
-        """
+        '''
         Load cached data to improve performance.
-        Returns True if cache was read and variables set.
-        False if this fails, primarily when the switch id is not correct!
-        """
+
+        Args:
+            none
+        Returns:
+            True if cache was read and variables set.
+            False if this fails, primarily when the switch id is not correct!
+        '''
         dprint("load_cache()")
 
         if self.request and 'switch_id' in self.request.session.keys():
@@ -706,23 +848,31 @@ class Connector():
         return False
 
     def load_my_cache(self):
-        """
+        '''
         To be implemented by child classes.
         Allows them to load more cached data.
-        """
+
+        Args:
+            none
+
+        Returns:
+            none
+        '''
         return
 
     def save_cache(self):
-        """
+        '''
         Save various data in a cache for access by the next page.
         By default, we store in the HTTP request session, see also
         add_to_cache() below.
         Can be overriden by sub-class to use other cache mechanisms, eg Redis.
-        Return True on success, False on failure.
-        """
-        """
-        Store the snmp switch data in the http session, if exists
-        """
+
+        Args:
+            none
+
+        Returns:
+            True on success, False on failure.
+        '''
         dprint("Connector.save_cache()")
         # for name, value in self.__dict__.items():
         #    dprint(f"dict caching:  { name }")
@@ -753,16 +903,28 @@ class Connector():
         return True
 
     def save_my_cache(self):
-        """
+        '''
         To be implemented by child classes.
         Allows them to add more cached data.
-        """
+
+        Args:
+            none
+
+        Returns:
+            none
+        '''
         return
 
     def clear_cache(self):
-        """
+        '''
         clear all cached data, likely because we changed switches
-        """
+
+        Args:
+            none
+
+        Returns:
+            none
+        '''
         dprint("clear_cache()")
         clear_switch_cache(self.request)
         # call child-class specific clear-clear_my_cache()
@@ -770,22 +932,34 @@ class Connector():
         return
 
     def clear_my_cache(self):
-        """
+        '''
         To be implemented by child classes.
         Allows them to override and clear their cached data.
-        """
+
+        Args:
+            none
+
+        Returns:
+            none
+        '''
         return
 
     def set_cache_variable(self, name, value):
-        """
+        '''
         Store a variable 'name' in the session cache.
         By default, we use the HTTP request session to cache data.
-        Returns True if set, False is an error occurs.
 
         Note: we access the session store via the request object.
         We could also access it direct, for possibly better performance:
         https://docs.djangoproject.com/en/3.1/topics/http/sessions/#session-serialization
-        """
+
+        Args:
+            name (str): name of item to cache
+            value: data to cache
+
+        Returns:
+            True if set, False is an error occurs.
+        '''
         dprint(f"set_cache_variable(): {name}")
 
         if self.request:
@@ -806,14 +980,20 @@ class Connector():
         return False
 
     def get_cache_variable(self, name):
-        """
+        '''
         Read a variable 'name' from the session cache.
         This returns the value if found, or None if not found.
 
         Note: we access the session store via the request object.
         We could also access it direct, for possibly better performance:
         https://docs.djangoproject.com/en/3.1/topics/http/sessions/#session-serialization
-        """
+
+        Args:
+            name (str): name of cached item to retrieve
+
+        Returns:
+            value of cached item. None if not found.
+        '''
         dprint(f"get_cache_variable(): {name}")
         if name in self.request.session.keys():
             dprint("   ... found!")
@@ -822,10 +1002,15 @@ class Connector():
             return None
 
     def clear_cache_variable(self, name):
-        """
+        '''
         remove variable from cache
-        Returns True is succeeds, False is fails
-        """
+
+        Args:
+            name(str): name of cached item to remove
+
+        Returns:
+            True if succeeds, False if fails
+        '''
         dprint(f"clear_cache_variable(): {name}")
         if self.request and name in self.request.session.keys():
             dprint("   ... found and deleted!")
@@ -840,11 +1025,19 @@ class Connector():
         return False
 
     def add_timing(self, name, count, time):
-        """
+        '''
         Function to track response time of the switch
         This add/updates self.timing {}, dictionary to track how long various calls
         take to read. Key = name, value = tuple(item_count, time)
-        """
+
+        Args:
+            name (str): name of timed item
+            count(int): number of occurances of item
+            time:  time() is took for this item.
+
+        Returns:
+            none
+        '''
         self.timing[name] = (count, time)
         (total_count, total_time) = self.timing["Total"]
         total_count += count
@@ -852,30 +1045,52 @@ class Connector():
         self.timing["Total"] = (total_count, total_time)
 
     def add_more_info(self, category, name, value):
-        """
+        '''
         This adds specific pieces of information to the "General Info" tab.
         Items are ordered by category heading, then name/value pairs
-        """
+
+        Args:
+            categoiry(str): a category name that organized names.
+            name(str): an info item name in a category.
+            value: the value of named info item.
+
+        Returns:
+            none
+        '''
         if category not in self.more_info.keys():
             self.more_info[category] = {}
         self.more_info[category][name] = value
 
     def _can_manage_interface(self, iface):
-        """
+        '''
         Function meant to check if this interface can be managed.
+
         This allows for vendor-specific override in the vendor subclass, to detect e.g. stacking ports
         called from _set_interfaces_permissions() to check for each interface.
-        Returns True by default, but if False, then _set_interfaces_permissions()
+
+        If this returns False, then  _set_interfaces_permissions()
         will not allow any attribute of this interface to be managed (even then admin!)
-        """
+
+        Args:
+            iface: the Interface() to check.
+
+        Returns:
+            True by default
+        '''
         return True
 
     def _set_allowed_vlans(self):
-        """
+        '''
         set the list of vlans defined on the switch that are allowed per the SwitchGroup.vlangroups/vlans
         self.vlans = {} dictionary of vlans on the current switch, i.e. Vlan() objects, but
         self.group.vlans and self.group.vlangroups is a list of allowed VLAN() Django objects (see switches/models.py)
-        """
+
+        Args:
+            none
+
+        Returns:
+            none
+        '''
         dprint("_set_allowed_vlans()")
         # check the vlans on the switch (self.vlans) agains switchgroup.vlan_groups and switchgroup.vlans
         # if self.group.read_only and self.request and not self.request.user.is_superuser:
@@ -910,9 +1125,15 @@ class Connector():
         return
 
     def _set_interfaces_permissions(self):
-        """
+        '''
         For all found interfaces, check out rules to see if this user should be able see or edit them
-        """
+
+        Args:
+            none
+
+        Returns:
+            none
+        '''
         dprint("_set_interfaces_permissions()")
         switch = self.switch
         group = self.group
@@ -1062,9 +1283,15 @@ class Connector():
         return
 
     def add_warning(self, warning):
-        """
-        Add a warning to the list, and log it as well!
-        """
+        '''
+        Add a warning to the self.warnings[] list, and log it as well!
+
+        Args:
+            warning(str): warning text to add to list and log
+
+        Returns:
+            none
+        '''
         self.warnings.append(warning)
         # add a log message
         self.add_log(type=LOG_TYPE_WARNING,
@@ -1074,9 +1301,15 @@ class Connector():
         return
 
     def log_error(self, error=False):
-        """
-        Log the current error, either passed in, or as set in the object.
-        """
+        '''
+        Log the current error, either passed in, or as set in the self.error() object.
+
+        Args:
+            error: an Error() object with error info.
+
+        Returns:
+            none
+        '''
         err = False
         if error:
             err = error
@@ -1091,30 +1324,60 @@ class Connector():
         return
 
     def add_vendor_data(self, category, name, value):
-        """
-        This adds a vendor specific piece of information to the "Info" tab.
+        '''
+        This adds a vendor specific piece of information to self.vendor_data[].
+        This is shown on the "Info" tab of the device html page.
         Items are ordered by category heading, then name/value pairs
-        """
+
+        Args:
+            category(str): a category for origanizing names
+            name(str): the named entry to add to the category
+            value: the value of the named entry
+
+        Returns:
+            none
+        '''
         vdata = VendorData(name, value)
         if category not in self.vendor_data.keys():
             self.vendor_data[category] = []
         self.vendor_data[category].append(vdata)
 
     def get_switch_vlans(self):
-        """
-        Return the vlans defined on this switch
-        """
+        '''
+        Return the list of self.vlans defined on this switch
+
+        Args:
+            none
+
+        Returns:
+            self.vlans, a list of vlans
+        '''
         return self.vlans
 
     def get_vlan_by_id(self, vlan_id):
-        """
+        '''
         Return the Vlan() object for the given id
-        """
+
+        Args:
+            vlan_id(int): the vlan ID desired.
+
+        Returns:
+            the Vlan() object if found, else False
+        '''
         if int(vlan_id) in self.vlans.keys():
             return self.vlans[vlan_id]
         return False
 
     def display_name(self):
+        '''
+        Set the object display name based on device class and switch named
+
+        Args:
+            none
+
+        Returns:
+            a string representing the device display name.
+        '''
         return f"{self.name} for {self.switch.name}"
 
     def __str__(self):
@@ -1123,17 +1386,17 @@ class Connector():
 # --- End of Connector() ---
 
 
-"""
+'''
 We need one helper function, since we will need to clear the cache outside
 the context of a class...
-"""
+'''
 
 
 def clear_switch_cache(request):
-    """
+    '''
     Clear all cached data for the current switch.
     Does not return anything.
-    """
+    '''
     dprint("clear_switch_cache() called:")
     if request:
         # all we have to do it clear the 'switch_id' !

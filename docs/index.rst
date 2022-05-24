@@ -18,7 +18,7 @@ for device management, independent of the underlying vendor. While primary inten
 network switches, OpenL2M can handle any device that has some sort of network API (e.g. SSH, Netconf, REST, etc.)
 
 OpenL2M is written in Django 3 and Python 3.
-Documentation is written in ReStructured Text format, which is rendered with the Sphynx documentation generator.
+Documentation is written in ReStructured Text format, which is rendered with the Sphinx documentation generator.
 
 **What's New:**
 

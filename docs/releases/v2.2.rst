@@ -7,6 +7,15 @@ Version 2.2
 Note: from this version on, we are now developing and testing in Python v3.8.
 Python v3.6 is no longer supported!
 
+Version 2.2-dev3
+----------------
+
+Release Date: 2022-05-19
+
+* AOS-CX switches now require API v10.08 (ie firmware 10.08 or newer)
+* added capabilities to read the ethernet(mac) tables on AOS-CX switches
+  **Note:** PoE, LLDP and ARP are not implemented yet in the library
+  (or malfunctioning), so this is missing in OpenL2M!
 
 Version 2.2-dev2
 ----------------

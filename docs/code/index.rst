@@ -8,6 +8,10 @@ Here are some rudimentary documents that attempt to explain how
 OpenL2M works under the hood. We will attempt to flush this out as time
 permits. Meanwhile, the source code is your best bet!
 
+The section *Source Documentation* is generated via the auto-doc function of Sphinx.
+It provides module information from Google Code Style documentation that we use in the Python code.
+(Note: work in progress!)
+
 .. toctree::
    :maxdepth: 2
    :caption: Here is what is available at this time:
@@ -18,6 +22,9 @@ permits. Meanwhile, the source code is your best bet!
    authentication.rst
    switches_app/index.rst
    users_app/index.rst
+   counters_app/index.rst
    templating.rst
    tasks.rst
+   aos-cx-driver.rst
    documentation.rst
+   Source Documentation<source/modules.rst>

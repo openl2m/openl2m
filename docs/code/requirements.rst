@@ -10,6 +10,18 @@ how the OpenL2M project works "under the hood".
 
 As of v2.0, all the code is written and tested in Python v3.8. There are numerous places to learn this.
 
+The project is by default located in **/opt/openl2m**. To use these scripts, or work on things,
+you should first activate the Python virtual environment:
+
+.. code-block:: bash
+
+  $ cd /opt/openl2m
+  $ source venv/bin/activate
+  (venv) $
+
+Normal Django development steps can now be used.
+
+
 **Django**
 
 We use the Django web framework, v3.2. For a good introduction, see
@@ -17,12 +29,21 @@ We use the Django web framework, v3.2. For a good introduction, see
 If you follow this tutorial, you will have enough of an Django understanding
 to start digging into the code.
 
+E.g. to start the development built-in web server, active the virtual environment, and run:
+
+.. code-block:: bash
+
+  (venv) $ cd openl2m
+  (venv) $ python3 manage.py runserver 127.0.0.1:8000
+
+
 **HTML Layout**
 
 We use `Bootstrap v3.4 for all our HTML layout.
 <https://getbootstrap.com/docs/3.4/>`_
 A good place to start learning is
 `W3Schools. <https://www.w3schools.com/bootstrap/default.asp>`_
+
 
 **SNMP**
 
@@ -39,6 +60,12 @@ that does not have these problems. However, it is significantly slower, so we on
 it only where absolutely needed.
 
 
+**Aruba AOS-CX**
+
+We use the *pyaoscx* library from the github repo, as that is frequently provides bugfixes ahead
+of what is available in the released version availabel via pip. See *requirements.txt* for more.
+
+
 **Netmiko**
 
 `Netmiko <https://github.com/ktbyers/netmiko>`_ is a Python library that
@@ -47,6 +74,7 @@ establishes SSH connections to network gear.
 <https://pynet.twb-tech.com/blog/automation/netmiko.html>`_
 We use it to do what we cannot accomplish via SNMP, such as switch command line execution,
 to provide admin-configurable command line output to users.
+
 
 **Napalm**
 

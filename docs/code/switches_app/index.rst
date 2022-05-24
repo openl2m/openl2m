@@ -11,8 +11,10 @@ various aspects of this app.
 **urls.py**
 In standard Django fashion, here we map the various urls of our app.
 
+
 **models.py**
 We define a number of classes/objects here.
+
 
 **Choices**
 
@@ -35,6 +37,7 @@ This statuses  "For each model field that has choices set, Django will add a
 method to retrieve the human-readable name for the field’s current value.
 See get_FOO_display() in the database API documentation."
 
+
 **views.py**
 As is typical in a Django framework application, this is where most of the
 work to handle urls is done. Please read :doc:`Views <views>`
@@ -43,9 +46,11 @@ work to handle urls is done. Please read :doc:`Views <views>`
 **Connections**
 
 Connections to the switch are derived from a base Connector() class.
-We currently provide several sub-classes, some based on SNMP and one based on the Napalm automation framework.
+We currently provide several sub-connectors (sub-classes): several based on SNMP, one based on the Napalm automation framework,
+and a REST-API based connector for the Aruba AOS-CX line of devices
 
 See :doc:`Connections <connections>`
+
 
 **Netmiko for CLI**
 

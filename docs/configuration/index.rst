@@ -15,11 +15,11 @@ Here is the order in which you should create the configuration items:
 .. toctree::
    :maxdepth: 1
 
-   Create SNMP and Netmiko profiles <profiles.rst>
+   Create SNMP and Credential profiles <profiles.rst>
    Create VLANs <vlans.rst>
-   Create Commands and Command Lists <commands.rst>
-   Create Command Templates <cmd_templates.rst>
-   Create Switches <switches.rst>
+   Create Commands and Command Lists (optional) <commands.rst>
+   Create Command Templates (optional) <cmd_templates.rst>
+   Add Switches <switches.rst>
    Create Switch Groups to add switches to <switchgroups.rst>
    Create Users and give them access to Switch Groups <users.rst>
 

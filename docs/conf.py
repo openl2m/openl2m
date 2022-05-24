@@ -10,10 +10,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
 
+import django
 import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
@@ -23,7 +23,7 @@ copyright = '2019-2022, Various'
 author = 'Various'
 
 # The full version, including alpha/beta/rc tags
-release = 'v2.2-dev2 (2022-04-18)'
+release = 'v2.2-dev3 (2022-05-19)'
 
 # -- General configuration ---------------------------------------------------
 
@@ -34,6 +34,7 @@ master_doc = 'index'
 # ones.
 extensions = [
     "sphinx_rtd_theme",
+    'sphinxcontrib.napoleon',   # can create python google docs style into rst files!
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -72,3 +73,9 @@ html_css_files = [
 
 # time format for the |today| output:
 today_fmt = '%b %d %Y at %H:%M'
+
+# Our source location:
+#sys.path.append('/opt/openl2m')
+sys.path.append('/opt/openl2m/openl2m')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'openl2m.settings'
+django.setup()

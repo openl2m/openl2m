@@ -3,6 +3,6 @@
 Single-Sign-On
 ==============
 
-For integration with SAML (e.g. Shiboleth), we use this library:
+*future option*
 
-https://github.com/Brown-University-Library/django-shibboleth-remoteuser
+For integration with SAML (e.g. Shiboleth), we plan to use the Python Social Auth library.

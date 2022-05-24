@@ -7,39 +7,88 @@ Switches
 Adding switches
 ===============
 
-From Admin, click on Switches, or click the "+ Add" option
+From the top-right Admin menu, go to Administration, and then click on Switches, or click the "+ Add" option
 
 Configure the name to show in the menu (does not need to be the switch hostname),
 and add a description if so desired.
 
-In the Connection Type, choose:
+Add the IP v4 address or resolvable DNS name used to connect to the device.
 
-* SNMP: for fully snmp manageable devices (Cisco, HP/Procurce, HPE)
-* Commands-Only: if you want to add a device where users can only run pre-defined commands. This device will not show the interface and BulkEdit tabs.
-* Napalm: add a device that is not supported via SNMP. The Napalm library supports lots of devices, to some extent or another.
-  *This is a Read-Only driver!* For Napalm, the following field sets the Napalm device type.
 
-Add the IP v4 address or resolvable DNS name, and the SNMP profile as a minimum.
-If you want to allow 'show/display' commands, you need to add a Netmiko (SSH)
-profile as well.
+**In the Connection Configuration section, set:**
 
-*Note:* switches will only show in the list if their status is active,
-and for SNMP devices, they have an SNMP Profile applied! Likewise, if a switch does not have
-a Netmiko profile, interface commands and global commands options will not show.
+**Connector Type:**
+
+* **SNMP**: for fully snmp manageable devices (Cisco, HP/Procurce, HPE)
+* **Aruba AOS-CX**: for Aruba switches supported via the AOS-CX REST API. Also set the proper Credentials Profile!
+* **Commands-Only**: if you want to add a device where users can only run pre-defined commands.
+  This device will not show the Interface and BulkEdit tabs. Also set the proper Credentials Profile!
+* **Napalm**: add a device that is not supported via SNMP. The Napalm library supports lots of devices, to some extent or another.
+  *This is a Read-Only driver!* Set the appropriate Napalm device in the *Napalm Options* section.
+* **Test Dummy**: is for development only. If you select a device of this type, the interfaces, etc. are simulated only.
+
+**SNMP Profile:**
+
+Select the proper SNMP profile is this is an SNMP managed switch.
+
+**Credentials Profile:**
+
+Select the proper profile, required for Commands, API, PyEZ, NetConf, etc.
+If you want to allow 'show/display' commands, you need to add a profile here!
+
+
+**In the Commands Configuration section, set:**
+
+**Command List:**
+
+Select the command list desired, if any. `See here for more <commands>`
+
+
+**In View Options section, set:**
+
+**Indentation Level:**
+
+If > 0, will add some spaces in the menu before the switch name; this can look nicer !
+
+**Default View:**
+
+The Default View setting defines the opening tab when a user clicks on the
+switch. Setting this to Details is useful for routers, so that ARP and
+LLDP information are loaded immediately. Note that it then take a little longer
+to render the page, due to the extra data that needs to be read
+from the device.
+
+
+**In the Access Options section, set:**
+
+**Status:**
+
+*Note:* switches will only show in the list if their status is *Active*.
+For SNMP devices, devices need to have an SNMP Profile applied! Likewise, if a switch does not have
+a Credentials profile, interface commands and global commands options will not show.
+
+**Read-Only:**
 
 If a switch is marked Read-Only, no user (not even admin), can change settings
 on the switch. However, if commands are configured, they can be executed.
 This is useful for e.g. routers.
 
-The Default View setting defines the opening tab when a user clicks on the
-switch. Setting this to Details is useful for routers, so that ARP and
-LLDP information shows immediately. Note that it then take a little longer
-to render the page, due to the extra SNMP data that needs to be read
-from the device.
+**Bulk-Edit:**
 
 The Bulk Edit setting is enabled by default. If disabled (un-checked),
 this switch will not allow multiple interfaces to be edited at once.
 
-You can add any switch many times, with the same IP address but a
-different name. However, the combination of the name and ip address
-needs to be unique.
+**Poe-Toggle:**
+
+If selected, users can toggle PoE on *all* ports, including those ports on vlans they do *not* have access to.
+(e.g this is useful for Wifi Access Points, VOIP Phones, etc.)
+
+**Edit description:**
+
+Enabled by default. If *not* selected, users cannot edit the interface descriptions
+on this device (regardless of rights!)
+
+
+**Group Membership section:**
+
+Finally, at the end you can add this new device to one or more groups.

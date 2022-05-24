@@ -4,6 +4,10 @@
 Switch Requirements
 ===================
 
+
+SNMP
+----
+
 For the device that use standard SNMP OpenL2M supports v2c and v3.
 SNMP v1 is not supported. We recommend all devices are configured with v3.
 
@@ -79,3 +83,15 @@ Several vendor specific MIB are supported at this time.
 
 * Juniper Networks L2ALD MIB
   Used for vendor-specific vlan information.
+
+
+Aruba AOS-CX
+------------
+
+Any device that supports the Aruba AOS-CX API v10.08 is supported, via the pyaoscx library.
+
+
+Napalm
+------
+
+Any device supported by the Napalm library is supported in Read-Only mode.

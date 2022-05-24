@@ -31,7 +31,7 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 
 **Aruba AOS-CX**
 
-* *Aruba CX 6200* series; single units. (R/O support)
+* *Aruba CX 6200* series; single units. (R/W support via the REST API v10.08)
 
 **HP Enterprise (HPE)**
 
@@ -47,7 +47,7 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 
 **Juniper Networks**
 
-* *EX2300* series switch, running JUNOS 18.2R3-S2.9; single unit. (R/O support)
+* *EX2300* series switch, running JUNOS 18.2R3-S2.9; single unit. (R/O support via SNMP)
 
 **Generic**
 
@@ -58,7 +58,6 @@ with varying results, depending on the level of SNMP support in the devices.
 
 Any device supported by the python Napalm library, in read-only mode. Note this was implemented primarily as
 an example of the Connector() API. See source code for more.
-
 
 **SSH/Command-Only devices**
 
