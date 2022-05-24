@@ -71,10 +71,17 @@ COMMAND="python3 openl2m/manage.py migrate"
 echo "Applying database migrations ($COMMAND)..."
 eval $COMMAND
 
+cd docs
+
+# Regenerate code doc files
+sphinx-apidoc -f -o code/source ../openl2m
+
 # Recompile the documentation, these become django static files!
-COMMAND="cd docs; make clean; make html; cd .."
+COMMAND="make clean; make html"
 echo "Updating HTML documentation ($COMMAND)..."
 eval $COMMAND
+
+cd ..
 
 # Collect static files
 COMMAND="python3 openl2m/manage.py collectstatic --no-input"
