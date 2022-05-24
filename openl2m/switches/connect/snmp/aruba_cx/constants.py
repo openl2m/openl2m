@@ -23,16 +23,8 @@ ENTERPRISE_ID_HP_ENTERPRISE = 47196
 enterprise_id_info[ENTERPRISE_ID_HP_ENTERPRISE] = 'Aruba (HPE)'
 
 # AOS-CX uses the ieee QBridge Mibs for vlan info (ieee8021QBridgeVlan)
+# defind in switches.connect.snmp.constants.*
 # see more at https://oidref.com/1.3.111.2.802.1.1.4.1.4
-
-# vlan names:
-ieee8021QBridgeVlanStaticName = '.1.3.111.2.802.1.1.4.1.4.3.1.3.1'
-snmp_mib_variables['ieee8021QBridgeVlanStaticName'] = ieee8021QBridgeVlanStaticName
-
-# the PVID of a port is here.
-# see also https://oidref.com/1.3.111.2.802.1.1.4.1.4.5.1.1
-ieee8021QBridgePortVlanEntry = '.1.3.111.2.802.1.1.4.1.4.5.1'
-snmp_mib_variables['ieee8021QBridgePortVlanEntry'] = ieee8021QBridgePortVlanEntry
 
 # as of AOS-CX 10.08.1021 this is added to display port vlan membership:
 # see also http://oid-info.com/get/1.3.6.1.4.1.11.2.14.11.5.1.9.4.2.1.4

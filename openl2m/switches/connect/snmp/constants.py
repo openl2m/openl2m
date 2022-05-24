@@ -572,6 +572,16 @@ ieee8021QBridgeMib = '.1.3.111.2.802.1.1.4'
 ieee8021QBridgeMvrpEnabledStatus = '.1.3.111.2.802.1.1.4.1.1.1.1.6'
 snmp_mib_variables['ieee8021QBridgeMvrpEnabledStatus'] = ieee8021QBridgeMvrpEnabledStatus
 
+# vlan names:
+ieee8021QBridgeVlanStaticName = '.1.3.111.2.802.1.1.4.1.4.3.1.3.1'
+snmp_mib_variables['ieee8021QBridgeVlanStaticName'] = ieee8021QBridgeVlanStaticName
+
+# the PVID of a port is here.
+# see also https://oidref.com/1.3.111.2.802.1.1.4.1.4.5.1.1
+ieee8021QBridgePortVlanEntry = '.1.3.111.2.802.1.1.4.1.4.5.1'
+snmp_mib_variables['ieee8021QBridgePortVlanEntry'] = ieee8021QBridgePortVlanEntry
+
+
 #
 # LLDP related#
 #
