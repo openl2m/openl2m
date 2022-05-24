@@ -6,10 +6,10 @@ configuration changes on network switches. It does so by providing a consistent 
 for Layer 2 device management, independent of the underlying switch vendor.  
 
 __Devices Supported:__
-* Aruba AOS-CX switches
-* HP/Aruba Procurve switches
-* HPE Comware switches
-* Cisco switches (some)
+* Aruba AOS-CX switches (via REST API)
+* HP/Aruba Procurve switches (via SNMP)
+* HPE Comware switches (via SNMP)
+* Cisco switches (some, via SNMP)
 * Generic SNMP devices
 * Any device support by Netmiko library (see SSH devices)
 * Most devices supported by Napalm (read-only)
