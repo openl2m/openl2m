@@ -26,7 +26,5 @@ enterprise_id_info[ENTERPRISE_ID_HP_ENTERPRISE] = 'Aruba (HPE)'
 # defind in switches.connect.snmp.constants.*
 # see more at https://oidref.com/1.3.111.2.802.1.1.4.1.4
 
-# as of AOS-CX 10.08.1021 this is added to display port vlan membership:
-# see also http://oid-info.com/get/1.3.6.1.4.1.11.2.14.11.5.1.9.4.2.1.4
-hpSwitchPortFdbVidList = '.1.3.6.1.4.1.11.2.14.11.5.1.9.4.2.1.4'
-snmp_mib_variables['hpSwitchPortFdbVidList'] = hpSwitchPortFdbVidList
+# AOS-CX also uses numerous HP/ProCurve snmp counters.
+# this are defined in switches.connect.snmp.procurve.constants

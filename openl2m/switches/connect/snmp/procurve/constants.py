@@ -61,6 +61,10 @@ snmp_mib_variables['hpicfPoePethPsePortPower'] = hpicfPoePethPsePortPower
 hpicfPoePethPsePortActualPower = '.1.3.6.1.4.1.11.2.14.11.1.9.1.1.1.8'
 snmp_mib_variables['hpicfPoePethPsePortActualPower'] = hpicfPoePethPsePortActualPower
 
+# as of AOS-CX 10.08.1021 this is added to display port vlan membership:
+# see also http://oid-info.com/get/1.3.6.1.4.1.11.2.14.11.5.1.9.4.2.1.4
+hpSwitchPortFdbVidList = '.1.3.6.1.4.1.11.2.14.11.5.1.9.4.2.1.4'
+snmp_mib_variables['hpSwitchPortFdbVidList'] = hpSwitchPortFdbVidList
 
 # SOME DEVICE MAY IMPLEMENT THIS:
 # HP-ENTITY-POWER-MIB
