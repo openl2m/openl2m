@@ -32,6 +32,8 @@ from openl2m.admin import admin_site
 # Change the Switch admin display to add the list of groups where this is used:
 class SwitchInline(admin.TabularInline):
     model = SwitchGroup.switches.through
+    verbose_name = 'Switch Group membership'
+    verbose_name_plural = 'Switch Group memberships'
 
 
 # Change the Switch admin page to show horizontal listing of selected Switch Groups:
@@ -78,6 +80,8 @@ class SwitchGroupMembershipStackedInline(OrderedTabularInline):
     readonly_fields = ('order', 'move_up_down_links',)
     extra = 1
     ordering = ('order',)
+    verbose_name = 'Switch to Group'
+    verbose_name_plural = 'Switch Group Memberships'
 
 
 # Change the SwitchGroup admin page to show horizontal listing of selected items:
@@ -108,10 +112,14 @@ class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
 # Change the VLAN() admin display to add the list of groups where this is used:
 class VlanInline(admin.TabularInline):
     model = VlanGroup.vlans.through
+    verbose_name = 'Vlan Group membership'
+    verbose_name_plural = 'Vlan Group memberships'
 
 
 class VlanSwitchInline(admin.TabularInline):
     model = SwitchGroup.vlans.through
+    verbose_name = 'Switch Group membership'
+    verbose_name_plural = 'Switch Group memberships'
 
 
 # Change the VLAN() admin page to show horizontal listing of selected VLAN Groups:
@@ -126,6 +134,8 @@ class VLANAdmin(admin.ModelAdmin):
 # Change the VlanGroup() admin display to add the list of groups where this is used:
 class VlanGroupInline(admin.TabularInline):
     model = SwitchGroup.vlan_groups.through
+    verbose_name = 'Vlan Group membership'
+    verbose_name_plural = 'Vlan Group memberships'
 
 
 # Change the VLAN admin page to show horizontal listing of selected VLAN Groups:
