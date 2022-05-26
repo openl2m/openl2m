@@ -377,7 +377,7 @@ class SnmpConnectorComware(SnmpConnector):
 
     def _parse_mibs_comware_if_linkmode(self, oid, val):
         """
-        Parse Comware specific Interface Extension MIB for link mode, PoE info
+        Parse Comware specific Interface Extension MIB for link mode
         return True if we parse it, False if not.
         """
         if_index = oid_in_branch(hh3cIfLinkMode, oid)
@@ -418,20 +418,21 @@ class SnmpConnectorComware(SnmpConnector):
         to interface ifIndex values, so we can store them with the interface and display as needed.
         For Comware IRF stack, the mapping appears to be <pse#>.<port#>, where
         PSE# = 1 + (3 x stack member number)
+        Port# = Q-Bridge-Port# as found in the Q-bridge MIB.
+        (It is also possible that Port# is the ifIndex directly; so far on all comware PoE devices we
+         tested, the ifIndex and Q-Bridge port ID are the same!)
         """
-        dprint("_map_poe_port_entries_to_interface(Comware)\n")
+        dprint("_map_poe_port_entries_to_interface(Comware)")
         for (pe_index, port_entry) in self.poe_port_entries.items():
             # we take the ending part of "7.12", where 7=PSE#, and 12=port!
             (pse_module, port) = port_entry.index.split('.')
             # calculate the stack member number from PSE#
             member = int((int(pse_module) - 1) / 3)
-            # generate the interface ending, for above 7.12 ==> 2/0/12
-            # interface appears to be port - ((member-1)*65)
-            portnum = int(int(port) - ((member - 1) * 65))
-            end = f"{member}/0/{portnum}"
-            count = len(end)
-            for (if_index, iface) in self.interfaces.items():
-                if iface.name[-count:] == end:
+            if_index = self._get_if_index_from_port_id(int(port))
+            dprint(f"  Entry for member {member}, index {if_index}")
+            for (key, iface) in self.interfaces.items():
+                if iface.index == if_index:
+                    dprint(f"  Interface found: {iface.name}")
                     iface.poe_entry = port_entry
                     if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
                         warning = f"PoE FAULT status ({port_entry.detect_status} = " \
