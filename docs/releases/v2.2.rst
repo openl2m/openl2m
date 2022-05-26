@@ -4,8 +4,22 @@
 Version 2.2
 ===========
 
-Note: from this version on, we are now developing and testing in Python v3.8.
-Python v3.6 is no longer supported!
+*Note: from this version on, we are now developing and testing in Python v3.8.
+Python v3.6 is no longer supported!*
+
+**Version 2.2 adds support for Aruba AOS-CX devices.** PoE and LLDP do not function yet,
+due to Aruba library shortcomings.
+
+Version 2.2
+-----------
+
+Release Date: 2022-05-26
+
+* Improved hints and comments on Admin pages for Switch, SwitchGroup, Vlan and VlanGroup entries.
+
+Bug Fixes:
+
+* Comware PoE mapping to interface fixed for certain conditions
 
 Version 2.2-dev3
 ----------------
