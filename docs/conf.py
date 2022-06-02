@@ -34,7 +34,6 @@ master_doc = 'index'
 # ones.
 extensions = [
     "sphinx_rtd_theme",
-    'sphinxcontrib.napoleon',   # can create python google docs style into rst files!
 ]
 
 # Add any paths that contain templates here, relative to this directory.
