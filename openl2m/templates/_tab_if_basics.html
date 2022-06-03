@@ -262,7 +262,7 @@
                           </a>
                         {% endif %}
                         {% if iface.poe_entry.power_consumption_supported %}
-                          {{ iface.poe_entry.power_consumed }}mW
+                          {{ iface.poe_entry.power_consumed|humanize_power }}
                         {% endif %}
                       {% else %}
                         <img src="{% static 'img/poe-enabled.png' %}" alt="PoE Enabled" data-toggle="tooltip" title="PoE Enabled!">
