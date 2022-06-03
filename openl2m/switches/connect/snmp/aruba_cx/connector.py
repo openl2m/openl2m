@@ -18,6 +18,11 @@ We will implement many features via the REST API of the product, See
 https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
 This will be done as part of the 'Aruba-AOS' configuration type, coded in
 /switches/connect/aruba_aoscx/
+
+Update June 2022:
+per https://www.arubanetworks.com/techdocs/AOS-CX/10.08/PDF/snmp_mib.pdf
+on pg. 46, OIDs that support SNMP write, write is supported to
+ifAdminStatus (ie interface up/down), and pethPsePortAdminEnable (ie. PoE enable/disable)
 """
 from switches.models import Log
 from switches.constants import *
@@ -56,6 +61,8 @@ class SnmpConnectorArubaCx(SnmpConnector):
         """
         if self._parse_mibs_aruba_ieee_qbridge(oid, val):
             return True
+        if self._parse_mibs_aruba_poe(oid, val):
+            return True
         # if not Aruba specific, call the generic parser
         return super()._parse_oid(oid, val)
 
@@ -93,6 +100,34 @@ class SnmpConnectorArubaCx(SnmpConnector):
             return True
 
         return False
+
+    def _parse_mibs_aruba_poe(self, oid, val):
+        """
+        Parse Aruba's ARUBAWIRED-POE Mibs
+        """
+        pe_index = oid_in_branch(arubaWiredPoePethPsePortPowerDrawn, oid)
+        if pe_index:
+            dprint(f"Found branch arubaWiredPoePethPsePortPowerDrawn, pe_index = {pe_index}")
+            if pe_index in self.poe_port_entries.keys():
+                self.poe_port_entries[pe_index].power_consumption_supported = True
+                self.poe_port_entries[pe_index].power_consumed = int(val)
+            return True
+
+        return False
+
+    def _get_poe_data(self):
+        """
+        Aruba(HP) used both the standard PoE MIB, and their own ARUBAWIRED-POE mib.
+        """
+        # get standard data first, this loads PoE status, etc.
+        super()._get_poe_data()
+        # if we found power supplies, get Aruba specific info about power usage from ARUBAWIRED-POE mib
+        if self.poe_capable:
+            retval = self.get_snmp_branch('arubaWiredPoePethPsePortPowerDrawn', self._parse_mibs_aruba_poe)
+            if retval < 0:
+                self.add_warning("Error getting 'PoE-Port-Actual-Power' (arubaWiredPoePethPsePortPowerDrawn)")
+
+        return 1
 
     def _get_vlan_data(self):
         """
