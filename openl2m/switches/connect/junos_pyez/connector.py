@@ -51,6 +51,14 @@ class PyEZConnector(Connector):
         self.switch.read_only = True
         self.add_more_info('System', 'Type', f"Junos PyEZ Connector for '{self.switch.name}'")
 
+        # current capabilities of the PyEZ drivers:
+        self.can_change_admin_status = False
+        self.can_change_vlan = False
+        self.can_change_poe_status = False
+        self.can_change_description = False
+        self.can_save_config = False    # save not needed after commit in Junos!
+        self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
+
         # this will be the pyJunosPyEZ driver session object
         self.device = False
         # and we dont want to cache this:
