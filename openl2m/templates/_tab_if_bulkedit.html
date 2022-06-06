@@ -90,6 +90,7 @@
             <td></td> {# select column #}
 
             <td colspan="2">
+              {% if connection.can_change_admin_status %}
               <span data-toggle="tooltip" title="Change state of all selected interfaces.">
                 Status:
                 <select name="interface_change">
@@ -98,9 +99,11 @@
                   {% endfor %}
                 </select>
               </span>
+              {% endif %}
             </td>
 
             <td>
+              {% if connection.can_change_vlan %}
               <span data-toggle="tooltip" title="Select the new untagged vlan for all selected interfaces.">
                 <select name="new_pvid">
                   <option value="-1" selected>No Change</option>
@@ -111,10 +114,12 @@
                   {% endfor %}
                 </select>
               </span>
+              {% endif %}
             </td>
 
             {% if connection.poe_capable %}
             <td>
+              {% if connection.can_change_poe_status %}
               <span data-toggle="tooltip" title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Down/Up' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE.">
                 <select name="poe_choice">
                   {% for choice,name in BULKEDIT_POE_CHOICES %}
@@ -122,24 +127,23 @@
                   {% endfor %}
                 </select>
               </span>
+              {% endif %}
             </td>
             {% endif %}
 
             <td>
-              {% if switch.edit_if_descr and group.edit_if_descr or user.profile.edit_if_descr %}
-                <span data-toggle="tooltip" title="Enter a new description for all selected interfaces.">
-                  <input type="text" class="form-control" name="new_description" value="" placeholder="new description here...">
-                </span>
-                <span data-toggle="tooltip" title="Just edit, or append to end">
-                  <br />
-                  <select name="new_description_type">
-                    {% for choice,name in BULKEDIT_ALIAS_TYPE_CHOICES %}
-                      <option value="{{ choice }}">{{ name }}</option>
-                    {% endfor %}
-                  </select>
-                </span>
-              {% else %}
-                <i>No description edit allowed</i>
+              {% if connection.can_change_description and switch.edit_if_descr and group.edit_if_descr and user.profile.edit_if_descr %}
+              <span data-toggle="tooltip" title="Enter a new description for all selected interfaces.">
+                <input type="text" class="form-control" name="new_description" value="" placeholder="new description here...">
+              </span>
+              <span data-toggle="tooltip" title="Just edit, or append to end">
+                <br />
+                <select name="new_description_type">
+                  {% for choice,name in BULKEDIT_ALIAS_TYPE_CHOICES %}
+                    <option value="{{ choice }}">{{ name }}</option>
+                  {% endfor %}
+                </select>
+              </span>
               {% endif %}
             </td>
           </tr>
@@ -183,48 +187,49 @@
                 </td>
 
                 {% if connection.poe_capable %}
-                  <td>
+                <td>
                   {% if iface.poe_entry %}
                     {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
                       {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
-                        {# fault or something like that #}
-                        <img src="{% static 'img/poe-fault.png' %}"
-                             alt="PoE Fault!"
-                             data-toggle="tooltip"
-                             title="PoE Fault state">
-                      {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
-                        <img src="{% static 'img/poe-serving.png' %}"
-                             alt="PoE Delivering!"
-                             data-toggle="tooltip"
-                             title="PoE Delivering">
-                      {% else %}
-                        <img src="{% static 'img/poe-enabled.png' %}"
-                             alt="PoE Enabled"
-                             data-toggle="tooltip"
-                             title="PoE Enabled, not delivering"></a>
-                      {% endif %}
+                  {# fault or something like that #}
+                  <img src="{% static 'img/poe-fault.png' %}"
+                       alt="PoE Fault!"
+                       data-toggle="tooltip"
+                       title="PoE Fault state">
+                       {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
+                  <img src="{% static 'img/poe-serving.png' %}"
+                       alt="PoE Delivering!"
+                       data-toggle="tooltip"
+                       title="PoE Delivering">
+                       {% if iface.poe_entry.power_consumption_supported %}
+                         {{ iface.poe_entry.power_consumed|humanize_power }}
+                       {% endif %}
+                       {% else %}
+                  <img src="{% static 'img/poe-enabled.png' %}"
+                       alt="PoE Enabled"
+                       data-toggle="tooltip"
+                       title="PoE Enabled, not delivering"></a>
+                     {% endif %}
                     {% else %}
-                      <img src="{% static 'img/disabled.png' %}"
-                           alt="PoE Disabled"
-                           data-toggle="tooltip"
-                           title="PoE Disabled">
+                  <img src="{% static 'img/disabled.png' %}"
+                       alt="PoE Disabled"
+                       data-toggle="tooltip"
+                       title="PoE Disabled">
                     {% endif %}
                   {% else %}
-                     <span data-toggle="tooltip" title="PoE not supported on this interface">n/s</span>
+                  <span data-toggle="tooltip" title="PoE not supported on this interface">n/s</span>
                   {% endif %}
-                  </td>
+                </td>
                 {% endif %}
-
+              {% else %}{# not ethernet #}
+                <td></td>{# vlan #}
+                <td></td>{# poe #}
+              {% endif %}{# if ethernet #}
                 <td>
                   {{ iface.description }}
                 </td>
-
-              {% endif %}
-
               </tr>
-
             {% endif %} {# manageable/visible #}
-
           {% endfor %} {# interfaces #}
         </tbody>
       </table>

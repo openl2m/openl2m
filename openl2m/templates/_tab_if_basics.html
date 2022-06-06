@@ -18,12 +18,14 @@
         <th>PoE</th>
         {% endif %}
         <th>Description</th>
-        {% if connection.can_run_commands and switch.command_list.interface_commands.count %}
+        {% if connection.can_run_commands %}
+          {% if switch.command_list.interface_commands.count %}
           <th>Commands</th>
-        {% elif request.user.is_staff or request.user.is_superuser %}
-            {% if connection.can_run_commands and switch.command_list.interface_commands_staff.count %}
+          {% elif request.user.is_staff or request.user.is_superuser %}
+            {% if switch.command_list.interface_commands_staff.count %}
             <th>Commands</th>
             {% endif %}
+          {% endif %}
         {% endif %}
       </tr>
       </thead>
@@ -80,59 +82,77 @@
                 {% if connection.poe_capable %}
                   <td>
                   {% if iface.poe_entry %}
-                    {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
-                      <a
-                         data-toggle="tooltip"
-                      {% if request.user.profile.are_you_sure %}
-                         onclick="return confirm_change('Are you sure you want to DISABLE POWER on interface {{ iface.name }}?')"
-                      {% endif %}
-                         href="{% url 'switches:poe_change' group.id switch.id iface.key POE_PORT_ADMIN_DISABLED %}"
-                      {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
-                        {# fault or something like that #}
-                        title="PoE Enabled with FAULT! Click here to Disable PoE on interface {{ iface.name }}">
-                        <img src="{% static 'img/poe-fault.png' %}" alt="PoE Fault!">
-                      {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
-                        title="PoE Enabled and DELIVERING! Click here to Disable PoE on interface {{ iface.name }}">
-                        <img src="{% static 'img/poe-serving.png' %}" alt="PoE Delivering!">
-                      </a>
-                          {% if iface.poe_entry.power_consumption_supported %}
-                            {{ iface.poe_entry.power_consumed|humanize_power }}
-                          {% endif %}
-                      {% else %}
-                            title="PoE Enabled, NOT delivering! Click here to Disable PoE on interface {{ iface.name }}">
-                        <img src="{% static 'img/poe-enabled.png' %}" alt="PoE Enabled"></a>
-                      {% endif %}
-                      {% if iface.allow_poe_toggle and iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
-                        {# if delivering power, toggle option if allowed #}
+                    {% if connection.can_change_poe_status %}
+                      {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
                         <a
                            data-toggle="tooltip"
                         {% if request.user.profile.are_you_sure %}
-                           onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
+                           onclick="return confirm_change('Are you sure you want to DISABLE POWER on interface {{ iface.name }}?')"
                         {% endif %}
-                           href="{% url 'switches:poe_down_up' group.id switch.id iface.key %}"
-                           title="Toggle PoE Off and then On on interface {{ iface.name }}">
-                          <img src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle">
+                           href="{% url 'switches:poe_change' group.id switch.id iface.key POE_PORT_ADMIN_DISABLED %}"
+                        {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
+                          {# fault or something like that #}
+                          title="PoE Enabled with FAULT! Click here to Disable PoE on interface {{ iface.name }}">
+                          <img src="{% static 'img/poe-fault.png' %}" alt="PoE Fault!">
+                        {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
+                          title="PoE Enabled and DELIVERING! Click here to Disable PoE on interface {{ iface.name }}">
+                          <img src="{% static 'img/poe-serving.png' %}" alt="PoE Delivering!">
+                        </a>
+                            {% if iface.poe_entry.power_consumption_supported %}
+                              {{ iface.poe_entry.power_consumed|humanize_power }}
+                            {% endif %}
+                        {% else %}
+                              title="PoE Enabled, NOT delivering! Click here to Disable PoE on interface {{ iface.name }}">
+                          <img src="{% static 'img/poe-enabled.png' %}" alt="PoE Enabled"></a>
+                        {% endif %}
+                        {% if iface.allow_poe_toggle and iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
+                          {# if delivering power, toggle option if allowed #}
+                          <a
+                             data-toggle="tooltip"
+                          {% if request.user.profile.are_you_sure %}
+                             onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
+                          {% endif %}
+                             href="{% url 'switches:poe_down_up' group.id switch.id iface.key %}"
+                             title="Toggle PoE Off and then On on interface {{ iface.name }}">
+                            <img src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle">
+                          </a>
+                        {% endif %}
+                      {% else %}
+                        <a
+                           data-toggle="tooltip"
+                        {% if request.user.profile.are_you_sure %}
+                           onclick="return confirm_change('Are you sure you want to ENABLE POWER on interface {{ iface.name }}?')"
+                        {% endif %}
+                           href="{% url 'switches:poe_change' group.id switch.id iface.key POE_PORT_ADMIN_ENABLED %}"
+                           title="PoE Disabled! Click here to Enable PoE on interface {{ iface.name }}">
+                            <img src="{% static 'img/poe-disabled-0.png' %}" alt="PoE Disabled">
                         </a>
                       {% endif %}
-                    {% else %}
-                      <a
-                         data-toggle="tooltip"
-                      {% if request.user.profile.are_you_sure %}
-                         onclick="return confirm_change('Are you sure you want to ENABLE POWER on interface {{ iface.name }}?')"
+                    {% else %}  {# driver cannot change poe #}
+                      {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
+                        {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
+                          {# fault or something like that #}
+                          <img src="{% static 'img/poe-fault.png' %}" alt="PoE FAULT!" data-toggle="tooltip" title="PoE Fault!">
+                        {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
+                          <img src="{% static 'img/poe-serving.png' %}" alt="PoE Delivering!" data-toggle="tooltip" title="PoE Delivering!">
+                          {% if iface.poe_entry.power_consumption_supported %}
+                            {{ iface.poe_entry.power_consumed|humanize_power }}
+                          {% endif %}
+                        {% else %}
+                          <img src="{% static 'img/poe-enabled.png' %}" alt="PoE Enabled" data-toggle="tooltip" title="PoE Enabled!">
+                        {% endif %}
+                      {% else %} {# disabled #}
+                        <img src="{% static 'img/poe-disabled-0.png' %}" alt="PoE Disabled" data-toggle="tooltip" title="PoE Disabled!">
                       {% endif %}
-                         href="{% url 'switches:poe_change' group.id switch.id iface.key POE_PORT_ADMIN_ENABLED %}"
-                         title="PoE Disabled! Click here to Enable PoE on interface {{ iface.name }}">
-                          <img src="{% static 'img/poe-disabled-0.png' %}" alt="PoE Disabled">
-                      </a>
                     {% endif %}
-                  {% else %}
+                  {% else %} {# no iface.poe_entry #}
                      <span data-toggle="tooltip" title="PoE not supported on this interface">n/s</span>
                   {% endif %}
                   </td>
                 {% endif %}
 
                 <td>
-                  {% if iface.can_edit_description %}
+                  {% if connection.can_change_description and iface.can_edit_description %}
                     <form name="descriptionchange"
                       action="{% url 'switches:description_change' group.id switch.id iface.key %}"
                       method="post"
@@ -182,7 +202,7 @@
                                      data-toggle="tooltip" title="Click here run command!">
                       </form>
                     </td>
-                  {% endif %}
+                  {% endif %} {# can_run_commands #}
                 {% endif %}
 
               {% else %} {# not Ethernet #}
@@ -250,7 +270,7 @@
                       {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
                         <img src="{% static 'img/poe-serving.png' %}" alt="PoE Delivering!" data-toggle="tooltip" title="PoE Delivering!">
                         {# if delivering power, toggle option if allowed #}
-                        {% if iface.allow_poe_toggle %}
+                        {% if connection.can_change_poe_status and iface.allow_poe_toggle %}
                           <a
                           {% if request.user.profile.are_you_sure %}
                               onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
@@ -278,34 +298,35 @@
 
               <td>{{ iface.description }}</td>
 
-              {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
-                <td>
-                  <form name="command_form"
-                        action="{% url 'switches:interface_cmd_output' group.id switch.id iface.key %}"
-                        method="post">
-                    {% csrf_token %}
-                    <select name="command_id" data-toggle="tooltip" title="Select command to run">
-                      <optgroup label="Commands available:">
-                      {% for c in switch.command_list.interface_commands.all %}
-                        <option value="{{ c.id }}">{{ c.name }}</option>
-                      {% endfor %}
-                      </optgroup>
-                      {% if request.user.is_superuser or request.user.is_staff %}
-                        {% if switch.command_list.interface_commands_staff.count %}
-                          <optgroup label="Staff commands:">
-                          {% for c in switch.command_list.interface_commands_staff.all %}
-                            <option value="{{ c.id }}">{{ c.name }}</option>
-                          {% endfor %}
-                          </optgroup>
+              {% if connection.can_run_commands %}
+                {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
+                  <td>
+                    <form name="command_form"
+                          action="{% url 'switches:interface_cmd_output' group.id switch.id iface.key %}"
+                          method="post">
+                      {% csrf_token %}
+                      <select name="command_id" data-toggle="tooltip" title="Select command to run">
+                        <optgroup label="Commands available:">
+                        {% for c in switch.command_list.interface_commands.all %}
+                          <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
+                        </optgroup>
+                        {% if request.user.is_superuser or request.user.is_staff %}
+                          {% if switch.command_list.interface_commands_staff.count %}
+                            <optgroup label="Staff commands:">
+                            {% for c in switch.command_list.interface_commands_staff.all %}
+                              <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                            </optgroup>
+                          {% endif %}
                         {% endif %}
-                      {% endif %}
-                    </select>
-                    <input type="hidden" name="if_name" value="{{ iface.name }}">
-                    &nbsp;<input type="submit" value="Run" class="btn btn-primary" data-toggle="tooltip" title="Click to run command">
-                  </form>
-                </td>
-              {% endif %}
-
+                      </select>
+                      <input type="hidden" name="if_name" value="{{ iface.name }}">
+                      &nbsp;<input type="submit" value="Run" class="btn btn-primary" data-toggle="tooltip" title="Click to run command">
+                    </form>
+                  </td>
+                {% endif %}
+              {% endif %} {# can_run_commands #}
             {% endif %} {# not manageable #}
 
           </tr>
