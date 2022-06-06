@@ -43,6 +43,8 @@ from switches.connect.snmp.aruba_cx.constants import *
 from switches.connect.snmp.aruba_cx.connector import SnmpConnectorArubaCx
 from switches.connect.aruba_aoscx.constants import *
 from switches.connect.aruba_aoscx.connector import AosCxConnector
+from switches.connect.junos_pyez.constants import *
+from switches.connect.junos_pyez.connector import PyEZConnector
 
 from switches.connect.commands_only.constants import *
 from switches.connect.commands_only.connector import CommandsOnlyConnector
@@ -108,10 +110,13 @@ def get_connection_object(request, group, switch):
         else:
             connection = SnmpConnector(request, group, switch)
 
-    # This is the "custom" Aruba AOS CS connector, using the device REST API.
-    # this implementation is planned, ETA is TBD :-)
+    # This is the "custom" Aruba AOS CX connector, using the device REST API.
     elif switch.connector_type == CONNECTOR_TYPE_AOSCX:
         connection = AosCxConnector(request, group, switch)
+
+    # This is the "custom" Junos PyEZ connector, using the device NetConf API.
+    elif switch.connector_type == CONNECTOR_TYPE_PYEZ:
+        connection = PyEZConnector(request, group, switch)
 
     # This is the "custom" connector that handles SSH commands, but does not load
     # interface data!

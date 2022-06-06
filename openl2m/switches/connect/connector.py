@@ -28,6 +28,11 @@ from switches.connect.constants import *
 from switches.connect.netmiko.execute import NetmikoExecute
 
 
+'''
+Base Connector() class for OpenL2M.
+This implements the interface that is expected by the higher level code
+that calls this (e.g in the view.py functions that implement the url handling)
+'''
 class Connector():
     '''
     This base class defines the basic interface for all switch connections.
@@ -192,7 +197,6 @@ class Connector():
         Returns:
             return True on success, False on error and set self.error variables
         '''
-
         # call the implementation-specific function:
         if hasattr(self, 'get_my_client_data'):
             start_time = time.time()
@@ -309,7 +313,7 @@ class Connector():
         dprint(f"Connector.set_interface_poe_status() for {interface.name} to {new_state}")
         if interface.poe_entry:
             interface.poe_entry.admin_status = int(new_state)
-            dprint("   PoE set OK")
+            dprint("   PoE admin_status set OK")
             if new_state == POE_PORT_ADMIN_DISABLED:
                 interface.poe_entry.power_consumed = 0
             # self.save_cache()
@@ -357,11 +361,31 @@ class Connector():
             self.poe_capable = True
             self.poe_enabled = True
         interface.poe_entry.admin_status = POE_PORT_ADMIN_ENABLED
-        interface.poe_entry.detect_status = POE_PORT_DETECT_DELIVERING
+        if power_consumed > 0:
+            interface.poe_entry.detect_status = POE_PORT_DETECT_DELIVERING
         interface.poe_entry.power_consumption_supported = True
         interface.poe_entry.power_consumed = int(power_consumed)
         # self.save_cache()
         dprint("   PoE consumed power set OK")
+        return True
+
+    def set_interface_poe_detect_status(self, interface, status):
+        '''
+        set the interface Power-over-Ethernet consumed power
+
+        Args:
+            interface: Interface() object for the requested port
+            detect_status(boolean): state of PoE on interface
+
+        Returns:
+            True on success, False on error and set self.error variables
+        '''
+        dprint(f"Connector.set_interface_poe_detect_status() for {interface.name} to {status}")
+        if not interface.poe_entry:
+            interface.poe_entry = PoePort(interface.index, POE_PORT_ADMIN_ENABLED)
+            self.poe_capable = True
+            self.poe_enabled = True
+        interface.poe_entry.detect_status = status
         return True
 
     def set_interface_untagged_vlan(self, interface, new_pvid):
@@ -451,8 +475,7 @@ class Connector():
         indexed by the interface key.
 
         Args:
-        interface: Interface() object to add
-
+            interface: Interface() object to add
 
         Returns:
             True on success, False on error and set self.error variables
@@ -462,21 +485,44 @@ class Connector():
 
     def add_poe_powersupply(self, id, power_available):
         '''
-        Add a power supply PoePse() object to the device,
+        Add a power supply PoePse() object to the device, and return this new object.
 
         Args:
             id = index of power supply
             power_available = max power in Watts
 
         Returns:
-            True on success, False on error and set self.error variables
+            PoePSI() object created.
         '''
-        self.poe_pse_devices[id] = PoePSE(id)
-        self.poe_pse_devices[id].max_power = int(power_available)
+        pse = PoePSE(id)
+        pse.set_max_power(power_available)
+        pse.set_enabled()
+        self.poe_pse_devices[id] = pse
         self.poe_max_power += int(power_available)
         self.poe_capable = True
         self.poe_enabled = True
-        return True
+        return pse
+
+    def set_powersupply_attribute(self, id, attribute, value):
+        '''
+        set the value for a specified attribute of a power supply indexed by id
+
+        Args:
+            id (int) = the ID of the power supply
+            attribute (str) = the name of field to set
+            value = the value to set the field above.
+
+        Returns:
+            True on success, False on error
+        '''
+        id = int(id)
+        dprint(f"set_powersupply_attribute_by_id() for {id}, {attribute} = {value}")
+        try:
+            setattr(self.poe_pse_devices[id], attribute, value)
+            return True
+        except Exception as e:
+            dprint(f"   ERROR: {e}")
+            return False
 
     def get_interface_by_key(self, key):
         '''
@@ -530,6 +576,7 @@ class Connector():
             setattr(self.interfaces[key], attribute, value)
             return True
         except Exception as e:
+            dprint(f"   ERROR: {e}")
             return False
 
     def set_save_needed(self, value=True):
@@ -578,24 +625,26 @@ class Connector():
         self.interfaces = OrderedDict({key: self.interfaces[key] for key in natsort.natsorted(self.interfaces)})
         return True
 
-    def add_learned_ethernet_address(self, if_name, eth_address):
+    def add_learned_ethernet_address(self, if_name, eth_address, vlan_id=-1, ip4_address=''):
         '''
         Add an ethernet address to an interface, as given by the layer2 CAM/Switching tables.
         Creates a new EthernetAddress() object and returns it. If the ethernet address already
-        exists on the interface, just return the object.
-        It gets stored indexed by address on the interface.eth dict.
+        exists on the interface, just return the object. The EthernetAddress() objects
+        gets stored indexed by address in the interface.eth dict.
 
         Args:
-            if_name = interface name (key) as string
-            eth_address = ethernet address as string.
+            if_name(str): interface name (key) as string.
+            eth_address(str): ethernet address as string.
+            vlan_id(int): vlan where ethernet is learned, if known.
+            ip4_address(str): IPv4 address for this ethernet, if known.
 
         Returns:
-            EthernetAddress() on success, False on failure.
+            EthernetAddress() on success, False on failure (interface not found).
         '''
         dprint(f"conn.add_learned_ethernet_address() for {eth_address} on {if_name}")
         iface = self.get_interface_by_key(if_name)
         if iface:
-            a = iface.add_learned_ethernet_address(eth_address)
+            a = iface.add_learned_ethernet_address(eth_address=eth_address, vlan_id=vlan_id, ip4_address=ip4_address)
             self.eth_addr_count += 1
             return a
         else:
@@ -745,7 +794,7 @@ class Connector():
             command_string = the string we will execute
 
         Returns:
-             a disctionary with return result attributes.
+             a dictionary with return result attributes.
         '''
         dprint(f"run_command_string() called, str='{command_string}'")
         # default command result dictionary info:
@@ -1380,6 +1429,12 @@ def clear_switch_cache(request):
     '''
     Clear all cached data for the current switch.
     Does not return anything.
+
+    Args:
+        request: the Django http_reques() object.
+
+    Returns:
+        none
     '''
     dprint("clear_switch_cache() called:")
     if request:

@@ -45,6 +45,7 @@ GVRP_ENABLED = 1
 GVRP_DISABLED = 2
 
 # LLDP related
+LLDP_CHASSIS_TYPE_NONE = 0
 LLDP_CHASSIC_TYPE_COMP = 1      # chassisComponent(1)
 LLDP_CHASSIC_TYPE_ALIAS = 2     # interfaceAlias(2), ifAlias from IF-MIB
 LLDP_CHASSIC_TYPE_PORT = 3      # portComponent(3)
@@ -56,7 +57,8 @@ IANA_TYPE_IPV6 = 2
 LLDP_CHASSIC_TYPE_IFNAME = 6    # interfaceName(6), ifName from IF-MIB
 LLDP_CHASSIC_TYPE_LOCAL = 7    # local(7)
 
-# Capabilities as announced via lldp bits in SNMP data, translated to integer:
+# Capabilities as announced via lldp bits in SNMP data, translated to integer.
+# see also switches.connect.snmp.constants
 LLDP_CAPABILITIES_OTHER = 128     # other(0),
 LLDP_CAPABILITIES_REPEATER = 64  # repeater(1),
 LLDP_CAPABILITIES_BRIDGE = 32    # bridge(2),
