@@ -60,13 +60,12 @@ class AosCxConnector(Connector):
         self.set_do_not_cache_attribute('aoscx_session')
 
         # capabilities of current driver:
+        self.can_change_admin_status = True
+        self.can_change_vlan = True
+        self.can_change_poe_status = False
+        self.can_change_description = True
+        self.can_save_config = False  # not needed.
         self.can_reload_all = False
-
-    def can_change_interface_vlan(self):
-        """
-        Return True if we can change a vlan on an interface, False if not
-        """
-        return True
 
     def get_my_basic_info(self):
         '''

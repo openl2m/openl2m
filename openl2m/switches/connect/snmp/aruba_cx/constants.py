@@ -28,3 +28,10 @@ enterprise_id_info[ENTERPRISE_ID_HP_ENTERPRISE] = 'Aruba (HPE)'
 
 # AOS-CX also uses numerous HP/ProCurve snmp counters.
 # this are defined in switches.connect.snmp.procurve.constants
+
+# the ARUBAWIRED-POE mib is used for PoE reporting:
+# see http://www.circitor.fr/Mibs/Html/A/ARUBAWIRED-POE-MIB.php
+
+# the power drawn, in milliwatts:
+arubaWiredPoePethPsePortPowerDrawn = '.1.3.6.1.4.1.47196.4.1.1.3.8.1.1.1.7'
+snmp_mib_variables['arubaWiredPoePethPsePortPowerDrawn'] = arubaWiredPoePethPsePortPowerDrawn

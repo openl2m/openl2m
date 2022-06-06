@@ -96,7 +96,6 @@ class Connector():
         self.poe_pse_devices = {}    # list of PoePSE() objects
 
         # features that may or may not be implemented:
-        self.vlan_change_implemented = self.can_change_interface_vlan()     # if True, enables vlan editing if permissions allow it
         self.gvrp_enabled = False
         # set this flag is a save aka. 'write mem' is needed:
         self.save_needed = False
@@ -110,13 +109,13 @@ class Connector():
         # generic info for the "Switch Information" tab:
         self.more_info = {}         # dict of categories string, each a list of tuples (name, value), to extend sytem info about this switch!
 
-        # capabilities of the vendor or tech-specific driver, we assume Yes for all changing:
-        self.can_change_admin_status = True
-        self.can_change_vlan = True
-        self.can_change_poe_status = True
-        self.can_change_description = True
+        # capabilities of the vendor or tech-specific driver, we assume No for all changing:
+        self.can_change_admin_status = False
+        self.can_change_vlan = False
+        self.can_change_poe_status = False
+        self.can_change_description = False
         self.can_save_config = False    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
-        self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
+        self.can_reload_all = False      # if true, we can reload all our data (and show a button on screen for this)
         self.can_get_client_data = hasattr(self, 'get_my_client_data')  # do we implement reading arp/lldp/etc?
         self.can_get_hardware_details = hasattr(self, 'get_my_hardware_details')    # can we get more then basic device info?
 
@@ -547,21 +546,6 @@ class Connector():
         if self.can_save_config:
             self.save_needed = value
         return True
-
-    def can_change_interface_vlan(self):
-        '''
-        Return True if we can change a vlan on an interface, False if not
-
-        This method should be implemented by sub-classes to reflect if that class
-        can change interface vlan settings.
-
-        Args:
-            none
-
-        Returns:
-            True or False
-        '''
-        return False
 
     def add_vlan_to_interface(self, iface, vlan_id):
         '''
