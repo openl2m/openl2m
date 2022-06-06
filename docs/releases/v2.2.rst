@@ -10,6 +10,18 @@ Python v3.6 is no longer supported!*
 **Version 2.2 adds support for Aruba AOS-CX devices.** PoE and LLDP do not function yet,
 due to Aruba library shortcomings.
 
+Version 2.2.1
+
+Release Date: 2022-06-06
+
+* On AOS-CX switches when configured for SNMP, implement read/write of interface enable/disable
+  and PoE enable/disable, and read PoE consumed power. (this required v10.08 or later firmware)
+
+Bug Fixes:
+
+* templates handle device capabilities properly (i.e. disable field forms when driver does not implement changing it)
+
+
 Version 2.2
 -----------
 
