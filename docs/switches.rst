@@ -47,7 +47,10 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 
 **Juniper Networks**
 
-* *EX2300* series switch, running JUNOS 18.2R3-S2.9; single unit. (R/O support via SNMP)
+Full with Junos PyEZ, R/O support with SNMP.
+
+* *EX2300* series switch, running JUNOS 18.2R3-S2.9; single unit.
+* *QFX5120* series switch, running JUNOS 20.4R3-S3.4; single unit.
 
 **Generic**
 

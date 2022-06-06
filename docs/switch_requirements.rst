@@ -4,10 +4,18 @@
 Switch Requirements
 ===================
 
+Juniper PyEZ
+------------
+
+* any Juniper that support the XML api. Device access needs to be configured properly.
+
+Aruba AOS-CX
+------------
+
+* any Aruba AOS-CX switch that has api enabled. Device access needs to be configured properly.
 
 SNMP
 ----
-
 For the device that use standard SNMP OpenL2M supports v2c and v3.
 SNMP v1 is not supported. We recommend all devices are configured with v3.
 
