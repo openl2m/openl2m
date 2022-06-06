@@ -44,6 +44,9 @@ class SnmpConnectorProcurve(SnmpConnector):
         super().__init__(request, group, switch)
         self.vendor_name = 'HP/ProCurve(Aruba)'
 
+        # some capabilities we cannot do:
+        self.can_save_config = False    # not needed on ProCurve, it has auto-save!
+
     def _parse_oid(self, oid, val, parser=False):
         """
         Parse a single OID with data returned from a switch through some "get" function

@@ -259,6 +259,14 @@ class SnmpConnector(Connector):
         # PoE related:
         self.poe_port_entries = {}  # PoePort() port power entries, used to store until we can map to interface
 
+        # capabilities of the snmp drivers:
+        self.can_change_admin_status = True
+        self.can_change_vlan = True
+        self.can_change_poe_status = True
+        self.can_change_description = True
+        self.can_save_config = True    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
+
         """
         attributes to track EasySnmp library
         """
@@ -2032,13 +2040,6 @@ class SnmpConnector(Connector):
     #
     # "Public" interface methods
     #
-
-    def can_change_interface_vlan(self):
-        """
-        Return True if we can change a vlan on an interface, False if not
-        """
-        # for standard MIB version, return True
-        return True
 
     """
     Class specific functions

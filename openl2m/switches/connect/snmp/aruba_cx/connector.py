@@ -46,7 +46,15 @@ class SnmpConnectorArubaCx(SnmpConnector):
         dprint("Aruba SnmpConnector __init__")
         super().__init__(request, group, switch)
         self.vendor_name = 'Aruba AOS (HPE)'
-        self.switch.read_only = True    # the new Aruba AOS switches are read-only over snmp. Write-access is via REST API.
+        self.switch.read_only = False    # the new Aruba AOS switches are read-only over snmp. Write-access is via REST API.
+
+        # we cannot implement some the following capabilities due to limitations of the SNMP code in AOS-CX:
+        self.can_change_admin_status = True
+        self.can_change_vlan = False
+        self.can_change_poe_status = True
+        self.can_change_description = False
+        self.can_save_config = False    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
 
     def _parse_oid(self, oid, val):
         """
