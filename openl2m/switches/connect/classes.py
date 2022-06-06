@@ -170,7 +170,7 @@ class Interface():
             self.vlans.remove(vlan_id)
         return True
 
-    def add_learned_ethernet_address(self, eth_address, vlan_id=-1, ip4_address = ''):
+    def add_learned_ethernet_address(self, eth_address, vlan_id=-1, ip4_address=''):
         '''
         Add an ethernet address to this interface, as given by the layer2 CAM/Switching tables.
         It gets stored indexed by address. Create new EthernetAddress() object is not found yet.
@@ -450,8 +450,8 @@ class NeighborDevice():
         self.chassis_type = 0    # integer, LldpChassisIdSubtype
         self.chassis_string = ""        # LldpChassisId, OctetString format depends on type.
         self.capabilities = LLDP_CAPABILITIES_NONE
-        # self.capabilities = bytes(2)    # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
-                                        # this is the equivalent to LLDP_CAPABILITIES_NONE from connect.constants
+        # self.capabilities = bytes(2)  # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
+        #                               # this is the equivalent to LLDP_CAPABILITIES_NONE from connect.constants
         self.port_name = ""             # remote port name
         self.port_descr = ""            # remote port description, as set by config
         self.sys_name = "Unknown Device"

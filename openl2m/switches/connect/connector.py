@@ -33,6 +33,8 @@ Base Connector() class for OpenL2M.
 This implements the interface that is expected by the higher level code
 that calls this (e.g in the view.py functions that implement the url handling)
 '''
+
+
 class Connector():
     '''
     This base class defines the basic interface for all switch connections.
