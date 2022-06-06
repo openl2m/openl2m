@@ -9,6 +9,9 @@ gunicorn
 hiredis
 ip_address>=1.0.23
 Jinja2
+junos-eznc
+jxmlease
+lxml
 napalm
 napalm-aruba-cx
 napalm-dellos10
