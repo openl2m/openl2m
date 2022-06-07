@@ -12,7 +12,12 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 from django.contrib import admin
+from django.contrib.admin.models import LogEntry,  DELETION
 from django.contrib.admin.views.main import ChangeList
+from django.urls import reverse
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
+
 # local copy of django-ordered-model, with some fixes:
 # from libraries.django_ordered_model.ordered_model.admin import OrderedStackedInline, OrderedTabularInline, OrderedInlineModelAdminMixin
 from ordered_model.admin import OrderedStackedInline, OrderedTabularInline, OrderedInlineModelAdminMixin
@@ -282,6 +287,56 @@ class TaskAdmin(admin.ModelAdmin):
         return False
 
 
+# add a class to show the built-in admin pages LogEntry objects:
+class LogEntryAdmin(admin.ModelAdmin):
+    # to have a date-based drilldown navigation in the admin page
+    date_hierarchy = 'action_time'
+
+    # to filter the resultes by users, content types and action flags
+    list_filter = [
+        'user',
+        'content_type',
+        'action_flag'
+    ]
+
+    # when searching the user will be able to search in both object_repr and change_message
+    search_fields = [
+        'object_repr',
+        'change_message'
+    ]
+
+    list_display = [
+        'action_time',
+        'user',
+        'content_type',
+        'object_repr',
+        'action_flag',
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def object_link(self, obj):
+        if obj.action_flag == DELETION:
+            link = escape(obj.object_repr)
+        else:
+            ct = obj.content_type
+            link = '<a href="%s">%s</a>' % (
+                reverse('admin:%s_%s_change' % (ct.app_label, ct.model), args=[obj.object_id]),
+                escape(obj.object_repr),
+                )
+        return mark_safe(link)
+
+
 # Register your models here.
 admin_site.register(Switch, SwitchAdmin)
 admin_site.register(SwitchGroup, SwitchGroupAdmin)
@@ -293,3 +348,4 @@ admin_site.register(Command, CommandAdmin)
 admin_site.register(CommandList, CommandListAdmin)
 admin_site.register(CommandTemplate, CommandTemplateAdmin)
 admin_site.register(Task, TaskAdmin)
+admin_site.register(LogEntry, LogEntryAdmin)
