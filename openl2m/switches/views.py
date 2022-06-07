@@ -112,6 +112,8 @@ def switch_search(request):
         return redirect(reverse('switches:groups'))
 
     search = str(request.POST.get('switchname', ''))
+    # remove leading and trailing white spaceA
+    search = search.strip()
     if not search:
         return redirect(reverse('switches:groups'))
 
