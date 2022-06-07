@@ -27,7 +27,8 @@ def junos_speed_to_mbps(speed):
     # else hardcode to 1Gbps for now:
     return 1000
 
-def junos_parse_power(power, milliwatts = False):
+
+def junos_parse_power(power, milliwatts=False):
     '''
     Convert a power string to an integer in Watts or milliWatts.
 
@@ -47,6 +48,7 @@ def junos_parse_power(power, milliwatts = False):
     # else hardcode 0 Watts
     return 0
 
+
 def junos_remove_unit(if_name):
     '''
     Remove the Junos unit from the interface name.
@@ -58,7 +60,7 @@ def junos_remove_unit(if_name):
     Returns:
         if_name minus the unit, or if_name if no unit found.
     '''
-    pos =  if_name.rfind('.')
+    pos = if_name.rfind('.')
     if pos > 0:
         return if_name[:pos]
     return if_name

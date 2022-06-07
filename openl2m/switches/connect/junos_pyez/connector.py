@@ -29,6 +29,7 @@ https://www.juniper.net/documentation/us/en/software/junos-pyez/junos-pyez-devel
 # import jxmlease
 from jnpr.junos import Device
 
+
 class PyEZConnector(Connector):
     '''
     This class implements a Connector() to get switch information from Junos devices supported by the PyEz library.
@@ -104,7 +105,7 @@ class PyEZConnector(Connector):
         self.add_more_info('System', 'Hostname', self.device.facts['hostname'])
         self.add_more_info('System', 'Model', self.device.facts['model'])
         self.add_more_info('System', 'Version', self.device.facts['version'])
-        if self.device.facts['domain']: # this is None when not set!
+        if self.device.facts['domain']:  # this is None when not set!
             self.add_more_info('System', 'Domain Name', self.device.facts['domain'])
         else:
             self.add_more_info('System', 'Domain Name', '')
@@ -169,7 +170,7 @@ class PyEZConnector(Connector):
                 if af_name == 'eth-switch':
                     dprint("  type = switch port")
                     iface.type = IF_TYPE_ETHERNET
-                elif af_name == 'inet': # IPv4 interface
+                elif af_name == 'inet':  # IPv4 interface
                     dprint("  type = inet v4 routed interface!")
                     iface.is_routed = True
                     '''
@@ -300,7 +301,7 @@ class PyEZConnector(Connector):
         irb_regex = re.compile(r"^irb\.\d+\s+\[([\w\-\.\/]+)\]$")
         for arp in arp_entries:
             mac_address = arp.find('.//mac-address').text
-            ip_address =  arp.find('.//ip-address').text
+            ip_address = arp.find('.//ip-address').text
             if_name = arp.find('.//interface-name').text
             dprint(f"  {mac_address} = {ip_address}, on {if_name}")
             # if found on routed interface, if_name could be formed as "irb.nnn [if_name]"
@@ -313,7 +314,6 @@ class PyEZConnector(Connector):
                 if_name = junos_remove_unit(if_name)
             dprint(f"   Final real interface: {if_name}")
             self.add_learned_ethernet_address(if_name=if_name, eth_address=mac_address, ip4_address=ip_address)
-
 
         dprint("\nLLDP:")
         '''
@@ -405,7 +405,7 @@ class PyEZConnector(Connector):
         available = junos_parse_power(intf.find('.//interface-power-limit').text, milliwatts=True)
         dprint(f"    available: {available} mW")
         # call base class for bookkeeping.
-        super().set_interface_poe_available(iface, available )
+        super().set_interface_poe_available(iface, available)
         if intf.find('.//interface-status').text == 'Disabled':
             dprint("    Admin Disabled!")
             # call base class for bookkeeping.
