@@ -10,6 +10,13 @@ Python v3.6 is no longer supported!*
 **Version 2.2 adds support for Aruba AOS-CX devices.** PoE and LLDP do not function yet,
 due to Aruba library shortcomings.
 
+Version 2.2.2
+
+Release Date: 2022-06-07
+
+* Add Administrative LogEntry view to admin pages.
+* handle white-space around device searches.
+
 Version 2.2.1
 
 Release Date: 2022-06-06
