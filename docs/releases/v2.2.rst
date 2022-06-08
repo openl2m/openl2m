@@ -12,7 +12,7 @@ due to Aruba library shortcomings.
 
 Version 2.2.2
 
-Release Date: 2022-06-07
+Release Date: 2022-06-08
 
 * Add Administrative LogEntry view to admin pages.
 * handle white-space around device searches.
