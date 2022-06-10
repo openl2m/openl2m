@@ -17,6 +17,7 @@ import pprint
 import re
 import traceback
 
+from switches.utils import dprint
 from switches.connect.constants import *
 from switches.connect.classes import *
 from switches.connect.connector import *
@@ -26,8 +27,9 @@ from switches.connect.junos_pyez.utils import *
 Basic Junos PyEZ connector. This uses the documented PyEZ library, which uses Netconf underneath.
 https://www.juniper.net/documentation/us/en/software/junos-pyez/junos-pyez-developer/index.html
 '''
-# import jxmlease
 from jnpr.junos import Device
+from jnpr.junos.utils.config import Config
+from jnpr.junos.exception import *
 
 
 class PyEZConnector(Connector):
@@ -49,14 +51,14 @@ class PyEZConnector(Connector):
         dprint("PyEZConnector() __init__")
         super().__init__(request, group, switch)
         self.name = "Junos PyEZ Connector"
-        self.switch.read_only = True
+        self.switch.read_only = False
         self.add_more_info('System', 'Type', f"Junos PyEZ Connector for '{self.switch.name}'")
 
         # current capabilities of the PyEZ drivers:
-        self.can_change_admin_status = False
-        self.can_change_vlan = False
-        self.can_change_poe_status = False
-        self.can_change_description = False
+        self.can_change_admin_status = True
+        self.can_change_vlan = True
+        self.can_change_poe_status = True
+        self.can_change_description = True
         self.can_save_config = False    # save not needed after commit in Junos!
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
 
@@ -64,21 +66,6 @@ class PyEZConnector(Connector):
         self.device = False
         # and we dont want to cache this:
         self.set_do_not_cache_attribute('device')
-
-        # capabilities of current driver:
-        self.can_reload_all = False
-
-    def can_change_interface_vlan(self):
-        '''
-        Function to check if device can change vlans.
-
-        Args:
-            none
-
-        Returns:
-            True if we can change a vlan on an interface, False if not
-        '''
-        return False
 
     def get_my_basic_info(self):
         '''
@@ -128,20 +115,31 @@ class PyEZConnector(Connector):
             iface = Interface(name)
             iface.name = name
 
+            # try several fields to figure out what kind of interface this is:
+            try:
+                type = intf.find('.//link-level-type').text
+                dprint(f"  link-level-type = {type}")
+                iface.type = junos_parse_if_type(type)
+            except Exception as error:
+                try:
+                    if_type = intf.find('.//if-type').text
+                    dprint(f"  if-type = {if_type}")
+                    iface.type = junos_parse_if_type(if_type)
+                except Exception as error:
+                    # leave at default!
+                    dprint("  unknown port type!")
+
             try:
                 description = intf.find('.//description').text
             except Exception as error:
                 description = ''
-            print(f"  Description: {description}")
             iface.description = description
 
             admin_status = intf.find('.//admin-status').text
-            dprint(f"  Admin: {admin_status}")
             if admin_status == 'up':
                 iface.admin_status = True
 
             oper_status = intf.find('.//oper-status').text
-            dprint(f"  Oper: {oper_status}")
             if oper_status == 'up':
                 iface.oper_status = True
 
@@ -149,7 +147,6 @@ class PyEZConnector(Connector):
                 mtu = intf.find('.//mtu').text
             except Exception as error:
                 mtu = 0
-            dprint(f"  MTU: {mtu}")
             try:
                 iface.mtu = int(mtu)
             except Exception as error:
@@ -159,7 +156,6 @@ class PyEZConnector(Connector):
                 speed = intf.find('.//speed').text
             except Exception as error:
                 speed = '0'     # make sure this is a string object!
-            dprint(f"  Speed: {speed}")
             iface.speed = junos_speed_to_mbps(speed)
 
             # look at all Address Families:
@@ -173,17 +169,55 @@ class PyEZConnector(Connector):
                 elif af_name == 'inet':  # IPv4 interface
                     dprint("  type = inet v4 routed interface!")
                     iface.is_routed = True
-                    '''
-                    if 'interface-address' in af:   # this has an IPv4 address:
-                        address = af['interface-address'].get_xml_attr(attr='ifa-local', defval='')
-                        dprint(f"  IPv4 = {address}")
-                        net = IPNetwork(af['interface-address'].get_xml_attr(attr='ifa-destination', defval='0.0.0.0/0'))
-                        iface.add_ip4_network(address, prefix_len=net.prefixlen)
-                    '''
+                    # some inet interfaces do NOT have ip address fields:
+                    try:
+                        ip4_address = af.find('.//ifa-local').text
+                        if ip4_address:   # this has an IPv4 address:
+                            dprint(f"  IPv4 ADDR = {ip4_address}")
+                            ip4_net = af.find('.//ifa-destination').text
+                            try:
+                                dprint(f"  IPv4 NET = {ip4_net}")
+                                net = IPNetwork(ip4_net)
+                                prefixlen = net.prefixlen
+                            except Exception as error:
+                                # not found, so lets assume a /32
+                                prefixlen = 32
+                            iface.add_ip4_network(ip4_address, prefix_len=prefixlen)
+                    except Exception as error:
+                        dprint("  NO ipv4 address found!")
                 elif af_name == 'inet6':
                     dprint("  type = inet v6 routed interface!")
                     iface.is_routed = True
+                    # some do not have ipv6 address:
+                    try:
+                        ip6_address = af.find('.//ifa-local').text
+                        if ip6_address:   # this has an IPv4 address:
+                            dprint(f"  IPv6 ADDR = {ip6_address}")
+                            try:
+                                ip6_net = af.find('.//ifa-destination').text
+                                dprint(f"  IPv6 NET = {ip6_net}")
+                                net6 = IPNetwork(ip6_net)
+                                prefixlen = net6.prefixlen
+                            except Exception as error:
+                                # not found, let's assume /128
+                                prefixlen = 128
+                            iface.add_ip6_network(ip6_address, prefix_len=prefixlen)
+                    except Exception as error:
+                        dprint("  NO ipv6 address found!")
+                elif af_name == 'aenet':
+                    # aggregated ethernet!
+                    ae_interface = af.find('.//ae-bundle-name').text
+                    dprint(f" Aggregate Member of {ae_interface}!")
+                    iface.lacp_type = LACP_IF_TYPE_MEMBER
+                    iface.lacp_master_name = junos_remove_unit(ae_interface)
+                    iface.lacp_master_index = 1     # anything > 0 is fine.
 
+            try:
+                min_ag = intf.find('.//minimum-links-in-aggregate').text
+                iface.type = IF_TYPE_LAGG
+            except Exception as error:
+                dprint("  not an aggregate.")
+            dprint(f"  Final type = {iface.type}")
             self.add_interface(iface)
 
         # Now get PoE power supply info:
@@ -426,40 +460,192 @@ class PyEZConnector(Connector):
 
     def set_interface_admin_status(self, interface, new_state):
         '''
-        set the interface to the requested state (up or down)
-        interface = Interface() object for the requested port
-        new_state = True / False  (enabled/disabled)
-        return True on success, False on error and set self.error variables
+        Set the interface to the requested state (up or down)
+
+        Args:
+            interface: the Interface() object for the requested port
+            new_state (boolean): new state, True = enabled, False = disabled
+
+        Returns:
+            (boolean) True on success, False on error and set self.error variables
         '''
-        # interface.admin_status = new_state
         dprint(f"PyEZCOnnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+        if new_state:
+            command = f"delete interfaces {interface.name} disable"
+        else:
+            command = f"set interfaces {interface.name} disable"
+        if self.execute_command(command=command):
+            # now do the bookkeeping:
+            super().set_interface_admin_status(interface=interface, new_state=new_state)
+            self._close_device()
+            dprint("  change OK!")
+            return True
+        self._close_device()
+        dprint("  change FAILED!")
         return False
 
     def set_interface_poe_status(self, interface, new_state):
         '''
-        set the interface Power-over-Ethernet status as given
-        interface = Interface() object for the requested port
-        new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
-        return True on success, False on error and set self.error variables
+        Set the interface Power-over-Ethernet status to the requested state (up or down)
+
+        Args:
+            interface = the Interface() object for the requested port
+            new_state (int): POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
+
+        Returns:
+            (boolean) True on success, False on error and set self.error variables
         '''
         dprint(f"PyEZCOnnector.set_interface_poe_status() for {interface.name} to {new_state}")
-        dprint("NOT IMPLEMENTED YET")
-        # call the super class for bookkeeping.
-        super().set_interface_poe_status(interface, new_state)
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+        if new_state:   # "on"
+            command = f"delete poe interface {interface.name} disable"
+        else:   # "off"
+            command = f"set poe interface {interface.name} disable"
+        if self.execute_command(command=command):
+            # call the super class for bookkeeping.
+            super().set_interface_poe_status(interface, new_state)
+            self._close_device()
+            dprint("  change OK!")
+            return True
+        self._close_device()
+        dprint("  change FAILED!")
         return False
 
     def set_interface_untagged_vlan(self, interface, new_pvid):
         '''
-        set the interface untagged vlan to the given vlan
-        interface = Interface() object for the requested port
-        new_pvid = an integer with the requested untagged vlan
-        return True on success, False on error and set self.error variables
+        Set the interface untagged vlan to the given vlan
+
+        Args:
+            interface: the Interface() object for the requested port
+            new_pvid(int): the requested untagged vlan
+
+        Returns:
+            (boolean) True on success, False on error and set self.error variables
         '''
         dprint(f"PyEZCOnnector.set_interface_untagged_vlan() for {interface.name} to vlan {new_pvid}")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+        if interface.is_tagged:     # "vlan trunk"
+            command = f'set interfaces {interface.name} native-vlan-id {new_pvid}'
+        else:   # "plain untagged"
+            # need vlan by name, not number!
+            vlan = self.get_vlan_by_id(new_pvid)
+            if not vlan:
+                # cannot find pvid vlan (should not happen!)
+                self.error.status = True
+                self.error.description = f"Unknown vlan {new_pvid}"
+                return False
+            command = f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {vlan.name}"
+        if self.execute_command(command=command):
+            # call the super class for bookkeeping.
+            super().set_interface_untagged_vlan(interface=interface, new_pvid=new_pvid)
+            self._close_device()
+            dprint("  change OK!")
+            return True
+        self._close_device()
+        dprint("  change FAILED!")
         return False
+
+    def set_interface_description(self, interface, description):
+        '''
+        Set the interface description (aka. description) to the string
+
+        Args:
+            interface = Interface() object for the requested port
+            new_description = a string with the requested text
+
+        Returns:
+            (boolean) True on success, False on error and set self.error variables
+        '''
+        dprint(f"PyEZCOnnector.set_interface_description() for {interface.name} to '{description}'")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+        if description:
+            command = f'set interfaces {interface.name} description "{description}"'
+        else:   # "off"
+            command = f"delete interfaces {interface.name} description"
+        if self.execute_command(command=command):
+            # call the super class for bookkeeping.
+            super().set_interface_description(interface=interface, description=description)
+            self._close_device()
+            dprint("  change OK!")
+            return True
+        self._close_device()
+        dprint("  change FAILED!")
+        return False
+
+    def execute_command(self, command, format='set'):
+        '''
+        Execute a command string on the device. Defaults to 'set' format.
+
+        Args:
+            command(str): the command string to execute.
+            format(str): the command formal, default = 'set'
+
+        Returns:
+            (boolean) True on success, False on error and set self.error variables
+        '''
+        dprint(f"PyEZ.execute_command(): format={format}, '{command}'")
+        try:
+            conf = Config(self.device)  # we assume this is open!
+            conf.lock()
+            conf.load(command, format=format)
+            dprint(f"Config Diff: {conf.diff()}")
+            if conf.commit_check():
+                dprint("Commit_check() OK")
+                conf.commit()
+                ret_val = True
+            else:
+                dprint("Commit_check() FAILED!")
+                conf.rollback()
+                self.error.status = True
+                self.error.description = "Commit-Check failed! Not executing command."
+                self.error.details = ''
+                ret_val = False
+            conf.unlock()
+            return ret_val
+        except RpcError as err:
+            self.error.status = True
+            self.error.description = "Network Communications Error, change was NOT applied!"
+            self.error.details = f"Error: '{err}', command was '{command}'"
+            return False
+        except ConfigLoadError as err:
+            self.error.status = True
+            self.error.description = "Error loading config, change was NOT applied!"
+            self.error.details = f"Error: '{err}', command was '{command}'"
+            return False
+        except CommitError as err:
+            self.error.status = True
+            self.error.description = "Commit-Check failed, change was NOT applied!"
+            self.error.details = f"Error: '{err}', command was '{command}'"
+            return False
+        except LockError as err:
+            self.error.status = True
+            self.error.description = "Cannot get lock, change was NOT applied!"
+            self.error.details = f"Error: '{err}', command was '{command}'"
+            return False
+        except UnlockError:
+            self.error.status = True
+            self.error.description = "Cannot release lock, but change was applied!"
+            self.error.details = f"Error: '{err}', command was '{command}'"
+            return False
+        except ValueError as err:
+            self.error.status = True
+            self.error.description = "Invalid Rollback ID, change was NOT applied!"
+            self.error.details = f"Error: '{err}', command was '{command}'"
+            return False
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Unknown error occured, change was NOT applied!"
+            self.error.details = f"Error: '{err}', command was '{command}'"
+            return False
 
     def _open_device(self):
         '''

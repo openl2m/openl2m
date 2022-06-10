@@ -12,6 +12,9 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from switches.connect.constants import IF_TYPE_NONE, IF_TYPE_ETHERNET, IF_TYPE_LOOPBACK, IF_TYPE_VIRTUAL, IF_TYPE_LAGG, IF_TYPE_TUNNEL, IF_TYPE_MCAST
+
+
 def junos_speed_to_mbps(speed):
     '''
     Convert speed string to integer in 1Mbps
@@ -64,3 +67,37 @@ def junos_remove_unit(if_name):
     if pos > 0:
         return if_name[:pos]
     return if_name
+
+
+def junos_parse_if_type(if_type):
+    '''
+    Parse the XML "if-type" field, and return an IF_TYPE_XXX flag.
+
+    Args:
+        if_type(str): the XML string for the "if-type" field
+
+    Returns:
+        (int) flag that represents the matching IF_TYPE_XXX values
+    '''
+    iftypes = {
+        'Software-Pseudo': IF_TYPE_VIRTUAL,
+        'Mgmt-VLAN': IF_TYPE_VIRTUAL,
+        'GRE': IF_TYPE_TUNNEL,  # general routing encapsulation
+        'Multicast-GRE': IF_TYPE_TUNNEL,    # general routing encapsulation
+        'FTI': IF_TYPE_TUNNEL,  # flexible tunnel
+        'IPIP': IF_TYPE_TUNNEL,  # IP-in-IP tunnel
+        'IP-over-IP': IF_TYPE_TUNNEL,  # IP-in-IP tunnel
+        'Flexible-tunnel-Interface': IF_TYPE_TUNNEL,
+        'Ethernet': IF_TYPE_ETHERNET,
+        'PIMD': IF_TYPE_MCAST,  # multicast related
+        'PIME': IF_TYPE_MCAST,  # multicast encapsulation
+        'PIM-Encapsulator': IF_TYPE_MCAST,
+        'PIM-Decapsulator': IF_TYPE_MCAST,
+        'LSI': IF_TYPE_VIRTUAL,
+        'Loopback': IF_TYPE_LOOPBACK,
+        'VxLAN-Tunnel-Endpoint': IF_TYPE_TUNNEL,
+        'Interface-Specific': IF_TYPE_VIRTUAL,
+    }
+    if if_type in iftypes:
+        return iftypes[if_type]
+    return IF_TYPE_NONE
