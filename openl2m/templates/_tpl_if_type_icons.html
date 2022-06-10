@@ -53,6 +53,13 @@
        data-toggle="tooltip"
        title="Tunnel Interface">
   </i>
+{% elif iface.type == IF_TYPE_MCAST %}
+  &nbsp;
+  <i class="fas fa-sitemap" aria-hidden="true"
+       alt="Multicast Interface"
+       data-toggle="tooltip"
+       title="Multicast Interface">
+  </i>
 {% elif iface.type == IF_TYPE_NONE %}
   &nbsp;
   <i class="far fa-question-circle" aria-hidden="true"

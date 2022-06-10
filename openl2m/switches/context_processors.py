@@ -31,6 +31,7 @@ def add_variables(request):
         'IF_TYPE_VIRTUAL': IF_TYPE_VIRTUAL,
         'IF_TYPE_LOOPBACK': IF_TYPE_LOOPBACK,
         'IF_TYPE_TUNNEL': IF_TYPE_TUNNEL,
+        'IF_TYPE_MCAST': IF_TYPE_MCAST,
 
         'LACP_IF_TYPE_NONE': LACP_IF_TYPE_NONE,
 

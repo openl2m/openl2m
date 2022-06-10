@@ -22,6 +22,7 @@ IF_TYPE_LOOPBACK = 24   # interface Loopback X (softwareLoopback)
 IF_TYPE_VIRTUAL = 53    # interface Vlan X (proprietary virtual/internal)
 IF_TYPE_TUNNEL = 131    # generic Tunnel interface
 IF_TYPE_LAGG = 161      # IEEE 802.3ad Link Aggregate
+IF_TYPE_MCAST = 1025    # undefined by IEEE, but used by OpenL2M to indicate various multicast virtual interfaces
 
 LACP_IF_TYPE_NONE = 0        # not port of LACP aggregation
 LACP_IF_TYPE_MEMBER = 1      # this is a physical port and member
