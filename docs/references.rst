@@ -64,6 +64,7 @@ The pyasocx library is at https://github.com/aruba/pyaoscx/
 **Junos PyEZ**
 
 Juniper documentation is at https://www.juniper.net/documentation/us/en/software/junos-pyez/junos-pyez-developer/index.html
+and at https://junos-pyez.readthedocs.io/
 
 Juniper PyEZ library, at https://github.com/Juniper/py-junos-eznc and installable via pip.
 
@@ -89,3 +90,12 @@ For Dell OS10 support, we use this: https://dellos10-napalm.readthedocs.io/en/la
 For HP Procurve support, we use this: https://github.com/ixs/napalm-procurve
 
 A possible Comware Napalm driver is at https://github.com/firefly-serenity/napalm-flexfabric
+
+
+**Icons**
+
+We use several free icon packages:
+
+Font Awesome, with previews https://fontawesome.com/v5/search
+
+Material Design Icons, from https://materialdesignicons.com/ and a preview at https://pictogrammers.github.io/@mdi/font/6.5.95/
