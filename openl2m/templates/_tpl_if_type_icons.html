@@ -1,5 +1,5 @@
 {% load static %}
-
+ <!--  iface.type = {{ iface.type }} -->
 {% if iface.is_routed %}
   &nbsp;
   <i class="fas fa-cogs" aria-hidden="true"
@@ -37,14 +37,21 @@
   <i class="far fa-smile" aria-hidden="true"
        alt="Virtual Interface"
        data-toggle="tooltip"
-       title="VLAN or Virtual Interface">
+       title="Virtual Interface">
   </i>
 {% elif iface.type == IF_TYPE_LOOPBACK %}
   &nbsp;
-  <i class="far fa-smile" aria-hidden="true"
+  <i class="fas fa-spinner" aria-hidden="true"
        alt="Loopback Interface"
        data-toggle="tooltip"
        title="Software Loopback Interface">
+  </i>
+{% elif iface.type == IF_TYPE_TUNNEL %}
+  &nbsp;
+  <i class="fas fa-archway" aria-hidden="true"
+       alt="Tunnel Interface"
+       data-toggle="tooltip"
+       title="Tunnel Interface">
   </i>
 {% elif iface.type == IF_TYPE_NONE %}
   &nbsp;
