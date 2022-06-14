@@ -1114,6 +1114,30 @@ class Connector():
         '''
         return True
 
+    def _map_lacp_members_to_logical(self):
+        '''
+        Match LACP member interfaces to their 'logical' virtual aggregate interface.
+        This is likely not possible at interface discovery time, as the 'lag' interfaces
+        have likely not been found yet.
+
+        Will loop through all interfaces, find lacp members, and add their name to the
+        list of members of the main virtual aggregate interface.
+
+        Args:
+            none
+
+        Returns:
+            none
+        '''
+        for name, iface in self.interfaces.items():
+            if iface.lacp_type == LACP_IF_TYPE_MEMBER:
+                lag_iface = self.get_interface_by_key(key=iface.lacp_master_name)
+                if lag_iface:
+                    # add the member to the aggregator interface:
+                    lag_iface.lacp_members[iface.name] = iface.name
+                else:
+                    dprint(f"Cannot find LAG interface {iface.lacp_master_name} for {iface.name}")
+
     def _set_allowed_vlans(self):
         '''
         set the list of vlans defined on the switch that are allowed per the SwitchGroup.vlangroups/vlans
