@@ -211,6 +211,7 @@ class PyEZConnector(Connector):
                     iface.lacp_type = LACP_IF_TYPE_MEMBER
                     iface.lacp_master_name = junos_remove_unit(ae_interface)
                     iface.lacp_master_index = 1     # anything > 0 is fine.
+                    # and add as member to the master interface:
 
             try:
                 min_ag = intf.find('.//minimum-links-in-aggregate').text
@@ -219,6 +220,10 @@ class PyEZConnector(Connector):
                 dprint("  not an aggregate.")
             dprint(f"  Final type = {iface.type}")
             self.add_interface(iface)
+
+        # fix up some things that are not known at time of interface discovery,
+        # such as LACP master interfaces:
+        self._map_lacp_members_to_logical()
 
         # Now get PoE power supply info:
         try:
@@ -473,11 +478,12 @@ class PyEZConnector(Connector):
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+        commands = []
         if new_state:
-            command = f"delete interfaces {interface.name} disable"
+            commands.append(f"delete interfaces {interface.name} disable")
         else:
-            command = f"set interfaces {interface.name} disable"
-        if self.execute_command(command=command):
+            commands.append(f"set interfaces {interface.name} disable")
+        if self.execute_commands(commands=commands):
             # now do the bookkeeping:
             super().set_interface_admin_status(interface=interface, new_state=new_state)
             self._close_device()
@@ -502,11 +508,12 @@ class PyEZConnector(Connector):
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
-        if new_state:   # "on"
-            command = f"delete poe interface {interface.name} disable"
+        commands = []
+        if new_state == POE_PORT_ADMIN_ENABLED:   # "on"
+            commands.append(f"delete poe interface {interface.name} disable")
         else:   # "off"
-            command = f"set poe interface {interface.name} disable"
-        if self.execute_command(command=command):
+            commands.append(f"set poe interface {interface.name} disable")
+        if self.execute_commands(commands=commands):
             # call the super class for bookkeeping.
             super().set_interface_poe_status(interface, new_state)
             self._close_device()
@@ -531,8 +538,9 @@ class PyEZConnector(Connector):
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+        commands = []
         if interface.is_tagged:     # "vlan trunk"
-            command = f'set interfaces {interface.name} native-vlan-id {new_pvid}'
+            commands.append(f"set interfaces {interface.name} native-vlan-id {new_pvid}")
         else:   # "plain untagged"
             # need vlan by name, not number!
             vlan = self.get_vlan_by_id(new_pvid)
@@ -541,8 +549,9 @@ class PyEZConnector(Connector):
                 self.error.status = True
                 self.error.description = f"Unknown vlan {new_pvid}"
                 return False
-            command = f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {vlan.name}"
-        if self.execute_command(command=command):
+            commands.append(f"delete interfaces {interface.name} unit 0 family ethernet-switching vlan")
+            commands.append(f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {vlan.name}")
+        if self.execute_commands(commands=commands):
             # call the super class for bookkeeping.
             super().set_interface_untagged_vlan(interface=interface, new_pvid=new_pvid)
             self._close_device()
@@ -567,11 +576,12 @@ class PyEZConnector(Connector):
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+        commands = []
         if description:
-            command = f'set interfaces {interface.name} description "{description}"'
+            commands.append(f'set interfaces {interface.name} description "{description}"')
         else:   # "off"
-            command = f"delete interfaces {interface.name} description"
-        if self.execute_command(command=command):
+            commands.append(f"delete interfaces {interface.name} description")
+        if self.execute_commands(commands=commands):
             # call the super class for bookkeeping.
             super().set_interface_description(interface=interface, description=description)
             self._close_device()
@@ -581,29 +591,30 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
-    def execute_command(self, command, format='set'):
+    def execute_commands(self, commands, format='set'):
         '''
-        Execute a command string on the device. Defaults to 'set' format.
+        Execute a list of command string(s) on the device. Defaults to 'set' format.
 
         Args:
-            command(str): the command string to execute.
-            format(str): the command formal, default = 'set'
+            commands(list): the command list of strings to execute.
+            format(str): the command format, default = 'set'
 
         Returns:
             (boolean) True on success, False on error and set self.error variables
         '''
-        dprint(f"PyEZ.execute_command(): format={format}, '{command}'")
+        dprint(f"PyEZ.execute_commands(): format={format}, '{commands}'")
         try:
             conf = Config(self.device)  # we assume this is open!
             conf.lock()
-            conf.load(command, format=format)
+            for command in commands:
+                conf.load(command, format=format)
             dprint(f"Config Diff: {conf.diff()}")
             if conf.commit_check():
-                dprint("Commit_check() OK")
+                dprint("commit_check() OK")
                 conf.commit()
                 ret_val = True
             else:
-                dprint("Commit_check() FAILED!")
+                dprint("commit_check() FAILED!")
                 conf.rollback()
                 self.error.status = True
                 self.error.description = "Commit-Check failed! Not executing command."
@@ -614,37 +625,37 @@ class PyEZConnector(Connector):
         except RpcError as err:
             self.error.status = True
             self.error.description = "Network Communications Error, change was NOT applied!"
-            self.error.details = f"Error: '{err}', command was '{command}'"
+            self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except ConfigLoadError as err:
             self.error.status = True
             self.error.description = "Error loading config, change was NOT applied!"
-            self.error.details = f"Error: '{err}', command was '{command}'"
+            self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except CommitError as err:
             self.error.status = True
             self.error.description = "Commit-Check failed, change was NOT applied!"
-            self.error.details = f"Error: '{err}', command was '{command}'"
+            self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except LockError as err:
             self.error.status = True
             self.error.description = "Cannot get lock, change was NOT applied!"
-            self.error.details = f"Error: '{err}', command was '{command}'"
+            self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except UnlockError:
             self.error.status = True
             self.error.description = "Cannot release lock, but change was applied!"
-            self.error.details = f"Error: '{err}', command was '{command}'"
+            self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except ValueError as err:
             self.error.status = True
             self.error.description = "Invalid Rollback ID, change was NOT applied!"
-            self.error.details = f"Error: '{err}', command was '{command}'"
+            self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except Exception as err:
             self.error.status = True
             self.error.description = "Unknown error occured, change was NOT applied!"
-            self.error.details = f"Error: '{err}', command was '{command}'"
+            self.error.details = f"Error: '{err}', command was '{commands}'"
             return False
 
     def _open_device(self):
@@ -684,4 +695,5 @@ class PyEZConnector(Connector):
         '''
         dprint("Junos PyEZ _close_device()")
         self.device.close()
+        self.device = False
         return True
