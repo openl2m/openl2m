@@ -52,7 +52,6 @@ class AosCxConnector(Connector):
         super().__init__(request, group, switch)
         self.name = "AOS-CX API Connector"
         self.switch.read_only = False
-        self.add_more_info('System', 'Type', f"AOS-CX API Connector for '{self.switch.name}'")
 
         # this will be the pyaoscx driver session object
         self.aoscx_session = False
@@ -62,7 +61,7 @@ class AosCxConnector(Connector):
         # capabilities of current driver:
         self.can_change_admin_status = True
         self.can_change_vlan = True
-        self.can_change_poe_status = False
+        self.can_change_poe_status = True
         self.can_change_description = True
         self.can_save_config = False  # not needed.
         self.can_reload_all = False
@@ -238,20 +237,27 @@ class AosCxConnector(Connector):
                 # go get PoE info:
                 aoscx_iface = AosCxInterface(session=self.aoscx_session, name=if_name)
                 aoscx_poe_iface = AosCxPoEInterface(session=self.aoscx_session, parent_interface=aoscx_iface)
+                # get both configuration data (which has poe enable/disable status)
                 aoscx_poe_iface.get(selector='status')
+                # as well as status data, which has power usage:
+                aoscx_poe_iface.get(selector='configuration')
+
                 dprint(f"   +++ POE Exists for {if_name} ===")
                 # there is probably a more 'global' system/device way to see if PoE capabilities exist:
                 self.poe_capable = True
                 self.poe_enabled = True
                 # assign an OpenL2M PoePort() object
                 # dprint(f"POE: config.admin_disabled={aoscx_poe.config['admin_disable']}")
-                poe_entry = PoePort(index=if_name, admin_status=not aoscx_poe_iface.config['admin_disable'])
-                # we also have aoscx_poe_iface.config['priority'] is textual values: 'low'
+                if aoscx_poe_iface.config['admin_disable']:
+                    poe_status = POE_PORT_ADMIN_DISABLED
+                else:
+                    poe_status = POE_PORT_ADMIN_ENABLED
+                poe_entry = PoePort(index=if_name, admin_status=poe_status)
                 iface.poe_entry = poe_entry
-
-                # this is a PoEInterface attribute:
-                if aoscx_poe_iface['_Interface__is_special_type']:
-                    dprint("   SPECIAL Interface!")
+                # get power used. Listed in watts, convert to milliwatts:
+                consumed = int(aoscx_poe_iface.measurements['power_drawn'] * 1000)
+                if consumed > 0:
+                    super().set_interface_poe_consumed(iface, consumed)
 
             except Exception as error:
                 dprint(f"   +++ NO PoE! - exception: {format(error)}")
@@ -408,8 +414,12 @@ class AosCxConnector(Connector):
         """
         set the interface Power-over-Ethernet status as given
         interface = Interface() object for the requested port
-        new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
-        return True on success, False on error and set self.error variables
+
+        Args:
+            new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
+
+        Returns:
+            True on success, False on error and set self.error variables
         """
         dprint(f"AosCxConnector.set_interface_poe_status() for {interface.name} to {new_state}")
         if interface.poe_entry:
@@ -429,8 +439,11 @@ class AosCxConnector(Connector):
                 self._close_device()
                 return False
 
-            dprint(f"  +++ POE Exists for {ifname} ===")
-            changed = aoscx_poe.set_power(state=new_state)
+            dprint(f"  +++ POE Exists for {interface.name} ===")
+            if new_state == POE_PORT_ADMIN_ENABLED:
+                changed = aoscx_poe.set_power(state=True)
+            else:
+                changed = aoscx_poe.set_power(state=False)
             self._close_device()
             if changed:
                 dprint("   PoE change OK!")
