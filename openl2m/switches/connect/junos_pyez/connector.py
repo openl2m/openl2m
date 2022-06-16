@@ -52,7 +52,6 @@ class PyEZConnector(Connector):
         super().__init__(request, group, switch)
         self.name = "Junos PyEZ Connector"
         self.switch.read_only = False
-        self.add_more_info('System', 'Type', f"Junos PyEZ Connector for '{self.switch.name}'")
 
         # current capabilities of the PyEZ drivers:
         self.can_change_admin_status = True
