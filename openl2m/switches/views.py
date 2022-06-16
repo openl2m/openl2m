@@ -996,7 +996,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         log.description = f"Interface {interface.name} does not support PoE"
         error = Error()
         error.status = True
-        error.description = log.descr
+        error.description = log.description
         log.save()
         counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=group, switch=switch, error=error)
@@ -1008,7 +1008,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         log.description = f"Interface {interface.name} does not have PoE enabled"
         error = Error()
         error.status = True
-        error.description = log.descr
+        error.description = log.description
         log.save()
         counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=group, switch=switch, error=error)

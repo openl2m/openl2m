@@ -273,14 +273,7 @@ class AosCxConnector(Connector):
 
         # fix up some things that are not known at time of interface discovery,
         # such as LACP master interfaces:
-        for name, iface in self.interfaces.items():
-            if iface.lacp_type == LACP_IF_TYPE_MEMBER:
-                lag_iface = self.get_interface_by_key(key=iface.lacp_master_name)
-                if lag_iface:
-                    # add the member to the aggregator interface:
-                    lag_iface.lacp_members[iface.name] = iface.name
-                else:
-                    dprint(f"Cannot find LAG interface {iface.lacp_master_name} for {iface.name}")
+        self._map_lacp_members_to_logical()
 
         return True
 

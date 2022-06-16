@@ -20,7 +20,9 @@ IF_TYPE_NONE = 0
 IF_TYPE_ETHERNET = 6    # Ethernet-like (ethernetCsmacd)
 IF_TYPE_LOOPBACK = 24   # interface Loopback X (softwareLoopback)
 IF_TYPE_VIRTUAL = 53    # interface Vlan X (proprietary virtual/internal)
+IF_TYPE_TUNNEL = 131    # generic Tunnel interface
 IF_TYPE_LAGG = 161      # IEEE 802.3ad Link Aggregate
+IF_TYPE_MCAST = 1025    # undefined by IEEE, but used by OpenL2M to indicate various multicast virtual interfaces
 
 LACP_IF_TYPE_NONE = 0        # not port of LACP aggregation
 LACP_IF_TYPE_MEMBER = 1      # this is a physical port and member
@@ -45,6 +47,7 @@ GVRP_ENABLED = 1
 GVRP_DISABLED = 2
 
 # LLDP related
+LLDP_CHASSIS_TYPE_NONE = 0
 LLDP_CHASSIC_TYPE_COMP = 1      # chassisComponent(1)
 LLDP_CHASSIC_TYPE_ALIAS = 2     # interfaceAlias(2), ifAlias from IF-MIB
 LLDP_CHASSIC_TYPE_PORT = 3      # portComponent(3)
@@ -56,7 +59,8 @@ IANA_TYPE_IPV6 = 2
 LLDP_CHASSIC_TYPE_IFNAME = 6    # interfaceName(6), ifName from IF-MIB
 LLDP_CHASSIC_TYPE_LOCAL = 7    # local(7)
 
-# Capabilities as announced via lldp bits in SNMP data, translated to integer:
+# Capabilities as announced via lldp bits in SNMP data, translated to integer.
+# see also switches.connect.snmp.constants
 LLDP_CAPABILITIES_OTHER = 128     # other(0),
 LLDP_CAPABILITIES_REPEATER = 64  # repeater(1),
 LLDP_CAPABILITIES_BRIDGE = 32    # bridge(2),

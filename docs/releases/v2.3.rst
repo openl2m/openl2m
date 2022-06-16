@@ -1,0 +1,19 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 2.3
+===========
+
+*Note: from this version on, we are developing and testing on Ubuntu 22.04 LTS,
+using Python v3.10. We require Python 3.8 as a minimum. Python v3.6 is no longer supported!*
+
+**Version 2.3 adds support for Juniper devices via the PyEZ xml api library.**
+
+Version 2.3-dev1
+----------------
+
+Release Date: TBD
+
+* *New Feature:* Support for Juniper switches via the PyEZ library. R/O code.
+* add Material Design Icons set from https://materialdesignicons.com
+* added icons for several new interface type (tunnel, multicast, etc.)

@@ -128,7 +128,6 @@ class Interface():
         # a variety of data about what is happening on this interface:
         self.eth = {}               # heard ethernet address on this interface, dictionay of EthernetAddress() objects
         self.lldp = {}              # LLDP neighbors, dictionay of NeighborDevice() objects
-        self.arp4 = {}              # ARP table entries for ipv4, dictionay of IP4Address() objects
 
     def add_ip4_network(self, address, prefix_len=''):
         '''
@@ -171,21 +170,36 @@ class Interface():
             self.vlans.remove(vlan_id)
         return True
 
-    def add_learned_ethernet_address(self, eth_address):
+    def add_learned_ethernet_address(self, eth_address, vlan_id=-1, ip4_address=''):
         '''
         Add an ethernet address to this interface, as given by the layer2 CAM/Switching tables.
-        eth_address = ethernet address as string.
-        It gets stored indexed by address.
+        It gets stored indexed by address. Create new EthernetAddress() object is not found yet.
         If the object already exists, return it.
-        return EthernetAddress() on success, False on failure (does not happen).
+
+        Args:
+            eth_address(str): ethernet address as string.
+            vlan_id(int): the vlan this ethernet address was heard on.
+
+        Returns:
+            EthernetAddress(), either existing or new.
         '''
-        dprint(f"add_learned_ethernet_address() for {eth_address}")
+        dprint(f"Interface().add_learned_ethernet_address() for {eth_address}, vlan={vlan_id}, ip4={ip4_address}")
         if eth_address in self.eth.keys():
             # already known!
+            dprint("  Eth already known!")
+            if vlan_id > 0:
+                self.eth[eth_address].set_vlan(vlan_id)
+            if ip4_address:
+                self.eth[eth_address].set_ip4_address(ip4_address)
             return self.eth[eth_address]
         else:
             # add the new ethernet address
+            dprint("  New ethernet, adding.")
             a = EthernetAddress(eth_address)
+            if vlan_id > 0:
+                a.set_vlan(vlan_id)
+            if ip4_address:
+                a.set_ip4_address(ip4_address)
             self.eth[eth_address] = a
             return a
 
@@ -405,11 +419,11 @@ class EthernetAddress(netaddr.EUI):
     def set_vlan(self, vlan_id):
         self.vlan_id = int(vlan_id)
 
-    def set_ip(self, ip4):
-        self.address_ip4 = ip4
+    def set_ip4_address(self, ip4_address):
+        self.address_ip4 = ip4_address
 
-    def set_ip6(self, ip6):
-        self.address_ip6 = ip6
+    def set_ip6_address(self, ip6_address):
+        self.address_ip6 = ip6_address
 
     def __str__(self):
         """
@@ -426,7 +440,7 @@ class NeighborDevice():
     # def __init__(self, lldp_index, if_index):
     def __init__(self, lldp_index):
         """
-        Initialize the object, requires the lldp index and ifIndex
+        Initialize the object, requires the lldp index
         """
         self.index = lldp_index     # 'string' remainder of OID that is unique per remote device
         # self.if_index = int(if_index)
@@ -435,12 +449,94 @@ class NeighborDevice():
         # the above can be set from lldp data via SNMP, when these three fields are found:
         self.chassis_type = 0    # integer, LldpChassisIdSubtype
         self.chassis_string = ""        # LldpChassisId, OctetString format depends on type.
-        self.capabilities = bytes(2)    # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
-        self.caps = LLDP_CAPABILITIES_NONE  # integer representation of lldp capabilities
+        self.capabilities = LLDP_CAPABILITIES_NONE
+        # self.capabilities = bytes(2)  # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
+        #                               # this is the equivalent to LLDP_CAPABILITIES_NONE from connect.constants
         self.port_name = ""             # remote port name
         self.port_descr = ""            # remote port description, as set by config
         self.sys_name = "Unknown Device"
         self.sys_descr = "Unknown Device Description"
+
+    def set_port_name(self, port_name):
+        '''
+        Set the name of the remote port of this device.
+        Args:
+            port_name(str): the port on the remote device that we are connected to.
+
+        Returns:
+            none
+        '''
+        self.port_name = port_name
+
+    def set_port_description(self, description):
+        '''
+        Set the description of the remote port of this device.
+        Args:
+            description(str): the description port on the remote device that we are connected to.
+
+        Returns:
+            none
+        '''
+        self.port_descr = description
+
+    def set_sys_name(self, name):
+        '''
+        Set the name of the remote device.
+        Args:
+            name(str): the name of the remote device that we are connected to.
+
+        Returns:
+            none
+        '''
+        self.sys_name = name
+
+    def set_sys_description(self, description):
+        '''
+        Set the description of the remote device.
+        Args:
+            description(str): the description of the remote device that we are connected to.
+
+        Returns:
+            none
+        '''
+        self.sys_descr = description
+
+    def set_chassis_type(self, chassis_type):
+        '''
+        Set the name of the remote port of this device.
+        Args:
+            type(int): the type on the remote device that we are connected to.
+            valid values are defined in snmp.constants, see LLDP_CHASSIC_TYPE_xxx fields.
+
+        Returns:
+            none
+        '''
+        self.chassis_type = chassis_type
+
+    def set_chassis_string(self, description):
+        '''
+        Set the string type of remote chassis.
+        Args:
+            description(str): the description type of the chassis device that we are connected to.
+
+        Returns:
+            none
+        '''
+        self.chassis_string = description
+
+    def set_capability(self, capability):
+        '''
+        Add a capability to this device. These are defined in switches.connect.constants,
+        see LLDP_CAPABILITIES_xxx fields. They are accumulative, as a device can have
+        multiple capabilities.
+
+        Args:
+            capacility: as defined above.
+
+        Returns:
+            none
+        '''
+        self.capabilities += capability
 
     def display_name(self):
         return self.sys_name
@@ -461,12 +557,48 @@ class PoePSE():
         """
         self.index = int(index)
         self.max_power = 0          # maximum power available on this power supply
-        self.status = POE_PSE_STATUS_OFF
+        self.status = POE_PSE_STATUS_ON
         self.power_consumed = 0     # total power consumed on this power supply
         self.threshold = 0
 
+    def set_enabled(self):
+        '''
+        Set status as Enabled.
+        '''
+        self.status = POE_PSE_STATUS_ON
+
+    def set_disabled(self):
+        '''
+        Set status as Disabled.
+        '''
+        self.status = POE_PSE_STATUS_OFF
+
+    def set_fault(self):
+        '''
+        Set status as Faulted.
+        '''
+        self.status = POE_PSE_STATUS_FAULT
+
+    def set_max_power(self, power):
+        '''
+        Set maximum power available.
+        '''
+        try:
+            self.max_power = int(power)
+        except Exception as err:
+            self.max_power = 0
+
+    def set_consumed_power(self, power):
+        '''
+        Set power consumed.
+        '''
+        try:
+            self.power_consumed = int(power)
+        except Exception as err:
+            self.consumed_power = 0
+
     def display_name(self):
-        return f"PSE #{self.index}"
+        return f"PS #{self.index}"
 
     def __str__(self):
         return self.display_name()

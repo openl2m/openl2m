@@ -61,6 +61,21 @@ AOS-CX REST API v10.04 Guide: http://www.arubanetworks.com/techdocs/AOS-CX/10.07
 The pyasocx library is at https://github.com/aruba/pyaoscx/
 
 
+**Junos PyEZ**
+
+Juniper documentation is at https://www.juniper.net/documentation/us/en/software/junos-pyez/junos-pyez-developer/index.html
+and at https://junos-pyez.readthedocs.io/
+
+Juniper PyEZ library, at https://github.com/Juniper/py-junos-eznc and installable via pip.
+
+"Automating Junos Administration", chapter 4 "Junos PyEZ", O'Reilly books
+Ch. 4 is also at https://www.oreilly.com/library/view/automating-junos-administration/9781491928875/ch04.html
+The example code for this book can be found at https://github.com/AutomatingJunosAdministration
+
+Example code at https://saidvandeklundert.net/2019-07-04-using-junos-pyez-for-information-gathering/
+and https://alexwilkins.dev/index.php/python-pyez/
+
+
 **Napalm Automation**
 
 The Napalm documentation is at https://napalm.readthedocs.io/
@@ -75,3 +90,12 @@ For Dell OS10 support, we use this: https://dellos10-napalm.readthedocs.io/en/la
 For HP Procurve support, we use this: https://github.com/ixs/napalm-procurve
 
 A possible Comware Napalm driver is at https://github.com/firefly-serenity/napalm-flexfabric
+
+
+**Icons**
+
+We use several free icon packages:
+
+Font Awesome, with previews https://fontawesome.com/v5/search
+
+Material Design Icons, from https://materialdesignicons.com/ and a preview at https://pictogrammers.github.io/@mdi/font/6.5.95/

@@ -23,7 +23,7 @@ copyright = '2019-2022, Various'
 author = 'Various'
 
 # The full version, including alpha/beta/rc tags
-release = 'v2.2.2 (2022-06-08)'
+release = 'v2.3-dev1 (2022-06-10)'
 
 # -- General configuration ---------------------------------------------------
 

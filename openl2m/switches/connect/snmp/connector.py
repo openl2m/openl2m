@@ -1332,7 +1332,6 @@ class SnmpConnector(Connector):
             if if_index in self.interfaces.keys():
                 mac_addr = bytes_ethernet_to_string(val)
                 dprint(f"   MAC={mac_addr}")
-                self.interfaces[if_index].arp4[ip] = mac_addr
                 # see if we can add this to a known ethernet address
                 # time consuming, but useful
                 for index, iface in self.interfaces.items():
@@ -1398,7 +1397,7 @@ class SnmpConnector(Connector):
             if_index = self._get_if_index_from_port_id(port_id)
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
-                    # now update with system name
+                    # now update with system port description
                     self.interfaces[if_index].lldp[lldp_index].port_descr = str(val)
             return True
 
@@ -1424,7 +1423,7 @@ class SnmpConnector(Connector):
             if_index = self._get_if_index_from_port_id(port_id)
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
-                    # now update with system name
+                    # now update with system description
                     self.interfaces[if_index].lldp[lldp_index].sys_descr = str(val)
             return True
 
@@ -1438,7 +1437,7 @@ class SnmpConnector(Connector):
             if_index = self._get_if_index_from_port_id(port_id)
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
-                    # now update with system name
+                    # now update with system capabilities
                     cap_bytes = bytes(val, 'utf-8')
                     # self.interfaces[if_index].lldp[lldp_index].capabilities = cap_bytes
                     self.interfaces[if_index].lldp[lldp_index].capabilities = int(cap_bytes[0])
@@ -1454,12 +1453,12 @@ class SnmpConnector(Connector):
             if_index = self._get_if_index_from_port_id(port_id)
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
-                    # now update with system name
-                    if self.interfaces[if_index].lldp[lldp_index].chassis_type > 0:
+                    # now update with system chassis type
+                    if self.interfaces[if_index].lldp[lldp_index].chassis_type > LLDP_CHASSIS_TYPE_NONE:
                         self.add_warning(f"Chassis Type for {llp_index} already "
                                          "{self.interfaces[if_index].lldp[lldp_index].chassis_type},"
                                          " now {val}!")
-                    self.interfaces[if_index].lldp[lldp_index].chassis_type = val
+                    self.interfaces[if_index].lldp[lldp_index].chassis_type = int(val)
             return True
 
         lldp_index = oid_in_branch(lldpRemChassisId, oid)
@@ -1471,8 +1470,26 @@ class SnmpConnector(Connector):
             if_index = self._get_if_index_from_port_id(port_id)
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
-                    # now update with system name
-                    self.interfaces[if_index].lldp[lldp_index].chassis_string = val
+                    # now update with system chassis info, but only chassis type is known
+                    # (it should be at this time)
+                    neighbor = self.interfaces[if_index].lldp[lldp_index]
+                    if neighbor.chassis_type > LLDP_CHASSIS_TYPE_NONE:
+                        if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
+                            chassis_info = bytes_ethernet_to_string(val)
+                        elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
+                            net_addr_type = int(ord(val[0]))
+                            if net_addr_type == IANA_TYPE_IPV4:
+                                addr_bytes = val[1:]
+                                chassis_info = ".".join("%d" % ord(b) for b in addr_bytes)
+                            elif net_addr_type == IANA_TYPE_IPV6:
+                                # to be dealt with!
+                                chassis_info = 'IPv6 Address'
+                            else:
+                                chassis_info = 'Unknown Address Type'
+                        else:
+                            chassis_info = str(val)
+                        neighbor.chassis_string = chassis_info
+
             return True
 
         return False

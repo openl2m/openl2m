@@ -479,31 +479,15 @@ def get_lldp_info(neighbor):
     else:
         name = 'Unknown'
 
-    chassis_info = ''
-    if neighbor.chassis_string and neighbor.chassis_type:
-        # use the chassis info, if found.
-        if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
-            chassis_info = bytes_ethernet_to_string(neighbor.chassis_string)
-        elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
-            net_addr_type = int(ord(neighbor.chassis_string[0]))
-            if net_addr_type == IANA_TYPE_IPV4:
-                bytes = neighbor.chassis_string[1:]
-                chassis_info = ".".join("%d" % ord(b) for b in bytes)
-            elif net_addr_type == IANA_TYPE_IPV6:
-                # to be dealt with!
-                chassis_info = 'IPv6 Address'
-            else:
-                chassis_info = 'Unknown Address Type'
-
     if neighbor.sys_descr:
-        info = info + f"<abbr data-toggle=\"tooltip\" title=\"{neighbor.sys_descr}\">{name}"
-        if chassis_info:
-            info += f" - {chassis_info}"
-        info += "</abbr>"
+        info = f"{info}<abbr data-toggle=\"tooltip\" title=\"{neighbor.sys_descr}\">{name}"
+        if neighbor.chassis_string:
+            info = f"{info} - {neighbor.chassis_string}"
+        info = info + "</abbr>"
     else:
-        info = info + f"{name}"
-        if chassis_info:
-            info += f" - {chassis_info}"
+        info = f"{info}{name}"
+        if neighbor.chassis_string:
+            info = f"{info} - {neighbor.chassis_string}"
 
     return mark_safe(info)
 

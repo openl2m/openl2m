@@ -107,18 +107,18 @@ class DummyConnector(Connector):
         """
         dprint("Dummy Connector get_my_client_data()")
         # add some simulated data:
-        self.add_learned_ethernet_address("eth0/0/0", "00:11:22:33:44:55")
-        self.add_learned_ethernet_address("eth0/0/1", "0000.1111.2222")
-        self.add_learned_ethernet_address("eth2", "aa-bb-cc-dd-ee-ff")
+        self.add_learned_ethernet_address("eth0/0/0", "00:11:22:33:44:55", 10)
+        self.add_learned_ethernet_address("eth0/0/1", "0000.1111.2222", 5)
+        self.add_learned_ethernet_address("eth2", "aa-bb-cc-dd-ee-ff", 15)
 
         neighbor = NeighborDevice("0000.aabb.1111")
         neighbor.sys_name = "Simulated Remote Device"
         neighbor.sys_descr = "LLDP Simulation"
         neighbor.port_name = "remote-eth0"
         neighbor.port_descr = "simulated remote port"
-        neighbor.caps += LLDP_CAPABILITIES_WLAN
-        neighbor.caps += LLDP_CAPABILITIES_ROUTER
-        neighbor.caps += LLDP_CAPABILITIES_PHONE
+        neighbor.set_capability(LLDP_CAPABILITIES_WLAN)
+        neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
+        neighbor.set_capability(LLDP_CAPABILITIES_PHONE)
 
         self.add_neighbor_object("eth2", neighbor)
 

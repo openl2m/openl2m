@@ -279,7 +279,7 @@ class NapalmConnector(Connector):
                 if_name = interface_name_to_long(if_name)
                 a = self.add_learned_ethernet_address(if_name, info['mac'])
                 if a:
-                    a.set_ip(info['ip'])
+                    a.set_ip4_address(info['ip'])
 
         # get lldp details
         try:
