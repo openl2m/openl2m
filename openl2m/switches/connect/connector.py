@@ -55,6 +55,8 @@ class Connector():
         '''
         dprint("Connector() __init__")
 
+        self.description = "The base Connector() that drivers should inherit from."
+
         self.request = request  # if running on web server, Django http request object, needed for request.user() and request.session[]
         self.group = group      # Django SwitchGroup object
         self.switch = switch    # Django Switch()
@@ -154,8 +156,6 @@ class Connector():
         # including when this may have been read before it got cached:
         if not self.cache_loaded:
             dprint("  => Cache did NOT load!")
-            # we need to read the device class:
-
             # call the implementation-specific function:
             if hasattr(self, 'get_my_basic_info'):
                 self.basic_info_read_timestamp = time.time()
@@ -167,7 +167,13 @@ class Connector():
                 # you have to set the permissions to the interfaces:
                 self._set_interfaces_permissions()
 
+                if self.switch.netmiko_profile:
+                    self.add_more_info('System', 'Credentials Profile', self.switch.netmiko_profile.name)
+                self.add_more_info('System', 'Group', self.group.name)
                 self.add_more_info('System', 'Basic Info Read', f"{read_duration} seconds")
+                self.add_more_info('System', 'Class Handler', self.__class__.__name__)
+                self.add_more_info('System', 'Driver info', self.description)
+
             else:
                 self.add_warning("WARNING: device driver does not support 'get_my_basic_info()' !")
 

@@ -50,9 +50,10 @@ class AosCxConnector(Connector):
         """
         dprint("AosCxConnector() __init__")
         super().__init__(request, group, switch)
-        self.name = "AOS-CX API Connector"
-        self.switch.read_only = False
+        self.description = "Aruba AOS-CX API driver"
 
+        # this is a read-write driver:
+        self.switch.read_only = False
         # this will be the pyaoscx driver session object
         self.aoscx_session = False
         # and we dont want to cache this:

@@ -37,8 +37,8 @@ class DummyConnector(Connector):
         # for now, just call the super class
         dprint("Dummy Connector __init__")
         super().__init__(request, group, switch)
-        self.vendor_name = 'Dummy'
-        # force READ-ONLY for now! We have not implemented changing settings.
+        self.description = 'Dummy Test driver'
+        # We allow write, this will call base class bookkeeping functions in Connector()
         self.switch.read_only = False
         self.add_more_info('System', 'Type', "Software Dummy Switch")
 

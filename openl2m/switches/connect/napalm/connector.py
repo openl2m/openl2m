@@ -36,7 +36,7 @@ class NapalmConnector(Connector):
         """
         dprint("NapalmConnector() __init__")
         super().__init__(request, group, switch)
-        self.name = "Napalm Library Connector"
+        self.description = 'Napalm library (R/O) driver'
         # force READ-ONLY for now! We have not implemented changing settings.
         self.switch.read_only = True
 

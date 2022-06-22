@@ -237,7 +237,7 @@ class SnmpConnector(Connector):
         dprint("SnmpConnector() __init__")
         super().__init__(request, group, switch)
 
-        self.name = "Standard SNMP"  # what type of class is running!
+        self.description = "Standard SNMP connector"  # what type of class is running!
 
         # SNMP specific attributes:
         self.object_id = ""                 # SNMP system OID value, used to find type of switch
@@ -1603,11 +1603,7 @@ class SnmpConnector(Connector):
         # add some more info about the configuration/settings
         self.add_more_info('System', 'IP', self.switch.primary_ip4)
         self.add_more_info('System', 'Snmp Profile', self.switch.snmp_profile.name)
-        if self.switch.netmiko_profile:
-            self.add_more_info('System', 'Netmiko Profile', self.switch.netmiko_profile.name)
         self.add_more_info('System', 'Vendor ID', get_switch_enterprise_info(self.object_id))
-        self.add_more_info('System', 'Class Handler', self.__class__.__name__)
-        self.add_more_info('System', 'Group', self.group.name)
         # first time when data was read:
         self.add_more_info('System', 'Read Time', time.strftime(settings.LONG_DATETIME_FORMAT, time.localtime(self.sys_uptime_timestamp)))
 
@@ -2238,7 +2234,7 @@ def get_switch_enterprise_info(system_oid):
         if enterprise_id in enterprise_id_info.keys():
             return enterprise_id_info[enterprise_id]
         else:
-            return 'Unknown'
+            return f"Unknown ({enterprise_oid})"
     else:
         # sub oid, ie enterprise data, not found!
         return 'Not found'

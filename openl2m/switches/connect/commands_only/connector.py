@@ -36,10 +36,9 @@ class CommandsOnlyConnector(Connector):
         # for now, just call the super class
         dprint("Commands-Only Connector __init__")
         super().__init__(request, group, switch)
-        self.vendor_name = 'Commands-Only'
-        # force READ-ONLY for now! We have not implemented changing settings.
+        self.description = 'Commands-Only (Netmiko) driver'
+        # force READ-ONLY
         self.switch.read_only = True
-        self.add_more_info('System', 'Type', "SSH-only connected device!")
         if switch.description:
             self.add_more_info('System', 'Description', switch.description)
         self.show_interfaces = False    # do NOT show interfaces, vlans etc...

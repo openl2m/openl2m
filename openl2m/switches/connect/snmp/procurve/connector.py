@@ -42,7 +42,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         # for now, just call the super class
         dprint("HP/Procurve SnmpConnector __init__")
         super().__init__(request, group, switch)
-        self.vendor_name = 'HP/ProCurve(Aruba)'
+        self.description = 'HP ProCurve SNMP driver'
 
         # some capabilities we cannot do:
         self.can_save_config = False    # not needed on ProCurve, it has auto-save!

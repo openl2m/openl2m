@@ -45,7 +45,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         # for now, just call the super class
         dprint("Aruba SnmpConnector __init__")
         super().__init__(request, group, switch)
-        self.vendor_name = 'Aruba AOS (HPE)'
+        self.description = 'Aruba AOS-CX SNMP (R/O) driver'
         self.switch.read_only = False    # the new Aruba AOS switches are read-only over snmp. Write-access is via REST API.
 
         # we cannot implement some the following capabilities due to limitations of the SNMP code in AOS-CX:
