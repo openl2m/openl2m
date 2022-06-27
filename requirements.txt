@@ -1,5 +1,6 @@
 celery
 Django>=3.2,<3.3
+django-debug-toolbar
 django-ipware>=2.1.0
 django-ordered-model>=3.3,<4.0
 django_auth_ldap>=2.0.0

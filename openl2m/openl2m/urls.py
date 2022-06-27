@@ -69,4 +69,12 @@ urlpatterns = [
 
     # Admin - customized, see admin.py
     path(r'admin/', admin_site.urls),
+
 ]
+
+if settings.DEBUG and settings.DEBUG_TOOLBAR:
+    import debug_toolbar
+    urlpatterns += [
+        # debug toolbar:
+        path('__debug__/', include('debug_toolbar.urls')),
+    ]

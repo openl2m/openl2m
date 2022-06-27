@@ -18,6 +18,7 @@ It provides module information from Google Code Style documentation that we use 
 
    requirements.rst
    code_style.rst
+   debugging.rst
    code_explained.rst
    authentication.rst
    switches_app/index.rst

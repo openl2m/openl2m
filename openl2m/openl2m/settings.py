@@ -228,6 +228,18 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Debug toolbar settings:
+DEBUG_TOOLBAR = getattr(configuration, 'DEBUG_TOOLBAR', False)
+INTERNAL_IPS = getattr(configuration, 'INTERNAL_IPS', [])
+
+if DEBUG and DEBUG_TOOLBAR:
+    INSTALLED_APPS += [
+        'debug_toolbar',
+    ]
+    MIDDLEWARE += [
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    ]
+
 ROOT_URLCONF = 'openl2m.urls'
 
 TEMPLATES = [
@@ -414,7 +426,6 @@ EMAIL_TIMEOUT = getattr(configuration, 'EMAIL_TIMEOUT', 10)
 EMAIL_SUBJECT_PREFIX = getattr(configuration, 'EMAIL_SUBJECT_PREFIX', '[OpenL2M-Admin] ')
 EMAIL_SUBJECT_PREFIX_USER = getattr(configuration, 'EMAIL_SUBJECT_PREFIX_USER', '[OpenL2M] ')
 EMAIL_FROM_ADDRESS = getattr(configuration, 'EMAIL_FROM_ADDRESS', '<openl2m@localhost>')
-
 
 # Vendor specific settings:
 CISCO_WRITE_MEM_MAX_WAIT = getattr(configuration, 'CISCO_WRITE_MEM_MAX_WAIT', 5)
