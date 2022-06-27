@@ -42,18 +42,22 @@ def get_celery_info():
     Return a dict with all Celery related information, see
     http://docs.celeryproject.org/en/latest/userguide/workers.html#inspecting-workers
     """
-    i = app.control.inspect()
-    stats = i.stats()
-    registered_tasks = i.registered()
-    active_tasks = i.active()
-    scheduled_tasks = i.scheduled()
-    result = {
-        'stats': stats,
-        'registered_tasks': registered_tasks,
-        'active_tasks': active_tasks,
-        'scheduled_tasks': scheduled_tasks
-    }
-    return result
+    try:
+        i = app.control.inspect()
+        stats = i.stats()
+        registered_tasks = i.registered()
+        active_tasks = i.active()
+        scheduled_tasks = i.scheduled()
+        result = {
+            'stats': stats,
+            'registered_tasks': registered_tasks,
+            'active_tasks': active_tasks,
+            'scheduled_tasks': scheduled_tasks
+        }
+        return result
+    except Exception as error:
+        # any error means Celery not running!
+        return False
 
 
 def is_celery_running():
