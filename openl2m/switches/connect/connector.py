@@ -565,7 +565,7 @@ class Connector():
         Returns:
             Interface() if found, False if not found.
         '''
-        for (key, iface) in self.interfaces.items():
+        for iface in self.interfaces.values():
             if iface.name == name:
                 return iface
         return False
@@ -1139,7 +1139,7 @@ class Connector():
         Returns:
             none
         '''
-        for name, iface in self.interfaces.items():
+        for iface in self.interfaces.values():
             if iface.lacp_type == LACP_IF_TYPE_MEMBER:
                 lag_iface = self.get_interface_by_key(key=iface.lacp_master_name)
                 if lag_iface:
