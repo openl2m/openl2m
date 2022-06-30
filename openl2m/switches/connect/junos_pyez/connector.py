@@ -360,7 +360,7 @@ class PyEZConnector(Connector):
         This RPC is cli equivalent of "show lldp neigbor interface <name>"
         So we are going to loop through all interfaces:
         '''
-        for (key, iface) in self.interfaces.items():
+        for iface in self.interfaces.values():
             dprint(f"  Interface:{iface.name}")
             try:
                 '''
