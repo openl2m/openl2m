@@ -312,16 +312,16 @@ class AosCxConnector(Connector):
                 continue
             # this gets ethernet addresses by vlan:
             vlan_macs = AosCxMac.get_all(session=self.aoscx_session, parent_vlan=v)
-            for key, mac in vlan_macs.items():
+            for mac in vlan_macs.values():
                 mac.get()   # materialize the object from the device
-                dprint(f"  MAC Address: key={key}, {mac} -> {mac.port}")
-                for name in mac.__dict__:
-                    dprint(f"      attribute: {name} = {mac.__dict__[name]}")
+                dprint(f"  MAC Address: {mac} -> {mac.port}")
+                # for name in mac.__dict__:
+                #    dprint(f"      attribute: {name} = {mac.__dict__[name]}")
                 # add this to the known addressess:
                 a = self.add_learned_ethernet_address(mac.port.name, mac.mac_address)
-                dprint("ethernet added, setting vlan!")
+                # dprint("ethernet added, setting vlan!")
                 if a:
-                    dprint("about to set vlan")
+                    # dprint("about to set vlan")
                     a.set_vlan(vlan_id)
 
         # done...
