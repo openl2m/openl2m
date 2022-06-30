@@ -487,9 +487,9 @@ class SnmpConnector(Connector):
         count = 0
         try:
             dprint(f"   Calling BulkWalk {start_oid}")
-            self.start_time = time.time()
+            start_time = time.time()
             items = self._snmp_session.bulkwalk(oids=start_oid, non_repeaters=0, max_repetitions=max_repetitions)
-            self.stop_time = time.time()
+            stop_time = time.time()
             # Each returned item can be used normally as its related type (str or int)
             # but also has several extended attributes with SNMP-specific information
             for item in items:
@@ -513,7 +513,7 @@ class SnmpConnector(Connector):
                     self._parse_oid(oid_found, item.value)
 
             # add to timing data, for admin use!
-            self.add_timing(branch_name, count, self.stop_time - self.start_time)
+            self.add_timing(branch_name, count, stop_time - start_time)
 
         except Exception as e:
             self.error.status = True

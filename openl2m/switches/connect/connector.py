@@ -82,10 +82,7 @@ class Connector():
         # some flags:
         self.cache_loaded = False   # if True, system data was loaded from cache
         # some timestamps:
-        self.basic_info_read_timestamp = 0    # when the last 'basic' snmp read occured
-        self.basic_info_read_duration = 0     # time in seconds for initial basic info gathering
-        self.detailed_info_duration = 0  # time in seconds for each detailed info gathering
-        self.dns_info_duration = 0          # time it takes to do dns resolution for all reverse lookups.
+        self.basic_info_read_timestamp = 0    # when the last 'basic' read occured
 
         # data we calculate or collect without caching:
         self.allowed_vlans = {}     # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
@@ -93,8 +90,6 @@ class Connector():
         self.neighbor_count = 0     # number of lldp neighbors
         self.warnings = []          # list of warning strings that may be shown to users
         # timing related attributes:
-        self.start_time = 0     # start time of current action
-        self.stop_time = 0      # and the stop time
         self.timing = {}            # dictionary to track how long various calls take to read. Key = name, value = tuple()
         self.add_timing("Total", 0, 0)     # initialize the 'total' count to 0 entries, 0 seconds!
 
@@ -210,13 +205,14 @@ class Connector():
         if hasattr(self, 'get_my_client_data'):
             start_time = time.time()
             self.get_my_client_data()   # to be implemented by device/vendor class!
-            self.detailed_info_duration = int((time.time() - start_time) + 0.5)
+            read_duration = int((time.time() - start_time) + 0.5)
+            self.add_more_info('System', 'Client Info Read', f"{read_duration} seconds")
             # are we resolving IP addresses to hostnames?
             if settings.LOOKUP_HOSTNAME_ARP:
                 dns_start = time.time()
                 self._lookup_hostname_arp()
-                self.dns_info_duration += int((time.time() - dns_start) + 0.5)
-                self.add_more_info('System', 'DNS Read', f"{self.dns_info_duration} seconds")
+                dns_duration = int((time.time() - dns_start) + 0.5)
+                self.add_more_info('System', 'DNS Read', f"{dns_duration} seconds")
 
             return True
         self.add_warning("WARNING: device driver does not support 'get_my_basic_info()'' !")
