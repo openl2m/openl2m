@@ -85,6 +85,7 @@ class Connector():
         self.basic_info_read_timestamp = 0    # when the last 'basic' snmp read occured
         self.basic_info_read_duration = 0     # time in seconds for initial basic info gathering
         self.detailed_info_duration = 0  # time in seconds for each detailed info gathering
+        self.dns_info_duration = 0          # time it takes to do dns resolution for all reverse lookups.
 
         # data we calculate or collect without caching:
         self.allowed_vlans = {}     # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
@@ -166,7 +167,7 @@ class Connector():
                     self.add_warning(f"WARNING: cannot get basic info - {self.error.description}")
                 # you have to set the permissions to the interfaces:
                 self._set_interfaces_permissions()
-
+                # add some info about the device:
                 if self.switch.netmiko_profile:
                     self.add_more_info('System', 'Credentials Profile', self.switch.netmiko_profile.name)
                 self.add_more_info('System', 'Group', self.group.name)
@@ -210,6 +211,13 @@ class Connector():
             start_time = time.time()
             self.get_my_client_data()   # to be implemented by device/vendor class!
             self.detailed_info_duration = int((time.time() - start_time) + 0.5)
+            # are we resolving IP addresses to hostnames?
+            if settings.LOOKUP_HOSTNAME_ARP:
+                dns_start = time.time()
+                self._lookup_hostname_arp()
+                self.dns_info_duration += int((time.time() - dns_start) + 0.5)
+                self.add_more_info('System', 'DNS Read', f"{self.dns_info_duration} seconds")
+
             return True
         self.add_warning("WARNING: device driver does not support 'get_my_basic_info()'' !")
         return False
@@ -1444,6 +1452,26 @@ class Connector():
             a string representing the device display name.
         '''
         return f"{self.name} for {self.switch.name}"
+
+    def _lookup_hostname_arp(self):
+        """Look up the hostnames for found ethernet/arp pairs on all interfaces.
+        Fill the hostname attribute for all arp IP's found, using dns resolution of
+        the PTR reverse lookup.
+
+        Args:
+            none
+
+        Returns:
+            none
+        """
+        dprint("_lookup_hostname_arp() called.")
+        for interface in self.interfaces.values():
+            for eth in interface.eth.values():
+                if eth.address_ip4:
+                    eth.hostname = get_ip_dns_name(eth.address_ip4)
+                if not self.hostname and eth.address_ip6:
+                    eth.hostname = get_ip_dns_name(eth.address_ip6)
+        return
 
     def __str__(self):
         return self.display_name

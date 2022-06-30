@@ -429,3 +429,12 @@ EMAIL_FROM_ADDRESS = getattr(configuration, 'EMAIL_FROM_ADDRESS', '<openl2m@loca
 
 # Vendor specific settings:
 CISCO_WRITE_MEM_MAX_WAIT = getattr(configuration, 'CISCO_WRITE_MEM_MAX_WAIT', 5)
+
+# perform hostname lookup from IP addresses found in ARP info, Admin pages, etc.
+# Note this could have impact on page rendering, depending on host fast your
+# dns resolution is and how may retries the underlying host OS is configured for.
+
+# perform hostname lookup for admin page showing connected user
+LOOKUP_HOSTNAME_ADMIN = getattr(configuration, 'LOOKUP_HOSTNAME_ADMIN', False)
+# for IP addresses in device ARP tables, perform hostname lookup
+LOOKUP_HOSTNAME_ARP = getattr(configuration, 'LOOKUP_HOSTNAME_ARP', False)

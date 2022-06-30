@@ -11,12 +11,13 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 
 from openl2m.celery import is_celery_running
-from switches.utils import dprint
+from switches.utils import dprint, get_ip_dns_name
 
 
 def user_can_run_tasks(user, group, switch):
@@ -66,5 +67,9 @@ def get_current_users():
             u['id'] = user.id
             u['remote_ip'] = remote_ip
             u['username'] = user.username
+            if settings.LOOKUP_HOSTNAME_ADMIN:
+                u['hostname'] = get_ip_dns_name(remote_ip)
+            else:
+                u['hostname'] = ""
             user_list.append(u)
     return user_list

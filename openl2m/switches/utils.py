@@ -175,3 +175,20 @@ def string_contains_regex(string, regex):
             dprint("  ==> FAIL!")
             return False
     return True
+
+
+def get_ip_dns_name(ip):
+    """Get the DNS PTR (reverse name) for the given IP address.
+
+    Args:
+        ip(str):    string representing the IP address.
+
+    Return:
+        (str): either the FQDN for the ip address, or an empty string if not found.
+    """
+    try:
+        # we use 'name required' to force an exception if reverse lookup not found:
+        (hostname, port_name) = socket.getnameinfo((str(ip), 0), socket.NI_NAMEREQD)
+    except Exception as error:
+        hostname = ''
+    return hostname

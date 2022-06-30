@@ -69,7 +69,11 @@
                   {% endif %}
                   {% if eth.address_ip4 %}
                      / {{ eth.address_ip4|get_ip4_info_links }}
+                       {% if eth.hostname %}
+                       <abbr data-toggle="tooltip" title="{{ eth.hostname }}">{{ eth.address_ip4 }}</abbr>
+                       {% else %}
                        {{ eth.address_ip4 }}
+                       {% endif %}
                   {% endif %}
                   {% if eth.vendor %}&nbsp;<small>({{ eth.vendor }})</small>{% endif %}
                 </div>

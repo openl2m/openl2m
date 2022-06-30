@@ -415,6 +415,7 @@ class EthernetAddress(netaddr.EUI):
         self.vlan_id = 0        # the vlan id (number) this was heard on, if known
         self.address_ip4 = ""   # ipv4 address from arp table, if known
         self.address_ip6 = ""   # ipv6 address, if known
+        self.hostname = ""      # reverse lookup for ip4 or ip6 address.
 
     def set_vlan(self, vlan_id):
         self.vlan_id = int(vlan_id)
