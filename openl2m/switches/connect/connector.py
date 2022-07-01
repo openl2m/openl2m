@@ -134,11 +134,11 @@ class Connector():
         This is called from view.py to load the basic set of information about the switch.
         We call an device implementation specific function "get_my_basic_info()"
         that should load the following class attributes:
-            self.interfaces = {} dictionary of interfaces (ports) on the current
-              switch, i.e. Interface() objects, indexed by a class-specific key (string).
+        self.interfaces = {} dictionary of interfaces (ports) on the current
+        switch, i.e. Interface() objects, indexed by a class-specific key (string).
 
-            self.vlans = {} dictionary of vlans on the current switch, i.e. Vlan()
-                objects, indexed by vlan id (integer number)
+        self.vlans = {} dictionary of vlans on the current switch, i.e. Vlan()
+        objects, indexed by vlan id (integer number)
 
         Args:
             none

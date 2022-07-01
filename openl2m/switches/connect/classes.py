@@ -461,6 +461,7 @@ class NeighborDevice():
     def set_port_name(self, port_name):
         '''
         Set the name of the remote port of this device.
+
         Args:
             port_name(str): the port on the remote device that we are connected to.
 
@@ -472,6 +473,7 @@ class NeighborDevice():
     def set_port_description(self, description):
         '''
         Set the description of the remote port of this device.
+
         Args:
             description(str): the description port on the remote device that we are connected to.
 
@@ -483,6 +485,7 @@ class NeighborDevice():
     def set_sys_name(self, name):
         '''
         Set the name of the remote device.
+
         Args:
             name(str): the name of the remote device that we are connected to.
 
@@ -494,6 +497,7 @@ class NeighborDevice():
     def set_sys_description(self, description):
         '''
         Set the description of the remote device.
+
         Args:
             description(str): the description of the remote device that we are connected to.
 
@@ -505,6 +509,7 @@ class NeighborDevice():
     def set_chassis_type(self, chassis_type):
         '''
         Set the name of the remote port of this device.
+
         Args:
             type(int): the type on the remote device that we are connected to.
             valid values are defined in snmp.constants, see LLDP_CHASSIC_TYPE_xxx fields.
@@ -517,6 +522,7 @@ class NeighborDevice():
     def set_chassis_string(self, description):
         '''
         Set the string type of remote chassis.
+
         Args:
             description(str): the description type of the chassis device that we are connected to.
 
