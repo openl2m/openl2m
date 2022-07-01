@@ -28,22 +28,6 @@ openl2m.configuration module
    :undoc-members:
    :show-inheritance:
 
-openl2m.configuration module
-----------------------------
-
-.. automodule:: openl2m.configuration
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-openl2m.ldap\_config module
----------------------------
-
-.. automodule:: openl2m.ldap_config
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 openl2m.ldap\_config module
 ---------------------------
 

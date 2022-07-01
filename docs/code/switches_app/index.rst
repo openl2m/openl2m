@@ -46,14 +46,28 @@ work to handle urls is done. Please read :doc:`Views <views>`
 **Connections**
 
 Connections to the switch are derived from a base Connector() class.
-We currently provide several sub-connectors (sub-classes): several based on SNMP, one based on the Napalm automation framework,
-and a REST-API based connector for the Aruba AOS-CX line of devices
+We currently provide several sub-connectors (sub-classes): several based on SNMP,
+a Juniper PyEz-NC based driver, a REST-API based connector for the Aruba AOS-CX line of devices,
+and a read-only driver based on the Napalm automation framework.
 
-See :doc:`Connections <connections>`
+
+See :doc:`Connections <connections>` for more.
 
 
 **Netmiko for CLI**
 
 We use the Netmiko framework to establish SSH CLI sessions, and execute CLI commands.
 
-See :doc:`Netmiko Connector <netmiko>`
+See :doc:`Netmiko Connector <netmiko>` for more.
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Here is what is available at this time:
+
+   connections.rst
+   netmiko.rst
+   snmp.rst
+   views.rst
+   vendor_specific.rst
+   napalm.rst

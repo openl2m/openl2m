@@ -9,6 +9,18 @@ using Python v3.10. We require Python 3.8 as a minimum. Python v3.6 is no longer
 
 **Version 2.3 adds support for Juniper devices via the PyEZ xml api library.**
 
+Version 2.3-rc1
+---------------
+
+Release Date: 2022-07-01
+
+* add hostname lookup for ip's in arp data and admin activity pages.
+  See new configuration options LOOKUP_HOSTNAME_ADMIN and LOOKUP_HOSTNAME_ARP
+  in configuration.example.py
+* add django debug toolbar as option settings.py (see developer documentation.)
+* unused attributes and code cleanup
+
+
 Version 2.3-dev2
 ----------------
 

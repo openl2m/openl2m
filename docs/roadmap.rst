@@ -16,7 +16,7 @@ Other Features
 Here are some other features we are considering implementing (*in no particular order!*)
 
 * Single-Sign-On (SSO) via SAML, and possibly OAUTH for authorization (switch group membership)
-  with as primary SSO compatibility target Shiboleth SAML SSO
+  with as primary SSO compatibility target Shiboleth SAML SSO. We plan to use the Python Social Auth library.
 
 * IP v6 support, both for switch snmp access, and other informational tables.
 

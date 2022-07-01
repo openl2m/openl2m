@@ -3,11 +3,37 @@
 Junos Driver Overview
 =====================
 
-The Junos driver uses the Juniper Py-EzNC library. We make extensive use of the RPC
+The Junos driver is located in *switches/connect/junos_pyez/connector.py*.
+This driver uses the Juniper Py-EzNC library. We make extensive use of the RPC
 capabilities of this library. We parse the responses with the lxml library elements,
 using the rpc.find('.//<element name>') functions to build out the various Interface()
 and other internal OpenL2M objects. See the references section for links. Note:
 the O'Reilly book Chapter 4 is especially useful!
+
+**Basic device configs**
+
+We issue the xml rpc equivalents of the following commands:
+
+"show interfaces extensive" becomes *rpc.get_interface_information()*
+
+"show poe controller" becomes *rpc.get_poe_controller_information()*
+
+"show poe interface" becomes *rpc.get_poe_interface_information()*
+
+"show vlans extensive" becomes *rpc.get_vlan_information()*
+
+**Arp/Lldp information**
+
+We use the following commands:
+
+"show ethernet-switching table extensive" becomes *rpc.get_ethernet_switching_table_information()*
+
+"show arp no-resolve" becomes *rpc.get_arp_table_information()*
+
+"show lldp neigbor interface <name>" becomes *rpc.get_lldp_interface_neighbors(interface_device=<name>)*
+
+
+**Making Changes**
 
 To make changes to interfaces, we use the *Config()* class as such:
 
@@ -37,14 +63,14 @@ The set commands used are as follows:
 
 .. code-block:: bash
 
-  delete interfaces {name} unit 0 family ethernet-switching vlan")
-  set interfaces {name} unit 0 family ethernet-switching vlan members {vlan-name}")
+  delete interfaces {name} unit 0 family ethernet-switching vlan
+  set interfaces {name} unit 0 family ethernet-switching vlan members {new-vlan-name}
 
 **Change Vlan - trunk mode:**
 
 .. code-block:: bash
 
-  set interfaces {name} native-vlan-id {vlan-id}
+  set interfaces {name} native-vlan-id {new-vlan-id}
 
 **Set Description:**
 

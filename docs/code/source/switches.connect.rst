@@ -10,6 +10,7 @@ Subpackages
    switches.connect.aruba_aoscx
    switches.connect.commands_only
    switches.connect.dummy
+   switches.connect.junos_pyez
    switches.connect.napalm
    switches.connect.netmiko
    switches.connect.snmp

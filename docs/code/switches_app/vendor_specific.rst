@@ -65,11 +65,14 @@ After this, you will need to create a new Django "migration" to handle this data
 
 **Create the Custom Driver**
 
-In openl2m/switches/connect/, create a sub-directory representing your connector type. Eg. "aruba_aoscx". Use all lower case, and underscores only.
+In openl2m/switches/connect/, create a sub-directory representing your connector type. Eg. "aruba_aoscx".
+Use all lower case, and underscores only.
 
-In this folder you need a __init__.py (copy from somewhere else :-)), and a minimum file called connector.py, and likely constants.py
+In this folder you need a __init__.py (copy from somewhere else :-)),
+and a minimum file called connector.py, and likely constants.py
 
-In connector.py, create your new driver class that inherits from the base Connector() class. Call the class *YourTypeName*Connector()*. Eg. AosCxConnector()
+In connector.py, create your new driver class that inherits from the base Connector() class.
+Call the class *YourTypeName*Connector()*. Eg. AosCxConnector()
 
 Implement the functions needed to support this device class. At a minimum, you need to create
 

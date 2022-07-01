@@ -1,6 +1,8 @@
 .. image:: ../../_static/openl2m_logo.png
 
-##### The switches app
+=====
+Views
+=====
 
 **views.py**
 
