@@ -23,7 +23,7 @@ copyright = '2019-2022, Various'
 author = 'Various'
 
 # The full version, including alpha/beta/rc tags
-release = 'v2.3-dev2 (2022-06-16)'
+release = 'v2.3-rc1 (2022-07-01)'
 
 # -- General configuration ---------------------------------------------------
 
@@ -33,7 +33,8 @@ master_doc = 'index'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx_rtd_theme",
+    'sphinx_rtd_theme',
+    'sphinx.ext.autodoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -52,7 +53,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 #
 
 # html_theme = 'alabaster'
-html_theme = "sphinx_rtd_theme"
+html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -75,6 +76,6 @@ today_fmt = '%b %d %Y at %H:%M'
 
 # Our source location:
 # sys.path.append('/opt/openl2m/openl2m')
-sys.path.append(os.path.join(os.path.dirname(__file__), "../openl2m"))
+sys.path.append(os.path.join(os.path.dirname(__name__), '../openl2m'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'openl2m.settings'
 django.setup()
