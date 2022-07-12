@@ -1192,7 +1192,7 @@ class SnmpConnector(Connector):
                 # some vendors (certain Cisco switches) set the IF-MIB::ifType to Virtual (53) instead of LAGG (161)
                 # hardcode to LAGG:
                 self.interfaces[aggr_if_index].type = IF_TYPE_LAGG
-                dprint("LACP MEMBER FOUND!!!")
+                dprint(f"LACP MASTER FOUND: {self.interfaces[aggr_if_index].name}")
             return True
 
         # this get the member interfaces admin key ("index"), which maps back to the aggregator interface above!
@@ -1214,7 +1214,7 @@ class SnmpConnector(Connector):
                         self.interfaces[member_if_index].lacp_master_name = iface.name
                         # add our name to the list of the aggregate interface
                         self.interfaces[lacp_index].lacp_members[member_if_index] = self.interfaces[member_if_index].name
-                        dprint("LACP MASTER FOUND!!!")
+                        dprint(f"LACP MEMBER FOUND: {self.interfaces[member_if_index].name}")
             return True
 
         """
