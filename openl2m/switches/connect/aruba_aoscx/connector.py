@@ -435,9 +435,11 @@ class AosCxConnector(Connector):
 
             dprint(f"  +++ POE Exists for {interface.name} ===")
             if new_state == POE_PORT_ADMIN_ENABLED:
-                changed = aoscx_poe.set_power(state=True)
+                aoscx_poe.power_enabled = True
+                changed = aoscx_poe.apply()
             else:
-                changed = aoscx_poe.set_power(state=False)
+                aoscx_poe.power_enabled = False
+                changed = aoscx_poe.apply()
             self._close_device()
             if changed:
                 dprint("   PoE change OK!")
