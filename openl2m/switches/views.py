@@ -1555,7 +1555,7 @@ def admin_activity(request):
             filter['group_id'] = int(request.GET['group'])
 
     # now set the filter, if found
-    if(len(filter) > 0):
+    if (len(filter) > 0):
         logs = Log.objects.all().filter(**filter).order_by('-timestamp')
         log.description = f"Viewing filtered logs: {filter} (page {page_number})"
         title = 'Filtered Activities'

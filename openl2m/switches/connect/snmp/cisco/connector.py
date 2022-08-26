@@ -402,7 +402,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # access or trunk mode configured?
         if_index = oid_in_branch(vlanTrunkPortDynamicState, oid)
         if if_index:
-            if(int(val) == VTP_TRUNK_STATE_ON):
+            if (int(val) == VTP_TRUNK_STATE_ON):
                 # trunk/tagged port
                 self.set_interface_attribute_by_key(if_index, "is_tagged", True)
             return True
@@ -412,7 +412,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # if_index = oid_in_branch(vlanTrunkPortDynamicStatus, oid)
         # if if_index:
         #    dprint(f"Cisco PORT TRUNK STATUS ifIndex {if_index} = {val}")
-        #    if(int(val) == VTP_PORT_TRUNK_ENABLED):
+        #    if (int(val) == VTP_PORT_TRUNK_ENABLED):
         #        # trunk/tagged port
         #        dprint("  TRUNKED!")
         #        self.set_interface_attribute_by_key(if_index, "is_tagged", True)
@@ -521,28 +521,28 @@ class SnmpConnectorCisco(SnmpConnector):
             # which bits are set? A hack but it works!
             # note that the bits are actually in system order,
             # ie. bit 1 is first bit in stream, i.e. HIGH order bit!
-            if(byte & 128):
+            if (byte & 128):
                 vlan_id = (offset * 8) + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if(byte & 64):
+            if (byte & 64):
                 vlan_id = (offset * 8) + 1 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if(byte & 32):
+            if (byte & 32):
                 vlan_id = (offset * 8) + 2 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if(byte & 16):
+            if (byte & 16):
                 vlan_id = (offset * 8) + 3 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if(byte & 8):
+            if (byte & 8):
                 vlan_id = (offset * 8) + 4 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if(byte & 4):
+            if (byte & 4):
                 vlan_id = (offset * 8) + 5 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if(byte & 2):
+            if (byte & 2):
                 vlan_id = (offset * 8) + 6 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if(byte & 1):
+            if (byte & 1):
                 vlan_id = (offset * 8) + 7 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
             offset += 1
@@ -696,7 +696,7 @@ class SnmpConnectorCisco(SnmpConnector):
                           snmp_type='i')
         # now wait for this row to return success or fail:
         waittime = settings.CISCO_WRITE_MEM_MAX_WAIT
-        while(waittime):
+        while (waittime):
             time.sleep(1)
             (error_status, snmp_ret) = self.get(oid=f"{ccCopyState}.{some_number}")
             if error_status:
