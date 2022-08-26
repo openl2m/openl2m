@@ -478,10 +478,12 @@ CISCO_WRITE_MEM_MAX_WAIT = 5
 
 
 # perform hostname lookup from IP addresses found in ARP info, Admin pages, etc.
-# Note this could have impact on page rendering, depending on host fast your
+# Note this could have impact on page rendering, depending on how fast your
 # dns resolution is and how may retries the underlying host OS is configured for.
 
 # perform hostname lookup for admin page showing connected user
 LOOKUP_HOSTNAME_ADMIN = False
 # for IP addresses in device ARP tables, perform hostname lookup
 LOOKUP_HOSTNAME_ARP = False
+# lookup hostname if LLD neighbor device has an IP address as chassis address type
+LOOKUP_HOSTNAME_LLDP = False

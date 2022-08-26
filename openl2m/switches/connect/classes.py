@@ -445,10 +445,11 @@ class NeighborDevice():
         """
         self.index = lldp_index     # 'string' remainder of OID that is unique per remote device
         # self.if_index = int(if_index)
-        # descriptive field about the chassis, likely ethernet or ip info:
-        self.chassis_info = ""
         # the above can be set from lldp data via SNMP, when these three fields are found:
-        self.chassis_type = 0    # integer, LldpChassisIdSubtype
+        self.chassis_type = 0    # integer, LldpChassisIdSubtype.
+        # If chassis_string_type is set to IANA_TYPE_IPV4 or IANA_TYPE_IPV6, then
+        # chassis_string is assumed to be a string with the IP4/6 address set.
+        self.chassis_string_type = 0
         self.chassis_string = ""        # LldpChassisId, OctetString format depends on type.
         self.capabilities = LLDP_CAPABILITIES_NONE
         # self.capabilities = bytes(2)  # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
@@ -457,6 +458,7 @@ class NeighborDevice():
         self.port_descr = ""            # remote port description, as set by config
         self.sys_name = "Unknown Device"
         self.sys_descr = "Unknown Device Description"
+        self.hostname = ""              # if set, the hostname of the device, possibly resolved from chassis_string
 
     def set_port_name(self, port_name):
         '''

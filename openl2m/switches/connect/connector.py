@@ -212,7 +212,13 @@ class Connector():
                 dns_start = time.time()
                 self._lookup_hostname_arp()
                 dns_duration = int((time.time() - dns_start) + 0.5)
-                self.add_more_info('System', 'DNS Read', f"{dns_duration} seconds")
+                self.add_more_info('System', 'DNS Read (arp)', f"{dns_duration} seconds")
+            # are we resolving IP addresses for LLDP neighbors?
+            if settings.LOOKUP_HOSTNAME_LLDP:
+                dns_start = time.time()
+                self._lookup_hostname_lldp()
+                dns_duration = int((time.time() - dns_start) + 0.5)
+                self.add_more_info('System', 'DNS Read (lldp)', f"{dns_duration} seconds")
 
             return True
         self.add_warning("WARNING: device driver does not support 'get_my_basic_info()'' !")
@@ -1467,6 +1473,28 @@ class Connector():
                     eth.hostname = get_ip_dns_name(eth.address_ip4)
                 if not self.hostname and eth.address_ip6:
                     eth.hostname = get_ip_dns_name(eth.address_ip6)
+        return
+
+    def _lookup_hostname_lldp(self):
+        """Look up the hostnames for found lldp neigbors on all interfaces,
+        if the chassis address type an ip address.
+        Fill the hostname attribute using dns resolution of
+        the PTR reverse lookup.
+
+        Args:
+            none
+
+        Returns:
+            none
+        """
+        dprint("_lookup_hostname_lldp() called.")
+        for interface in self.interfaces.values():
+            for neighbor in interface.lldp:
+                if neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
+                    # networkAddress(5), first byte is address type, next bytes are address.
+                    # see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml
+                    if neighbor.chassis_string_type in [IANA_TYPE_IPV4, IANA_TYPE_IPV6]:
+                        neighbor.hostname = get_ip_dns_name(neighbor.chassis_string)
         return
 
     def __str__(self):

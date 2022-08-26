@@ -479,8 +479,12 @@ def get_lldp_info(neighbor):
     else:
         name = 'Unknown'
 
-    if neighbor.sys_descr:
-        info = f"{info}<abbr data-toggle=\"tooltip\" title=\"{neighbor.sys_descr}\">{name}"
+    if neighbor.sys_descr or neighbor.hostname:
+        if neighbor.hostname:
+            hostname = neighbor.hostname + " - "
+        else:
+            hostname = ""
+        info = f"{info}<abbr data-toggle=\"tooltip\" title=\"{hostname}{neighbor.sys_descr}\">{name}"
         if neighbor.chassis_string:
             info = f"{info} - {neighbor.chassis_string}"
         info = info + "</abbr>"

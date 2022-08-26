@@ -169,7 +169,7 @@ class pysnmpHelper():
             # we need a Switch() object!
             return False
 
-        if(self.switch.snmp_profile.version == SNMP_VERSION_2C):
+        if (self.switch.snmp_profile.version == SNMP_VERSION_2C):
             self._auth_data = CommunityData(self.switch.snmp_profile.community)
             return True
 
@@ -850,28 +850,28 @@ class SnmpConnector(Connector):
                 # which bits are set? A hack but it works!
                 # note that the bits are actually in system order,
                 # ie. bit 1 is first bit in stream, i.e. HIGH order bit!
-                if(byte & 128):
+                if (byte & 128):
                     port_id = (offset * 8) + 1
                     self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
-                if(byte & 64):
+                if (byte & 64):
                     port_id = (offset * 8) + 2
                     self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
-                if(byte & 32):
+                if (byte & 32):
                     port_id = (offset * 8) + 3
                     self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
-                if(byte & 16):
+                if (byte & 16):
                     port_id = (offset * 8) + 4
                     self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
-                if(byte & 8):
+                if (byte & 8):
                     port_id = (offset * 8) + 5
                     self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
-                if(byte & 4):
+                if (byte & 4):
                     port_id = (offset * 8) + 6
                     self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
-                if(byte & 2):
+                if (byte & 2):
                     port_id = (offset * 8) + 7
                     self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
-                if(byte & 1):
+                if (byte & 1):
                     port_id = (offset * 8) + 8
                     self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
                 offset += 1
@@ -1041,7 +1041,7 @@ class SnmpConnector(Connector):
         dev_id = int(oid_in_branch(entPhysicalClass, oid))
         if dev_id:
             dev_type = int(val)
-            if(dev_type == ENTITY_CLASS_STACK or dev_type == ENTITY_CLASS_CHASSIS or dev_type == ENTITY_CLASS_MODULE):
+            if (dev_type == ENTITY_CLASS_STACK or dev_type == ENTITY_CLASS_CHASSIS or dev_type == ENTITY_CLASS_MODULE):
                 # save this info!
                 member = StackMember(dev_id, dev_type)
                 self.stack_members[dev_id] = member
@@ -1477,16 +1477,21 @@ class SnmpConnector(Connector):
                         if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
                             chassis_info = bytes_ethernet_to_string(val)
                         elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
+                            # per MIB LldpChassisId, the first byte is the IANA Address Family Number:
                             net_addr_type = int(ord(val[0]))
                             if net_addr_type == IANA_TYPE_IPV4:
+                                neighbor.chassis_string_type = IANA_TYPE_IPV4
                                 addr_bytes = val[1:]
                                 chassis_info = ".".join("%d" % ord(b) for b in addr_bytes)
                             elif net_addr_type == IANA_TYPE_IPV6:
-                                # to be dealt with!
-                                chassis_info = 'IPv6 Address'
+                                neighbor.chassis_string_type = IANA_TYPE_IPV6
+                                addr_bytes = val[1:]
+                                chassis_info = ":".join("%d" % ord(b) for b in addr_bytes)
+                                # we should simplify this here - TBD
                             else:
                                 chassis_info = 'Unknown Address Type'
                         else:
+                            # we don't parse this chassis_type, so just assume it is a string :-)
                             chassis_info = str(val)
                         neighbor.chassis_string = chassis_info
 

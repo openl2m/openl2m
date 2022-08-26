@@ -178,7 +178,7 @@ def string_contains_regex(string, regex):
 
 
 def get_ip_dns_name(ip):
-    """Get the DNS PTR (reverse name) for the given IP address.
+    """Get the DNS PTR (reverse name) for the given IP4 or IP6 address.
 
     Args:
         ip(str):    string representing the IP address.

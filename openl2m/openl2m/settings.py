@@ -438,3 +438,5 @@ CISCO_WRITE_MEM_MAX_WAIT = getattr(configuration, 'CISCO_WRITE_MEM_MAX_WAIT', 5)
 LOOKUP_HOSTNAME_ADMIN = getattr(configuration, 'LOOKUP_HOSTNAME_ADMIN', False)
 # for IP addresses in device ARP tables, perform hostname lookup
 LOOKUP_HOSTNAME_ARP = getattr(configuration, 'LOOKUP_HOSTNAME_ARP', False)
+# lookup hostname if LLD neighbor device has an IP address as chassis address type
+LOOKUP_HOSTNAME_LLDP = getattr(configuration, 'LOOKUP_HOSTNAME_LLDP', False)
