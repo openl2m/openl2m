@@ -61,6 +61,11 @@ COMMAND="pip3 install --upgrade wheel setuptools"
 echo "Installing Python system packages ($COMMAND)..."
 eval $COMMAND || exit 1
 
+# Pre-Install some Python packages to work around things:
+COMMAND="pip3 install six"
+echo "Pre-installing dependencies ($COMMAND)..."
+eval $COMMAND || exit 1
+
 # Install required Python packages
 COMMAND="pip3 install -r requirements.txt"
 echo "Installing core dependencies ($COMMAND)..."
