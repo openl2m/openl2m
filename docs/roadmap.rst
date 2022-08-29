@@ -7,11 +7,11 @@ Roadmap / To Do
 Planned for version 2 and beyond
 --------------------------------
 
-* v2.3 will support Juniper EX switches, via the Junos PyEZ library.
+* support for Arista device via the eApi.
 
 
-Other Features
---------------
+Features Being Considered
+-------------------------
 
 Here are some other features we are considering implementing (*in no particular order!*)
 

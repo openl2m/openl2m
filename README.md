@@ -1,14 +1,16 @@
 ![OpenL2M](docs/_static/openl2m_logo.png "OpenL2M logo")
 
-__OpenL2M, Open Layer 2 Management__, is an open source switch management
+__OpenL2M, Open Layer 2 Management__, is an open source network device management
 application designed to allow users with minimal training to perform a set of basic
-configuration changes on network switches. It does so by providing a consistent web interface
-for Layer 2 device management, independent of the underlying switch vendor.  
+configuration changes on network switches, with a focus on port or interface (i.e Layer 2) changes.
+It does so by providing a consistent web interface
+for device management, independent of the underlying switch vendor.  
 
 __Devices Supported:__
 * Aruba AOS-CX switches (via REST API)
 * HP/Aruba Procurve switches (via SNMP)
 * HPE Comware switches (via SNMP)
+* Juniper devices (via Junos PyEz API)
 * Cisco switches (some, via SNMP)
 * Generic SNMP devices
 * Any device support by Netmiko library (see SSH devices)
@@ -29,7 +31,8 @@ __What's New:__
 v2 implements a new plug-in API that will allow for easy add-on drivers.
 This makes is easy to add support for any kind of network device,
 whether the interface is SSH, REST, NetConf, or other methods.
-See the documentation for more information.
+See the documentation for more information. We now support Aruba AOS-CX and Juniper device
+through custom drivers.
 
 __Why OpenL2M__: OpenL2M was developed in an attempt to learn
 Django, and in the hope that it may some day provide a possibly useful

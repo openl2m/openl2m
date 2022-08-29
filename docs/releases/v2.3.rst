@@ -9,10 +9,20 @@ using Python v3.10. We require Python 3.8 as a minimum. Python v3.6 is no longer
 
 **Version 2.3 adds support for Juniper devices via the PyEZ xml api library.**
 
+Version 2.3-rc2
+---------------
+
+Release Date: 2022-08-29
+
+* add hostname resolution for arp data, and lldp device that show ip address (hover over).
+* remove weak protocols from nginx sample SSL config.
+* various python style fixes.
+
+
 Version 2.3-rc1
 ---------------
 
-Release Date: 2022-07-01
+Release Date: 2022-07-12
 
 * add hostname lookup for ip's in arp data and admin activity pages.
   See new configuration options LOOKUP_HOSTNAME_ADMIN and LOOKUP_HOSTNAME_ARP
@@ -20,13 +30,17 @@ Release Date: 2022-07-01
 * add django debug toolbar as option settings.py (see developer documentation.)
 * unused attributes and code cleanup
 
+Bug fixes:
+* fix PoE interfaces for AOS-CX devices, compatiblility updates for fixed pyaoscx library.
+* debug comment fix for LACP master/member interfaces.
+
 
 Version 2.3-dev2
 ----------------
 
 Release Date: 2022-06-16
 
-* fully functioning support of Junos device supporting ELS.
+* fully functioning support of Junos devices supporting ELS.
 * add Material Design icons.
 
 Bug fixes:
