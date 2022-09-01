@@ -1,10 +1,10 @@
 .. image:: ../_static/openl2m_logo.png
 
-========================
-Configuring SNMP Devices
-========================
 
-SNMP Profiles contain the information about the SNMP v2c or v3 settings of one or more switches.
+SNMP Profiles
+=============
+
+SNMP Profiles contain the information about the SNMP v2c or v3 settings of one or more devices.
 By creating an SNMP Profile once, you can apply this to as many switches as needed,
 without the need to repeatedly enter the same information.
 
@@ -20,3 +20,5 @@ for Auth-No-Priv, or Auth-Priv. (We do not recommend you use No-Auth-No-Priv)
 Make sure you use credentials that can read & write the switches,
 if your intention is to allow users to make changes. E.g. for routers you could
 configure a read-only SNMP Profile, if that device will only be read from!
+
+

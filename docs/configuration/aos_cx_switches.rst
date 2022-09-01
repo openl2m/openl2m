@@ -1,11 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-========
-Switches
-========
-
-Adding switches
-===============
+===========================
+Adding Aruba AOS-CX Devices
+===========================
 
 From the top-right Admin menu, go to Administration, and then click on Switches, or click the "+ Add" option
 
@@ -17,27 +14,29 @@ Add the IP v4 address or resolvable DNS name used to connect to the device.
 
 **In the Connection Configuration section, set:**
 
-**Connector Type:**
 
-* **SNMP**: for fully snmp manageable devices (Cisco, HP/Procurce, HPE)
+**Connector Type:** to
+
 * **Aruba AOS-CX**: for Aruba switches supported via the AOS-CX REST API. Also set the proper Credentials Profile!
-* **Commands-Only**: if you want to add a device where users can only run pre-defined commands.
-  This device will not show the Interface and BulkEdit tabs. Also set the proper Credentials Profile!
-* **Napalm**: add a device that is not supported via SNMP. The Napalm library supports lots of devices, to some extent or another.
-  *This is a Read-Only driver!* Set the appropriate Napalm device in the *Napalm Options* section.
-* **Test Dummy**: is for development only. If you select a device of this type, the interfaces, etc. are simulated only.
 
-**SNMP Profile:**
 
-Select the proper SNMP profile is this is an SNMP managed switch.
+**SNMP Profile:** this is a don't care field for AOS-CX switches.
+
 
 **Credentials Profile:**
 
-Select the proper profile, required for Commands, API, PyEZ, NetConf, etc.
-If you want to allow 'show/display' commands, you need to add a profile here!
+Select the proper profile that stored the REST API credentials. Note that these same credentials used for any Commands applied to this device.
 
 
-**In the Commands Configuration section, set:**
+**Group Membership section:**
+
+For this device to be visible to users (including Admin) in their menu, you need to add it to at least one Group!
+
+
+Optional settings
+-----------------
+
+In the Commands Configuration section, set:
 
 **Command List:**
 
@@ -88,7 +87,3 @@ If selected, users can toggle PoE on *all* ports, including those ports on vlans
 Enabled by default. If *not* selected, users cannot edit the interface descriptions
 on this device (regardless of rights!)
 
-
-**Group Membership section:**
-
-Finally, at the end you can add this new device to one or more groups.
