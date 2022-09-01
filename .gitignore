@@ -16,3 +16,5 @@ venv/
 scripts/test/
 docs/releases/Release-Test-Plan-2.0.ods
 docs/releases/.~lock.Release-Test-Plan-2.0.ods#
+openl2m.sql
+old/
