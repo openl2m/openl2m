@@ -1012,25 +1012,25 @@ class SnmpConnector(Connector):
         """
         ip = oid_in_branch(ipAdEntIfIndex, oid)
         if ip:
-            # snmp value is the string "if_index"
+            # snmp oid return value is the string "if_index"
             # Interfaces are indexed by string index, ie the 'val' returned:
             if val in self.interfaces.keys():
-                self.ip4_to_if_index[ip] = int(val)  # for lookup of netmask below
-                self.interfaces[val].addresses_ip4[ip] = netaddr.IPNetwork(ip)
+                # store IP and interface index (as str) for lookup of netmask below
+                self.ip4_to_if_index[ip] = val
+                # no need to store yet:
+                # self.interfaces[val].add_ip4_network(ip)
             return True
 
         ip = oid_in_branch(ipAdEntNetMask, oid)
         if ip:
-            # OID value is netmask
-            # we should have found the IP address already!
+            # OID return value is netmask
+            # we should have found the IP address already above!
             if ip in self.ip4_to_if_index.keys():
-                if_index = self.ip4_to_if_index[ip]
-                if_key = str(if_index)
+                if_key = self.ip4_to_if_index[ip]
+                # make sure we have an interface for this key:
                 if if_key in self.interfaces.keys():
-                    # have we seen this IP on this interface (we should!)?
-                    if ip in self.interfaces[if_key].addresses_ip4.keys():
-                        # if so, set the netmask
-                        self.interfaces[if_key].addresses_ip4[ip].netmask = val
+                    # now add this IP / Netmask combo to this interface:
+                    self.interfaces[if_key].add_ip4_network(f"{ip}/{val}")
             return True
 
         """
