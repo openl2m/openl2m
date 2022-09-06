@@ -15,6 +15,7 @@ from collections import OrderedDict
 import array
 import natsort
 import netaddr
+import pprint
 import re
 import time
 
@@ -1471,6 +1472,7 @@ class Connector():
             for eth in interface.eth.values():
                 if eth.address_ip4:
                     eth.hostname = get_ip_dns_name(eth.address_ip4)
+                # only resolve IPv6 if IPv4 did not resolve hostname
                 if not self.hostname and eth.address_ip6:
                     eth.hostname = get_ip_dns_name(eth.address_ip6)
         return
@@ -1489,7 +1491,7 @@ class Connector():
         """
         dprint("_lookup_hostname_lldp() called.")
         for interface in self.interfaces.values():
-            for neighbor in interface.lldp:
+            for neighbor in interface.lldp.values():
                 if neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
                     # networkAddress(5), first byte is address type, next bytes are address.
                     # see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml
