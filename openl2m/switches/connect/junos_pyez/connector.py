@@ -183,7 +183,7 @@ class PyEZConnector(Connector):
                                 prefixlen = 32
                             iface.add_ip4_network(ip4_address, prefix_len=prefixlen)
                     except Exception as error:
-                        dprint("  NO ipv4 address found!")
+                        dprint(f"  NO ipv4 address found! Error={error}")
                 elif af_name == 'inet6':
                     dprint("  type = inet v6 routed interface!")
                     iface.is_routed = True
@@ -202,7 +202,7 @@ class PyEZConnector(Connector):
                                 prefixlen = 128
                             iface.add_ip6_network(ip6_address, prefix_len=prefixlen)
                     except Exception as error:
-                        dprint("  NO ipv6 address found!")
+                        dprint(f"  NO ipv6 address found! Error={error}")
                 elif af_name == 'aenet':
                     # aggregated ethernet!
                     ae_interface = af.find('.//ae-bundle-name').text

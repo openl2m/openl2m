@@ -440,3 +440,5 @@ LOOKUP_HOSTNAME_ADMIN = getattr(configuration, 'LOOKUP_HOSTNAME_ADMIN', False)
 LOOKUP_HOSTNAME_ARP = getattr(configuration, 'LOOKUP_HOSTNAME_ARP', False)
 # lookup hostname if LLD neighbor device has an IP address as chassis address type
 LOOKUP_HOSTNAME_LLDP = getattr(configuration, 'LOOKUP_HOSTNAME_LLDP', False)
+# lookup hostnames for routed interface IP addresses.
+LOOKUP_HOSTNAME_ROUTED_IP = getattr(configuration, 'LOOKUP_HOSTNAME_ROUTED_IP', False)

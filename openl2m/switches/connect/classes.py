@@ -76,6 +76,22 @@ class VendorData():
         self.value = value
 
 
+class IPNetworkHostname(netaddr.IPNetwork):
+    """
+    Class to add a 'hostname' attribute to an IPNetwork() object.
+    This can be used to set a FQDN for the Ip address portion of the network.
+    """
+    def __init__(self, network):
+        self.hostname = ''
+        super().__init__(network)
+
+    def resolve_ip_address(self):
+        '''Use dns resolution to resolve the IP address to a hostname.'''
+        # if hostname not already set:
+        if not self.hostname:
+            self.hostname = get_ip_dns_name(self.ip)
+
+
 class Interface():
     """
     Class to represent all the attributes of a single device (switch) interface.
@@ -136,9 +152,11 @@ class Interface():
         return True on success, False on failure.
         '''
         if prefix_len:
-            self.addresses_ip4[address] = netaddr.IPNetwork(f"{address}/{prefix_len}")
+            self.addresses_ip4[address] = IPNetworkHostname(f"{address}/{prefix_len}")
         else:
-            self.addresses_ip4[address] = netaddr.IPNetwork(address)
+            self.addresses_ip4[address] = IPNetworkHostname(address)
+        if settings.LOOKUP_HOSTNAME_ROUTED_IP:
+            self.addresses_ip4[address].resolve_ip_address()
         return True
 
     def add_ip6_network(self, address, prefix_len):
@@ -147,7 +165,9 @@ class Interface():
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
         return True on success, False on failure.
         '''
-        self.addresses_ip6[address] = netaddr.IPNetwork(f"{address}/{prefix_len}")
+        self.addresses_ip6[address] = IPNetworkHostname(f"{address}/{prefix_len}")
+        if settings.LOOKUP_HOSTNAME_ROUTED_IP:
+            self.addresses_ip6[address].resolve_ip_address()
         return True
 
     def add_tagged_vlan(self, vlan_id):
