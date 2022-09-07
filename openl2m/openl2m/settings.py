@@ -140,6 +140,9 @@ IFACE_HIDE_SPEED_ABOVE = getattr(configuration, 'IFACE_HIDE_SPEED_ABOVE', 0)
 IFACE_ALIAS_NOT_ALLOW_REGEX = getattr(configuration, 'IFACE_ALIAS_NOT_ALLOW_REGEX', '')
 IFACE_ALIAS_KEEP_BEGINNING_REGEX = getattr(configuration, 'IFACE_ALIAS_KEEP_BEGINNING_REGEX', '')
 
+# if true, interface IPv4 will show prefixlen. Default is subnet mask.
+IFACE_IP4_SHOW_PREFIXLEN = getattr(configuration, 'IFACE_IP4_SHOW_PREFIXLEN', False)
+
 MENU_ON_RIGHT = getattr(configuration, 'MENU_ON_RIGHT', True)
 MENU_INFO_URLS = getattr(configuration, 'MENU_INFO_URLS', False)
 

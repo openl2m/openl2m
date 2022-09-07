@@ -350,6 +350,8 @@ IFACE_ALIAS_NOT_ALLOW_REGEX = "^Po|NOT ALLOWED"
 # while allowing 'real' descriptions to be added after it
 IFACE_ALIAS_KEEP_BEGINNING_REGEX = "D.\d+"
 
+# if true, routed interface IPv4 addresses will show prefixlen. Default is subnet mask.
+IFACE_IP4_SHOW_PREFIXLEN = False
 
 # Custom Menu items, consisting of MENU_INFO_URLS and MENU_ON_RIGHT.
 

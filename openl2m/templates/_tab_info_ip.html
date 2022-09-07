@@ -10,7 +10,7 @@
         {% if iface.addresses_ip4 %}
           {% for ip,addr in iface.addresses_ip4.items %}
             <div>{{ connection.switch|get_interface_info_links:iface }} {{iface.name}}: {{ addr.ip|get_ip4_info_links }}
-                 {% if addr.hostname %}<abbr data-toggle="tooltip" title="{{ addr.hostname }}">{{ addr.ip }}</abbr>{% else %}{{ addr.ip }}{% endif %} / {{ addr.netmask }}</div>
+                 {% if addr.hostname %}<abbr data-toggle="tooltip" title="{{ addr.hostname }}">{{ addr.ip }}</abbr>{% else %}{{ addr.ip }}{% endif %} / {% if settings.IFACE_IP4_SHOW_PREFIXLEN %}{{ addr.prefixlen }}{% else %}{{ addr.netmask }}{% endif %}</div>
           {% endfor %}
         {% endif %}
       {% endfor %}
