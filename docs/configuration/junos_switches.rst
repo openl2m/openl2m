@@ -4,6 +4,29 @@
 Adding Junos Devices
 ====================
 
+Prerequisites
+-------------
+
+Create a Credential Profile with the proper Netconf username / password that will be used to manage this device.
+As needed, create Commands and Command Groups to assign to this device.
+
+Junos Device Configuration
+--------------------------
+
+Junos device are managed via NetConf using the Python PyEZ library. You will need to create account on your device that allows NetConf,
+and then enable NetConf service using something similar to this:
+
+.. code-block:: bash
+
+    [edit system services]
+    user@host# set netconf ssh
+    user@host# set netconf ssh port 830
+
+Please refer to your Junos documentation for more details.
+
+
+OpenL2M Configuration
+---------------------
 
 From the top-right Admin menu, go to Administration, and then click on Switches, or click the "+ Add" option
 

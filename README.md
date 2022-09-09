@@ -4,7 +4,7 @@ __OpenL2M, Open Layer 2 Management__, is an open source network device managemen
 application designed to allow users with minimal training to perform a set of basic
 configuration changes on network switches, with a focus on port or interface (i.e Layer 2) changes.
 It does so by providing a consistent web interface
-for device management, independent of the underlying switch vendor.  
+for device management, independent of the underlying switch vendor.
 
 __Devices Supported:__
 * Aruba AOS-CX switches (via REST API)
@@ -31,7 +31,7 @@ __What's New:__
 v2 implements a new plug-in API that will allow for easy add-on drivers.
 This makes is easy to add support for any kind of network device,
 whether the interface is SSH, REST, NetConf, or other methods.
-See the documentation for more information. We now support Aruba AOS-CX and Juniper device
+See the documentation for more information. We now support Aruba AOS-CX and Juniper devices
 through custom drivers.
 
 __Why OpenL2M__: OpenL2M was developed in an attempt to learn

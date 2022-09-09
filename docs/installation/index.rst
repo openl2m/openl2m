@@ -8,7 +8,7 @@ Installation
 
 OpenL2M has some requirements:
 
-* Python 3.6 or 3.8 (Others may work, but we only test with v3.6 and 3.8)
+* Python 3.8 or greater (OpenL2M is developed and tested on Python 3.10)
 * net-snmp v5.7 or greater, including net-snmp-devel
 * the Python "easysnmp" package v0.2.5 or greater.
 * a web server, with the WSGI capability. We use Nginx in all our documentation.

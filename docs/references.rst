@@ -56,7 +56,7 @@ https://www.snmpsharpnet.com/?page_id=30
 
 **Aruba AOS-CX**
 
-AOS-CX REST API v10.04 Guide: http://www.arubanetworks.com/techdocs/AOS-CX/10.07/PDF/5200-7883.pdf
+AOS-CX REST API v10.08 Guide: https://www.arubanetworks.com/techdocs/AOS-CX/10.08/PDF/rest_v10-0x.pdf
 
 The pyasocx library is at https://github.com/aruba/pyaoscx/
 

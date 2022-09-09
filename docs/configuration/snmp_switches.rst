@@ -4,6 +4,25 @@
 Adding SNMP switches
 ====================
 
+Prerequisites
+-------------
+
+Create an SNMP Profile with the proper SNMP configuration as used on this device.
+If applicable, create a Credential Profile with the proper SSH username / password that will be used to run commands on this device.
+As needed, create Commands and Command Groups to assign to this device.
+
+SNMP Device Configuration
+-------------------------
+
+All SNMP devices are managed via SNMP using the Python EasySNMP and pysnmp library. You will need to create the proper SNMP Read/Write configuration
+to allow OpenL2M to work on supported devices. ::doc::`Please see the section with SNMP examples for more details.<snmp_configs>`
+
+Please refer to your device snmp documentation for more details.
+
+
+OpenL2M Configuration
+---------------------
+
 From the top-right Admin menu, go to Administration, and then click on Switches, or click the "+ Add" option
 
 Configure the name to show in the menu (does not need to be the switch hostname),

@@ -4,6 +4,32 @@
 Adding Aruba AOS-CX Devices
 ===========================
 
+Prerequisites
+-------------
+
+Create a Credential Profile with the proper username / password that will be used to manage this device.
+As needed, create Commands and Command Groups to assign to this device.
+
+Switch Configuration
+--------------------
+
+AOS-CX switches are managed via the device REST API v10.08.  You will need to configure the switch to allow this access.
+Something like this is needed
+
+.. code-block:: bash
+
+    switch(config)# https-server vrf default
+    OR:
+    switch(config)# https-server vrf mgmt
+
+    and then set an admin username and password.
+
+Please refere to your Aruba AOX-CX documentation for more.
+
+
+OpenL2M Configuration
+---------------------
+
 From the top-right Admin menu, go to Administration, and then click on Switches, or click the "+ Add" option
 
 Configure the name to show in the menu (does not need to be the switch hostname),
@@ -25,7 +51,7 @@ Add the IP v4 address or resolvable DNS name used to connect to the device.
 
 **Credentials Profile:**
 
-Select the proper profile that stored the REST API credentials. Note that these same credentials used for any Commands applied to this device.
+Select the proper profile that stores the REST API credentials. Note that these same credentials used for any Commands applied to this device.
 
 
 **Group Membership section:**

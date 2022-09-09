@@ -56,6 +56,9 @@ class AosCxConnector(Connector):
         self.switch.read_only = False
         # this will be the pyaoscx driver session object
         self.aoscx_session = False
+        # this will contain the requests.Session() object that has the actual cookies, etc.
+        # once the AOS-CX Session is open...
+        self.requests_session = False
         # and we dont want to cache this:
         self.set_do_not_cache_attribute('aoscx_session')
 
@@ -347,7 +350,7 @@ class AosCxConnector(Connector):
             self.error.status = True
             self.error.description = "Error establishing connection!"
             self.error.details = f"Cannot read device interface: {format(error)}"
-            dprint("  set_interface_admin_status(): AosCxInterface.get() failed!")
+            dprint(f"  set_interface_admin_status(): AosCxInterface.get() failed!\n{format(error)}")
             self._close_device()
             return False
 
@@ -517,19 +520,40 @@ class AosCxConnector(Connector):
             # or all warnings:
             # urllib3.disable_warnings()
 
-        try:
-            dprint(f"Creating AosCxSession(ip_address={self.switch.primary_ip4}, api={API_VERSION})")
-            self.aoscx_session = AosCxSession(ip_address=self.switch.primary_ip4, api=API_VERSION)
-            dprint(f"Calling session.open(username={self.switch.netmiko_profile.username}, password={self.switch.netmiko_profile.password})")
-            self.aoscx_session.open(username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password)
-            dprint("  session OK!")
-        except Exception as error:
-            self.error.status = True
-            self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot open REST session: {format(error)}"
-            dprint("  _open_device: AosCxSession.open() failed!")
-            return False
-
+        if self.requests_session:
+            # previous cached request.Session(), so get an AosCx Session() based on that!
+            dprint("Using existing requests.Session() info!")
+            try:
+                self.aoscx_session = AosCxSession.from_session(
+                    req_session=self.requests_session,
+                    base_url=f"https://{self.switch.primary_ip4}/rest/v{API_VERSION}/",
+                    credentials={
+                        'username': self.switch.netmiko_profile.username,
+                        'password': self.switch.netmiko_profile.password,
+                    },
+                )
+            except Exception as error:
+                self.error.status = True
+                self.error.description = "Error rebuilding connection from session!"
+                self.error.details = f"Cannot recreate REST session with AosCxSession.from_session(): {format(error)}"
+                dprint(f"  _open_device: AosCxSession.from_session() failed: {format(error)}")
+                return False
+        else:
+            # first connection", we need to authenticate:
+            try:
+                dprint(f"Creating AosCxSession(ip_address={self.switch.primary_ip4}, api={API_VERSION})")
+                self.aoscx_session = AosCxSession(ip_address=self.switch.primary_ip4, api=API_VERSION)
+                dprint(f"Calling session.open(username={self.switch.netmiko_profile.username}, password={self.switch.netmiko_profile.password})")
+                self.aoscx_session.open(username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password)
+                dprint("  session OK!")
+                # save the requests.Session() with cookies, etc.
+                self.requests_session = self.aoscx_session.s
+            except Exception as error:
+                self.error.status = True
+                self.error.description = "Error establishing connection!"
+                self.error.details = f"Cannot open REST session: {format(error)}"
+                dprint(f"  _open_device: AosCxSession.open() failed: {format(error)}")
+                return False
         return True
 
     def _close_device(self):

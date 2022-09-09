@@ -18,16 +18,16 @@ Here is the order in which you should create the configuration items:
 .. toctree::
    :maxdepth: 1
 
-   Create SNMP profiles <snmp_profiles.rst>
-   Create Credential profiles <credential_profiles.rst>
-   Create VLANs <vlans.rst>
-   Add SNMP Switches <snmp_switches.rst>
-   Add Aruba AOS-CX Switches <aos_cx_switches.rst>
-   Add Junos Switches <junos_switches.rst>
-   Create Switch Groups to add switches to <switchgroups.rst>
-   Create Users and give them access to Switch Groups <users.rst>
-   Create Commands and Command Lists (optional) <commands.rst>
-   Create Command Templates (optional) <cmd_templates.rst>
+   Create SNMP profiles<snmp_profiles.rst>
+   Create Credential profiles<credential_profiles.rst>
+   Create VLANs<vlans.rst>
+   Add SNMP devices<snmp_switches.rst>
+   Add Aruba AOS-CX devices<aos_cx_switches.rst>
+   Add Junos devices<junos_switches.rst>
+   Create Switch Groups to add device to<switchgroups.rst>
+   Create Users and give them access to Switch Groups<users.rst>
+   Create Commands and Command Lists (optional)<commands.rst>
+   Create Command Templates (optional)<cmd_templates.rst>
 
 Permissions
 -----------
