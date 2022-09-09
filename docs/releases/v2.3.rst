@@ -9,12 +9,25 @@ using Python v3.10. We require Python 3.8 as a minimum. Python v3.6 is no longer
 
 **Version 2.3 adds support for Juniper devices via the PyEZ xml api library.**
 
+Version 2.3
+-----------
+
+Release Date: 2022-09-09
+
+* add hostname resolution setting for routed interface IP addresses (see configuration.example.py)
+* add option to show routed interface IPv4 address with prefix length instead of netmask (see configuration.example.py)
+
+Bug fixes:
+* regression fix in lldp device hostname resolve
+* fix fontawesome reference in error pages.
+
+
 Version 2.3-rc2
 ---------------
 
 Release Date: 2022-08-29
 
-* add hostname resolution for arp data, and lldp device that show ip address (hover over).
+* add hostname resolution for arp data,lldp devices that show ip address (hover over).
 * remove weak protocols from nginx sample SSL config.
 * various python style fixes.
 
