@@ -14,10 +14,22 @@ If you do *NOT* want to enable this feature, and only use local application acco
 Requirements
 ------------
 
-All pre-requisites should be already installed!
+All OS pre-requisites should be already installed. You need to manually install the Python requirements the first time around.
+
+.. code-block:: bash
+
+  source venv/bin/activate
+  pip3 install django-auth-ldap
+
+Next, modify or create the file *local_requirements.txt* to allow this to be added automatically during future upgrades:
+
+.. code-block:: bash
+
+  sudo sh -c "echo 'django-auth-ldap>=2.0.0' >> local_requirements.txt"
 
 
-**Configuration**
+Configuration
+-------------
 
 Create a file in the same directory as `configuration.py` (typically `OpenL2M/OpenL2M/`) named `ldap_config.py`.
 Define all of the parameters required below in `ldap_config.py`.
