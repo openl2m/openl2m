@@ -13,7 +13,7 @@
 import os
 import sys
 
-import django
+# import django
 import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
@@ -75,7 +75,7 @@ html_css_files = [
 today_fmt = '%b %d %Y at %H:%M'
 
 # Our source location:
-# sys.path.append('/opt/openl2m/openl2m')
-sys.path.append(os.path.join(os.path.dirname(__name__), '../openl2m'))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'openl2m.settings'
-django.setup()
+# # sys.path.append('/opt/openl2m/openl2m')
+# sys.path.append(os.path.join(os.path.dirname(__name__), '../openl2m'))
+# os.environ['DJANGO_SETTINGS_MODULE'] = 'openl2m.settings'
+# django.setup()
