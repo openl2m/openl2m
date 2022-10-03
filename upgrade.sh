@@ -120,7 +120,7 @@ eval $COMMAND || exit 1
 #eval $COMMAND || exit 1
 
 # update the netaddr OUI database
-source scripts/update_oui.sh
+# source scripts/update_oui.sh
 echo
 echo "Remember: you can update the Ethernet OUI database"
 echo "by running this at any time:"
