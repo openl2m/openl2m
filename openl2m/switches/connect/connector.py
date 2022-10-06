@@ -1371,7 +1371,7 @@ class Connector():
         self.warnings.append(warning)
         # add a log message
         self.add_log(type=LOG_TYPE_WARNING,
-                     action=LOG_SNMP_ERROR,
+                     action=LOG_CONNECTION_ERROR,
                      description=warning)
         # done!
         return
@@ -1394,7 +1394,7 @@ class Connector():
         if err:
             # add a log message
             self.add_log(type=LOG_TYPE_ERROR,
-                         action=LOG_SNMP_ERROR,
+                         action=LOG_CONNECTION_ERROR,
                          description=f"{self.error.description}: {self.error.details}")
         # done!
         return
