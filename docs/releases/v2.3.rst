@@ -9,6 +9,14 @@ using Python v3.10. We require Python 3.8 as a minimum. Python v3.6 is no longer
 
 **Version 2.3 adds support for Juniper devices via the PyEZ xml api library.**
 
+Version 2.3.1
+-------------
+
+Release Date:  2022-10-06
+
+* add code to catch errors in drivers that go untrapped.
+* change driver notices for warning and error entries to show as 'connection' errors.
+
 Version 2.3
 -----------
 
