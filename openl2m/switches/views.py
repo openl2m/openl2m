@@ -221,35 +221,56 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
         error.details = traceback.format_exc()
         return error_page(request=request, group=group, switch=switch, error=error)
 
-    if not conn.get_basic_info():
-        # errors
+    # catch errors in case not trapped in drivers
+    try:
+        if not conn.get_basic_info():
+            # errors
+            log.type = LOG_TYPE_ERROR
+            log.description = "ERROR in get_basic_switch_info()"
+            log.save()
+            return error_page(request=request, group=group, switch=switch, error=conn.error)
+    except Exception as e:
         log.type = LOG_TYPE_ERROR
-        log.description = "ERROR in get_basic_switch_info()"
+        log.description = "CAUGHT UNTRAPPED ERROR in get_basic_switch_info()"
         log.save()
         return error_page(request=request, group=group, switch=switch, error=conn.error)
 
     dprint("Basic Info OK")
 
     if view == 'hw_info':
-        if not conn.get_hardware_details():
-            # errors
+        # catch errors in case not trapped in drivers
+        try:
+            if not conn.get_hardware_details():
+                # errors
+                log.type = LOG_TYPE_ERROR
+                log.description = "ERROR in get_hardware_details()"
+                log.save()
+                # don't render error, since we have already read the basic interface data
+                # Note that SNMP errors are already added to warnings!
+                # return error_page(request=request, group=group, switch=switch, error=conn.error)
+            dprint("Details Info OK")
+        except Exception as e:
             log.type = LOG_TYPE_ERROR
-            log.description = "ERROR in get_hardware_details()"
+            log.description = "CAUGHT UNTRAPPED ERROR in get_hardware_details()"
             log.save()
-            # don't render error, since we have already read the basic interface data
-            # Note that SNMP errors are already added to warnings!
-            # return error_page(request=request, group=group, switch=switch, error=conn.error)
-        dprint("Details Info OK")
+            return error_page(request=request, group=group, switch=switch, error=conn.error)
 
     if view == 'arp_lldp':
-        if not conn.get_client_data():
+        # catch errors in case not trapped in drivers
+        try:
+            if not conn.get_client_data():
+                log.type = LOG_TYPE_ERROR
+                log.description = "ERROR get_client_data()"
+                log.save()
+                # don't render error, since we have already read the basic interface data
+                # Note that errors are already added to warnings!
+                # return error_page(request=request, group=group, switch=switch, error=conn.error)
+            dprint("ARP-LLDP Info OK")
+        except Exception as e:
             log.type = LOG_TYPE_ERROR
-            log.description = "ERROR get_client_data()"
+            log.description = "CAUGHT UNTRAPPED ERROR in get_client_data()"
             log.save()
-            # don't render error, since we have already read the basic interface data
-            # Note that errors are already added to warnings!
-            # return error_page(request=request, group=group, switch=switch, error=conn.error)
-        dprint("ARP-LLDP Info OK")
+            return error_page(request=request, group=group, switch=switch, error=conn.error)
 
     # done with reading switch data, so save cachable/session data
     conn.save_cache()
