@@ -231,7 +231,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
             return error_page(request=request, group=group, switch=switch, error=conn.error)
     except Exception as e:
         log.type = LOG_TYPE_ERROR
-        log.description = "CAUGHT UNTRAPPED ERROR in get_basic_switch_info()"
+        log.description = f"CAUGHT UNTRAPPED ERROR in get_basic_switch_info(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
         log.save()
         return error_page(request=request, group=group, switch=switch, error=conn.error)
 
@@ -251,7 +251,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
             dprint("Details Info OK")
         except Exception as e:
             log.type = LOG_TYPE_ERROR
-            log.description = "CAUGHT UNTRAPPED ERROR in get_hardware_details()"
+            log.description = f"CAUGHT UNTRAPPED ERROR in get_hardware_details(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             log.save()
             return error_page(request=request, group=group, switch=switch, error=conn.error)
 
@@ -268,7 +268,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
             dprint("ARP-LLDP Info OK")
         except Exception as e:
             log.type = LOG_TYPE_ERROR
-            log.description = "CAUGHT UNTRAPPED ERROR in get_client_data()"
+            log.description = f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             log.save()
             return error_page(request=request, group=group, switch=switch, error=conn.error)
 
