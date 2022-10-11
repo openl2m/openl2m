@@ -1,4 +1,5 @@
 celery
+distro
 Django>=3.2,<3.3
 django-debug-toolbar
 django-ipware>=2.1.0

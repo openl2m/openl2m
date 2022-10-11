@@ -13,6 +13,7 @@
 #
 import sys
 import os
+import distro
 import time
 import datetime
 import traceback
@@ -232,6 +233,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
     except Exception as e:
         log.type = LOG_TYPE_ERROR
         log.description = f"CAUGHT UNTRAPPED ERROR in get_basic_switch_info(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+        dprint(log.description)
         log.save()
         return error_page(request=request, group=group, switch=switch, error=conn.error)
 
@@ -252,6 +254,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
         except Exception as e:
             log.type = LOG_TYPE_ERROR
             log.description = f"CAUGHT UNTRAPPED ERROR in get_hardware_details(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            dprint(log.description)
             log.save()
             return error_page(request=request, group=group, switch=switch, error=conn.error)
 
@@ -269,6 +272,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
         except Exception as e:
             log.type = LOG_TYPE_ERROR
             log.description = f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            dprint(log.description)
             log.save()
             return error_page(request=request, group=group, switch=switch, error=conn.error)
 
@@ -1450,8 +1454,10 @@ def show_stats(request):
     uname = os.uname()
     environment['OS'] = f"{uname.sysname} ({uname.release})"
     # environment['Version'] = uname.version
+    environment['Distro'] = f"{distro.name()} {distro.version(best=True)}"
     environment['Hostname'] = uname.nodename
     environment['Django'] = django.get_version()
+    environment['OpenL2M version'] = f"{settings.VERSION} ({settings.VERSION_DATE})"
     import git
     try:
         repo = git.Repo(search_parent_directories=True)
@@ -1472,7 +1478,6 @@ def show_stats(request):
             environment['Tasks'] = "Enabled and running"
     else:
         environment['Tasks'] = "Disabled"
-    environment['OpenL2M version'] = f"{settings.VERSION} ({settings.VERSION_DATE})"
 
     db_items = {}   # database object item counts
     db_items['Switches'] = Switch.objects.count()
