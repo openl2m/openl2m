@@ -50,9 +50,9 @@
 
             <td>
               {% if iface.untagged_vlan > 0 %}
-                <span data-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
+                <abbr data-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
                   {{ iface.untagged_vlan }}
-                </span>
+                </abbr>
               {% else %}
                 <span data-toggle="tooltip" title="Not applicable for this interface">n/a</span>
               {% endif %}
