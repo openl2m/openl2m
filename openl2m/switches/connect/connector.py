@@ -202,6 +202,9 @@ class Connector():
         Returns:
             return True on success, False on error and set self.error variables
         '''
+        # clear previous client data
+        self.clear_client_data()
+
         # call the implementation-specific function:
         if hasattr(self, 'get_my_client_data'):
             start_time = time.time()
@@ -239,6 +242,23 @@ class Connector():
     def get_my_client_data(self):
         return True
     '''
+
+    def clear_client_data(self):
+        '''
+        Clear out all client data, ie arp, lldp, etc.
+
+        Args:
+            none
+
+        Returns:
+            True
+        '''
+        dprint("clear_client_data()")
+        for interface in self.interfaces.values():
+            interface.eth = {}
+            interface.lldp = {}
+
+        return True
 
     def get_hardware_details(self):
         '''
