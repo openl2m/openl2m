@@ -1473,7 +1473,7 @@ class Connector():
                 if eth.address_ip4:
                     eth.hostname = get_ip_dns_name(eth.address_ip4)
                 # only resolve IPv6 if IPv4 did not resolve hostname
-                if not self.hostname and eth.address_ip6:
+                if not eth.hostname and eth.address_ip6:
                     eth.hostname = get_ip_dns_name(eth.address_ip6)
         return
 
