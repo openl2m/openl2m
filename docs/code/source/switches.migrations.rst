@@ -284,6 +284,14 @@ switches.migrations.0035\_alter\_switch\_connector\_type module
    :undoc-members:
    :show-inheritance:
 
+switches.migrations.0036\_alter\_log\_action module
+---------------------------------------------------
+
+.. automodule:: switches.migrations.0036_alter_log_action
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
