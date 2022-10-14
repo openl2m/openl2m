@@ -9,6 +9,20 @@ using Python v3.10. We require Python 3.8 as a minimum. Python v3.6 is no longer
 
 **Version 2.3 adds support for Juniper devices via the PyEZ xml api library.**
 
+Version 2.3.2
+-------------
+
+Release Date: 2022-10-14
+
+* show OS distro in statistics page.
+
+Bug fixes:
+
+* freeze / fix version of Python EasySNMP library to avoid crash with snmp v3.
+* fix hostname lookup for IPv6 arp entries.
+* fix clearing client data (eth/arp/lldp) before each new request.
+* add high-level error handling for any uncaught device driver exception.
+
 Version 2.3.1
 -------------
 
@@ -16,6 +30,11 @@ Release Date:  2022-10-06
 
 * add code to catch errors in drivers that go untrapped.
 * change driver notices for warning and error entries to show as 'connection' errors.
+* remove ethernet OUI updates from update.sh for speed. Now run by scripts/update_oui.sh
+
+Bug fixes:
+
+* fix readthedocs.io documentation build.
 
 Version 2.3
 -----------
@@ -26,6 +45,7 @@ Release Date: 2022-09-09
 * add option to show routed interface IPv4 address with prefix length instead of netmask (see configuration.example.py)
 
 Bug fixes:
+
 * regression fix in lldp device hostname resolve
 * fix fontawesome reference in error pages.
 
@@ -52,6 +72,7 @@ Release Date: 2022-07-12
 * unused attributes and code cleanup
 
 Bug fixes:
+
 * fix PoE interfaces for AOS-CX devices, compatiblility updates for fixed pyaoscx library.
 * debug comment fix for LACP master/member interfaces.
 
