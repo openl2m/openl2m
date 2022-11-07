@@ -17,12 +17,14 @@ NOCOLOR='\033[0m'
 echo "Validating PEP8 compliance..."
 pycodestyle --ignore=E121,E123,E126,E133,E226,E241,E242,E501,E704,W503,W504,W505,W605 openl2m/
 if [ $? != 0 ]; then
+	echo "pycodestyle failed!"
 	EXIT=1
 fi
 
 echo "Checking for missing migrations..."
 python3 openl2m/manage.py makemigrations --dry-run --check
 if [ $? != 0 ]; then
+	echo "manage.py makemigrations failed!"
 	EXIT=1
 fi
 
