@@ -7,30 +7,40 @@
 # Once the script completes, remember to restart the WSGI service
 # (e.g.  systemctl restart openl2m )
 
-# Stop the gunicorn/celery python services:
-#COMMAND="($SYSTEMCTL) stop openl2m"
-#echo "Stopping OpenL2M Python service ($COMMAND)..."
-#eval $COMMAND
-#COMMAND="($SYSTEMCTL) stop celery"
-#echo "Stopping OpenL2M Celery service ($COMMAND)..."
-#eval $COMMAND
+# Use the python interpreter from the PYTHON environment variable,
+# or fall back to the system python binary.
+PYTHON="${PYTHON:-python3}"
 
-# the full path to your system python 3 command:
-# for alternate versions, set proper path, e.g.:
-# PYTHON="/usr/local/bin/python3.7"
-PYTHON="/usr/bin/python3"
-
-# See if the user want an alternate version of Python
+# See if the user want an alternate version of Python at set in a config file:
 if [ -f "altpython.sh" ]; then
   source "altpython.sh"
   echo "Using Alternate Python version at '${PYTHON}'"
 fi
+
+# From netbox:
+# Validate the minimum required Python version
+COMMAND="${PYTHON} -c 'import sys; exit(1 if sys.version_info < (3, 8) else 0)'"
+PYTHON_VERSION=$(eval "${PYTHON} -V")
+eval $COMMAND || {
+  echo "--------------------------------------------------------------------"
+  echo "ERROR: Unsupported Python version: ${PYTHON_VERSION}. NetBox requires"
+  echo "Python 3.8 or later. To specify an alternate Python executable, set"
+  echo "the PYTHON environment variable. For example:"
+  echo ""
+  echo "  sudo PYTHON=/usr/bin/python3.8 ./upgrade.sh"
+  echo ""
+  echo "To show your current Python version: ${PYTHON} -V"
+  echo "--------------------------------------------------------------------"
+  exit 1
+}
+echo "Using ${PYTHON_VERSION}"
 
 cd "$(dirname "$0")"
 VIRTUALENV="$(pwd -P)/venv"
 
 # Remove the existing virtual environment (if any)
 if [ -d "$VIRTUALENV" ]; then
+  echo "Found existing virt environment at $VIRTUALENV"
   COMMAND="rm -rf ${VIRTUALENV}"
   echo "Removing old virtual environment..."
   eval $COMMAND
@@ -113,11 +123,6 @@ eval $COMMAND
 COMMAND="python3 openl2m/manage.py clearsessions"
 echo "Removing expired user sessions ($COMMAND)..."
 eval $COMMAND || exit 1
-
-# Clear all cached data
-#COMMAND="python3 openl2m/manage.py invalidate all"
-#echo "Clearing cache data ($COMMAND)..."
-#eval $COMMAND || exit 1
 
 # update the netaddr OUI database
 # source scripts/update_oui.sh
