@@ -228,7 +228,7 @@ class Connector():
             oui_start = time.time()
             self._lookup_ethernet_vendors()
             oui_duration = int((time.time() - oui_start) + 0.5)
-            self.add_more_info('System', 'Ethernet Vendor Search', f"{dns_duration} seconds")
+            self.add_more_info('System', 'Ethernet Vendor Search', f"{oui_duration} seconds")
 
             return True
         self.add_warning("WARNING: device driver does not support 'get_my_basic_info()'' !")
