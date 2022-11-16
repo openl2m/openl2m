@@ -11,6 +11,9 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+import netaddr
+
+from django.conf import settings
 from switches.utils import dprint
 from switches.connect.classes import EthernetAddress
 
@@ -21,8 +24,8 @@ This file contains SNMP utility functions
 
 def decimal_to_hex_string_ethernet(decimals):
     """
-    Convert SNMP decimal ethernet string "11.12.13.78.90.100"
-    to hex value and colon-string "aa-bb-cc-11-22-33".
+    Convert SNMP decimal ethernet string "5.12.13.78.90.100"
+    to hex value and colon-string "05:0c:0d:4e:5a:64"
     """
     bytes = decimals.split('.')
     if len(bytes) == 6:
@@ -32,20 +35,21 @@ def decimal_to_hex_string_ethernet(decimals):
             if not mac:
                 mac += h
             else:
-                mac += "-%s" % h
+                mac += ":%s" % h
         return mac
-    return "00-00-00-00-00-00"
+    return "00:00:00:00:00:00"
 
 
 def bytes_ethernet_to_string(bytes):
     """
-    Convert SNMP ethernet in 6-byte octetstring to defined ethernet string format.
+    Convert SNMP ethernet in 6-byte octetstring to the selected ethernet string format.
     """
     if len(bytes) == 6:
-        format = '%02X'
-        separator = '-'
-        eth_string = separator.join(format % ord(b) for b in bytes)
+        eth_string = ":".join("%02X" % ord(b) for b in bytes)
         dprint(f"bytes_ethernet_to_string() for {eth_string}")
-        eth = EthernetAddress(eth_string)
+        # we use the netaddr library here to make it easy on ourselves to convert to the version wanted:
+        eth = netaddr.EUI(eth_string)
+        # make sure we use consistent string representation of this ethernet address:
+        eth.dialect = settings.MAC_DIALECT
         return str(eth)
     return ''

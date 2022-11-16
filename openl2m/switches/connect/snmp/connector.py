@@ -1258,6 +1258,8 @@ class SnmpConnector(Connector):
                 if_index = self._get_if_index_from_port_id(port_id)
                 if if_index in self.interfaces.keys():
                     e = EthernetAddress(eth_string)
+                    # make sure we use consistent string representation of this ethernet address:
+                    e.dialect = settings.MAC_DIALECT
                     if self.vlan_id_context > 0:
                         e.vlan_id = self.vlan_id_context
                         # we use string representation of the EthernetAddress() object
@@ -1295,7 +1297,9 @@ class SnmpConnector(Connector):
                 # if_index = self.qbridge_port_to_if_index[int(val)]
                 if_index = self._get_if_index_from_port_id(port_id)
                 if if_index in self.interfaces.keys():
+                    # make sure we use consistent string representation of this ethernet address:
                     e = EthernetAddress(eth_string)
+                    e.dialect = settings.MAC_DIALECT
                     if self.vlan_id_context > 0:
                         # we are explicitly in a vlan context! (vendor specific implementation)
                         e.vlan_id = self.vlan_id_context

@@ -124,6 +124,13 @@ COMMAND="python3 openl2m/manage.py clearsessions"
 echo "Removing expired user sessions ($COMMAND)..."
 eval $COMMAND || exit 1
 
+# update the 'mnauf' package database,
+# i.e. the Wireshark Ethernet Manufacturers database
+echo
+echo "Updating Wireshark Ethernet database..."
+COMMAND="manuf --update"
+eval $COMMAND || exit 1
+
 # update the netaddr OUI database
 # source scripts/update_oui.sh
 echo

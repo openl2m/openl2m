@@ -13,6 +13,7 @@
 #
 from collections import OrderedDict
 import array
+import manuf
 import natsort
 import netaddr
 import pprint
@@ -214,15 +215,20 @@ class Connector():
             # are we resolving IP addresses to hostnames?
             if settings.LOOKUP_HOSTNAME_ARP:
                 dns_start = time.time()
-                self._lookup_hostname_arp()
+                self._lookup_hostname_from_arp()
                 dns_duration = int((time.time() - dns_start) + 0.5)
                 self.add_more_info('System', 'DNS Read (arp)', f"{dns_duration} seconds")
             # are we resolving IP addresses for LLDP neighbors?
             if settings.LOOKUP_HOSTNAME_LLDP:
                 dns_start = time.time()
-                self._lookup_hostname_lldp()
+                self._lookup_hostname_from_lldp()
                 dns_duration = int((time.time() - dns_start) + 0.5)
                 self.add_more_info('System', 'DNS Read (lldp)', f"{dns_duration} seconds")
+            # resolve the ethernet OUI to vendor
+            oui_start = time.time()
+            self._lookup_ethernet_vendors()
+            oui_duration = int((time.time() - oui_start) + 0.5)
+            self.add_more_info('System', 'Ethernet Vendor Search', f"{dns_duration} seconds")
 
             return True
         self.add_warning("WARNING: device driver does not support 'get_my_basic_info()'' !")
@@ -1476,7 +1482,7 @@ class Connector():
         '''
         return f"{self.name} for {self.switch.name}"
 
-    def _lookup_hostname_arp(self):
+    def _lookup_hostname_from_arp(self):
         """Look up the hostnames for found ethernet/arp pairs on all interfaces.
         Fill the hostname attribute for all arp IP's found, using dns resolution of
         the PTR reverse lookup.
@@ -1487,7 +1493,7 @@ class Connector():
         Returns:
             none
         """
-        dprint("_lookup_hostname_arp() called.")
+        dprint("_lookup_hostname_from_arp() called.")
         for interface in self.interfaces.values():
             for eth in interface.eth.values():
                 if eth.address_ip4:
@@ -1497,7 +1503,7 @@ class Connector():
                     eth.hostname = get_ip_dns_name(eth.address_ip6)
         return
 
-    def _lookup_hostname_lldp(self):
+    def _lookup_hostname_from_lldp(self):
         """Look up the hostnames for found lldp neigbors on all interfaces,
         if the chassis address type an ip address.
         Fill the hostname attribute using dns resolution of
@@ -1509,7 +1515,7 @@ class Connector():
         Returns:
             none
         """
-        dprint("_lookup_hostname_lldp() called.")
+        dprint("_lookup_hostname_from_lldp() called.")
         for interface in self.interfaces.values():
             for neighbor in interface.lldp.values():
                 if neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
@@ -1518,6 +1524,30 @@ class Connector():
                     if neighbor.chassis_string_type in [IANA_TYPE_IPV4, IANA_TYPE_IPV6]:
                         neighbor.hostname = get_ip_dns_name(neighbor.chassis_string)
         return
+
+    def _lookup_ethernet_vendors(self):
+        """Look up the vendor names for the ethernet address found on interfaces.
+
+        Args:
+            none
+
+        Returns:
+            none
+        """
+        dprint("_lookup_ethernet_vendors() called.")
+
+        # load the Wireshark ethernet OUI parser
+        parser = manuf.manuf.MacParser()
+        # go through the list of ethernet addresses on each interface
+        for interface in self.interfaces.values():
+            for eth in interface.eth.values():
+                # and try to get the vendor from the OUI list
+                vendor = parser.get_all(str(eth))
+                if vendor.manuf_long:
+                    eth.vendor = vendor.manuf_long
+                elif vendor.manuf:
+                    eth.vendor = vendor.manuf
+                dprint(f"  eth = {eth}, vendor = {eth.vendor}")
 
     def __str__(self):
         return self.display_name
