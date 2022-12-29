@@ -63,6 +63,7 @@ class StackMember():
         self.serial = ""        # serial number
         self.version = ""       # software revision of this device
         self.model = ""         # vendor model number
+        self.info = ""          # hardware info string
 
 
 class VendorData():

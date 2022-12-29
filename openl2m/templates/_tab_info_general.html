@@ -110,6 +110,9 @@
           {% if dev.version %}
             , software rev. {{ dev.version }}
           {% endif %}
+          {% if dev.info %}
+            , {{ dev.info }}
+          {% endif %}
         </div>
       {% endfor%}
     </div>
