@@ -530,7 +530,7 @@ class AosCxConnector(Connector):
                     # credentials={
                     #    'username': self.switch.netmiko_profile.username,
                     #    'password': self.switch.netmiko_profile.password,
-                    #},
+                    # },
                 )
                 dprint("  session OK!")
                 return True
