@@ -35,3 +35,11 @@ enterprise_id_info[ENTERPRISE_ID_HP_ENTERPRISE] = 'Aruba (HPE)'
 # the power drawn, in milliwatts:
 arubaWiredPoePethPsePortPowerDrawn = '.1.3.6.1.4.1.47196.4.1.1.3.8.1.1.1.7'
 snmp_mib_variables['arubaWiredPoePethPsePortPowerDrawn'] = arubaWiredPoePethPsePortPowerDrawn
+
+# from ARUBAWIRED-VSFv2-MIB
+# https://mibs.observium.org/mib/ARUBAWIRED-VSFv2-MIB/
+arubaWiredVsfv2MemberPartNumber = '.1.3.6.1.4.1.47196.4.1.1.3.15.1.2.1.4'
+snmp_mib_variables['arubaWiredVsfv2MemberPartNumber'] = arubaWiredVsfv2MemberPartNumber
+
+arubaWiredVsfv2MemberProductName = '.1.3.6.1.4.1.47196.4.1.1.3.15.1.2.1.6'
+snmp_mib_variables['arubaWiredVsfv2MemberProductName'] = arubaWiredVsfv2MemberProductName

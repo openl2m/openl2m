@@ -123,6 +123,26 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         return False
 
+    def _parse_mibs_aruba_vsf2(self, oid, val):
+        """
+        Parse ARUBAWIRED-VSFv2 mibs.
+        """
+        dev_index = int(oid_in_branch(arubaWiredVsfv2MemberProductName, oid))
+        if dev_index:
+            dprint(f"Found branch arubaWiredVsfv2MemberProductName, device index = {dev_index}, val = {val}")
+            # add to device/stacking info area:
+            dprint(f"Device {dev_index}: {val}")
+            # save this info!
+            if dev_index in self.stack_members.keys():
+                # save this info!
+                self.stack_members[dev_index].info = val
+            else:
+                # should not happen:
+                dprint(" ERROR: Device Index NOT found in StackMembers!")
+            return True
+
+        return False
+
     def _get_poe_data(self):
         """
         Aruba(HP) used both the standard PoE MIB, and their own ARUBAWIRED-POE mib.
@@ -158,3 +178,18 @@ class SnmpConnectorArubaCx(SnmpConnector):
         # set vlan count
         self.vlan_count = len(self.vlans)
         return self.vlan_count
+
+    def get_my_hardware_details(self):
+        """
+        Load hardware details from the VSF v2 mib (Virtual Switch Fabric)
+        then call the generic SNMP hardware details.
+        """
+        super().get_my_hardware_details()
+
+        # now read AOS-CX specific data:
+        retval = self.get_snmp_branch('arubaWiredVsfv2MemberProductName', self._parse_mibs_aruba_vsf2)
+        if retval < 0:
+            self.add_warning("Error getting 'Aruba Vsf Product name' ('arubaWiredVsfv2MemberProductName')")
+            return retval
+
+        return 1

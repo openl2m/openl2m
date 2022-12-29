@@ -527,11 +527,13 @@ class AosCxConnector(Connector):
                 self.aoscx_session = AosCxSession.from_session(
                     req_session=self.requests_session,
                     base_url=f"https://{self.switch.primary_ip4}/rest/v{API_VERSION}/",
-                    credentials={
-                        'username': self.switch.netmiko_profile.username,
-                        'password': self.switch.netmiko_profile.password,
-                    },
+                    # credentials={
+                    #    'username': self.switch.netmiko_profile.username,
+                    #    'password': self.switch.netmiko_profile.password,
+                    #},
                 )
+                dprint("  session OK!")
+                return True
             except Exception as error:
                 self.error.status = True
                 self.error.description = "Error rebuilding connection from session!"
@@ -547,14 +549,15 @@ class AosCxConnector(Connector):
                 self.aoscx_session.open(username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password)
                 dprint("  session OK!")
                 # save the requests.Session() with cookies, etc.
-                self.requests_session = self.aoscx_session.s
+                # DISABLED FOR NOW:
+                # self.requests_session = self.aoscx_session.s
+                return True
             except Exception as error:
                 self.error.status = True
                 self.error.description = "Error establishing connection!"
                 self.error.details = f"Cannot open REST session: {format(error)}"
                 dprint(f"  _open_device: AosCxSession.open() failed: {format(error)}")
                 return False
-        return True
 
     def _close_device(self):
         '''
