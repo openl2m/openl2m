@@ -70,6 +70,11 @@ class MyUserAdmin(UserAdmin):
         queryset.update(is_staff=False)
         queryset.update(is_superuser=False)
 
+    # disable delete user (we don't want to loose records)
+    def has_delete_permission(self, request, obj=None):
+        # Disable delete
+        return False
+
 
 # we have a custom admin site, i.e. register with admin_site, not with default "admin.site"!
 admin_site.register(User, MyUserAdmin)
