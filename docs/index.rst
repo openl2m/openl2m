@@ -20,7 +20,7 @@ for device management, independent of the underlying vendor.
 OpenL2M attempts to address the needs of distributed IT groups managing parts
 of a shared distributed layer 2 ("switching") network.
 
-While primary intended to manage network switches, OpenL2M can handle any device that has some
+While primarily intended to manage network switches, OpenL2M can handle any device that has some
 sort of network API (e.g. SSH, Netconf, REST, etc.)
 
 OpenL2M is written in Django 3 and Python 3.
