@@ -264,7 +264,7 @@ class SnmpConnector(Connector):
         self.can_change_vlan = True
         self.can_change_poe_status = True
         self.can_change_description = True
-        self.can_save_config = True    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_save_config = False    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
 
         """
