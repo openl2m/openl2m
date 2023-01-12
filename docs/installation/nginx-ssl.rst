@@ -18,7 +18,7 @@ around that show you how to configure this.
 
 When you enable SSL, you need to add two settings to *openl2m/configuration.py* make SSL more secure:
 
-.. code-block:: bash
+.. code-block:: python
 
   # if using SSL, these should be set to True:
   CSRF_COOKIE_SECURE = True
@@ -109,7 +109,7 @@ Again, modify your domain name accordingly!
 
 Solve any errors that may show. If all is OK, restart Nginx, and you should have an SSL web site up::
 
-  systemctl restart nginx
+  sudo systemctl restart nginx
 
 
 **Renewing your SSL certificate**

@@ -12,7 +12,7 @@ Dependencies
 
 Begin by installing all system packages required by OpenL2M and its dependencies.
 
-**Ubuntu 20.04 LTS**
+**Ubuntu LTS**
 
 .. code-block:: bash
 
@@ -24,7 +24,7 @@ Begin by installing all system packages required by OpenL2M and its dependencies
 
 .. code-block:: bash
 
-  # dnf install -y gcc make net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel python36-devel
+  sudo dnf install -y gcc make net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel python36-devel
 
 
 **CentOS 7**
@@ -32,15 +32,15 @@ Begin by installing all system packages required by OpenL2M and its dependencies
 
 .. code-block:: bash
 
-  # yum install -y gcc make net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel epel-release
+  sudo yum install -y gcc make net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel epel-release
 
 You then need the following Python v3 packages:
 
 .. code-block:: bash
 
-  # yum install -y python36 python36-devel python36-setuptools
-  # easy_install-3.6 pip
-  # ln -s /usr/bin/python36 /usr/bin/python3
+  sudo yum install -y python36 python36-devel python36-setuptools
+  sudo easy_install-3.6 pip
+  sudo ln -s /usr/bin/python36 /usr/bin/python3
 
 
 OpenL2M Install
@@ -70,20 +70,20 @@ If `git` is not already installed, install it:
 
 .. code-block:: bash
 
-  # dnf install -y git
+  sudo dnf install -y git
 
 **CentOS 7**
 
 .. code-block:: bash
 
-  # yum install -y git
+  sudo yum install -y git
 
 
 Next, clone the **main** branch of the OpenL2M GitHub repository into the current directory:
 
 .. code-block:: bash
 
-  # git clone -b main https://github.com/openl2m/openl2m.git .
+  git clone -b main https://github.com/openl2m/openl2m.git .
   Cloning into '.'...
   ...
   Checking connectivity... done.
@@ -167,9 +167,9 @@ you've installed all of the system dependencies listed above! :
 
 .. code-block:: bash
 
-  # pip3 install --upgrade pip
-  # cd /opt/openl2m
-  # ./upgrade.sh
+  sudo pip3 install --upgrade pip
+  cd /opt/openl2m
+  ./upgrade.sh
 
 If you encounter errors while installing the required packages, check that
 you're running a recent version of pip with the command `pip3 -V`.
@@ -243,31 +243,31 @@ Do not proceed with the rest of this guide until the installation has been corre
 Note that you may need to open the proper firewall port,
 or disable the firewall process temporarily.
 
-** Unbuntu 20.04 **
+** Unbuntu **
 
 .. code-block:: bash
 
-  # ufw alow 8000
+  sudo ufw alow 8000
 
 or:
 
 .. code-block:: bash
 
-  # systemctl disable ufw
+  sudo systemctl disable ufw
 
 
 ** CentOS 8 **
 
 .. code-block:: bash
 
-  # firewall-cmd --zone=public --permanent --add-port=8000/tcp
-  # firewall-cmd --reload
+  sudo firewall-cmd --zone=public --permanent --add-port=8000/tcp
+  sudo firewall-cmd --reload
 
 or:
 
 .. code-block:: bash
 
-  # systemctl stop firewalld
+  sudo systemctl stop firewalld
 
 
 Make sure you restart or undo the configuration changes (Both DEBUG and firewall settings!) when done testing!

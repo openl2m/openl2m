@@ -99,7 +99,7 @@ You will also need to modify the import line to use `NestedGroupOfNamesType` ins
 
 LDAP Groups can be used to create SwitchGroup() objects. See the configuration section for more:
 
-.. code-block:: bash
+.. code-block:: python
 
   from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
@@ -146,7 +146,7 @@ Restart the OpenL2M service to initiate changes made to ldap_config.py:
 
 .. code-block:: bash
 
-  systemctl restart openl2m
+  sudo systemctl restart openl2m
 
 If there are syntax errors present, the OpenL2M process will not spawn an instance,
 and errors should show with `systemctl status openl2m`
@@ -154,7 +154,7 @@ and errors should show with `systemctl status openl2m`
 For troubleshooting LDAP user/group queries, add the following lines to the start of
 `ldap_config.py` after `import ldap`:
 
-.. code-block:: bash
+.. code-block:: python
 
   import logging, logging.handlers
   logfile = "/opt/openl2m/logs/django-ldap-debug.log"

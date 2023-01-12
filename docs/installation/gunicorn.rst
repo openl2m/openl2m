@@ -39,7 +39,7 @@ Copy the file *openl2m.service* to the */etc/systemd/system* directory:
 
 .. code-block:: bash
 
-  # cp ./scripts/openl2m.service /etc/systemd/system
+  sudo cp /opt/openl2m/scripts/openl2m.service /etc/systemd/system
 
 Now activate this service:
 

@@ -8,7 +8,7 @@ At this time, the Gunicorn Python gateway service should be running. Nginx will 
 The following will serve as a minimal nginx configuration.
 Be sure to modify your server name and installation path appropriately.
 
-**Ubuntu 20.04 LTS**
+**Ubuntu LTS**
 
 .. code-block:: bash
 
@@ -22,8 +22,8 @@ Be sure to modify your server name and installation path appropriately:
 
 .. code-block:: bash
 
-  # yum install epel-release
-  # yum install nginx --enablerepo=epel
+  sudo yum install epel-release
+  sudo yum install nginx --enablerepo=epel
 
 
 **CentOS 8**
@@ -32,7 +32,7 @@ Here, you need:
 
 .. code-block:: bash
 
-  # dnf install nginx
+  sudo dnf install nginx
 
 (See more at https://linuxconfig.org/install-nginx-on-redhat-8)
 
@@ -49,7 +49,7 @@ Copy the configuration file:
 
 .. code-block:: bash
 
-  cp ./scripts/openl2m.conf /etc/nginx/sites-available/openl2m
+  sudo cp ./scripts/openl2m.conf /etc/nginx/sites-available/openl2m
 
 
 (For multi-site, edit /etc/nginx/sites-enabled/openl2m, and set listen and hostname fields. The domain name or IP address should match the value configured for `ALLOWED_HOSTS` in `configuration.py`.)
@@ -59,23 +59,23 @@ Now remove the default site config, and set openl2m as the new default:
 
 .. code-block:: bash
 
-  rm /etc/nginx/site-enabled/default
-  ln -s /etc/nginx/sites-available/openl2m /etc/nginx/sites-enabled/openl2m
+  sudo rm /etc/nginx/site-enabled/default
+  sudo ln -s /etc/nginx/sites-available/openl2m /etc/nginx/sites-enabled/openl2m
 
 
 Test the new config:
 
 .. code-block:: bash
 
-  # nginx -t
+  sudo nginx -t
 
 
 Restart the nginx service to use the new configuration:
 
 .. code-block:: bash
 
-  # systemctl restart nginx
-  # systemctl enable nginx
+  sudo systemctl restart nginx
+  sudo systemctl enable nginx
 
 
 We highly recommend you `enable SSL <nginx-ssl>`
@@ -93,21 +93,21 @@ Please adjust these timeouts as appropriate for your environment
 You will need to allow the standard http (and https) ports through the firewall, assuming you run this.
 To configure allowing this, run:
 
-** Ubuntu 20.04 **
+** Ubuntu LTS **
 
 .. code-block:: bash
 
-  # ufw allow http
-  # ufw allow https
+  sudo ufw allow http
+  sudo ufw allow https
 
 
-** CentOS 8 **
+** CentOS 7&8 **
 
 .. code-block:: bash
 
-  # firewall-cmd --zone=public --permanent --add-service=http
-  # firewall-cmd --zone=public --permanent --add-service=https
-  # firewall-cmd --reload
+  sudo firewall-cmd --zone=public --permanent --add-service=http
+  sudo firewall-cmd --zone=public --permanent --add-service=https
+  sudo firewall-cmd --reload
 
 
 Debugging
@@ -118,7 +118,7 @@ your gunicorn process needs to be white-listed. Something like this may work:
 
 .. code-block:: bash
 
-  # setsebool httpd_can_network_connect on -P
+  sudo setsebool httpd_can_network_connect on -P
 
 You can enable the errorlog setting commented out above. Edit the file,
 and don't forget to restart the process with:
