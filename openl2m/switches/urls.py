@@ -12,7 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 from django.urls import path, register_converter
-from django.conf.urls import url
+# from django.conf.urls import url
 
 from . import views
 

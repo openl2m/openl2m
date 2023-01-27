@@ -21,7 +21,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.views import LoginView, PasswordChangeDoneView, PasswordChangeView
 from django.urls import include, path
-from django.conf.urls import include, url
+from django.conf.urls import include
 from django.http import HttpResponseRedirect
 
 from users.views import LogoutView
