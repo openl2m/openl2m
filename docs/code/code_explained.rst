@@ -78,3 +78,11 @@ The content of this folder is created when running the ./upgrade.sh script.
 This is the base location for all static CSS, images, etc.
 This where you maintain these files. The upgrade.sh script copies
 files as needed to the *static/* directory.
+
+
+**Upgrading to new Django versions**
+
+If you need to upgrade to another major.minor Django version, e.g. from 3.2 to 4.1,
+at minimum you need to follow the steps in the Django upgrade version documentation
+
+E.g. for v4.1, this can be found at https://docs.djangoproject.com/en/4.1/howto/upgrade-version/
