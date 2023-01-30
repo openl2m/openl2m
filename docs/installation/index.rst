@@ -13,8 +13,8 @@ OpenL2M has some requirements:
 * the Python "easysnmp" package v0.2.5 or greater.
 * a web server, with the WSGI capability. We use Nginx in all our documentation.
   Apache may work but is not tested.
-* a PostgreSQL database, running at least version v9.6. We use v12 and v10.17 in our testing.
-* the Django framework, v3.2 or greater.
+* a PostgreSQL database, running at least version 11. We use v12 and v14 in our testing.
+* the Django framework, v4.1 or greater.
 
 **Application Stack Overview**
 

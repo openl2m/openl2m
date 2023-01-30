@@ -34,7 +34,7 @@ import netaddr
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
 
-# Django 3.2 requires Python 3.6+, but we develop and test in 3.8+
+# Django 4.1 requires Python 3.8+
 if sys.version_info < (3, 8):
     raise RuntimeError(
         "OpenL2M requires Python 3.8 or higher (current: Python {})".format(sys.version.split()[0])
