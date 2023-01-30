@@ -25,10 +25,17 @@ def junos_speed_to_mbps(speed):
     Returns:
         (int) the speed in Mbps as an integer
     '''
+    if speed == '0':    # special case, for speeds like "Unlimited" on virtual and backplane interfaces, etc.
+        return 0
+    speed = speed.lower()
     if speed.endswith('mbps'):
         return int(speed.replace('mbps', ''))
-    # else hardcode to 1Gbps for now:
-    return 1000
+    if speed.endswith('gbps'):
+        return int(speed.replace('gbps', '000'))
+    if speed.endswith('tbps'):      # future-proofing :-)
+        return int(speed.replace('tbps', '000000'))
+    # unknown, return as 0
+    return 0
 
 
 def junos_parse_power(power, milliwatts=False):
