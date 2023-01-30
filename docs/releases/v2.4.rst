@@ -1,0 +1,24 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 2.4
+===========
+
+**Version 2.4 upgrades the Django framework to v4.1**
+
+*Django v4.1 requires Python v3.8 as a minimum, and PostgreSQL 11*
+
+*Note: from this version on, we are developing and testing on Ubuntu 22.04 LTS,
+using Python v3.10. We require Python 3.8 as a minimum. Python v3.6 is no longer supported!*
+
+Version 2.4
+-----------
+
+Release Date: 2023-01-30
+
+* upgrade to Django v4.1
+
+Bug fixes:
+
+* Junos switches fix recognizing > 1gbps interfaces.
+* default snmp driver is sets to disable support for saving configs.
