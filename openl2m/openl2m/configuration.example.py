@@ -10,6 +10,11 @@
 # Example: ALLOWED_HOSTS = ['openl2m.example.com', 'openl2m.internal.local']
 ALLOWED_HOSTS = ['*']
 
+# The FQDN with scheme for your domain, to protect against Cross Site Request Forgery:
+# you need to include 'https://' or 'http://' if no secured!
+# you can include IP address if needed...
+CSRF_TRUSTED_ORIGINS = ['https://openl2m.example.net', 'https://10.0.0.1']
+
 # This key is used for secure generation of random numbers and strings. It must never be exposed outside of this file.
 # For optimal security, SECRET_KEY should be at least 50 characters in length and contain a mix of letters, numbers, and
 # symbols. OpenL2M will not run without this defined. For more information, see

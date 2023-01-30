@@ -70,7 +70,7 @@ If `git` is not already installed, install it:
 
 .. code-block:: bash
 
-  sudo dnf install -y git
+  sudo apt install -y git
 
 **CentOS 7**
 
@@ -103,6 +103,7 @@ At the minimum set the following variables:
 .. code-block:: bash
 
   * ALLOWED_HOSTS
+  * CSRF_TRUSTED_ORIGINS
   * DATABASE
   * SECRET_KEY
   * TIME_ZONE
@@ -116,7 +117,17 @@ Example:
 
 .. code-block:: bash
 
-  ALLOWED_HOSTS = ['openl2m.example.com', '192.168.1.100']
+  ALLOWED_HOSTS = ['openl2m.example.com', '10.0.0.1']
+
+*CSRF_TRUSTED_ORIGINS*
+
+This is a list of URLs used to access your site. Note this **requires** the scheme for your domain,
+to protect against Cross Site Request Forgery. I.e. you need to include 'https://' or 'http://' if not secured!
+You can include IP address if needed...
+
+.. code-block:: bash
+
+  CSRF_TRUSTED_ORIGINS = ['https://openl2m.example.com', 'https://10.0.0.1']
 
 *DATABASE*
 
