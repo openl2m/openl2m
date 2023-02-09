@@ -18,6 +18,14 @@ using Python v3.10. We require Python 3.8 as a minimum. Python v3.6 is no longer
     This needs to include the schema, i.e. 'https://' or 'http://' if not secured!
     See the installation steps for more details.
 
+Version 2.4.1
+-------------
+
+Release Date: TBD
+
+* add admin links to device and group admin pages when viewing device.
+
+
 Version 2.4
 -----------
 
