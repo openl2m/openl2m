@@ -11,7 +11,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-import datetime
+from django.utils.timezone import now
 import re
 
 from django.conf import settings
@@ -43,7 +43,7 @@ if settings.LDAP_CONFIG is not None:
         log.save()
 
         # update the user profile with the timestamp and ldap dn of the login.
-        user.profile.last_ldap_login = datetime.datetime.now()
+        user.profile.last_ldap_login = now()
         user.profile.last_ldap_dn = ldap_user.dn
         user.profile.save()
 
