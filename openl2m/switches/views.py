@@ -34,6 +34,7 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 from django.shortcuts import redirect
 from django.template import Template, Context
+from django.contrib import messages
 
 from openl2m.celery import get_celery_info, is_celery_running
 from switches.models import *
@@ -47,6 +48,7 @@ from switches.tasks import bulkedit_task, bulkedit_processor
 from users.utils import *
 from counters.models import *
 from counters.constants import *
+from notices.models import *
 
 
 @login_required(redirect_field_name=None)
@@ -96,6 +98,12 @@ def switches(request):
               description="Viewing switch groups",
               type=LOG_TYPE_VIEW)
     log.save()
+
+    # are there any notices to users?
+    notices = Notice.objects.active_notices()
+    if notices:
+        for notice in notices:
+            messages.add_message(request=request, level=notice.priority, message=notice.content)
 
     # render the template
     return render(request, template_name, {

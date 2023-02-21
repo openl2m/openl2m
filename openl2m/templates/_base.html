@@ -30,11 +30,8 @@
         </div>
     {% endif %}
     {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissable" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span>&times;</span>
-            </button>
-            {{ message }}
+        <div class="alert alert-{{ message.tags }} text-center" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>&nbsp;<bold>{{ message }}</bold>&nbsp;<i class="fas fa-exclamation-triangle"></i>
         </div>
     {% endfor %}
     {% block header %}{% endblock %}

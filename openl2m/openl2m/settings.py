@@ -220,6 +220,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'switches.apps.SwitchesConfig',
     'counters.apps.CountersConfig',
+    'notices.apps.NoticesConfig',
 ]
 
 MIDDLEWARE = [
