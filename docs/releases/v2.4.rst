@@ -13,7 +13,7 @@ using Python v3.10. We require Python 3.8 as a minimum. Python v3.6 is no longer
 
 .. note::
 
-    You now need to set or add the *CSRF_TRUSTED_ORIGINS* variable to your *configuration.py**
+    You now need to set or add the *CSRF_TRUSTED_ORIGINS* variable to your *configuration.py*
     to protect against Cross Site Request Forgery.
     This needs to include the schema, i.e. 'https://' or 'http://' if not secured!
     See the installation steps for more details.
@@ -21,9 +21,14 @@ using Python v3.10. We require Python 3.8 as a minimum. Python v3.6 is no longer
 Version 2.4.1
 -------------
 
-Release Date: TBD
+Release Date: 2023-02-22
 
-* add admin links to device and group admin pages when viewing device.
+* add admin menu links to device and group admin pages when viewing device.
+* add system notices to be displayed on the menu page. See Admin site -> Notices for more.
+
+Bug fixes:
+
+* code cleanup in several files.
 
 
 Version 2.4
