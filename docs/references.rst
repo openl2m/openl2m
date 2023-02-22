@@ -38,6 +38,7 @@ See https://github.com/netbox-community/netbox
 
 HP/Aruba vlan management tool. https://sourceforge.net/projects/procurve-admin/
 
+
 **SNMP related**
 
 Python easysnmp, using native Net-Snmp:
@@ -102,3 +103,18 @@ We use several free icon packages:
 Font Awesome, with previews https://fontawesome.com/v5/search
 
 Material Design Icons, from https://materialdesignicons.com/ and a preview at https://pictogrammers.github.io/@mdi/font/6.5.95/
+
+
+**Python**
+
+Virtual Environments:  https://docs.python.org/3/library/venv.html
+
+Google Python Style Guide:  http://google.github.io/styleguide/pyguide.html
+
+Google Docstrings: https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings
+
+Google Doc Style examples:  https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
+
+pycodestyle documentation: https://pycodestyle.pycqa.org/en/latest/
+
+Flake8 code style checker: https://flake8.pycqa.org/en/latest/user/index.html

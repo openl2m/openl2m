@@ -11,3 +11,5 @@ To document functions and classes, we use the Google comment style, see more at
 https://google.github.io/styleguide/pyguide.html
 
 Finally, as code is checked into git, we run it through *pycodestyle*, to enforce uniform appearance.
+
+We also use Flake8 to do some code sanity checking...

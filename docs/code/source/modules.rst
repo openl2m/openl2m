@@ -7,6 +7,7 @@ openl2m
    counters
    generate_secret_key
    manage
+   notices
    openl2m
    switches
    users

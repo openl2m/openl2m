@@ -23,6 +23,7 @@ It provides module information from Google Code Style documentation that we use 
    authentication.rst
    switches_app/index.rst
    users_app/index.rst
+   notices_app/index.rst
    counters_app/index.rst
    templating.rst
    tasks.rst
