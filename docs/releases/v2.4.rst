@@ -24,6 +24,11 @@ Version 2.4.1
 Release Date: TBD
 
 * add admin links to device and group admin pages when viewing device.
+* add system notices to be displayed on the menu page. See Admin site -> Notices for more.
+
+Bug fixes:
+
+* code cleanup in several files.
 
 
 Version 2.4
