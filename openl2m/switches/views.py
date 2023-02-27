@@ -17,17 +17,14 @@ import distro
 import time
 import datetime
 import traceback
-import git
 import json
 import re
 
 import django
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
-from django.views.generic import View
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 from django.utils.html import mark_safe
 from django.views.generic import View
 from django.utils import timezone
@@ -37,18 +34,24 @@ from django.template import Template, Context
 from django.contrib import messages
 
 from openl2m.celery import get_celery_info, is_celery_running
-from switches.models import *
+from switches.connect.classes import Error
+from switches.models import (
+    Switch, SwitchGroup, Log,
+)
 from switches.constants import *
 from switches.connect.connector import clear_switch_cache
-from switches.connect.connect import *
-# from switches.connect.snmp.constants import *
-# from switches.connect.snmp import *
-from switches.utils import *
+from switches.connect.connect import get_connection_object
+from switches.utils import (
+    dprint, get_from_http_session, save_to_http_session, get_remote_ip, time_duration
+)
 from switches.tasks import bulkedit_task, bulkedit_processor
-from users.utils import *
-from counters.models import *
-from counters.constants import *
-from notices.models import *
+from users.utils import user_can_run_tasks, user_can_bulkedit, get_current_users
+from counters.models import Counter, counter_increment
+from counters.constants import (
+    COUNTER_CHANGES, COUNTER_BULKEDITS, COUNTER_ERRORS, COUNTER_ACCESS_DENIED, COUNTER_COMMANDS,
+    COUNTER_VIEWS, COUNTER_DETAILVIEWS, COUNTER_HWINFO,
+)
+from notices.models import Notice
 
 
 @login_required(redirect_field_name=None)
@@ -1521,9 +1524,24 @@ def show_stats(request):
     filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
     usage['Changes last 31 days'] = Log.objects.filter(**filter).count()
 
-    # show some of totals counters:
     # the total change count since install from Counter()'changes') object:
     usage['Total Changes'] = Counter.objects.get(name='changes').value
+
+    filter = {}
+    filter['type'] = int(LOG_TYPE_COMMAND)
+    filter['timestamp__date'] = datetime.date.today()
+    usage['Commands today'] = Log.objects.filter(**filter).count()
+
+    filter = {}
+    filter['type'] = int(LOG_TYPE_COMMAND)
+    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=7)
+    usage['Commands last 7 days'] = Log.objects.filter(**filter).count()
+
+    filter = {}
+    filter['type'] = int(LOG_TYPE_COMMAND)
+    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
+    usage['Commands last 31 days'] = Log.objects.filter(**filter).count()
+
     # total number of commands run:
     usage['Total Commands'] = Counter.objects.get(name='commands').value
 
