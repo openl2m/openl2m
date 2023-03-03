@@ -11,7 +11,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-from django.shortcuts import render
 
 # this idea originates from https://djangosnippets.org/snippets/1310/
 # and implements using https://docs.djangoproject.com/en/4.1/ref/contrib/messages/
