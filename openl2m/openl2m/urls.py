@@ -18,10 +18,9 @@ The `urlpatterns` list routes URLs to views. For more information please see:
 https://docs.djangoproject.com/en/2.2/topics/http/urls/
 """
 from django.conf import settings
-from django.contrib import admin
 from django.contrib.auth.views import LoginView, PasswordChangeDoneView, PasswordChangeView
 from django.urls import include, path
-from django.conf.urls import include
+# from django.conf.urls import include
 from django.http import HttpResponseRedirect
 
 from users.views import LogoutView
@@ -63,7 +62,7 @@ urlpatterns = [
 ]
 
 if settings.DEBUG and settings.DEBUG_TOOLBAR:
-    import debug_toolbar
+    # import debug_toolbar
     urlpatterns += [
         # debug toolbar:
         path('__debug__/', include('debug_toolbar.urls')),

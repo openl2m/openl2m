@@ -28,10 +28,8 @@ import os
 import socket
 import platform
 import sys
-import warnings
 import netaddr
 
-from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
 
 # Django 4.1 requires Python 3.8+
