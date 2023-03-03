@@ -22,7 +22,7 @@ if settings.LDAP_CONFIG is not None:
     from django_auth_ldap.backend import populate_user, LDAPBackend
 
     from switches.models import SwitchGroup, Log
-    from switches.constants import *
+    import switches.constants as constants
 
     @receiver(populate_user, sender=LDAPBackend)
     def ldap_auth_handler(user, ldap_user, **kwargs):
@@ -37,9 +37,9 @@ if settings.LDAP_CONFIG is not None:
         user.save()
         # Log the ldap path used to authenticate this user
         log = Log(user=user,
-                  action=LOG_LOGIN_LDAP,
+                  action=constants.LOG_LOGIN_LDAP,
                   description=f"LDAP authenticated from '{ldap_user.dn}'",
-                  type=LOG_TYPE_LOGIN_OUT)
+                  type=constants.LOG_TYPE_LOGIN_OUT)
         log.save()
 
         # update the user profile with the timestamp and ldap dn of the login.
@@ -68,16 +68,16 @@ if settings.LDAP_CONFIG is not None:
                     try:
                         group.save()
                         log = Log(user=user,
-                                  action=LOG_LDAP_CREATE_GROUP,
+                                  action=constants.LOG_LDAP_CREATE_GROUP,
                                   description=f"Creating switchgroup '{switchgroup_name}' from LDAP",
-                                  type=LOG_TYPE_LOGIN_OUT)
+                                  type=constants.LOG_TYPE_LOGIN_OUT)
                         log.save()
                     except Exception:
                         # error creating new SwitchGroup()
                         log = Log(user=user,
-                                  action=LOG_LDAP_ERROR_CREATE_GROUP,
+                                  action=constants.LOG_LDAP_ERROR_CREATE_GROUP,
                                   description=f"Error creating switchgroup '{switchgroup_name}' from LDAP",
-                                  type=LOG_TYPE_ERROR)
+                                  type=constants.LOG_TYPE_ERROR)
                         log.save()
                         continue
                 # add user to this switchgroup
@@ -86,7 +86,7 @@ if settings.LDAP_CONFIG is not None:
                 except Exception:
                     # how to handle this other then log message?
                     log = Log(user=user,
-                              action=LOG_LDAP_ERROR_USER_TO_GROUP,
+                              action=constants.LOG_LDAP_ERROR_USER_TO_GROUP,
                               description=f"Error adding user to switchgroup '{switchgroup_name}' from LDAP",
-                              type=LOG_TYPE_ERROR)
+                              type=constants.LOG_TYPE_ERROR)
                     log.save()

@@ -17,7 +17,7 @@ from django.contrib.sessions.models import Session
 from django.utils import timezone
 
 from openl2m.celery import is_celery_running
-from switches.utils import dprint, get_ip_dns_name
+from switches.utils import get_ip_dns_name
 
 
 def user_can_run_tasks(user, group, switch):
@@ -58,7 +58,6 @@ def get_current_users():
     user_list = []
     for session in active_sessions:
         data = session.get_decoded()
-        # dprint(f"SESSION Data = {data}")
         user_id = data.get('_auth_user_id', None)
         remote_ip = data.get('remote_ip', None)
         if user_id and remote_ip:

@@ -11,13 +11,9 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-from django import forms
-
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-
-from django.contrib.admin.widgets import FilteredSelectMultiple
 
 from .models import Profile
 from switches.models import SwitchGroup

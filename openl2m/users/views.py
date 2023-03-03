@@ -11,20 +11,14 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, HttpResponseNotFound
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.utils.decorators import method_decorator
 from django.views.generic import View
-
-from switches.constants import LOG_LOGOUT, LOG_TYPE_CHANGE
-from switches.models import Log
-from switches.utils import get_remote_ip
 
 #
 # Logout view only, Login comes from default auth.
