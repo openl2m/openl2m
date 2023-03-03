@@ -15,7 +15,7 @@ from django.db import models
 from django.contrib.auth.signals import user_logged_in, user_login_failed
 
 # this app creates a simple Counter class, used to track some activity counters
-from .constants import *
+import counters.constants as constants
 
 from switches.utils import dprint
 
@@ -54,9 +54,6 @@ class Counter(models.Model):
     def __str__(self):
         return self.display_name()
 
-    def __unicode__(self):
-        return unicode(self.name)
-
 
 def counter_increment(name, addition=1):
     # function to increment the value of a named counter
@@ -66,7 +63,7 @@ def counter_increment(name, addition=1):
         c.value += addition
         c.save()
 
-    except Exception as e:
+    except Exception as error:
         # ignore
         dprint("Error finding counter!")
         pass
@@ -74,12 +71,12 @@ def counter_increment(name, addition=1):
 
 def increment_login_counter(sender, user, request, **kwargs):
     # count the login!
-    counter_increment(COUNTER_LOGINS)
+    counter_increment(constants.COUNTER_LOGINS)
 
 
 def increment_login_failed_counter(sender, credentials, request, **kwargs):
     # count the failed login!
-    counter_increment(COUNTER_LOGINS_FAILED)
+    counter_increment(constants.COUNTER_LOGINS_FAILED)
 
 
 # hook into the user-logged-in/failed signal:
