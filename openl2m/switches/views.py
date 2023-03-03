@@ -36,7 +36,7 @@ from django.contrib import messages
 from openl2m.celery import get_celery_info, is_celery_running
 from switches.connect.classes import Error
 from switches.models import (
-    Switch, SwitchGroup, Log,
+    Switch, SwitchGroup, Log, Task,
 )
 from switches.constants import *
 from switches.connect.connector import clear_switch_cache

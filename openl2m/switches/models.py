@@ -16,7 +16,6 @@ import json
 
 from django.db import models
 from django.conf import settings
-from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
@@ -25,8 +24,8 @@ from django.contrib.auth.models import User
 # from libraries.django_ordered_model.ordered_model.models import OrderedModelManager, OrderedModel
 from ordered_model.models import OrderedModelManager, OrderedModel
 
-from switches.constants import *
-from switches.connect.netmiko.constants import *
+import switches.constants as constants
+from switches.connect.netmiko.constants import NETMIKO_DEVICE_TYPES, NAPALM_DEVICE_TYPES
 from switches.utils import is_valid_hostname_or_ip
 
 
@@ -50,8 +49,8 @@ class SnmpProfile(models.Model):
         blank=True,
     )
     version = models.PositiveSmallIntegerField(
-        choices=SNMP_VERSION_CHOICES,
-        default=SNMP_VERSION_3,
+        choices=constants.SNMP_VERSION_CHOICES,
+        default=constants.SNMP_VERSION_3,
     )
     # v2c settings:
     community = models.CharField(
@@ -80,16 +79,16 @@ class SnmpProfile(models.Model):
         verbose_name='v3 Privacy passphrase',
     )
     auth_protocol = models.PositiveSmallIntegerField(
-        choices=SNMP_V3_AUTH_CHOICES,
-        default=SNMP_V3_AUTH_SHA,
+        choices=constants.SNMP_V3_AUTH_CHOICES,
+        default=constants.SNMP_V3_AUTH_SHA,
     )
     priv_protocol = models.PositiveSmallIntegerField(
-        choices=SNMP_V3_PRIV_CHOICES,
-        default=SNMP_V3_PRIV_AES,
+        choices=constants.SNMP_V3_PRIV_CHOICES,
+        default=constants.SNMP_V3_PRIV_AES,
     )
     sec_level = models.PositiveSmallIntegerField(
-        choices=SNMP_V3_SECURITY_CHOICES,
-        default=SNMP_V3_SECURITY_AUTH_PRIV,
+        choices=constants.SNMP_V3_SECURITY_CHOICES,
+        default=constants.SNMP_V3_SECURITY_AUTH_PRIV,
         verbose_name='Security level',
     )
     context_name = models.CharField(
@@ -124,9 +123,6 @@ class SnmpProfile(models.Model):
 
     def __str__(self):
         return self.display_name()
-
-    def __unicode__(self):
-        return unicode(self.name)
 
 
 #
@@ -200,9 +196,6 @@ class NetmikoProfile(models.Model):
     def __str__(self):
         return self.display_name()
 
-    def __unicode__(self):
-        return unicode(self.display_name)
-
 
 class Command(models.Model):
     """
@@ -223,8 +216,8 @@ class Command(models.Model):
         help_text="Explanation of command, shown as hover-over to user",
     )
     type = models.PositiveSmallIntegerField(
-        choices=CMD_TYPE_CHOICES,
-        default=CMD_TYPE_INTERFACE,
+        choices=constants.CMD_TYPE_CHOICES,
+        default=constants.CMD_TYPE_INTERFACE,
         verbose_name='Command type',
         help_text='Type of command, i.e. for the switch (global), or on chosen interface',
     )
@@ -251,9 +244,6 @@ class Command(models.Model):
     def __str__(self):
         return self.display_name()
 
-    def __unicode__(self):
-        return unicode(self.display_name)
-
 
 #
 # List of show/display commands that can be sent to switches
@@ -276,7 +266,7 @@ class CommandList(models.Model):
     )
     global_commands = models.ManyToManyField(
         to='Command',
-        limit_choices_to={'type': CMD_TYPE_GLOBAL},
+        limit_choices_to={'type': constants.CMD_TYPE_GLOBAL},
         blank=True,      # we don't require to have a command
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
         related_name='global_commands',      # from Commands object, we can now reference "Command.global_commands"
@@ -285,7 +275,7 @@ class CommandList(models.Model):
     )
     interface_commands = models.ManyToManyField(
         to='Command',
-        limit_choices_to={'type': CMD_TYPE_INTERFACE},
+        limit_choices_to={'type': constants.CMD_TYPE_INTERFACE},
         blank=True,
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
         related_name='interface_commands',      # from Commands object, we can now reference "Command.interface_commands"
@@ -294,7 +284,7 @@ class CommandList(models.Model):
     )
     global_commands_staff = models.ManyToManyField(
         to='Command',
-        limit_choices_to={'type': CMD_TYPE_GLOBAL},
+        limit_choices_to={'type': constants.CMD_TYPE_GLOBAL},
         blank=True,      # we don't require to have a vlan
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
         related_name='global_commands_staff',      # from Commands object, we can now reference "Command.global_commands_staff"
@@ -303,7 +293,7 @@ class CommandList(models.Model):
     )
     interface_commands_staff = models.ManyToManyField(
         to='Command',
-        limit_choices_to={'type': CMD_TYPE_INTERFACE},
+        limit_choices_to={'type': constants.CMD_TYPE_INTERFACE},
         blank=True,
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
         related_name='interface_commands_staff',      # from Commands object, we can now reference "Command.interface_commands_staff"
@@ -324,9 +314,6 @@ class CommandList(models.Model):
 
     def __str__(self):
         return self.display_name()
-
-    def __unicode__(self):
-        return unicode(self.display_name)
 
 
 class CommandTemplate(models.Model):
@@ -629,9 +616,6 @@ class CommandTemplate(models.Model):
     def __str__(self):
         return self.display_name()
 
-    def __unicode__(self):
-        return unicode(self.display_name)
-
 
 class VLAN(models.Model):
     """
@@ -738,8 +722,8 @@ class Switch(models.Model):
         blank=True,
     )
     connector_type = models.PositiveSmallIntegerField(
-        choices=CONNECTOR_TYPE_CHOICES,
-        default=CONNECTOR_TYPE_SNMP,
+        choices=constants.CONNECTOR_TYPE_CHOICES,
+        default=constants.CONNECTOR_TYPE_SNMP,
         verbose_name='Connector Type',
         help_text='How we connect to this device.',
     )
@@ -804,8 +788,8 @@ class Switch(models.Model):
         help_text='Tab indentation level, helps organize the switchgroup view.',
     )
     default_view = models.PositiveSmallIntegerField(
-        choices=SWITCH_VIEW_CHOICES,
-        default=SWITCH_VIEW_BASIC,
+        choices=constants.SWITCH_VIEW_CHOICES,
+        default=constants.SWITCH_VIEW_BASIC,
         verbose_name='Default View',
         help_text='Default view. Details shows Ethernet, ARP, LLDP immediately.',
     )
@@ -820,8 +804,8 @@ class Switch(models.Model):
         help_text='If set, allow interface descriptions to be edited.'
     )
     status = models.PositiveSmallIntegerField(
-        choices=SWITCH_STATUS_CHOICES,
-        default=SWITCH_STATUS_ACTIVE,
+        choices=constants.SWITCH_STATUS_CHOICES,
+        default=constants.SWITCH_STATUS_ACTIVE,
         verbose_name='Status',
     )
     primary_ip4 = models.CharField(
@@ -941,11 +925,11 @@ class Switch(models.Model):
         if not is_valid_hostname_or_ip(self.primary_ip4):
             raise ValidationError('Invalid Management IPv4 address or hostname.')
         # if SNMP, we need snmp_profile
-        if self.connector_type == CONNECTOR_TYPE_SNMP:
+        if self.connector_type == constants.CONNECTOR_TYPE_SNMP:
             if not self.snmp_profile:
                 raise ValidationError('SNMP Connector needs an SNMP Profile!')
 
-        elif self.connector_type == CONNECTOR_TYPE_NAPALM:
+        elif self.connector_type == constants.CONNECTOR_TYPE_NAPALM:
             if not self.napalm_device_type:
                 raise ValidationError('Napalm Connector needs a Napalm device type!')
             if not self.netmiko_profile:
@@ -1155,13 +1139,13 @@ class Log(models.Model):
     see constants.py for defined log values and their meanings
     """
     type = models.PositiveSmallIntegerField(
-        choices=LOG_TYPE_CHOICES,
-        default=LOG_TYPE_VIEW,
+        choices=constants.LOG_TYPE_CHOICES,
+        default=constants.LOG_TYPE_VIEW,
         verbose_name='Type of Log Entry',
     )
     action = models.PositiveSmallIntegerField(
-        choices=LOG_ACTION_CHOICES,
-        default=LOG_VIEW_SWITCH,
+        choices=constants.LOG_ACTION_CHOICES,
+        default=constants.LOG_VIEW_SWITCH,
         verbose_name='Activity or Action to log',
     )
     description = models.TextField(
@@ -1173,7 +1157,7 @@ class Log(models.Model):
         if not self.description:
             # see if this is a valid action index:
             try:
-                self.description = LOG_ACTION_CHOICES[self.action]
+                self.description = constants.LOG_ACTION_CHOICES[self.action]
             except Exception:
                 # not found (should not happen!)
                 self.description = "Unknown action!"
@@ -1306,13 +1290,13 @@ class Task(models.Model):
         null=True,  # we don't require to have a switch
     )
     type = models.PositiveSmallIntegerField(
-        choices=TASK_TYPE_CHOICES,
-        default=TASK_TYPE_NONE,
+        choices=constants.TASK_TYPE_CHOICES,
+        default=constants.TASK_TYPE_NONE,
         verbose_name='Type of Task',
     )
     status = models.PositiveSmallIntegerField(
-        choices=TASK_STATUS_CHOICES,
-        default=TASK_STATUS_CREATED,
+        choices=constants.TASK_STATUS_CHOICES,
+        default=constants.TASK_STATUS_CREATED,
         verbose_name='Status of this task',
     )
     description = models.TextField(

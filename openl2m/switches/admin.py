@@ -13,14 +13,13 @@
 #
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry,  DELETION
-from django.contrib.admin.views.main import ChangeList
 from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 # local copy of django-ordered-model, with some fixes:
 # from libraries.django_ordered_model.ordered_model.admin import OrderedStackedInline, OrderedTabularInline, OrderedInlineModelAdminMixin
-from ordered_model.admin import OrderedStackedInline, OrderedTabularInline, OrderedInlineModelAdminMixin
+from ordered_model.admin import OrderedTabularInline, OrderedInlineModelAdminMixin
 
 # Register your models here.
 from switches.models import (Command, CommandList, CommandTemplate, Switch, SwitchGroup, SwitchGroupMembership,

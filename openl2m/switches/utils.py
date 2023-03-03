@@ -127,7 +127,7 @@ def is_valid_hostname_or_ip(data):
     except ValueError:
         # not IP v4 or v6!, so check hostname:
         try:
-            ip4 = socket.gethostbyname(data)
+            socket.gethostbyname(data)
             # note: this does IPv4 resolution. When we support IPv6, change to socket.getaddrinfo()
             return True
         except Exception:
