@@ -543,7 +543,7 @@ def querystring(request, **kwargs):
 
 # adopted from Netbox!
 @register.filter()
-def humanize_speed(speed):
+def humanize_speed(iface):
     """
     Humanize speeds given in Mbps. Examples:
 
@@ -551,18 +551,25 @@ def humanize_speed(speed):
         100 => "100 Mbps"
         10000 => "10 Gbps"
     """
-    if not speed:
+    if not iface.speed:
         return ''
-    if speed >= 1000000000 and speed % 1000000000 == 0:
-        return '{} Pbps'.format(int(speed / 1000000000))
-    elif speed >= 1000000 and speed % 1000000 == 0:
-        return '{} Tbps'.format(int(speed / 1000000))
-    elif speed >= 1000 and speed % 1000 == 0:
-        return '{} Gbps'.format(int(speed / 1000))
-    elif speed >= 1000:
-        return '{} Gbps'.format(float(speed) / 1000)
+    speed = iface.speed
+    if iface.duplex == IF_DUPLEX_FULL:
+        duplex = '/Full'
+    elif iface.duplex == IF_DUPLEX_HALF:
+        duplex = '/Half'
     else:
-        return '{} Mbps'.format(speed)
+        duplex = ''
+    if speed >= 1000000000 and speed % 1000000000 == 0:
+        return f'{int(speed / 1000000000)} Pbps{duplex}'
+    elif speed >= 1000000 and speed % 1000000 == 0:
+        return f'{format(int(speed / 1000000))} Tbps{duplex}'
+    elif speed >= 1000 and speed % 1000 == 0:
+        return f'{format(int(speed / 1000))} Gbps{duplex}'
+    elif speed >= 1000:
+        return f'{format(float(speed) / 1000)} Gbps{duplex}'
+    else:
+        return f'{format(speed)} Mbps{duplex}'
 
 
 # adopted from Netbox!

@@ -4,7 +4,7 @@
 <td>
   {% if iface.oper_status %}
     {% if iface.speed > 0 %}
-      {{ iface.speed|humanize_speed }}
+      {{ iface|humanize_speed }}
     {% else %}
       <small>(Unknown)</small>
     {% endif %}

@@ -117,6 +117,7 @@ class Interface():
         self.oper_status = False    # operation status of interface, True is Oper-Up (snmp ifOperStatus)
         self.mtu = 0                # ifMTU value, for L3 interfaces
         self.speed = 0              # speed counter, in 1 Mbps (ie. like ifHighSpeed data from IF-MIB)
+        self.duplex = IF_DUPLEX_UNKNOWN     # interface duplex setting, if known.
         self.phys_addr = 0x0
         self.description = ""             # the interface description, as set by the switch configuration, from IF-MIB
         self.addresses_ip4 = {}     # dictionary of all my ipv4 addresses on this interface

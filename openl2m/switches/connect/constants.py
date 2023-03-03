@@ -24,6 +24,11 @@ IF_TYPE_TUNNEL = 131    # generic Tunnel interface
 IF_TYPE_LAGG = 161      # IEEE 802.3ad Link Aggregate
 IF_TYPE_MCAST = 1025    # undefined by IEEE, but used by OpenL2M to indicate various multicast virtual interfaces
 
+# duplex settings, from the snmp dot3StatsDuplexStatus object.
+IF_DUPLEX_UNKNOWN = 1
+IF_DUPLEX_HALF = 2
+IF_DUPLEX_FULL = 3
+
 LACP_IF_TYPE_NONE = 0        # not port of LACP aggregation
 LACP_IF_TYPE_MEMBER = 1      # this is a physical port and member
 LACP_IF_TYPE_AGGREGATOR = 2  # this is an aggregator port (Port-Channel or Bridge-Aggregation)

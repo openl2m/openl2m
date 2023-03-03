@@ -782,6 +782,11 @@ class SnmpConnector(Connector):
         if if_index:
             return self.set_interface_attribute_by_key(if_index, "speed", int(val))
 
+        # dot3 interface duplex status information:
+        if_index = oid_in_branch(dot3StatsDuplexStatus, oid)
+        if if_index:
+            return self.set_interface_attribute_by_key(if_index, "duplex", int(val))
+
         """
         if_index = int(oid_in_branch(ifConnectorPresent, oid))
         if if_index:
@@ -1731,6 +1736,12 @@ class SnmpConnector(Connector):
             if retval < 0:
                 self.add_warning(f"Error getting 'Interface-Speed' ({ifSpeed})")
                 return retval
+
+        # try to read duplex status
+        retval = self.get_snmp_branch('dot3StatsDuplexStatus')
+        if retval < 0:
+            self.add_warning(f"Error getting 'Interface-Duplex' ({dot3StatsDuplexStatus})")
+            return retval
 
         # check the connector, if not, cannot be managed, another safety feature
         # retval = self.get_snmp_branch('ifConnectorPresent')
