@@ -54,5 +54,5 @@ class Notice(models.Model):
     class Meta:
         ordering = ['start_time']
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title
