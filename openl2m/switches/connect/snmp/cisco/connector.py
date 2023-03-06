@@ -683,17 +683,11 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint("   Trying CONFIG-COPY method")
         some_number = random.randint(1, 254)
         # first, set source to running config
-        retval = self.set(oid=f"{ccCopySourceFileType}.{some_number}",
-                          value=int(runningConfig),
-                          snmp_type='i')
+        self.set(oid=f"{ccCopySourceFileType}.{some_number}", value=int(runningConfig), snmp_type='i')
         # next, set destination to startup co -=nfig
-        retval = self.set(oid=f"{ccCopyDestFileType}.{some_number}",
-                          value=int(startupConfig),
-                          snmp_type='i')
+        self.set(oid=f"{ccCopyDestFileType}.{some_number}", value=int(startupConfig), snmp_type='i')
         # and then activate the copy:
-        retval = self.set(oid=f"{ccCopyEntryRowStatus}.{some_number}",
-                          value=int(rowStatusActive),
-                          snmp_type='i')
+        self.set(oid=f"{ccCopyEntryRowStatus}.{some_number}", value=int(rowStatusActive), snmp_type='i')
         # now wait for this row to return success or fail:
         waittime = settings.CISCO_WRITE_MEM_MAX_WAIT
         while (waittime):

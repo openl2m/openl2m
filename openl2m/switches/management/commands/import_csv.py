@@ -18,7 +18,7 @@
 import sys
 import csv
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 
 from switches.models import *
@@ -98,7 +98,7 @@ class Command(BaseCommand):
                         if not update:
                             self.stdout.write(self.style.WARNING(f"Command '{row['name']}' already exists, but update NOT allowed!"))
                             continue
-                    except Exception as e:
+                    except Exception:
                         c = Command()
                         c.name = row['name']   # the only mandatory field!
                     # the remaining fields
@@ -135,7 +135,7 @@ class Command(BaseCommand):
                         g = SwitchGroup.objects.get(name=row['name'])
                         self.stdout.write(self.style.WARNING(f"SwitchGroup {row['name']} already exists!"))
                         continue
-                    except Exception as e:
+                    except Exception:
                         # create new group
                         g = SwitchGroup()
                         g.name = row['name']
@@ -207,7 +207,7 @@ class Command(BaseCommand):
                         if not update:
                             self.stdout.write(self.style.WARNING("Existing VLAN found, but update NOT allowed!"))
                             continue
-                    except Exception as e:
+                    except Exception:
                         # create new vlan:
                         v = VLAN()
                         v.vid = int(row['vid'])
@@ -242,7 +242,7 @@ class Command(BaseCommand):
                         if not update:
                             self.stdout.write(self.style.WARNING("Existing switch found, but update NOT allowed!"))
                             continue
-                    except Exception as e:
+                    except Exception:
                         # not found, create new object:
                         switch = Switch()
                         switch.name = row['name']
@@ -287,7 +287,7 @@ class Command(BaseCommand):
                         try:
                             cl = CommandList.objects.get(name=row['command_list'])
                             switch.command_list = cl
-                        except Exception as e:
+                        except Exception:
                             # command list does not exist, create a new, empty command list!
                             cl = CommandList()
                             cl.name = row['command_list']   # the only mandatory field!
@@ -311,7 +311,7 @@ class Command(BaseCommand):
                         # see if the group exists, if not, create it
                         try:
                             g = SwitchGroup.objects.get(name=row['group'])
-                        except Exception as e:
+                        except Exception:
                             # group does not exist yet, create it!
                             g = SwitchGroup()
                             g.name = row['group']
@@ -348,7 +348,7 @@ class Command(BaseCommand):
                         if not update:
                             self.stdout.write(self.style.WARNING("Existing NetmikeProfile found, but update NOT allowed!"))
                             continue
-                    except Exception as e:
+                    except Exception:
                         # create new
                         nm = NetmikoProfile()
                         nm.name = row['name']    # mandatory
@@ -393,7 +393,7 @@ class Command(BaseCommand):
                         if not update:
                             self.stdout.write(self.style.WARNING("Existing SnmpProfile found, but update NOT allowed!"))
                             continue
-                    except Exception as e:
+                    except Exception:
                         # create new
                         s = SnmpProfile()
                         s.name = row['name']    # mandatory

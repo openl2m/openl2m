@@ -18,7 +18,7 @@ with HH3C specific ways of doing things...
 """
 import math
 
-from pysnmp.proto.rfc1902 import ObjectName, OctetString, Gauge32
+from pysnmp.proto.rfc1902 import OctetString, Gauge32
 
 from switches.models import Log
 from switches.constants import *

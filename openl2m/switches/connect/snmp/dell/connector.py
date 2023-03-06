@@ -16,11 +16,10 @@ Dell specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
 with Dell specific ways of doing things...
 """
-from switches.models import Log
 from switches.constants import *
 from switches.connect.classes import *
 from switches.connect.connector import *
-from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
+from switches.connect.snmp.connector import SnmpConnector
 from switches.connect.snmp.constants import *
 from switches.utils import *
 
@@ -72,7 +71,7 @@ class SnmpConnectorDell(SnmpConnector):
         dprint("set_interface_untagged_vlan(Dell)")
 
         if interface and new_vlan > -1:
-            old_vlan_id = interface.untagged_vlan
+            # old_vlan_id = interface.untagged_vlan
             # set this switch port on the new vlan:
             # Q-BIRDGE mib: VlanIndex = Unsigned32
             if interface.is_tagged:

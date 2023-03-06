@@ -16,14 +16,11 @@ Get a connection to the device. Ideally, we use SNMP,
 but could end up using something else (e.g. Netmiko(ssh))
 if we cannot do it all using snmp.
 """
-import datetime
 
 from django.utils import timezone
 
 from switches.utils import dprint
 from switches.connect.connector import *
-from switches.connect.classes import Error
-import switches.views
 
 # here are the device specific classes.
 # this should be made dynamic at some point!
@@ -31,8 +28,9 @@ from switches.connect.snmp.connector import *
 from switches.connect.snmp.constants import *
 from switches.connect.snmp.cisco.constants import *
 from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
-from switches.connect.snmp.dell.constants import *
-from switches.connect.snmp.dell.connector import SnmpConnectorDell
+# Dell is yet to be tested!
+# from switches.connect.snmp.dell.constants import *
+# from switches.connect.snmp.dell.connector import SnmpConnectorDell
 from switches.connect.snmp.comware.constants import *
 from switches.connect.snmp.comware.connector import SnmpConnectorComware
 from switches.connect.snmp.juniper.constants import *

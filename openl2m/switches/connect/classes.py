@@ -12,8 +12,6 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import array
-import time
-import manuf
 import netaddr
 
 from django.conf import settings
@@ -22,7 +20,6 @@ from django.conf import settings
 All the generic classes we use to represent
 switch vlans, switch interfaces, switch neighbor devices, etc.
 """
-from switches.models import Command, Log
 from switches.constants import *
 from switches.connect.constants import *
 from switches.utils import *
@@ -612,7 +609,7 @@ class PoePSE():
         '''
         try:
             self.max_power = int(power)
-        except Exception as err:
+        except Exception:
             self.max_power = 0
 
     def set_consumed_power(self, power):
@@ -621,7 +618,7 @@ class PoePSE():
         '''
         try:
             self.power_consumed = int(power)
-        except Exception as err:
+        except Exception:
             self.consumed_power = 0
 
     def display_name(self):

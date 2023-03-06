@@ -17,7 +17,6 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 import re
-import traceback
 import time
 
 from django.conf import settings
@@ -43,7 +42,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
 
     try:
         task = Task.objects.get(pk=int(task_id))
-    except Exception as e:
+    except Exception:
         log = Log(ip_address="0.0.0.0",
                   action=LOG_BULK_EDIT_TASK_END_ERROR,
                   type=LOG_TYPE_ERROR,
@@ -52,7 +51,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
         return
     try:
         user = User.objects.get(pk=int(user_id))
-    except Exception as e:
+    except Exception:
         log = Log(ip_address="0.0.0.0",
                   action=LOG_BULK_EDIT_TASK_END_ERROR,
                   type=LOG_TYPE_ERROR,
@@ -61,7 +60,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
         return
     try:
         group = SwitchGroup.objects.get(pk=int(group_id))
-    except Exception as e:
+    except Exception:
         log = Log(ip_address="0.0.0.0",
                   action=LOG_BULK_EDIT_TASK_END_ERROR,
                   type=LOG_TYPE_ERROR,
@@ -70,7 +69,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
         return
     try:
         switch = Switch.objects.get(pk=int(switch_id))
-    except Exception as e:
+    except Exception:
         log = Log(ip_address="0.0.0.0",
                   action=LOG_BULK_EDIT_TASK_END_ERROR,
                   type=LOG_TYPE_ERROR,
@@ -93,7 +92,7 @@ def bulkedit_task(task_id, user_id, group_id, switch_id,
     task.started = timezone.now()   # use Django time with support of timezone!
     task.save()
 
-    args = json.loads(task.arguments)
+    # args = json.loads(task.arguments)
 
     # now go process
     settings.IN_CELERY_PROCESS = True
@@ -183,7 +182,7 @@ def bulkedit_processor(request, user_id, group_id, switch_id,
         user = User.objects.get(pk=user_id)
         group = SwitchGroup.objects.get(pk=group_id)
         switch = Switch.objects.get(pk=switch_id)
-    except Exception as e:
+    except Exception:
         log = Log(ip_address="0.0.0.0",
                   action=LOG_BULK_EDIT_TASK_END_ERROR,
                   description=f"bulkedit_processor() started with invalid user({user_id}), \

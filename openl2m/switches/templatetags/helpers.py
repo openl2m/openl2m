@@ -20,7 +20,6 @@ from django.utils.html import mark_safe
 
 from switches.models import *
 from switches.constants import *
-from switches.connect.snmp.utils import bytes_ethernet_to_string
 from switches.connect.constants import *
 from switches.connect.snmp.constants import *
 

@@ -189,6 +189,6 @@ def get_ip_dns_name(ip):
     try:
         # we use 'name required' to force an exception if reverse lookup not found:
         (hostname, port_name) = socket.getnameinfo((str(ip), 0), socket.NI_NAMEREQD)
-    except Exception as error:
+    except Exception:
         hostname = ''
     return hostname

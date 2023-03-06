@@ -18,10 +18,6 @@ to execute various 'show' or 'display' commands
 import traceback
 import netmiko
 
-from django.shortcuts import get_object_or_404
-
-from switches.models import Command
-from switches.constants import CMD_TYPE_INTERFACE
 from switches.connect.classes import Error
 from switches.utils import dprint
 

@@ -16,7 +16,6 @@
 """
 Dummy Connector
 """
-from switches.models import Log
 from switches.constants import *
 from switches.connect.classes import *
 from switches.connect.connector import *

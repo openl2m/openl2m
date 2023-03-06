@@ -12,7 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from switches.connect.constants import IF_TYPE_NONE, IF_TYPE_ETHERNET, IF_TYPE_LOOPBACK, IF_TYPE_VIRTUAL, IF_TYPE_LAGG, IF_TYPE_TUNNEL, IF_TYPE_MCAST
+from switches.connect.constants import IF_TYPE_NONE, IF_TYPE_ETHERNET, IF_TYPE_LOOPBACK, IF_TYPE_VIRTUAL, IF_TYPE_TUNNEL, IF_TYPE_MCAST
 
 
 def junos_speed_to_mbps(speed):

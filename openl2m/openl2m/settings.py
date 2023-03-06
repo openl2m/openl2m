@@ -169,7 +169,7 @@ if SYSLOG_HOST:
     # validate host:
     try:
         syslog_ip = socket.gethostbyname(SYSLOG_HOST)
-    except Exception as e:
+    except Exception:
         raise ImproperlyConfigured(
             "SYSLOG_HOST is not a valid host name"
         )

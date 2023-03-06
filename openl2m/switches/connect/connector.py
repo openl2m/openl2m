@@ -12,11 +12,8 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 from collections import OrderedDict
-import array
 import manuf
 import natsort
-import netaddr
-import pprint
 import re
 import time
 

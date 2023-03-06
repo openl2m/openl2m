@@ -12,7 +12,6 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import traceback
-import re
 from napalm import *
 
 from switches.connect.classes import *
@@ -304,7 +303,6 @@ class NapalmConnector(Connector):
         # parse
         for if_name, lldp_data in lldp_details.items():
             # dprint(f"IF {if_name}: {if_data}")
-            iface = self.get_interface_by_key(if_name)
             # lldp_data is a dict:
             for device in lldp_data:
                 device_id = device['remote_chassis_id']

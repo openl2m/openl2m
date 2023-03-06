@@ -15,7 +15,6 @@
 Commands-Only Connector: this implements an SSH connection to the devices
 that is used for excuting commands only!
 """
-from switches.models import Log
 from switches.constants import *
 from switches.connect.classes import *
 from switches.connect.connector import *

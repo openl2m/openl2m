@@ -15,7 +15,6 @@ import netaddr
 
 from django.conf import settings
 from switches.utils import dprint
-from switches.connect.classes import EthernetAddress
 
 """
 This file contains SNMP utility functions

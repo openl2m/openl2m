@@ -12,9 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 from netaddr import *
-import pprint
 import re
-import traceback
 
 from switches.utils import dprint
 from switches.connect.constants import *
@@ -118,18 +116,18 @@ class PyEZConnector(Connector):
                 type = intf.find('.//link-level-type').text
                 dprint(f"  link-level-type = {type}")
                 iface.type = junos_parse_if_type(type)
-            except Exception as error:
+            except Exception:
                 try:
                     if_type = intf.find('.//if-type').text
                     dprint(f"  if-type = {if_type}")
                     iface.type = junos_parse_if_type(if_type)
-                except Exception as error:
+                except Exception:
                     # leave at default!
                     dprint("  unknown port type!")
 
             try:
                 description = intf.find('.//description').text
-            except Exception as error:
+            except Exception:
                 description = ''
             iface.description = description
 
@@ -143,16 +141,16 @@ class PyEZConnector(Connector):
 
             try:
                 mtu = intf.find('.//mtu').text
-            except Exception as error:
+            except Exception:
                 mtu = 0
             try:
                 iface.mtu = int(mtu)
-            except Exception as error:
+            except Exception:
                 iface.mtu = 0
 
             try:
                 speed = intf.find('.//speed').text
-            except Exception as error:
+            except Exception:
                 speed = '0'     # make sure this is a string object!
             iface.speed = junos_speed_to_mbps(speed)
 
@@ -177,7 +175,7 @@ class PyEZConnector(Connector):
                                 dprint(f"  IPv4 NET = {ip4_net}")
                                 net = IPNetwork(ip4_net)
                                 prefixlen = net.prefixlen
-                            except Exception as error:
+                            except Exception:
                                 # not found, so lets assume a /32
                                 prefixlen = 32
                             iface.add_ip4_network(ip4_address, prefix_len=prefixlen)
@@ -196,7 +194,7 @@ class PyEZConnector(Connector):
                                 dprint(f"  IPv6 NET = {ip6_net}")
                                 net6 = IPNetwork(ip6_net)
                                 prefixlen = net6.prefixlen
-                            except Exception as error:
+                            except Exception:
                                 # not found, let's assume /128
                                 prefixlen = 128
                             iface.add_ip6_network(ip6_address, prefix_len=prefixlen)
@@ -212,9 +210,9 @@ class PyEZConnector(Connector):
                     # and add as member to the master interface:
 
             try:
-                min_ag = intf.find('.//minimum-links-in-aggregate').text
+                intf.find('.//minimum-links-in-aggregate').text
                 iface.type = IF_TYPE_LAGG
-            except Exception as error:
+            except Exception:
                 dprint("  not an aggregate.")
             dprint(f"  Final type = {iface.type}")
             self.add_interface(iface)
@@ -276,7 +274,7 @@ class PyEZConnector(Connector):
                     tagness = member.find('.//l2ng-l2rtb-vlan-member-tagness').text
                     try:
                         mode = member.find('.//l2ng-l2rtb-vlan-member-interface-mode').text
-                    except Exception as err:
+                    except Exception:
                         mode = ''
                     dprint(f"Vlan {id}-{name} member {phys_if_name} {tagness} {mode}")
                     iface = self.get_interface_by_key(phys_if_name)

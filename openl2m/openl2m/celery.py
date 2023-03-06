@@ -55,7 +55,7 @@ def get_celery_info():
             'scheduled_tasks': scheduled_tasks
         }
         return result
-    except Exception as error:
+    except Exception:
         # any error means Celery not running!
         return False
 
@@ -73,6 +73,6 @@ def is_celery_running():
         if stats:
             return True
         return False
-    except Exception as e:
+    except Exception:
         # anything go wrong just return False
         return False

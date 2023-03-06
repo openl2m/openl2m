@@ -26,7 +26,6 @@ from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils.html import mark_safe
-from django.views.generic import View
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.shortcuts import redirect
@@ -152,7 +151,7 @@ def switch_search(request):
                     try:
                         if re.search(search, name, re.IGNORECASE) or re.search(search, hostname, re.IGNORECASE):
                             results.append((str(group_id), str(switch_id), name, description, default_view))
-                    except Exception as e:
+                    except Exception:
                         # invalid search, just ignore!
                         warning = f"{search} - This is an invalid search pattern!"
 
@@ -224,7 +223,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
 
     try:
         conn = get_connection_object(request, group, switch)
-    except Exception as e:
+    except Exception:
         log.type = LOG_TYPE_ERROR
         log.description = f"CONNECTION ERROR: Viewing device ({view})"
         log.save()
@@ -501,7 +500,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
             try:
                 # this needs timezone parsing!
                 eta_datetime = datetime.datetime.strptime(eta_with_tz, settings.TASK_SUBMIT_DATE_FORMAT)
-            except Exception as e:
+            except Exception:
                 # unsupported time format!
                 errors.append("Invalid date/time format, please use YYYY-MM-DD HH:MM !")
                 counter_increment(COUNTER_ERRORS)
@@ -1809,8 +1808,8 @@ def task_revoke(task, terminate):
     """
     from openl2m.celery import app
     try:
-        result = app.control.revoke(task.celery_task_id, terminate=terminate)
-    except Exception as e:
+        app.control.revoke(task.celery_task_id, terminate=terminate)
+    except Exception:
         # should probably log something here!
         return False
     # update the task:

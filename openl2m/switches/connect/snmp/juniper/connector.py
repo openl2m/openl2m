@@ -15,6 +15,7 @@
 Juniper Networks specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
 with Juniper specific ways of doing things...
+Note: JUNOS devices are Read-Only for SNMP! See the PyEZ driver for R/W capabilities!
 """
 from switches.models import Log
 from switches.constants import *
@@ -39,7 +40,7 @@ class SnmpConnectorJuniper(SnmpConnector):
         dprint("Juniper Networks SnmpConnector __init__")
         super().__init__(request, group, switch)
         self.description = 'Juniper SNMP (R/O) driver'
-        # force READ-ONLY for now! We have not implemented changing settings.
+        # force READ-ONL. JUNOS devices are Read-Only for SNMP! See the PyEZ driver for R/W capabilities!
         self.switch.read_only = True
 
     def _parse_oid(self, oid, val):
@@ -184,20 +185,20 @@ class SnmpConnectorJuniper(SnmpConnector):
 
     def set_interface_admin_status(self, interface=False, status=-1):
         self.error = Error(status=True,
-                           description=f"set_interface_admin_status(): Not implemented yet!")
+                           description="set_interface_admin_status(): JUNOS switches are Read-Only for SNMP!")
         return False
 
     def set_interface_poe_status(self, interface=False, status=-1):
         self.error = Error(status=True,
-                           description=f"set_interface_poe_status(): Not implemented yet!")
+                           description="set_interface_poe_status(): JUNOS switches are Read-Only for SNMP!")
         return False
 
     def set_interface_description(self, interface=False, description=""):
         self.error = Error(status=True,
-                           description=f"set_interface_description(): Not implemented yet!")
+                           description="set_interface_description(): JUNOS switches are Read-Only for SNMP!")
         return False
 
     def set_interface_untagged_vlan(self, interface, old_vlan_id, new_vlan_id):
         self.error = Error(status=True,
-                           description=f"set_interface_untagged_vlan(): Not implemented yet!")
+                           description="set_interface_untagged_vlan(): JUNOS switches are Read-Only for SNMP!")
         return False

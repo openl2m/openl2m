@@ -16,23 +16,17 @@ SNMP Library for OpenL2M, based on MIB-2 based RFC standards. Uses the pysnmp li
 Some of the code here is inspired by the NAV (Network Administration Visualized) tool
 Various vendor specific implementations that augment this class exist.
 """
-import sys
 import time
-import timeit
-import re
 import traceback
 import pprint
 import easysnmp
-import netaddr
 
 from django.conf import settings
-from django.contrib.auth.models import User
-from easysnmp.variables import SNMPVariable
 from pysnmp.hlapi import *
 from pysnmp.proto.rfc1902 import ObjectName, OctetString
 
 from switches.constants import *
-from switches.models import Switch, VLAN, SnmpProfile, Log
+from switches.models import Log
 from switches.utils import *
 from switches.connect.utils import *
 from switches.connect.snmp.utils import *
@@ -689,10 +683,10 @@ class SnmpConnector(Connector):
         # go parse the oid data
         if parser:
             # specific data parser
-            retval = parser(oid, newvalue)
+            parser(oid, newvalue)
         else:
             # default parser
-            retval = self._parse_oid(oid, newvalue)
+            self._parse_oid(oid, newvalue)
 
     def _parse_oid(self, oid, val, parser=False):
         """
@@ -2101,7 +2095,7 @@ class SnmpConnector(Connector):
         """
         if not interface:
             self.error = Error(status=True,
-                               description=f"set_interface_admin_status(): Invalid interface (not set)!")
+                               description="set_interface_admin_status(): Invalid interface (not set)!")
             return False
 
         # make sure we cast the proper type here! Ie this needs an Integer()
@@ -2120,12 +2114,12 @@ class SnmpConnector(Connector):
         """
         if not interface:
             self.error = Error(status=True,
-                               description=f"set_interface_poe_status(): Invalid interface (not set)!")
+                               description="set_interface_poe_status(): Invalid interface (not set)!")
             return False
         # the PoE index is kept in the iface.poe_entry
         if not interface.poe_entry:
             self.error = Error(status=True,
-                               description=f"set_interface_poe_status(): interface has no poe_entry!")
+                               description="set_interface_poe_status(): interface has no poe_entry!")
             return False
         # proper status value?
         if status != POE_PORT_ADMIN_ENABLED and status != POE_PORT_ADMIN_DISABLED:
@@ -2146,7 +2140,7 @@ class SnmpConnector(Connector):
         """
         if not interface:
             self.error = Error(status=True,
-                               description=f"set_interface_description(): Invalid interface (not set)!")
+                               description="set_interface_description(): Invalid interface (not set)!")
             return False
 
         # make sure we cast the proper type here! I.e. this needs an string

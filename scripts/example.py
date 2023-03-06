@@ -24,7 +24,6 @@ import argparse
 import django
 import os
 import csv
-import argparse
 
 PROJECT_DIR = "../openl2m/"
 
@@ -35,13 +34,11 @@ sys.path.insert(0, PROJECT_DIR)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'openl2m.settings')
 django.setup()
 
-from django.db import models
 from django.conf import settings
 # load the User() object
 from django.contrib.auth.models import User
 # load various OpenL2M objects
-from switches.models import (Switch, SwitchGroup, SnmpProfile, NetmikoProfile,
-                             VLAN, Command, CommandList)
+from switches.models import (Switch, SwitchGroup, SnmpProfile, NetmikoProfile, CommandList)
 from switches.constants import *
 
 
@@ -59,7 +56,7 @@ def main():
 
     args = parser.parse_args()
 
-    if(args.user_file):
+    if args.user_file:
         with open(args.user_file, newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             print("\nImporting USERS")
@@ -71,7 +68,7 @@ def main():
                 password = row['password']
                 try:
                     u = User.objects.create_user(username, email, password)
-                except Exception as e:
+                except Exception:
                     print("   Error creating User '%s'" % row['username'])
                     print("   Error details: ", sys.exc_info()[0])
                     continue
@@ -86,11 +83,11 @@ def main():
                     try:
                         group = Group.objects.get(name=row['group'])
                         group.user_set.add(u)
-                    except Exception as e:
+                    except Exception:
                         print("   Error adding user to group '%s'" % row['group'])
                         print("   Error details: %s" % sys.exc_info()[0])
 
-    if(args.switch_file):
+    if args.switch_file:
         with open(args.switch_file, newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             print("\nImporting SWITCHES")
@@ -102,7 +99,7 @@ def main():
                     if not args.allow_update:
                         print("Existing switch found, but update NOT allowed!")
                         continue
-                except Exception as e:
+                except Exception:
                     # not found, create new object:
                     switch = Switch()
                     switch.name = row['name']
@@ -121,7 +118,7 @@ def main():
                     try:
                         snmp = SnmpProfile.objects.get(name=row['snmp_profile'])
                         switch.snmp_profile = snmp
-                    except Exception as e:
+                    except Exception:
                         print("   Error getting valid SNMP Profile '%s'" % row['snmp_profile'])
                         print("   Error details: %s" % sys.exc_info()[0])
                         print("   We cannot import a switch with an invalid SNMP Profile!")
@@ -130,7 +127,7 @@ def main():
                     try:
                         nm = NetmikoProfile.objects.get(name=row['netmiko_profile'])
                         switch.netmiko_profile = nm
-                    except Exception as e:
+                    except Exception:
                         print("   Error getting Netmiko Profile '%s'" % row['netmiko_profile'])
                         print("   Error details: %s" % sys.exc_info()[0])
                         print("   We cannot import a switch with an invalid Netmiko Profile!")
@@ -139,14 +136,14 @@ def main():
                     try:
                         cl = CommandList.objects.get(name=row['command_list'])
                         switch.command_list = cl
-                    except Exception as e:
+                    except Exception:
                         # command list does not exist, create it!
                         cl = CommandList()
                         cl.name = row['command_list']   # the only mandatory field!
                         try:
                             cl.save()
                             print("   EMPTY Command List '%s' created, please edit as needed!" % row['command_list'])
-                        except Exception as e:
+                        except Exception:
                             print("   Error creating Command List '%s'" % row['command_list'])
                             print("   Error details: %s" % sys.exc_info()[0])
                             continue
@@ -155,21 +152,21 @@ def main():
                     # see if the group exists, if not, create it
                     try:
                         g = SwitchGroup.objects.get(name=row['group'])
-                    except Exception as e:
+                    except Exception:
                         # group does not exist yet, create it!
                         g = SwitchGroup()
                         g.name = row['group']
                         try:
                             g.save()
                             print("  SwitchGroup '%s' created" % row['group'])
-                        except Exception as e:
+                        except Exception
                             print("   Error creating SwitchGroup '%s'" % row['group'])
                             print("   Error details: %s" % sys.exc_info()[0])
                             continue
                 # save the new switch
                 try:
                     switch.save()
-                except Exception as e:
+                except Exception:
                     print("   Error saving new switch object for '%s'" % row['name'])
                     print("   Error details: %s" % sys.exc_info()[0])
                     continue
@@ -177,7 +174,7 @@ def main():
                     # assign switch to the switchgroup
                     try:
                         g.switches.add(switch)
-                    except Exception as e:
+                    except Exception:
                         print("   Error adding switch to switchgroup, please do this manually!")
                         print("   Error details: %s" % sys.exc_info()[0])
                         continue

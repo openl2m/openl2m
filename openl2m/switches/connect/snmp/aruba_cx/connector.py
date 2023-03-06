@@ -24,7 +24,6 @@ per https://www.arubanetworks.com/techdocs/AOS-CX/10.08/PDF/snmp_mib.pdf
 on pg. 46, OIDs that support SNMP write, write is supported to
 ifAdminStatus (ie interface up/down), and pethPsePortAdminEnable (ie. PoE enable/disable)
 """
-from switches.models import Log
 from switches.constants import *
 from switches.connect.classes import *
 from switches.connect.connector import *

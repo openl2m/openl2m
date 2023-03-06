@@ -50,7 +50,7 @@ class Command(BaseCommand):
                 self.stdout.flush()
                 try:
                     Log.objects.filter(timestamp__lt=cutoff)._raw_delete(using=DEFAULT_DB_ALIAS)
-                except Exception as e:
+                except Exception:
                     self.stderr.write("Error deleting log entries!")
                 self.stdout.write("Done!", self.style.WARNING)
             else:

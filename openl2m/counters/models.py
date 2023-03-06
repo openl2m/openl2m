@@ -63,7 +63,7 @@ def counter_increment(name, addition=1):
         c.value += addition
         c.save()
 
-    except Exception as error:
+    except Exception:
         # ignore
         dprint("Error finding counter!")
         pass
