@@ -21,9 +21,14 @@ using Python v3.10. We require Python 3.8 as a minimum. Python v3.6 is no longer
 Version 2.4.2
 -------------
 
-Release Date: TBD
+Release Date: 2023-03-10
 
+* add interface duplex status for snmp and Aruba AOS-CX devices.
 * add command usage counts to the statistics page.
+
+Bug fixes:
+
+* Flake8 code style cleanup.
 
 Version 2.4.1
 -------------
@@ -36,7 +41,6 @@ Release Date: 2023-02-22
 Bug fixes:
 
 * code cleanup in several files.
-
 
 Version 2.4
 -----------
