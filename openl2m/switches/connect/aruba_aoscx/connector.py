@@ -16,6 +16,7 @@ import traceback
 
 from switches.connect.classes import *
 from switches.connect.connector import *
+from switches.connect.aruba_aoscx.utils import aoscx_parse_duplex
 
 """
 Basic Aruba AOS-CX connector. This uses the documented REST API, and allows us to handle
@@ -189,6 +190,8 @@ class AosCxConnector(Connector):
                             iface.speed = int(aoscx_interface['link_speed']) / 1000000
                 else:
                     iface.oper_status = False
+            if 'duplex' in aoscx_interface:
+                iface.duplex = aoscx_parse_duplex(aoscx_interface['duplex'])
             if 'ip_mtu' in aoscx_interface:
                 iface.mtu = aoscx_interface['ip_mtu']
             if 'mvrp_enable' in aoscx_interface:
