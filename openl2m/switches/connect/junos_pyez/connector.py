@@ -11,14 +11,16 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-from netaddr import *
+from netaddr import IPNetwork
 import re
 
 from switches.utils import dprint
-from switches.connect.constants import *
-from switches.connect.classes import *
-from switches.connect.connector import *
-from switches.connect.junos_pyez.utils import *
+from switches.connect.constants import (IF_DUPLEX_FULL, IF_TYPE_ETHERNET, IF_TYPE_LAGG, POE_PORT_ADMIN_DISABLED, POE_PORT_ADMIN_ENABLED, POE_PORT_DETECT_SEARCHING,
+                                        LLDP_CHASSIC_TYPE_ETH_ADDR, LLDP_CAPABILITIES_BRIDGE, LLDP_CAPABILITIES_ROUTER, LLDP_CAPABILITIES_WLAN, LLDP_CAPABILITIES_PHONE,
+                                        LACP_IF_TYPE_MEMBER)
+from switches.connect.classes import Interface, NeighborDevice
+from switches.connect.connector import Connector
+from switches.connect.junos_pyez.utils import junos_speed_to_mbps, junos_parse_power, junos_parse_duplex, junos_remove_unit, junos_parse_if_type
 
 '''
 Basic Junos PyEZ connector. This uses the documented PyEZ library, which uses Netconf underneath.
@@ -26,7 +28,7 @@ https://www.juniper.net/documentation/us/en/software/junos-pyez/junos-pyez-devel
 '''
 from jnpr.junos import Device
 from jnpr.junos.utils.config import Config
-from jnpr.junos.exception import *
+from jnpr.junos.exception import RpcError, ConfigLoadError, CommitError, LockError, UnlockError
 
 
 class PyEZConnector(Connector):
@@ -150,13 +152,45 @@ class PyEZConnector(Connector):
 
             try:
                 speed = intf.find('.//speed').text
+                dprint(f"  speed = {speed}")
+                # this could be an auto-negotiating interface (regular GigE):
+                if speed.lower() != 'auto':
+                    # actual speed, convert to mbps:
+                    iface.speed = junos_speed_to_mbps(speed)
+                else:   # auto-negotiate interface
+                    try:
+                        # now look at the  <ethernet-autonegotiation><local-info><local-link-speed> field.
+                        speed = intf.findtext('ethernet-autonegotiation/link-partner-speed')
+                        dprint(f"  Local link speed = {speed}")
+                        # actual speed, convert to mbps:
+                        iface.speed = junos_speed_to_mbps(speed)
+                    except Exception as err:
+                        dprint(f"  Local link speed NOT FOUND ({err})")
+                        # not found ?
+                        iface.speed = 0
             except Exception:
-                speed = '0'     # make sure this is a string object!
-            iface.speed = junos_speed_to_mbps(speed)
+                iface.speed = 0     # should be default!
+
+            # <link-mode>Full-duplex</link-mode>
+            try:
+                duplex = intf.find('.//link-mode').text
+                dprint(f"  Duplex = {duplex}")
+                iface.duplex = junos_parse_duplex(duplex)
+            except Exception:
+                # link-mode not found, so look for auto-negotiation settings at
+                # <ethernet-autonegotiation><local-info><local-link-duplexity>
+                try:
+                    duplex = intf.find('.//local-link-duplexity').text
+                    dprint(f"  local duplex = {duplex}")
+                    # actual speed, convert to mbps:
+                    iface.duplex = junos_parse_duplex(duplex)
+                except Exception as err:
+                    dprint(f"  local duplex not found ({err})")
+                    # auto-negotiate and link-mode not found, this is likely a full-duplex-only interface (e.g. 10g and above)
+                    iface.duplex = IF_DUPLEX_FULL   # appears to be duplex if we cannot find otherwize!
 
             # look at all Address Families:
-            families = intf.findall('.//address-family')
-            for af in families:
+            for af in intf.findall('.//address-family'):
                 af_name = af.find('.//address-family-name').text
                 dprint(f"  AF Name: {af_name}")
                 if af_name == 'eth-switch':
@@ -638,7 +672,7 @@ class PyEZConnector(Connector):
             self.error.description = "Cannot get lock, change was NOT applied!"
             self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
-        except UnlockError:
+        except UnlockError as err:
             self.error.status = True
             self.error.description = "Cannot release lock, but change was applied!"
             self.error.details = f"Error: '{err}', commands '{commands}'"

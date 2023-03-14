@@ -25,6 +25,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.utils.html import mark_safe
 from django.utils import timezone
 from django.core.paginator import Paginator
@@ -34,12 +35,29 @@ from django.contrib import messages
 
 from openl2m.celery import get_celery_info, is_celery_running
 from switches.connect.classes import Error
-from switches.models import *
-from switches.constants import *
+from switches.models import (
+    SnmpProfile, NetmikoProfile, Command, CommandList, CommandTemplate,
+    VLAN, VlanGroup, Switch, SwitchGroup, Log, Task,
+)
+from switches.constants import (
+    LOG_TYPE_VIEW, LOG_TYPE_CHANGE, LOG_TYPE_ERROR, LOG_TYPE_COMMAND, LOG_TYPE_CHOICES, LOG_ACTION_CHOICES,
+    LOG_CHANGE_INTERFACE_DOWN, LOG_CHANGE_INTERFACE_UP, LOG_CHANGE_INTERFACE_POE_DOWN, LOG_CHANGE_INTERFACE_POE_UP,
+    LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP, LOG_CHANGE_INTERFACE_PVID, LOG_CHANGE_INTERFACE_ALIAS, LOG_CHANGE_BULK_EDIT,
+    LOG_BULK_EDIT_TASK_SUBMIT, LOG_VIEW_SWITCHGROUPS,
+    LOG_VIEW_SWITCH, LOG_VIEW_ALL_LOGS, LOG_VIEW_ADMIN_STATS, LOG_VIEW_TASKS, LOG_VIEW_TASK_DETAILS, LOG_VIEW_SWITCH_SEARCH,
+    LOG_EXECUTE_COMMAND, LOG_DENIED, LOG_SAVE_SWITCH, LOG_RELOAD_SWITCH, TASK_STATUS_SCHEDULED, LOG_TASK_DELETE,
+    LOG_TASK_TERMINATE, TASK_STATUS_DELETED, TASK_TYPE_BULKEDIT, INTERFACE_STATUS_NONE, BULKEDIT_POE_NONE,
+    BULKEDIT_ALIAS_TYPE_REPLACE, SWITCH_STATUS_ACTIVE
+)
 from switches.connect.connector import clear_switch_cache
 from switches.connect.connect import get_connection_object
+from switches.connect.constants import (
+    POE_PORT_ADMIN_ENABLED,
+    POE_PORT_ADMIN_DISABLED,
+)
 from switches.utils import (
-    dprint, get_from_http_session, save_to_http_session, get_remote_ip, time_duration
+    success_page, warning_page, error_page, dprint, get_from_http_session, save_to_http_session, get_remote_ip, time_duration,
+    get_local_timezone_offset, string_contains_regex, string_matches_regex,
 )
 from switches.tasks import bulkedit_task, bulkedit_processor
 from users.utils import user_can_run_tasks, user_can_bulkedit, get_current_users
@@ -418,11 +436,18 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
+    remote_ip = get_remote_ip(request)
+
     try:
         conn = get_connection_object(request, group, switch)
     except Exception:
-        log.type = LOG_TYPE_ERROR
-        log.description = "Could not get connection"
+        log = Log(user=request.user,
+                  ip_address=remote_ip,
+                  switch=switch,
+                  group=group,
+                  action=LOG_CHANGE_BULK_EDIT,
+                  type=LOG_TYPE_ERROR,
+                  description="Could not get connection")
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -436,7 +461,6 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
     new_description = str(request.POST.get('new_description', ''))
     new_description_type = int(request.POST.get('new_description_type', BULKEDIT_ALIAS_TYPE_REPLACE))
     interface_list = request.POST.getlist('interface_list')
-    remote_ip = get_remote_ip(request)
     save_config = bool(request.POST.get('save_config', False))
 
     # was anything submitted?
@@ -1222,7 +1246,7 @@ def switch_cmd_template_output(request, group_id, switch_id):
         field4 = request.POST.get('field4', False)
         if field4:
             if string_matches_regex(field4, t.field4_regex):
-                values['field4'] = str(field4_regex)
+                values['field4'] = str(field4)
             else:
                 errors = True
                 error_string += f"<br/>{ t.field4_name } - Invalid entry: { field4 } "
@@ -1264,7 +1288,7 @@ def switch_cmd_template_output(request, group_id, switch_id):
         field7 = request.POST.get('field7', False)
         if field7:
             if string_matches_regex(field7, t.field7_regex):
-                values['field7'] = str(field1)
+                values['field7'] = str(field7)
             else:
                 errors = True
                 error_string += f"<br/>{t.field7_name} - Invalid entry: { field7 }"
@@ -1814,48 +1838,6 @@ def task_revoke(task, terminate):
     task.status = TASK_STATUS_DELETED
     task.save()
     return True
-
-
-#
-# UTILITY FUNCTIONS here
-#
-
-def success_page(request, group, switch, description):
-    """
-    Generic function to return an 'function succeeded' page
-    requires the http request(), Group(), Switch() objects
-    and a string description of the success.
-    """
-    return render(request, 'success_page.html', {
-        'group': group,
-        'switch': switch,
-        'description': description,
-    })
-
-
-def warning_page(request, group, switch, description):
-    """
-    Generic function to return an warning page
-    requires the http request(), Group() and Switch() objects,
-    and a string description with the warning.
-    """
-    return render(request, 'warning_page.html', {
-        'group': group,
-        'switch': switch,
-        'description': description,
-    })
-
-
-def error_page(request, group, switch, error):
-    """
-    Generic function to return an error page
-    requires the http request(), Group(), Switch() and Error() objects
-    """
-    return render(request, 'error_page.html', {
-        'group': group,
-        'switch': switch,
-        'error': error,
-    })
 
 
 def rights_to_group_and_switch(request, group_id, switch_id):

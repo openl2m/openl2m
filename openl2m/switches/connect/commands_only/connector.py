@@ -15,13 +15,8 @@
 Commands-Only Connector: this implements an SSH connection to the devices
 that is used for excuting commands only!
 """
-from switches.constants import *
-from switches.connect.classes import *
-from switches.connect.connector import *
-from switches.connect.snmp.constants import *
-from switches.utils import *
-
-from .constants import *
+from switches.connect.connector import Connector
+from switches.utils import dprint
 
 
 class CommandsOnlyConnector(Connector):

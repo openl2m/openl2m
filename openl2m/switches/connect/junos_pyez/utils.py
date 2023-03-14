@@ -12,7 +12,8 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from switches.connect.constants import IF_TYPE_NONE, IF_TYPE_ETHERNET, IF_TYPE_LOOPBACK, IF_TYPE_VIRTUAL, IF_TYPE_TUNNEL, IF_TYPE_MCAST
+from switches.connect.constants import IF_TYPE_NONE, IF_TYPE_ETHERNET, IF_TYPE_LOOPBACK, IF_TYPE_VIRTUAL, IF_TYPE_TUNNEL, IF_TYPE_MCAST, \
+    IF_DUPLEX_UNKNOWN, IF_DUPLEX_HALF, IF_DUPLEX_FULL
 
 
 def junos_speed_to_mbps(speed):
@@ -25,6 +26,8 @@ def junos_speed_to_mbps(speed):
     Returns:
         (int) the speed in Mbps as an integer
     '''
+    if not isinstance(speed, str):
+        return 0
     if speed == '0':    # special case, for speeds like "Unlimited" on virtual and backplane interfaces, etc.
         return 0
     speed = speed.lower()
@@ -49,6 +52,8 @@ def junos_parse_power(power, milliwatts=False):
     Returns:
         (int) power as an integer
     '''
+    if not isinstance(power, str):
+        return 0
     if power.endswith('W'):
         # power is something like "12.3W"
         power = float(power.replace('W', ''))
@@ -57,6 +62,30 @@ def junos_parse_power(power, milliwatts=False):
         return int(power)
     # else hardcode 0 Watts
     return 0
+
+
+def junos_parse_duplex(duplex):
+    '''
+    Convert a duplex string to an integer with the proper duplex meaning.
+
+    Args:
+        duplex(str): a string representing a duplex setting
+
+    Returns:
+        (int) duplex value as IF_DUPLEX_UNKNOWN, IF_DUPLEX_FULL or IF_DUPLEX_HALF
+    '''
+    if not isinstance(duplex, str):
+        return IF_DUPLEX_UNKNOWN
+
+    full_duplex = ['full-duplex', 'full']
+    if duplex.lower() in full_duplex:
+        return IF_DUPLEX_FULL
+
+    half_duplex = ['half-duplex', 'half']
+    if duplex.lower() in half_duplex:
+        return IF_DUPLEX_HALF
+
+    return IF_DUPLEX_UNKNOWN
 
 
 def junos_remove_unit(if_name):
@@ -86,6 +115,9 @@ def junos_parse_if_type(if_type):
     Returns:
         (int) flag that represents the matching IF_TYPE_XXX values
     '''
+    if not isinstance(if_type, str):
+        return IF_TYPE_NONE
+
     iftypes = {
         'Software-Pseudo': IF_TYPE_VIRTUAL,
         'Mgmt-VLAN': IF_TYPE_VIRTUAL,

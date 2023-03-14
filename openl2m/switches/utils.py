@@ -14,6 +14,8 @@
 """
 Various utility functions
 """
+from django.shortcuts import render
+
 import datetime
 import pytz
 import logging
@@ -25,6 +27,44 @@ from django.conf import settings
 from django.utils.timezone import get_default_timezone
 
 logger_console = logging.getLogger("openl2m.console")
+
+
+def success_page(request, group, switch, description):
+    """
+    Generic function to return an 'function succeeded' page
+    requires the http request(), Group(), Switch() objects
+    and a string description of the success.
+    """
+    return render(request, 'success_page.html', {
+        'group': group,
+        'switch': switch,
+        'description': description,
+    })
+
+
+def warning_page(request, group, switch, description):
+    """
+    Generic function to return an warning page
+    requires the http request(), Group() and Switch() objects,
+    and a string description with the warning.
+    """
+    return render(request, 'warning_page.html', {
+        'group': group,
+        'switch': switch,
+        'description': description,
+    })
+
+
+def error_page(request, group, switch, error):
+    """
+    Generic function to return an error page
+    requires the http request(), Group(), Switch() and Error() objects
+    """
+    return render(request, 'error_page.html', {
+        'group': group,
+        'switch': switch,
+        'error': error,
+    })
 
 
 def dprint(var):

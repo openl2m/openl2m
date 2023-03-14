@@ -14,9 +14,15 @@
 import datetime
 import traceback
 
-from switches.connect.classes import *
-from switches.connect.connector import *
+from switches.models import Log
+from switches.utils import dprint, get_remote_ip
+from switches.constants import LOG_TYPE_ERROR, LOG_AOSCX_ERROR_GENERIC
+from switches.connect.classes import Interface, PoePort
+from switches.connect.connector import Connector
 from switches.connect.aruba_aoscx.utils import aoscx_parse_duplex
+from switches.connect.constants import (POE_PORT_ADMIN_DISABLED, POE_PORT_ADMIN_ENABLED, IF_TYPE_VIRTUAL, IF_TYPE_ETHERNET,
+                                        IF_TYPE_LAGG, LACP_IF_TYPE_MEMBER, LACP_IF_TYPE_AGGREGATOR)
+
 
 """
 Basic Aruba AOS-CX connector. This uses the documented REST API, and allows us to handle

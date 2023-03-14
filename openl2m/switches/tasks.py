@@ -26,12 +26,25 @@ from django.utils import timezone
 from celery import shared_task
 
 from switches.models import Switch, SwitchGroup, Log, Task
-from switches.constants import *
+from switches.constants import (
+    LOG_TYPE_CHANGE, LOG_TYPE_ERROR,
+    LOG_CHANGE_INTERFACE_DOWN, LOG_CHANGE_INTERFACE_UP, LOG_CHANGE_INTERFACE_POE_DOWN, LOG_CHANGE_INTERFACE_POE_UP,
+    LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP, LOG_CHANGE_INTERFACE_PVID, LOG_CHANGE_INTERFACE_ALIAS, LOG_CHANGE_BULK_EDIT,
+    LOG_SAVE_SWITCH, INTERFACE_STATUS_NONE, BULKEDIT_POE_NONE,
+    BULKEDIT_ALIAS_TYPE_REPLACE, LOG_BULK_EDIT_TASK_END_ERROR, LOG_BULK_EDIT_TASK_START, TASK_STATUS_RUNNING, TASK_STATUS_COMPLETED,
+    LOG_BULK_EDIT_TASK_END_OK, TASK_STATUS_ERROR, LOG_EMAIL_SENT, LOG_EMAIL_ERROR,
+    BULKEDIT_POE_CHOICES, BULKEDIT_ALIAS_TYPE_CHOICES, BULKEDIT_INTERFACE_CHOICES, INTERFACE_STATUS_CHANGE,
+    INTERFACE_STATUS_DOWN, INTERFACE_STATUS_UP, BULKEDIT_POE_DOWN_UP, BULKEDIT_POE_CHANGE, BULKEDIT_POE_DOWN,
+    BULKEDIT_POE_UP, LOG_TYPE_WARNING, BULKEDIT_ALIAS_TYPE_APPEND,
+)
 from switches.connect.connect import get_connection_object
-from switches.connect.snmp import *
-from switches.connect.constants import *
-from switches.utils import *
-from counters.constants import *
+from switches.connect.constants import (
+    POE_PORT_ADMIN_ENABLED,
+    POE_PORT_ADMIN_DISABLED,
+)
+from switches.views import error_page
+from switches.utils import error_page, dprint, get_remote_ip
+from counters.constants import COUNTER_CHANGES, COUNTER_ERRORS
 from counters.models import counter_increment
 
 

@@ -19,10 +19,11 @@ import sys
 import csv
 
 from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
-from switches.models import *
-from switches.constants import *
+from switches.models import Switch, SwitchGroup, VLAN, SnmpProfile, NetmikoProfile, CommandList
+from switches.constants import (SNMP_V3_AUTH_MD5, SNMP_V3_AUTH_SHA, SNMP_V3_PRIV_DES, SNMP_V3_PRIV_AES,
+                                SNMP_V3_SECURITY_NOAUTH_NOPRIV, SNMP_V3_SECURITY_AUTH_NOPRIV, SNMP_V3_SECURITY_AUTH_PRIV)
 
 
 class Command(BaseCommand):

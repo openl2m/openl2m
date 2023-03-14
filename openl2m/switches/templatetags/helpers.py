@@ -18,10 +18,11 @@ from django import template
 from django.template import Template, Context
 from django.utils.html import mark_safe
 
-from switches.models import *
-from switches.constants import *
-from switches.connect.constants import *
-from switches.connect.snmp.constants import *
+from switches.models import SwitchGroupMembership
+from switches.constants import SWITCH_VIEW_BASIC, SWITCH_VIEW_DETAILS
+from switches.connect.constants import (ENTITY_CLASS_NAME, POE_PSE_STATUS_ON, POE_PSE_STATUS_OFF, POE_PSE_STATUS_FAULT, IF_DUPLEX_FULL, IF_DUPLEX_HALF,
+                                        LLDP_CAPABILITIES_NONE, LLDP_CAPABILITIES_WLAN, LLDP_CAPABILITIES_PHONE, LLDP_CAPABILITIES_ROUTER,
+                                        LLDP_CAPABILITIES_STATION, LLDP_CAPABILITIES_BRIDGE, LLDP_CAPABILITIES_REPEATER, LLDP_CAPABILITIES_OTHER)
 
 # see https://docs.djangoproject.com/en/2.2/ref/templates/api/
 # and https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/
@@ -377,7 +378,7 @@ def get_ip4_info_links(ip4_address):
 
 
 @register.filter
-def get_ip6_info_links(ip4_address):
+def get_ip6_info_links(ip6_address):
     """
     Get the info url(s) for the ipv6 address (string format) expanded from the settings file variable
     """
@@ -407,11 +408,11 @@ def get_interface_link(switch, iface):
     if iface.manageable:
         if iface.admin_status:
             info = info + f"<a onclick=\"return confirm_change('Are you sure you want to DISABLE {iface.name} ?')\" \
-                     href=\"/switches/{group.id}/{switch.id}/{iface.index}/admin/0/\" \
+                     href=\"/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/0/\" \
                      data-toggle=\"tooltip\" title=\"Click here to Disable {iface.name}\">{iface.name}</a>"
         else:
             info = info + f"<a onclick=\"return confirm_change('Are you sure you want to ENABLE {iface.name} ?')\" \
-                     href=\"/switches/{group.id}/{switch.id}/{iface.index}/admin/1/\" \
+                     href=\"/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/1/\" \
                      data-toggle=\"tooltip\" title=\"Click here to Enable {iface.name}\">{iface.name}</a>"
 
     else:

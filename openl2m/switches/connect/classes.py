@@ -20,9 +20,11 @@ from django.conf import settings
 All the generic classes we use to represent
 switch vlans, switch interfaces, switch neighbor devices, etc.
 """
-from switches.constants import *
-from switches.connect.constants import *
-from switches.utils import *
+from switches.connect.constants import (
+    IF_TYPE_NONE, IF_DUPLEX_UNKNOWN, LACP_IF_TYPE_NONE, VLAN_ADMIN_ENABLED, VLAN_STATUS_OTHER, VLAN_TYPE_NORMAL,
+    LLDP_CAPABILITIES_NONE, POE_PSE_STATUS_ON, POE_PSE_STATUS_OFF, POE_PSE_STATUS_FAULT, POE_PORT_DETECT_SEARCHING,
+)
+from switches.utils import dprint, get_ip_dns_name
 
 
 class Error():

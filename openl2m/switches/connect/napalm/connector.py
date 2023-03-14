@@ -12,12 +12,18 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import traceback
-from napalm import *
 
-from switches.connect.classes import *
-from switches.connect.connector import *
-from switches.connect.constants import *
+from napalm import get_network_driver
+
+from switches.models import Log
+from switches.utils import dprint, get_remote_ip, uptime_to_string
+from switches.constants import (LOG_TYPE_ERROR, LOG_NAPALM_ERROR_FACTS, LOG_NAPALM_ERROR_INTERFACES, LOG_NAPALM_ERROR_VLANS, LOG_NAPALM_ERROR_IF_IP,
+                                LOG_NAPALM_ERROR_MAC, LOG_NAPALM_ERROR_ARP, LOG_NAPALM_ERROR_LLDP, LOG_NAPALM_ERROR_DRIVER, LOG_NAPALM_ERROR_OPEN)
+from switches.connect.classes import Interface, NeighborDevice
+from switches.connect.connector import Connector
 from switches.connect.utils import interface_name_to_long
+from switches.connect.constants import (IF_TYPE_ETHERNET, LLDP_CAPABILITIES_REPEATER, LLDP_CAPABILITIES_BRIDGE, LLDP_CAPABILITIES_ROUTER, LLDP_CAPABILITIES_WLAN,
+                                        LLDP_CAPABILITIES_PHONE, LLDP_CAPABILITIES_DOCSIS, LLDP_CAPABILITIES_STATION, LLDP_CAPABILITIES_OTHER)
 
 """
 Basic Napalm connector. This allows us to handle any device supported by

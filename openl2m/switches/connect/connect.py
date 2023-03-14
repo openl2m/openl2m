@@ -20,31 +20,28 @@ if we cannot do it all using snmp.
 from django.utils import timezone
 
 from switches.utils import dprint
-from switches.connect.connector import *
+from switches.constants import (CONNECTOR_TYPE_SNMP, CONNECTOR_TYPE_AOSCX, CONNECTOR_TYPE_PYEZ, CONNECTOR_TYPE_COMMANDS_ONLY,
+                                CONNECTOR_TYPE_NAPALM, CONNECTOR_TYPE_TESTDUMMY, )
 
 # here are the device specific classes.
 # this should be made dynamic at some point!
-from switches.connect.snmp.connector import *
-from switches.connect.snmp.constants import *
-from switches.connect.snmp.cisco.constants import *
+from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
+from switches.connect.snmp.constants import enterprises
+from switches.connect.snmp.cisco.constants import ENTERPRISE_ID_CISCO
 from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
 # Dell is yet to be tested!
 # from switches.connect.snmp.dell.constants import *
 # from switches.connect.snmp.dell.connector import SnmpConnectorDell
-from switches.connect.snmp.comware.constants import *
+from switches.connect.snmp.comware.constants import ENTERPRISE_ID_H3C
 from switches.connect.snmp.comware.connector import SnmpConnectorComware
-from switches.connect.snmp.juniper.constants import *
+from switches.connect.snmp.juniper.constants import ENTERPRISE_ID_JUNIPER
 from switches.connect.snmp.juniper.connector import SnmpConnectorJuniper
-from switches.connect.snmp.procurve.constants import *
+from switches.connect.snmp.procurve.constants import ENTERPRISE_ID_HP
 from switches.connect.snmp.procurve.connector import SnmpConnectorProcurve
-from switches.connect.snmp.aruba_cx.constants import *
+from switches.connect.snmp.aruba_cx.constants import ENTERPRISE_ID_HP_ENTERPRISE
 from switches.connect.snmp.aruba_cx.connector import SnmpConnectorArubaCx
-from switches.connect.aruba_aoscx.constants import *
 from switches.connect.aruba_aoscx.connector import AosCxConnector
-from switches.connect.junos_pyez.constants import *
 from switches.connect.junos_pyez.connector import PyEZConnector
-
-from switches.connect.commands_only.constants import *
 from switches.connect.commands_only.connector import CommandsOnlyConnector
 
 # Napalm drivers are here:

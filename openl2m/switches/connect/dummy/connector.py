@@ -16,13 +16,11 @@
 """
 Dummy Connector
 """
-from switches.constants import *
-from switches.connect.classes import *
-from switches.connect.connector import *
-from switches.connect.snmp.constants import *
-from switches.utils import *
-
-from .constants import *
+from switches.connect.constants import IF_TYPE_ETHERNET
+from switches.connect.classes import Interface, NeighborDevice
+from switches.connect.connector import Connector
+from switches.utils import dprint
+from switches.connect.constants import LLDP_CAPABILITIES_WLAN, LLDP_CAPABILITIES_ROUTER, LLDP_CAPABILITIES_PHONE
 
 
 class DummyConnector(Connector):

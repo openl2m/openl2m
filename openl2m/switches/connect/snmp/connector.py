@@ -32,6 +32,7 @@ from switches.connect.utils import *
 from switches.connect.snmp.utils import *
 from switches.connect.classes import *
 from switches.connect.connect import *
+from switches.connect.connector import Connector
 from switches.connect.snmp.constants import *
 
 

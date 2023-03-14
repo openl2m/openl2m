@@ -20,12 +20,14 @@ import time
 from django.conf import settings
 
 from switches.models import Command, Log
-from switches.constants import *
-from switches.utils import *
-from switches.connect.classes import *
-from switches.connect.constants import *
+from switches.constants import LOG_TYPE_WARNING, LOG_CONNECTION_ERROR, LOG_TYPE_ERROR, CMD_TYPE_INTERFACE
+from switches.utils import dprint, get_remote_ip, get_ip_dns_name
+from switches.connect.classes import Error, PoePort, PoePSE, Vlan, VendorData
+from switches.connect.constants import (POE_PORT_ADMIN_DISABLED, POE_PORT_ADMIN_ENABLED, POE_PORT_DETECT_DELIVERING, VLAN_TYPE_NORMAL,
+                                        IANA_TYPE_IPV4, IANA_TYPE_IPV6, IF_TYPE_ETHERNET, LACP_IF_TYPE_MEMBER,
+                                        LLDP_CHASSIC_TYPE_NET_ADDR, visible_interfaces)
 from switches.connect.netmiko.execute import NetmikoExecute
-
+from django.contrib.auth.models import User
 
 '''
 Base Connector() class for OpenL2M.
@@ -774,7 +776,7 @@ class Connector():
         # c = get_object_or_404(Command, pk=command_id)
         try:
             c = Command.objects.get(pk=command_id)
-        except e:
+        except Exception:
             # not found raises Command.DoesNotExist, but we simple catch all!
             self.error.status = True
             self.error.description = "Invalid command found!"
