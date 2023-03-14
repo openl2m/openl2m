@@ -80,6 +80,10 @@
               {% else %}
                ({{ u.remote_ip }})
               {% endif %}
+              {% if request.user.is_superuser %}
+              <a href="{% url 'switches:admin_activity' %}?user={{ u.id }}"
+               data-toggle="tooltip" title="Click here to see user activity logs...">Activity logs</a>
+              {% endif %}
              </td></tr>
           {% endfor %}
           </table>
