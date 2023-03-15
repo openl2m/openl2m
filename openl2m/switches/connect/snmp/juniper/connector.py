@@ -18,14 +18,13 @@ with Juniper specific ways of doing things...
 Note: JUNOS devices are Read-Only for SNMP! See the PyEZ driver for R/W capabilities!
 """
 from switches.models import Log
-from switches.constants import *
-from switches.connect.classes import *
-from switches.connect.connector import *
+from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
+from switches.connect.constants import POE_PORT_DETECT_DELIVERING, poe_status_name, VLAN_STATUS_PERMANENT, VLAN_STATUS_DYNAMIC, VLAN_STATUS_OTHER
+from switches.connect.classes import Error
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.connect.snmp.constants import *
-from switches.utils import *
+from switches.utils import dprint, get_remote_ip
 
-from .constants import *
+from .constants import JNX_VLAN_TYPE_STATIC, JNX_VLAN_TYPE_DYNAMIC, jnxL2aldVlanTag, jnxL2aldVlanName, jnxL2aldVlanType, jnxL2aldVlanFdbId
 
 
 class SnmpConnectorJuniper(SnmpConnector):

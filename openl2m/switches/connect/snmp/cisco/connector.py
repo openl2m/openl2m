@@ -23,9 +23,8 @@ from django.conf import settings
 from switches.models import Log
 from switches.constants import *
 from switches.connect.classes import *
-from switches.connect.connector import *
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.utils import *
+from switches.utils import dprint, get_remote_ip
 
 from .constants import *
 

@@ -16,19 +16,25 @@ HPE/3Com ComWare specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
 with HH3C specific ways of doing things...
 """
+import datetime
 import math
+import traceback
 
 from pysnmp.proto.rfc1902 import OctetString, Gauge32
 
 from switches.models import Log
-from switches.constants import *
-from switches.connect.classes import *
-from switches.connect.connector import *
+from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
+from switches.connect.classes import PortList
+from switches.connect.constants import IF_TYPE_ETHERNET, POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_branch
-from switches.connect.snmp.constants import *
-from switches.utils import *
+from switches.connect.snmp.constants import dot1qPvid
+from switches.utils import dprint, get_remote_ip
 
-from .constants import *
+from .constants import (BYTES_FOR_2048_VLANS, HH3C_IF_MODE_INVALID, HH3C_IF_MODE_TRUNK, HH3C_IF_MODE_HYBRID, HH3C_IF_MODE_FABRIC, HH3C_ROUTE_MODE,
+                        hh3cifVLANTrunkAllowListLow, hh3cifVLANTrunkAllowListHigh, hh3cdot1qVlanPorts, hh3cCfgRunModifiedLast,
+                        hh3cCfgRunSavedLast, hh3cCfgStartModifiedLast, hh3cPsePortCurrentPower, hh3cdot1qVlanName, hh3cifVLANType,
+                        hh3cIfLinkMode, hh3cCfgOperateRowStatus, hh3cCfgOperateType, HH3C_running2Startup, HH3C_createAndGo
+                        )
 
 
 class SnmpConnectorComware(SnmpConnector):
@@ -488,7 +494,7 @@ class SnmpConnectorComware(SnmpConnector):
             (f"{hh3cCfgOperateRowStatus}.{row_place}", HH3C_createAndGo, 'i')
         ])
         if retval < 0:
-            dprint(f"return = {ret_val}")
+            dprint(f"return = {retval}")
             self.add_warning("Error saving via SNMP (hh3cCfgOperateRowStatus)")
             return False
         dprint("All OK")

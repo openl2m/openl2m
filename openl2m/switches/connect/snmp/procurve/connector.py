@@ -20,15 +20,16 @@ The latter are supported via connect/snmp/aruba-cx/ (read-only), or connect/arub
 This re-implements some methods found in the base SNMP() class
 with Procurve/Aruba specific ways of doing things...
 """
-from switches.models import Log
-from switches.constants import *
-from switches.connect.classes import *
-from switches.connect.connector import *
-from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.connect.snmp.constants import *
-from switches.utils import *
+import datetime
 
-from .constants import *
+from switches.models import Log
+from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
+from switches.connect.constants import POE_PORT_DETECT_DELIVERING, poe_status_name
+from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
+from switches.utils import dprint, get_remote_ip
+
+from .constants import (hpicfPoePethPsePortPower, hpEntPowerCurrentPowerUsage, hpnicfIfLinkMode, hpnicfCfgRunModifiedLast,
+                        hpnicfCfgRunSavedLast, HP_ROUTE_MODE)
 
 
 class SnmpConnectorProcurve(SnmpConnector):

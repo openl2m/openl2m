@@ -16,14 +16,10 @@ Dell specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
 with Dell specific ways of doing things...
 """
-from switches.constants import *
-from switches.connect.classes import *
-from switches.connect.connector import *
 from switches.connect.snmp.connector import SnmpConnector
-from switches.connect.snmp.constants import *
-from switches.utils import *
+from switches.utils import dprint
 
-from .constants import *
+from .constants import agentPortNativeVlanID, agentPortAccessVlanID, agentSaveConfig, DELL_SAVE_ENABLE
 
 """
 Work in Progress
@@ -70,7 +66,7 @@ class SnmpConnectorDell(SnmpConnector):
         """
         dprint("set_interface_untagged_vlan(Dell)")
 
-        if interface and new_vlan > -1:
+        if interface and new_vlan_id > -1:
             # old_vlan_id = interface.untagged_vlan
             # set this switch port on the new vlan:
             # Q-BIRDGE mib: VlanIndex = Unsigned32
@@ -95,7 +91,7 @@ class SnmpConnectorDell(SnmpConnector):
 
         retval = self.set(f"{agentSaveConfig}.0", DELL_SAVE_ENABLE, 'i')
         if retval < 0:
-            dprint(f"return = {ret_val}")
+            dprint(f"return = {retval}")
             self.add_warning("Error saving via SNMP (agentSaveConfig)")
             return False
         dprint("All OK")

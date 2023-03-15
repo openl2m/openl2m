@@ -42,7 +42,6 @@ from switches.connect.constants import (
     POE_PORT_ADMIN_ENABLED,
     POE_PORT_ADMIN_DISABLED,
 )
-from switches.views import error_page
 from switches.utils import error_page, dprint, get_remote_ip
 from counters.constants import COUNTER_CHANGES, COUNTER_ERRORS
 from counters.models import counter_increment

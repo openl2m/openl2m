@@ -24,14 +24,12 @@ per https://www.arubanetworks.com/techdocs/AOS-CX/10.08/PDF/snmp_mib.pdf
 on pg. 46, OIDs that support SNMP write, write is supported to
 ifAdminStatus (ie interface up/down), and pethPsePortAdminEnable (ie. PoE enable/disable)
 """
-from switches.constants import *
-from switches.connect.classes import *
-from switches.connect.connector import *
+from switches.connect.classes import Vlan
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.connect.snmp.constants import *
-from switches.utils import *
+from switches.connect.snmp.constants import ieee8021QBridgeVlanStaticName, ieee8021QBridgePortVlanEntry
+from switches.utils import dprint
 
-from .constants import *
+from .constants import arubaWiredPoePethPsePortPowerDrawn, arubaWiredVsfv2MemberProductName
 
 
 class SnmpConnectorArubaCx(SnmpConnector):
