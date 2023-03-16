@@ -30,6 +30,7 @@ from switches.models import Log
 from switches.utils import *
 from switches.connect.utils import *
 from switches.connect.snmp.utils import *
+from switches.connect.constants import *
 from switches.connect.classes import *
 from switches.connect.connect import *
 from switches.connect.connector import Connector
