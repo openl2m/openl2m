@@ -16,17 +16,26 @@ Cisco specific implementation of the SNMP Connection object.
 This augments/re-implements some methods found in the base SNMP() class
 with Cisco specific ways of doing things...
 """
+import datetime
 import random
 import time
 from django.conf import settings
 
 from switches.models import Log
-from switches.constants import *
-from switches.connect.classes import *
+from switches.constants import LOG_TYPE_ERROR, LOG_SAVE_SWITCH, LOG_PORT_POE_FAULT, SNMP_VERSION_2C
+from switches.connect.classes import SyslogMsg
+from switches.connect.constants import poe_status_name, POE_PORT_DETECT_FAULT, VLAN_TYPE_NORMAL
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.utils import dprint, get_remote_ip
 
-from .constants import *
+from .constants import (portIfIndex, vmVlan, vmVoiceVlanId, cL2L3IfModeOper, cpeExtPsePortPwrConsumption, cpeExtPsePortPwrAvailable, cpeExtPsePortMaxPwrDrawn,
+                        vtpVlanState, vtpVlanType, vtpVlanName, vlanTrunkPortDynamicState, vlanTrunkPortNativeVlan, vlanTrunkPortVlansEnabled, vlanTrunkPortVlansEnabled2k,
+                        vlanTrunkPortVlansEnabled3k, vlanTrunkPortVlansEnabled4k,
+                        ccmHistoryRunningLastChanged, ccmHistoryRunningLastSaved, ccmHistoryStartupLastChanged, clogHistTableMaxLength, clogHistIndex, clogHistFacility, clogHistSeverity,
+                        clogHistMsgName, clogHistMsgText, clogHistTimestamp, ciscoWriteMem, ccCopySourceFileType, ccCopyDestFileType, ccCopyEntryRowStatus, ccCopyState, rowStatusActive,
+                        copyStateSuccess, copyStateRunning, copyStateWaiting, copyStateFailed, runningConfig, startupConfig,
+                        CISCO_VLAN_TYPE_NORMAL, VTP_TRUNK_STATE_ON, CISCO_ROUTE_MODE
+                        )
 
 
 class SnmpConnectorCisco(SnmpConnector):
@@ -289,7 +298,7 @@ class SnmpConnectorCisco(SnmpConnector):
                                       group=self.group,
                                       switch=self.switch,
                                       type=LOG_TYPE_ERROR,
-                                      ip_address=get_remote_ip(request),
+                                      ip_address=get_remote_ip(self.request),
                                       action=LOG_PORT_POE_FAULT,
                                       description=warning)
                             log.save()

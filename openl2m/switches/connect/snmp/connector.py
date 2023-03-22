@@ -16,25 +16,45 @@ SNMP Library for OpenL2M, based on MIB-2 based RFC standards. Uses the pysnmp li
 Some of the code here is inspired by the NAV (Network Administration Visualized) tool
 Various vendor specific implementations that augment this class exist.
 """
+import datetime
 import time
 import traceback
 import pprint
 import easysnmp
 
 from django.conf import settings
-from pysnmp.hlapi import *
+
+from pysnmp.hlapi import (getCmd, setCmd, UdpTransportTarget, ContextData, ObjectType, ObjectIdentity, SnmpEngine, CommunityData, UsmUserData,
+                          usmHMACSHAAuthProtocol, usmHMACMD5AuthProtocol, usmAesCfb128Protocol, usmDESPrivProtocol
+                          )
 from pysnmp.proto.rfc1902 import ObjectName, OctetString
 
-from switches.constants import *
+from switches.constants import (LOG_TYPE_ERROR, LOG_TYPE_WARNING, LOG_SNMP_ERROR, LOG_UNDEFINED_VLAN, LOG_NEW_OID_FOUND, LOG_NEW_HOSTNAME_FOUND,
+                                SNMP_VERSION_2C, SNMP_VERSION_3, SNMP_V3_SECURITY_NOAUTH_NOPRIV, SNMP_V3_SECURITY_AUTH_NOPRIV, SNMP_V3_AUTH_MD5, SNMP_V3_AUTH_SHA,
+                                SNMP_V3_PRIV_AES, SNMP_V3_PRIV_DES, SNMP_V3_SECURITY_AUTH_PRIV
+                                )
 from switches.models import Log
-from switches.utils import *
-from switches.connect.utils import *
-from switches.connect.snmp.utils import *
-from switches.connect.constants import *
-from switches.connect.classes import *
-from switches.connect.connect import *
+from switches.utils import dprint, get_remote_ip
+# from switches.connect.utils import *
+# from switches.connect.snmp.utils import *
+from switches.connect.constants import (IF_TYPE_ETHERNET, IF_TYPE_LAGG, LACP_IF_TYPE_AGGREGATOR, LACP_IF_TYPE_MEMBER,
+                                        LLDP_CHASSIS_TYPE_NONE, LLDP_CHASSIC_TYPE_ETH_ADDR, LLDP_CHASSIC_TYPE_NET_ADDR, GVRP_ENABLED, ENTITY_CLASS_STACK,
+                                        ENTITY_CLASS_CHASSIS, ENTITY_CLASS_MODULE, IANA_TYPE_IPV4, IANA_TYPE_IPV6, POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DISABLED
+                                        )
+from switches.connect.classes import Error, Interface, StackMember, PoePSE, PoePort, EthernetAddress, NeighborDevice, PortList
+# from switches.connect.connect import *
 from switches.connect.connector import Connector
-from switches.connect.snmp.constants import *
+from switches.connect.snmp.utils import decimal_to_hex_string_ethernet, bytes_ethernet_to_string
+from switches.connect.snmp.constants import (snmp_mib_variables, ifIndex, ifDescr, ifType, ifMtu, ifSpeed, ifPhysAddress, ifAdminStatus, ifOperStatus, ifName, ifAlias, ifHighSpeed,
+                                             system, sysName, sysUpTime, sysObjectID, sysDescr, sysContact, sysLocation,
+                                             dot3StatsDuplexStatus, dot1qTpFdbPort, dot1qNumVlans, dot1qGvrpStatus, dot1qPortGvrpStatus, dot1qVlanCurrentEgressPorts, dot1qVlanStatus, dot1qVlanStaticEgressPorts,
+                                             dot1qVlanStaticName, dot1qVlanStaticRowStatus, dot1qPvid, dot1dBasePortIfIndex, ipAdEntIfIndex, ipAdEntNetMask, entPhysicalClass,
+                                             entPhysicalSerialNum, entPhysicalSoftwareRev, entPhysicalModelName, syslogMsgTableMaxSize, pethMainPsePower,
+                                             pethMainPseOperStatus, pethMainPseConsumptionPower, pethMainPseUsageThreshold, pethPsePortAdminEnable,
+                                             pethPsePortDetectionStatus, dot3adAggActorAdminKey, dot3adAggPortActorAdminKey, ieee8021QBridgeMvrpEnabledStatus,
+                                             dot1dTpFdbPort, ipNetToMediaPhysAddress, lldpRemChassisId, lldpRemPortId, lldpRemPortDesc, lldpRemSysName, lldpRemSysDesc, lldpRemSysCapEnabled,
+                                             lldpRemChassisIdSubtype, enterprises, enterprise_id_info, IF_ADMIN_STATUS_UP, IF_OPER_STATUS_UP, IF_OPER_STATUS_DOWN,
+                                             )
 
 
 class pysnmpHelper():
@@ -159,7 +179,7 @@ class pysnmpHelper():
 
     def _set_auth_data(self):
         """
-        Set the UsmUserdata() or CommunityData() object based on the snmp_profile
+        Set the UsmUserData() or CommunityData() object based on the snmp_profile
         """
         if not self.switch:
             # we need a Switch() object!
@@ -172,7 +192,7 @@ class pysnmpHelper():
         if (self.switch.snmp_profile.version == SNMP_VERSION_3):
             # NoAuthNoPriv
             if self.switch.snmp_profile.sec_level == SNMP_V3_SECURITY_NOAUTH_NOPRIV:
-                self._auth_data = UsmUserdata(self.switch.snmp_profile.username)
+                self._auth_data = UsmUserData(self.switch.snmp_profile.username)
                 return True
 
             # AuthNoPriv
@@ -380,18 +400,18 @@ class SnmpConnector(Connector):
 
                     if snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
                         if snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
-                            self._snmp_session = Session(hostname=self.switch.primary_ip4,
-                                                         version=snmp_profile.version,
-                                                         remote_port=snmp_profile.udp_port,
-                                                         use_numeric=True,
-                                                         use_sprint_value=False,
-                                                         security_level=u"auth_with_privacy",
-                                                         security_username=snmp_profile.username,
-                                                         auth_protocol=u"SHA",
-                                                         auth_password=snmp_profile.passphrase,
-                                                         privacy_protocol=u"DES",
-                                                         privacy_password=snmp_profile.priv_passphrase,
-                                                         context=str(com_or_ctx),)
+                            self._snmp_session = easysnmp.Session(hostname=self.switch.primary_ip4,
+                                                                  version=snmp_profile.version,
+                                                                  remote_port=snmp_profile.udp_port,
+                                                                  use_numeric=True,
+                                                                  use_sprint_value=False,
+                                                                  security_level=u"auth_with_privacy",
+                                                                  security_username=snmp_profile.username,
+                                                                  auth_protocol=u"SHA",
+                                                                  auth_password=snmp_profile.passphrase,
+                                                                  privacy_protocol=u"DES",
+                                                                  privacy_password=snmp_profile.priv_passphrase,
+                                                                  context=str(com_or_ctx),)
                             return True
 
                         if snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
@@ -704,7 +724,7 @@ class SnmpConnector(Connector):
         # go parse the oid data
         if parser:
             # specific data parser
-            return parser(oid, newvalue)
+            return parser(oid, val)
 
         # SYS MIB is read, we only cache it
         oid_end = oid_in_branch(system, oid)
@@ -1460,7 +1480,7 @@ class SnmpConnector(Connector):
                 if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system chassis type
                     if self.interfaces[if_index].lldp[lldp_index].chassis_type > LLDP_CHASSIS_TYPE_NONE:
-                        self.add_warning(f"Chassis Type for {llp_index} already "
+                        self.add_warning(f"Chassis Type for {lldp_index} already "
                                          "{self.interfaces[if_index].lldp[lldp_index].chassis_type},"
                                          " now {val}!")
                     self.interfaces[if_index].lldp[lldp_index].chassis_type = int(val)
@@ -1557,7 +1577,7 @@ class SnmpConnector(Connector):
         the Q-Bridge mib that maps bridge port id to interfaceId.
         """
         if interface.port_id != -1:
-            return port_id
+            return interface.port_id
         else:
             # we did not find the Q-BRIDGE mib. port_id = ifIndex !
             return interface.index
@@ -2038,7 +2058,7 @@ class SnmpConnector(Connector):
         try:
             self.get(self.SYSOBJECTID)
             return True
-        except SnmpError as e:
+        except Exception as e:
             self.error.status = True
             self.error.description = "Access denied"
             self.error.details = f"SNMP Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
@@ -2250,7 +2270,7 @@ def get_switch_enterprise_info(system_oid):
         if enterprise_id in enterprise_id_info.keys():
             return enterprise_id_info[enterprise_id]
         else:
-            return f"Unknown ({enterprise_oid})"
+            return f"Unknown ({enterprise_id})"
     else:
         # sub oid, ie enterprise data, not found!
         return 'Not found'
