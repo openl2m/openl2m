@@ -99,9 +99,6 @@ eval $COMMAND
 
 cd docs
 
-# Regenerate code doc files
-sphinx-apidoc -f -o code/source ../openl2m
-
 # Recompile the documentation, these become django static files!
 COMMAND="make clean; make html"
 echo "Updating HTML documentation ($COMMAND)..."
