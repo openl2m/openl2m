@@ -20,6 +20,14 @@ switches.connect.aruba\_aoscx.constants module
    :undoc-members:
    :show-inheritance:
 
+switches.connect.aruba\_aoscx.utils module
+------------------------------------------
+
+.. automodule:: switches.connect.aruba_aoscx.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
