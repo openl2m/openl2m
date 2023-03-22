@@ -18,6 +18,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 from django.views.generic import View
 
 #
@@ -28,7 +29,12 @@ from django.views.generic import View
 class LogoutView(View):
 
     def get(self, request):
+        return self.logout(request)
 
+    def post(self, request):
+        return self.logout(request)
+
+    def logout(self, request):
         # logging is done in signal handler in models.py
         # Log out the user
         auth_logout(request)
