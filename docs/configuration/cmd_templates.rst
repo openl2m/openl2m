@@ -58,21 +58,21 @@ You likely want to explicitly match the start and end of the input, by using the
 
 Here are some matching pattern examples:
 
-any single word:   ^\w*$
+any single word:   ^\\w*$
 
-any number: ^\d+$
+any number: ^\\d+$
 
-IPv4 address or netmask:  ^\d+\.\d+\.\d+\.\d+$
+IPv4 address or netmask:  ^\\d+\\.\\d+\\.\\d+\\.\\d+$
 
-IPv4 subnet in cider notation:  ^\d+\.\d+\.\d+\.\d+\/\d+$
+IPv4 subnet in cider notation:  ^\\d+\\.\\d+\\.\\d+\\.\\d+\\/\\d+$
 
-Simple IPv6 network:  ^[\w\d\:]*\/\d+$
+Simple IPv6 network:  ^[\\w\\d\:]*\\/\\d+$
 
 Ethernet address in colon notation: ^[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}$
 
-Ethernet address in hyphen notation: ^[0-9a-fA-F]{2}\-[0-9a-fA-F]{2}\-[0-9a-fA-F]{2}\-[0-9a-fA-F]{2}-\[0-9a-fA-F]{2}-\[0-9a-fA-F]{2}$
+Ethernet address in hyphen notation: ^[0-9a-fA-F]{2}\\-[0-9a-fA-F]{2}\\-[0-9a-fA-F]{2}\\-[0-9a-fA-F]{2}-\\[0-9a-fA-F]{2}-\\[0-9a-fA-F]{2}$
 
-Ethernet address in Cisco dot notation: ^[0-9a-fA-F]{4}\.[0-9a-fA-F]{4}\.[0-9a-fA-F]{4}$
+Ethernet address in Cisco dot notation: ^[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4}$
 
 
 .. image:: ../_static/command-template-admin-field-example.png
