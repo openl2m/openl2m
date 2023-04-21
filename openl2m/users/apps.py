@@ -17,6 +17,6 @@ from django.apps import AppConfig
 class UsersConfig(AppConfig):
     name = 'users'
 
-#    def ready(self):
-#        # here we handle the Django-Auth-LDAP signal to read group membership
-#        import users.signals
+    def ready(self):
+        # here we handle the Django-Auth-LDAP signal to read group membership
+        import users.signals
