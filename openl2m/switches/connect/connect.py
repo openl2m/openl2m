@@ -53,21 +53,20 @@ from switches.connect.dummy.connector import DummyConnector
 
 def get_connection_object(request, group, switch):
     """
-    Function to get the proper type of SNMP object for this switch.
-    Either Generic (SNMP), HP-3COM (H3C) or Cisco specific objects will be returned.
-    If switch objectID is not known yet, we will probe the switch first.
+    Function to get the proper type of Connector() object, based on device connector_type settings.
+    For SNMP devices, we probe the 'system' mib, and then a vendor-specific Connector() object will be returned.
+    If vendor is unknown, we return a generic snmp object.
     If probing fails, we raise an exception!
     """
     dprint(f"get_connection_object() for {switch} at {timezone.now()}")
 
     # What type of connector are we using?
     if switch.connector_type == CONNECTOR_TYPE_SNMP:
-        if not switch.snmp_oid:
-            # we don't know this switch yet, go probe it
-            conn = SnmpConnector(request, group, switch)
-            if not conn._probe_mibs():
-                raise Exception('Error probing device. Is the SNMP Profile correct?')
-                return  # for clarify
+        # go probe to find vendor type
+        conn = SnmpConnector(request, group, switch)
+        if not conn._probe_mibs():
+            raise Exception('Error probing device. Is the SNMP Profile correct?')
+            return  # for clarify
 
         # now we should have the basics:
         if switch.snmp_oid:

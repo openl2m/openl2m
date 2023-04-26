@@ -614,21 +614,22 @@ class SnmpConnector(Connector):
         """
         dprint("get_my_basic_info()")
         self.error.clear()
-        retval = self._get_system_data()
+        # already handled in _probe_mibs()
+        # retval = self._get_system_data()
+        # if retval != -1:
+        retval = self._get_interface_data()
         if retval != -1:
-            retval = self._get_interface_data()
+            retval = self._get_vlan_data()
             if retval != -1:
-                retval = self._get_vlan_data()
+                retval = self._get_my_ip4_addresses()
                 if retval != -1:
-                    retval = self._get_my_ip4_addresses()
+                    retval = self._get_lacp_data()
                     if retval != -1:
-                        retval = self._get_lacp_data()
+                        retval = self._get_poe_data()
                         if retval != -1:
-                            retval = self._get_poe_data()
-                            if retval != -1:
-                                # try to map poe port info to actual interfaces
-                                self._map_poe_port_entries_to_interface()
-                                return True
+                            # try to map poe port info to actual interfaces
+                            self._map_poe_port_entries_to_interface()
+                            return True
         return False
 
     def get_my_client_data(self):
@@ -1638,11 +1639,11 @@ class SnmpConnector(Connector):
         self.add_more_info('System', 'Read Time', time.strftime(settings.LONG_DATETIME_FORMAT, time.localtime(self.sys_uptime_timestamp)))
 
         # see if the ObjectID changed
+        save = False
         if self.object_id:
             # compare database entry (self.switch) with snmp read value:
             if self.switch.snmp_oid != self.object_id:
                 self.switch.snmp_oid = self.object_id
-                self.switch.save()
                 log = Log(action=LOG_NEW_OID_FOUND,
                           description="New System ObjectID found",
                           switch=self.switch,
@@ -1653,6 +1654,7 @@ class SnmpConnector(Connector):
                 if self.request:
                     log.user = self.request.user
                 log.save()
+                save = True
 
         # and see if the hostname changed
         if self.hostname:
@@ -1669,6 +1671,9 @@ class SnmpConnector(Connector):
                 if self.request:
                     log.user = self.request.user
                 log.save()
+                save = True
+        if save:
+            self.switch.save()
 
         return 1
 
@@ -2081,8 +2086,6 @@ class SnmpConnector(Connector):
         # this will read the SystemMIB and update the System OID of the switch
         retval = self._get_system_data()
         if retval != -1:
-            self.switch.snmp_oid = self.object_id
-            self.switch.save()
             return True
         return False
 
