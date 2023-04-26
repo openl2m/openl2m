@@ -1,6 +1,6 @@
 celery
 distro
-Django>=4.1,<4.2
+Django>=4.2,<4.3
 django-debug-toolbar
 django-ipware>=2.1.0
 django-ordered-model>=3.3,<4.0
@@ -26,7 +26,7 @@ netmiko>=3.0.0
 psycopg2-binary
 # We are using a clone of the Aruba pyaoscx library from github.com,
 # as there always seems to be some fix in there that we need that has
-# not been released yet to ! :-(
+# not been released yet to PyPi! :-(
 git+https://github.com/aruba/pyaoscx
 pyasn1
 pycodestyle>=2.5.0
