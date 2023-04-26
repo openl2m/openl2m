@@ -1,3 +1,4 @@
+black
 celery
 distro
 Django>=4.2,<4.3
