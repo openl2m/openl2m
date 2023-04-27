@@ -7,12 +7,13 @@ Switch Requirements
 Juniper PyEZ
 ------------
 
-* any Juniper that support the XML api. Device access needs to be configured properly.
+* any Juniper device that supports the XML api, via the PyEZ library. Device access needs to be configured properly.
 
 Aruba AOS-CX
 ------------
 
-* any Aruba AOS-CX switch that has api enabled. Device access needs to be configured properly.
+* any device that supports the Aruba AOS-CX API v10.08 is supported, via the pyaoscx library. Device access needs to be configured properly.
+
 
 SNMP
 ----
@@ -91,13 +92,6 @@ Several vendor specific MIB are supported at this time.
 
 * Juniper Networks L2ALD MIB
   Used for vendor-specific vlan information.
-
-
-Aruba AOS-CX
-------------
-
-Any device that supports the Aruba AOS-CX API v10.08 is supported, via the pyaoscx library.
-
 
 Napalm
 ------

@@ -9,4 +9,6 @@ How To's
 
    Various maintenance items (backups, data cleanup, etc.) <maintain.rst>
    Managing logs <logs.rst>
+   System Notices <notices.rst>
    Updating Ethernet OUI's <oui.rst>
+
