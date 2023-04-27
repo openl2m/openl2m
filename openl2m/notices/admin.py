@@ -28,7 +28,7 @@ class NoticeAdmin(admin.ModelAdmin):
     save_on_top = True
     search_fields = ['title']
     # fields to list in admin view:
-    list_display = ('title', 'start_time', 'end_time', 'enabled')
+    list_display = ('title', 'priority', 'start_time', 'end_time', 'enabled')
 
 
 admin_site.register(Notice, NoticeAdmin)

@@ -21,11 +21,11 @@ from django.utils.timezone import now
 
 from django.contrib.messages import constants as notice_levels
 NOTICE_PRIORITY_CHOICES = [
-    [notice_levels.DEBUG, 'DEBUG'],
+    # [notice_levels.DEBUG, 'DEBUG'],
     [notice_levels.INFO, 'Information'],
     [notice_levels.SUCCESS, 'Success'],
     [notice_levels.WARNING, 'Warning'],
-    [notice_levels.ERROR, 'Error'],
+    # [notice_levels.ERROR, 'Error'],
 ]
 
 
@@ -45,7 +45,7 @@ class Notice(models.Model):
         choices=NOTICE_PRIORITY_CHOICES,
         default=notice_levels.WARNING,
         verbose_name='Notice priority',
-        help_text='Proirity of this notice, as defined by Message Levels',
+        help_text='Priority of this notice, as defined by Message Levels',
     )
     content = models.TextField(_('content'), blank=False)
 
