@@ -100,7 +100,7 @@ PREFER_IPV4 = getattr(configuration, 'PREFER_IPV4', False)
 SESSION_FILE_PATH = getattr(configuration, 'SESSION_FILE_PATH', None)
 SHORT_DATE_FORMAT = getattr(configuration, 'SHORT_DATE_FORMAT', 'Y-m-d')
 SHORT_DATETIME_FORMAT = getattr(configuration, 'SHORT_DATETIME_FORMAT', 'Y-m-d H:i')
-LONG_DATETIME_FORMAT = getattr(configuration, 'LONG_DATETIME_FORMAT', '%Y-%m-%d %H:%M:%S')
+LONG_DATETIME_FORMAT = getattr(configuration, 'LONG_DATETIME_FORMAT', 'Y-m-d H:M:S')
 SHORT_TIME_FORMAT = getattr(configuration, 'SHORT_TIME_FORMAT', 'H:i:s')
 TIME_FORMAT = getattr(configuration, 'TIME_FORMAT', 'g:i a')
 TIME_ZONE = getattr(configuration, 'TIME_ZONE', 'UTC')
@@ -417,9 +417,9 @@ TASK_SUBMIT_DATE_FORMAT = getattr(configuration, 'TASK_SUBMIT_DATE_FORMAT', '%Y-
 #
 # Email settings for sending results of Bulk-Edit jobs
 #
-EMAIL_HOST = getattr(configuration, 'EMAIL_SERVER', 'localhost')
-EMAIL_HOST_USER = getattr(configuration, 'EMAIL_USERNAME', '')
-EMAIL_HOST_PASSWORD = getattr(configuration, 'EMAIL_PASSWORD', '')
+EMAIL_HOST = getattr(configuration, 'EMAIL_HOST', 'localhost')
+EMAIL_HOST_USER = getattr(configuration, 'EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = getattr(configuration, 'EMAIL_HOST_PASSWORD', '')
 EMAIL_PORT = getattr(configuration, 'EMAIL_PORT', 25)
 EMAIL_USE_TLS = getattr(configuration, 'EMAIL_USE_TLS', False)
 EMAIL_USE_SSL = getattr(configuration, 'EMAIL_USE_SSL', False)
