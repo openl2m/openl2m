@@ -43,7 +43,7 @@ from switches.constants import (
     LOG_TYPE_VIEW, LOG_TYPE_CHANGE, LOG_TYPE_ERROR, LOG_TYPE_COMMAND, LOG_TYPE_CHOICES, LOG_ACTION_CHOICES,
     LOG_CHANGE_INTERFACE_DOWN, LOG_CHANGE_INTERFACE_UP, LOG_CHANGE_INTERFACE_POE_DOWN, LOG_CHANGE_INTERFACE_POE_UP,
     LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP, LOG_CHANGE_INTERFACE_PVID, LOG_CHANGE_INTERFACE_ALIAS, LOG_CHANGE_BULK_EDIT,
-    LOG_BULK_EDIT_TASK_SUBMIT, LOG_VIEW_SWITCHGROUPS,
+    LOG_BULK_EDIT_TASK_SUBMIT, LOG_VIEW_SWITCHGROUPS, LOG_CONNECTION_ERROR,
     LOG_VIEW_SWITCH, LOG_VIEW_ALL_LOGS, LOG_VIEW_ADMIN_STATS, LOG_VIEW_TASKS, LOG_VIEW_TASK_DETAILS, LOG_VIEW_SWITCH_SEARCH,
     LOG_EXECUTE_COMMAND, LOG_DENIED, LOG_SAVE_SWITCH, LOG_RELOAD_SWITCH, TASK_STATUS_SCHEDULED, LOG_TASK_DELETE,
     LOG_TASK_TERMINATE, TASK_STATUS_DELETED, TASK_TYPE_BULKEDIT, INTERFACE_STATUS_NONE, BULKEDIT_POE_NONE,
@@ -241,6 +241,7 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
+        log.action = LOG_CONNECTION_ERROR
         log.description = f"CONNECTION ERROR: Viewing device ({view})"
         log.save()
         error = Error()
@@ -445,7 +446,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
                   ip_address=remote_ip,
                   switch=switch,
                   group=group,
-                  action=LOG_CHANGE_BULK_EDIT,
+                  action=LOG_CONNECTION_ERROR,
                   type=LOG_TYPE_ERROR,
                   description="Could not get connection")
         log.save()
@@ -663,6 +664,7 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
+        log.action = LOG_CONNECTION_ERROR
         log.description = "Could not get connection"
         log.save()
         counter_increment(COUNTER_ERRORS)
@@ -731,12 +733,14 @@ def interface_description_change(request, group_id, switch_id, interface_name):
               ip_address=get_remote_ip(request),
               switch=switch,
               group=group,
+              action=LOG_CHANGE_INTERFACE_ALIAS,
               if_name=interface_name)
 
     try:
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
+        log.action = LOG_CONNECTION_ERROR
         log.description = "Could not get connection"
         log.save()
         counter_increment(COUNTER_ERRORS)
@@ -764,7 +768,6 @@ def interface_description_change(request, group_id, switch_id, interface_name):
         return warning_page(request=request, group=group, switch=switch, description=description)
 
     log.type = LOG_TYPE_CHANGE
-    log.action = LOG_CHANGE_INTERFACE_ALIAS
 
     # are we allowed to change description ?
     if not interface.can_edit_description:
@@ -842,12 +845,14 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
               ip_address=get_remote_ip(request),
               switch=switch,
               group=group,
+              action=LOG_CHANGE_INTERFACE_PVID,
               if_name=interface_name)
 
     try:
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
+        log.action = LOG_CONNECTION_ERROR
         log.description = "Could not get connection"
         log.save()
         counter_increment(COUNTER_ERRORS)
@@ -873,18 +878,17 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
         return warning_page(request=request, group=group, switch=switch, description=description)
 
     log.type = LOG_TYPE_CHANGE
-    log.action = LOG_CHANGE_INTERFACE_PVID
     log.description = f"Interface {interface.name}: new PVID = {new_pvid} (was {interface.untagged_vlan})"
 
     # are we allowed to change to this vlan ?
     conn._set_allowed_vlans()
     if not int(new_pvid) in conn.allowed_vlans.keys():
-        log.action = LOG_CHANGE_INTERFACE_PVID + LOG_DENIED
+        log.type = LOG_TYPE_ERROR
         log.save()
         counter_increment(COUNTER_ERRORS)
         error = Error()
         error.status = True
-        error.description = f"New vlan {new_pvid} is not valid on this switch"
+        error.description = f"New vlan {new_pvid} is not valid or allowed on this device"
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # make sure we cast the proper type here! Ie this needs an Integer()
@@ -938,6 +942,7 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
+        log.action = LOG_CONNECTION_ERROR
         log.description = "Could not get connection"
         log.save()
         counter_increment(COUNTER_ERRORS)
@@ -1026,6 +1031,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
+        log.action = LOG_CONNECTION_ERROR
         log.description = "Could not get connection"
         log.save()
         counter_increment(COUNTER_ERRORS)
@@ -1126,6 +1132,7 @@ def switch_save_config(request, group_id, switch_id, view):
         conn = get_connection_object(request, group, switch)
     except Exception:
         log.type = LOG_TYPE_ERROR
+        log.action = LOG_CONNECTION_ERROR
         log.description = "Could not get connection"
         log.save()
         counter_increment(COUNTER_ERRORS)
