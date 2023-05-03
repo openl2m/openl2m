@@ -9,7 +9,7 @@ Version 2.4
 *Django v4.2 requires Python v3.8 or later, and PostgreSQL 12 or later*
 
 *Note: from this version on, we are developing and testing on Ubuntu 22.04 LTS,
-using Python v3.10 and PostgreSql 14. We require Python 3.8 as a minimum!*
+using Python v3.10 and PostgreSql 14!*
 
 .. note::
 
@@ -21,11 +21,12 @@ using Python v3.10 and PostgreSql 14. We require Python 3.8 as a minimum!*
 Version 2.4.3
 -------------
 
-Release Date: TBD
+Release Date: 2023-05-03
 
 * upgrade to Django 4.2
 * improve snmp device probing.
 * add log link to active users on statistics page
+* add 'maillogs' command line option to email logs. See documentation *How-To - Managing Logs* for more.
 
 Bug fixes:
 
