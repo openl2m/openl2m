@@ -20,6 +20,14 @@ notices.migrations.0002\_alter\_notice\_content\_alter\_notice\_priority module
    :undoc-members:
    :show-inheritance:
 
+notices.migrations.0003\_alter\_notice\_priority module
+-------------------------------------------------------
+
+.. automodule:: notices.migrations.0003_alter_notice_priority
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

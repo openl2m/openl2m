@@ -39,3 +39,4 @@ sphinx_rtd_theme
 textfsm
 pyyaml
 pipenv
+xlsxwriter

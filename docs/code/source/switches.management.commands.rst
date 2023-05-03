@@ -12,6 +12,14 @@ switches.management.commands.import\_csv module
    :undoc-members:
    :show-inheritance:
 
+switches.management.commands.maillogs module
+--------------------------------------------
+
+.. automodule:: switches.management.commands.maillogs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 switches.management.commands.removelogs module
 ----------------------------------------------
 
