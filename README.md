@@ -35,7 +35,7 @@ __Basic Features:__
 
 __What's New:__
 
-v2.4 upgrades the Django framework to v4.1
+v2.4 upgrades the Django framework to v4.2 LTS
 
 v2.3 adds support for Juniper Junos devices.
 
