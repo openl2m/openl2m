@@ -20,7 +20,6 @@ cryptography==40.0.2
 distlib==0.3.6
 distro==1.8.0
 Django>=4.2,<4.3
-django-auth-ldap==4.3.0
 django-debug-toolbar==4.0.0
 django-ipware==5.0.0
 django-ordered-model==3.7.4
@@ -66,7 +65,10 @@ ply==3.11
 prompt-toolkit==3.0.38
 psycopg2-binary==2.9.6
 pyaoscx==2.4.0
-pyasn1==0.5.0
+# work around bug in pyasn==0.5.0, see
+# https://github.com/pyasn1/pyasn1/issues/28
+pyasn1==0.4.8
+#
 pyasn1-modules==0.3.0
 pycodestyle==2.10.0
 pycparser==2.21
