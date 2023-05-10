@@ -19,11 +19,11 @@ using Python v3.10 and PostgreSql 14!*
     See the installation steps for more details.
 
 Version 2.4.3a
--------------
+--------------
 
 Bug fixes:
 
-* revert back pyasn1 v0.4.8 (from 0.5), to avoid backward compatibility problem with pysnmp 4.4.12
+* revert back pyasn1 to v0.4.8 (from 0.5), to avoid backward compatibility problem with pysnmp 4.4.12
 
 Version 2.4.3
 -------------
