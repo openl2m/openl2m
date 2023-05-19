@@ -80,7 +80,14 @@ class SnmpConnectorProcurve(SnmpConnector):
         """
         Implement the get_my_hardware_details(), called from the base object get_hardware_details()
         """
-        self.get_snmp_branch('hpnicfCfgLog', self._parse_mibs_procurve_config)
+        super().get_my_hardware_details()
+
+        # now read Procurve specific data:
+        retval = self.get_snmp_branch('hpnicfCfgLog', self._parse_mibs_procurve_config)
+        if retval < 0:
+            self.add_warning("Error getting Procurve config details ('hpnicfCfgLog')")
+            return False
+        return True
 
     """
     HP has 2 possible MIBs with port(interface) power information:

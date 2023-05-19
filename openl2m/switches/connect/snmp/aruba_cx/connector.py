@@ -187,6 +187,5 @@ class SnmpConnectorArubaCx(SnmpConnector):
         retval = self.get_snmp_branch('arubaWiredVsfv2MemberProductName', self._parse_mibs_aruba_vsf2)
         if retval < 0:
             self.add_warning("Error getting 'Aruba Vsf Product name' ('arubaWiredVsfv2MemberProductName')")
-            return retval
-
-        return 1
+            return False
+        return True

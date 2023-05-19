@@ -335,7 +335,14 @@ class SnmpConnectorCisco(SnmpConnector):
         Does not return anything.
         """
         dprint("get_my_hardware_details(Cisco)")
-        self.get_snmp_branch('ccmHistory', self._parse_mibs_cisco_config)
+        super().get_my_hardware_details()
+
+        # now read Cisco specific data:
+        retval = self.get_snmp_branch('ccmHistory', self._parse_mibs_cisco_config)
+        if retval < 0:
+            self.add_warning("Error getting Cisco log details ('ccmHistory')")
+            return False
+        return True
 
     def _parse_mibs_cisco_if_opermode(self, oid, val):
         """

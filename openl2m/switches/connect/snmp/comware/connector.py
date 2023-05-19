@@ -133,7 +133,14 @@ class SnmpConnectorComware(SnmpConnector):
         Does not return anything!
         """
         # dprint("Comware get_my_hardware_details()")
-        self.get_snmp_branch('hh3cCfgLog', self._parse_mibs_comware_config)
+        super().get_my_hardware_details()
+
+        # now read Comware specific data:
+        retval = self.get_snmp_branch('hh3cCfgLog', self._parse_mibs_comware_config)
+        if retval < 0:
+            self.add_warning("Error getting Comware log details ('hh3cCfgLog')")
+            return False
+        return True
 
     def set_interface_untagged_vlan(self, interface, new_vlan_id):
         """
