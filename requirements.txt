@@ -2,28 +2,29 @@ black
 celery
 distro
 Django>=4.2,<4.3
-django-debug-toolbar==4.0.0
-django-ipware==5.0.0
-django-ordered-model>=3.3,<4.0
+django-debug-toolbar
+django-ipware>=5.0,<5.1
+django-ordered-model>=3.7,<4.0
+# version post 0.2.5 appear unstable:
 easysnmp==0.2.5
 gitpython
 gunicorn
 hiredis
 ip_address>=1.0.23
-Jinja2==3.1.2
-junos-eznc==2.6.7
-jxmlease==1.0.3
-lxml==4.9.2
-manuf==1.1.5
+Jinja2
+junos-eznc
+jxmlease
+lxml
+manuf
 six
 napalm>=4.0.0
-napalm-aruba-cx==0.1.4
-napalm-dellos10==1.0.7
-napalm-procurve==0.6.0
-natsort==8.3.1
-netaddr==0.8.0
-netmiko==4.1.2
-psycopg2-binary==2.9.6
+napalm-aruba-cx
+napalm-dellos10
+napalm-procurve
+natsort
+netaddr
+netmiko
+psycopg2-binary
 # We are using a clone of the Aruba pyaoscx library from github.com,
 # as there always seems to be some fix in there that we need that has
 # not been released yet to PyPi! :-(
@@ -35,12 +36,13 @@ git+https://github.com/aruba/pyaoscx
 pyasn1==0.4.8
 #
 pycodestyle
+# see above comment about pyasn1 !
 pysnmp==4.4.12
-recommonmark==0.7.1
-redis==4.5.4
-Sphinx==6.2.1
-sphinx_rtd_theme==1.2.0
-textfsm==1.1.2
-PyYAML==6.0
+recommonmark
+redis
+Sphinx
+sphinx_rtd_theme
+textfsm
+PyYAML>=6.0
 pipenv
-XlsxWriter==3.1.0
+XlsxWriter
