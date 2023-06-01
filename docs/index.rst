@@ -28,6 +28,8 @@ Documentation is written in ReStructured Text format, which is rendered with the
 
 **What's New:**
 
+v2.4 upgrades the Django framework to v4.2 LTS
+
 v2.3 adds support for Juniper Junos devices.
 
 v2.2 adds support for Aruba AOS-CX switches.

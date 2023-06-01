@@ -31,7 +31,8 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 
 **Aruba AOS-CX**
 
-* *Aruba CX 6200* series; single units. (R/W support via the REST API v10.08)
+* *Aruba CX 6100* series; single units. (R/W support via the REST API v10.08)
+* *Aruba CX 6300* series; single units. (R/W support via the REST API v10.08)
 
 **HP Enterprise (HPE)**
 
@@ -42,6 +43,7 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 * *HPE 5510* series switches, running Comware 7; single units.
 * *HPE 5900AF* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5930* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5940* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5945* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5950* series switches, running Comware 7; single and IRF-Stacked units.
 
