@@ -614,22 +614,21 @@ class SnmpConnector(Connector):
         """
         dprint("get_my_basic_info()")
         self.error.clear()
-        # already handled in _probe_mibs()
-        # retval = self._get_system_data()
-        # if retval != -1:
-        retval = self._get_interface_data()
+        retval = self._get_system_data()
         if retval != -1:
-            retval = self._get_vlan_data()
+            retval = self._get_interface_data()
             if retval != -1:
-                retval = self._get_my_ip4_addresses()
+                retval = self._get_vlan_data()
                 if retval != -1:
-                    retval = self._get_lacp_data()
+                    retval = self._get_my_ip4_addresses()
                     if retval != -1:
-                        retval = self._get_poe_data()
+                        retval = self._get_lacp_data()
                         if retval != -1:
-                            # try to map poe port info to actual interfaces
-                            self._map_poe_port_entries_to_interface()
-                            return True
+                            retval = self._get_poe_data()
+                            if retval != -1:
+                                # try to map poe port info to actual interfaces
+                                self._map_poe_port_entries_to_interface()
+                                return True
         return False
 
     def get_my_client_data(self):
@@ -1617,7 +1616,7 @@ class SnmpConnector(Connector):
         """
         Get the current sysUpTime timetick for the device.
         """
-        self.get(sysUpTime)
+        (error_status, snmpval) = self.get(sysUpTime)
         # sysUpTime is ticks in 1/100th of second since boot
         self.sys_uptime_timestamp = time.time()
 
@@ -2055,39 +2054,21 @@ class SnmpConnector(Connector):
             self.add_warning("Error getting Log Size Info (syslogMsgTableMaxSize)")
         return retval
 
-    def _test_read(self):
-        """
-        Test if read works
-        Returns True or False
-        """
-        try:
-            self.get(self.SYSOBJECTID)
-            return True
-        except Exception as e:
-            self.error.status = True
-            self.error.description = "Access denied"
-            self.error.details = f"SNMP Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            dprint(f"   _test_read(): Exception: {e.__class__.__name__}\n{self.error.details}\n")
-            return False
+    def get_system_oid(self):
+        """Read the SNMP System OID object. Return as string.
 
-    def _test_write(self):
-        """
-        Test if write works, by re-writing SystemLocation
-        Return True on success, False on failure
-        """
-        value = self.get(self.SYSLOCATION)
-        return self.set(self.SYSLOCATION, value, 's')
+        Return:
+            (str): string representing the SNMP system OID
 
-    def _probe_mibs(self):
+        Exceptions:
+            If we cannot read the OID, throw generic exception.
         """
-        Probe the various mibs to see if they are supported
-        Returns True if we can probe snmp, False if not
-        """
-        # this will read the SystemMIB and update the System OID of the switch
-        retval = self._get_system_data()
-        if retval != -1:
-            return True
-        return False
+        dprint("get_system_oid()")
+        (error_status, retval) = self.get(oid=sysObjectID)
+        if error_status:
+            raise Exception("Error getting System OID")
+        dprint(f"  System OID={retval.value}")
+        return retval.value
 
     #
     # "Public" interface methods

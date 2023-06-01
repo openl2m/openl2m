@@ -64,15 +64,11 @@ def get_connection_object(request, group, switch):
     if switch.connector_type == CONNECTOR_TYPE_SNMP:
         # go probe to find vendor type
         conn = SnmpConnector(request, group, switch)
-        if not conn._probe_mibs():
-            raise Exception('Error probing device. Is the SNMP Profile correct?')
-            return  # for clarify
-
-        # now we should have the basics:
-        if switch.snmp_oid:
+        snmp_oid = conn.get_system_oid()
+        if snmp_oid:
             # we have the ObjectID, what kind of vendor is it:
-            dprint(f"   Checking device type for {switch.snmp_oid}")
-            sub_oid = oid_in_branch(enterprises, switch.snmp_oid)
+            dprint(f"   Checking device type for {snmp_oid}")
+            sub_oid = oid_in_branch(enterprises, snmp_oid)
             if sub_oid:
                 parts = sub_oid.split('.', 1)  # 1 means one split, two elements!
                 enterprise_id = int(parts[0])
