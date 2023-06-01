@@ -1620,11 +1620,11 @@ class SnmpConnector(Connector):
             return retval   # error of some kind
 
         # add some more info about the configuration/settings
-        self.add_more_info('System', 'IP', self.switch.primary_ip4)
+        self.add_more_info('System', 'IP/Hostname', self.switch.primary_ip4)
         self.add_more_info('System', 'Snmp Profile', self.switch.snmp_profile.name)
         self.add_more_info('System', 'Vendor ID', get_switch_enterprise_info(self.object_id))
         # first time when data was read:
-        self.add_more_info('System', 'Read Time', time.strftime(settings.LONG_DATETIME_FORMAT, time.localtime(self.sys_uptime_timestamp)))
+        self.add_more_info('System', 'Read Time', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.sys_uptime_timestamp)))
 
         # see if the ObjectID changed
         save = False
