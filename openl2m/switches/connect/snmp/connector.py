@@ -710,7 +710,7 @@ class SnmpConnector(Connector):
             # default parser
             self._parse_oid(oid, newvalue)
 
-    def _parse_oid(self, oid, val, parser=False):
+    def _parse_oid(self, oid, val):
         """
         Parse a single OID with data returned from a switch through some "get" or "getbulk" function
         Will return True if we have parse this, and False if not.
@@ -718,19 +718,8 @@ class SnmpConnector(Connector):
         Returns True if we parse the OID!
         oid = OID string to parse
         val = OID value to parse, as a string (since in EasySNMP all returned data is a string!)
-        parser = a different function to use to parse the data, if not here.
         """
         dprint(f"Base _parse_oid() {str(oid)}")
-        # go parse the oid data
-        if parser:
-            # specific data parser
-            return parser(oid, val)
-
-        # SYS MIB is read, we only cache it
-        oid_end = oid_in_branch(system, oid)
-        if oid_end:
-            # SYSTEM MIB entry, caching only
-            return True
 
         oid_end = oid_in_branch(ifIndex, oid)
         if oid_end:

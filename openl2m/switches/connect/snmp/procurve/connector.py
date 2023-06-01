@@ -48,7 +48,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         # some capabilities we cannot do:
         self.can_save_config = False    # not needed on ProCurve, it has auto-save!
 
-    def _parse_oid(self, oid, val, parser=False):
+    def _parse_oid(self, oid, val):
         """
         Parse a single OID with data returned from a switch through some "get" function
         Returns True if we parse the OID!
