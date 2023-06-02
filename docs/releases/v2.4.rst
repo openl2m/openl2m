@@ -24,6 +24,8 @@ Version 2.4.3a
 Bug fixes:
 
 * revert back pyasn1 to v0.4.8 (from 0.5), to avoid backward compatibility problem with pysnmp 4.4.12
+* improve snmp device type probing
+* minor code improvements
 
 Version 2.4.3
 -------------
