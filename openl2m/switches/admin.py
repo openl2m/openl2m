@@ -44,6 +44,7 @@ class SwitchInline(admin.TabularInline):
 # class SwitchAdmin(admin.StackedInline):
 class SwitchAdmin(admin.ModelAdmin):
     save_on_top = True
+    save_as = True
     list_display = ('name', 'get_switchgroups')
     readonly_fields = ('hostname', 'snmp_oid', )
     filter_horizontal = ('command_templates', )
