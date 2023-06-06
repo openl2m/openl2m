@@ -38,7 +38,7 @@ DATABASE = {
 #                       #
 #########################
 # OpenL2M "administrator" emails. This is a list of all the people who get
-# code error notifications, and task result emails (see below)
+# code error notifications, and other emails (see below)
 # This is not related to users with superuser access.
 ADMINS = [
     # ('John', 'john@example.com'),
@@ -437,27 +437,7 @@ SNMP_MAX_REPETITIONS = 25
 # If not, a textual version of log event will be sent.
 # SYSLOG_JSON = True
 
-# task scheduling via Celery. If you want to use this, set this to True
-TASKS_ENABLED = False
-# send task result emails as bcc to admins (if email enabled, see below)
-TASKS_BCC_ADMINS = False
-# this defines the time format used in the Flatpickr JS library:
-# Use AM/PM by default, set to True if you want to use 24 Hour time format in the picker.
-TASK_USE_24HR_TIME = False
-# allow users to pick minutes in this increment. default = 5 minutes.
-TASK_SUBMIT_MINUTE_INCREMENT = 5
-# this defines how many days into the future you can schedule tasks
-TASK_SUBMIT_MAX_DAYS_IN_FUTURE = 28
-
-# Leave these settings alone, unless you change to a custom or remote Redis server setup
-# in which case, please read the appropriate docs...
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
-CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TASK_SERIALIZER = 'json'
-
-# Email settings, used to send results of tasks and other emails.
+# Email settings, used to send results of commands and other emails.
 # the default uses the local plain old smtp server on port 25
 # see the installation docs or Django docs for other options.
 EMAIL_HOST = 'localhost'

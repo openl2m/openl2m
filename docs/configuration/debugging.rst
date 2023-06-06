@@ -55,10 +55,6 @@ Add this to configuration.py:
               'formatter': 'console',
           },
 
-          # NOTE: this file handler is *NOT* compatible with running
-          #       Celery task processing! Make sure you COMMENT OUT this part
-          #       if using Celery !!! Use the syslog entry below, or some
-          #       other logger that does not write to files!
           'file': {
               'level': 'DEBUG',
               'class': 'logging.handlers.TimedRotatingFileHandler',
@@ -84,12 +80,6 @@ Add this to configuration.py:
       },
   }
 
-NOTE: this is NOT compatible with running the Celery task engine.
-If you have this enabled, for debugging please stop that process:
-
-.. code-block:: bash
-
-  sudo systemctl stop celery
 
 Alternatively, you can use a syslog config, or the like, that does NOT write files directly.
 See more at https://docs.djangoproject.com/en/3.2/topics/logging/

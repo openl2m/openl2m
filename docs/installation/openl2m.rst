@@ -164,9 +164,7 @@ Other variables in the configuration files are commented. Change settings as nee
 
 *TIME_ZONE*
 
-Set this to the appropriate time, to get logs, etc. in the local time. Note that if you enable
-tasks, you need to set this appropriately, as using UTC will result in tasks running at unexpected times!
-
+Set this to the appropriate time, to get logs, etc. in the local time.
 
 
 **Run Upgrade**

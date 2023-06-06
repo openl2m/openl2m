@@ -16,24 +16,7 @@ from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 
-from openl2m.celery import is_celery_running
 from switches.utils import get_ip_dns_name
-
-
-def user_can_run_tasks(user, group, switch):
-    """
-    Can this use user schedule tasks?
-    Return True if so, False if not.
-    """
-    if not is_celery_running():
-        return False
-    if user.is_superuser or user.is_staff:
-        return True
-    if user.profile.tasks and not group.read_only and not switch.read_only \
-       and not user.profile.read_only:
-        return True
-    # dis-allow everything else
-    return False
 
 
 def user_can_bulkedit(user, group, switch):

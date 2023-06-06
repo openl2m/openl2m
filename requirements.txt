@@ -1,5 +1,4 @@
 black
-celery
 distro
 Django>=4.2,<4.3
 django-debug-toolbar
@@ -38,6 +37,7 @@ pyasn1==0.4.8
 pycodestyle
 # see above comment about pyasn1 !
 pysnmp==4.4.12
+pytz
 recommonmark
 redis
 Sphinx

@@ -24,50 +24,6 @@
     </div>
   </div>
 
-  {% if tasks %}
-  <div class="panel {% if task_process_running %}panel-default{% else %}panel-warning{% endif %}">
-    <div class="panel-heading">
-      <strong>Scheduled Tasks{% if not task_process_running %} - Task process is not running! <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>{% endif %}</strong>
-    </div>
-    <div class="panel-body">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Scheduled at</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for task in tasks %}
-          <tr>
-            <td>
-              {% if task_process_running and allow_tasks %}
-                <a href="{% url 'switches:task_delete' task.id %}"
-                   data-toggle="tooltip"
-                   title="Click here to delete this scheduled task..."
-                {% if request.user.profile.are_you_sure %}
-                   onclick="return confirm_change('Are you sure you want to DELETE this task?')"
-                {% endif %}
-                   >
-                   <i class="fas fa-trash" aria-hidden="true"></i>
-                </a>
-              {% endif %}
-              {{ task.eta }}
-            </td>
-            <td>
-              <a href="{% url 'switches:task_details' task.id %}"
-                 data-toggle="tooltip"
-                 title="Click here to show the details of this scheduled task...">
-                 {{ task.description }}
-              </a>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  {% endif %}
 
   {% if connection.syslog_msgs.items %}
   <div class="panel panel-default">

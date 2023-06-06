@@ -153,4 +153,3 @@ Finally, Have Fun!
 
 If you decide to do so, you can now optionally :doc:`use LDAP for authentication. <ldap>`
 
-Also optionally, you can allow users to :doc:`schedule bulk changes at some time in the future. <tasks>`

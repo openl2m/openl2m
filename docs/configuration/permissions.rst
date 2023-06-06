@@ -42,10 +42,6 @@ This tool is not intended to be a full-blown network management tool!
 * the 'Edit Port Description' flag is enabled by default on Users, Switch Groups, and Switches. If disabled on
   any of those, the user will not able to edit the interface description on interfaces they have access to.
 
-* the 'Tasks' flag allows the user to schedule tasks on a switch. *Any* user with the ability to create tasks
-  on a given switch can delete scheduled tasks from the switch's "Information" tab.
-  (Assuming the background processes are running!) Administrators and Staff have access to all tasks.
-
 
 **Finally, the fun part:**
 

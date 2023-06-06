@@ -26,7 +26,6 @@ It provides module information from Google Code Style documentation that we use 
    notices_app/index.rst
    counters_app/index.rst
    templating.rst
-   tasks.rst
    aos-cx-driver.rst
    junos-driver.rst
    documentation.rst
