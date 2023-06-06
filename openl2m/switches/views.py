@@ -33,21 +33,22 @@ from django.shortcuts import redirect
 from django.template import Template, Context
 from django.contrib import messages
 
-from openl2m.celery import get_celery_info, is_celery_running
 from switches.connect.classes import Error
 from switches.models import (
     SnmpProfile, NetmikoProfile, Command, CommandList, CommandTemplate,
-    VLAN, VlanGroup, Switch, SwitchGroup, Log, Task,
+    VLAN, VlanGroup, Switch, SwitchGroup, Log,
 )
 from switches.constants import (
     LOG_TYPE_VIEW, LOG_TYPE_CHANGE, LOG_TYPE_ERROR, LOG_TYPE_COMMAND, LOG_TYPE_CHOICES, LOG_ACTION_CHOICES,
     LOG_CHANGE_INTERFACE_DOWN, LOG_CHANGE_INTERFACE_UP, LOG_CHANGE_INTERFACE_POE_DOWN, LOG_CHANGE_INTERFACE_POE_UP,
     LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP, LOG_CHANGE_INTERFACE_PVID, LOG_CHANGE_INTERFACE_ALIAS, LOG_CHANGE_BULK_EDIT,
-    LOG_BULK_EDIT_TASK_SUBMIT, LOG_VIEW_SWITCHGROUPS, LOG_CONNECTION_ERROR,
-    LOG_VIEW_SWITCH, LOG_VIEW_ALL_LOGS, LOG_VIEW_ADMIN_STATS, LOG_VIEW_TASKS, LOG_VIEW_TASK_DETAILS, LOG_VIEW_SWITCH_SEARCH,
-    LOG_EXECUTE_COMMAND, LOG_DENIED, LOG_SAVE_SWITCH, LOG_RELOAD_SWITCH, TASK_STATUS_SCHEDULED, LOG_TASK_DELETE,
-    LOG_TASK_TERMINATE, TASK_STATUS_DELETED, TASK_TYPE_BULKEDIT, INTERFACE_STATUS_NONE, BULKEDIT_POE_NONE,
-    BULKEDIT_ALIAS_TYPE_REPLACE, SWITCH_STATUS_ACTIVE
+    LOG_VIEW_SWITCHGROUPS, LOG_CONNECTION_ERROR, LOG_BULK_EDIT_TASK_START,
+    LOG_VIEW_SWITCH, LOG_VIEW_ALL_LOGS, LOG_VIEW_ADMIN_STATS, LOG_VIEW_SWITCH_SEARCH,
+    LOG_EXECUTE_COMMAND, LOG_SAVE_SWITCH, LOG_RELOAD_SWITCH, INTERFACE_STATUS_NONE, BULKEDIT_POE_NONE,
+    BULKEDIT_POE_CHOICES, BULKEDIT_ALIAS_TYPE_CHOICES, BULKEDIT_INTERFACE_CHOICES, BULKEDIT_ALIAS_TYPE_REPLACE,
+    BULKEDIT_ALIAS_TYPE_APPEND, BULKEDIT_POE_DOWN_UP, BULKEDIT_POE_CHANGE, BULKEDIT_POE_DOWN,
+    BULKEDIT_POE_UP, SWITCH_STATUS_ACTIVE, LOG_TYPE_WARNING, INTERFACE_STATUS_CHANGE,
+    INTERFACE_STATUS_DOWN, INTERFACE_STATUS_UP,
 )
 from switches.connect.connector import clear_switch_cache
 from switches.connect.connect import get_connection_object
@@ -57,10 +58,9 @@ from switches.connect.constants import (
 )
 from switches.utils import (
     success_page, warning_page, error_page, dprint, get_from_http_session, save_to_http_session, get_remote_ip, time_duration,
-    get_local_timezone_offset, string_contains_regex, string_matches_regex,
+    string_contains_regex, string_matches_regex, get_choice_name
 )
-from switches.tasks import bulkedit_task, bulkedit_processor
-from users.utils import user_can_run_tasks, user_can_bulkedit, get_current_users
+from users.utils import user_can_bulkedit, get_current_users
 from counters.models import Counter, counter_increment
 from counters.constants import (
     COUNTER_CHANGES, COUNTER_BULKEDITS, COUNTER_ERRORS, COUNTER_ACCESS_DENIED, COUNTER_COMMANDS,
@@ -370,19 +370,10 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
     # for now, show most recent 25 activities
     logs = Log.objects.all().filter(switch=switch, type__gt=LOG_TYPE_VIEW).order_by('-timestamp')[:settings.RECENT_SWITCH_LOG_COUNT]
 
-    # are there any scheduled tasks for this switch?
-    if settings.TASKS_ENABLED:
-        task_process_running = is_celery_running()
-        tasks = Task.objects.all().filter(switch=switch, status=TASK_STATUS_SCHEDULED).order_by('-eta')
-    else:
-        task_process_running = False
-        tasks = False
-
     time_since_last_read = time_duration(time.time() - conn.basic_info_read_timestamp)
 
     # finally, verify what this user can do:
     bulk_edit = len(conn.interfaces) and user_can_bulkedit(request.user, group, switch)
-    allow_tasks = user_can_run_tasks(request.user, group, switch)
 
     log_title = "Recent Activity"
 
@@ -393,12 +384,9 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
         'logs': logs,
         'log_title': log_title,
         'logs_link': True,
-        'tasks': tasks,
-        'task_process_running': task_process_running,
         'view': view,
         'cmd': cmd,
         'bulk_edit': bulk_edit,
-        'allow_tasks': allow_tasks,
         'time_since_last_read': time_since_last_read,
     })
 
@@ -411,22 +399,6 @@ def switch_bulkedit(request, group_id, switch_id):
     """
     Change several interfaces at once.
     """
-    counter_increment(COUNTER_BULKEDITS)
-    return bulkedit_form_handler(request, group_id, switch_id, False)
-
-
-@login_required(redirect_field_name=None)
-def switch_bulkedit_task(request, group_id, switch_id):
-    """
-    Change several interfaces at once, at some future time
-    """
-    return bulkedit_form_handler(request, group_id, switch_id, True)
-
-
-def bulkedit_form_handler(request, group_id, switch_id, is_task):
-    """
-    Handle the changing of several interfaces, as a future task or now.
-    """
     group = get_object_or_404(SwitchGroup, pk=group_id)
     switch = get_object_or_404(Switch, pk=switch_id)
 
@@ -436,6 +408,8 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         error.details = "You do not have access to this device!"
         counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
+
+    counter_increment(COUNTER_BULKEDITS)
 
     remote_ip = get_remote_ip(request)
 
@@ -462,7 +436,6 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
     new_description = str(request.POST.get('new_description', ''))
     new_description_type = int(request.POST.get('new_description_type', BULKEDIT_ALIAS_TYPE_REPLACE))
     interface_list = request.POST.getlist('interface_list')
-    save_config = bool(request.POST.get('save_config', False))
 
     # was anything submitted?
     if len(interface_list) == 0:
@@ -508,26 +481,6 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
             errors.append(f"New vlan '{new_pvid}' is not allowed!")
             counter_increment(COUNTER_ERRORS)
 
-    if is_task:
-        # we need a description
-        task_description = str(request.POST.get('task_description', ''))
-        if not task_description:
-            errors.append("We need a description of this task!")
-        # check format of ETA:
-        eta = str(request.POST.get('task_eta', ''))
-        if eta:
-            # if you change the format here, you also need to change it
-            # in the web form in the "_tab_if_bulkedit.html" template
-            eta_with_tz = f"{eta} {get_local_timezone_offset()}"
-            dprint(f"TASK ETA with TZ-offset: {eta_with_tz}")
-            try:
-                # this needs timezone parsing!
-                eta_datetime = datetime.datetime.strptime(eta_with_tz, settings.TASK_SUBMIT_DATE_FORMAT)
-            except Exception:
-                # unsupported time format!
-                errors.append("Invalid date/time format, please use YYYY-MM-DD HH:MM !")
-                counter_increment(COUNTER_ERRORS)
-
     if len(errors) > 0:
         error = Error()
         error.description = "Some form values were invalid, please correct and resubmit!"
@@ -535,7 +488,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # get the name of the interfaces as well (with the submitted if_key values)
-    # so that we can show the names in the Task() and Log() objects
+    # so that we can show the names in the Log() objects
     # additionally, also get the current state, to be able to "undo" the update
     interfaces = {}     # dict() of interfaces to bulk edit
     undo_info = {}
@@ -544,79 +497,11 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         interface = conn.get_interface_by_key(if_key)
         if interface:
             interfaces[if_key] = interface.name
-            if is_task:
-                # save the current state
-                current = {}
-                current['if_key'] = if_key
-                current['name'] = interface.name    # for readability
-                if new_pvid > 0:
-                    current['pvid'] = interface.untagged_vlan
-                if new_description:
-                    current['description'] = interface.description
-                if poe_choice != BULKEDIT_POE_NONE and interface.poe_entry:
-                    current['poe_state'] = interface.poe_entry.admin_status
-                if interface_change != INTERFACE_STATUS_NONE:
-                    current['admin_state'] = interface.admin_status
-                undo_info[if_key] = current
-
-    if is_task:
-        # log this first
-        log = Log(user=request.user,
-                  ip_address=remote_ip,
-                  switch=switch,
-                  group=group,
-                  type=LOG_TYPE_CHANGE,
-                  action=LOG_BULK_EDIT_TASK_SUBMIT,
-                  description=f"Bulk Edit Task Submitted ({task_description}) to run at {eta}")
-        log.save()
-
-        # arguments for the task:
-        args = {}
-        args['user_id'] = request.user.id
-        args['group_id'] = group_id
-        args['switch_id'] = switch_id
-        args['interface_change'] = interface_change
-        args['poe_choice'] = poe_choice
-        args['new_pvid'] = new_pvid
-        args['new_description'] = new_description
-        args['new_description_type'] = new_description_type
-        args['interfaces'] = interfaces
-        args['save_config'] = save_config
-        # create a task to track progress
-        task = Task(user=request.user,
-                    group=group,
-                    switch=switch,
-                    eta=eta_datetime,
-                    type=TASK_TYPE_BULKEDIT,
-                    description=task_description,
-                    arguments=json.dumps(args),
-                    reverse_arguments=json.dumps(undo_info))
-        task.save()
-
-        # now go schedule the task
-        try:
-            celery_task_id = bulkedit_task.apply_async((task.id, request.user.id, group_id, switch_id,
-                                                       interface_change, poe_choice, new_pvid,
-                                                       new_description, new_description_type, interfaces, save_config),
-                                                       eta=eta_datetime)
-        except Exception as e:
-            error = Error()
-            error.description = "There was an error submitting your task. Please contact your administrator to make sure the job broker is running!"
-            error.details = mark_safe(f"{repr(e)}<br><br>{traceback.format_exc()}")
-            return error_page(request=request, group=group, switch=switch, error=error)
-
-        # update task:
-        task.status = TASK_STATUS_SCHEDULED
-        task.celery_task_id = celery_task_id
-        task.save()
-
-        description = f"New Bulk-Edit task was submitted to run at {eta} (task id = {task.id})"
-        return success_page(request, group, switch, mark_safe(description))
 
     # handle regular submit, execute now!
-    results = bulkedit_processor(request, request.user.id, group_id, switch_id,
+    results = bulkedit_processor(request, group, switch,
                                  interface_change, poe_choice, new_pvid,
-                                 new_description, new_description_type, interfaces, False)
+                                 new_description, new_description_type, interfaces)
 
     # indicate we need to save config!
     if results['success_count'] > 0:
@@ -626,7 +511,7 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
 
     # now build the results page from the outputs
     result_str = "\n<br>".join(results['outputs'])
-    description = f"\n<div><strong>Results:</strong></div>\n<br>{result_str}"
+    description = f"\n<div><strong>Bulk-Edit Results:</strong></div>\n<br>{result_str}"
     if results['error_count'] > 0:
         err = Error()
         err.description = "Bulk-Edit errors"
@@ -634,6 +519,324 @@ def bulkedit_form_handler(request, group_id, switch_id, is_task):
         return error_page(request=request, group=group, switch=switch, error=err)
     else:
         return success_page(request, group, switch, mark_safe(description))
+
+
+def bulkedit_processor(request, group, switch,
+                       interface_change, poe_choice, new_pvid,
+                       new_description, new_description_type, interfaces):
+    """
+    Function to handle the bulk edit processing, from form-submission or scheduled job.
+    This will log each individual action per interface.
+    Returns the number of successful action, number of error actions, and
+    a list of outputs with text information about each action.
+    """
+
+    remote_ip = get_remote_ip(request)
+
+    # log bulk edit arguments:
+    log = Log(user=request.user,
+              switch=switch,
+              group=group,
+              ip_address=remote_ip,
+              action=LOG_BULK_EDIT_TASK_START,
+              description=f"Interface Status={get_choice_name(BULKEDIT_INTERFACE_CHOICES, interface_change)}, "
+                          f"PoE Status={get_choice_name(BULKEDIT_POE_CHOICES, poe_choice)}, "
+                          f"Vlan={new_pvid}, "
+                          f"Descr Type={get_choice_name(BULKEDIT_ALIAS_TYPE_CHOICES, new_description_type)}, "
+                          f"Descr={new_description}",
+              type=LOG_TYPE_CHANGE)
+    log.save()
+
+    # this needs work:
+    conn = get_connection_object(request, group, switch)
+    if not request:
+        # running asynchronously (as task), we need to read the device
+        # to get access to interfaces.
+        conn.get_basic_info()
+
+    # now do the work, and log each change
+    runtime_undo_info = {}
+    iface_count = 0
+    success_count = 0
+    error_count = 0
+    outputs = []    # description of any errors found
+    for (if_key, name) in interfaces.items():
+        iface = conn.get_interface_by_key(if_key)
+        if not iface:
+            error_count += 1
+            outputs.append(f"ERROR: interface for index '{if_key}' not found!")
+            continue
+        iface_count += 1
+
+        # save the current state, right before we make a change!
+        current_state = {}
+        current_state['if_key'] = if_key
+        current_state['name'] = iface.name    # for readability
+
+        # now check all the things we could be changing,
+        # start with UP/DOWN state:
+        if interface_change != INTERFACE_STATUS_NONE:
+            log = Log(user=request.user,
+                      ip_address=remote_ip,
+                      if_name=iface.name,
+                      switch=switch,
+                      group=group)
+            current_state['admin_state'] = iface.admin_status
+            if interface_change == INTERFACE_STATUS_CHANGE:
+                if iface.admin_status:
+                    new_state = False
+                    new_state_name = "Down"
+                    log.action = LOG_CHANGE_INTERFACE_DOWN
+                else:
+                    new_state = True
+                    new_state_name = "Up"
+                    log.action = LOG_CHANGE_INTERFACE_UP
+
+            elif interface_change == INTERFACE_STATUS_DOWN:
+                new_state = False
+                new_state_name = "Down"
+                log.action = LOG_CHANGE_INTERFACE_DOWN
+
+            elif interface_change == INTERFACE_STATUS_UP:
+                new_state = True
+                new_state_name = "Up"
+                log.action = LOG_CHANGE_INTERFACE_UP
+
+            # are we actually making a change?
+            if new_state != current_state['admin_state']:
+                # yes, apply the change:
+                retval = conn.set_interface_admin_status(iface, new_state)
+                if retval:
+                    success_count += 1
+                    log.type = LOG_TYPE_CHANGE
+                    log.description = f"Interface {iface.name}: Admin set to {new_state_name}"
+                    counter_increment(COUNTER_CHANGES)
+                else:
+                    error_count += 1
+                    log.type = LOG_TYPE_ERROR
+                    log.description = f"Interface {iface.name}: Admin {new_state_name} ERROR: {conn.error.description}"
+                    counter_increment(COUNTER_ERRORS)
+            else:
+                # already in wanted admin state:
+                log.type = LOG_TYPE_CHANGE
+                log.description = f"Interface {iface.name}: Ignored - already {new_state_name}"
+            outputs.append(log.description)
+            log.save()
+
+        # next work on PoE state:
+        if poe_choice != BULKEDIT_POE_NONE:
+            if not iface.poe_entry:
+                outputs.append(f"Interface {iface.name}: Ignored - not PoE capable")
+            else:
+                log = Log(user=request.user,
+                          ip_address=remote_ip,
+                          if_name=iface.name,
+                          switch=switch,
+                          group=group)
+                current_state['poe_state'] = iface.poe_entry.admin_status
+                if poe_choice == BULKEDIT_POE_DOWN_UP:
+                    # Down / Up on interfaces with PoE Enabled:
+                    if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
+                        log.action = LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP
+                        # the PoE index is kept in the iface.poe_entry
+                        # First disable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
+                        # retval = conn.set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_DISABLED, 'i')
+                        # First disable PoE
+                        retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_DISABLED)
+                        if retval < 0:
+                            log.description = f"ERROR: Toggle-Disable PoE on interface {iface.name} - {conn.error.description}"
+                            log.type = LOG_TYPE_ERROR
+                            outputs.append(log.description)
+                            log.save()
+                            counter_increment(COUNTER_ERRORS)
+                        else:
+                            # successful power down
+                            counter_increment(COUNTER_CHANGES)
+                            # now delay
+                            time.sleep(settings.POE_TOGGLE_DELAY)
+                            # Now enable PoE again...
+                            # retval = conn.set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_ENABLED, 'i')
+                            retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_ENABLED)
+                            if retval < 0:
+                                log.description = f"ERROR: Toggle-Enable PoE on interface {iface.name} - {conn.error.description}"
+                                log.type = LOG_TYPE_ERROR
+                                outputs.append(log.description)
+                                log.save()
+                                counter_increment(COUNTER_ERRORS)
+                            else:
+                                # all went well!
+                                success_count += 1
+                                log.type = LOG_TYPE_CHANGE
+                                log.description = f"Interface {iface.name}: PoE Toggle Down/Up OK"
+                                outputs.append(log.description)
+                                log.save()
+                                counter_increment(COUNTER_CHANGES)
+                    else:
+                        outputs.append(f"Interface {iface.name}: PoE Down/Up IGNORED, PoE NOT enabled")
+
+                else:
+                    # just enable or disable:
+                    if poe_choice == BULKEDIT_POE_CHANGE:
+                        # the PoE index is kept in the iface.poe_entry
+                        if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
+                            new_state = POE_PORT_ADMIN_DISABLED
+                            new_state_name = "Disabled"
+                            log.action = LOG_CHANGE_INTERFACE_POE_DOWN
+                        else:
+                            new_state = POE_PORT_ADMIN_ENABLED
+                            new_state_name = "Enabled"
+                            log.action = LOG_CHANGE_INTERFACE_POE_UP
+
+                    elif poe_choice == BULKEDIT_POE_DOWN:
+                        new_state = POE_PORT_ADMIN_DISABLED
+                        new_state_name = "Disabled"
+                        log.action = LOG_CHANGE_INTERFACE_POE_DOWN
+
+                    elif poe_choice == BULKEDIT_POE_UP:
+                        new_state = POE_PORT_ADMIN_ENABLED
+                        new_state_name = "Enabled"
+                        log.action = LOG_CHANGE_INTERFACE_POE_UP
+
+                    # are we actually making a change?
+                    if new_state != current_state['poe_state']:
+                        # yes, go do it:
+                        retval = conn.set_interface_poe_status(iface, new_state)
+                        if retval < 0:
+                            error_count += 1
+                            log.type = LOG_TYPE_ERROR
+                            log.description = f"Interface {iface.name}: PoE {new_state_name} ERROR: {conn.error.description}"
+                            outputs.append(log.description)
+                            log.save()
+                            counter_increment(COUNTER_ERRORS)
+                        else:
+                            success_count += 1
+                            log.type = LOG_TYPE_CHANGE
+                            log.description = f"Interface {iface.name}: PoE {new_state_name}"
+                            outputs.append(log.description)
+                            log.save()
+                            counter_increment(COUNTER_CHANGES)
+                    else:
+                        # already in wanted power state:
+                        outputs.append(f"Interface {iface.name}: Ignored, PoE already {new_state_name}")
+
+        # do we want to change the untagged vlan:
+        if new_pvid > 0:
+            if iface.lacp_master_index > 0:
+                # LACP member interface, we cannot edit the vlan!
+                log = Log(user=request.user,
+                          ip_address=remote_ip,
+                          if_name=iface.name,
+                          switch=switch,
+                          group=group,
+                          type=LOG_TYPE_WARNING,
+                          action=LOG_CHANGE_INTERFACE_PVID,
+                          description=f"Interface {iface.name}: LACP Member, Vlan set to {new_pvid} IGNORED!")
+                outputs.append(log.description)
+                log.save()
+            else:
+                # make sure we cast the proper type here! Ie this needs an Integer()
+                log = Log(user=request.user,
+                          ip_address=remote_ip,
+                          if_name=iface.name,
+                          switch=switch,
+                          group=group,
+                          action=LOG_CHANGE_INTERFACE_PVID)
+                current_state['pvid'] = iface.untagged_vlan
+                if new_pvid != iface.untagged_vlan:
+                    # new vlan, go set it:
+                    retval = conn.set_interface_untagged_vlan(iface, new_pvid)
+                    if retval < 0:
+                        error_count += 1
+                        log.type = LOG_TYPE_ERROR
+                        log.description = f"Interface {iface.name}: Vlan change ERROR: {conn.error.description}"
+                        counter_increment(COUNTER_ERRORS)
+                    else:
+                        success_count += 1
+                        log.type = LOG_TYPE_CHANGE
+                        log.description = f"Interface {iface.name}: Vlan set to {new_pvid}"
+                    outputs.append(log.description)
+                    log.save()
+                    counter_increment(COUNTER_CHANGES)
+                else:
+                    # already on desired vlan:
+                    outputs.append(f"Interface {iface.name}: Ignored, VLAN already {new_pvid}")
+
+        # tired of the old interface description?
+        if new_description:
+            iface_new_description = ""
+            # what are we supposed to do with the description/description?
+            if new_description_type == BULKEDIT_ALIAS_TYPE_APPEND:
+                iface_new_description = f"{iface.description} {new_description}"
+                # outputs.append(f"Interface {iface.name}: Description Append: {iface_new_description}")
+            elif new_description_type == BULKEDIT_ALIAS_TYPE_REPLACE:
+                # check if the original description starts with a string we have to keep:
+                if settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX:
+                    keep_format = f"(^{settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX})"
+                    match = re.match(keep_format, iface.description)
+                    if match:
+                        # beginning match, but check if new submitted description matches requirement:
+                        match_new = re.match(keep_format, new_description)
+                        if not match_new:
+                            # required start string NOT found on new description, so prepend it!
+                            iface_new_description = f"{match[1]} {new_description}"
+                        else:
+                            # new description matches beginning format, keep as is:
+                            iface_new_description = new_description
+                    else:
+                        # no beginning match, just set new description:
+                        iface_new_description = new_description
+                else:
+                    # nothing special, just set new description:
+                    iface_new_description = new_description
+
+            # elif new_description_type == BULKEDIT_ALIAS_TYPE_PREPEND:
+            # To be implemented
+
+            log = Log(user=request.user,
+                      ip_address=remote_ip,
+                      if_name=iface.name,
+                      switch=switch,
+                      group=group,
+                      action=LOG_CHANGE_INTERFACE_ALIAS)
+            current_state['description'] = iface.description
+            retval = conn.set_interface_description(iface, iface_new_description)
+            if retval < 0:
+                error_count += 1
+                log.type = LOG_TYPE_ERROR
+                log.description = f"Interface {iface.name}: Descr ERROR: {conn.error.description}"
+                log.save()
+                counter_increment(COUNTER_ERRORS)
+                return error_page(request, group, switch, conn.error)
+            else:
+                success_count += 1
+                log.type = LOG_TYPE_CHANGE
+                log.description = f"Interface {iface.name}: Descr set OK"
+                counter_increment(COUNTER_CHANGES)
+            outputs.append(log.description)
+            log.save()
+
+        # done with this interface, add pre-change state!
+        runtime_undo_info[if_key] = current_state
+
+    # log final results
+    log = Log(user=request.user,
+              ip_address=remote_ip,
+              switch=switch,
+              group=group,
+              type=LOG_TYPE_CHANGE,
+              action=LOG_CHANGE_BULK_EDIT)
+    if error_count > 0:
+        log.type = LOG_TYPE_ERROR
+        log.description = "Bulk Edits had errors! (see previous entries)"
+    else:
+        log.description = "Bulk Edits OK!"
+    log.save()
+
+    results = {}
+    results['success_count'] = success_count
+    results['error_count'] = error_count
+    results['outputs'] = outputs
+    return results
 
 
 #
@@ -1508,15 +1711,6 @@ def show_stats(request):
         environment['Git commit'] = commit_date
     except Exception:
         environment['Git version'] = 'Not found!'
-    # Celery task processing information
-    if settings.TASKS_ENABLED:
-        celery_info = get_celery_info()
-        if not celery_info or celery_info['stats'] is None:
-            environment['Tasks'] = "Enabled, NOT running"
-        else:
-            environment['Tasks'] = "Enabled and running"
-    else:
-        environment['Tasks'] = "Disabled"
 
     db_items = {}   # database object item counts
     db_items['Switches'] = Switch.objects.count()
@@ -1532,7 +1726,6 @@ def show_stats(request):
     db_items['Netmiko Profiles'] = NetmikoProfile.objects.count()
     db_items['Commands'] = Command.objects.count()
     db_items['Command Lists'] = CommandList.objects.count()
-    db_items['Tasks'] = Task.objects.count()
     db_items['Log Entries'] = Log.objects.count()
 
     usage = {}  # usage statistics
@@ -1662,189 +1855,6 @@ def admin_activity(request):
         'log_title': title,
         'logs_link': False,
     })
-
-
-@login_required(redirect_field_name=None)
-def tasks(request):
-    """
-    This shows scheduled tasks for users
-    """
-    if not user_can_access_task(request, False):
-        error = Error()
-        error.description = "You cannot schedule tasks. If this is an error, please contact your administrator!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    template_name = 'tasks.html'
-
-    task_process_running = is_celery_running()
-    if request.user.is_superuser:
-        # show all types of tasks
-        tasks = Task.objects.all().filter().order_by('status', '-eta')
-    else:
-        # only show non-deleted to regular users
-        tasks = Task.objects.all().filter(user=request.user).exclude(status=TASK_STATUS_DELETED).order_by('status', '-eta')
-        if tasks.count() == 0:
-            return success_page(request, False, False, "You have not scheduled any tasks!")
-
-    page_number = int(request.GET.get('page', default=1))
-
-    # log my activity
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              type=LOG_TYPE_VIEW,
-              action=LOG_VIEW_TASKS,
-              description=f"Viewing tasks (page {page_number})")
-    log.save()
-
-    paginator = Paginator(tasks, settings.PAGINATE_COUNT)    # Show set number of contacts per page.
-    tasks_page = paginator.get_page(page_number)
-
-    return render(request, template_name, {
-        'tasks': tasks_page,
-        'paginator': paginator,
-        'task_process_running': task_process_running,
-    })
-
-
-@login_required(redirect_field_name=None)
-def task_details(request, task_id):
-    """
-    This shows details of a scheduled task
-    """
-    template_name = 'task_details.html'
-
-    task = get_object_or_404(Task, pk=task_id)
-
-    if not user_can_access_task(request, task):
-        # log my activity
-        log = Log(user=request.user,
-                  ip_address=get_remote_ip(request),
-                  type=LOG_TYPE_ERROR,
-                  action=LOG_VIEW_TASK_DETAILS,
-                  description=f"You do not have permission to view task {task_id} details!")
-        log.save()
-        error = Error()
-        error.description = log.description
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    # log my activity
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              type=LOG_TYPE_VIEW,
-              action=LOG_VIEW_TASK_DETAILS,
-              description=f"Viewing task {task_id} details")
-    log.save()
-
-    task_process_running = is_celery_running()
-
-    # render the template
-    return render(request, template_name, {
-        'task': task,
-        'task_process_running': task_process_running,
-    })
-
-
-@login_required(redirect_field_name=None)
-def task_delete(request, task_id):
-    """
-    This deleted a scheduled task
-    """
-    task = get_object_or_404(Task, pk=task_id)
-
-    if not user_can_access_task(request, task):
-        log = Log(user=request.user,
-                  ip_address=get_remote_ip(request),
-                  action=LOG_TASK_DELETE,
-                  type=LOG_TYPE_ERROR,
-                  description=f"You do not have permission to delete task {task_id} !")
-        log.save()
-        error = Error()
-        error.description = log.description
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    if not is_celery_running():
-        description = "The Task Process is NOT running, so we cannot delete this task at the moment!"
-        return warning_page(request=request, group=False, switch=False, description=description)
-
-    # log my activity
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              action=LOG_TASK_DELETE)
-    if task_revoke(task, False):
-        log.type = LOG_TYPE_CHANGE
-        log.description = f"Task {task_id} deleted"
-        log.save()
-        return success_page(request, False, False, f"Task {task_id} has been deleted!")
-    else:
-        log.description = f"Error deleting task {task_id} !"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        error = Error()
-        error.description = log.description
-        return error_page(request=request, group=False, switch=False, error=error)
-
-
-@login_required(redirect_field_name=None)
-def task_terminate(request, task_id):
-    """
-    This terminates a hung (or running) task
-    Only callable by admins or staff!
-    """
-    if not request.user.is_superuser and not request.user.is_staff:
-        log = Log(user=request.user,
-                  ip_address=get_remote_ip(request),
-                  action=LOG_TASK_TERMINATE,
-                  type=LOG_TYPE_ERROR,
-                  description=f"You do not have permission to terminate task {task_id}. Please contact an administrator!")
-        log.save()
-        error = Error()
-        error.description = log.description
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    task = get_object_or_404(Task, pk=task_id)
-
-    if not is_celery_running():
-        description = "The Task Process is NOT running, so we cannot terminate this task at the moment!"
-        return warning_page(request=request, group=False, switch=False, description=description)
-
-    # log my activity
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              action=LOG_TASK_TERMINATE)
-    if task_revoke(task, True):
-        log.type = LOG_TYPE_CHANGE
-        log.description = f"Task {task_id} terminated"
-        log.save()
-        counter_increment(COUNTER_CHANGES)
-        return success_page(request, False, False, f"Task {task_id} has been terminated (killed)!")
-    else:
-        log.type = LOG_TYPE_ERROR
-        log.description = f"Error terminating task {task_id}"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = log.description
-        return error_page(request=request, group=False, switch=False, error=error)
-
-
-def task_revoke(task, terminate):
-    """
-    Does the actual works of deleting/revoking/terminating a tasks
-    """
-    from openl2m.celery import app
-    try:
-        app.control.revoke(task.celery_task_id, terminate=terminate)
-    except Exception:
-        # should probably log something here!
-        return False
-    # update the task:
-    task.status = TASK_STATUS_DELETED
-    task.save()
-    return True
 
 
 def rights_to_group_and_switch(request, group_id, switch_id):

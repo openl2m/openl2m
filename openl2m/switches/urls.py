@@ -38,16 +38,10 @@ urlpatterns = [
     path(r'search', views.switch_search, name='switch_search'),
     path(r'activity', views.admin_activity, name='admin_activity'),
     path(r'stats', views.show_stats, name='show_stats'),
-    path(r'tasks', views.tasks, name='tasks'),
-    path(r'tasks/details/<int:task_id>/', views.task_details, name='task_details'),
-    path(r'tasks/delete/<int:task_id>/', views.task_delete, name='task_delete'),
-    path(r'tasks/terminate/<int:task_id>/', views.task_terminate, name='task_terminate'),
-
 
     path('<int:group_id>/<int:switch_id>/', views.switch_basics, name='switch_basics'),
     path('<int:group_id>/<int:switch_id>/activity/', views.switch_activity, name='switch_activity'),
     path('<int:group_id>/<int:switch_id>/bulkedit/', views.switch_bulkedit, name='switch_bulkedit'),
-    path('<int:group_id>/<int:switch_id>/bulkedit_task/', views.switch_bulkedit_task, name='switch_bulkedit_task'),
     path('<int:group_id>/<int:switch_id>/command/', views.switch_cmd_output, name='switch_cmd_output'),
     path('<int:group_id>/<int:switch_id>/command_template/', views.switch_cmd_template_output, name='switch_cmd_template_output'),
     path('<int:group_id>/<int:switch_id>/details/', views.switch_arp_lldp, name='switch_arp_lldp'),

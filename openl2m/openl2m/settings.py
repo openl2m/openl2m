@@ -387,35 +387,8 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'project-static'),
 )
 
-# task scheduling via Celery:
-TASKS_ENABLED = getattr(configuration, 'TASKS_ENABLED', False)
-TASKS_BCC_ADMINS = getattr(configuration, 'TASKS_BCC_ADMINS', False)
-CELERY_BROKER_URL = getattr(configuration, 'CELERY_BROKER_URL', 'redis://localhost:6379')
-CELERY_RESULT_BACKEND = getattr(configuration, 'CELERY_RESULT_BACKEND', 'redis://localhost:6379')
-CELERY_ACCEPT_CONTENT = getattr(configuration, 'CELERY_ACCEPT_CONTENT', ['application/json'])
-CELERY_RESULT_SERIALIZER = getattr(configuration, 'CELERY_RESULT_SERIALIZER', 'json')
-CELERY_TASK_SERIALIZER = getattr(configuration, 'CELERY_TASK_SERIALIZER', 'json')
-
-# customizing Flatpickr time/date settings:
 #
-# this defines the date/time format used in the Flatpickr JS library:
-# Flatpickr option 'time_24hr: true'
-TASK_USE_24HR_TIME = getattr(configuration, 'TASK_USE_24HR_TIME', False)
-if TASK_USE_24HR_TIME:
-    FLATPICKR_24HR_OPTION = 'true'
-else:
-    FLATPICKR_24HR_OPTION = 'false'
-TASK_SUBMIT_MINUTE_INCREMENT = getattr(configuration, 'TASK_SUBMIT_MINUTE_INCREMENT', 5)    # the library default
-TASK_SUBMIT_MAX_DAYS_IN_FUTURE = getattr(configuration, 'TASK_SUBMIT_MAX_DAYS_IN_FUTURE', 28)
-
-# pay attention to these two, they need to match format!
-# Flatpickr option 'dateFormat: "Y-m-d H:i"''
-FLATPICKR_DATE_FORMAT = getattr(configuration, 'FLATPICKR_DATE_FORMAT', 'Y-m-d H:i')
-# this next one needs to match the Flatpickr 'dateFormat' option above,
-# minus the ending %z which add timezone offset:
-TASK_SUBMIT_DATE_FORMAT = getattr(configuration, 'TASK_SUBMIT_DATE_FORMAT', '%Y-%m-%d %H:%M %z')
-#
-# Email settings for sending results of Bulk-Edit jobs
+# Email settings for command-line reports, etc.
 #
 EMAIL_HOST = getattr(configuration, 'EMAIL_HOST', 'localhost')
 EMAIL_HOST_USER = getattr(configuration, 'EMAIL_HOST_USER', '')

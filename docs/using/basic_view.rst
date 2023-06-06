@@ -19,11 +19,6 @@ The banner bar shows the switch name on the left. This may be preceded by one or
 which would be links to external systems with more information about the device. E.g. you may see a link to the
 Network Management System.
 
-There may be an icon to the left of switch name as well: |tasks| This means there are scheduled tasks defined for this switch.
-Details about these tasks can be found in the Information tab.
-
-.. |tasks| image:: ../_static/tasks.png
-
 The entry in the center, |switch-arp-lldp-header|, will get you a real-time read of the ethernet
 tables (MAC address) and LLPD neighbors of the switch. If the device is a router, ARP entries for IPv4 will also be shown.
 
@@ -204,11 +199,6 @@ If permissions allow, users will see the Bulk Edit tab. This shows the Bulk Edit
 This form allows you to apply or schedule (if permitted) a variety of changes at once
 to a number of switch interfaces.
 
-This form has two submit buttons, one to apply the changes now,
-and if enabled and permitted by your administrator, another to schedule
-the changes as a task at a later time.
-**Note:** this option will only show if all the back-end processes for task scheduling are running.
-
 .. image:: ../_static/bulk-edit-form.png
 
 * You can toggle the interface up/down state (a admin-down interface will be brought up, and vice versa,
@@ -225,25 +215,6 @@ Fill in the form, then select the interfaces you want to apply this to.
 **To apply the change now**, click the "Update Selected Interfaces NOW" button,
 and your changes will be applied. Please be patient!
 
-**To schedule a task to apply these changes at a later time**, you need to fill in
-two additional fields:
-
-.. image:: ../_static/bulk-edit-task-form.png
-
-* pick the proposed time the task will run. This is in your local time zone, in 5 minute increments. You can schedule up to 28 days (4 weeks) in advance.
-* fill in a short description of the task.
-
-Then click the "Schedule Changes on Selected Interfaces" button.
-
-**Note**
- The requested time is a "no-sooner-then" time. Depending on server load,
- the task may start a short time after the requested date and time.
- Upon completion of the task, the user will be sent an email with the results
- (if their email address is listed in their profile).
-
-Tasks can be seen from the "Information" tab by any user that has access to the switch.
-Additionally, users can see all tasks they have scheduled from the main menu, under "Scheduled Tasks".
-
 
 Switch Information Tab
 ----------------------
@@ -259,9 +230,6 @@ E.g.:
 |device_ip_poe_info|
 
 |device_stacking_info|
-
-If there are scheduled tasks for the selected switch, they will also be shown here.
-Any user with the ability to create tasks, can delete scheduled tasks from this tab. (Assuming the background processes are running!)
 
 On properly configured Cisco switches (:doc:`see Faq <../faq>`), we can show recent log entries,
 after you have selected the "More Hardware Details" button.

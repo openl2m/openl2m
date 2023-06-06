@@ -2,26 +2,6 @@
 
 {# This shows the menu of options for a switch #}
 
-{% block javascript %}
-{# this generates the date/time picker #}
-<script type="text/javascript">
-    $(document).ready(function() {
-      // Flatpickr time selector settings
-      // invoked by setting id="dateTime" on element
-      $("#dateTime").flatpickr({
-        allowInput: true,
-        enableSeconds: false,
-        enableTime: true,
-        minuteIncrement: {{settings.TASK_SUBMIT_MINUTE_INCREMENT }},
-        time_24hr: {{ settings.FLATPICKR_24HR_OPTION }},
-        dateFormat: "{{ settings.FLATPICKR_DATE_FORMAT }}",
-        minDate: "today",
-        maxDate: new Date().fp_incr({{ settings.TASK_SUBMIT_MAX_DAYS_IN_FUTURE }}),    // 28 days from now
-      });
-    });
-</script>
-{% endblock %}
-
 {% block title %}Viewing '{{ switch.name }}'{% endblock %}
 
 {% block content %}
@@ -42,11 +22,6 @@
               <span data-toggle="tooltip" title="{{ switch.description }}"><strong>{{ switch.name }}</strong></span>
             {% else %}
               <strong>{{ switch.name }}</strong>
-            {% endif %}
-            {% if tasks %}
-              <span data-toggle="tooltip" title="There are scheduled tasks for this switch. For details, see the Switch Information tab!">
-                <i class="fas fa-calendar-alt" aria-hidden="true"></i>
-              </span>
             {% endif %}
             {% if switch.read_only or group.read_only or user.profile.read_only %}
               <span data-toggle="tooltip" title="This switch is set as Read-Only by the administrator. You can not make any changes!">

@@ -41,7 +41,6 @@
           <tr><td class="text-muted">Admin Access</td><td>{{ user.is_superuser|yesno|capfirst }}</td></tr>
           <tr><td class="text-muted">Read-Only Access</td><td>{{ user.profile.read_only|yesno|capfirst }}</td></tr>
           <tr><td class="text-muted">Bulk-Edit Access</td><td>{{ user.profile.bulk_edit|yesno|capfirst }}</td></tr>
-          <tr><td class="text-muted">Tasks Access</td><td>{{ user.profile.tasks|yesno|capfirst }}</td></tr>
           <tr><td class="text-muted">PoE Toggle</td><td>{{ user.profile.allow_poe_toggle|yesno|capfirst }}</td></tr>
           <tr><td class="text-muted">Edit Description</td><td>{{ user.profile.edit_if_descr|yesno|capfirst }}</td></tr>
           <tr><td class="text-muted">Ask Are You Sure?</td><td>{{ user.profile.are_you_sure|yesno|capfirst }}</td></tr>

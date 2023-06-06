@@ -23,7 +23,7 @@ from ordered_model.admin import OrderedTabularInline, OrderedInlineModelAdminMix
 
 # Register your models here.
 from switches.models import (Command, CommandList, CommandTemplate, Switch, SwitchGroup, SwitchGroupMembership,
-                             SnmpProfile, NetmikoProfile, VLAN, VlanGroup, Task)
+                             SnmpProfile, NetmikoProfile, VLAN, VlanGroup)
 
 # register with the custom admin site
 from openl2m.admin import admin_site
@@ -274,18 +274,6 @@ class CommandTemplateAdmin(admin.ModelAdmin):
     )
 
 
-class TaskAdmin(admin.ModelAdmin):
-    search_fields = ['description', 'user', 'group', 'switch']
-    # we want all fields read-only:
-    # readonly_fields = []
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
 # add a class to show the built-in admin pages LogEntry objects:
 class LogEntryAdmin(admin.ModelAdmin):
     # to have a date-based drilldown navigation in the admin page
@@ -346,5 +334,4 @@ admin_site.register(NetmikoProfile, NetmikoProfileAdmin)
 admin_site.register(Command, CommandAdmin)
 admin_site.register(CommandList, CommandListAdmin)
 admin_site.register(CommandTemplate, CommandTemplateAdmin)
-admin_site.register(Task, TaskAdmin)
 admin_site.register(LogEntry, LogEntryAdmin)

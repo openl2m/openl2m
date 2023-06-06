@@ -35,9 +35,6 @@
                   </a>
                   <ul class="dropdown-menu">
                     <li><a href="{% url 'home' %}"><i class="fas fa-ethernet"></i> Home</a></li>
-                    {% if request.user.profile.tasks or request.user.is_superuser %}
-                    <li><a href="{% url 'switches:tasks' %}"><i class="fas fa-calendar-alt" aria-hidden="true"></i> Scheduled Tasks</a></li>
-                    {% endif %}
                     <li><a href="{% static 'docs/html/using/index.html' %}" target="_docs"><i class="fas fa-book" aria-hidden="true"></i> Documentation</a></li>
                     {% if request.user.is_superuser %}
                       <li class="divider"></li>

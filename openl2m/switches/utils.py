@@ -232,3 +232,18 @@ def get_ip_dns_name(ip):
     except Exception:
         hostname = ''
     return hostname
+
+
+def get_choice_name(choice_list, choice):
+    """Get the name of a choice
+
+    Args:
+        choice_list (list): a list of [index, name] items indicating choices
+
+    Return:
+        (str): the name of the choice requested, or a default value.
+    """
+    for item in choice_list:
+        if item[0] == choice:
+            return item[1]
+    return "Invalid Choice!"
