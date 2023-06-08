@@ -12,14 +12,6 @@ openl2m.admin module
    :undoc-members:
    :show-inheritance:
 
-openl2m.celery module
----------------------
-
-.. automodule:: openl2m.celery
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 openl2m.configuration module
 ----------------------------
 

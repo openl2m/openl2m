@@ -207,7 +207,7 @@ Bug Fixes
 V1.1 Configuration changes
 --------------------------
 
-See also the :doc:`the Tasks installation section<../installation/tasks>`.
+See also the Tasks installation section (**removed in v2.4**).
 
 Run upgrade.sh first!
 

@@ -21,7 +21,16 @@ using Python v3.10 and PostgreSql 14!*
 Version 2.4.4
 -------------
 
+Release Date: 2023-06-08
+
+* add 'Save as New' to the switch admin page.
 * Tasks scheduling is removed.
+* various documentation updates.
+* upgrade jQuery components.
+
+Bug Fixes:
+
+* fix date/time display in system uptime.
 
 Version 2.4.3a
 --------------
