@@ -72,7 +72,6 @@ Add this to configuration.py:
           }
       },
       'loggers': {
-          # NOTE: if using Celery, do NOT use file, but only console and/or syslog!
           'openl2m.console': {
               'handlers': ['console'],
               'level': 'DEBUG',
@@ -84,4 +83,4 @@ Add this to configuration.py:
 Alternatively, you can use a syslog config, or the like, that does NOT write files directly.
 See more at https://docs.djangoproject.com/en/3.2/topics/logging/
 
-**Don't forget to remove this configuration when you are done!** (and start Celery, if needed)
+**Don't forget to remove this configuration when you are done!**

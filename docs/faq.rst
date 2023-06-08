@@ -77,21 +77,6 @@ you have to read your device data and import into OpenL2M. See the ./scripts/exa
 
 This is described in :doc:`Debugging <configuration/debugging>`
 
-
-* **My Celery service does not start?**
-
-Login to the server running OpenL2M, and from a root shell, run the following commands:
-
-.. code-block:: bash
-
-  # su celery
-  [celery@server openl2m]$  cd /opt/openl2m/openl2m
-  [celery@server openl2m]$  celery -A openl2m worker --loglevel info
-
-This will run the Celery process in the foreground. Look at the output for errors. Likely cause is the LOGGING config.
-This is not compatible when logging to files! You need to use a syslog config, or the like,
-that does NOT write files directly.
-
 * **How do I configure my Cisco switch for Syslog messages over SNMP?**
 
 Regular Cisco IOS devices need a configuration similar to the one below, which allows for the 50 most recent

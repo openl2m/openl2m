@@ -99,7 +99,6 @@ Stop the services, and run the upgrade:
 .. code-block:: bash
 
   sudo systemctl stop openl2m
-  sudo systemctl stop celery
   ./upgrade.sh
 
 This will recreate the virtual environment, and should not show any errors.
@@ -120,4 +119,3 @@ If this is all correct, you can restart the services, and should be good to go!
 .. code-block:: bash
 
   sudo systemctl start openl2m
-  sudo systemctl start celery
