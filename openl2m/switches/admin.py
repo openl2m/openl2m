@@ -46,7 +46,7 @@ class SwitchAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
     list_display = ('name', 'get_switchgroups')
-    readonly_fields = ('hostname', 'snmp_oid', )
+    readonly_fields = ('hostname', )
     filter_horizontal = ('command_templates', )
     search_fields = ['name']
     inlines = (SwitchInline,)
@@ -73,7 +73,7 @@ class SwitchAdmin(admin.ModelAdmin):
             'fields': ('nms_id',)
         }),
         ('Read-Only Fields', {
-            'fields': ('hostname', 'snmp_oid')
+            'fields': ('hostname', )
         }),
     )
 

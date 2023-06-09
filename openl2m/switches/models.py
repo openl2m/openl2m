@@ -852,13 +852,6 @@ class Switch(models.Model):
     #    verbose_name='Do NOT Show Interfaces',
     #    help_text='If checked, do not ever show interfaces of this device! Mostly useful for command-only devices!'
     # )
-    snmp_oid = models.CharField(
-        max_length=100,
-        default='',
-        blank=True,
-        verbose_name='SNMP systemOID for this switch',
-        help_text='The switch OID as reported via snmp.',
-    )
 
     class Meta:
         ordering = ['name']

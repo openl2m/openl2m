@@ -1626,25 +1626,7 @@ class SnmpConnector(Connector):
         # first time when data was read:
         self.add_more_info('System', 'Read Time', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.sys_uptime_timestamp)))
 
-        # see if the ObjectID changed
-        save = False
-        if self.object_id:
-            # compare database entry (self.switch) with snmp read value:
-            if self.switch.snmp_oid != self.object_id:
-                self.switch.snmp_oid = self.object_id
-                log = Log(action=LOG_NEW_OID_FOUND,
-                          description="New System ObjectID found",
-                          switch=self.switch,
-                          user=self.request.user,
-                          group=self.group,
-                          ip_address=get_remote_ip(self.request),
-                          type=LOG_TYPE_WARNING)
-                if self.request:
-                    log.user = self.request.user
-                log.save()
-                save = True
-
-        # and see if the hostname changed
+        # see if the hostname changed
         if self.hostname:
             if self.switch.hostname != self.hostname:
                 self.switch.hostname = self.hostname
@@ -1659,9 +1641,6 @@ class SnmpConnector(Connector):
                 if self.request:
                     log.user = self.request.user
                 log.save()
-                save = True
-        if save:
-            self.switch.save()
 
         return 1
 
