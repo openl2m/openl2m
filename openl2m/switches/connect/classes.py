@@ -121,6 +121,7 @@ class Interface():
         self.description = ""             # the interface description, as set by the switch configuration, from IF-MIB
         self.addresses_ip4 = {}     # dictionary of all my ipv4 addresses on this interface
         self.addresses_ip6 = {}     # dictionary of all my ipv6 addresses on this interface
+        self.igmp_snooping = False  # if True, interface does IGMP snooping
         # vlan related
         self.port_id = -1            # Q-Bridge MIB port id
         self.untagged_vlan = -1      # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
@@ -269,6 +270,7 @@ class Vlan():
         self.type = VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
         self.admin_status = VLAN_ADMIN_ENABLED     # ENABLED or DISABLED
         self.status = VLAN_STATUS_OTHER     # 1-other-0, 2-permanent, 3-dynamic(gvrp)
+        self.igmp_snooping = False          # if True, vlan does IGMP snooping
         # dot1qVlanCurrentEgressPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
         self.current_egress_portlist = PortList()
         # dot1qVlanStaticPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan

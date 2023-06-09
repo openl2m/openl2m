@@ -22,6 +22,14 @@
                   title="Vlan learned via MVRP or GVRP">
               </i>
             {% endif %}
+            {% if vlan.igmp_snooping %}
+              &nbsp;
+              <i class="fas fa-bullhorn" aria-hidden="true"
+                  alt="IGMP Snooping Enabled"
+                  data-toggle="tooltip"
+                  title="IGMP Snooping Enabled">
+              </i>
+            {% endif %}
             </div>
           {% endif %}
         {% endfor%}

@@ -111,3 +111,7 @@ snmp_mib_variables['hh3cifVLANTrunkAllowListLow'] = hh3cifVLANTrunkAllowListLow 
 
 hh3cifVLANTrunkAllowListHigh = '.1.3.6.1.4.1.25506.8.35.5.1.3.1.7'  # + portId = VlanBitMap for vlan 2049 - 4096
 snmp_mib_variables['hh3cifVLANTrunkAllowListHigh'] = hh3cifVLANTrunkAllowListHigh   # + portId = VlanBitMap for vlan 2049 - 4096
+
+# IGMP snooping, from hh3cIgmpSnoopingVlanStatusTable.
+hh3cIgmpSnoopingVlanEnabled = '.1.3.6.1.4.1.25506.8.35.7.1.9.1.2'  # hh3cIgmpSnoopingVlanEnabled.<vlan_id> = status
+snmp_mib_variables['hh3cIgmpSnoopingVlanEnabled'] = hh3cIgmpSnoopingVlanEnabled

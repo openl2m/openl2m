@@ -27,13 +27,14 @@ from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
 from switches.connect.classes import PortList
 from switches.connect.constants import IF_TYPE_ETHERNET, POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_branch
-from switches.connect.snmp.constants import dot1qPvid
+from switches.connect.snmp.constants import SNMP_TRUE, dot1qPvid
 from switches.utils import dprint, get_remote_ip
 
 from .constants import (BYTES_FOR_2048_VLANS, HH3C_IF_MODE_INVALID, HH3C_IF_MODE_TRUNK, HH3C_IF_MODE_HYBRID, HH3C_IF_MODE_FABRIC, HH3C_ROUTE_MODE,
                         hh3cifVLANTrunkAllowListLow, hh3cifVLANTrunkAllowListHigh, hh3cdot1qVlanPorts, hh3cCfgRunModifiedLast,
                         hh3cCfgRunSavedLast, hh3cCfgStartModifiedLast, hh3cPsePortCurrentPower, hh3cdot1qVlanName, hh3cifVLANType,
-                        hh3cIfLinkMode, hh3cCfgOperateRowStatus, hh3cCfgOperateType, HH3C_running2Startup, HH3C_createAndGo
+                        hh3cIfLinkMode, hh3cCfgOperateRowStatus, hh3cCfgOperateType, HH3C_running2Startup, HH3C_createAndGo,
+                        hh3cIgmpSnoopingVlanEnabled,
                         )
 
 
@@ -125,6 +126,12 @@ class SnmpConnectorComware(SnmpConnector):
         # if not self.get_snmp_branch('hh3cifVLANTrunkAllowListHigh'):
         #    dprint("Comware High VLAN PortList FALSE")
         #    return False
+
+        # read IGMP-snooping for vlans:
+        if self.get_snmp_branch('hh3cIgmpSnoopingVlanEnabled', self._parse_mibs_comware_vlan_igmp) < 0:
+            dprint("hh3cIgmpSnoopingVlanEnabled returned error!")
+            self.add_warning("Error getting 'HH3C-Vlan-IGMP-Info' (hh3cIgmpSnoopingVlanEnabled)")
+
         return True
 
     def get_my_hardware_details(self):
@@ -381,6 +388,20 @@ class SnmpConnectorComware(SnmpConnector):
             # some Comware switches only report "VLAN xxxx", skip that!
             if not val.startswith('VLAN '):
                 self.vlans[vlan_id].name = val
+            return True
+        return False
+
+    def _parse_mibs_comware_vlan_igmp(self, oid, val):
+        """
+        Parse Comware specific VLAN IGMP mib
+        return True if we parse it, False if not.
+        """
+        vlan_id = int(oid_in_branch(hh3cIgmpSnoopingVlanEnabled, oid))
+        if vlan_id > 0:
+            # this vlan has IMGP snooping enabled.
+            if vlan_id in self.vlans.keys():
+                if int(val) == SNMP_TRUE:
+                    self.vlans[vlan_id].igmp_snooping = True
             return True
         return False
 

@@ -16,6 +16,14 @@
        title="Tagged/Trunked Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
   </i>
 {% endif %}
+{% if iface.igmp_snooping %}
+  &nbsp;
+  <i class="fas fa-bullhorn" aria-hidden="true"
+       alt="IGMP Snooping Enabled"
+       data-toggle="tooltip"
+       title="IGMP Snooping Enabled">
+  </i>
+{% endif %}
 {% if iface.lacp_master_index > 0 %}
   &nbsp;
   <i class="fas fa-link" aria-hidden="true"
