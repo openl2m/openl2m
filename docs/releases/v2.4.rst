@@ -18,6 +18,12 @@ using Python v3.10 and PostgreSql 14!*
     This needs to include the schema, i.e. 'https://' or 'http://' if not secured!
     See the installation steps for more details.
 
+Version 2.4.5
+-------------
+
+* add icon for IGMP snooping on vlans on Comware devices.
+
+
 Version 2.4.4
 -------------
 
