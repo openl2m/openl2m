@@ -1,0 +1,116 @@
+{% load helpers %}
+{% load static %}
+<div class="panel-group">
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Add a VLAN</strong>
+                </div>
+                <div class="panel-body">
+                    <form name="vlan_add_form"
+                    action="{% url 'switches:switch_vlan_manage' group.id switch.id %}"
+                    method="post">
+                    {% csrf_token %}
+                    <table class="table table-hover table-headings w-auto">
+                    <tbody>
+                    <tr>
+                        <td align="right"><label for="id_vlan_id">VLAN:</label></td>
+                        <td align="left">
+                            <span data-toggle="tooltip" title="Enter the new vlan ID.">
+                                <input type="number" size="5" class="form-control" name="vlan_id" id="id_vlan_id" value="" placeholder="new vlan id" min="2" max="4094">
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right"><label for="id_vlan_id">Name:</label></td>
+                        <td align="left">
+                            <span data-toggle="tooltip" title="Enter the name of the new vlan.">
+                                <input type="text" class="form-control" name="vlan_name" maxlength="32" id="id_vlan_name" value="" placeholder="new vlan name">
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>
+                            <input type="submit" name="vlan_create"
+                                class="btn btn-primary"
+                                value="Create"
+                                id="create"
+                                {% if request.user.profile.are_you_sure %}
+                                onclick="return confirm_change('Are you sure you want create this vlan?')">
+                                {% endif %}
+                        </td>
+                    </tr>
+                    <tbody>
+                    </table>
+                    </form>
+                </div>
+            </div>{# panel #}
+        </div>{# col #}
+
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>Edit a VLAN</strong>
+                </div>
+                <div class="panel-body">
+                    <form name="vlan_edit_form"
+                    action="{% url 'switches:switch_vlan_manage' group.id switch.id %}"
+                    method="post">
+                    {% csrf_token %}
+
+                    <table class="table table-hover table-headings w-auto">
+                    <tbody>
+                    <tr>
+                        <td align="right"><label for="id_vlan_id">VLAN:</label></td>
+                        <td align="left">
+                            <span data-toggle="tooltip" title="Select the vlan to edit.">
+                                <select name="vlan_id" id="id_vlan_id">
+                                {% for vlan_id, vlan in connection.allowed_vlans.items %}
+                                <option value="{{ vlan_id }}">{{ vlan_id }}
+                                    {% if vlan.name %} - {{ vlan.name }}{% endif %}
+                                </option>
+                                {% endfor %}
+                                </select>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right"><label for="id_vlan_name">Name:</label></td>
+                        <td align="left">
+                            <span data-toggle="tooltip" title="Enter new name for selected vlan.">
+                                <input type="text" class="form-control" name="vlan_name" maxlength="32" id="id_vlan_name" value="" placeholder="new vlan name">
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="left">
+                            <input type="submit" name="vlan_edit"
+                            class="btn btn-primary"
+                            value="Update"
+                            id="change"
+                            {% if request.user.profile.are_you_sure %}
+                            onclick="return confirm_change('Are you sure you want update this vlan?')">
+                            {% endif %}
+                        </td>
+                        <td align="right">
+{% if request.user.is_superuser %}
+                            <input type="submit" name="vlan_delete"
+                            class="btn btn-primary"
+                            value="DELETE !!!"
+                            id="delete"
+                            onclick="return confirm_change('Are you sure you want DELETE this vlan?')">
+{% endif %}
+                        </td>
+                    </tr>
+                    <tbody>
+                    </table>
+                    </form>
+                </div>
+            </div>{# panel #}
+        </div>{# col #}
+
+    </div>{# row #}
+</div>{# class panel-group #}

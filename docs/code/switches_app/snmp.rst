@@ -34,10 +34,9 @@ In the parsing loop, the return data is parsed via the default **SnmpConnector._
 EasySnmp Library use
 --------------------
 
-We use the Session() interface from the Python "Easy SNMP" library.
-This calls the net-snmp package of the OS.
+We use the Session() interface from the Python "Easy SNMP" library. This calls the net-snmp package of the OS.
 Use of the native library gives significant performance improvements over the pure Python *pysnmp* library.
-The EasySNMP documentation has helpful examples.
+The EasySNMP documentation has helpful examples. This session is stored in *SnmpConnector()._snmp_session*
 
 Vlan manipulation via snmp requires dealing with bitmap field that are represented in OctetString snmp data types.
 EasySNMP has a hard time dealing with this due to how it internally translates everything to/from Unicode strings.
@@ -55,7 +54,23 @@ The vendor-specific derived classes are:
 * **SnmpConnectorDell()** - switches/connect/snmp/dell/connector.py - Dell switches (untested at this time)
 * **SnmpConnectorJuniper()** - switches/connect/snmp/juniper/connector.py - Juniper switches in 'read-only' mode
 * **SnmpConnectorProcurve()** - switches/connect/snmp/procurve/connector.py - supports the HP/Procurve 'Provision' switches
-
+* **SnmpConnectorArubaCx()** - switches/connect/snmp/aruba_cx/connector.py - supports the HP/Aruba AOS-CX switches,
+  which implement partial SNMP support.(They prefer the AOS-CX API)
 
 See here how to add new vendors that require non-standard connector classes.
 See :doc:`Vendor implementations <vendor_specific>`
+
+
+VLAN Add/Edit/Delete
+--------------------
+
+In SnmpConnector() in switches/connect/snmp/connector.py, we implement Vlan Adding and Editing for SNMP-managed devices.
+See *def vlan_create(), vlan_edit() and vlan_delete()*
+
+This functionality implements the most common way of doing this on SNMP devices, using atomic (set-multiple) writes to two OIDs.
+
+In *def vlan_create(self, vlan_id, vlan_name)* , we write to *dot1qVlanStaticRowStatus.<vlan id>* and set it to *createAndGo(4)*.
+This should work on most devices that implement the Q-Bridge MIB. However, some devices may need to set *createAndWait(5)*.
+If your device needs a different sequency, please override this function in your device driver!
+
+*def vlan_delete()* calls on *dot1qVlanStaticRowStatus.<vlan id>* and sets it to *destroy(6)*, to remove a vlan.

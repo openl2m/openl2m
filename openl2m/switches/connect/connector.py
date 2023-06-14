@@ -118,6 +118,7 @@ class Connector():
         # capabilities of the vendor or tech-specific driver, we assume No for all changing:
         self.can_change_admin_status = False
         self.can_change_vlan = False
+        self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_change_poe_status = False
         self.can_change_description = False
         self.can_save_config = False    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
@@ -478,6 +479,62 @@ class Connector():
         # self.save_cache()
         return True
 
+    def vlan_create(self, vlan_id, vlan_name):
+        '''
+        Create a new vlan on this device. This will update the self.vlans{} dict.
+        This is a function that needs to be implemented by a specific vendor or technology drivers
+        to implemented the actual creation of the vlan. Upon success, this then needs to be
+        called for the bookkeeping !
+
+        Args:
+            id (int): the vlan id
+            name (str): the name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan_name)
+        return True
+
+    def vlan_edit(self, vlan_id, vlan_name):
+        '''
+        Edit the vlan name. This will update the self.vlans{} dict.
+        This is a function that needs to be implemented by a specific vendor or technology drivers
+        to implemented the actual creation of the vlan. Upon success, this then needs to be
+        called for the bookkeeping !
+
+        Args:
+            id (int): the vlan id
+            name (str): the name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan_name)
+        # update allowed vlans:
+        if vlan_id in self.allowed_vlans:
+            self.allowed_vlans[vlan_id].name = vlan_name
+        return True
+
+    def vlan_delete(self, vlan_id):
+        '''
+        Delete the vlan. This will update the self.vlans{} dict.
+        This is a function that needs to be implemented by a specific vendor or technology drivers
+        to implemented the actual creation of the vlan. Upon success, this then needs to be
+        called for the bookkeeping !
+
+        Args:
+            id (int): the vlan id
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        self.vlans.pop(vlan_id)
+        # update allowed vlans as well:
+        if vlan_id in self.allowed_vlans:
+            self.allowed_vlans.pop(vlan_id)
+        return True
+
     #############################
     # various support functions #
     #############################
@@ -488,7 +545,7 @@ class Connector():
         Store it in the vlans{} dictionary, indexed by vlan_id
 
         Args:
-            vlan_id: integeer os the vlan to add
+            vlan_id (int): id of the vlan to add
             vlan_name (str): string representing the vlan name
 
         Returns:

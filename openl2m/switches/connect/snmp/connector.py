@@ -27,7 +27,7 @@ from django.conf import settings
 from pysnmp.hlapi import (getCmd, setCmd, UdpTransportTarget, ContextData, ObjectType, ObjectIdentity, SnmpEngine, CommunityData, UsmUserData,
                           usmHMACSHAAuthProtocol, usmHMACMD5AuthProtocol, usmAesCfb128Protocol, usmDESPrivProtocol
                           )
-from pysnmp.proto.rfc1902 import ObjectName, OctetString
+from pysnmp.proto.rfc1902 import ObjectName, OctetString, Integer
 
 from switches.constants import (LOG_TYPE_ERROR, LOG_TYPE_WARNING, LOG_SNMP_ERROR, LOG_UNDEFINED_VLAN, LOG_NEW_OID_FOUND, LOG_NEW_HOSTNAME_FOUND,
                                 SNMP_VERSION_2C, SNMP_VERSION_3, SNMP_V3_SECURITY_NOAUTH_NOPRIV, SNMP_V3_SECURITY_AUTH_NOPRIV, SNMP_V3_AUTH_MD5, SNMP_V3_AUTH_SHA,
@@ -54,6 +54,7 @@ from switches.connect.snmp.constants import (snmp_mib_variables, ifIndex, ifDesc
                                              pethPsePortDetectionStatus, dot3adAggActorAdminKey, dot3adAggPortActorAdminKey, ieee8021QBridgeMvrpEnabledStatus,
                                              dot1dTpFdbPort, ipNetToMediaPhysAddress, lldpRemChassisId, lldpRemPortId, lldpRemPortDesc, lldpRemSysName, lldpRemSysDesc, lldpRemSysCapEnabled,
                                              lldpRemChassisIdSubtype, enterprises, enterprise_id_info, IF_ADMIN_STATUS_UP, IF_OPER_STATUS_UP, IF_OPER_STATUS_DOWN,
+                                             vlan_createAndGo, vlan_destroy,
                                              )
 
 
@@ -161,7 +162,7 @@ class pysnmpHelper():
         var.append(ObjectType(ObjectIdentity(ObjectName(oid)), value))
         return self.set_vars(var)
 
-    def set_multiple(self, oid_tuples):
+    def set_multiple(self, oid_values):
         """
         Set multiple OIDs in a single atomic snmp set()
         oid_tuples is a list of tuples (oid, value) containing
@@ -172,7 +173,7 @@ class pysnmpHelper():
         """
         # first format in the varBinds format needed by pysnmp:
         vars = []
-        for (oid, value) in oid_tuples:
+        for (oid, value) in oid_values:
             vars.append(ObjectType(ObjectIdentity(ObjectName(oid)), value))
         # now call set_vars() to do the work:
         return self.set_vars(vars)
@@ -278,6 +279,7 @@ class SnmpConnector(Connector):
         # capabilities of the snmp drivers:
         self.can_change_admin_status = True
         self.can_change_vlan = True
+        self.can_edit_vlans = True
         self.can_change_poe_status = True
         self.can_change_description = True
         self.can_save_config = False    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
@@ -2183,6 +2185,73 @@ class SnmpConnector(Connector):
 
         # interface not found, return False!
         return False
+
+    def vlan_create(self, vlan_id, vlan_name):
+        '''
+        Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
+
+        Note: this uses SNMP dot1qVlanStaticRowStatus set to createAndGo(4). This should work on most devices
+        that implement the Q-Bridge MIB. However, some devices may need to set createAndWait(5). If your device
+        needs a different sequency, please override this function in your device driver!
+
+        Args:
+            id (int): the vlan id
+            name (str): the name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+
+        # this is atomic multi-set action. Full tuples with (OID, value, type) calling EasySNMP:
+        oid1 = (f"{dot1qVlanStaticRowStatus}.{vlan_id}", vlan_createAndGo, 'i')
+        oid2 = (f"{dot1qVlanStaticName}.{vlan_id}", vlan_name, 's')
+        if not self._snmp_session.set_multiple(oid_values=[oid1, oid2]):
+            # we leave self.error.details as is!
+            return False
+        # all OK, now do the book keeping
+        super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+        return True
+
+    def vlan_edit(self, vlan_id, vlan_name):
+        '''
+        Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id to edit
+            name (str): the new name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+
+        # this is atomic multi-set action. Full tuples with (OID, value, type) calling EasySNMP:
+        oid1 = (f"{dot1qVlanStaticName}.{vlan_id}", vlan_name, 's')
+        if not self._snmp_session.set_multiple(oid_values=[oid1]):
+            # we leave self.error.details as is!
+            return False
+        # all OK, now do the book keeping
+        super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
+        return True
+
+    def vlan_delete(self, vlan_id):
+        '''
+        Deletel the vlan. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id to edit
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+
+        # this is atomic multi-set action. Full tuples with (OID, value, type) calling EasySNMP:
+        oid1 = (f"{dot1qVlanStaticRowStatus}.{vlan_id}", vlan_destroy, 'i')
+        if not self._snmp_session.set_multiple(oid_values=[oid1]):
+            # we leave self.error.details as is!
+            return False
+        # all OK, now do the book keeping
+        super().vlan_delete(vlan_id=vlan_id)
+        return True
 
     def display_name(self):
         return f"{self.name} for {self.switch.name}"

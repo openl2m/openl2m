@@ -42,6 +42,8 @@ This tool is not intended to be a full-blown network management tool!
 * the 'Edit Port Description' flag is enabled by default on Users, Switch Groups, and Switches. If disabled on
   any of those, the user will not able to edit the interface description on interfaces they have access to.
 
+* VLAN creation and editing requires either Admin rights, or the "Edit VLANs" option in the user profile.
+  Note this user right is NOT enabled by default. Deleting VLANs on a device requires Admin rights in OpenL2M.
 
 **Finally, the fun part:**
 

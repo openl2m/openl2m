@@ -104,6 +104,9 @@
       {% if bulk_edit %}
         <li>{% include "_menu_bulk_edit.html" %}</li>
       {% endif %}
+      {% if edit_vlans %}
+        <li>{% include "_menu_edit_vlans.html" %}</li>
+      {% endif %}
       <li>{% include "_menu_switch_info.html" %}</li>
       <li class="active">{% include "_menu_command_output.html" %}</li>
 
@@ -112,7 +115,10 @@
       {% if view == 'basic' %}
         <li class="active">{% include "_menu_interfaces.html" %}</li>
         {% if bulk_edit %}
-            <li>{% include "_menu_bulk_edit.html" %}</li>
+          <li>{% include "_menu_bulk_edit.html" %}</li>
+        {% endif %}
+        {% if edit_vlans %}
+          <li>{% include "_menu_edit_vlans.html" %}</li>
         {% endif %}
         <li>{% include "_menu_switch_info.html" %}</li>
       {% endif %}
@@ -120,7 +126,10 @@
       {% if view == 'arp_lldp' %}
         <li>{% include "_menu_interfaces.html" %}</li>
         {% if bulk_edit %}
-            <li>{% include "_menu_bulk_edit.html" %}</li>
+          <li>{% include "_menu_bulk_edit.html" %}</li>
+        {% endif %}
+        {% if edit_vlans %}
+          <li>{% include "_menu_edit_vlans.html" %}</li>
         {% endif %}
         <li class="active">{% include "_menu_arp_lldp.html" %}</li>
         <li>{% include "_menu_switch_info.html" %}</li>
@@ -130,6 +139,9 @@
         <li>{% include "_menu_interfaces.html" %}</li>
         {% if bulk_edit %}
           <li>{% include "_menu_bulk_edit.html" %}</li>
+        {% endif %}
+        {% if create_vlans %}
+          <li>{% include "_menu_create_vlans.html" %}</li>
         {% endif %}
         <li class="active">{% include "_menu_switch_info.html" %}</li>
       {% endif %}
@@ -169,6 +181,11 @@
           {% include "_tab_if_bulkedit.html" %}
         </div>
       {% endif %}
+      {% if edit_vlans %}
+        <div class="tab-pane" id="tab_edit_vlans">
+          {% include "_tab_edit_vlans.html" %}
+        </div>
+      {% endif %}
       <div class="tab-pane" id="tab_info">
         {% include "_tab_info.html" %}
       </div>
@@ -185,6 +202,11 @@
         {% if bulk_edit %}
           <div class="tab-pane" id="tab_bulkedit">
             {% include "_tab_if_bulkedit.html" %}
+          </div>
+        {% endif %}
+        {% if edit_vlans %}
+          <div class="tab-pane" id="tab_edit_vlans">
+            {% include "_tab_edit_vlans.html" %}
           </div>
         {% endif %}
         <div class="tab-pane" id="tab_info">
@@ -204,6 +226,11 @@
             {% include "_tab_if_bulkedit.html" %}
           </div>
         {% endif %}
+        {% if edit_vlans %}
+          <div class="tab-pane" id="tab_edit_vlans">
+            {% include "_tab_edit_vlans.html" %}
+          </div>
+        {% endif %}
         <div class="tab-pane active" id="tab_arp_lldp">
           {% include "_tab_if_arp_lldp.html" %}
         </div>
@@ -219,6 +246,11 @@
         {% if bulk_edit %}
           <div class="tab-pane" id="tab_bulkedit">
             {% include "_tab_if_bulkedit.html" %}
+          </div>
+        {% endif %}
+        {% if edit_vlans %}
+          <div class="tab-pane" id="tab_edit_vlans">
+            {% include "_tab_edit_vlans.html" %}
           </div>
         {% endif %}
         <div class="tab-pane active" id="tab_info">

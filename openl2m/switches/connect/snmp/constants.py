@@ -352,6 +352,7 @@ snmp_mib_variables['dot1qVlanStaticTable'] = dot1qVlanStaticTable
 # dot1qVlanStaticName = 1.3.6.1.2.1.17.7.1.4.3.1.1
 dot1qVlanStaticName = '.1.3.6.1.2.1.17.7.1.4.3.1.1'
 snmp_mib_variables['dot1qVlanStaticName'] = dot1qVlanStaticName
+VLAN_NAME_MAX_LEN = 32      # per Q-Bridge MIB object definition
 
 # VLAN set:
 # set .1.3.6.1.2.1.17.7.1.4.3.1.2 for tagged ports and .1.3.6.1.2.1.17.7.1.4.3.1.4 for untagged.
@@ -376,6 +377,9 @@ snmp_mib_variables['dot1qVlanStaticUntaggedPorts'] = dot1qVlanStaticUntaggedPort
 # VLAN_ROW_STATUS = ['dot1qVlanStaticRowStatus']['oid']
 dot1qVlanStaticRowStatus = '.1.3.6.1.2.1.17.7.1.4.3.1.5'           # followed by vlanId
 snmp_mib_variables['dot1qVlanStaticRowStatus'] = dot1qVlanStaticRowStatus
+vlan_createAndGo = 4
+vlan_createAndWait = 5
+vlan_destroy = 6
 
 #####################################################
 

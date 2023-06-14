@@ -26,4 +26,4 @@ Here are some other features we are considering implementing (*in no particular 
 
 * make vendor support dynamic (i.e. discover at runtime what vendors are supported)
 
-* test support for AES-192 and up. This will require Net-SNMP v5.8 (which is available on CentOS 8, Unbuntu 2020-LTS)
+* test support for AES-192 and up. This will require Net-SNMP v5.8 (which is available on CentOS 8, Unbuntu 2020-LTS, and later)

@@ -13,7 +13,7 @@ While primarily intended to manage network switches, OpenL2M can handle any devi
 sort of network API (e.g. SSH, Netconf, REST, etc.)
 
 __Devices Supported:__
-* Aruba AOS-CX switches (via REST API)
+* Aruba AOS-CX switches (via SNMP or REST API)
 * HP/Aruba Procurve switches (via SNMP)
 * HPE Comware switches (via SNMP)
 * Juniper devices (via Junos PyEz API)
@@ -25,17 +25,18 @@ See the documentation for more information.
 
 __Basic Features:__
 * enable/disable interface
-* change vlan
+* change vlan on interface
 * enable/disable PoE
 * change description
 * see ethernet addresses, lldp neighbors
+* add, edit or delete vlans on devices
 * run configurable pre-defined 'static' commands on the device
 * run configurable pre-defined 'form input' commands on the device
 * and more...
 
 __What's New:__
 
-v2.4 upgrades the Django framework to v4.2 LTS
+v2.4 adds vlan add/edit/delete for SNMP devices, and upgrades the Django framework to v4.2 LTS
 
 v2.3 adds support for Juniper Junos devices.
 
@@ -90,10 +91,13 @@ Interfaces Menu:
 
 ![InterfaceMenu](docs/_static/screenshot-1.png "Interface Menu")
 
-BulkEdit Menu:
+Bulk-Edit Menu:
 
-![BulkEditMenu](docs/_static/screenshot-2.png "BulkEdit Menu")
+![BulkEditMenu](docs/_static/screenshot-2.png "Bulk Edit Menu")
 
+VLAN Edit Menu:
+
+![VLANEditMenu](docs/_static/screenshot-vlan-edit.png "VLAN Edit Menu")
 
 __Download__:
 

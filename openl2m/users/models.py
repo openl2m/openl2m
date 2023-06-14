@@ -47,6 +47,11 @@ class Profile(models.Model):
         verbose_name='Bulk-editing of interfaces',
         help_text='If Bulk Edit is set, this user can edit multiple interfaces at once on switches.',
     )
+    vlan_edit = models.BooleanField(
+        default=False,
+        verbose_name='Allow VLAN adding or editing',
+        help_text='If VLAN Edit is set, this user can add or edit VLANs on switches.',
+    )
     allow_poe_toggle = models.BooleanField(
         default=False,
         verbose_name='Poe Toggle All',

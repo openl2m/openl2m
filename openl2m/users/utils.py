@@ -31,6 +31,17 @@ def user_can_bulkedit(user, group, switch):
     return False
 
 
+def user_can_edit_vlans(user, group, switch):
+    """
+    Verify if this user can edit vlans on a device.
+    Return True is so, False if not.
+    """
+    if user.is_superuser or (user.profile.vlan_edit and not user.profile.read_only
+                             and not group.read_only and not switch.read_only):
+        return True
+    return False
+
+
 def get_current_users():
     """
     Get the list of current users with a session that has not expired.
