@@ -895,6 +895,10 @@ def switch_vlan_manage(request, group_id, switch_id):
                           type=LOG_TYPE_CHANGE,
                           description=f"VLAN {vlan_id} ({vlan_name}) created.",)
                 log.save()
+                # need to save changes
+                conn.set_save_needed(True)
+                # and save data in session
+                conn.save_cache()
                 return success_page(request=request, group=group, switch=switch, description="New vlan created successfully!")
             else:
                 error = Error()
@@ -928,7 +932,10 @@ def switch_vlan_manage(request, group_id, switch_id):
                           type=LOG_TYPE_CHANGE,
                           description=f"VLAN {vlan_id} renamed to '{vlan_name}'",)
                 log.save()
-                # all OK, go update name
+                # need to save changes
+                conn.set_save_needed(True)
+                # and save data in session
+                conn.save_cache()
                 counter_increment(COUNTER_VLAN_MANAGE)
                 return success_page(request=request, group=group, switch=switch, description=f"Updated name for vlan {vlan_id} to '{vlan_name}'")
             else:
@@ -963,7 +970,10 @@ def switch_vlan_manage(request, group_id, switch_id):
                           type=LOG_TYPE_CHANGE,
                           description=f"VLAN {vlan_id} deleted.",)
                 log.save()
-                # all OK, go update name
+                # need to save changes
+                conn.set_save_needed(True)
+                # and save data in session
+                conn.save_cache()
                 counter_increment(COUNTER_VLAN_MANAGE)
                 return success_page(request=request, group=group, switch=switch, description=f"Vlan {vlan_id} was deleted!")
             else:
