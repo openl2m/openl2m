@@ -277,4 +277,4 @@ and configuration.example.py for more.
     CELERY_TASK_SERIALIZER = 'json'
 
 
-Once these steps are complete, :doc:`follow the steps in the Tasks installation section<../installation/tasks>`.
+Once these steps are complete, follow the steps in the Tasks installation section (**removed in v2.4!**)

@@ -10,6 +10,10 @@ all the functions that are called by the Django application to extract data from
 This class and its derived vendor-specific classes is where all the funs happens! It is implemented in the 'switches' app.
 And you will also need to know a little about how we use the Django framework.
 
+:doc:`A graphical overview of the data models used is here. <data_model>`.
+This image is created using the 'django-extensions' with the command
+'*python3 openl2m/manage.py graph_models -a -o openl2m_models.png*'
+
 **Django**
 
 As is Django custom, all Django files are stored in the *openl2m/* sub-directory.

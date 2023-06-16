@@ -90,6 +90,7 @@ CORS_ORIGIN_WHITELIST = getattr(configuration, 'CORS_ORIGIN_WHITELIST', [])
 DATE_FORMAT = getattr(configuration, 'DATE_FORMAT', 'N j, Y')
 DATETIME_FORMAT = getattr(configuration, 'DATETIME_FORMAT', 'N j, Y g:i a')
 DEBUG = getattr(configuration, 'DEBUG', False)
+DEVELOPER = getattr(configuration, 'DEVELOPER', False)
 LOGGING = getattr(configuration, 'LOGGING', {})
 LOGIN_TIMEOUT = getattr(configuration, 'LOGIN_TIMEOUT', 1800)
 LOGOUT_ON_INACTIVITY = getattr(configuration, 'LOGOUT_ON_INACTIVITY', True)
@@ -230,6 +231,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# In developer mode, we add some extra stuff:
+if DEVELOPER:
+    INSTALLED_APPS += [
+        'django_extensions',
+    ]
 
 # Debug toolbar settings:
 DEBUG_TOOLBAR = getattr(configuration, 'DEBUG_TOOLBAR', False)

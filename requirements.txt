@@ -1,7 +1,6 @@
 black
 distro
 Django>=4.2,<4.3
-django-debug-toolbar
 django-ipware>=5.0,<5.1
 django-ordered-model>=3.7,<4.0
 # version post 0.2.5 appear unstable:

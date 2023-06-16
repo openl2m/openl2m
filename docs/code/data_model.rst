@@ -1,0 +1,1 @@
+.. image:: ../_static/openl2m_models.png
