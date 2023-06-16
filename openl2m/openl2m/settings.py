@@ -220,6 +220,7 @@ INSTALLED_APPS = [
     'switches.apps.SwitchesConfig',
     'counters.apps.CountersConfig',
     'notices.apps.NoticesConfig',
+    'django_minify_html',
 ]
 
 MIDDLEWARE = [
@@ -230,6 +231,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_minify_html.middleware.MinifyHtmlMiddleware',
 ]
 
 # In developer mode, we add some extra stuff:

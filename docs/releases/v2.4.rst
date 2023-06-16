@@ -31,6 +31,7 @@ Release Date: TBD
 * add icon for IGMP snooping on vlans on Comware devices.
 * optionally adds 'django-extensions' to create graphs of our models for the documentation section.
   See more in :doc:`Debugging<../code/debugging>`
+* add 'django_minify_html' to optimize and speed-up HMTL output.
 
 
 Version 2.4.4
