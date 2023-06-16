@@ -1,6 +1,6 @@
 {% load helpers %}
 {% if settings.SWITCH_SEARCH_FORM %}
-  {% if groups|length > 0 %}
+  {% if groups_count > 0 %}
     <h4>Search for switch:</h4>
     <form name="switch_search_form"
           action="{% url 'switches:switch_search' %}"

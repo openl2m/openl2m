@@ -15,8 +15,8 @@
 <div class="row">
   <div class="col-md-4">
     <h4>Searched for &quot;{{ search }}&quot;,
-    {% if results|length > 0 %}
-      we found {{ results|length }}:</h4>
+    {% if results_count > 0 %}
+      we found {{ results_count }}:</h4>
       {{ results|get_my_results }}
     {% else %}
       but we found no matches!</h4>

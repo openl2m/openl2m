@@ -126,6 +126,7 @@ def switches(request):
     # render the template
     return render(request, template_name, {
         'groups': switchgroups,
+        'groups_count': len(switchgroups),
     })
 
 
@@ -176,6 +177,7 @@ def switch_search(request):
         'warning': warning,
         'search': search,
         'results': results,
+        'results_count': len(results),
     })
 
 
