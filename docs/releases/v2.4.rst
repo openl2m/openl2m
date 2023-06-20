@@ -24,7 +24,7 @@ We also add the **ability to create, edit or delete vlans in SNMP devices**.
 Version 2.4.5
 -------------
 
-Release Date: TBD
+Release Date: 2023-06-20
 
 * add VLAN add/edit/delete capability on (most) SNMP devices. This requires Admin rights,
   or the 'Vlan Edit' right under the user's profile. Deleting a VLAN requires Admin rights!
