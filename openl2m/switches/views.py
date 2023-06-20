@@ -17,7 +17,6 @@ import distro
 import time
 import datetime
 import traceback
-import json
 import re
 
 import django
