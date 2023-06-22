@@ -16,6 +16,8 @@ import re
 
 from django.conf import settings
 
+from switches.utils import dprint
+
 # are we actually using LDAP
 if settings.LDAP_CONFIG is not None:
     from django.dispatch import receiver
@@ -82,11 +84,26 @@ if settings.LDAP_CONFIG is not None:
                         continue
                 # add user to this switchgroup
                 try:
-                    group.users.add(user)
-                except Exception:
-                    # how to handle this other then log message?
-                    log = Log(user=user,
-                              action=constants.LOG_LDAP_ERROR_USER_TO_GROUP,
-                              description=f"Error adding user to switchgroup '{switchgroup_name}' from LDAP",
-                              type=constants.LOG_TYPE_ERROR)
-                    log.save()
+                    # we should first see if user is already member of this group, but for now this suffices...
+                    member = group.users.filter(id=user.id)
+                    dprint(f"LDAP: Already member of '{switchgroup_name}'")
+                except Exception as err:
+                    dprint(f"LDAP: Not yet member of '{switchgroup_name}'")
+                    # try to add:
+                    try:
+                        group.users.add(user)
+                        # log this group add
+                        log = Log(user=user,
+                                  action=constants.LOG_LDAP_ADD_USER_TO_GROUP,
+                                  description=f"Adding user {user.username} to switchgroup '{switchgroup_name}' from LDAP",
+                                  type=constants.LOG_TYPE_CHANGE)
+                        log.save()
+                        dprint(f"LDAP: User {user.username} added to switchgroup '{switchgroup_name}'")
+                    except Exception:
+                        # how to handle this other then log message?
+                        log = Log(user=user,
+                                  action=constants.LOG_LDAP_ERROR_USER_TO_GROUP,
+                                  description=f"Error adding user to switchgroup '{switchgroup_name}' from LDAP",
+                                  type=constants.LOG_TYPE_ERROR)
+                        log.save()
+                        dprint(f"LDAP: ERROR adding user to switchgroup '{switchgroup_name}'")
