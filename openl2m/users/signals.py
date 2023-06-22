@@ -83,6 +83,12 @@ if settings.LDAP_CONFIG is not None:
                 # add user to this switchgroup
                 try:
                     group.users.add(user)
+                    # log this group add
+                    log = Log(user=user,
+                              action=constants.LOG_LDAP_ADD_USER_TO_GROUP,
+                              description=f"Adding user {user.username} to switchgroup '{switchgroup_name}' from LDAP",
+                              type=constants.LOG_TYPE_ERROR)
+                    log.save()
                 except Exception:
                     # how to handle this other then log message?
                     log = Log(user=user,
