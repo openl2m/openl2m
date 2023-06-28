@@ -494,6 +494,8 @@ class Connector():
             True on success, False on error and set self.error variables.
         '''
         self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan_name)
+        # we now need to re-calculate the allowed-vlan list for the current user
+        self._set_allowed_vlans()
         return True
 
     def vlan_edit(self, vlan_id, vlan_name):
@@ -554,6 +556,9 @@ class Connector():
         v = Vlan(vlan_id)
         v.name = vlan_name
         self.vlans[vlan_id] = v
+        # sort ordered by vlan id; this is needed for vlans added by users.
+        self.vlans = dict(sorted(self.vlans.items()))    # note: soted() returns a list of tuples(key, value), NOT dict!
+        dprint(f"VLANS now: {self.vlans}")
         return True
 
     def add_vlan(self, vlan):
@@ -1250,6 +1255,7 @@ class Connector():
             none
         '''
         dprint("_set_allowed_vlans()")
+        self.allowed_vlans = {}
         # check the vlans on the switch (self.vlans) agains switchgroup.vlan_groups and switchgroup.vlans
         # if self.group.read_only and self.request and not self.request.user.is_superuser:
         if self.group.read_only or (self.request and self.request.user.profile.read_only):
