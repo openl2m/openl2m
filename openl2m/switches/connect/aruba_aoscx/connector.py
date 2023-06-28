@@ -70,10 +70,15 @@ class AosCxConnector(Connector):
         # capabilities of current driver:
         self.can_change_admin_status = True
         self.can_change_vlan = True
+        self.can_edit_vlans = True
         self.can_change_poe_status = True
         self.can_change_description = True
         self.can_save_config = False  # not needed.
         self.can_reload_all = False
+
+    # def __del__(self):
+    #    dprint(f"{type(self).__name__} deconstructor")
+    #    self._close_device()
 
     def get_my_basic_info(self):
         '''
@@ -508,6 +513,93 @@ class AosCxConnector(Connector):
             dprint("   Vlan Change FAILED!")
             # we need to add error info here!!!
             return False
+
+    def vlan_create(self, vlan_id, vlan_name):
+        '''
+        Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id
+            name (str): the name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"AosCxConnector.vlan_create() for vlan {vlan_id} = '{vlan_name}'")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        new_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id, name=vlan_name, voice=False)
+        try:
+            new_vlan.apply()
+        except Exception as err:
+            self.error.status = True
+            self.error.details = f"Error creating new vlan {vlan_id}: {err}"
+            return False
+
+        # all OK, now do the book keeping
+        super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+        return True
+
+    def vlan_edit(self, vlan_id, vlan_name):
+        '''
+        Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id to edit
+            name (str): the new name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"AosCxConnector.vlan_edit() for vlan {vlan_id} = '{vlan_name}'")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+        try:
+            vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
+            vlan.get()
+            vlan.name = vlan_name
+            changed = vlan.apply()
+        except Exception:
+            self.error.status = True
+            self.error.details = f"Error trapped while updating vlan {vlan_id} name to '{vlan_name}': {err}"
+            return False
+
+        if not changed:
+            self.error.status = True
+            self.error.details = f"Error updating vlan {vlan_id} name to '{vlan_name}' (not sure what happened!)"
+            return False
+        # all OK, now do the book keeping
+        super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
+        return True
+
+    def vlan_delete(self, vlan_id):
+        '''
+        Delete the vlan. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id to edit
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"AosCxConnector.vlan_delete() for vlan {vlan_id}")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+        try:
+            vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
+            vlan.delete()
+            # changed = vlan.apply()  # is this needed ?
+        except Exception as err:
+            self.error.status = True
+            self.error.details = f"Error trapped while deleting vlan {vlan_id}: {err}"
+            return False
+        # all OK, now do the book keeping
+        super().vlan_delete(vlan_id=vlan_id)
+        return True
 
     def _open_device(self):
         '''
