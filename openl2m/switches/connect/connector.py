@@ -162,6 +162,8 @@ class Connector():
                 read_duration = int((time.time() - self.basic_info_read_timestamp) + 0.5)
                 if not success:
                     self.add_warning(f"WARNING: cannot get basic info - {self.error.description}")
+                    if self.error.details:
+                        self.add_warning(f"Connection Error: {self.error.details}")
                 # you have to set the permissions to the interfaces:
                 self._set_interfaces_permissions()
                 # add some info about the device:
