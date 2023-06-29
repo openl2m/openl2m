@@ -126,6 +126,24 @@ class Connector():
         self.can_get_client_data = hasattr(self, 'get_my_client_data')  # do we implement reading arp/lldp/etc?
         self.can_get_hardware_details = hasattr(self, 'get_my_hardware_details')    # can we get more then basic device info?
 
+    def _close_device(self):
+        """_close_device() is called to clean-up any session, REST credentials,etc when done with this device.
+        This is called when changing device or logging out of the application.
+
+        This needs to be implemented in each driver that cached sessions (cookies, etc.) and need to destroy
+        that data when completely done with the device. See e.g. aruba_aoscx/connector.py
+
+        Note: we cannot use the deconstructor __del__(), since that is called at the end of each use
+        (ie when a web page has finished loading!)
+
+        Args:
+            none
+
+        Returns:
+            (boolean) True.
+        """
+        return True
+
     '''
     These are the high level functions used to "get" interface information.
     These are called by the switches.view functions to display data.

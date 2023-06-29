@@ -68,6 +68,38 @@ from counters.constants import (
 from notices.models import Notice
 
 
+def close_device(request):
+    """Close out any session left over from the previous device user was looking at
+
+    Args:
+        request: the Request() object for the user's web session.
+
+    Returns:
+        n/a
+    """
+
+    # if we came here from a previous switch, call _close_device() to clear out old session as needed.
+    if 'switch_id' in request.session.keys():
+        dprint(f"MAIN MENU: Closing out previous switch {request.session['switch_id']}")
+        # instantiate the previous device Connector() one more time to proper close sessions...
+        try:
+            switch = get_object_or_404(Switch, pk=request.session['switch_id'])
+            conn = get_connection_object(request=request, group=False, switch=switch)
+            conn._close_device()
+            del conn
+        except Exception as err:
+            # log it, but ignore otherwize...
+            log = Log(user=request.user,
+                      ip_address=get_remote_ip(request),
+                      switch=switch,
+                      # group=False,
+                      action=LOG_CONNECTION_ERROR,
+                      type=LOG_TYPE_ERROR,
+                      description=f"ERROR: Main menu trying to _close_device() for id {request.session['switch_id']}: {err}"
+                      )
+            log.save()
+
+
 @login_required(redirect_field_name=None)
 def switches(request):
     """
@@ -77,8 +109,10 @@ def switches(request):
 
     template_name = 'home.html'
 
-    # back to the home screen, clear session cache
-    # so we re-read switches as needed
+    # close out any previous device user was working on
+    close_device(request=request)
+
+    # clear session cache, so we re-read switches as needed
     clear_switch_cache(request)
 
     # save remote ip in session, so we can use it in current user display!
