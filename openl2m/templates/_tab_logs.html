@@ -29,7 +29,7 @@
           <td>{{ l.user }}</td>
           {% endif %}
           <td>
-            {% if l.switch and request.user.is_superuser %}
+            {% if l.switch and request.user.is_superuser and l.group %}
               <a href="{% url 'switches:switch_basics' l.group.id l.switch.id %}"
                  data-toggle="tooltip"
                  title="Click here to go to this switch...">
