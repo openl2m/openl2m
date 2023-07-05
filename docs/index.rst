@@ -23,7 +23,9 @@ of a shared distributed layer 2 ("switching") network.
 While primarily intended to manage network switches, OpenL2M can handle any device that has some
 sort of network API (e.g. SSH, Netconf, REST, etc.)
 
-OpenL2M is written in Django 3 and Python 3.
+See a list of features per device class supported :doc:`here.<feature_support>`
+
+OpenL2M is written in Python 3 using the Django framework.
 Documentation is written in ReStructured Text format, which is rendered with the Sphinx documentation generator.
 
 **What's New:**
@@ -52,6 +54,7 @@ See more in the development section below.
    installation/index.rst
    configuration/index.rst
    switch_requirements.rst
+   feature_support.rst
    switches.rst
    releases/index.rst
    screenshots.rst
