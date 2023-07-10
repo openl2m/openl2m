@@ -1274,8 +1274,18 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
 
     # read the submitted form data:
     new_pvid = int(request.POST.get('new_pvid', 0))
+    # this should not happen:
+    if new_pvid == 0:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Pvid-Change: new vlan = 0 (?)"
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.description = "Could not read new vlan. Please contact your administrator!"
+        return error_page(request=request, group=group, switch=switch, error=error)
+
     # did the vlan change?
-    if interface.untagged_vlan == int(new_pvid):
+    if interface.untagged_vlan == new_pvid:
         description = f"New vlan {interface.untagged_vlan} is the same, please change the vlan first!"
         return warning_page(request=request, group=group, switch=switch, description=description)
 
@@ -1284,7 +1294,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
 
     # are we allowed to change to this vlan ?
     conn._set_allowed_vlans()
-    if not int(new_pvid) in conn.allowed_vlans.keys():
+    if new_pvid not in conn.allowed_vlans.keys():
         log.type = LOG_TYPE_ERROR
         log.save()
         counter_increment(COUNTER_ERRORS)
@@ -1294,7 +1304,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # make sure we cast the proper type here! Ie this needs an Integer()
-    if not conn.set_interface_untagged_vlan(interface, int(new_pvid)):
+    if not conn.set_interface_untagged_vlan(interface, new_pvid):
         log.description = f"ERROR: {conn.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
