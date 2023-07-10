@@ -168,12 +168,20 @@ class Connector():
         '''
         self.error.clear()
         dprint("Connector.get_basic_info()")
-        # set this to the time the switch data was actually read,
+
         # including when this may have been read before it got cached:
         if not self.cache_loaded:
             dprint("  => Cache did NOT load!")
+            # add some info about the device:
+            self.add_more_info('System', 'Group', self.group.name)
+            self.add_more_info('System', 'Class Handler', self.__class__.__name__)
+            self.add_more_info('System', 'Driver info', self.description)
+            if self.switch.netmiko_profile:
+                self.add_more_info('System', 'Credentials Profile', self.switch.netmiko_profile.name)
+
             # call the implementation-specific function:
             if hasattr(self, 'get_my_basic_info'):
+                # set this to the time the switch data was actually read,
                 self.basic_info_read_timestamp = time.time()
                 success = self.get_my_basic_info()
                 # update the time it took to read the basic info when it was first read:
@@ -182,15 +190,10 @@ class Connector():
                     self.add_warning(f"WARNING: cannot get basic info - {self.error.description}")
                     if self.error.details:
                         self.add_warning(f"Connection Error: {self.error.details}")
-                # you have to set the permissions to the interfaces:
-                self._set_interfaces_permissions()
-                # add some info about the device:
-                if self.switch.netmiko_profile:
-                    self.add_more_info('System', 'Credentials Profile', self.switch.netmiko_profile.name)
-                self.add_more_info('System', 'Group', self.group.name)
-                self.add_more_info('System', 'Basic Info Read', f"{read_duration} seconds")
-                self.add_more_info('System', 'Class Handler', self.__class__.__name__)
-                self.add_more_info('System', 'Driver info', self.description)
+                else:
+                    self.add_more_info('System', 'Basic Info Read', f"{read_duration} seconds")
+                    # All OK, now set the permissions to the interfaces:
+                    self._set_interfaces_permissions()
 
             else:
                 self.add_warning("WARNING: device driver does not support 'get_my_basic_info()' !")
