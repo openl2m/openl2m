@@ -20,6 +20,19 @@ We also add the **ability to create, edit or delete vlans in SNMP devices**.
     This needs to include the schema, i.e. 'https://' or 'http://' if not secured!
     See the installation steps for more details.
 
+Version 2.4.6
+-------------
+
+Release Date: 2023-07-10
+
+* add VLAN add/edit/delete capability for Juniper device (as supported by PyEZ)
+
+Bug Fixes:
+
+* add several checks to vlan edit form.
+* fix log entry without group memberships.
+* add proper device closing when user to back to menu (if devices need it)
+
 
 Version 2.4.5
 -------------
