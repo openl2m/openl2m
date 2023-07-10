@@ -1554,6 +1554,20 @@ class Connector():
             return self.vlans[vlan_id]
         return False
 
+    def vlan_exists(self, vlan_id):
+        '''
+        If a vlan ID exists, return True otherwize False.
+
+        Args:
+            vlan_id (int): the ID of the vlan to check
+
+        Returns:
+            (boolean):  True if vlan id exists, False if not
+        '''
+        if int(vlan_id) in self.vlans.keys():
+            return True
+        return False
+
     def display_name(self):
         '''
         Set the object display name based on device class and switch named

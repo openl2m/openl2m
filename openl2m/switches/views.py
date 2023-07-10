@@ -917,7 +917,7 @@ def switch_vlan_manage(request, group_id, switch_id):
     vlan_name = str(request.POST.get('vlan_name', '')).strip()
 
     if request.POST.get("vlan_create"):
-        if vlan_id > 1 and vlan_id < 4095 and vlan_name:
+        if vlan_id > 1 and vlan_id < 4095 and not conn.vlan_exists(vlan_id) and vlan_name:
             # all OK, go create
             counter_increment(COUNTER_VLAN_MANAGE)
             status = conn.vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
@@ -952,7 +952,7 @@ def switch_vlan_manage(request, group_id, switch_id):
         else:
             error = Error()
             error.status = True
-            error.description = "Invalid new vlan data (id or name), please try again!"
+            error.description = f"Invalid or existing new vlan id ({vlan_id}) or name ('{vlan_name}'), please try again!"
             return error_page(request=request, group=group, switch=switch, error=error)
 
     elif request.POST.get("vlan_edit"):
