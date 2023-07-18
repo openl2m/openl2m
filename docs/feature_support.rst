@@ -3,7 +3,9 @@
 Features Supported
 ==================
 
-.. list-table:: Features Supported by Drivers
+** Features Supported by Drivers**
+
+.. list-table::
    :header-rows: 1
 
    * - Features
@@ -22,7 +24,7 @@ Features Supported
      - Yes
      - Yes
      - Yes
-     - Yes
+     -
      - Yes
      - Yes
      -
@@ -33,7 +35,7 @@ Features Supported
      - Yes
      - Yes
      - Yes
-     - Yes
+     -
      - Yes
      - Yes
      -
@@ -44,7 +46,7 @@ Features Supported
      - Yes
      - Yes
      - Yes
-     - Yes
+     -
      - Yes
      - Yes
      -
@@ -55,7 +57,7 @@ Features Supported
      - Yes
      - Yes
      - Yes
-     - Yes
+     -
      - Yes
      - Yes
      -
@@ -63,18 +65,18 @@ Features Supported
 
    * - Ethernet/ARP/LLDP Info
      - Yes
-     - Yes (eth. only, no LLDP)
      - Yes
      - Yes
      - Yes
-     - Yes
+     -
+     - Partial (Eth. only!)
      - Yes
      - Yes
      -
 
    * - VLAN Edit
      - Yes
-     - Yes (firmware v10.12)
+     - Yes (v10.12 and up)
      - Yes
      - Yes
      - Yes
@@ -83,7 +85,7 @@ Features Supported
      -
      -
 
-   * - Device Commands
+   * - SSH Commands
      - Yes
      - Yes
      - Yes
