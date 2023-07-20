@@ -68,7 +68,7 @@ class Profile(models.Model):
         help_text="If checked, user will get 'Are You Sure?' question on changes"
     )
     last_ldap_dn = models.CharField(
-        max_length=128,
+        max_length=1024,
         blank=True,
         verbose_name="Last LDAP DN",
         help_text="The LDAP DN of the last LDAP login (if any)"

@@ -46,7 +46,8 @@ if settings.LDAP_CONFIG is not None:
 
         # update the user profile with the timestamp and ldap dn of the login.
         user.profile.last_ldap_login = now()
-        user.profile.last_ldap_dn = ldap_user.dn
+        # this field is set to max_length=1024 in models.py
+        user.profile.last_ldap_dn = ldap_user.dn[:1024]
         user.profile.save()
 
         # Check all of the user's group names to see if they belong
