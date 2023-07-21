@@ -887,10 +887,11 @@ def switch_vlan_manage(request, group_id, switch_id):
     group = get_object_or_404(SwitchGroup, pk=group_id)
     switch = get_object_or_404(Switch, pk=switch_id)
 
-    if not rights_to_group_and_switch(request, group_id, switch_id):
+    if not rights_to_group_and_switch(request, group_id, switch_id) \
+       or not user_can_edit_vlans(request.user, group, switch):
         error = Error()
         error.description = "Access denied!"
-        error.details = "You do not have access to this device!"
+        error.details = "You are not allowed to edit vlans on this device!"
         counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
@@ -917,7 +918,7 @@ def switch_vlan_manage(request, group_id, switch_id):
     vlan_name = str(request.POST.get('vlan_name', '')).strip()
 
     if request.POST.get("vlan_create"):
-        if vlan_id > 1 and vlan_id < 4095 and not conn.vlan_exists(vlan_id) and vlan_name:
+        if not conn.vlan_exists(vlan_id) and vlan_name:
             # all OK, go create
             counter_increment(COUNTER_VLAN_MANAGE)
             status = conn.vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
@@ -934,11 +935,11 @@ def switch_vlan_manage(request, group_id, switch_id):
                 conn.set_save_needed(True)
                 # and save data in session
                 conn.save_cache()
-                return success_page(request=request, group=group, switch=switch, description="New vlan created successfully!")
+                return success_page(request=request, group=group, switch=switch, description="Vlan {vlan_id} created successfully!")
             else:
                 error = Error()
                 error.status = True
-                error.description = "Error creating new vlan!"
+                error.description = f"Error creating vlan {vlan_id}!"
                 error.details = conn.error.details
                 log = Log(user=request.user,
                           ip_address=remote_ip,
@@ -956,7 +957,7 @@ def switch_vlan_manage(request, group_id, switch_id):
             return error_page(request=request, group=group, switch=switch, error=error)
 
     elif request.POST.get("vlan_edit"):
-        if vlan_id > 1 and vlan_id < 4095 and vlan_name:
+        if conn.vlan_exists(vlan_id) and vlan_name:
             status = conn.vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
             if status:
                 log = Log(user=request.user,
@@ -976,7 +977,7 @@ def switch_vlan_manage(request, group_id, switch_id):
             else:
                 error = Error()
                 error.status = True
-                error.description = "Error updating new vlan!"
+                error.description = f"Error updating vlan {vlan_id}!"
                 error.details = conn.error.details
                 log = Log(user=request.user,
                           ip_address=remote_ip,
@@ -990,11 +991,11 @@ def switch_vlan_manage(request, group_id, switch_id):
         else:
             error = Error()
             error.status = True
-            error.description = "Invalid data to update vlan, please try again!"
+            error.description = "Vlan does not exists, or invalid new name, please try again!"
             return error_page(request=request, group=group, switch=switch, error=error)
 
     elif request.POST.get("vlan_delete"):
-        if request.user.is_superuser:
+        if request.user.is_superuser and conn.vlan_exists(vlan_id):
             status = conn.vlan_delete(vlan_id=vlan_id)
             if status:
                 log = Log(user=request.user,
@@ -1014,7 +1015,7 @@ def switch_vlan_manage(request, group_id, switch_id):
             else:
                 error = Error()
                 error.status = True
-                error.description = "Error deleting vlan!"
+                error.description = "Error deleting vlan {vlan_id}!"
                 error.details = conn.error.details
                 log = Log(user=request.user,
                           ip_address=remote_ip,
@@ -1029,7 +1030,7 @@ def switch_vlan_manage(request, group_id, switch_id):
             # NOT allowed if you are not super user!
             error = Error()
             error.status = True
-            error.description = "Access Denied: you need to be SuperUser to delete a VLAN"
+            error.description = f"Access Denied: vlan {vlan_id} does not exist, or you need to be SuperUser to delete a VLAN"
             return error_page(request=request, group=group, switch=switch, error=error)
 
     error = Error()
@@ -2080,25 +2081,4 @@ def rights_to_group_and_switch(request, group_id, switch_id):
         switches = permissions[int(group_id)]
         if isinstance(switches, dict) and int(switch_id) in switches.keys():
             return True
-    return False
-
-
-def user_can_access_task(request, task=False):
-    """
-    Check if the current user has rights to this task.
-    This needs more work, for now keep it simle.
-    Return True or False
-    """
-    if request.user.is_superuser or request.user.is_staff:
-        return True
-    if task:
-        if task.user == request.user:
-            return True
-        # does the user have rights to the group of this task?
-        permissions = get_from_http_session(request, 'permissions')
-        if permissions and isinstance(permissions, dict) and \
-           str(task.group.id) in permissions.keys():
-            #  if member of group there is no need to check switch!
-            return True
-    # deny others
     return False

@@ -36,8 +36,9 @@ def user_can_edit_vlans(user, group, switch):
     Verify if this user can edit vlans on a device.
     Return True is so, False if not.
     """
-    if user.is_superuser or (user.profile.vlan_edit and not user.profile.read_only
-                             and not group.read_only and not switch.read_only):
+    if user.profile.read_only or group.read_only or switch.read_only:
+        return False
+    if user.is_superuser or user.profile.vlan_edit:
         return True
     return False
 
