@@ -189,6 +189,7 @@ def switch_search(request):
     log.save()
 
     results = []
+    device_names = []     # track the matched device for Admin and Staff, so we only show one result in first group found!
     warning = False
     permissions = get_from_http_session(request, 'permissions')
     if permissions and isinstance(permissions, dict):
@@ -200,7 +201,16 @@ def switch_search(request):
                     # now check the name, hostname for the search pattern:
                     try:
                         if re.search(search, name, re.IGNORECASE) or re.search(search, hostname, re.IGNORECASE):
-                            results.append((str(group_id), str(switch_id), name, description, default_view))
+                            if request.user.is_superuser or request.user.is_staff:
+                                # these users may see a device in multiple groups, so minimize results:
+                                if name not in device_names:
+                                    # only add once!
+                                    dprint(f"SEARCH: adding {name}")
+                                    device_names.append(name)
+                                    results.append((str(group_id), str(switch_id), name, description, default_view))
+                            else:
+                                # regular user, add all occurances of device (likely just one!)
+                                results.append((str(group_id), str(switch_id), name, description, default_view))
                     except Exception:
                         # invalid search, just ignore!
                         warning = f"{search} - This is an invalid search pattern!"
@@ -1939,6 +1949,18 @@ def show_stats(request):
     db_items['Log Entries'] = Log.objects.count()
 
     usage = {}  # usage statistics
+
+    filter = {}
+    filter['timestamp__date'] = datetime.date.today()
+    usage['Devices today'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
+
+    filter = {}
+    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=7)
+    usage['Devices last 7 days'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
+
+    filter = {}
+    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
+    usage['Devices last 31 days'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
 
     filter = {}
     filter['type'] = int(LOG_TYPE_CHANGE)
