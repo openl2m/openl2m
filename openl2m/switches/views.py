@@ -777,7 +777,7 @@ def bulkedit_processor(request, group, switch,
                           group=group,
                           type=LOG_TYPE_WARNING,
                           action=LOG_CHANGE_INTERFACE_PVID,
-                          description=f"Interface {iface.name}: LACP Member, Vlan set to {new_pvid} IGNORED!")
+                          description=f"Interface {iface.name}: LACP Member, vlan set to {new_pvid} IGNORED!")
                 outputs.append(log.description)
                 log.save()
             else:
@@ -806,7 +806,7 @@ def bulkedit_processor(request, group, switch,
                     counter_increment(COUNTER_CHANGES)
                 else:
                     # already on desired vlan:
-                    outputs.append(f"Interface {iface.name}: Ignored, VLAN already {new_pvid}")
+                    outputs.append(f"Interface {iface.name}: Ignored, vlan already {new_pvid}")
 
         # tired of the old interface description?
         if new_description:
@@ -939,7 +939,7 @@ def switch_vlan_manage(request, group_id, switch_id):
                           group=group,
                           action=LOG_VLAN_CREATE,
                           type=LOG_TYPE_CHANGE,
-                          description=f"VLAN {vlan_id} ({vlan_name}) created.",)
+                          description=f"Vlan {vlan_id} ({vlan_name}) created.",)
                 log.save()
                 # need to save changes
                 conn.set_save_needed(True)
@@ -957,7 +957,7 @@ def switch_vlan_manage(request, group_id, switch_id):
                           group=group,
                           action=LOG_VLAN_CREATE,
                           type=LOG_TYPE_ERROR,
-                          description=f"Error creating VLAN {vlan_id} ({vlan_name}): {conn.error.details}",)
+                          description=f"Error creating vlan {vlan_id} ({vlan_name}): {conn.error.details}",)
                 log.save()
                 return error_page(request=request, group=group, switch=switch, error=error)
         else:
@@ -976,7 +976,7 @@ def switch_vlan_manage(request, group_id, switch_id):
                           group=group,
                           action=LOG_VLAN_EDIT,
                           type=LOG_TYPE_CHANGE,
-                          description=f"VLAN {vlan_id} renamed to '{vlan_name}'",)
+                          description=f"Vlan {vlan_id} renamed to '{vlan_name}'",)
                 log.save()
                 # need to save changes
                 conn.set_save_needed(True)
@@ -995,7 +995,7 @@ def switch_vlan_manage(request, group_id, switch_id):
                           group=group,
                           action=LOG_VLAN_EDIT,
                           type=LOG_TYPE_ERROR,
-                          description=f"Error updating VLAN {vlan_id} name to '{vlan_name}': {conn.error.details}",)
+                          description=f"Error updating vlan {vlan_id} name to '{vlan_name}': {conn.error.details}",)
                 log.save()
                 return error_page(request=request, group=group, switch=switch, error=error)
         else:
@@ -1014,7 +1014,7 @@ def switch_vlan_manage(request, group_id, switch_id):
                           group=group,
                           action=LOG_VLAN_DELETE,
                           type=LOG_TYPE_CHANGE,
-                          description=f"VLAN {vlan_id} deleted.",)
+                          description=f"Vlan {vlan_id} deleted.",)
                 log.save()
                 # need to save changes
                 conn.set_save_needed(True)
@@ -1033,7 +1033,7 @@ def switch_vlan_manage(request, group_id, switch_id):
                           group=group,
                           action=LOG_VLAN_DELETE,
                           type=LOG_TYPE_ERROR,
-                          description=f"Error deleting VLAN {vlan_id}: {conn.error.details}",)
+                          description=f"Error deleting vlan {vlan_id}: {conn.error.details}",)
                 log.save()
                 return error_page(request=request, group=group, switch=switch, error=error)
         else:
@@ -1045,7 +1045,7 @@ def switch_vlan_manage(request, group_id, switch_id):
 
     error = Error()
     error.status = True
-    error.description = f"UNKNOWN Vlan Management action: POST={dict(request.POST.items())}"
+    error.description = f"UNKNOWN vlan management action: POST={dict(request.POST.items())}"
     return error_page(request=request, group=group, switch=switch, error=error)
 
 
