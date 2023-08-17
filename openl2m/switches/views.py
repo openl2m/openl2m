@@ -945,7 +945,7 @@ def switch_vlan_manage(request, group_id, switch_id):
                 conn.set_save_needed(True)
                 # and save data in session
                 conn.save_cache()
-                return success_page(request=request, group=group, switch=switch, description="Vlan {vlan_id} created successfully!")
+                return success_page(request=request, group=group, switch=switch, description=f"Vlan {vlan_id} created successfully!")
             else:
                 error = Error()
                 error.status = True
