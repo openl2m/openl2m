@@ -502,9 +502,9 @@ def get_poe_pse_status(status):
     Return the string representing the PSE STATUS
     """
     if status == POE_PSE_STATUS_ON:
-        return 'Enabled'
+        return 'On'
     if status == POE_PSE_STATUS_OFF:
-        return 'Disabled'
+        return 'Off'
     if status == POE_PSE_STATUS_FAULT:
         return 'Faulty'
     return 'Unknown'
@@ -583,3 +583,12 @@ def humanize_power(power):
     if not power:
         return ''
     return '{:.1f}W'.format(power / 1000)
+
+
+# from https://stackoverflow.com/questions/2751319/is-there-a-django-template-filter-to-display-percentages
+@register.filter
+def as_percentage_of(part, whole):
+    try:
+        return "%d%%" % (float(part) / whole * 100)
+    except (ValueError, ZeroDivisionError):
+        return ""
