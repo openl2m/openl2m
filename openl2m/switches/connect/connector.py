@@ -12,7 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 from collections import OrderedDict
-import manuf
+import lib.manuf.manuf as manuf
 import natsort
 import re
 import time

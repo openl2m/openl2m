@@ -125,7 +125,7 @@ eval $COMMAND || exit 1
 # i.e. the Wireshark Ethernet Manufacturers database
 echo
 echo "Updating Wireshark Ethernet database..."
-COMMAND="manuf --update"
+COMMAND="python3 openl2m/lib/manuf/manuf/manuf.py --update"
 eval $COMMAND || exit 1
 
 # All done!

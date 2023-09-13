@@ -14,7 +14,10 @@ Jinja2
 junos-eznc
 jxmlease
 lxml
-manuf
+# no longer used due to Wireshark URL problem
+# https://github.com/coolbho3k/manuf/issues/34
+# local copy in openl2m/lib/manuf/
+# manuf
 six
 napalm>=4.0.0
 napalm-aruba-cx
