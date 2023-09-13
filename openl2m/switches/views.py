@@ -138,7 +138,7 @@ def switches(request):
             for switch in group.switches.all():
                 if switch.status == SWITCH_STATUS_ACTIVE:
                     # we save the names as well, so we can search them!
-                    permissions[int(group.id)][int(switch.id)] = (switch.name, switch.hostname, switch.description, switch.default_view)
+                    permissions[int(group.id)][int(switch.id)] = (switch.name, switch.hostname, switch.description, switch.default_view, group.name)
 
     save_to_http_session(request, 'permissions', permissions)
 
@@ -197,7 +197,7 @@ def switch_search(request):
             switches = permissions[group_id]
             if isinstance(switches, dict):
                 for switch_id in switches.keys():
-                    (name, hostname, description, default_view) = switches[switch_id]
+                    (name, hostname, description, default_view, group_name) = switches[switch_id]
                     # now check the name, hostname for the search pattern:
                     try:
                         if re.search(search, name, re.IGNORECASE) or re.search(search, hostname, re.IGNORECASE):
@@ -207,7 +207,7 @@ def switch_search(request):
                                     # only add once!
                                     dprint(f"SEARCH: adding {name}")
                                     device_names.append(name)
-                                    results.append((str(group_id), str(switch_id), name, description, default_view))
+                                    results.append((str(group_id), str(switch_id), name, description, default_view, group_name))
                             else:
                                 # regular user, add all occurances of device (likely just one!)
                                 results.append((str(group_id), str(switch_id), name, description, default_view))

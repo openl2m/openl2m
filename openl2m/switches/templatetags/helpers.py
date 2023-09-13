@@ -151,7 +151,7 @@ def get_my_results(results):
     if num == 0:
         return "We did not find any matching switches!"
     found = ""
-    for (group_id, switch_id, name, description, default_view) in results:
+    for (group_id, switch_id, name, description, default_view, group_name) in results:
         if description:
             tooltip = f"<abbr data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"{description}\">"
             tt_end = "</abbr>"
@@ -160,7 +160,7 @@ def get_my_results(results):
         link = f"\n<li class=\"list-group-item\">{tooltip}<a href=\"/switches/{group_id}/{switch_id}/"
         if default_view == SWITCH_VIEW_DETAILS:
             link += "details/"
-        found += f"{link}\">{name}</a>{tt_end}</li>"
+        found += f"{link}\">{name}</a>{tt_end} ({group_name})</li>"
 
     return mark_safe(f"<ul class=\"list-group\">{found}</ul>\n")
 
