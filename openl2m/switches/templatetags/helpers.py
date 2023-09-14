@@ -143,7 +143,7 @@ def get_device_class(device):
 
 
 @register.filter
-def get_my_results(results):
+def get_my_results(results, group_count):
     """
     Display the search results as a list of links.
     """
@@ -160,7 +160,10 @@ def get_my_results(results):
         link = f"\n<li class=\"list-group-item\">{tooltip}<a href=\"/switches/{group_id}/{switch_id}/"
         if default_view == SWITCH_VIEW_DETAILS:
             link += "details/"
-        found += f"{link}\">{name}</a>{tt_end} ({group_name})</li>"
+        if group_count > 1:
+            found += f"{link}\">{name}</a>{tt_end} ({group_name})</li>"
+        else:
+            found += f"{link}\">{name}</a>{tt_end}</li>"
 
     return mark_safe(f"<ul class=\"list-group\">{found}</ul>\n")
 

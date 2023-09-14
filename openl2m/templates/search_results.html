@@ -17,7 +17,7 @@
     <h4>Search for &quot;{{ search }}&quot;
     {% if results_count > 0 %}
       found {{ results_count }} results:</h4>
-      {{ results|get_my_results }}
+      {{ results|get_my_results:group_count }}
     {% else %}
       found no matches!</h4>
     {% endif %}

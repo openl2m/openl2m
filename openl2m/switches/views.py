@@ -189,7 +189,7 @@ def switch_search(request):
     log.save()
 
     results = []
-    device_names = []     # track the matched device for Admin and Staff, so we only show one result in first group found!
+    result_groups = {}
     warning = False
     permissions = get_from_http_session(request, 'permissions')
     if permissions and isinstance(permissions, dict):
@@ -201,19 +201,13 @@ def switch_search(request):
                     # now check the name, hostname for the search pattern:
                     try:
                         if re.search(search, name, re.IGNORECASE) or re.search(search, hostname, re.IGNORECASE):
-                            if request.user.is_superuser or request.user.is_staff:
-                                # these users may see a device in multiple groups, so minimize results:
-                                if name not in device_names:
-                                    # only add once!
-                                    dprint(f"SEARCH: adding {name}")
-                                    device_names.append(name)
-                                    results.append((str(group_id), str(switch_id), name, description, default_view, group_name))
-                            else:
-                                # regular user, add all occurances of device (likely just one!)
-                                results.append((str(group_id), str(switch_id), name, description, default_view))
+                            # regular user, add all occurances of device (likely just one!)
+                            results.append((str(group_id), str(switch_id), name, description, default_view, group_name))
+                            result_groups[group_name] = True
                     except Exception:
                         # invalid search, just ignore!
                         warning = f"{search} - This is an invalid search pattern!"
+                        break
 
     # render the template
     return render(request, template_name, {
@@ -221,6 +215,7 @@ def switch_search(request):
         'search': search,
         'results': results,
         'results_count': len(results),
+        'group_count': len(result_groups),
     })
 
 
