@@ -208,10 +208,12 @@ class InterfaceArpView(APIView):
                             data["macaddress"] = macaddress
                 if iface.untagged_vlan > 0:
                     data["vlan"] = iface.untagged_vlan
+                print(iface.admin_status)
                 if iface.admin_status:
                     data["state"] = "Enabled"
                 else:
                     data["state"] = "Disabled"
+                print(iface.oper_status)
                 if iface.oper_status:
                     data["online"] = True
                 else:
