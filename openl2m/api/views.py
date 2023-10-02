@@ -168,34 +168,30 @@ class InterfaceArpView(APIView):
             conn = get_connection_object(request, group, switch)
         except ConnectionError as e:
             error = f"The following ConnectionError: {e} occurred."
-            print(error)
+            dprint(error)
             raise Http404
         try:
             if not conn.get_basic_info():
                 error = "ERROR in get_basic_switch_info()"
-                print(error)
+                dprint(error)
             if not conn.get_client_data():
                 error = "ERROR in get_client_data()"
-                print(error)
+                dprint(error)
         except Exception as e:
-            error = "Exception for get switch info"
-            print(error)
+            error = f"Exception for get switch info {e}"
+            dprint(error)
             raise Http404
         conn.save_cache()
-        data = {
-            "connection": conn,
-        }
-        print(data)
-        for key, iface in conn.interfaces.items():
-            print(key)
-            print(iface)
+        data = {}
         # Here we parse the data for the correct return values
         try:
-            if conn.interfaces.items[int(interface_name)]:
-                data["interface"] = int(interface_name)
-                data["mac-address"] = conn.interfaces.items[int(interface_name)]
+            if conn.interfaces.items():
+                for key, iface in conn.interfaces.items():
+                    if key == interface_name:
+                        data["interface"] = interface_name
+                        data["iface"] = iface
         except Exception as e:
-            error = "ERROR in parsing for interface"
-            print(error)
+            error = f"ERROR in parsing for interface {e}"
+            dprint(error)
             raise Http404
         return Response(data=data)
