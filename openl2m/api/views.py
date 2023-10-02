@@ -184,13 +184,12 @@ class InterfaceArpView(APIView):
         conn.save_cache()
         # Here we parse the data for the correct return values
         data = {}
+        print(dir(conn))
         if conn.eth_addr_count > 0:
             for key, iface in conn.interfaces.items():
                 if key == interface_name:
                     data["interface"] = interface_name
                     for macaddress, eth in iface.eth.items():
-                        print(dir(macaddress))
-                        print(dir(eth))
                         data["macaddress"] = macaddress
-                        data["eth"] = eth
+                        data["eth"] = eth.eui64
         return Response(data=data)
