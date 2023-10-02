@@ -186,7 +186,7 @@ class InterfaceArpView(APIView):
             "connection": conn,
         }
         print(data)
-        for key, iface in conn.interfaces.items:
+        for key, iface in conn.interfaces.items():
             print(key)
             print(iface)
         # Here we parse the data for the correct return values
