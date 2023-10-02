@@ -189,6 +189,8 @@ class InterfaceArpView(APIView):
                 if key == interface_name:
                     data["interface"] = interface_name
                     for macaddress, eth in iface.eth.items():
+                        print(dir(macaddress))
+                        print(dir(eth))
                         data["macaddress"] = macaddress
                         data["eth"] = eth
         return Response(data=data)
