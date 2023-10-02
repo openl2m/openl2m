@@ -163,13 +163,19 @@ class InterfaceArpView(APIView):
             error = Error()
             error.description = "Access denied!"
             error.details = "You do not have access to this device!"
-            return error_page(request=request, group=False, switch=False, error=error)
+            return Response(
+                data=error,
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
         try:
             conn = get_connection_object(request, group, switch)
         except ConnectionError as e:
             error = f"The following ConnectionError: {e} occurred."
             dprint(error)
-            raise Http404
+            return Response(
+                data=error,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
             if not conn.get_basic_info():
                 error = "ERROR in get_basic_switch_info()"
@@ -180,14 +186,27 @@ class InterfaceArpView(APIView):
         except Exception as e:
             error = f"Exception for get switch info {e}"
             dprint(error)
-            raise Http404
+            return Response(
+                data=error,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         conn.save_cache()
-        # Here we parse the data for the correct return values
-        data = {}
+        data = {
+            "interface": interface_name,
+            "macaddress": None,
+        }
         if conn.eth_addr_count > 0:
             for key, iface in conn.interfaces.items():
                 if key == interface_name:
                     data["interface"] = interface_name
                     for macaddress, eth in iface.eth.items():
-                        data["macaddress"] = macaddress
-        return Response(data=data)
+                        if macaddress != "":
+                            data["macaddress"] = macaddress
+                    return Response(
+                        data=data,
+                        status=status.HTTP_200_OK,
+                    )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
