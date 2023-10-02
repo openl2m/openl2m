@@ -185,11 +185,11 @@ class InterfaceArpView(APIView):
         data = {}
         # Here we parse the data for the correct return values
         try:
-            if conn.interfaces.items():
+            if conn.eth_addr_count() > 0:
                 for key, iface in conn.interfaces.items():
                     if key == interface_name:
                         data["interface"] = interface_name
-                        data["iface"] = iface
+                        data["macaddress"] = iface.eth.items()
         except Exception as e:
             error = f"ERROR in parsing for interface {e}"
             dprint(error)
