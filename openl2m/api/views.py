@@ -164,35 +164,22 @@ class InterfaceArpView(APIView):
             error.description = "Access denied!"
             error.details = "You do not have access to this device!"
             return error_page(request=request, group=False, switch=False, error=error)
-        log = Log(
-            user=request.user,
-            ip_address=get_remote_ip(request),
-            switch=switch,
-            group=group,
-            action=LOG_VIEW_SWITCH,
-            type=LOG_TYPE_VIEW,
-            description=f"Getting ARP Information from {switch}",
-        )
         try:
             conn = get_connection_object(request, group, switch)
         except ConnectionError as e:
             error = f"The following ConnectionError: {e} occurred."
+            print(error)
             raise Http404
         try:
             if not conn.get_basic_info():
-                # errors
-                log.type = LOG_TYPE_ERROR
-                log.description = "ERROR in get_basic_switch_info()"
-                log.save()
+                error = "ERROR in get_basic_switch_info()"
+                print(error)
             if not conn.get_client_data():
-                log.type = LOG_TYPE_ERROR
-                log.description = "ERROR get_client_data()"
-                log.save()
+                error = "ERROR in get_client_data()"
+                print(error)
         except Exception as e:
-            log.type = LOG_TYPE_ERROR
-            log.description = f"CAUGHT UNTRAPPED ERROR in get_basic_switch_info(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            dprint(log.description)
-            log.save()
+            error = "Exception for get switch info"
+            print(error)
             raise Http404
         conn.save_cache()
         data = {}
@@ -202,9 +189,7 @@ class InterfaceArpView(APIView):
                 data["interface"] = int(interface_name)
                 data["mac-address"] = conn.interfaces.items[int(interface_name)]
         except Exception as e:
-            log.type = LOG_TYPE_ERROR
-            log.description = f"CAUGHT UNTRAPPED ERROR in get_basic_switch_info(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            dprint(log.description)
-            log.save()
+            error = "ERROR in parsing for interface"
+            print(error)
             raise Http404
         return Response(data=data)
