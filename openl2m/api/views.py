@@ -194,6 +194,10 @@ class InterfaceArpView(APIView):
         data = {
             "interface": interface_name,
             "macaddress": None,
+            "vlan": None,
+            "state": None,
+            "online": None,
+            "speed": None,
         }
         if conn.eth_addr_count > 0:
             for key, iface in conn.interfaces.items():
@@ -202,10 +206,20 @@ class InterfaceArpView(APIView):
                     for macaddress, eth in iface.eth.items():
                         if macaddress != "":
                             data["macaddress"] = macaddress
-                    return Response(
-                        data=data,
-                        status=status.HTTP_200_OK,
-                    )
+                if iface.untagged_vlan > 0:
+                    data["vlan"] = iface.untagged_vlan
+                if iface.admin_status:
+                    data["state"] = "Enabled"
+                else:
+                    data["state"] = "Disabled"
+                if iface.oper_status:
+                    data["online"] = True
+                else:
+                    data["online"] = False
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK,
+            )
         return Response(
             data=data,
             status=status.HTTP_404_NOT_FOUND,
