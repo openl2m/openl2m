@@ -270,7 +270,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 # add snmp-related constants to every template, see switches/context_processors.py
                 'switches.context_processors.add_variables',
-                'api.context_processors.add_variables',
             ],
         },
     },
