@@ -26,7 +26,7 @@ from django.http import HttpResponseRedirect
 from users.views import LogoutView
 
 # Custom admin site:
-from .admin import admin_site
+from openl2m.admin import admin_site
 
 app_name = 'openl2m'
 urlpatterns = [
@@ -55,6 +55,9 @@ urlpatterns = [
 
     # user profiles, etc.
     path(r'users/', include('users.urls')),
+
+    # user profiles, etc.
+    path(r'api/', include('api.urls')),
 
     # Admin - customized, see admin.py
     path(r'admin/', admin_site.urls),
