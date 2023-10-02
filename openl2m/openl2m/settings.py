@@ -220,6 +220,7 @@ INSTALLED_APPS = [
     'switches.apps.SwitchesConfig',
     'counters.apps.CountersConfig',
     'notices.apps.NoticesConfig',
+    'api.apps.ApiConfig',
     'django_minify_html',
 ]
 
@@ -269,6 +270,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 # add snmp-related constants to every template, see switches/context_processors.py
                 'switches.context_processors.add_variables',
+                'api.context_processors.add_variables',
             ],
         },
     },

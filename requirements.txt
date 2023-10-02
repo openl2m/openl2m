@@ -1,5 +1,5 @@
 black
-distro
+distro~=1.8.0
 Django>=4.2,<4.3
 django-ipware>=5.0,<5.1
 django-minify-html
@@ -11,18 +11,18 @@ gunicorn
 hiredis
 ip_address>=1.0.23
 Jinja2
-junos-eznc
+junos-eznc~=2.6.7
 jxmlease
 lxml
-manuf
+manuf~=1.1.5
 six
 napalm>=4.0.0
 napalm-aruba-cx
 napalm-dellos10
 napalm-procurve
-natsort
-netaddr
-netmiko
+natsort~=8.4.0
+netaddr~=0.9.0
+netmiko~=4.2.0
 psycopg2-binary
 # We are using a clone of the Aruba pyaoscx library from github.com,
 # as there always seems to be some fix in there that we need that has
@@ -37,7 +37,7 @@ pyasn1==0.4.8
 pycodestyle
 # see above comment about pyasn1 !
 pysnmp==4.4.12
-pytz
+pytz~=2023.3.post1
 recommonmark
 redis
 Sphinx
@@ -45,4 +45,7 @@ sphinx_rtd_theme
 textfsm
 PyYAML>=6.0
 pipenv
-XlsxWriter
+XlsxWriter~=3.1.6
+
+djangorestframework~=3.14.0
+urllib3~=2.0.5
