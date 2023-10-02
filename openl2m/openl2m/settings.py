@@ -222,6 +222,7 @@ INSTALLED_APPS = [
     'notices.apps.NoticesConfig',
     'api.apps.ApiConfig',
     'django_minify_html',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
