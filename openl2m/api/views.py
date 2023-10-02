@@ -184,9 +184,9 @@ class InterfaceArpView(APIView):
         conn.save_cache()
         data = {}
         # Here we parse the data for the correct return values
+        print(conn)
         try:
             if conn.interfaces.items[int(interface_name)]:
-                print(conn.interfaces.items)
                 data["interface"] = int(interface_name)
                 data["mac-address"] = conn.interfaces.items[int(interface_name)]
         except Exception as e:
