@@ -184,7 +184,7 @@ class InterfaceArpView(APIView):
         conn.save_cache()
         # Here we parse the data for the correct return values
         data = {}
-        if conn.eth_addr_count() > 0:
+        if conn.eth_addr_count > 0:
             for key, iface in conn.interfaces.items():
                 if key == interface_name:
                     data["interface"] = interface_name
