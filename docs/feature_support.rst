@@ -3,10 +3,11 @@
 Features Supported
 ==================
 
-** Features Supported by Drivers**
+**Features Supported by Drivers**
 
 .. list-table::
    :header-rows: 1
+   :stub-columns: 1
 
    * - Features
      - SNMP (Generic)
@@ -74,14 +75,14 @@ Features Supported
      - Yes
      -
 
-   * - VLAN Edit
+   * - VLAN Edit/Create
      - Yes
      - Yes (v10.12 and up)
      - Yes
      - Yes
      - Yes
      - Yes
-     -
+     - Yes
      -
      -
 
