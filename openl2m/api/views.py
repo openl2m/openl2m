@@ -188,5 +188,7 @@ class InterfaceArpView(APIView):
             for key, iface in conn.interfaces.items():
                 if key == interface_name:
                     data["interface"] = interface_name
-                    data["macaddress"] = iface.eth.items()
+                    for macaddress, eth in iface.eth.items():
+                        data["macaddress"] = macaddress
+                        data["eth"] = eth
         return Response(data=data)
