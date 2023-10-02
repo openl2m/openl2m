@@ -182,9 +182,14 @@ class InterfaceArpView(APIView):
             print(error)
             raise Http404
         conn.save_cache()
-        data = {}
+        data = {
+            "connection": conn,
+        }
+        print(data)
+        for key, iface in conn.interfaces.items:
+            print(key)
+            print(iface)
         # Here we parse the data for the correct return values
-        print(conn)
         try:
             if conn.interfaces.items[int(interface_name)]:
                 data["interface"] = int(interface_name)
