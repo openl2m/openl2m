@@ -216,6 +216,8 @@ class InterfaceArpView(APIView):
                         data["online"] = True
                     else:
                         data["online"] = False
+                    if iface.speed:
+                        data["speed"] = iface.speed
             return Response(
                 data=data,
                 status=status.HTTP_200_OK,
