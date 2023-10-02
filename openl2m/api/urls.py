@@ -14,7 +14,7 @@
 from django.urls import path, register_converter
 
 # from django.conf.urls import url
-
+# class based views
 from api.views import (
     InterfaceArpView,
     ApiBasicsView,
@@ -23,7 +23,7 @@ from api.views import (
 
 class InterfaceNameConvertor:
     # convertor class to make sure interface names follow url-safe formats
-    regex = '[a-zA-Z0-9\/_\-]*'
+    regex = "[a-zA-Z0-9\/_\-]*"
 
     def to_python(self, value):
         # replace _ with /
@@ -34,11 +34,15 @@ class InterfaceNameConvertor:
         return value.replace("/", "_")
 
 
-register_converter(InterfaceNameConvertor, 'ifname')
+register_converter(InterfaceNameConvertor, "ifname")
 
-app_name = 'api'
+app_name = "api"
 urlpatterns = [
-    path('', views.api, name='api'),
-    path('<int:group_id>/<int:switch_id>/', ApiBasicsView.as_view(), name='api_basics'),
-    path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/arp/', InterfaceArpView.as_view(), name='api_interface_arp'),
+    path("", ApiBasicsView.as_view(), name="api"),
+    path("<int:group_id>/<int:switch_id>/", ApiBasicsView.as_view(), name="api_basics"),
+    path(
+        "<int:group_id>/<int:switch_id>/<ifname:interface_name>/arp/",
+        InterfaceArpView.as_view(),
+        name="api_interface_arp",
+    ),
 ]
