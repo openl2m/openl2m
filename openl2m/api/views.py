@@ -182,16 +182,11 @@ class InterfaceArpView(APIView):
             dprint(error)
             raise Http404
         conn.save_cache()
-        data = {}
         # Here we parse the data for the correct return values
-        try:
-            if conn.eth_addr_count() > 0:
-                for key, iface in conn.interfaces.items():
-                    if key == interface_name:
-                        data["interface"] = interface_name
-                        data["macaddress"] = iface.eth.items()
-        except Exception as e:
-            error = f"ERROR in parsing for interface {e}"
-            dprint(error)
-            raise Http404
+        data = {}
+        if conn.eth_addr_count() > 0:
+            for key, iface in conn.interfaces.items():
+                if key == interface_name:
+                    data["interface"] = interface_name
+                    data["macaddress"] = iface.eth.items()
         return Response(data=data)
