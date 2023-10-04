@@ -16,7 +16,10 @@ from django.urls import path, register_converter
 # from django.conf.urls import url
 
 from switches import views
-
+from switches.views import (
+        APIInterfaceDetailView,
+        APIInterfaceSpeedView,
+        )
 
 class InterfaceNameConvertor:
     # convertor class to make sure interface names follow url-safe formats
@@ -140,27 +143,27 @@ urlpatterns = [
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/details/",
-        views.InterfaceArpView.as_view(),
+        views.APIInterfaceDetailView.as_view(),
         name="api_interface_detail_view",
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/speed/",
-        views.InterfaceArpView.as_view(),
+        views.APIInterfaceDetailView.as_view(),
         name="api_interface_detail_view",
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/arp/",
-        views.InterfaceArpView.as_view(),
+        views.APIInterfaceDetailView.as_view(),
         name="api_interface_detail_view",
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/vlans/",
-        views.InterfaceArpView.as_view(),
+        views.APIInterfaceDetailView.as_view(),
         name="api_interface_detail_view",
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/state/",
-        views.InterfaceArpView.as_view(),
+        views.APIInterfaceDetailView.as_view(),
         name="api_interface_detail_view",
     ),
 ]

@@ -2440,7 +2440,7 @@ def user_can_access_task(request, task=False):
 
 # Here we implement all api views as classes
 @login_required(redirect_field_name=None)
-class InterfaceArpView(APIView):
+class APIInterfaceDetailView(APIView):
     """
     Return the ARP Information for an interface if there is any to return
     All Interfaces should be integer
@@ -2521,7 +2521,7 @@ class InterfaceArpView(APIView):
 
 
 @login_required(redirect_field_name=None)
-class APISpeedView(APIView):
+class APIInterfaceSpeedView(APIView):
     def get(
         self,
         request,
