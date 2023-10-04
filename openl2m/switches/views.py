@@ -1057,7 +1057,11 @@ def bulkedit_processor(
         log.description = "Bulk Edits OK!"
     log.save()
 
-    results = {"success_count": success_count, "error_count": error_count, "outputs": outputs}
+    results = {
+        "success_count": success_count,
+        "error_count": error_count,
+        "outputs": outputs,
+    }
     return results
 
 
