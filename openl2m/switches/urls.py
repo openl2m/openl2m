@@ -143,27 +143,27 @@ urlpatterns = [
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/details/",
-        views.APIInterfaceDetailView.as_view(),
+        APIInterfaceDetailView.as_view(),
         name="api_interface_detail_view",
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/speed/",
-        views.APIInterfaceDetailView.as_view(),
+        APIInterfaceDetailView.as_view(),
         name="api_interface_detail_view",
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/arp/",
-        views.APIInterfaceDetailView.as_view(),
+        APIInterfaceDetailView.as_view(),
         name="api_interface_detail_view",
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/vlans/",
-        views.APIInterfaceDetailView.as_view(),
+        APIInterfaceDetailView.as_view(),
         name="api_interface_detail_view",
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/state/",
-        views.APIInterfaceDetailView.as_view(),
+        APIInterfaceDetailView.as_view(),
         name="api_interface_detail_view",
     ),
 ]
