@@ -2330,50 +2330,6 @@ def admin_activity(request):
     )
 
 
-def rights_to_group_and_switch(request, group_id, switch_id):
-    """
-    Check if the current user has rights to this switch in this group
-    Returns True if allowed, False if not!
-    """
-    if request.user.is_superuser or request.user.is_staff:
-        return True
-    # for regular users, check permissions:
-    permissions = get_from_http_session(request, "permissions")
-    if (
-        permissions
-        and isinstance(permissions, dict)
-        and int(group_id) in permissions.keys()
-    ):
-        switches = permissions[int(group_id)]
-        if isinstance(switches, dict) and int(switch_id) in switches.keys():
-            return True
-    return False
-
-
-def user_can_access_task(request, task=False):
-    """
-    Check if the current user has rights to this task.
-    This needs more work, for now keep it simle.
-    Return True or False
-    """
-    if request.user.is_superuser or request.user.is_staff:
-        return True
-    if task:
-        if task.user == request.user:
-            return True
-        # does the user have rights to the group of this task?
-        permissions = get_from_http_session(request, "permissions")
-        if (
-            permissions
-            and isinstance(permissions, dict)
-            and str(task.group.id) in permissions.keys()
-        ):
-            #  if member of group there is no need to check switch!
-            return True
-    # deny others
-    return False
-
-
 # Here we implement all api views as classes
 class APIInterfaceDetailView(
     APIView,
@@ -2439,6 +2395,19 @@ class APIInterfaceDetailView(
                 data=data,
                 status=status.HTTP_404_NOT_FOUND,
             )
+    def post(self, request, group_id, switch_id, interface_name,):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn = get_connection_switch(
+                request=request,
+                group=group,
+                switch=switch,
+            )
+            # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
 
 
 class APIInterfaceVlanView(
@@ -2490,6 +2459,21 @@ class APIInterfaceVlanView(
         )
 
 
+    def post(self, request, group_id, switch_id, interface_name,):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn = get_connection_switch(
+                request=request,
+                group=group,
+                switch=switch,
+            )
+            # TODO: here we need to parse for the change of the primary untagged vlan for the interface
+
+
 class APIInterfaceSpeedView(
     APIView,
 ):
@@ -2537,6 +2521,19 @@ class APIInterfaceSpeedView(
                 data=data,
                 status=status.HTTP_404_NOT_FOUND,
             )
+    def post(self, request, group_id, switch_id, interface_name,):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn = get_connection_switch(
+                request=request,
+                group=group,
+                switch=switch,
+            )
+            # TODO: here we need to parse the change for the speed of the interface (?hard checks?)
 
 
 class APIInterfaceStateView(
@@ -2592,7 +2589,20 @@ class APIInterfaceStateView(
             return Response(
                 data=data,
                 status=status.HTTP_404_NOT_FOUND,
+                )
+    def post(self, request, group_id, switch_id, interface_name,):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn = get_connection_switch(
+                request=request,
+                group=group,
+                switch=switch,
             )
+            # TODO: now here we need to parse the incoming data to actually change the state of the interface.
 
 
 class APIInterfaceArpView(
@@ -2643,6 +2653,44 @@ class APIInterfaceArpView(
                 data=data,
                 status=status.HTTP_404_NOT_FOUND,
             )
+    def post(self, request, group_id, switch_id, interface_name,):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn = get_connection_switch(
+                request=request,
+                group=group,
+                switch=switch,
+            )
+            # TODO: now here we need to parse the incoming data and maybe change the macaddress 
+
+
+"""
+This class extends the ObtainAuthToken class
+"""
+
+
+class APIObtainAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(
+            raise_exception=True,
+        )
+        user = serializer.validated_data["user"]
+        token, created = Token.objects.get_or_create(user=user)
+        return Response(
+            {
+                "token": token.key,
+                "user_id": user.pk,
+                "email": user.email,
+            }
+        )
 
 
 """
@@ -2689,6 +2737,10 @@ def confirm_access_rights(
     group_id=None,
     switch_id=None,
 ):
+    """
+    Check if the current user has rights to this switch in this group
+    Returns the switch_group and switch_id for further processing
+    """
     group = get_object_or_404(
         SwitchGroup,
         pk=group_id,
@@ -2710,26 +2762,46 @@ def confirm_access_rights(
     return group, switch
 
 
-"""
-This class extends the ObtainAuthToken class
-"""
+def rights_to_group_and_switch(request, group_id, switch_id):
+    """
+    Check if the current user has rights to this switch in this group
+    Returns True if allowed, False if not!
+    """
+    if request.user.is_superuser or request.user.is_staff:
+        return True
+    # for regular users, check permissions:
+    permissions = get_from_http_session(request, "permissions")
+    if (
+        permissions
+        and isinstance(permissions, dict)
+        and int(group_id) in permissions.keys()
+    ):
+        switches = permissions[int(group_id)]
+        if isinstance(switches, dict) and int(switch_id) in switches.keys():
+            return True
+    return False
 
 
-class APIObtainAuthToken(ObtainAuthToken):
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(
-            data=request.data,
-            context={"request": request},
-        )
-        serializer.is_valid(
-            raise_exception=True,
-        )
-        user = serializer.validated_data["user"]
-        token, created = Token.objects.get_or_create(user=user)
-        return Response(
-            {
-                "token": token.key,
-                "user_id": user.pk,
-                "email": user.email,
-            }
-        )
+def user_can_access_task(request, task=False):
+    """
+    Check if the current user has rights to this task.
+    This needs more work, for now keep it simle.
+    Return True or False
+    """
+    if request.user.is_superuser or request.user.is_staff:
+        return True
+    if task:
+        if task.user == request.user:
+            return True
+        # does the user have rights to the group of this task?
+        permissions = get_from_http_session(request, "permissions")
+        if (
+            permissions
+            and isinstance(permissions, dict)
+            and str(task.group.id) in permissions.keys()
+        ):
+            #  if member of group there is no need to check switch!
+            return True
+    # deny others
+    return False
+
