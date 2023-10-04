@@ -17,9 +17,11 @@ from django.urls import path, register_converter
 
 from switches import views
 from switches.views import (
-        APIInterfaceDetailView,
-        APIInterfaceSpeedView,
-        )
+    APIInterfaceDetailView,
+    APIInterfaceSpeedView,
+    APIObtainAuthToken,
+)
+
 
 class InterfaceNameConvertor:
     # convertor class to make sure interface names follow url-safe formats
@@ -165,5 +167,10 @@ urlpatterns = [
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/state/",
         APIInterfaceDetailView.as_view(),
         name="api_interface_detail_view",
+    ),
+    path(
+        "api/token/",
+        APIObtainAuthToken.as_view(),
+        name="api_get_token_for_user",
     ),
 ]

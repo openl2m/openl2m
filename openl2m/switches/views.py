@@ -128,6 +128,8 @@ from notices.models import Notice
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -157,7 +159,7 @@ def switches(request):
         groups = SwitchGroup.objects.all().order_by("name")
 
     else:
-        # figure out what this users has access to.
+        # figure out what this user has access to.
         # Note we use the ManyToMany 'related_name' attribute for readability!
         groups = request.user.switchgroups.all().order_by("name")
 
@@ -760,9 +762,7 @@ def bulkedit_processor(
         iface_count += 1
 
         # save the current state, right before we make a change!
-        current_state = {}
-        current_state["if_key"] = if_key
-        current_state["name"] = iface.name  # for readability
+        current_state = {"if_key": if_key, "name": iface.name}
 
         # now check all the things we could be changing,
         # start with UP/DOWN state:
@@ -1057,10 +1057,7 @@ def bulkedit_processor(
         log.description = "Bulk Edits OK!"
     log.save()
 
-    results = {}
-    results["success_count"] = success_count
-    results["error_count"] = error_count
-    results["outputs"] = outputs
+    results = {"success_count": success_count, "error_count": error_count, "outputs": outputs}
     return results
 
 
@@ -2147,8 +2144,7 @@ def switch_activity(request, group_id, switch_id):
         return error_page(request=request, group=False, switch=False, error=error)
 
     # only show this switch. May add more filters later...
-    filter = {}
-    filter["switch_id"] = switch_id
+    filter = {"switch_id": switch_id}
     logs = Log.objects.all().filter(**filter).order_by("-timestamp")
 
     # setup pagination of the resulting activity logs
@@ -2211,10 +2207,9 @@ def show_stats(request):
     )
     log.save()
 
-    environment = {}  # OS environment information
-    environment[
-        "Python"
-    ] = f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
+    environment = {
+        "Python": f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
+    }  # OS environment information
     uname = os.uname()
     environment["OS"] = f"{uname.sysname} ({uname.release})"
     # environment['Version'] = uname.version
@@ -2237,8 +2232,7 @@ def show_stats(request):
     except Exception:
         environment["Git version"] = "Not found!"
 
-    db_items = {}  # database object item counts
-    db_items["Switches"] = Switch.objects.count()
+    db_items = {"Switches": Switch.objects.count()}  # database object item counts
     # need to calculate switchgroup count, as we count only groups with switches!
     group_count = 0
     for group in SwitchGroup.objects.all():
@@ -2255,37 +2249,37 @@ def show_stats(request):
 
     usage = {}  # usage statistics
 
-    filter = {}
-    filter["type"] = int(LOG_TYPE_CHANGE)
-    filter["timestamp__date"] = datetime.date.today()
+    filter = {"type": int(LOG_TYPE_CHANGE), "timestamp__date": datetime.date.today()}
     usage["Changes today"] = Log.objects.filter(**filter).count()
 
-    filter = {}
-    filter["type"] = int(LOG_TYPE_CHANGE)
-    filter["timestamp__gte"] = timezone.now().date() - datetime.timedelta(days=7)
+    filter = {
+        "type": int(LOG_TYPE_CHANGE),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
+    }
     usage["Changes last 7 days"] = Log.objects.filter(**filter).count()
 
-    filter = {}
-    filter["type"] = int(LOG_TYPE_CHANGE)
-    filter["timestamp__gte"] = timezone.now().date() - datetime.timedelta(days=31)
+    filter = {
+        "type": int(LOG_TYPE_CHANGE),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
+    }
     usage["Changes last 31 days"] = Log.objects.filter(**filter).count()
 
     # the total change count since install from Counter()'changes') object:
     usage["Total Changes"] = Counter.objects.get(name="changes").value
 
-    filter = {}
-    filter["type"] = int(LOG_TYPE_COMMAND)
-    filter["timestamp__date"] = datetime.date.today()
+    filter = {"type": int(LOG_TYPE_COMMAND), "timestamp__date": datetime.date.today()}
     usage["Commands today"] = Log.objects.filter(**filter).count()
 
-    filter = {}
-    filter["type"] = int(LOG_TYPE_COMMAND)
-    filter["timestamp__gte"] = timezone.now().date() - datetime.timedelta(days=7)
+    filter = {
+        "type": int(LOG_TYPE_COMMAND),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
+    }
     usage["Commands last 7 days"] = Log.objects.filter(**filter).count()
 
-    filter = {}
-    filter["type"] = int(LOG_TYPE_COMMAND)
-    filter["timestamp__gte"] = timezone.now().date() - datetime.timedelta(days=31)
+    filter = {
+        "type": int(LOG_TYPE_COMMAND),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
+    }
     usage["Commands last 31 days"] = Log.objects.filter(**filter).count()
 
     # total number of commands run:
@@ -2442,13 +2436,23 @@ def user_can_access_task(request, task=False):
 
 
 # Here we implement all api views as classes
-class APIInterfaceDetailView(LoginRequiredMixin, APIView,):
+class APIInterfaceDetailView(
+    LoginRequiredMixin,
+    APIView,
+):
     """
     Return the ARP Information for an interface if there is any to return
     All Interfaces should be integer
     """
-    authentication_classes = [SessionAuthentication, BasicAuthentication,]
-    permission_classes = [IsAuthenticated,]
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
     def get(
         self,
         request,
@@ -2460,7 +2464,6 @@ class APIInterfaceDetailView(LoginRequiredMixin, APIView,):
             request=request,
             group_id=group_id,
             switch_id=switch_id,
-            user=request.user,
         )
         try:
             conn = get_connection_object(request, group, switch)
@@ -2523,7 +2526,10 @@ class APIInterfaceDetailView(LoginRequiredMixin, APIView,):
         )
 
 
-class APIInterfaceSpeedView(LoginRequiredMixin, APIView,):
+class APIInterfaceSpeedView(
+    LoginRequiredMixin,
+    APIView,
+):
     def get(
         self,
         request,
@@ -2535,7 +2541,6 @@ class APIInterfaceSpeedView(LoginRequiredMixin, APIView,):
             request=request,
             group_id=group_id,
             switch_id=switch_id,
-            user=request.user,
         )
 
 
@@ -2543,7 +2548,6 @@ def confirm_access_rights(
     request=None,
     group_id=None,
     switch_id=None,
-    user=None,
 ):
     group = get_object_or_404(
         SwitchGroup,
@@ -2565,3 +2569,28 @@ def confirm_access_rights(
             status=status.HTTP_401_UNAUTHORIZED,
         )
     return group, switch
+
+
+"""
+This class extends the ObtainAuthToken class
+"""
+
+
+class APIObtainAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(
+            raise_exception=True,
+        )
+        user = serializer.validated_data["user"]
+        token, created = Token.objects.get_or_create(user=user)
+        return Response(
+            {
+                "token": token.key,
+                "user_id": user.pk,
+                "email": user.email,
+            }
+        )

@@ -232,6 +232,7 @@ INSTALLED_APPS = [
     "notices.apps.NoticesConfig",
     "django_minify_html",
     "rest_framework",
+    "rest_framework.authtoken",
 ]
 
 MIDDLEWARE = [
