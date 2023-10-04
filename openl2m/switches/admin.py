@@ -28,10 +28,6 @@ from switches.models import (Command, CommandList, CommandTemplate, Switch, Swit
 # register with the custom admin site
 from openl2m.admin import admin_site
 
-# rest_framework
-from rest_framework.authtoken.admin import TokenAdmin
-TokenAdmin.raw_id_fields = ['user']
-
 # See:
 # https://docs.djangoproject.com/en/dev/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal
 #
