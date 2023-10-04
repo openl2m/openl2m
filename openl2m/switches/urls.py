@@ -19,6 +19,9 @@ from switches import views
 from switches.views import (
     APIInterfaceDetailView,
     APIInterfaceSpeedView,
+    APIInterfaceArpView,
+    APIInterfaceStateView,
+    APIInterfaceVlanView,
     APIObtainAuthToken,
 )
 
@@ -150,22 +153,22 @@ urlpatterns = [
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/speed/",
-        APIInterfaceDetailView.as_view(),
+        APIInterfaceSpeedView.as_view(),
         name="api_interface_detail_view",
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/arp/",
-        APIInterfaceDetailView.as_view(),
+        APIInterfaceArpView.as_view(),
         name="api_interface_detail_view",
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/vlans/",
-        APIInterfaceDetailView.as_view(),
+        APIInterfaceVlanView.as_view(),
         name="api_interface_detail_view",
     ),
     path(
         "api/<int:group_id>/<int:switch_id>/<ifname:interface_name>/state/",
-        APIInterfaceDetailView.as_view(),
+        APIInterfaceStateView.as_view(),
         name="api_interface_detail_view",
     ),
     path(

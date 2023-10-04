@@ -2539,6 +2539,112 @@ class APIInterfaceSpeedView(
             )
 
 
+class APIInterfaceStateView(
+    APIView,
+):
+    """
+        Return only the speed data for the selected interface.
+    All Interfaces should be integer based
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name=None,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn = get_connection_switch(request=request, group=group, switch=switch)
+            data = {
+                "interface": interface_name,
+                "state": None,
+                "online": None,
+            }
+            if conn.eth_addr_count > 0:
+                for key, iface in conn.interfaces.items():
+                    if key == interface_name:
+                        data["interface"] = interface_name
+                        if iface.admin_status:
+                            data["state"] = "Enabled"
+                        else:
+                            data["state"] = "Disabled"
+                        if iface.oper_status:
+                            data["online"] = True
+                        else:
+                            data["online"] = False
+                return Response(
+                    data=data,
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+class APIInterfaceArpView(
+    APIView,
+):
+    """
+        Return only the speed data for the selected interface.
+    All Interfaces should be integer based
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name=None,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn = get_connection_switch(request=request, group=group, switch=switch)
+            data = {
+                "interface": interface_name,
+                "macaddress": None,
+            }
+            if conn.eth_addr_count > 0:
+                for key, iface in conn.interfaces.items():
+                    if key == interface_name:
+                        data["interface"] = interface_name
+                        for macaddress, eth in iface.eth.items():
+                            if macaddress != "":
+                                data["macaddress"] = macaddress
+                return Response(
+                    data=data,
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
 """
 This function is used to return us a conn object for requests to switches.
 Again it's usefull in deduplication.
