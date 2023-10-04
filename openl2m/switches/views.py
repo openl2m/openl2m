@@ -125,6 +125,7 @@ from counters.constants import (
 from notices.models import Notice
 
 # rest_framework
+from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -2439,8 +2440,7 @@ def user_can_access_task(request, task=False):
 
 
 # Here we implement all api views as classes
-@login_required(redirect_field_name=None)
-class APIInterfaceDetailView(APIView):
+class APIInterfaceDetailView(LoginRequiredMixin, APIView,):
     """
     Return the ARP Information for an interface if there is any to return
     All Interfaces should be integer
@@ -2520,8 +2520,7 @@ class APIInterfaceDetailView(APIView):
         )
 
 
-@login_required(redirect_field_name=None)
-class APIInterfaceSpeedView(APIView):
+class APIInterfaceSpeedView(LoginRequiredMixin, APIView,):
     def get(
         self,
         request,
