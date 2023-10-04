@@ -126,7 +126,11 @@ from notices.models import Notice
 
 # rest_framework
 from django.contrib.auth.mixins import LoginRequiredMixin
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
+from rest_framework.authentication import (
+    SessionAuthentication,
+    BasicAuthentication,
+    TokenAuthentication,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -332,14 +336,9 @@ def switch_view(
 
     template_name = "switch.html"
 
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        error.details = "You do not have access to this device!"
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
 
     log = Log(
         user=request.user,
@@ -545,16 +544,9 @@ def switch_bulkedit(request, group_id, switch_id):
     """
     Change several interfaces at once.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        error.details = "You do not have access to this device!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
     counter_increment(COUNTER_BULKEDITS)
 
     remote_ip = get_remote_ip(request)
@@ -1073,15 +1065,9 @@ def switch_vlan_manage(request, group_id, switch_id):
     """
     Manage vlan to a device. Form data will be POST-ed.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        error.details = "You do not have access to this device!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
 
     remote_ip = get_remote_ip(request)
 
@@ -1276,15 +1262,9 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
     """
     Toggle the admin status of an interface, ie admin up or down.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        error.details = "You do not have access to this device!"
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
 
     log = Log(
         user=request.user,
@@ -1359,15 +1339,9 @@ def interface_description_change(request, group_id, switch_id, interface_name):
     """
     Change the ifAlias aka description on an interfaces.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        error.details = "You do not have access to this device!"
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
 
     log = Log(
         user=request.user,
@@ -1482,14 +1456,9 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
     Change the PVID untagged vlan on an interfaces.
     This still needs to handle dot1q trunked ports.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
 
     log = Log(
         user=request.user,
@@ -1582,15 +1551,9 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
     Change the PoE status of an interfaces.
     This still needs to be tested for propper PoE port to interface ifIndex mappings.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.status = True
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
 
     log = Log(
         user=request.user,
@@ -1677,15 +1640,9 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
     """
     Toggle the PoE status of an interfaces. I.e disable, wait some, then enable again.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.status = True
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
 
     log = Log(
         user=request.user,
@@ -1787,14 +1744,9 @@ def switch_save_config(request, group_id, switch_id, view):
     """
     This will save the running config to flash/startup/whatever, on supported platforms
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
 
     log = Log(
         user=request.user,
@@ -1876,14 +1828,9 @@ def switch_cmd_template_output(request, group_id, switch_id):
     """
     Go parse a switch command template that was submitted in the form
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
 
     template_id = int(request.POST.get("template_id", -1))
     t = get_object_or_404(CommandTemplate, pk=template_id)
@@ -2102,15 +2049,9 @@ def switch_reload(request, group_id, switch_id, view):
     """
     This forces a new reading of basic switch SNMP data
     """
-
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
 
     log = Log(
         user=request.user,
@@ -2137,15 +2078,9 @@ def switch_activity(request, group_id, switch_id):
     This shows recent activity for a specific switch
     """
     template_name = "switch_activity.html"
-
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(
+        request=request, group_id=group_id, switch_id=switch_id
+    )
 
     # only show this switch. May add more filters later...
     filter = {"switch_id": switch_id}
@@ -2449,8 +2384,6 @@ class APIInterfaceDetailView(
     """
 
     authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
         TokenAuthentication,
     ]
     permission_classes = [
@@ -2472,12 +2405,12 @@ class APIInterfaceDetailView(
         if interface_name:
             conn = get_connection_switch(request=request, group=group, switch=switch)
             data = {
-            "interface": interface_name,
-            "macaddress": None,
-            "vlan": None,
-            "state": None,
-            "online": None,
-            "speed": None,
+                "interface": interface_name,
+                "macaddress": None,
+                "vlan": None,
+                "state": None,
+                "online": None,
+                "speed": None,
             }
             if conn.eth_addr_count > 0:
                 for key, iface in conn.interfaces.items():
@@ -2508,22 +2441,70 @@ class APIInterfaceDetailView(
             )
 
 
-class APIInterfaceSpeedView(
+class APIInterfaceVlanView(
     APIView,
 ):
     """
-    Return only the speed data for the selected interface.
-    All Interfaces should be integer based
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
     """
 
     authentication_classes = [
-        SessionAuthentication,
-        BasicAuthentication,
         TokenAuthentication,
     ]
     permission_classes = [
         IsAuthenticated,
     ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name="",
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn = get_connection_switch(request=request, group=group, switch=switch)
+            data = {
+                "interface": interface_name,
+                "vlan": None,
+            }
+            if conn.eth_addr_count:
+                for key, iface in conn.interfaces.items():
+                    if key == interface_name:
+                        data["interface"] = interface_name
+                        if iface.untagged_vlan > 0:
+                            data["vlan"] = iface.untagged_vlan
+                return Response(
+                    data=data,
+                    status=status.HTTP_200_OK,
+                )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+
+class APIInterfaceSpeedView(
+    APIView,
+):
+    """
+        Return only the speed data for the selected interface.
+    All Interfaces should be integer based
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
     def get(
         self,
         request,
@@ -2539,30 +2520,13 @@ class APIInterfaceSpeedView(
         if interface_name:
             conn = get_connection_switch(request=request, group=group, switch=switch)
             data = {
-                    "interface": interface_name,
-                    "macaddress": None,
-                    "vlan": None,
-                    "state": None,
-                    "online": None,
-                    "speed": None,
-                    }
+                "interface": interface_name,
+                "speed": None,
+            }
             if conn.eth_addr_count > 0:
                 for key, iface in conn.interfaces.items():
                     if key == interface_name:
                         data["interface"] = interface_name
-                        for macaddress, eth in iface.eth.items():
-                            if macaddress != "":
-                                data["macaddress"] = macaddress
-                        if iface.untagged_vlan > 0:
-                            data["vlan"] = iface.untagged_vlan
-                        if iface.admin_status:
-                            data["state"] = "Enabled"
-                        else:
-                            data["state"] = "Disabled"
-                        if iface.oper_status:
-                            data["online"] = True
-                        else:
-                            data["online"] = False
                         if iface.speed:
                             data["speed"] = iface.speed
                 return Response(
@@ -2570,11 +2534,18 @@ class APIInterfaceSpeedView(
                     status=status.HTTP_200_OK,
                 )
             return Response(
-                    data=data,
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+                data=data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-def get_connection_switch(request, group, switch): 
+
+"""
+This function is used to return us a conn object for requests to switches.
+Again it's usefull in deduplication.
+"""
+
+
+def get_connection_switch(request, group, switch):
     try:
         conn = get_connection_object(request, group, switch)
     except ConnectionError as e:
@@ -2602,6 +2573,11 @@ def get_connection_switch(request, group, switch):
     return conn
 
 
+"""
+This function removes all duplicate testing code
+"""
+
+
 def confirm_access_rights(
     request=None,
     group_id=None,
@@ -2621,17 +2597,18 @@ def confirm_access_rights(
         switch_id=switch_id,
     ):
         error = Error()
-        error.details = "This resource is not accessible for you."
-        return Response(
-            data=error,
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
+        error.status = True
+        error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
+        return error_page(request=request, group=False, switch=False, error=error)
     return group, switch
 
 
 """
 This class extends the ObtainAuthToken class
 """
+
+
 class APIObtainAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(
