@@ -245,6 +245,13 @@ MIDDLEWARE = [
     "django_minify_html.middleware.MinifyHtmlMiddleware",
 ]
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ]
+}
+
 # In developer mode, we add some extra stuff:
 if DEVELOPER:
     INSTALLED_APPS += [
