@@ -2469,83 +2469,137 @@ class APIInterfaceDetailView(
             group_id=group_id,
             switch_id=switch_id,
         )
-        try:
-            conn = get_connection_object(request, group, switch)
-        except ConnectionError as e:
-            error = f"The following ConnectionError: {e} occurred."
-            dprint(error)
-            return Response(
-                data=error,
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        try:
-            if not conn.get_basic_info():
-                error = "ERROR in get_basic_switch_info()"
-                dprint(error)
-            if not conn.get_client_data():
-                error = "ERROR in get_client_data()"
-                dprint(error)
-        except Exception as e:
-            error = f"Exception for get switch info {e}"
-            dprint(error)
-            return Response(
-                data=error,
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        conn.save_cache()
-        data = {
+        if interface_name:
+            conn = get_connection_switch(request=request, group=group, switch=switch)
+            data = {
             "interface": interface_name,
             "macaddress": None,
             "vlan": None,
             "state": None,
             "online": None,
             "speed": None,
-        }
-        if conn.eth_addr_count > 0:
-            for key, iface in conn.interfaces.items():
-                if key == interface_name:
-                    data["interface"] = interface_name
-                    for macaddress, eth in iface.eth.items():
-                        if macaddress != "":
-                            data["macaddress"] = macaddress
-                    if iface.untagged_vlan > 0:
-                        data["vlan"] = iface.untagged_vlan
-                    if iface.admin_status:
-                        data["state"] = "Enabled"
-                    else:
-                        data["state"] = "Disabled"
-                    if iface.oper_status:
-                        data["online"] = True
-                    else:
-                        data["online"] = False
-                    if iface.speed:
-                        data["speed"] = iface.speed
+            }
+            if conn.eth_addr_count > 0:
+                for key, iface in conn.interfaces.items():
+                    if key == interface_name:
+                        data["interface"] = interface_name
+                        for macaddress, eth in iface.eth.items():
+                            if macaddress != "":
+                                data["macaddress"] = macaddress
+                        if iface.untagged_vlan > 0:
+                            data["vlan"] = iface.untagged_vlan
+                        if iface.admin_status:
+                            data["state"] = "Enabled"
+                        else:
+                            data["state"] = "Disabled"
+                        if iface.oper_status:
+                            data["online"] = True
+                        else:
+                            data["online"] = False
+                        if iface.speed:
+                            data["speed"] = iface.speed
+                return Response(
+                    data=data,
+                    status=status.HTTP_200_OK,
+                )
             return Response(
                 data=data,
-                status=status.HTTP_200_OK,
+                status=status.HTTP_404_NOT_FOUND,
             )
-        return Response(
-            data=data,
-            status=status.HTTP_404_NOT_FOUND,
-        )
 
 
 class APIInterfaceSpeedView(
-    LoginRequiredMixin,
     APIView,
 ):
+    """
+    Return only the speed data for the selected interface.
+    All Interfaces should be integer based
+    """
+
+    authentication_classes = [
+        SessionAuthentication,
+        BasicAuthentication,
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
     def get(
         self,
         request,
         group_id,
         switch_id,
-        ifname,
+        interface_name=None,
     ):
         group, switch = confirm_access_rights(
             request=request,
             group_id=group_id,
             switch_id=switch_id,
         )
+        if interface_name:
+            conn = get_connection_switch(request=request, group=group, switch=switch)
+            data = {
+                    "interface": interface_name,
+                    "macaddress": None,
+                    "vlan": None,
+                    "state": None,
+                    "online": None,
+                    "speed": None,
+                    }
+            if conn.eth_addr_count > 0:
+                for key, iface in conn.interfaces.items():
+                    if key == interface_name:
+                        data["interface"] = interface_name
+                        for macaddress, eth in iface.eth.items():
+                            if macaddress != "":
+                                data["macaddress"] = macaddress
+                        if iface.untagged_vlan > 0:
+                            data["vlan"] = iface.untagged_vlan
+                        if iface.admin_status:
+                            data["state"] = "Enabled"
+                        else:
+                            data["state"] = "Disabled"
+                        if iface.oper_status:
+                            data["online"] = True
+                        else:
+                            data["online"] = False
+                        if iface.speed:
+                            data["speed"] = iface.speed
+                return Response(
+                    data=data,
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                    data=data,
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+def get_connection_switch(request, group, switch): 
+    try:
+        conn = get_connection_object(request, group, switch)
+    except ConnectionError as e:
+        error = f"The following ConnectionError: {e} occurred."
+        dprint(error)
+        return Response(
+            data=error,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        if not conn.get_basic_info():
+            error = "ERROR in get_basic_switch_info()"
+            dprint(error)
+        if not conn.get_client_data():
+            error = "ERROR in get_client_data()"
+            dprint(error)
+    except Exception as e:
+        error = f"Exception for get switch info {e}"
+        dprint(error)
+        return Response(
+            data=error,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    conn.save_cache()
+    return conn
 
 
 def confirm_access_rights(
@@ -2578,8 +2632,6 @@ def confirm_access_rights(
 """
 This class extends the ObtainAuthToken class
 """
-
-
 class APIObtainAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(
