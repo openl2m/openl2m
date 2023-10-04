@@ -2441,7 +2441,6 @@ def user_can_access_task(request, task=False):
 
 # Here we implement all api views as classes
 class APIInterfaceDetailView(
-    LoginRequiredMixin,
     APIView,
 ):
     """
