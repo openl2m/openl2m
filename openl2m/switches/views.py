@@ -2718,6 +2718,8 @@ class APISwitchDetailView(
 
     authentication_classes = [
         TokenAuthentication,
+        SessionAuthentication,
+        BasicAuthentication,
     ]
     permission_classes = [
         IsAuthenticated,
