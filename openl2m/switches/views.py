@@ -2341,6 +2341,8 @@ class APIInterfaceDetailView(
 
     authentication_classes = [
         TokenAuthentication,
+        SessionAuthentication,
+        BasicAuthentication,
     ]
     permission_classes = [
         IsAuthenticated,
