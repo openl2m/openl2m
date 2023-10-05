@@ -2739,7 +2739,7 @@ class APISwitchDetailView(
         conn = get_connection_switch(request=request, group=group, switch=switch)
         data = {
             "switch": switch_id,
-            "interface": None,
+            "interfaces": None,
         }
         interfaces = list()
         if conn.eth_addr_count > 0:
@@ -2762,6 +2762,7 @@ class APISwitchDetailView(
                 if iface.speed:
                     inf["speed"] = iface.speed
                 interfaces.append(inf)
+            data["interfaces"] = interfaces
             return Response(
                 data=data,
                 status=status.HTTP_200_OK,
@@ -2824,7 +2825,7 @@ class APISwitchSpeedView(
         conn = get_connection_switch(request=request, group=group, switch=switch)
         data = {
             "switch": switch_id,
-            "interface": None,
+            "interfaces": None,
         }
         interfaces = list()
         if conn.eth_addr_count > 0:
@@ -2834,6 +2835,7 @@ class APISwitchSpeedView(
                 if iface.speed:
                     inf["speed"] = iface.speed
                 interfaces.append(inf)
+            data["interfaces"] = interfaces
             return Response(
                 data=data,
                 status=status.HTTP_200_OK,
@@ -2891,7 +2893,7 @@ class APISwitchVlanView(
         conn = get_connection_switch(request=request, group=group, switch=switch)
         data = {
             "switch": switch_id,
-            "interface": None,
+            "interfaces": None,
         }
         interfaces = list()
         if conn.eth_addr_count > 0:
@@ -2901,6 +2903,7 @@ class APISwitchVlanView(
                 if iface.untagged_vlan > 0:
                     inf["vlan"] = iface.untagged_vlan
                 interfaces.append(inf)
+            data["interfaces"] = interfaces
             return Response(
                 data=data,
                 status=status.HTTP_200_OK,
@@ -2963,7 +2966,7 @@ class APISwitchArpView(
         conn = get_connection_switch(request=request, group=group, switch=switch)
         data = {
             "switch": switch_id,
-            "interface": None,
+            "interfaces": None,
         }
         interfaces = list()
         if conn.eth_addr_count > 0:
@@ -2974,6 +2977,7 @@ class APISwitchArpView(
                     if macaddress != "":
                         inf["macaddress"] = macaddress
                 interfaces.append(inf)
+            data["interfaces"] = interfaces
             return Response(
                 data=data,
                 status=status.HTTP_200_OK,
@@ -3036,7 +3040,7 @@ class APISwitchStateView(
         conn = get_connection_switch(request=request, group=group, switch=switch)
         data = {
             "switch": switch_id,
-            "interface": None,
+            "interfaces": None,
         }
         interfaces = list()
         if conn.eth_addr_count > 0:
@@ -3052,6 +3056,7 @@ class APISwitchStateView(
                 else:
                     inf["online"] = False
                 interfaces.append(inf)
+            data["interfaces"] = interfaces
             return Response(
                 data=data,
                 status=status.HTTP_200_OK,
