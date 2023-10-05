@@ -2740,6 +2740,7 @@ class APISwitchDetailView(
         interfaces = list()
         if conn.eth_addr_count > 0:
             for key, iface in conn.interfaces.items():
+                inf = {}
                 inf["interface"] = key
                 for macaddress, eth in iface.eth.items():
                     if macaddress != "":
@@ -2824,6 +2825,7 @@ class APISwitchSpeedView(
         interfaces = list()
         if conn.eth_addr_count > 0:
             for key, iface in conn.interfaces.items():
+                inf = {}
                 inf["interface"] = key
                 if iface.speed:
                     inf["speed"] = iface.speed
@@ -2890,6 +2892,7 @@ class APISwitchVlanView(
         interfaces = list()
         if conn.eth_addr_count > 0:
             for key, iface in conn.interfaces.items():
+                inf = {}
                 inf["interface"] = key
                 if iface.untagged_vlan > 0:
                     inf["vlan"] = iface.untagged_vlan
@@ -2961,6 +2964,7 @@ class APISwitchArpView(
         interfaces = list()
         if conn.eth_addr_count > 0:
             for key, iface in conn.interfaces.items():
+                inf = {}
                 inf["interface"] = key
                 for macaddress, eth in iface.eth.items():
                     if macaddress != "":
@@ -3033,6 +3037,7 @@ class APISwitchStateView(
         interfaces = list()
         if conn.eth_addr_count > 0:
             for key, iface in conn.interfaces.items():
+                inf = {}
                 inf["interface"] = key
                 if iface.admin_status:
                     inf["state"] = "Enabled"
