@@ -2395,7 +2395,14 @@ class APIInterfaceDetailView(
                 data=data,
                 status=status.HTTP_404_NOT_FOUND,
             )
-    def post(self, request, group_id, switch_id, interface_name,):
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
         group, switch = confirm_access_rights(
             request=request,
             group_id=group_id,
@@ -2458,8 +2465,13 @@ class APIInterfaceVlanView(
             status=status.HTTP_404_NOT_FOUND,
         )
 
-
-    def post(self, request, group_id, switch_id, interface_name,):
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
         group, switch = confirm_access_rights(
             request=request,
             group_id=group_id,
@@ -2521,7 +2533,14 @@ class APIInterfaceSpeedView(
                 data=data,
                 status=status.HTTP_404_NOT_FOUND,
             )
-    def post(self, request, group_id, switch_id, interface_name,):
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
         group, switch = confirm_access_rights(
             request=request,
             group_id=group_id,
@@ -2589,8 +2608,15 @@ class APIInterfaceStateView(
             return Response(
                 data=data,
                 status=status.HTTP_404_NOT_FOUND,
-                )
-    def post(self, request, group_id, switch_id, interface_name,):
+            )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
         group, switch = confirm_access_rights(
             request=request,
             group_id=group_id,
@@ -2653,7 +2679,14 @@ class APIInterfaceArpView(
                 data=data,
                 status=status.HTTP_404_NOT_FOUND,
             )
-    def post(self, request, group_id, switch_id, interface_name,):
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
         group, switch = confirm_access_rights(
             request=request,
             group_id=group_id,
@@ -2665,7 +2698,377 @@ class APIInterfaceArpView(
                 group=group,
                 switch=switch,
             )
-            # TODO: now here we need to parse the incoming data and maybe change the macaddress 
+            # TODO: now here we need to parse the incoming data and maybe change the macaddress
+
+
+"""
+This class gets all information from a switch about its Interfaces
+"""
+
+
+class APISwitchDetailView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn = get_connection_switch(request=request, group=group, switch=switch)
+        data = {
+            "switch": switch,
+            "interface": None,
+        }
+        interfaces = list()
+        if conn.eth_addr_count > 0:
+            for key, iface in conn.interfaces.items():
+                inf["interface"] = key
+                for macaddress, eth in iface.eth.items():
+                    if macaddress != "":
+                        inf["macaddress"] = macaddress
+                if iface.untagged_vlan > 0:
+                    inf["vlan"] = iface.untagged_vlan
+                if iface.admin_status:
+                    inf["state"] = "Enabled"
+                else:
+                    inf["state"] = "Disabled"
+                if iface.oper_status:
+                    inf["online"] = True
+                else:
+                    inf["online"] = False
+                if iface.speed:
+                    inf["speed"] = iface.speed
+                interfaces.append(inf)
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn = get_connection_switch(
+            request=request,
+            group=group,
+            switch=switch,
+        )
+        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+
+
+"""
+This class gets the speed of each interface from a switch about its Interfaces
+"""
+
+
+class APISwitchSpeedView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn = get_connection_switch(request=request, group=group, switch=switch)
+        data = {
+            "switch": switch,
+            "interface": None,
+        }
+        interfaces = list()
+        if conn.eth_addr_count > 0:
+            for key, iface in conn.interfaces.items():
+                inf["interface"] = key
+                if iface.speed:
+                    inf["speed"] = iface.speed
+                interfaces.append(inf)
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn = get_connection_switch(
+            request=request,
+            group=group,
+            switch=switch,
+        )
+        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+
+
+class APISwitchVlanView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn = get_connection_switch(request=request, group=group, switch=switch)
+        data = {
+            "switch": switch,
+            "interface": None,
+        }
+        interfaces = list()
+        if conn.eth_addr_count > 0:
+            for key, iface in conn.interfaces.items():
+                inf["interface"] = key
+                if iface.untagged_vlan > 0:
+                    inf["vlan"] = iface.untagged_vlan
+                interfaces.append(inf)
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn = get_connection_switch(
+            request=request,
+            group=group,
+            switch=switch,
+        )
+        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+
+
+"""
+This class gets all information from a switch about its Interfaces
+"""
+
+
+class APISwitchArpView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn = get_connection_switch(request=request, group=group, switch=switch)
+        data = {
+            "switch": switch,
+            "interface": None,
+        }
+        interfaces = list()
+        if conn.eth_addr_count > 0:
+            for key, iface in conn.interfaces.items():
+                inf["interface"] = key
+                for macaddress, eth in iface.eth.items():
+                    if macaddress != "":
+                        inf["macaddress"] = macaddress
+                interfaces.append(inf)
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn = get_connection_switch(
+            request=request,
+            group=group,
+            switch=switch,
+        )
+        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+
+
+"""
+This class gets all information from a switch about its Interfaces
+"""
+
+
+class APISwitchStateView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn = get_connection_switch(request=request, group=group, switch=switch)
+        data = {
+            "switch": switch,
+            "interface": None,
+        }
+        interfaces = list()
+        if conn.eth_addr_count > 0:
+            for key, iface in conn.interfaces.items():
+                inf["interface"] = key
+                if iface.admin_status:
+                    inf["state"] = "Enabled"
+                else:
+                    inf["state"] = "Disabled"
+                if iface.oper_status:
+                    inf["online"] = True
+                else:
+                    inf["online"] = False
+                interfaces.append(inf)
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn = get_connection_switch(
+            request=request,
+            group=group,
+            switch=switch,
+        )
+        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
 
 
 """
@@ -2804,4 +3207,3 @@ def user_can_access_task(request, task=False):
             return True
     # deny others
     return False
-
