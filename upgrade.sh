@@ -23,7 +23,7 @@ COMMAND="${PYTHON} -c 'import sys; exit(1 if sys.version_info < (3, 8) else 0)'"
 PYTHON_VERSION=$(eval "${PYTHON} -V")
 eval $COMMAND || {
   echo "--------------------------------------------------------------------"
-  echo "ERROR: Unsupported Python version: ${PYTHON_VERSION}. NetBox requires"
+  echo "ERROR: Unsupported Python version: ${PYTHON_VERSION}. OpenL2M requires"
   echo "Python 3.8 or later. To specify an alternate Python executable, set"
   echo "the PYTHON environment variable. For example:"
   echo ""
@@ -125,7 +125,7 @@ eval $COMMAND || exit 1
 # i.e. the Wireshark Ethernet Manufacturers database
 echo
 echo "Updating Wireshark Ethernet database..."
-COMMAND="manuf --update"
+COMMAND="python3 openl2m/lib/manuf/manuf/manuf.py --update"
 eval $COMMAND || exit 1
 
 # All done!

@@ -12,7 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 from collections import OrderedDict
-import manuf
+import lib.manuf.manuf as manuf
 import natsort
 import re
 import time
@@ -126,6 +126,24 @@ class Connector():
         self.can_get_client_data = hasattr(self, 'get_my_client_data')  # do we implement reading arp/lldp/etc?
         self.can_get_hardware_details = hasattr(self, 'get_my_hardware_details')    # can we get more then basic device info?
 
+    def _close_device(self):
+        """_close_device() is called to clean-up any session, REST credentials,etc when done with this device.
+        This is called when changing device or logging out of the application.
+
+        This needs to be implemented in each driver that cached sessions (cookies, etc.) and need to destroy
+        that data when completely done with the device. See e.g. aruba_aoscx/connector.py
+
+        Note: we cannot use the deconstructor __del__(), since that is called at the end of each use
+        (ie when a web page has finished loading!)
+
+        Args:
+            none
+
+        Returns:
+            (boolean) True.
+        """
+        return True
+
     '''
     These are the high level functions used to "get" interface information.
     These are called by the switches.view functions to display data.
@@ -150,27 +168,32 @@ class Connector():
         '''
         self.error.clear()
         dprint("Connector.get_basic_info()")
-        # set this to the time the switch data was actually read,
+
         # including when this may have been read before it got cached:
         if not self.cache_loaded:
             dprint("  => Cache did NOT load!")
+            # add some info about the device:
+            self.add_more_info('System', 'Group', self.group.name)
+            self.add_more_info('System', 'Class Handler', self.__class__.__name__)
+            self.add_more_info('System', 'Driver info', self.description)
+            if self.switch.netmiko_profile:
+                self.add_more_info('System', 'Credentials Profile', self.switch.netmiko_profile.name)
+
             # call the implementation-specific function:
             if hasattr(self, 'get_my_basic_info'):
+                # set this to the time the switch data was actually read,
                 self.basic_info_read_timestamp = time.time()
                 success = self.get_my_basic_info()
                 # update the time it took to read the basic info when it was first read:
                 read_duration = int((time.time() - self.basic_info_read_timestamp) + 0.5)
                 if not success:
                     self.add_warning(f"WARNING: cannot get basic info - {self.error.description}")
-                # you have to set the permissions to the interfaces:
-                self._set_interfaces_permissions()
-                # add some info about the device:
-                if self.switch.netmiko_profile:
-                    self.add_more_info('System', 'Credentials Profile', self.switch.netmiko_profile.name)
-                self.add_more_info('System', 'Group', self.group.name)
-                self.add_more_info('System', 'Basic Info Read', f"{read_duration} seconds")
-                self.add_more_info('System', 'Class Handler', self.__class__.__name__)
-                self.add_more_info('System', 'Driver info', self.description)
+                    if self.error.details:
+                        self.add_warning(f"Connection Error: {self.error.details}")
+                else:
+                    self.add_more_info('System', 'Basic Info Read', f"{read_duration} seconds")
+                    # All OK, now set the permissions to the interfaces:
+                    self._set_interfaces_permissions()
 
             else:
                 self.add_warning("WARNING: device driver does not support 'get_my_basic_info()' !")
@@ -494,6 +517,8 @@ class Connector():
             True on success, False on error and set self.error variables.
         '''
         self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan_name)
+        # we now need to re-calculate the allowed-vlan list for the current user
+        self._set_allowed_vlans()
         return True
 
     def vlan_edit(self, vlan_id, vlan_name):
@@ -554,6 +579,8 @@ class Connector():
         v = Vlan(vlan_id)
         v.name = vlan_name
         self.vlans[vlan_id] = v
+        # sort ordered by vlan id; this is needed for vlans added by users.
+        self.vlans = dict(sorted(self.vlans.items()))    # note: soted() returns a list of tuples(key, value), NOT dict!
         return True
 
     def add_vlan(self, vlan):
@@ -1250,6 +1277,7 @@ class Connector():
             none
         '''
         dprint("_set_allowed_vlans()")
+        self.allowed_vlans = {}
         # check the vlans on the switch (self.vlans) agains switchgroup.vlan_groups and switchgroup.vlans
         # if self.group.read_only and self.request and not self.request.user.is_superuser:
         if self.group.read_only or (self.request and self.request.user.profile.read_only):
@@ -1524,6 +1552,20 @@ class Connector():
         '''
         if int(vlan_id) in self.vlans.keys():
             return self.vlans[vlan_id]
+        return False
+
+    def vlan_exists(self, vlan_id):
+        '''
+        If a vlan ID exists, return True otherwize False.
+
+        Args:
+            vlan_id (int): the ID of the vlan to check
+
+        Returns:
+            (boolean):  True if vlan id exists, False if not
+        '''
+        if int(vlan_id) in self.vlans.keys():
+            return True
         return False
 
     def display_name(self):

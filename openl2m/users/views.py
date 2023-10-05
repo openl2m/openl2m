@@ -21,6 +21,8 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.views.generic import View
 
+from switches.views import close_device
+
 #
 # Logout view only, Login comes from default auth.
 #
@@ -36,6 +38,9 @@ class LogoutView(View):
 
     def logout(self, request):
         # logging is done in signal handler in models.py
+
+        # close out any previous device user was working on
+        close_device(request=request)
         # Log out the user
         auth_logout(request)
         messages.info(request, "You have successfully logged out!")

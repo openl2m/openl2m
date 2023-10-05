@@ -21,6 +21,11 @@ enterprise_id_info[ENTERPRISE_ID_H3C] = 'HPE/Comware'
 # HH3C Configuration Mib
 hh3cConfig = '.1.3.6.1.4.1.25506.2.4'
 
+# The device supports reading the device model from the
+# hh3cSysProductName MIB object, version number from the hh3cSysProductVersion MIB
+# object, and patch number from the hh3cSysPatchPlatVersion MIB object.
+# Remarks: In an IRF fabric, only the device model, version number, and patch
+
 hh3cCfgLog = '.1.3.6.1.4.1.25506.2.4.1.1'
 snmp_mib_variables['hh3cCfgLog'] = hh3cCfgLog
 

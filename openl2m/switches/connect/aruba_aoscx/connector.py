@@ -61,15 +61,13 @@ class AosCxConnector(Connector):
         self.switch.read_only = False
         # this will be the pyaoscx driver session object
         self.aoscx_session = False
-        # this will contain the requests.Session() object that has the actual cookies, etc.
-        # once the AOS-CX Session is open...
-        self.requests_session = False
-        # and we dont want to cache this:
-        self.set_do_not_cache_attribute('aoscx_session')
+        # this can now be cached!
+        # self.set_do_not_cache_attribute('aoscx_session')
 
         # capabilities of current driver:
         self.can_change_admin_status = True
         self.can_change_vlan = True
+        self.can_edit_vlans = True
         self.can_change_poe_status = True
         self.can_change_description = True
         self.can_save_config = False  # not needed.
@@ -276,7 +274,7 @@ class AosCxConnector(Connector):
             self.add_interface(iface)
 
         # done with REST connection:
-        self._close_device()
+        # self._close_device()
 
         # the REST API gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
         # sort this to the human natural order we expect:
@@ -307,7 +305,7 @@ class AosCxConnector(Connector):
                 v.get()
                 if hasattr(v, 'name'):
                     # vlan 1 does not typically have a name!
-                    print(f"  VLAN {v.name}")
+                    dprint(f"  VLAN {v.name}")
             except Exception as err:
                 dprint(f"v = Vlan() error: {err}")
                 description = f"Cannot get ethernet table for vlan {vlan_id}"
@@ -336,7 +334,7 @@ class AosCxConnector(Connector):
                     a.set_vlan(vlan_id)
 
         # done...
-        self._close_device()
+        # self._close_device()
         return True
 
     def set_interface_admin_status(self, interface, new_state):
@@ -369,7 +367,7 @@ class AosCxConnector(Connector):
         # changed = aoscx_interface.set_state(state=state)
         aoscx_interface.admin_state = state
         changed = aoscx_interface.apply()
-        self._close_device()
+        # self._close_device()
         if changed:
             dprint(f"  Interface change '{state}' OK!")
             # call the super class for bookkeeping.
@@ -404,7 +402,7 @@ class AosCxConnector(Connector):
 
         aoscx_interface.description = description
         changed = aoscx_interface.apply()
-        self._close_device()
+        # self._close_device()
         if changed:
             dprint("   Descr OK!")
             # call the super class for bookkeeping.
@@ -451,7 +449,7 @@ class AosCxConnector(Connector):
             else:
                 aoscx_poe.power_enabled = False
                 changed = aoscx_poe.apply()
-            self._close_device()
+            # self._close_device()
             if changed:
                 dprint("   PoE change OK!")
                 # call the super class for bookkeeping.
@@ -498,7 +496,7 @@ class AosCxConnector(Connector):
         dprint("  set_untagged_vlan()")
         changed = aoscx_interface.set_untagged_vlan(aoscx_vlan)
         # change = aoscs_vlan.apply()
-        self._close_device()
+        # self._close_device()
         if changed:
             dprint("   Vlan Change OK!")
             # call the super class for bookkeeping.
@@ -509,12 +507,105 @@ class AosCxConnector(Connector):
             # we need to add error info here!!!
             return False
 
+    def vlan_create(self, vlan_id, vlan_name):
+        '''
+        Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id
+            name (str): the name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"AosCxConnector.vlan_create() for vlan {vlan_id} = '{vlan_name}'")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        new_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id, name=vlan_name, voice=False)
+        try:
+            new_vlan.apply()
+        except Exception as err:
+            self.error.status = True
+            self.error.details = f"Error creating new vlan {vlan_id}: {err}"
+            return False
+
+        # all OK, now do the book keeping
+        super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+        return True
+
+    def vlan_edit(self, vlan_id, vlan_name):
+        '''
+        Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id to edit
+            name (str): the new name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"AosCxConnector.vlan_edit() for vlan {vlan_id} = '{vlan_name}'")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+        try:
+            vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
+            vlan.get()
+            vlan.name = vlan_name
+            changed = vlan.apply()
+        except Exception:
+            self.error.status = True
+            self.error.details = f"Error trapped while updating vlan {vlan_id} name to '{vlan_name}': {err}"
+            return False
+
+        if not changed:
+            self.error.status = True
+            self.error.details = f"Error updating vlan {vlan_id} name to '{vlan_name}' (not sure what happened!)"
+            return False
+        # all OK, now do the book keeping
+        super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
+        return True
+
+    def vlan_delete(self, vlan_id):
+        '''
+        Delete the vlan. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id to edit
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"AosCxConnector.vlan_delete() for vlan {vlan_id}")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+        try:
+            vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
+            vlan.delete()
+            # changed = vlan.apply()  # is this needed ?
+        except Exception as err:
+            self.error.status = True
+            self.error.details = f"Error trapped while deleting vlan {vlan_id}: {err}"
+            return False
+        # all OK, now do the book keeping
+        super().vlan_delete(vlan_id=vlan_id)
+        return True
+
     def _open_device(self):
         '''
         get a pyaoscx "driver" and open a "connection" to the device
         return True on success, False on failure, and will set self.error
         '''
         dprint("AOS-CX _open_device()")
+
+        if self.aoscx_session:
+            dprint("AOS-CX Session FOUND!")
+            return True
+
+        # first connection", we need to authenticate:
         if not self.switch.netmiko_profile:
             self.error.status = True
             self.error.description = "Please configure a Credentials Profile to be able to connect to this device!"
@@ -528,44 +619,18 @@ class AosCxConnector(Connector):
             # or all warnings:
             # urllib3.disable_warnings()
 
-        if self.requests_session:
-            # previous cached request.Session(), so get an AosCx Session() based on that!
-            dprint("Using existing requests.Session() info!")
-            try:
-                self.aoscx_session = AosCxSession.from_session(
-                    req_session=self.requests_session,
-                    base_url=f"https://{self.switch.primary_ip4}/rest/v{API_VERSION}/",
-                    # credentials={
-                    #    'username': self.switch.netmiko_profile.username,
-                    #    'password': self.switch.netmiko_profile.password,
-                    # },
-                )
-                dprint("  session OK!")
-                return True
-            except Exception as error:
-                self.error.status = True
-                self.error.description = "Error rebuilding connection from session!"
-                self.error.details = f"Cannot recreate REST session with AosCxSession.from_session(): {format(error)}"
-                dprint(f"  _open_device: AosCxSession.from_session() failed: {format(error)}")
-                return False
-        else:
-            # first connection", we need to authenticate:
-            try:
-                dprint(f"Creating AosCxSession(ip_address={self.switch.primary_ip4}, api={API_VERSION})")
-                self.aoscx_session = AosCxSession(ip_address=self.switch.primary_ip4, api=API_VERSION)
-                dprint(f"Calling session.open(username={self.switch.netmiko_profile.username}, password={self.switch.netmiko_profile.password})")
-                self.aoscx_session.open(username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password)
-                dprint("  session OK!")
-                # save the requests.Session() with cookies, etc.
-                # DISABLED FOR NOW:
-                # self.requests_session = self.aoscx_session.s
-                return True
-            except Exception as error:
-                self.error.status = True
-                self.error.description = "Error establishing connection!"
-                self.error.details = f"Cannot open REST session: {format(error)}"
-                dprint(f"  _open_device: AosCxSession.open() failed: {format(error)}")
-                return False
+        try:
+            dprint(f"Creating AosCxSession(ip_address={self.switch.primary_ip4}, api={API_VERSION})")
+            self.aoscx_session = AosCxSession(ip_address=self.switch.primary_ip4, api=API_VERSION)
+            self.aoscx_session.open(username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password)
+            dprint("  session OK!")
+            return True
+        except Exception as error:
+            self.error.status = True
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"Cannot open REST session: {format(error)}"
+            dprint(f"  _open_device: AosCxSession.open() failed: {format(error)}")
+            return False
 
     def _close_device(self):
         '''

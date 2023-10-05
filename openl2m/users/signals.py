@@ -46,7 +46,8 @@ if settings.LDAP_CONFIG is not None:
 
         # update the user profile with the timestamp and ldap dn of the login.
         user.profile.last_ldap_login = now()
-        user.profile.last_ldap_dn = ldap_user.dn
+        # this field is set to max_length=1024 in models.py
+        user.profile.last_ldap_dn = ldap_user.dn[:1024]
         user.profile.save()
 
         # Check all of the user's group names to see if they belong
@@ -82,12 +83,12 @@ if settings.LDAP_CONFIG is not None:
                                   type=constants.LOG_TYPE_ERROR)
                         log.save()
                         continue
-                # add user to this switchgroup
-                try:
-                    # we should first see if user is already member of this group, but for now this suffices...
-                    member = group.users.filter(id=user.id)
+                # see if user is already in this group
+                # Note: this returns a QuerySet(), which will be empty if not a member!
+                member = group.users.filter(id=user.id)
+                if len(member) > 0:
                     dprint(f"LDAP: Already member of '{switchgroup_name}'")
-                except Exception as err:
+                else:
                     dprint(f"LDAP: Not yet member of '{switchgroup_name}'")
                     # try to add:
                     try:

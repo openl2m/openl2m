@@ -159,9 +159,9 @@ def is_valid_hostname_or_ip(data):
     # check IP v4 pattern first
     try:
         address = ipaddress.ip_address(data)
-        if type(address) == ipaddress.IPv4Address:
+        if type(address) is ipaddress.IPv4Address:
             return True
-        if type(address) == ipaddress.IPv6Address:
+        if type(address) is ipaddress.IPv6Address:
             return False    # v6 not supported for now!
         return False        # should not happen!
     except ValueError:

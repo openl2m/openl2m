@@ -55,6 +55,7 @@ class PyEZConnector(Connector):
         # current capabilities of the PyEZ drivers:
         self.can_change_admin_status = True
         self.can_change_vlan = True
+        self.can_edit_vlans = True
         self.can_change_poe_status = True
         self.can_change_description = True
         self.can_save_config = False    # save not needed after commit in Junos!
@@ -591,6 +592,119 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
+    def vlan_create(self, vlan_id, vlan_name):
+        '''
+        Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            vlan_id (int): the vlan id
+            vlan_name (str): the name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"PyEZConnector.vlan_create() for vlan {vlan_id} = '{vlan_name}'")
+
+        if not self._validate_vlan_name(vlan_name):
+            self.error.status = True
+            self.error.details = f"New vlan name '{vlan_name}' contains invalid characters: use only letters, numbers, hyphens (-), and periods (.)"
+            return False
+
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        commands = []
+        commands.append(f"set vlans {vlan_name} vlan-id {vlan_id}")
+        if self.execute_commands(commands=commands):
+            # all OK, now do the book keeping
+            super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+            self._close_device()
+            dprint("  change OK!")
+            return True
+
+        self._close_device()
+        self.error.details = f"Error creating vlan {vlan_id}: {self.error.description}"
+        return False
+
+    def vlan_edit(self, vlan_id, vlan_name):
+        '''
+        Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            vlan_id (int): the vlan id to edit
+            vlan_name (str): the new name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"PyEZConnector.vlan_edit() for vlan {vlan_id} = '{vlan_name}'")
+
+        if not self._validate_vlan_name(vlan_name):
+            self.error.status = True
+            self.error.details = f"New vlan name '{vlan_name}' contains invalid characters: use only letters, numbers, hyphens (-), and periods (.)"
+            return False
+
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        # Junos needs the current name
+        vlan = self.get_vlan_by_id(vlan_id)
+        if not vlan:
+            self.error.status = True
+            self.error.description = f"Vlan {vlan_id} not found. Please contact your Administrator!"
+            return False
+
+        commands = []
+        commands.append(f"rename vlans {vlan.name} to {vlan_name}")
+        if self.execute_commands(commands=commands):
+            # all OK, now do the book keeping
+            super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
+            self._close_device()
+            dprint("  change OK!")
+            return True
+
+        self._close_device()
+        self.error.description = f"Error updating vlan {vlan_id} name to '{vlan_name}': {self.error.description}"
+        return False
+
+    def vlan_delete(self, vlan_id):
+        '''
+        Delete the vlan. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            vlan_id (int): the vlan id to edit
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"PyEZConnector.vlan_delete() for vlan {vlan_id}")
+
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        # Junos needs the current name
+        vlan = self.get_vlan_by_id(vlan_id)
+        if not vlan:
+            self.error.status = True
+            self.error.description = f"Vlan {vlan_id} not found. Please contact your Administrator!"
+            return False
+
+        commands = []
+        commands.append(f"delete vlans {vlan.name}")
+        if self.execute_commands(commands=commands):
+            # all OK, now do the book keeping
+            super().vlan_delete(vlan_id=vlan_id)
+            self._close_device()
+            dprint("  delete OK!")
+            return True
+
+        self._close_device()
+        self.error.description = f"Error deleting vlan {vlan_id}: {self.error.description}"
+        return False
+
     def set_interface_description(self, interface, description):
         '''
         Set the interface description (aka. description) to the string
@@ -602,7 +716,7 @@ class PyEZConnector(Connector):
         Returns:
             (boolean) True on success, False on error and set self.error variables
         '''
-        dprint(f"PyEZCOnnector.set_interface_description() for {interface.name} to '{description}'")
+        dprint(f"PyEZConnector.set_interface_description() for {interface.name} to '{description}'")
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
@@ -687,6 +801,17 @@ class PyEZConnector(Connector):
             self.error.description = "Unknown error occured, change was NOT applied!"
             self.error.details = f"Error: '{err}', command was '{commands}'"
             return False
+
+    def _validate_vlan_name(self, vlan_name):
+        ''' Validate the characters in the new vlan name
+
+        Args:
+            vlan_name (str): the proposed new vlan name
+
+        Return:
+            (boolean):  True is valid, False if not.
+        '''
+        return True
 
     def _open_device(self):
         '''

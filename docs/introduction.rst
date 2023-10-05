@@ -20,7 +20,7 @@ extensible API that allows for custom drivers to communicate with devices. Using
 drivers can be developed that support Netconf, REST and other ways to communicate with switches.
 At present, SNMP and SSH (via Netmiko) are supported. Napalm support is implemented as an example of the new API.
 
-OpenL2M is written in the Django framework, using Python 3.
+OpenL2M is written in Python 3 using the Django framework.
 
 **Features**
 

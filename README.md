@@ -36,7 +36,7 @@ __Basic Features:__
 
 __What's New:__
 
-v2.4 adds vlan add/edit/delete for SNMP devices, and upgrades the Django framework to v4.2 LTS
+v2.4 adds vlan add/edit/delete for all supported devices, and upgrades the Django framework to v4.2 LTS
 
 v2.3 adds support for Juniper Junos devices.
 

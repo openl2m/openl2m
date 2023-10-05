@@ -5,6 +5,7 @@ openl2m/static
 openl2m/project-static/docs/
 docs/_build/
 gunicorn_config.py
+openl2m/lib/manuf/manuf/manuf
 .recycle/
 venv/
 .idea
@@ -21,3 +22,4 @@ old/
 local_requirements.txt
 gen-doc-files.sh
 TO_DOs.txt
+SCRATCH-PAD.txt

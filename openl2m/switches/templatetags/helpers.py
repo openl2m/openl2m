@@ -143,7 +143,7 @@ def get_device_class(device):
 
 
 @register.filter
-def get_my_results(results):
+def get_my_results(results, group_count):
     """
     Display the search results as a list of links.
     """
@@ -151,7 +151,7 @@ def get_my_results(results):
     if num == 0:
         return "We did not find any matching switches!"
     found = ""
-    for (group_id, switch_id, name, description, default_view) in results:
+    for (group_id, switch_id, name, description, default_view, group_name) in results:
         if description:
             tooltip = f"<abbr data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"{description}\">"
             tt_end = "</abbr>"
@@ -160,7 +160,10 @@ def get_my_results(results):
         link = f"\n<li class=\"list-group-item\">{tooltip}<a href=\"/switches/{group_id}/{switch_id}/"
         if default_view == SWITCH_VIEW_DETAILS:
             link += "details/"
-        found += f"{link}\">{name}</a>{tt_end}</li>"
+        if group_count > 1:
+            found += f"{link}\">{name}</a>{tt_end} ({group_name})</li>"
+        else:
+            found += f"{link}\">{name}</a>{tt_end}</li>"
 
     return mark_safe(f"<ul class=\"list-group\">{found}</ul>\n")
 
@@ -502,9 +505,9 @@ def get_poe_pse_status(status):
     Return the string representing the PSE STATUS
     """
     if status == POE_PSE_STATUS_ON:
-        return 'Enabled'
+        return 'On'
     if status == POE_PSE_STATUS_OFF:
-        return 'Disabled'
+        return 'Off'
     if status == POE_PSE_STATUS_FAULT:
         return 'Faulty'
     return 'Unknown'
@@ -583,3 +586,12 @@ def humanize_power(power):
     if not power:
         return ''
     return '{:.1f}W'.format(power / 1000)
+
+
+# from https://stackoverflow.com/questions/2751319/is-there-a-django-template-filter-to-display-percentages
+@register.filter
+def as_percentage_of(part, whole):
+    try:
+        return "%d%%" % (float(part) / whole * 100)
+    except (ValueError, ZeroDivisionError):
+        return ""

@@ -9,7 +9,7 @@ Version 2.4
 *Django v4.2 requires Python v3.8 or later, and PostgreSQL 12 or later*
 
 *Note: from this version on, we are developing and testing on Ubuntu 22.04 LTS,
-using Python v3.10 and PostgreSql 14!*
+using Python v3.11 and PostgreSql 14!*
 
 We also add the **ability to create, edit or delete vlans in SNMP devices**.
 
@@ -20,6 +20,35 @@ We also add the **ability to create, edit or delete vlans in SNMP devices**.
     This needs to include the schema, i.e. 'https://' or 'http://' if not secured!
     See the installation steps for more details.
 
+
+Version 2.4.7
+-------------
+
+Release Date: 2023-09-24
+
+* show group in search results if multiple groups are found.
+* show percentages on system PoE usage.
+* show recent device count used on stats page.
+
+Bug Fixes:
+
+* use local copy of Ethernet manufacturer library (manuf) due to Wireshark moving data.
+* allow much longer LDAP distinguised names (DN)
+* enhance vlan edit security checks.
+* consistent casing for vlan strings
+
+Version 2.4.6
+-------------
+
+Release Date: 2023-07-10
+
+* add VLAN add/edit/delete capability for Juniper device (as supported by PyEZ)
+
+Bug Fixes:
+
+* add several checks to vlan edit form.
+* fix log entry without group memberships.
+* add proper device closing when user to back to menu (if devices need it)
 
 Version 2.4.5
 -------------
@@ -32,7 +61,6 @@ Release Date: 2023-06-20
 * optionally adds 'django-extensions' to create graphs of our models for the documentation section.
   See more in :doc:`Debugging<../code/debugging>`
 * add 'django_minify_html' to optimize and speed-up HMTL output.
-
 
 Version 2.4.4
 -------------

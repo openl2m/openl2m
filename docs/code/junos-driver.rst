@@ -32,7 +32,6 @@ We use the following commands:
 
 "show lldp neigbor interface <name>" becomes *rpc.get_lldp_interface_neighbors(interface_device=<name>)*
 
-
 **Making Changes**
 
 To make changes to interfaces, we use the *Config()* class as such:
@@ -83,3 +82,13 @@ The set commands used are as follows:
 .. code-block:: bash
 
   delete interfaces {name} description
+
+**VLAN Edit/Delete**
+
+We use the following commands:
+
+"set vlans <new_name> vlan_id <new-id>"  to create a new vlan.
+
+"rename vlans <old_name> to <new_name>"  to rename a vlan.
+
+"delete vlans <name>"  to delete a vlan.
