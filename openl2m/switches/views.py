@@ -2391,7 +2391,7 @@ class APIInterfaceDetailView(
         if interface_name:
             conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
             if response_error:
-                return reponse_error
+                return response_error
             data = {
                 "interface": interface_name,
                 "macaddress": None,
@@ -2443,7 +2443,7 @@ class APIInterfaceDetailView(
         if interface_name:
             conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
             if response_error:
-                return reponse_error
+                return response_error
             # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
 
 
@@ -2477,7 +2477,7 @@ class APIInterfaceVlanView(
         if interface_name:
             conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
             if response_error:
-                return reponse_error
+                return response_error
             data = {
                 "interface": interface_name,
                 "vlan": None,
@@ -2512,7 +2512,7 @@ class APIInterfaceVlanView(
         if interface_name:
             conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
             if response_error:
-                return reponse_error
+                return response_error
             # TODO: here we need to parse for the change of the primary untagged vlan for the interface
 
 
@@ -2546,7 +2546,7 @@ class APIInterfaceSpeedView(
         if interface_name:
             conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
             if response_error:
-                return reponse_error
+                return response_error
             data = {
                 "interface": interface_name,
                 "speed": None,
@@ -2617,7 +2617,7 @@ class APIInterfaceStateView(
         if interface_name:
             conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
             if response_error:
-                return reponse_error
+                return response_error
             data = {
                 "interface": interface_name,
                 "state": None,
@@ -2659,7 +2659,7 @@ class APIInterfaceStateView(
         if interface_name:
             conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
             if response_error:
-                return reponse_error
+                return response_error
             # TODO: now here we need to parse the incoming data to actually change the state of the interface.
 
 
@@ -2693,7 +2693,7 @@ class APIInterfaceArpView(
         if interface_name:
             conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
             if response_error:
-                return reponse_error
+                return response_error
             data = {
                 "interface": interface_name,
                 "macaddress": None,
@@ -2729,7 +2729,7 @@ class APIInterfaceArpView(
         if interface_name:
             conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
             if response_error:
-                return reponse_error
+                return response_error
             # TODO: now here we need to parse the incoming data and maybe change the macaddress
 
 
@@ -2768,7 +2768,7 @@ class APISwitchDetailView(
         )
         conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
         if response_error:
-            return reponse_error
+            return response_error
         data = {
             "switch": switch_id,
             "interfaces": None,
@@ -2817,7 +2817,7 @@ class APISwitchDetailView(
         )
         conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
         if response_error:
-            return reponse_error
+            return response_error
         # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
 
 
@@ -2854,7 +2854,7 @@ class APISwitchSpeedView(
         )
         conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
         if response_error:
-            return reponse_error
+            return response_error
         data = {
             "switch": switch_id,
             "interfaces": None,
@@ -2890,7 +2890,7 @@ class APISwitchSpeedView(
         )
         conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
         if response_error:
-            return reponse_error
+            return response_error
         # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
 
 
@@ -2922,7 +2922,7 @@ class APISwitchVlanView(
         )
         conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
         if response_error:
-            return reponse_error
+            return response_error
         data = {
             "switch": switch_id,
             "interfaces": None,
@@ -2958,7 +2958,7 @@ class APISwitchVlanView(
         )
         conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
         if response_error:
-            return reponse_error
+            return response_error
         # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
 
 
@@ -2995,7 +2995,7 @@ class APISwitchArpView(
         )
         conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
         if response_error:
-            return reponse_error
+            return response_error
         data = {
             "switch": switch_id,
             "interfaces": None,
@@ -3032,7 +3032,7 @@ class APISwitchArpView(
         )
         conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
         if response_error:
-            return reponse_error
+            return response_error
         # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
 
 
@@ -3069,7 +3069,7 @@ class APISwitchStateView(
         )
         conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
         if response_error:
-            return reponse_error
+            return response_error
         data = {
             "switch": switch_id,
             "interfaces": None,
@@ -3111,7 +3111,7 @@ class APISwitchStateView(
         )
         conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
         if response_error:
-            return reponse_error
+            return response_error
         # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
 
 
