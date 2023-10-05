@@ -2738,7 +2738,7 @@ class APISwitchDetailView(
         )
         conn = get_connection_switch(request=request, group=group, switch=switch)
         data = {
-            "switch": switch,
+            "switch": switch_id,
             "interface": None,
         }
         interfaces = list()
@@ -2823,7 +2823,7 @@ class APISwitchSpeedView(
         )
         conn = get_connection_switch(request=request, group=group, switch=switch)
         data = {
-            "switch": switch,
+            "switch": switch_id,
             "interface": None,
         }
         interfaces = list()
@@ -2890,7 +2890,7 @@ class APISwitchVlanView(
         )
         conn = get_connection_switch(request=request, group=group, switch=switch)
         data = {
-            "switch": switch,
+            "switch": switch_id,
             "interface": None,
         }
         interfaces = list()
@@ -2962,7 +2962,7 @@ class APISwitchArpView(
         )
         conn = get_connection_switch(request=request, group=group, switch=switch)
         data = {
-            "switch": switch,
+            "switch": switch_id,
             "interface": None,
         }
         interfaces = list()
@@ -3035,7 +3035,7 @@ class APISwitchStateView(
         )
         conn = get_connection_switch(request=request, group=group, switch=switch)
         data = {
-            "switch": switch,
+            "switch": switch_id,
             "interface": None,
         }
         interfaces = list()
