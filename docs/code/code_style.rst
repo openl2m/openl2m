@@ -4,12 +4,8 @@
 Code Style
 ==========
 
-We attempt to use the Django style guide, which is based on PEP8. See more at
-https://docs.djangoproject.com/en/3.2/internals/contributing/writing-code/coding-style/
+As of v2.4.8, we use *black* to enforce the code style. For more details see
+https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html
 
 To document functions and classes, we use the Google comment style, see more at
 https://google.github.io/styleguide/pyguide.html
-
-Finally, as code is checked into git, we run it through *pycodestyle*, to enforce uniform appearance.
-
-We also use Flake8 to do some code sanity checking...

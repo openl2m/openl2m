@@ -8,7 +8,7 @@ how the OpenL2M project works "under the hood".
 
 **Python 3**
 
-As of v2.0, all the code is written and tested in Python v3.8. There are numerous places to learn this.
+As of v2.4, all the code is written and tested in Python v3.11. There are numerous places to learn this.
 
 The project is by default located in **/opt/openl2m**. To use these scripts, or work on things,
 you should first activate the Python virtual environment:
@@ -24,7 +24,7 @@ Normal Django development steps can now be used.
 
 **Django**
 
-We use the Django web framework, v3.2. For a good introduction, see
+We use the Django web framework, v4.2. For a good introduction, see
 `the Django Tutorial <https://docs.djangoproject.com/>`_
 If you follow this tutorial, you will have enough of an Django understanding
 to start digging into the code.
