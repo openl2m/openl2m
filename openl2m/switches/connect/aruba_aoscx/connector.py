@@ -20,8 +20,15 @@ from switches.constants import LOG_TYPE_ERROR, LOG_AOSCX_ERROR_GENERIC
 from switches.connect.classes import Interface, PoePort
 from switches.connect.connector import Connector
 from switches.connect.aruba_aoscx.utils import aoscx_parse_duplex
-from switches.connect.constants import (POE_PORT_ADMIN_DISABLED, POE_PORT_ADMIN_ENABLED, IF_TYPE_VIRTUAL, IF_TYPE_ETHERNET,
-                                        IF_TYPE_LAGG, LACP_IF_TYPE_MEMBER, LACP_IF_TYPE_AGGREGATOR)
+from switches.connect.constants import (
+    POE_PORT_ADMIN_DISABLED,
+    POE_PORT_ADMIN_ENABLED,
+    IF_TYPE_VIRTUAL,
+    IF_TYPE_ETHERNET,
+    IF_TYPE_LAGG,
+    LACP_IF_TYPE_MEMBER,
+    LACP_IF_TYPE_AGGREGATOR,
+)
 
 
 """
@@ -39,16 +46,18 @@ from pyaoscx.vlan import Vlan as AosCxVlan
 from pyaoscx.mac import Mac as AosCxMac
 from pyaoscx.interface import Interface as AosCxInterface
 from pyaoscx.poe_interface import PoEInterface as AosCxPoEInterface
+
 # used to disable unknown SSL cert warnings:
 import urllib3
 
-API_VERSION = '10.08'   # '10.08' or '10.04'
+API_VERSION = '10.08'  # '10.08' or '10.04'
 
 
 class AosCxConnector(Connector):
     """
     This class implements a Connector() to get switch information from Aruba AOS-CX devices.
     """
+
     def __init__(self, request=False, group=False, switch=False):
         """
         Initialize the object
@@ -95,7 +104,9 @@ class AosCxConnector(Connector):
             self.error.status = True
             self.error.description = "Error establishing connection!"
             self.error.details = f"Cannot read device information: {format(error)}"
-            self.add_warning(f"Cannot read device information: {repr(error)} ({str(type(error))}) => {traceback.format_exc()}")
+            self.add_warning(
+                f"Cannot read device information: {repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
+            )
             return False
 
         # the create call (__init__()) already calls get_firmware_version
@@ -112,11 +123,11 @@ class AosCxConnector(Connector):
         # this is typically the same as software_version:
         # self.add_more_info('System', 'Firmware', aoscx_device.firmware_version)
         self.add_more_info('System', 'Platform', aoscx_device.platform_name)
-        if aoscx_device.hostname:    # this is None when not set!
+        if aoscx_device.hostname:  # this is None when not set!
             self.add_more_info('System', 'Hostname', aoscx_device.hostname)
         else:
             self.add_more_info('System', 'Hostname', '')
-        if aoscx_device.domain_name:    # this is None when not set!
+        if aoscx_device.domain_name:  # this is None when not set!
             self.add_more_info('System', 'Domain Name', aoscx_device.domain_name)
         else:
             self.add_more_info('System', 'Domain Name', '')
@@ -188,7 +199,7 @@ class AosCxConnector(Connector):
                 iface.admin_status = True
                 if 'admin_state' in aoscx_interface and aoscx_interface['admin_state'] == 'up':
                     iface.oper_status = True
-                    if 'link_speed' in aoscx_interface:   # better be :-)
+                    if 'link_speed' in aoscx_interface:  # better be :-)
                         if not aoscx_interface['link_speed'] is None:
                             # iface.speed is in 1Mbps increments:
                             iface.speed = int(aoscx_interface['link_speed']) / 1000000
@@ -311,18 +322,20 @@ class AosCxConnector(Connector):
                 description = f"Cannot get ethernet table for vlan {vlan_id}"
                 details = f"pyaoscx Vlan() Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
                 self.add_warning(description)
-                log = Log(group=self.group,
-                          switch=self.switch,
-                          ip_address=get_remote_ip(self.request),
-                          type=LOG_TYPE_ERROR,
-                          action=LOG_AOSCX_ERROR_GENERIC,
-                          description=details)
+                log = Log(
+                    group=self.group,
+                    switch=self.switch,
+                    ip_address=get_remote_ip(self.request),
+                    type=LOG_TYPE_ERROR,
+                    action=LOG_AOSCX_ERROR_GENERIC,
+                    description=details,
+                )
                 log.save()
                 continue
             # this gets ethernet addresses by vlan:
             vlan_macs = AosCxMac.get_all(session=self.aoscx_session, parent_vlan=v)
             for mac in vlan_macs.values():
-                mac.get()   # materialize the object from the device
+                mac.get()  # materialize the object from the device
                 dprint(f"  MAC Address: {mac} -> {mac.port}")
                 # for name in mac.__dict__:
                 #    dprint(f"      attribute: {name} = {mac.__dict__[name]}")
@@ -622,7 +635,9 @@ class AosCxConnector(Connector):
         try:
             dprint(f"Creating AosCxSession(ip_address={self.switch.primary_ip4}, api={API_VERSION})")
             self.aoscx_session = AosCxSession(ip_address=self.switch.primary_ip4, api=API_VERSION)
-            self.aoscx_session.open(username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password)
+            self.aoscx_session.open(
+                username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password
+            )
             dprint("  session OK!")
             return True
         except Exception as error:

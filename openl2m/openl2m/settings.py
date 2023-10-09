@@ -34,9 +34,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 # Django 4.1 requires Python 3.8+
 if sys.version_info < (3, 8):
-    raise RuntimeError(
-        "OpenL2M requires Python 3.8 or higher (current: Python {})".format(sys.version.split()[0])
-    )
+    raise RuntimeError("OpenL2M requires Python 3.8 or higher (current: Python {})".format(sys.version.split()[0]))
 
 # Check for configuration file
 try:
@@ -70,9 +68,7 @@ for setting in ['ALLOWED_HOSTS', 'DATABASE', 'SECRET_KEY']:
     try:
         globals()[setting] = getattr(configuration, setting)
     except AttributeError:
-        raise ImproperlyConfigured(
-            "Mandatory setting {} is missing from configuration.py.".format(setting)
-        )
+        raise ImproperlyConfigured("Mandatory setting {} is missing from configuration.py.".format(setting))
 
 # Import optional configuration parameters
 ADMINS = getattr(configuration, 'ADMINS', [])
@@ -126,13 +122,13 @@ IP6_INFO_URLS = getattr(configuration, 'IP6_INFO_URLS', False)
 ETHERNET_INFO_URLS = getattr(configuration, 'ETHERNET_INFO_URLS', False)
 
 ETH_FORMAT = getattr(configuration, 'ETH_FORMAT', 0)
-if ETH_FORMAT == 1:     # Hyphen 00-11-22-33-44-55
+if ETH_FORMAT == 1:  # Hyphen 00-11-22-33-44-55
     MAC_DIALECT = None
-elif ETH_FORMAT == 2:   # Cisco 0011.2233.4455
+elif ETH_FORMAT == 2:  # Cisco 0011.2233.4455
     MAC_DIALECT = netaddr.mac_cisco
 else:
     # default:
-    MAC_DIALECT = netaddr.mac_unix_expanded     # 00:11:22:33:44:55
+    MAC_DIALECT = netaddr.mac_unix_expanded  # 00:11:22:33:44:55
 
 IFACE_HIDE_REGEX_IFNAME = getattr(configuration, 'IFACE_HIDE_REGEX_IFNAME', '')
 IFACE_HIDE_REGEX_IFDESCR = getattr(configuration, 'IFACE_HIDE_REGEX_IFDESCR', '')
@@ -158,9 +154,9 @@ TOPMENU_MAX_COLUMNS = getattr(configuration, 'TOPMENU_MAX_COLUMNS', 4)
 SWITCH_SEARCH_FORM = getattr(configuration, 'SWITCH_SEARCH_FORM', True)
 
 # snmp related constants
-SNMP_TIMEOUT = getattr(configuration, 'SNMP_TIMEOUT', 4)    # seconds before retry, see EasySNMP docs
-SNMP_RETRIES = getattr(configuration, 'SNMP_RETRIES', 3)    # retries before fail
-SNMP_MAX_REPETITIONS = getattr(configuration, 'SNMP_MAX_REPETITIONS', 10)   # SNMP get_bulk max_repetitions
+SNMP_TIMEOUT = getattr(configuration, 'SNMP_TIMEOUT', 4)  # seconds before retry, see EasySNMP docs
+SNMP_RETRIES = getattr(configuration, 'SNMP_RETRIES', 3)  # retries before fail
+SNMP_MAX_REPETITIONS = getattr(configuration, 'SNMP_MAX_REPETITIONS', 10)  # SNMP get_bulk max_repetitions
 
 # Syslog related fields:
 SYSLOG_HOST = getattr(configuration, 'SYSLOG_HOST', False)
@@ -171,17 +167,13 @@ if SYSLOG_HOST:
     try:
         syslog_ip = socket.gethostbyname(SYSLOG_HOST)
     except Exception:
-        raise ImproperlyConfigured(
-            "SYSLOG_HOST is not a valid host name"
-        )
+        raise ImproperlyConfigured("SYSLOG_HOST is not a valid host name")
 
 # Sessions
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 if LOGIN_TIMEOUT is not None:
     if type(LOGIN_TIMEOUT) is not int or LOGIN_TIMEOUT < 0:
-        raise ImproperlyConfigured(
-            "LOGIN_TIMEOUT must be a positive integer (value: {})".format(LOGIN_TIMEOUT)
-        )
+        raise ImproperlyConfigured("LOGIN_TIMEOUT must be a positive integer (value: {})".format(LOGIN_TIMEOUT))
     # Django default is 1209600 seconds (14 days)
     SESSION_COOKIE_AGE = LOGIN_TIMEOUT
     # if this is set, then the login timeout is treated as inactivity timeout:
@@ -296,7 +288,6 @@ except ImportError:
     LDAP_CONFIG = None
 
 if LDAP_CONFIG is not None:
-
     # Check that django_auth_ldap is installed
     try:
         import ldap
@@ -311,9 +302,7 @@ if LDAP_CONFIG is not None:
     try:
         AUTH_LDAP_SERVER_URI = getattr(LDAP_CONFIG, 'AUTH_LDAP_SERVER_URI')
     except AttributeError:
-        raise ImproperlyConfigured(
-            "Required parameter AUTH_LDAP_SERVER_URI is missing from ldap_config.py."
-        )
+        raise ImproperlyConfigured("Required parameter AUTH_LDAP_SERVER_URI is missing from ldap_config.py.")
 
     # Optional configuration parameters
     AUTH_LDAP_ALWAYS_UPDATE_USER = getattr(LDAP_CONFIG, 'AUTH_LDAP_ALWAYS_UPDATE_USER', True)
@@ -392,9 +381,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_ROOT = BASE_DIR + '/static'
 STATIC_URL = '/{}static/'.format(BASE_PATH)
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'project-static'),
-)
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'project-static'),)
 
 #
 # Email settings for command-line reports, etc.

@@ -21,57 +21,69 @@ All the generic classes we use to represent
 switch vlans, switch interfaces, switch neighbor devices, etc.
 """
 from switches.connect.constants import (
-    IF_TYPE_NONE, IF_DUPLEX_UNKNOWN, LACP_IF_TYPE_NONE, VLAN_ADMIN_ENABLED, VLAN_STATUS_OTHER, VLAN_TYPE_NORMAL,
-    LLDP_CAPABILITIES_NONE, POE_PSE_STATUS_ON, POE_PSE_STATUS_OFF, POE_PSE_STATUS_FAULT, POE_PORT_DETECT_SEARCHING,
+    IF_TYPE_NONE,
+    IF_DUPLEX_UNKNOWN,
+    LACP_IF_TYPE_NONE,
+    VLAN_ADMIN_ENABLED,
+    VLAN_STATUS_OTHER,
+    VLAN_TYPE_NORMAL,
+    LLDP_CAPABILITIES_NONE,
+    POE_PSE_STATUS_ON,
+    POE_PSE_STATUS_OFF,
+    POE_PSE_STATUS_FAULT,
+    POE_PORT_DETECT_SEARCHING,
 )
 from switches.utils import dprint, get_ip_dns_name
 
 
-class Error():
+class Error:
     """
     Simple error information object, created with error status indicated!
     """
+
     def __init__(self):
         """
         Default state is error occured!
         """
         self.status = True
         self.description = "An Unknown Error Occured!"  # simple description of error
-        self.details = ""   # more details about the error, typically a 'traceback'
+        self.details = ""  # more details about the error, typically a 'traceback'
 
     def clear(self):
         """
         Clear error status
         """
-        self.status = False    # True if error
+        self.status = False  # True if error
         self.description = ""  # simple description of error
-        self.details = ""      # more details about the error, typically a 'traceback'
+        self.details = ""  # more details about the error, typically a 'traceback'
 
 
-class StackMember():
+class StackMember:
     """
     Represents what we know about a single device entity that is part of the switch stack.
     This could be just one unit (single switch), or multiple if part of a stack
     """
+
     def __init__(self, id, type):
         """
         Initialize the object
         """
         self.id = id
-        self.type = type        # see ENTITY_CLASS_NAME
-        self.serial = ""        # serial number
-        self.version = ""       # software revision of this device
-        self.model = ""         # vendor model number
-        self.info = ""          # hardware info string
+        self.type = type  # see ENTITY_CLASS_NAME
+        self.serial = ""  # serial number
+        self.version = ""  # software revision of this device
+        self.model = ""  # vendor model number
+        self.info = ""  # hardware info string
 
 
-class VendorData():
+class VendorData:
     """
     Class to hold generic Vendor-specific data, represented by
     data name and value. this can be added to any device with a call to
     connector.add_vendor_data(self, category, name, value)
     This gets added to connector.vendor_data{} with category as key.
     """
+
     def __init__(self, name, value):
         self.name = name
         self.value = value
@@ -82,6 +94,7 @@ class IPNetworkHostname(netaddr.IPNetwork):
     Class to add a 'hostname' attribute to an IPNetwork() object.
     This can be used to set a FQDN for the Ip address portion of the network.
     """
+
     def __init__(self, network):
         self.hostname = ''
         super().__init__(network)
@@ -93,60 +106,63 @@ class IPNetworkHostname(netaddr.IPNetwork):
             self.hostname = get_ip_dns_name(self.ip)
 
 
-class Interface():
+class Interface:
     """
     Class to represent all the attributes of a single device (switch) interface.
     """
+
     def __init__(self, key):
         """
         Initialize the object. We map the MIB-II entity names to similar class attributes.
         """
-        self.key = str(key)         # the key used to find the index in the connector.interfaces{} dict
-        self.visible = True         # if True, this user can "see" this interface
-        self.manageable = False      # if True, this interface is manageable by the current user
-        self.disabled = False       # if True, this interface is disabled by the Connector() driver.
-        self.unmanage_reason = "Access denied!"     # string with reason why interface is not manageable or disabled
+        self.key = str(key)  # the key used to find the index in the connector.interfaces{} dict
+        self.visible = True  # if True, this user can "see" this interface
+        self.manageable = False  # if True, this interface is manageable by the current user
+        self.disabled = False  # if True, this interface is disabled by the Connector() driver.
+        self.unmanage_reason = "Access denied!"  # string with reason why interface is not manageable or disabled
         self.can_edit_description = False  # if True, can change interface description (snmp ifAlias)
-        self.index = key            # ifIndex, the key to all MIB-2 data!
+        self.index = key  # ifIndex, the key to all MIB-2 data!
         # self.ifDescr = ""           # the old name of the interface, NOT the "description" attribute which is the ifAlias !!!
-        self.name = ""              # the name from IFMIB ifName entry! Falls back to older MIB-2ifDescr is not found!
-        self.type = IF_TYPE_NONE    # ifType, the MIB-2 type of the interface
-        self.is_routed = False      # if True interface is in routed mode (i.e. a layer 3 interface)
-        self.admin_status = False   # administrative status of the interface, True is Admin-Up (snmp ifAdminStatus)
-        self.oper_status = False    # operation status of interface, True is Oper-Up (snmp ifOperStatus)
-        self.mtu = 0                # ifMTU value, for L3 interfaces
-        self.speed = 0              # speed counter, in 1 Mbps (ie. like ifHighSpeed data from IF-MIB)
-        self.duplex = IF_DUPLEX_UNKNOWN     # interface duplex setting, if known.
+        self.name = ""  # the name from IFMIB ifName entry! Falls back to older MIB-2ifDescr is not found!
+        self.type = IF_TYPE_NONE  # ifType, the MIB-2 type of the interface
+        self.is_routed = False  # if True interface is in routed mode (i.e. a layer 3 interface)
+        self.admin_status = False  # administrative status of the interface, True is Admin-Up (snmp ifAdminStatus)
+        self.oper_status = False  # operation status of interface, True is Oper-Up (snmp ifOperStatus)
+        self.mtu = 0  # ifMTU value, for L3 interfaces
+        self.speed = 0  # speed counter, in 1 Mbps (ie. like ifHighSpeed data from IF-MIB)
+        self.duplex = IF_DUPLEX_UNKNOWN  # interface duplex setting, if known.
         self.phys_addr = 0x0
-        self.description = ""             # the interface description, as set by the switch configuration, from IF-MIB
-        self.addresses_ip4 = {}     # dictionary of all my ipv4 addresses on this interface
-        self.addresses_ip6 = {}     # dictionary of all my ipv6 addresses on this interface
+        self.description = ""  # the interface description, as set by the switch configuration, from IF-MIB
+        self.addresses_ip4 = {}  # dictionary of all my ipv4 addresses on this interface
+        self.addresses_ip6 = {}  # dictionary of all my ipv6 addresses on this interface
         self.igmp_snooping = False  # if True, interface does IGMP snooping
         # vlan related
-        self.port_id = -1            # Q-Bridge MIB port id
-        self.untagged_vlan = -1      # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
-        self.vlans = []              # list (array) of vlanId's on this interface. If size > 0 this is a tagged port!
+        self.port_id = -1  # Q-Bridge MIB port id
+        self.untagged_vlan = -1  # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
+        self.vlans = []  # list (array) of vlanId's on this interface. If size > 0 this is a tagged port!
         self.vlan_count = 0
-        self.is_tagged = False       # if 802.1q tagging or trunking is enabled
-        self.if_vlan_mode = -1       # some vendors (e.g. Comware) have a interface vlan mode, such as access, trunk, hybrid
-        self.voice_vlan = 0          # Cisco specific "Voice Vlan"
+        self.is_tagged = False  # if 802.1q tagging or trunking is enabled
+        self.if_vlan_mode = -1  # some vendors (e.g. Comware) have a interface vlan mode, such as access, trunk, hybrid
+        self.voice_vlan = 0  # Cisco specific "Voice Vlan"
         self.can_change_vlan = True  # if set, we can change the vlan; some device types this is not implemented yet!
-        self.gvrp_enabled = False    # the value representing the status of MVRP/GVRP on the interface
-        self.last_change = 0         # ifLastChange, tick count since uptime when interface last changed
+        self.gvrp_enabled = False  # the value representing the status of MVRP/GVRP on the interface
+        self.last_change = 0  # ifLastChange, tick count since uptime when interface last changed
         # LACP related
         self.lacp_type = LACP_IF_TYPE_NONE
         # for LACP aggregator, a dictionary of lacp member interfaces. key=ifIndex, value=ifName of member interfaces
-        self.lacp_admin_key = -1      # "LacpKey" admin key. Member interfaces map back to this.
+        self.lacp_admin_key = -1  # "LacpKey" admin key. Member interfaces map back to this.
         self.lacp_members = {}
         # for members:
-        self.lacp_master_index = -1  # we are member of an LACP interface. ifIndex of the master aggregate. Mutually exclusive with above!
-        self.lacp_master_name = ""   # we are member of an LACP interface. ifname of the master aggregate.
+        self.lacp_master_index = (
+            -1
+        )  # we are member of an LACP interface. ifIndex of the master aggregate. Mutually exclusive with above!
+        self.lacp_master_name = ""  # we are member of an LACP interface. ifname of the master aggregate.
         # Power related
-        self.poe_entry = False          # if interface has PoE capabilities, will be a PoePort() object
-        self.allow_poe_toggle = False   # if set, any user can toggle PoE OFF-ON
+        self.poe_entry = False  # if interface has PoE capabilities, will be a PoePort() object
+        self.allow_poe_toggle = False  # if set, any user can toggle PoE OFF-ON
         # a variety of data about what is happening on this interface:
-        self.eth = {}               # heard ethernet address on this interface, dictionay of EthernetAddress() objects
-        self.lldp = {}              # LLDP neighbors, dictionay of NeighborDevice() objects
+        self.eth = {}  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
+        self.lldp = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
 
     def add_ip4_network(self, address, prefix_len=''):
         '''
@@ -238,7 +254,7 @@ class Interface():
         return True
 
     def display_name(self):
-        s = self.name   # use the IF-MIB new interface name
+        s = self.name  # use the IF-MIB new interface name
         if self.description:
             s = f"{s}: {self.description} {self.admin_status} {self.oper_status}"
         if self.admin_status:
@@ -255,22 +271,23 @@ class Interface():
         return self.display_name()
 
 
-class Vlan():
+class Vlan:
     """
     Class to represent a vlan found on the switch
     """
+
     def __init__(self, id=0, index=0, name=''):
         """
         Vlan() requires passing in the vlan id
         """
-        self.id = id            # the vlan ID as sent on the wire
-        self.index = index      # the internal vlan index, used by some MIBs
-        self.fdb_index = 0      # the Forward-DB index, from maps switch database to vlan index
+        self.id = id  # the vlan ID as sent on the wire
+        self.index = index  # the internal vlan index, used by some MIBs
+        self.fdb_index = 0  # the Forward-DB index, from maps switch database to vlan index
         self.name = name
         self.type = VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
-        self.admin_status = VLAN_ADMIN_ENABLED     # ENABLED or DISABLED
-        self.status = VLAN_STATUS_OTHER     # 1-other-0, 2-permanent, 3-dynamic(gvrp)
-        self.igmp_snooping = False          # if True, vlan does IGMP snooping
+        self.admin_status = VLAN_ADMIN_ENABLED  # ENABLED or DISABLED
+        self.status = VLAN_STATUS_OTHER  # 1-other-0, 2-permanent, 3-dynamic(gvrp)
+        self.igmp_snooping = False  # if True, vlan does IGMP snooping
         # dot1qVlanCurrentEgressPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
         self.current_egress_portlist = PortList()
         # dot1qVlanStaticPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
@@ -290,7 +307,7 @@ class Vlan():
         return self.display_name()
 
 
-class PortList():
+class PortList:
     """
     Object to handle the Q-BRIDGE PortList bitmap that exists per vlan.
     This is the back-and-forth mapping of switch port to bit
@@ -302,6 +319,7 @@ class PortList():
                           This is the PortList OCTETSTRING returned by the
                           snmp get() call
     """
+
     def __init__(self):
         self.portlist = array.array('B')
 
@@ -424,6 +442,7 @@ class EthernetAddress(netaddr.EUI):
     Class to represents an Ethernet address, and whatever we know about it.
     We reuse most of the netaddr library abilities to find vendor.
     """
+
     def __init__(self, ethernet_string):
         """
         EthernetAddress() requires passing in the hyphen or colon format of the 6 ethernet bytes.
@@ -431,10 +450,10 @@ class EthernetAddress(netaddr.EUI):
         # initiate netaddr EUI class parent object
         super().__init__(ethernet_string)
         self.vendor = ''
-        self.vlan_id = 0        # the vlan id (number) this was heard on, if known
-        self.address_ip4 = ""   # ipv4 address from arp table, if known
-        self.address_ip6 = ""   # ipv6 address, if known
-        self.hostname = ""      # reverse lookup for ip4 or ip6 address.
+        self.vlan_id = 0  # the vlan id (number) this was heard on, if known
+        self.address_ip4 = ""  # ipv4 address from arp table, if known
+        self.address_ip6 = ""  # ipv6 address, if known
+        self.hostname = ""  # reverse lookup for ip4 or ip6 address.
 
     def set_vlan(self, vlan_id):
         self.vlan_id = int(vlan_id)
@@ -453,31 +472,32 @@ class EthernetAddress(netaddr.EUI):
         return super().__str__()
 
 
-class NeighborDevice():
+class NeighborDevice:
     """
     Class to represents an lldp neighbor, and whatever we know about it.
     """
+
     # def __init__(self, lldp_index, if_index):
     def __init__(self, lldp_index):
         """
         Initialize the object, requires the lldp index
         """
-        self.index = lldp_index     # 'string' remainder of OID that is unique per remote device
+        self.index = lldp_index  # 'string' remainder of OID that is unique per remote device
         # self.if_index = int(if_index)
         # the above can be set from lldp data via SNMP, when these three fields are found:
-        self.chassis_type = 0    # integer, LldpChassisIdSubtype.
+        self.chassis_type = 0  # integer, LldpChassisIdSubtype.
         # If chassis_string_type is set to IANA_TYPE_IPV4 or IANA_TYPE_IPV6, then
         # chassis_string is assumed to be a string with the IP4/6 address set.
         self.chassis_string_type = 0
-        self.chassis_string = ""        # LldpChassisId, OctetString format depends on type.
+        self.chassis_string = ""  # LldpChassisId, OctetString format depends on type.
         self.capabilities = LLDP_CAPABILITIES_NONE
         # self.capabilities = bytes(2)  # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
         #                               # this is the equivalent to LLDP_CAPABILITIES_NONE from connect.constants
-        self.port_name = ""             # remote port name
-        self.port_descr = ""            # remote port description, as set by config
+        self.port_name = ""  # remote port name
+        self.port_descr = ""  # remote port description, as set by config
         self.sys_name = "Unknown Device"
         self.sys_descr = "Unknown Device Description"
-        self.hostname = ""              # if set, the hostname of the device, possibly resolved from chassis_string
+        self.hostname = ""  # if set, the hostname of the device, possibly resolved from chassis_string
 
     def set_port_name(self, port_name):
         '''
@@ -573,20 +593,21 @@ class NeighborDevice():
         return self.display_name()
 
 
-class PoePSE():
+class PoePSE:
     """
     Class to represent a Power Source Entity aka PSE device. (ie a power supply! :-)
     This is the device that feeds PoE to ports. Typically, modular switches or
     stacks have multiple, e.g. one per line card or stack unit.
     """
+
     def __init__(self, index):
         """
         Initialize the object
         """
         self.index = int(index)
-        self.max_power = 0          # maximum power available on this power supply
+        self.max_power = 0  # maximum power available on this power supply
         self.status = POE_PSE_STATUS_ON
-        self.power_consumed = 0     # total power consumed on this power supply
+        self.power_consumed = 0  # total power consumed on this power supply
         self.threshold = 0
 
     def set_enabled(self):
@@ -630,21 +651,23 @@ class PoePSE():
 
     def __str__(self):
         return self.display_name()
+
     #    return (f"PoePSE:\nIndex={self.index}\nStatus={self.status}\n" \
     #            "Max Power={self.max_power}\nPower Draw={self.power_consumed}\n" \
     #            "Threshold={self.threshold}\n"
 
 
-class PoePort():
+class PoePort:
     """
     Class to represent a "pethPsePortEntry" for an interface.
     I.e. this is the per-interface power information.
     """
+
     def __init__(self, index, admin_status):
         """
         Initialize the object
         """
-        self.index = index          # port entry is the value after the PoE OID that is the index to this interface
+        self.index = index  # port entry is the value after the PoE OID that is the index to this interface
         self.admin_status = admin_status
         self.detect_status = POE_PORT_DETECT_SEARCHING
         """ currently not used:
@@ -653,34 +676,37 @@ class PoePort():
         """
         # power consumed is not in the standard PoE MIB, but some proprietary MIBs support this (e.g. Cisco)
         self.power_consumption_supported = False
-        self.power_consumed = 0      # power consumed in milliWatt
-        self.power_available = 0     # power available in milliWatt
+        self.power_consumed = 0  # power consumed in milliWatt
+        self.power_available = 0  # power available in milliWatt
         self.max_power_consumed = 0  # max power drawn since PoE reset, in milliWatt
 
     def __str__(self):
-        return (f"PoePort:\nIndex={self.index}\nAdmin={self.admin_status}\n"
-                "Detect={self.detect_status}\n"
-                "Power Draw Supported={self.power_consumption_supported}\n"
-                "Power Draw={self.power_consumed}\n")
+        return (
+            f"PoePort:\nIndex={self.index}\nAdmin={self.admin_status}\n"
+            "Detect={self.detect_status}\n"
+            "Power Draw Supported={self.power_consumption_supported}\n"
+            "Power Draw={self.power_consumed}\n"
+        )
 
 
-class SyslogMsg():
+class SyslogMsg:
     """
     Class to represent a Syslog Message, implemented in SYSLOG-MSG-MIB
     or vendorm-specific mibs like CISCO-SYSLOG-MIB
     """
+
     def __init__(self, index):
         """
         Initialize the object with the message index
         """
-        self.index = index      # snmp table index
-        self.facility = ""      # some name
-        self.severity = -1      # valid are 0-7
-        self.name = ""          # type or name or app-name of message
-        self.message = ""       # the text of the message
+        self.index = index  # snmp table index
+        self.facility = ""  # some name
+        self.severity = -1  # valid are 0-7
+        self.name = ""  # type or name or app-name of message
+        self.message = ""  # the text of the message
         # datetime() value of message. Generic SYSLOG-MSG-MIB has time "string" (DateAndTime)
         # some vendor mibs have sys-uptime timetick. Recalculate all to datetime() object
         self.datetime = 0
 
     def __str__(self):
-        return (self.message)   # for now.
+        return self.message  # for now.

@@ -30,7 +30,10 @@ class ProfileInline(admin.StackedInline):
     verbose_name_plural = 'profile'
 
     # do not allow edit of ldap info fields.
-    readonly_fields = ('last_ldap_dn', 'last_ldap_login', )
+    readonly_fields = (
+        'last_ldap_dn',
+        'last_ldap_login',
+    )
 
 
 class SwitchGroupInline(admin.TabularInline):
@@ -39,9 +42,11 @@ class SwitchGroupInline(admin.TabularInline):
 
 # Define a new User admin
 class MyUserAdmin(UserAdmin):
-
     # add the Profile view
-    inlines = (SwitchGroupInline, ProfileInline,)
+    inlines = (
+        SwitchGroupInline,
+        ProfileInline,
+    )
 
     # add last_login
     list_display = ('username', 'email', 'first_name', 'last_name', 'last_login', 'is_staff')
@@ -50,7 +55,16 @@ class MyUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         (('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
-        (('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',)}),
+        (
+            ('Permissions'),
+            {
+                'fields': (
+                    'is_active',
+                    'is_staff',
+                    'is_superuser',
+                )
+            },
+        ),
         (('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
 

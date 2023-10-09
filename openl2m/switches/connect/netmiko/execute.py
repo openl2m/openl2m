@@ -22,11 +22,12 @@ from switches.connect.classes import Error
 from switches.utils import dprint
 
 
-class NetmikoExecute():
+class NetmikoExecute:
     """
     This is the base class where it all happens!
     This implements "Generic" netmiko connection to a switch
     """
+
     def __init__(self, switch):
         """
         Initialize the object with all the settings,
@@ -35,8 +36,8 @@ class NetmikoExecute():
         """
         dprint(f"NetmikoConnector __init__ for {switch.name} ({switch.primary_ip4})")
         self.name = "Standard Netmiko"  # what type of class is running!
-        self.device_type = ''       # unknown at creation
-        self.connection = False     # return from ConnectHandler()
+        self.device_type = ''  # unknown at creation
+        self.connection = False  # return from ConnectHandler()
         self.switch = switch
         # self.timeout = settings.SSH_TIMEOUT  # should be SSH timeout/retry values
         # self.retries = settings.SSH_RETRIES

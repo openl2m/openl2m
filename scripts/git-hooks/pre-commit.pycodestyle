@@ -1,7 +1,12 @@
 #!/bin/sh
 # Create a link to this file at .git/hooks/pre-commit to
-# enforce "black" formatting prior to committing
+# force PEP8 validation prior to committing
 #
+# Ignored violations:
+#
+#   W504: Line break after binary operator
+#   W605: invalid escape sequence
+#   E501: Line too long
 
 exec 1>&2
 
@@ -9,10 +14,10 @@ EXIT=0
 RED='\033[0;31m'
 NOCOLOR='\033[0m'
 
-echo "Validating 'black' compliance..."
-black --check openl2m/
+echo "Validating PEP8 compliance..."
+pycodestyle --ignore=E121,E123,E126,E133,E226,E241,E242,E501,E704,W503,W504,W505,W605 openl2m/
 if [ $? != 0 ]; then
-	echo "Not all files comply with black formatting!"
+	echo "pycodestyle failed!"
 	EXIT=1
 fi
 

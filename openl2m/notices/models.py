@@ -20,6 +20,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now
 
 from django.contrib.messages import constants as notice_levels
+
 NOTICE_PRIORITY_CHOICES = [
     # [notice_levels.DEBUG, 'DEBUG'],
     [notice_levels.INFO, 'Information'],
@@ -32,8 +33,9 @@ NOTICE_PRIORITY_CHOICES = [
 class NoticeManager(models.Manager):
     def active_notices(self):
         dtnow = now()
-        return super(NoticeManager, self).get_queryset().filter(
-            enabled=True, start_time__lte=dtnow, end_time__gte=dtnow)
+        return (
+            super(NoticeManager, self).get_queryset().filter(enabled=True, start_time__lte=dtnow, end_time__gte=dtnow)
+        )
 
 
 class Notice(models.Model):

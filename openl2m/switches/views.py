@@ -34,20 +34,61 @@ from django.contrib import messages
 
 from switches.connect.classes import Error
 from switches.models import (
-    SnmpProfile, NetmikoProfile, Command, CommandList, CommandTemplate,
-    VLAN, VlanGroup, Switch, SwitchGroup, Log,
+    SnmpProfile,
+    NetmikoProfile,
+    Command,
+    CommandList,
+    CommandTemplate,
+    VLAN,
+    VlanGroup,
+    Switch,
+    SwitchGroup,
+    Log,
 )
 from switches.constants import (
-    LOG_TYPE_VIEW, LOG_TYPE_CHANGE, LOG_TYPE_ERROR, LOG_TYPE_COMMAND, LOG_TYPE_CHOICES, LOG_ACTION_CHOICES,
-    LOG_CHANGE_INTERFACE_DOWN, LOG_CHANGE_INTERFACE_UP, LOG_CHANGE_INTERFACE_POE_DOWN, LOG_CHANGE_INTERFACE_POE_UP,
-    LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP, LOG_CHANGE_INTERFACE_PVID, LOG_CHANGE_INTERFACE_ALIAS, LOG_CHANGE_BULK_EDIT,
-    LOG_VIEW_SWITCHGROUPS, LOG_CONNECTION_ERROR, LOG_BULK_EDIT_TASK_START,
-    LOG_VIEW_SWITCH, LOG_VIEW_ALL_LOGS, LOG_VIEW_ADMIN_STATS, LOG_VIEW_SWITCH_SEARCH,
-    LOG_EXECUTE_COMMAND, LOG_SAVE_SWITCH, LOG_RELOAD_SWITCH, INTERFACE_STATUS_NONE, BULKEDIT_POE_NONE,
-    BULKEDIT_POE_CHOICES, BULKEDIT_ALIAS_TYPE_CHOICES, BULKEDIT_INTERFACE_CHOICES, BULKEDIT_ALIAS_TYPE_REPLACE,
-    BULKEDIT_ALIAS_TYPE_APPEND, BULKEDIT_POE_DOWN_UP, BULKEDIT_POE_CHANGE, BULKEDIT_POE_DOWN,
-    BULKEDIT_POE_UP, SWITCH_STATUS_ACTIVE, LOG_TYPE_WARNING, INTERFACE_STATUS_CHANGE,
-    INTERFACE_STATUS_DOWN, INTERFACE_STATUS_UP, LOG_VLAN_CREATE, LOG_VLAN_EDIT, LOG_VLAN_DELETE,
+    LOG_TYPE_VIEW,
+    LOG_TYPE_CHANGE,
+    LOG_TYPE_ERROR,
+    LOG_TYPE_COMMAND,
+    LOG_TYPE_CHOICES,
+    LOG_ACTION_CHOICES,
+    LOG_CHANGE_INTERFACE_DOWN,
+    LOG_CHANGE_INTERFACE_UP,
+    LOG_CHANGE_INTERFACE_POE_DOWN,
+    LOG_CHANGE_INTERFACE_POE_UP,
+    LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP,
+    LOG_CHANGE_INTERFACE_PVID,
+    LOG_CHANGE_INTERFACE_ALIAS,
+    LOG_CHANGE_BULK_EDIT,
+    LOG_VIEW_SWITCHGROUPS,
+    LOG_CONNECTION_ERROR,
+    LOG_BULK_EDIT_TASK_START,
+    LOG_VIEW_SWITCH,
+    LOG_VIEW_ALL_LOGS,
+    LOG_VIEW_ADMIN_STATS,
+    LOG_VIEW_SWITCH_SEARCH,
+    LOG_EXECUTE_COMMAND,
+    LOG_SAVE_SWITCH,
+    LOG_RELOAD_SWITCH,
+    INTERFACE_STATUS_NONE,
+    BULKEDIT_POE_NONE,
+    BULKEDIT_POE_CHOICES,
+    BULKEDIT_ALIAS_TYPE_CHOICES,
+    BULKEDIT_INTERFACE_CHOICES,
+    BULKEDIT_ALIAS_TYPE_REPLACE,
+    BULKEDIT_ALIAS_TYPE_APPEND,
+    BULKEDIT_POE_DOWN_UP,
+    BULKEDIT_POE_CHANGE,
+    BULKEDIT_POE_DOWN,
+    BULKEDIT_POE_UP,
+    SWITCH_STATUS_ACTIVE,
+    LOG_TYPE_WARNING,
+    INTERFACE_STATUS_CHANGE,
+    INTERFACE_STATUS_DOWN,
+    INTERFACE_STATUS_UP,
+    LOG_VLAN_CREATE,
+    LOG_VLAN_EDIT,
+    LOG_VLAN_DELETE,
 )
 from switches.connect.connector import clear_switch_cache
 from switches.connect.connect import get_connection_object
@@ -56,14 +97,30 @@ from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
 )
 from switches.utils import (
-    success_page, warning_page, error_page, dprint, get_from_http_session, save_to_http_session, get_remote_ip, time_duration,
-    string_contains_regex, string_matches_regex, get_choice_name
+    success_page,
+    warning_page,
+    error_page,
+    dprint,
+    get_from_http_session,
+    save_to_http_session,
+    get_remote_ip,
+    time_duration,
+    string_contains_regex,
+    string_matches_regex,
+    get_choice_name,
 )
 from users.utils import user_can_bulkedit, user_can_edit_vlans, get_current_users
 from counters.models import Counter, counter_increment
 from counters.constants import (
-    COUNTER_CHANGES, COUNTER_BULKEDITS, COUNTER_ERRORS, COUNTER_ACCESS_DENIED, COUNTER_COMMANDS,
-    COUNTER_VIEWS, COUNTER_DETAILVIEWS, COUNTER_HWINFO, COUNTER_VLAN_MANAGE,
+    COUNTER_CHANGES,
+    COUNTER_BULKEDITS,
+    COUNTER_ERRORS,
+    COUNTER_ACCESS_DENIED,
+    COUNTER_COMMANDS,
+    COUNTER_VIEWS,
+    COUNTER_DETAILVIEWS,
+    COUNTER_HWINFO,
+    COUNTER_VLAN_MANAGE,
 )
 from notices.models import Notice
 
@@ -89,14 +146,15 @@ def close_device(request):
             del conn
         except Exception as err:
             # log it, but ignore otherwize...
-            log = Log(user=request.user,
-                      ip_address=get_remote_ip(request),
-                      switch=switch,
-                      # group=False,
-                      action=LOG_CONNECTION_ERROR,
-                      type=LOG_TYPE_ERROR,
-                      description=f"ERROR: Main menu trying to _close_device() for id {request.session['switch_id']}: {err}"
-                      )
+            log = Log(
+                user=request.user,
+                ip_address=get_remote_ip(request),
+                switch=switch,
+                # group=False,
+                action=LOG_CONNECTION_ERROR,
+                type=LOG_TYPE_ERROR,
+                description=f"ERROR: Main menu trying to _close_device() for id {request.session['switch_id']}: {err}",
+            )
             log.save()
 
 
@@ -138,16 +196,24 @@ def switches(request):
             for switch in group.switches.all():
                 if switch.status == SWITCH_STATUS_ACTIVE:
                     # we save the names as well, so we can search them!
-                    permissions[int(group.id)][int(switch.id)] = (switch.name, switch.hostname, switch.description, switch.default_view, group.name)
+                    permissions[int(group.id)][int(switch.id)] = (
+                        switch.name,
+                        switch.hostname,
+                        switch.description,
+                        switch.default_view,
+                        group.name,
+                    )
 
     save_to_http_session(request, 'permissions', permissions)
 
     # log my activity
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              action=LOG_VIEW_SWITCHGROUPS,
-              description="Viewing switch groups",
-              type=LOG_TYPE_VIEW)
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        action=LOG_VIEW_SWITCHGROUPS,
+        description="Viewing switch groups",
+        type=LOG_TYPE_VIEW,
+    )
     log.save()
 
     # are there any notices to users?
@@ -157,10 +223,14 @@ def switches(request):
             messages.add_message(request=request, level=notice.priority, message=notice.content)
 
     # render the template
-    return render(request, template_name, {
-        'groups': switchgroups,
-        'groups_count': len(switchgroups),
-    })
+    return render(
+        request,
+        template_name,
+        {
+            'groups': switchgroups,
+            'groups_count': len(switchgroups),
+        },
+    )
 
 
 @login_required(redirect_field_name=None)
@@ -181,11 +251,13 @@ def switch_search(request):
     template_name = "search_results.html"
 
     # log my activity
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              action=LOG_VIEW_SWITCH_SEARCH,
-              description=f"Searching for switch '{ search }'",
-              type=LOG_TYPE_VIEW)
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        action=LOG_VIEW_SWITCH_SEARCH,
+        description=f"Searching for switch '{ search }'",
+        type=LOG_TYPE_VIEW,
+    )
     log.save()
 
     results = []
@@ -210,13 +282,17 @@ def switch_search(request):
                         break
 
     # render the template
-    return render(request, template_name, {
-        'warning': warning,
-        'search': search,
-        'results': results,
-        'results_count': len(results),
-        'group_count': len(result_groups),
-    })
+    return render(
+        request,
+        template_name,
+        {
+            'warning': warning,
+            'search': search,
+            'results': results,
+            'results_count': len(results),
+            'group_count': len(result_groups),
+        },
+    )
 
 
 @login_required
@@ -249,7 +325,9 @@ def switch_hw_info(request, group_id, switch_id):
     return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='hw_info')
 
 
-def switch_view(request, group_id, switch_id, view, command_id=-1, interface_name='', command_string='', command_template=False):
+def switch_view(
+    request, group_id, switch_id, view, command_id=-1, interface_name='', command_string='', command_template=False
+):
     """
     This shows the various data about a switch, either from a new SNMP read,
     from cached OID data, or an SSH command.
@@ -269,13 +347,15 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
         error.details = "You do not have access to this device!"
         return error_page(request=request, group=False, switch=False, error=error)
 
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              switch=switch,
-              group=group,
-              action=LOG_VIEW_SWITCH,
-              type=LOG_TYPE_VIEW,
-              description=f"Viewing device ({view})")
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_VIEW_SWITCH,
+        type=LOG_TYPE_VIEW,
+        description=f"Viewing device ({view})",
+    )
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -299,7 +379,9 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
             return error_page(request=request, group=group, switch=switch, error=conn.error)
     except Exception as e:
         log.type = LOG_TYPE_ERROR
-        log.description = f"CAUGHT UNTRAPPED ERROR in get_basic_switch_info(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+        log.description = (
+            f"CAUGHT UNTRAPPED ERROR in get_basic_switch_info(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+        )
         dprint(log.description)
         log.save()
         return error_page(request=request, group=group, switch=switch, error=conn.error)
@@ -338,7 +420,9 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
             dprint("ARP-LLDP Info OK")
         except Exception as e:
             log.type = LOG_TYPE_ERROR
-            log.description = f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            log.description = (
+                f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            )
             dprint(log.description)
             log.save()
             return error_page(request=request, group=group, switch=switch, error=conn.error)
@@ -388,9 +472,13 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
                 output = cmd['output']
                 if command_template.output_match_regex:
                     if string_contains_regex(cmd['output'], command_template.output_match_regex):
-                        cmd['output'] = command_template.output_match_text if command_template.output_match_text else "OK!"
+                        cmd['output'] = (
+                            command_template.output_match_text if command_template.output_match_text else "OK!"
+                        )
                     else:
-                        cmd['output'] = command_template.output_fail_text if command_template.output_fail_text else "FAIL!"
+                        cmd['output'] = (
+                            command_template.output_fail_text if command_template.output_fail_text else "FAIL!"
+                        )
                 # do we need to filter (original) output to keep only matching lines?
                 if command_template.output_lines_keep_regex:
                     matched_lines = ''
@@ -408,7 +496,11 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
 
     # get recent "non-viewing" activity for this switch
     # for now, show most recent 25 activities
-    logs = Log.objects.all().filter(switch=switch, type__gt=LOG_TYPE_VIEW).order_by('-timestamp')[:settings.RECENT_SWITCH_LOG_COUNT]
+    logs = (
+        Log.objects.all()
+        .filter(switch=switch, type__gt=LOG_TYPE_VIEW)
+        .order_by('-timestamp')[: settings.RECENT_SWITCH_LOG_COUNT]
+    )
 
     time_since_last_read = time_duration(time.time() - conn.basic_info_read_timestamp)
 
@@ -418,19 +510,23 @@ def switch_view(request, group_id, switch_id, view, command_id=-1, interface_nam
 
     log_title = "Recent Activity"
 
-    return render(request, template_name, {
-        'group': group,
-        'switch': switch,
-        'connection': conn,
-        'logs': logs,
-        'log_title': log_title,
-        'logs_link': True,
-        'view': view,
-        'cmd': cmd,
-        'bulk_edit': bulk_edit,
-        'edit_vlans': edit_vlans,
-        'time_since_last_read': time_since_last_read,
-    })
+    return render(
+        request,
+        template_name,
+        {
+            'group': group,
+            'switch': switch,
+            'connection': conn,
+            'logs': logs,
+            'log_title': log_title,
+            'logs_link': True,
+            'view': view,
+            'cmd': cmd,
+            'bulk_edit': bulk_edit,
+            'edit_vlans': edit_vlans,
+            'time_since_last_read': time_since_last_read,
+        },
+    )
 
 
 #
@@ -458,13 +554,15 @@ def switch_bulkedit(request, group_id, switch_id):
     try:
         conn = get_connection_object(request, group, switch)
     except Exception:
-        log = Log(user=request.user,
-                  ip_address=remote_ip,
-                  switch=switch,
-                  group=group,
-                  action=LOG_CONNECTION_ERROR,
-                  type=LOG_TYPE_ERROR,
-                  description="Could not get connection")
+        log = Log(
+            user=request.user,
+            ip_address=remote_ip,
+            switch=switch,
+            group=group,
+            action=LOG_CONNECTION_ERROR,
+            type=LOG_TYPE_ERROR,
+            description="Could not get connection",
+        )
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -481,12 +579,22 @@ def switch_bulkedit(request, group_id, switch_id):
 
     # was anything submitted?
     if len(interface_list) == 0:
-        return warning_page(request=request, group=group, switch=switch,
-                            description=mark_safe("Please select at least 1 interface!"))
+        return warning_page(
+            request=request, group=group, switch=switch, description=mark_safe("Please select at least 1 interface!")
+        )
 
-    if interface_change == INTERFACE_STATUS_NONE and poe_choice == BULKEDIT_POE_NONE and new_pvid < 0 and not new_description:
-        return warning_page(request=request, group=group, switch=switch,
-                            description=mark_safe("Please select at least 1 thing to change!"))
+    if (
+        interface_change == INTERFACE_STATUS_NONE
+        and poe_choice == BULKEDIT_POE_NONE
+        and new_pvid < 0
+        and not new_description
+    ):
+        return warning_page(
+            request=request,
+            group=group,
+            switch=switch,
+            description=mark_safe("Please select at least 1 thing to change!"),
+        )
 
     # perform some checks on valid data first:
     errors = []
@@ -495,13 +603,15 @@ def switch_bulkedit(request, group_id, switch_id):
     if new_description and new_description_type == BULKEDIT_ALIAS_TYPE_REPLACE and settings.IFACE_ALIAS_NOT_ALLOW_REGEX:
         match = re.match(settings.IFACE_ALIAS_NOT_ALLOW_REGEX, new_description)
         if match:
-            log = Log(user=request.user,
-                      ip_address=remote_ip,
-                      switch=switch,
-                      group=group,
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_CHANGE_BULK_EDIT,
-                      description=f"Description not allowed: {new_description}")
+            log = Log(
+                user=request.user,
+                ip_address=remote_ip,
+                switch=switch,
+                group=group,
+                type=LOG_TYPE_ERROR,
+                action=LOG_CHANGE_BULK_EDIT,
+                description=f"Description not allowed: {new_description}",
+            )
             log.save()
             new_description = ''
             counter_increment(COUNTER_ERRORS)
@@ -511,15 +621,17 @@ def switch_bulkedit(request, group_id, switch_id):
     if new_pvid > 0:
         conn._set_allowed_vlans()
         if new_pvid not in conn.allowed_vlans.keys():
-            log = Log(user=request.user,
-                      ip_address=remote_ip,
-                      switch=switch,
-                      group=group,
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_CHANGE_BULK_EDIT,
-                      description=f"New vlan '{new_pvid}' is not allowed!")
+            log = Log(
+                user=request.user,
+                ip_address=remote_ip,
+                switch=switch,
+                group=group,
+                type=LOG_TYPE_ERROR,
+                action=LOG_CHANGE_BULK_EDIT,
+                description=f"New vlan '{new_pvid}' is not allowed!",
+            )
             log.save()
-            new_pvid = -1   # force no change!
+            new_pvid = -1  # force no change!
             errors.append(f"New vlan '{new_pvid}' is not allowed!")
             counter_increment(COUNTER_ERRORS)
 
@@ -532,7 +644,7 @@ def switch_bulkedit(request, group_id, switch_id):
     # get the name of the interfaces as well (with the submitted if_key values)
     # so that we can show the names in the Log() objects
     # additionally, also get the current state, to be able to "undo" the update
-    interfaces = {}     # dict() of interfaces to bulk edit
+    interfaces = {}  # dict() of interfaces to bulk edit
     undo_info = {}
     for if_key in interface_list:
         dprint(f"BulkEdit for {if_key}")
@@ -541,9 +653,17 @@ def switch_bulkedit(request, group_id, switch_id):
             interfaces[if_key] = interface.name
 
     # handle regular submit, execute now!
-    results = bulkedit_processor(request, group, switch,
-                                 interface_change, poe_choice, new_pvid,
-                                 new_description, new_description_type, interfaces)
+    results = bulkedit_processor(
+        request,
+        group,
+        switch,
+        interface_change,
+        poe_choice,
+        new_pvid,
+        new_description,
+        new_description_type,
+        interfaces,
+    )
 
     # indicate we need to save config!
     if results['success_count'] > 0:
@@ -563,9 +683,9 @@ def switch_bulkedit(request, group_id, switch_id):
         return success_page(request, group, switch, mark_safe(description))
 
 
-def bulkedit_processor(request, group, switch,
-                       interface_change, poe_choice, new_pvid,
-                       new_description, new_description_type, interfaces):
+def bulkedit_processor(
+    request, group, switch, interface_change, poe_choice, new_pvid, new_description, new_description_type, interfaces
+):
     """
     Function to handle the bulk edit processing, from form-submission or scheduled job.
     This will log each individual action per interface.
@@ -576,17 +696,19 @@ def bulkedit_processor(request, group, switch,
     remote_ip = get_remote_ip(request)
 
     # log bulk edit arguments:
-    log = Log(user=request.user,
-              switch=switch,
-              group=group,
-              ip_address=remote_ip,
-              action=LOG_BULK_EDIT_TASK_START,
-              description=f"Interface Status={get_choice_name(BULKEDIT_INTERFACE_CHOICES, interface_change)}, "
-                          f"PoE Status={get_choice_name(BULKEDIT_POE_CHOICES, poe_choice)}, "
-                          f"Vlan={new_pvid}, "
-                          f"Descr Type={get_choice_name(BULKEDIT_ALIAS_TYPE_CHOICES, new_description_type)}, "
-                          f"Descr={new_description}",
-              type=LOG_TYPE_CHANGE)
+    log = Log(
+        user=request.user,
+        switch=switch,
+        group=group,
+        ip_address=remote_ip,
+        action=LOG_BULK_EDIT_TASK_START,
+        description=f"Interface Status={get_choice_name(BULKEDIT_INTERFACE_CHOICES, interface_change)}, "
+        f"PoE Status={get_choice_name(BULKEDIT_POE_CHOICES, poe_choice)}, "
+        f"Vlan={new_pvid}, "
+        f"Descr Type={get_choice_name(BULKEDIT_ALIAS_TYPE_CHOICES, new_description_type)}, "
+        f"Descr={new_description}",
+        type=LOG_TYPE_CHANGE,
+    )
     log.save()
 
     # this needs work:
@@ -601,8 +723,8 @@ def bulkedit_processor(request, group, switch,
     iface_count = 0
     success_count = 0
     error_count = 0
-    outputs = []    # description of any errors found
-    for (if_key, name) in interfaces.items():
+    outputs = []  # description of any errors found
+    for if_key, name in interfaces.items():
         iface = conn.get_interface_by_key(if_key)
         if not iface:
             error_count += 1
@@ -613,16 +735,12 @@ def bulkedit_processor(request, group, switch,
         # save the current state, right before we make a change!
         current_state = {}
         current_state['if_key'] = if_key
-        current_state['name'] = iface.name    # for readability
+        current_state['name'] = iface.name  # for readability
 
         # now check all the things we could be changing,
         # start with UP/DOWN state:
         if interface_change != INTERFACE_STATUS_NONE:
-            log = Log(user=request.user,
-                      ip_address=remote_ip,
-                      if_name=iface.name,
-                      switch=switch,
-                      group=group)
+            log = Log(user=request.user, ip_address=remote_ip, if_name=iface.name, switch=switch, group=group)
             current_state['admin_state'] = iface.admin_status
             if interface_change == INTERFACE_STATUS_CHANGE:
                 if iface.admin_status:
@@ -670,11 +788,7 @@ def bulkedit_processor(request, group, switch,
             if not iface.poe_entry:
                 outputs.append(f"Interface {iface.name}: Ignored - not PoE capable")
             else:
-                log = Log(user=request.user,
-                          ip_address=remote_ip,
-                          if_name=iface.name,
-                          switch=switch,
-                          group=group)
+                log = Log(user=request.user, ip_address=remote_ip, if_name=iface.name, switch=switch, group=group)
                 current_state['poe_state'] = iface.poe_entry.admin_status
                 if poe_choice == BULKEDIT_POE_DOWN_UP:
                     # Down / Up on interfaces with PoE Enabled:
@@ -686,7 +800,9 @@ def bulkedit_processor(request, group, switch,
                         # First disable PoE
                         retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_DISABLED)
                         if retval < 0:
-                            log.description = f"ERROR: Toggle-Disable PoE on interface {iface.name} - {conn.error.description}"
+                            log.description = (
+                                f"ERROR: Toggle-Disable PoE on interface {iface.name} - {conn.error.description}"
+                            )
                             log.type = LOG_TYPE_ERROR
                             outputs.append(log.description)
                             log.save()
@@ -700,7 +816,9 @@ def bulkedit_processor(request, group, switch,
                             # retval = conn.set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_ENABLED, 'i')
                             retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_ENABLED)
                             if retval < 0:
-                                log.description = f"ERROR: Toggle-Enable PoE on interface {iface.name} - {conn.error.description}"
+                                log.description = (
+                                    f"ERROR: Toggle-Enable PoE on interface {iface.name} - {conn.error.description}"
+                                )
                                 log.type = LOG_TYPE_ERROR
                                 outputs.append(log.description)
                                 log.save()
@@ -746,7 +864,9 @@ def bulkedit_processor(request, group, switch,
                         if retval < 0:
                             error_count += 1
                             log.type = LOG_TYPE_ERROR
-                            log.description = f"Interface {iface.name}: PoE {new_state_name} ERROR: {conn.error.description}"
+                            log.description = (
+                                f"Interface {iface.name}: PoE {new_state_name} ERROR: {conn.error.description}"
+                            )
                             outputs.append(log.description)
                             log.save()
                             counter_increment(COUNTER_ERRORS)
@@ -765,24 +885,28 @@ def bulkedit_processor(request, group, switch,
         if new_pvid > 0:
             if iface.lacp_master_index > 0:
                 # LACP member interface, we cannot edit the vlan!
-                log = Log(user=request.user,
-                          ip_address=remote_ip,
-                          if_name=iface.name,
-                          switch=switch,
-                          group=group,
-                          type=LOG_TYPE_WARNING,
-                          action=LOG_CHANGE_INTERFACE_PVID,
-                          description=f"Interface {iface.name}: LACP Member, vlan set to {new_pvid} IGNORED!")
+                log = Log(
+                    user=request.user,
+                    ip_address=remote_ip,
+                    if_name=iface.name,
+                    switch=switch,
+                    group=group,
+                    type=LOG_TYPE_WARNING,
+                    action=LOG_CHANGE_INTERFACE_PVID,
+                    description=f"Interface {iface.name}: LACP Member, vlan set to {new_pvid} IGNORED!",
+                )
                 outputs.append(log.description)
                 log.save()
             else:
                 # make sure we cast the proper type here! Ie this needs an Integer()
-                log = Log(user=request.user,
-                          ip_address=remote_ip,
-                          if_name=iface.name,
-                          switch=switch,
-                          group=group,
-                          action=LOG_CHANGE_INTERFACE_PVID)
+                log = Log(
+                    user=request.user,
+                    ip_address=remote_ip,
+                    if_name=iface.name,
+                    switch=switch,
+                    group=group,
+                    action=LOG_CHANGE_INTERFACE_PVID,
+                )
                 current_state['pvid'] = iface.untagged_vlan
                 if new_pvid != iface.untagged_vlan:
                     # new vlan, go set it:
@@ -834,12 +958,14 @@ def bulkedit_processor(request, group, switch,
             # elif new_description_type == BULKEDIT_ALIAS_TYPE_PREPEND:
             # To be implemented
 
-            log = Log(user=request.user,
-                      ip_address=remote_ip,
-                      if_name=iface.name,
-                      switch=switch,
-                      group=group,
-                      action=LOG_CHANGE_INTERFACE_ALIAS)
+            log = Log(
+                user=request.user,
+                ip_address=remote_ip,
+                if_name=iface.name,
+                switch=switch,
+                group=group,
+                action=LOG_CHANGE_INTERFACE_ALIAS,
+            )
             current_state['description'] = iface.description
             retval = conn.set_interface_description(iface, iface_new_description)
             if retval < 0:
@@ -861,12 +987,14 @@ def bulkedit_processor(request, group, switch,
         runtime_undo_info[if_key] = current_state
 
     # log final results
-    log = Log(user=request.user,
-              ip_address=remote_ip,
-              switch=switch,
-              group=group,
-              type=LOG_TYPE_CHANGE,
-              action=LOG_CHANGE_BULK_EDIT)
+    log = Log(
+        user=request.user,
+        ip_address=remote_ip,
+        switch=switch,
+        group=group,
+        type=LOG_TYPE_CHANGE,
+        action=LOG_CHANGE_BULK_EDIT,
+    )
     if error_count > 0:
         log.type = LOG_TYPE_ERROR
         log.description = "Bulk Edits had errors! (see previous entries)"
@@ -892,8 +1020,9 @@ def switch_vlan_manage(request, group_id, switch_id):
     group = get_object_or_404(SwitchGroup, pk=group_id)
     switch = get_object_or_404(Switch, pk=switch_id)
 
-    if not rights_to_group_and_switch(request, group_id, switch_id) \
-       or not user_can_edit_vlans(request.user, group, switch):
+    if not rights_to_group_and_switch(request, group_id, switch_id) or not user_can_edit_vlans(
+        request.user, group, switch
+    ):
         error = Error()
         error.description = "Access denied!"
         error.details = "You are not allowed to edit vlans on this device!"
@@ -905,13 +1034,15 @@ def switch_vlan_manage(request, group_id, switch_id):
     try:
         conn = get_connection_object(request, group, switch)
     except Exception:
-        log = Log(user=request.user,
-                  ip_address=remote_ip,
-                  switch=switch,
-                  group=group,
-                  action=LOG_CONNECTION_ERROR,
-                  type=LOG_TYPE_ERROR,
-                  description="Could not get connection")
+        log = Log(
+            user=request.user,
+            ip_address=remote_ip,
+            switch=switch,
+            group=group,
+            action=LOG_CONNECTION_ERROR,
+            type=LOG_TYPE_ERROR,
+            description="Could not get connection",
+        )
         log.save()
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
@@ -928,69 +1059,86 @@ def switch_vlan_manage(request, group_id, switch_id):
             counter_increment(COUNTER_VLAN_MANAGE)
             status = conn.vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
             if status:
-                log = Log(user=request.user,
-                          ip_address=remote_ip,
-                          switch=switch,
-                          group=group,
-                          action=LOG_VLAN_CREATE,
-                          type=LOG_TYPE_CHANGE,
-                          description=f"Vlan {vlan_id} ({vlan_name}) created.",)
+                log = Log(
+                    user=request.user,
+                    ip_address=remote_ip,
+                    switch=switch,
+                    group=group,
+                    action=LOG_VLAN_CREATE,
+                    type=LOG_TYPE_CHANGE,
+                    description=f"Vlan {vlan_id} ({vlan_name}) created.",
+                )
                 log.save()
                 # need to save changes
                 conn.set_save_needed(True)
                 # and save data in session
                 conn.save_cache()
-                return success_page(request=request, group=group, switch=switch, description=f"Vlan {vlan_id} created successfully!")
+                return success_page(
+                    request=request, group=group, switch=switch, description=f"Vlan {vlan_id} created successfully!"
+                )
             else:
                 error = Error()
                 error.status = True
                 error.description = f"Error creating vlan {vlan_id}!"
                 error.details = conn.error.details
-                log = Log(user=request.user,
-                          ip_address=remote_ip,
-                          switch=switch,
-                          group=group,
-                          action=LOG_VLAN_CREATE,
-                          type=LOG_TYPE_ERROR,
-                          description=f"Error creating vlan {vlan_id} ({vlan_name}): {conn.error.details}",)
+                log = Log(
+                    user=request.user,
+                    ip_address=remote_ip,
+                    switch=switch,
+                    group=group,
+                    action=LOG_VLAN_CREATE,
+                    type=LOG_TYPE_ERROR,
+                    description=f"Error creating vlan {vlan_id} ({vlan_name}): {conn.error.details}",
+                )
                 log.save()
                 return error_page(request=request, group=group, switch=switch, error=error)
         else:
             error = Error()
             error.status = True
-            error.description = f"Invalid or existing new vlan id ({vlan_id}) or name ('{vlan_name}'), please try again!"
+            error.description = (
+                f"Invalid or existing new vlan id ({vlan_id}) or name ('{vlan_name}'), please try again!"
+            )
             return error_page(request=request, group=group, switch=switch, error=error)
 
     elif request.POST.get("vlan_edit"):
         if conn.vlan_exists(vlan_id) and vlan_name:
             status = conn.vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
             if status:
-                log = Log(user=request.user,
-                          ip_address=remote_ip,
-                          switch=switch,
-                          group=group,
-                          action=LOG_VLAN_EDIT,
-                          type=LOG_TYPE_CHANGE,
-                          description=f"Vlan {vlan_id} renamed to '{vlan_name}'",)
+                log = Log(
+                    user=request.user,
+                    ip_address=remote_ip,
+                    switch=switch,
+                    group=group,
+                    action=LOG_VLAN_EDIT,
+                    type=LOG_TYPE_CHANGE,
+                    description=f"Vlan {vlan_id} renamed to '{vlan_name}'",
+                )
                 log.save()
                 # need to save changes
                 conn.set_save_needed(True)
                 # and save data in session
                 conn.save_cache()
                 counter_increment(COUNTER_VLAN_MANAGE)
-                return success_page(request=request, group=group, switch=switch, description=f"Updated name for vlan {vlan_id} to '{vlan_name}'")
+                return success_page(
+                    request=request,
+                    group=group,
+                    switch=switch,
+                    description=f"Updated name for vlan {vlan_id} to '{vlan_name}'",
+                )
             else:
                 error = Error()
                 error.status = True
                 error.description = f"Error updating vlan {vlan_id}!"
                 error.details = conn.error.details
-                log = Log(user=request.user,
-                          ip_address=remote_ip,
-                          switch=switch,
-                          group=group,
-                          action=LOG_VLAN_EDIT,
-                          type=LOG_TYPE_ERROR,
-                          description=f"Error updating vlan {vlan_id} name to '{vlan_name}': {conn.error.details}",)
+                log = Log(
+                    user=request.user,
+                    ip_address=remote_ip,
+                    switch=switch,
+                    group=group,
+                    action=LOG_VLAN_EDIT,
+                    type=LOG_TYPE_ERROR,
+                    description=f"Error updating vlan {vlan_id} name to '{vlan_name}': {conn.error.details}",
+                )
                 log.save()
                 return error_page(request=request, group=group, switch=switch, error=error)
         else:
@@ -1003,39 +1151,47 @@ def switch_vlan_manage(request, group_id, switch_id):
         if request.user.is_superuser and conn.vlan_exists(vlan_id):
             status = conn.vlan_delete(vlan_id=vlan_id)
             if status:
-                log = Log(user=request.user,
-                          ip_address=remote_ip,
-                          switch=switch,
-                          group=group,
-                          action=LOG_VLAN_DELETE,
-                          type=LOG_TYPE_CHANGE,
-                          description=f"Vlan {vlan_id} deleted.",)
+                log = Log(
+                    user=request.user,
+                    ip_address=remote_ip,
+                    switch=switch,
+                    group=group,
+                    action=LOG_VLAN_DELETE,
+                    type=LOG_TYPE_CHANGE,
+                    description=f"Vlan {vlan_id} deleted.",
+                )
                 log.save()
                 # need to save changes
                 conn.set_save_needed(True)
                 # and save data in session
                 conn.save_cache()
                 counter_increment(COUNTER_VLAN_MANAGE)
-                return success_page(request=request, group=group, switch=switch, description=f"Vlan {vlan_id} was deleted!")
+                return success_page(
+                    request=request, group=group, switch=switch, description=f"Vlan {vlan_id} was deleted!"
+                )
             else:
                 error = Error()
                 error.status = True
                 error.description = "Error deleting vlan {vlan_id}!"
                 error.details = conn.error.details
-                log = Log(user=request.user,
-                          ip_address=remote_ip,
-                          switch=switch,
-                          group=group,
-                          action=LOG_VLAN_DELETE,
-                          type=LOG_TYPE_ERROR,
-                          description=f"Error deleting vlan {vlan_id}: {conn.error.details}",)
+                log = Log(
+                    user=request.user,
+                    ip_address=remote_ip,
+                    switch=switch,
+                    group=group,
+                    action=LOG_VLAN_DELETE,
+                    type=LOG_TYPE_ERROR,
+                    description=f"Error deleting vlan {vlan_id}: {conn.error.details}",
+                )
                 log.save()
                 return error_page(request=request, group=group, switch=switch, error=error)
         else:
             # NOT allowed if you are not super user!
             error = Error()
             error.status = True
-            error.description = f"Access Denied: vlan {vlan_id} does not exist, or you need to be SuperUser to delete a VLAN"
+            error.description = (
+                f"Access Denied: vlan {vlan_id} does not exist, or you need to be SuperUser to delete a VLAN"
+            )
             return error_page(request=request, group=group, switch=switch, error=error)
 
     error = Error()
@@ -1062,11 +1218,7 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
         counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=False, switch=False, error=error)
 
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              switch=switch,
-              group=group,
-              if_name=interface_name)
+    log = Log(user=request.user, ip_address=get_remote_ip(request), switch=switch, group=group, if_name=interface_name)
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1137,12 +1289,14 @@ def interface_description_change(request, group_id, switch_id, interface_name):
         counter_increment(COUNTER_ERRORS)
         return error_page(request=request, group=False, switch=False, error=error)
 
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              switch=switch,
-              group=group,
-              action=LOG_CHANGE_INTERFACE_ALIAS,
-              if_name=interface_name)
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_CHANGE_INTERFACE_ALIAS,
+        if_name=interface_name,
+    )
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1249,12 +1403,14 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
         counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              switch=switch,
-              group=group,
-              action=LOG_CHANGE_INTERFACE_PVID,
-              if_name=interface_name)
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_CHANGE_INTERFACE_PVID,
+        if_name=interface_name,
+    )
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1350,11 +1506,7 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
         counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              switch=switch,
-              group=group,
-              if_name=interface_name)
+    log = Log(user=request.user, ip_address=get_remote_ip(request), switch=switch, group=group, if_name=interface_name)
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1439,11 +1591,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              switch=switch,
-              group=group,
-              if_name=interface_name)
+    log = Log(user=request.user, ip_address=get_remote_ip(request), switch=switch, group=group, if_name=interface_name)
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1538,13 +1686,15 @@ def switch_save_config(request, group_id, switch_id, view):
         counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              switch=switch,
-              group=group,
-              action=LOG_SAVE_SWITCH,
-              type=LOG_TYPE_CHANGE,
-              description="Saving switch config")
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_SAVE_SWITCH,
+        type=LOG_TYPE_CHANGE,
+        description="Saving switch config",
+    )
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1580,7 +1730,7 @@ def switch_save_config(request, group_id, switch_id, view):
         counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = "This switch model cannot save or does not need to save the config"
-        conn.set_save_needed(False)     # clear flag that should not be set in the first place!
+        conn.set_save_needed(False)  # clear flag that should not be set in the first place!
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # all OK
@@ -1797,7 +1947,16 @@ def switch_cmd_template_output(request, group_id, switch_id):
     context = Context(values)
     command = template.render(context)
 
-    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='basic', command_id=-1, interface_name='', command_string=command, command_template=t)
+    return switch_view(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+        view='basic',
+        command_id=-1,
+        interface_name='',
+        command_string=command,
+        command_template=t,
+    )
 
 
 @login_required(redirect_field_name=None)
@@ -1806,7 +1965,14 @@ def interface_cmd_output(request, group_id, switch_id, interface_name):
     Parse the interface-specific form and build the commands
     """
     command_id = int(request.POST.get('command_id', -1))
-    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='basic', command_id=command_id, interface_name=interface_name)
+    return switch_view(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+        view='basic',
+        command_id=command_id,
+        interface_name=interface_name,
+    )
 
 
 @login_required(redirect_field_name=None)
@@ -1824,13 +1990,15 @@ def switch_reload(request, group_id, switch_id, view):
         counter_increment(COUNTER_ACCESS_DENIED)
         return error_page(request=request, group=False, switch=False, error=error)
 
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              switch=switch,
-              group=group,
-              description=f"Reloading device ({view})",
-              action=LOG_RELOAD_SWITCH,
-              type=LOG_TYPE_VIEW)
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        description=f"Reloading device ({view})",
+        action=LOG_RELOAD_SWITCH,
+        type=LOG_TYPE_VIEW,
+    )
     log.save()
 
     clear_switch_cache(request)
@@ -1862,32 +2030,40 @@ def switch_activity(request, group_id, switch_id):
 
     # setup pagination of the resulting activity logs
     page_number = int(request.GET.get('page', default=1))
-    paginator = Paginator(logs, settings.PAGINATE_COUNT)    # Show set number of contacts per page.
+    paginator = Paginator(logs, settings.PAGINATE_COUNT)  # Show set number of contacts per page.
     logs_page = paginator.get_page(page_number)
 
     # log my activity
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              switch=switch,
-              group=group,
-              type=LOG_TYPE_VIEW,
-              action=LOG_VIEW_ALL_LOGS,
-              description=f"Viewing Switch Activity Logs (page {page_number})")
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        type=LOG_TYPE_VIEW,
+        action=LOG_VIEW_ALL_LOGS,
+        description=f"Viewing Switch Activity Logs (page {page_number})",
+    )
     log.save()
 
     # get the url to this switch:
     switch_url = reverse('switches:switch_basics', kwargs={'group_id': group.id, 'switch_id': switch.id})
     # formulate the title and link
-    title = mark_safe(f"All Activity for <a href=\"{switch_url}\" data-toggle=\"tooltip\" title=\"Go back to switch\">{switch.name}</a>")
+    title = mark_safe(
+        f"All Activity for <a href=\"{switch_url}\" data-toggle=\"tooltip\" title=\"Go back to switch\">{switch.name}</a>"
+    )
     # render the template
-    return render(request, template_name, {
-        'logs': logs_page,
-        'paginator': paginator,
-        'group': group,
-        'switch': switch,
-        'log_title': title,
-        'logs_link': False,
-    })
+    return render(
+        request,
+        template_name,
+        {
+            'logs': logs_page,
+            'paginator': paginator,
+            'group': group,
+            'switch': switch,
+            'log_title': title,
+            'logs_link': False,
+        },
+    )
 
 
 @login_required(redirect_field_name=None)
@@ -1899,14 +2075,16 @@ def show_stats(request):
     template_name = 'admin_stats.html'
 
     # log my activity
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              type=LOG_TYPE_VIEW,
-              action=LOG_VIEW_ADMIN_STATS,
-              description="Viewing Site Statistics")
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        type=LOG_TYPE_VIEW,
+        action=LOG_VIEW_ADMIN_STATS,
+        description="Viewing Site Statistics",
+    )
     log.save()
 
-    environment = {}    # OS environment information
+    environment = {}  # OS environment information
     environment['Python'] = f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
     uname = os.uname()
     environment['OS'] = f"{uname.sysname} ({uname.release})"
@@ -1916,6 +2094,7 @@ def show_stats(request):
     environment['Django'] = django.get_version()
     environment['OpenL2M version'] = f"{settings.VERSION} ({settings.VERSION_DATE})"
     import git
+
     try:
         repo = git.Repo(search_parent_directories=True)
         sha = repo.head.object.hexsha
@@ -1927,7 +2106,7 @@ def show_stats(request):
     except Exception:
         environment['Git version'] = 'Not found!'
 
-    db_items = {}   # database object item counts
+    db_items = {}  # database object item counts
     db_items['Switches'] = Switch.objects.count()
     # need to calculate switchgroup count, as we count only groups with switches!
     group_count = 0
@@ -1996,17 +2175,22 @@ def show_stats(request):
     user_list = get_current_users()
 
     # render the template
-    return render(request, template_name, {
-        'db_items': db_items,
-        'usage': usage,
-        'environment': environment,
-        'user_list': user_list,
-    })
+    return render(
+        request,
+        template_name,
+        {
+            'db_items': db_items,
+            'usage': usage,
+            'environment': environment,
+            'user_list': user_list,
+        },
+    )
 
 
 #
 # "Administrative" views
 #
+
 
 @login_required(redirect_field_name=None)
 def admin_activity(request):
@@ -2020,11 +2204,13 @@ def admin_activity(request):
     if not request.user.is_superuser and not request.user.is_staff:
         # get them out of here!
         # log my activity
-        log = Log(user=request.user,
-                  ip_address=get_remote_ip(request),
-                  type=LOG_TYPE_ERROR,
-                  action=LOG_VIEW_ALL_LOGS,
-                  description="Not Allowed to View All Logs")
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            type=LOG_TYPE_ERROR,
+            action=LOG_VIEW_ALL_LOGS,
+            description="Not Allowed to View All Logs",
+        )
         log.save()
         error = Error()
         error.status = True
@@ -2033,10 +2219,7 @@ def admin_activity(request):
         return error_page(request=request, group=False, switch=False, error=error)
 
     # log my activity
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              type=LOG_TYPE_VIEW,
-              action=LOG_VIEW_ALL_LOGS)
+    log = Log(user=request.user, ip_address=get_remote_ip(request), type=LOG_TYPE_VIEW, action=LOG_VIEW_ALL_LOGS)
 
     page_number = int(request.GET.get('page', default=1))
 
@@ -2055,7 +2238,7 @@ def admin_activity(request):
             filter['group_id'] = int(request.GET['group'])
 
     # now set the filter, if found
-    if (len(filter) > 0):
+    if len(filter) > 0:
         logs = Log.objects.all().filter(**filter).order_by('-timestamp')
         log.description = f"Viewing filtered logs: {filter} (page {page_number})"
         title = 'Filtered Activities'
@@ -2066,22 +2249,26 @@ def admin_activity(request):
     log.save()
 
     # setup pagination of the resulting activity logs
-    paginator = Paginator(logs, settings.PAGINATE_COUNT)    # Show set number of contacts per page.
+    paginator = Paginator(logs, settings.PAGINATE_COUNT)  # Show set number of contacts per page.
     logs_page = paginator.get_page(page_number)
 
     # render the template
-    return render(request, template_name, {
-        'logs': logs_page,
-        'paginator': paginator,
-        'filter': filter,
-        'types': LOG_TYPE_CHOICES,
-        'actions': LOG_ACTION_CHOICES,
-        'switches': Switch.objects.all().order_by('name'),
-        'switchgroups': SwitchGroup.objects.all().order_by('name'),
-        'users': User.objects.all().order_by('username'),
-        'log_title': title,
-        'logs_link': False,
-    })
+    return render(
+        request,
+        template_name,
+        {
+            'logs': logs_page,
+            'paginator': paginator,
+            'filter': filter,
+            'types': LOG_TYPE_CHOICES,
+            'actions': LOG_ACTION_CHOICES,
+            'switches': Switch.objects.all().order_by('name'),
+            'switchgroups': SwitchGroup.objects.all().order_by('name'),
+            'users': User.objects.all().order_by('username'),
+            'log_title': title,
+            'logs_link': False,
+        },
+    )
 
 
 def rights_to_group_and_switch(request, group_id, switch_id):
@@ -2093,8 +2280,7 @@ def rights_to_group_and_switch(request, group_id, switch_id):
         return True
     # for regular users, check permissions:
     permissions = get_from_http_session(request, 'permissions')
-    if permissions and isinstance(permissions, dict) and \
-       int(group_id) in permissions.keys():
+    if permissions and isinstance(permissions, dict) and int(group_id) in permissions.keys():
         switches = permissions[int(group_id)]
         if isinstance(switches, dict) and int(switch_id) in switches.keys():
             return True

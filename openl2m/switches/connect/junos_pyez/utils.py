@@ -12,8 +12,17 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from switches.connect.constants import IF_TYPE_NONE, IF_TYPE_ETHERNET, IF_TYPE_LOOPBACK, IF_TYPE_VIRTUAL, IF_TYPE_TUNNEL, IF_TYPE_MCAST, \
-    IF_DUPLEX_UNKNOWN, IF_DUPLEX_HALF, IF_DUPLEX_FULL
+from switches.connect.constants import (
+    IF_TYPE_NONE,
+    IF_TYPE_ETHERNET,
+    IF_TYPE_LOOPBACK,
+    IF_TYPE_VIRTUAL,
+    IF_TYPE_TUNNEL,
+    IF_TYPE_MCAST,
+    IF_DUPLEX_UNKNOWN,
+    IF_DUPLEX_HALF,
+    IF_DUPLEX_FULL,
+)
 
 
 def junos_speed_to_mbps(speed):
@@ -28,14 +37,14 @@ def junos_speed_to_mbps(speed):
     '''
     if not isinstance(speed, str):
         return 0
-    if speed == '0':    # special case, for speeds like "Unlimited" on virtual and backplane interfaces, etc.
+    if speed == '0':  # special case, for speeds like "Unlimited" on virtual and backplane interfaces, etc.
         return 0
     speed = speed.lower()
     if speed.endswith('mbps'):
         return int(speed.replace('mbps', ''))
     if speed.endswith('gbps'):
         return int(speed.replace('gbps', '000'))
-    if speed.endswith('tbps'):      # future-proofing :-)
+    if speed.endswith('tbps'):  # future-proofing :-)
         return int(speed.replace('tbps', '000000'))
     # unknown, return as 0
     return 0
@@ -122,7 +131,7 @@ def junos_parse_if_type(if_type):
         'Software-Pseudo': IF_TYPE_VIRTUAL,
         'Mgmt-VLAN': IF_TYPE_VIRTUAL,
         'GRE': IF_TYPE_TUNNEL,  # general routing encapsulation
-        'Multicast-GRE': IF_TYPE_TUNNEL,    # general routing encapsulation
+        'Multicast-GRE': IF_TYPE_TUNNEL,  # general routing encapsulation
         'FTI': IF_TYPE_TUNNEL,  # flexible tunnel
         'IPIP': IF_TYPE_TUNNEL,  # IP-in-IP tunnel
         'IP-over-IP': IF_TYPE_TUNNEL,  # IP-in-IP tunnel

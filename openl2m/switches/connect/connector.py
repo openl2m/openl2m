@@ -23,9 +23,18 @@ from switches.models import Command, Log
 from switches.constants import LOG_TYPE_WARNING, LOG_CONNECTION_ERROR, LOG_TYPE_ERROR, CMD_TYPE_INTERFACE
 from switches.utils import dprint, get_remote_ip, get_ip_dns_name
 from switches.connect.classes import Error, PoePort, PoePSE, Vlan, VendorData
-from switches.connect.constants import (POE_PORT_ADMIN_DISABLED, POE_PORT_ADMIN_ENABLED, POE_PORT_DETECT_DELIVERING, VLAN_TYPE_NORMAL,
-                                        IANA_TYPE_IPV4, IANA_TYPE_IPV6, IF_TYPE_ETHERNET, LACP_IF_TYPE_MEMBER,
-                                        LLDP_CHASSIC_TYPE_NET_ADDR, visible_interfaces)
+from switches.connect.constants import (
+    POE_PORT_ADMIN_DISABLED,
+    POE_PORT_ADMIN_ENABLED,
+    POE_PORT_DETECT_DELIVERING,
+    VLAN_TYPE_NORMAL,
+    IANA_TYPE_IPV4,
+    IANA_TYPE_IPV6,
+    IF_TYPE_ETHERNET,
+    LACP_IF_TYPE_MEMBER,
+    LLDP_CHASSIC_TYPE_NET_ADDR,
+    visible_interfaces,
+)
 from switches.connect.netmiko.execute import NetmikoExecute
 from django.contrib.auth.models import User
 
@@ -36,12 +45,13 @@ that calls this (e.g in the view.py functions that implement the url handling)
 '''
 
 
-class Connector():
+class Connector:
     '''
     This base class defines the basic interface for all switch connections.
     This implements the interface that is expected by the higher level code
     that calls this (e.g in the view.py functions that implement the url handling)
     '''
+
     def __init__(self, request=False, group=False, switch=False):
         '''
         Initialized the connector class.
@@ -59,47 +69,57 @@ class Connector():
         self.description = "The base Connector() that drivers should inherit from."
 
         self.request = request  # if running on web server, Django http request object, needed for request.user() and request.session[]
-        self.group = group      # Django SwitchGroup object
-        self.switch = switch    # Django Switch()
+        self.group = group  # Django SwitchGroup object
+        self.switch = switch  # Django Switch()
         self.error = Error()
-        self.error.status = False   # we don't actually have an error yet :-)
+        self.error.status = False  # we don't actually have an error yet :-)
 
         # caching related. All attributes but these will be cached:
         self.do_not_cache = [
-            "do_not_cache", "request", "group", "switch", "error", "eth_addr_count", "neighbor_count",
+            "do_not_cache",
+            "request",
+            "group",
+            "switch",
+            "error",
+            "eth_addr_count",
+            "neighbor_count",
         ]
 
-        self.hostname = ""      # system hostname, typically set in sub-class
-        self.vendor_name = ""   # typically set in sub-classes
+        self.hostname = ""  # system hostname, typically set in sub-class
+        self.vendor_name = ""  # typically set in sub-classes
 
-        self.show_interfaces = True     # If False, do NOT show interfaces, vlans etc... for command-only devices.
+        self.show_interfaces = True  # If False, do NOT show interfaces, vlans etc... for command-only devices.
         # data we collect and potentially cache:
-        self.interfaces = {}        # Interface() objects representing the ports on this switch, key is if_name
-        self.vlans = {}             # Vlan() objects on this switch, key is vlan id (not index!)
-        self.vlan_count = 0         # number of vlans defined on device
-        self.ip4_to_if_index = {}   # the IPv4 addresses as keys, with stored value if_index; needed to map netmask to interface
-        self.syslog_msgs = {}       # list of Syslog messages, if any
-        self.syslog_max_msgs = 0    # how many syslog msgs device will store
+        self.interfaces = {}  # Interface() objects representing the ports on this switch, key is if_name
+        self.vlans = {}  # Vlan() objects on this switch, key is vlan id (not index!)
+        self.vlan_count = 0  # number of vlans defined on device
+        self.ip4_to_if_index = (
+            {}
+        )  # the IPv4 addresses as keys, with stored value if_index; needed to map netmask to interface
+        self.syslog_msgs = {}  # list of Syslog messages, if any
+        self.syslog_max_msgs = 0  # how many syslog msgs device will store
         # some flags:
-        self.cache_loaded = False   # if True, system data was loaded from cache
+        self.cache_loaded = False  # if True, system data was loaded from cache
         # some timestamps:
-        self.basic_info_read_timestamp = 0    # when the last 'basic' read occured
+        self.basic_info_read_timestamp = 0  # when the last 'basic' read occured
 
         # data we calculate or collect without caching:
-        self.allowed_vlans = {}     # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
-        self.eth_addr_count = 0     # number of known mac/ethernet addresses
-        self.neighbor_count = 0     # number of lldp neighbors
-        self.warnings = []          # list of warning strings that may be shown to users
+        self.allowed_vlans = (
+            {}
+        )  # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
+        self.eth_addr_count = 0  # number of known mac/ethernet addresses
+        self.neighbor_count = 0  # number of lldp neighbors
+        self.warnings = []  # list of warning strings that may be shown to users
         # timing related attributes:
-        self.timing = {}            # dictionary to track how long various calls take to read. Key = name, value = tuple()
-        self.add_timing("Total", 0, 0)     # initialize the 'total' count to 0 entries, 0 seconds!
+        self.timing = {}  # dictionary to track how long various calls take to read. Key = name, value = tuple()
+        self.add_timing("Total", 0, 0)  # initialize the 'total' count to 0 entries, 0 seconds!
 
         # PoE related values
-        self.poe_capable = False     # can the switch deliver PoE
-        self.poe_enabled = False     # note: this needs more work, as we do not parse "units"/stack members
-        self.poe_max_power = 0       # maximum power (watts) availabe in this switch, combines all PSE units
+        self.poe_capable = False  # can the switch deliver PoE
+        self.poe_enabled = False  # note: this needs more work, as we do not parse "units"/stack members
+        self.poe_max_power = 0  # maximum power (watts) availabe in this switch, combines all PSE units
         self.poe_power_consumed = 0  # same for power consumed, across all PSE units
-        self.poe_pse_devices = {}    # list of PoePSE() objects
+        self.poe_pse_devices = {}  # list of PoePSE() objects
 
         # features that may or may not be implemented:
         self.gvrp_enabled = False
@@ -107,13 +127,15 @@ class Connector():
         self.save_needed = False
 
         # physical device related:
-        self.hardware_details_needed = True   # True if we still need to read more hardware info (eg. the Entity tables)
-        self.stack_members = {}     # list of StackMember() objects that are part of this switch
+        self.hardware_details_needed = True  # True if we still need to read more hardware info (eg. the Entity tables)
+        self.stack_members = {}  # list of StackMember() objects that are part of this switch
         # syslog related info, if supported:
-        self.syslog_msgs = {}       # list of Syslog messages, if any
-        self.syslog_max_msgs = 0    # how many syslog msgs device will store
+        self.syslog_msgs = {}  # list of Syslog messages, if any
+        self.syslog_max_msgs = 0  # how many syslog msgs device will store
         # generic info for the "Switch Information" tab:
-        self.more_info = {}         # dict of categories string, each a list of tuples (name, value), to extend sytem info about this switch!
+        self.more_info = (
+            {}
+        )  # dict of categories string, each a list of tuples (name, value), to extend sytem info about this switch!
 
         # capabilities of the vendor or tech-specific driver, we assume No for all changing:
         self.can_change_admin_status = False
@@ -121,10 +143,12 @@ class Connector():
         self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_change_poe_status = False
         self.can_change_description = False
-        self.can_save_config = False    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
-        self.can_reload_all = False      # if true, we can reload all our data (and show a button on screen for this)
+        self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_reload_all = False  # if true, we can reload all our data (and show a button on screen for this)
         self.can_get_client_data = hasattr(self, 'get_my_client_data')  # do we implement reading arp/lldp/etc?
-        self.can_get_hardware_details = hasattr(self, 'get_my_hardware_details')    # can we get more then basic device info?
+        self.can_get_hardware_details = hasattr(
+            self, 'get_my_hardware_details'
+        )  # can we get more then basic device info?
 
     def _close_device(self):
         """_close_device() is called to clean-up any session, REST credentials,etc when done with this device.
@@ -214,6 +238,7 @@ class Connector():
         return True
 
     '''
+
     def get_client_data(self):
         '''
         This loads the layer 2 switch tables, any ARP tables available,
@@ -232,7 +257,7 @@ class Connector():
         # call the implementation-specific function:
         if hasattr(self, 'get_my_client_data'):
             start_time = time.time()
-            self.get_my_client_data()   # to be implemented by device/vendor class!
+            self.get_my_client_data()  # to be implemented by device/vendor class!
             read_duration = int((time.time() - start_time) + 0.5)
             self.add_more_info('System', 'Client Info Read', f"{read_duration} seconds")
             # are we resolving IP addresses to hostnames?
@@ -580,7 +605,7 @@ class Connector():
         v.name = vlan_name
         self.vlans[vlan_id] = v
         # sort ordered by vlan id; this is needed for vlans added by users.
-        self.vlans = dict(sorted(self.vlans.items()))    # note: soted() returns a list of tuples(key, value), NOT dict!
+        self.vlans = dict(sorted(self.vlans.items()))  # note: soted() returns a list of tuples(key, value), NOT dict!
         return True
 
     def add_vlan(self, vlan):
@@ -848,11 +873,11 @@ class Connector():
         dprint(f"run_command() called, id='{command_id}', interface=''{interface_name}''")
         # default command result dictionary info:
         cmd = {
-            'state': 'list',        # 'list' or 'run'
-            'id': 0,                # command chosen to run
-            'output': '',           # output of chosen command
-            'error_descr': '',      # if set, error that occured running command
-            'error_details': '',    # and the details for above
+            'state': 'list',  # 'list' or 'run'
+            'id': 0,  # command chosen to run
+            'output': '',  # output of chosen command
+            'error_descr': '',  # if set, error that occured running command
+            'error_details': '',  # and the details for above
         }
         self.error.clear()
         # Now go exexute a specific Command object by ID
@@ -871,11 +896,10 @@ class Connector():
 
         cmd['command'] = c.command
         if self.request:
-            is_staff = (self.request.user.is_superuser or self.request.user.is_staff)
+            is_staff = self.request.user.is_superuser or self.request.user.is_staff
         else:
             is_staff = False
-        if not self.switch.is_valid_command_id(command_id=command_id,
-                                               is_staff=is_staff):
+        if not self.switch.is_valid_command_id(command_id=command_id, is_staff=is_staff):
             self.error.status = True
             self.error.description = "Invalid command found!"
             self.error.details = f"Command ID '{command_id}' is not valid for this device!"
@@ -890,7 +914,9 @@ class Connector():
                 # invalid interface name!
                 self.error.status = True
                 self.error.description = "Invalid interface name found!"
-                self.error.details = f"Interface Command ID '{command_id}' found but interface name '{interface_name}' is invalid!"
+                self.error.details = (
+                    f"Interface Command ID '{command_id}' found but interface name '{interface_name}' is invalid!"
+                )
                 cmd['error_descr'] = self.error.description
                 cmd['error_details'] = self.error.details
                 return cmd
@@ -928,11 +954,11 @@ class Connector():
         # default command result dictionary info:
         cmd = {
             'command': command_string,
-            'state': 'run',        # 'list' or 'run'
-            'id': 0,                # command chosen to run
-            'output': '',           # output of chosen command
-            'error_descr': '',      # if set, error that occured running command
-            'error_details': '',    # and the details for above
+            'state': 'run',  # 'list' or 'run'
+            'id': 0,  # command chosen to run
+            'output': '',  # output of chosen command
+            'error_descr': '',  # if set, error that occured running command
+            'error_details': '',  # and the details for above
         }
         self.error.clear()
         # now go do it:
@@ -1059,8 +1085,8 @@ class Connector():
             stop_time = time.time()
             self.add_timing("Cache save", count, stop_time - start_time)
         # else:
-            # only happens if running in CLI or tasks
-            # dprint("_set_http_session_cache() called but NO http.request found!")
+        # only happens if running in CLI or tasks
+        # dprint("_set_http_session_cache() called but NO http.request found!")
         return True
 
     def save_my_cache(self):
@@ -1286,8 +1312,9 @@ class Connector():
             return
         for switch_vlan_id in self.vlans.keys():
             # if allow_all is set, or we are staff or supervisor, allow this vlan:
-            if self.group.allow_all_vlans or \
-               (self.request and (self.request.user.is_superuser or self.request.user.is_staff)):
+            if self.group.allow_all_vlans or (
+                self.request and (self.request.user.is_superuser or self.request.user.is_staff)
+            ):
                 self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
                 dprint(f"  {switch_vlan_id}: allowed per allow-all or superuser or staff")
             else:
@@ -1394,7 +1421,12 @@ class Connector():
 
             # globally allow PoE toggle:
             # we can also enable PoE toggle globally, per user, group or switch, if allowed somewhere:
-            if settings.ALWAYS_ALLOW_POE_TOGGLE or switch.allow_poe_toggle or group.allow_poe_toggle or user.profile.allow_poe_toggle:
+            if (
+                settings.ALWAYS_ALLOW_POE_TOGGLE
+                or switch.allow_poe_toggle
+                or group.allow_poe_toggle
+                or user.profile.allow_poe_toggle
+            ):
                 iface.allow_poe_toggle = True
 
             # we can also modify interface description, if allowed everywhere:
@@ -1408,7 +1440,7 @@ class Connector():
             if iface.type not in visible_interfaces.keys():
                 iface.visible = False
                 iface.manageable = False  # just to be safe :-)
-                iface.unmanage_reason = "Interface type is not visible!"    # should never show!
+                iface.unmanage_reason = "Interface type is not visible!"  # should never show!
                 continue
 
             # see if this regex matches the interface name, e.g. GigabitEthernetx/x/x
@@ -1457,12 +1489,14 @@ class Connector():
         Returns:
             none
         '''
-        log = Log(group=self.group,
-                  switch=self.switch,
-                  ip_address=get_remote_ip(self.request),
-                  type=type,
-                  action=action,
-                  description=description)
+        log = Log(
+            group=self.group,
+            switch=self.switch,
+            ip_address=get_remote_ip(self.request),
+            type=type,
+            action=action,
+            description=description,
+        )
         if self.request:
             log.user = self.request.user
         log.save()
@@ -1480,9 +1514,7 @@ class Connector():
         '''
         self.warnings.append(warning)
         # add a log message
-        self.add_log(type=LOG_TYPE_WARNING,
-                     action=LOG_CONNECTION_ERROR,
-                     description=warning)
+        self.add_log(type=LOG_TYPE_WARNING, action=LOG_CONNECTION_ERROR, description=warning)
         # done!
         return
 
@@ -1503,9 +1535,11 @@ class Connector():
             err = self.error
         if err:
             # add a log message
-            self.add_log(type=LOG_TYPE_ERROR,
-                         action=LOG_CONNECTION_ERROR,
-                         description=f"{self.error.description}: {self.error.details}")
+            self.add_log(
+                type=LOG_TYPE_ERROR,
+                action=LOG_CONNECTION_ERROR,
+                description=f"{self.error.description}: {self.error.details}",
+            )
         # done!
         return
 
@@ -1649,6 +1683,7 @@ class Connector():
 
     def __str__(self):
         return self.display_name
+
 
 # --- End of Connector() ---
 

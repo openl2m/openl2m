@@ -25,11 +25,11 @@ SECRET_KEY = ''
 
 # PostgreSQL database configuration.
 DATABASE = {
-    'NAME': 'openl2m',          # Database name
-    'USER': 'openl2m',          # PostgreSQL username
+    'NAME': 'openl2m',  # Database name
+    'USER': 'openl2m',  # PostgreSQL username
     'PASSWORD': 'xxxxxxxxxxx',  # PostgreSQL password
-    'HOST': 'localhost',        # Database server
-    'PORT': '',                 # Database port (leave blank for default)
+    'HOST': 'localhost',  # Database server
+    'PORT': '',  # Database port (leave blank for default)
 }
 
 #########################
@@ -91,7 +91,7 @@ PAGINATE_COUNT = 50
 
 # When determining the primary IP address for a device, IPv6 is preferred over IPv4 by default. Set this to True to
 # prefer IPv4 instead.
-PREFER_IPV4 = True      # IPv6 has not been tested!
+PREFER_IPV4 = True  # IPv6 has not been tested!
 
 # By default, OpenL2M will store session data in the database. Alternatively, a file path can be specified here to use
 # local file storage instead. (This can be useful for enabling authentication on a standby instance with read-only
@@ -421,7 +421,7 @@ TOPMENU_MAX_COLUMNS = 4
 SWITCH_SEARCH_FORM = True
 
 # SNMP related settings, normally not needed to change.
-SNMP_TIMEOUT = 5    # in seconds
+SNMP_TIMEOUT = 5  # in seconds
 SNMP_RETRIES = 3
 # this is the maximum count of MIB entities returned in a single reply in response to the get-bulk calls we make.
 # note that some devices cannot handle the default 25, and you may need to lower this e.g. 10
@@ -444,7 +444,7 @@ EMAIL_HOST = 'localhost'
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 25
-EMAIL_TIMEOUT = 10      # in seconds
+EMAIL_TIMEOUT = 10  # in seconds
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = False
 EMAIL_SSL_CERTFILE = None

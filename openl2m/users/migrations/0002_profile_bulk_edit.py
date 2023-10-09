@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('users', '0001_initial'),
     ]
@@ -13,6 +12,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profile',
             name='bulk_edit',
-            field=models.BooleanField(default=True, help_text='If Bulk Edit is set, this user can edit multiple interfaces at once on switches.', verbose_name='Bulk-editing of interfaces'),
+            field=models.BooleanField(
+                default=True,
+                help_text='If Bulk Edit is set, this user can edit multiple interfaces at once on switches.',
+                verbose_name='Bulk-editing of interfaces',
+            ),
         ),
     ]

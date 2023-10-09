@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('switches', '0005_auto_20191126_1003'),
     ]
@@ -13,11 +12,50 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='log',
             name='action',
-            field=models.PositiveSmallIntegerField(choices=[[0, 'View Switch Groups'], [1, 'View Switch'], [2, 'View Interface'], [3, 'View PoE'], [4, 'View Vlans'], [5, 'View LLDP'], [6, 'Viewing All Logs'], [7, 'Viewing Site Statistics'], [100, 'Reloading Switch Data'], [101, 'New System ObjectID Found'], [102, 'New System Name Found'], [90, 'Login'], [91, 'Logout'], [92, 'Inactivity Logout'], [103, 'Interface Disable'], [104, 'Interface Enable'], [105, 'Interface Toggle'], [106, 'Interface PoE Disable'], [107, 'Interface PoE Enable'], [108, 'Interface PoE Toggle'], [109, 'Interface PVID Vlan Change'], [110, 'Interface Description Change'], [111, 'Saving Configuration'], [112, 'Execute Command'], [113, 'Port PoE Fault'], [114, 'LDAP New SwitchGroup'], [115, 'Bulk Edit'], [256, 'Undefined Vlan'], [257, 'Vlan Name Mismatch'], [258, 'SNMP Error'], [259, 'LDAP User->SwitchGroup Error'], [260, 'LDAP SwitchGroup Error']], default=1, verbose_name='Activity or Action to log'),
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    [0, 'View Switch Groups'],
+                    [1, 'View Switch'],
+                    [2, 'View Interface'],
+                    [3, 'View PoE'],
+                    [4, 'View Vlans'],
+                    [5, 'View LLDP'],
+                    [6, 'Viewing All Logs'],
+                    [7, 'Viewing Site Statistics'],
+                    [100, 'Reloading Switch Data'],
+                    [101, 'New System ObjectID Found'],
+                    [102, 'New System Name Found'],
+                    [90, 'Login'],
+                    [91, 'Logout'],
+                    [92, 'Inactivity Logout'],
+                    [103, 'Interface Disable'],
+                    [104, 'Interface Enable'],
+                    [105, 'Interface Toggle'],
+                    [106, 'Interface PoE Disable'],
+                    [107, 'Interface PoE Enable'],
+                    [108, 'Interface PoE Toggle'],
+                    [109, 'Interface PVID Vlan Change'],
+                    [110, 'Interface Description Change'],
+                    [111, 'Saving Configuration'],
+                    [112, 'Execute Command'],
+                    [113, 'Port PoE Fault'],
+                    [114, 'LDAP New SwitchGroup'],
+                    [115, 'Bulk Edit'],
+                    [256, 'Undefined Vlan'],
+                    [257, 'Vlan Name Mismatch'],
+                    [258, 'SNMP Error'],
+                    [259, 'LDAP User->SwitchGroup Error'],
+                    [260, 'LDAP SwitchGroup Error'],
+                ],
+                default=1,
+                verbose_name='Activity or Action to log',
+            ),
         ),
         migrations.AlterField(
             model_name='switch',
             name='allow_poe_toggle',
-            field=models.BooleanField(default=False, help_text='If set, allow PoE toggle on all interfaces', verbose_name='Poe Toggle All'),
+            field=models.BooleanField(
+                default=False, help_text='If set, allow PoE toggle on all interfaces', verbose_name='Poe Toggle All'
+            ),
         ),
     ]

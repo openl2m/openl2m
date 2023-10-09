@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('users', '0005_profile_tasks'),
     ]
@@ -13,6 +12,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='tasks',
-            field=models.BooleanField(default=False, help_text='If Tasks is set, this user can schedule changes on switches at some future date.', verbose_name='Allow scheduled tasks'),
+            field=models.BooleanField(
+                default=False,
+                help_text='If Tasks is set, this user can schedule changes on switches at some future date.',
+                verbose_name='Allow scheduled tasks',
+            ),
         ),
     ]

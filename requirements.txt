@@ -10,6 +10,7 @@ gitpython
 gunicorn
 hiredis
 ip_address>=1.0.23
+isort
 Jinja2
 junos-eznc
 jxmlease

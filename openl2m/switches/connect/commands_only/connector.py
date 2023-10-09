@@ -35,7 +35,7 @@ class CommandsOnlyConnector(Connector):
         self.switch.read_only = True
         if switch.description:
             self.add_more_info('System', 'Description', switch.description)
-        self.show_interfaces = False    # do NOT show interfaces, vlans etc...
+        self.show_interfaces = False  # do NOT show interfaces, vlans etc...
 
     def get_my_basic_info(self):
         """

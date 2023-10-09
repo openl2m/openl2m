@@ -19,5 +19,4 @@ app_name = 'users'
 urlpatterns = [
     path(r'profile/', views.ProfileView.as_view(), name='profile'),
     path(r'info/<int:user_id>/', views.InfoView.as_view(), name='info'),
-
 ]

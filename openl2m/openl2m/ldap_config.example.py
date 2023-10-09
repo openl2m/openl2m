@@ -11,9 +11,7 @@ from django_auth_ldap.config import LDAPSearch, NestedGroupOfNamesType
 AUTH_LDAP_SERVER_URI = "ldaps://dc.yourdomain.com:3269"
 
 # The following may be needed if you are binding to Active Directory.
-AUTH_LDAP_CONNECTION_OPTIONS = {
-    ldap.OPT_REFERRALS: 0
-}
+AUTH_LDAP_CONNECTION_OPTIONS = {ldap.OPT_REFERRALS: 0}
 
 # Set the DN and password for the OpenL2M service account.
 AUTH_LDAP_BIND_DN = "CN=openl2m,OU=services,DC=yoursite,DC=yourdomain,DC=com"
@@ -30,9 +28,9 @@ LDAP_IGNORE_CERT_ERRORS = True
 
 # This search matches users with the sAMAccountName equal to the provided username. This is required if the user's
 # username is not in their DN (Active Directory).
-AUTH_LDAP_USER_SEARCH = LDAPSearch("OU=baseou,DC=yoursite,DC=yourdomain,DC=com",
-                                   ldap.SCOPE_SUBTREE,
-                                   "(sAMAccountName=%(user)s)")
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    "OU=baseou,DC=yoursite,DC=yourdomain,DC=com", ldap.SCOPE_SUBTREE, "(sAMAccountName=%(user)s)"
+)
 
 # If a user's DN is producible from their username, we don't need to search.
 # When using Windows Server 2012, AUTH_LDAP_USER_DN_TEMPLATE should be set to None.
@@ -40,11 +38,7 @@ AUTH_LDAP_USER_SEARCH = LDAPSearch("OU=baseou,DC=yoursite,DC=yourdomain,DC=com",
 AUTH_LDAP_USER_DN_TEMPLATE = None
 
 # You can map user attributes to Django attributes as so.
-AUTH_LDAP_USER_ATTR_MAP = {
-    "first_name": "givenName",
-    "last_name": "sn",
-    "email": "mail"
-}
+AUTH_LDAP_USER_ATTR_MAP = {"first_name": "givenName", "last_name": "sn", "email": "mail"}
 
 
 #############################
@@ -53,7 +47,9 @@ AUTH_LDAP_USER_ATTR_MAP = {
 
 # This search ought to return all groups to which the user belongs. django_auth_ldap uses this to determine group
 # hierarchy.
-AUTH_LDAP_GROUP_SEARCH = LDAPSearch("OU=groups,DC=yoursite,DC=yourdomain,DC=com", ldap.SCOPE_SUBTREE, "(objectClass=group)")
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    "OU=groups,DC=yoursite,DC=yourdomain,DC=com", ldap.SCOPE_SUBTREE, "(objectClass=group)"
+)
 AUTH_LDAP_GROUP_TYPE = NestedGroupOfNamesType()
 
 # Define a group required to login.

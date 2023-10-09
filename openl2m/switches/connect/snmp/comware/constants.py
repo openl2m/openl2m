@@ -85,7 +85,7 @@ HH3C_IF_MODE_INVALID = 0
 HH3C_IF_MODE_TRUNK = 1
 HH3C_IF_MODE_ACCESS = 2
 HH3C_IF_MODE_HYBRID = 3
-HH3C_IF_MODE_FABRIC = 4    # not used!
+HH3C_IF_MODE_FABRIC = 4  # not used!
 
 # HH3C LswVLAN MIB - VLAN related
 # See http://www.circitor.fr/Mibs/Html/H/HH3C-LswVLAN-MIB.php
@@ -101,21 +101,25 @@ snmp_mib_variables['hh3cdot1qVlanPorts'] = hh3cdot1qVlanPorts  # + .vlanId = Por
 
 # READ-ONLY "Tagged port list of the VLAN."
 hh3cdot1qVlanTaggedPorts = '.1.3.6.1.4.1.25506.8.35.2.1.1.1.17'  # PortList, read-only!
-snmp_mib_variables['hh3cdot1qVlanTaggedPorts'] = hh3cdot1qVlanTaggedPorts   # PortList, read-only!
+snmp_mib_variables['hh3cdot1qVlanTaggedPorts'] = hh3cdot1qVlanTaggedPorts  # PortList, read-only!
 
 # READ-ONLY "Untagged port list of the VLAN."
-hh3cdot1qVlanUntaggedPorts = '.1.3.6.1.4.1.25506.8.35.2.1.1.1.18'   # PortList, read-only!
-snmp_mib_variables['hh3cdot1qVlanUntaggedPorts'] = hh3cdot1qVlanUntaggedPorts   # PortList, read-only!
+hh3cdot1qVlanUntaggedPorts = '.1.3.6.1.4.1.25506.8.35.2.1.1.1.18'  # PortList, read-only!
+snmp_mib_variables['hh3cdot1qVlanUntaggedPorts'] = hh3cdot1qVlanUntaggedPorts  # PortList, read-only!
 
 # This is the WRITE variable for VLAN tagged ports:
 BYTES_FOR_2048_VLANS = 256  # 2048 vlans / 8 bits-per-byte
 # hh3cifVLANTrunkAllowListLow and High, NOTE: BITMAP of VLANS!!!
 # on a port in "trunk mode"  (i.e. not bitmap of ports as in Q-Bridge!)
 hh3cifVLANTrunkAllowListLow = '.1.3.6.1.4.1.25506.8.35.5.1.3.1.6'  # + portId = VlanBitMap for vlan 1 - 2048
-snmp_mib_variables['hh3cifVLANTrunkAllowListLow'] = hh3cifVLANTrunkAllowListLow  # + portId = VlanBitMap for vlan 1 - 2048
+snmp_mib_variables[
+    'hh3cifVLANTrunkAllowListLow'
+] = hh3cifVLANTrunkAllowListLow  # + portId = VlanBitMap for vlan 1 - 2048
 
 hh3cifVLANTrunkAllowListHigh = '.1.3.6.1.4.1.25506.8.35.5.1.3.1.7'  # + portId = VlanBitMap for vlan 2049 - 4096
-snmp_mib_variables['hh3cifVLANTrunkAllowListHigh'] = hh3cifVLANTrunkAllowListHigh   # + portId = VlanBitMap for vlan 2049 - 4096
+snmp_mib_variables[
+    'hh3cifVLANTrunkAllowListHigh'
+] = hh3cifVLANTrunkAllowListHigh  # + portId = VlanBitMap for vlan 2049 - 4096
 
 # IGMP snooping, from hh3cIgmpSnoopingVlanStatusTable.
 hh3cIgmpSnoopingVlanEnabled = '.1.3.6.1.4.1.25506.8.35.7.1.9.1.2'  # hh3cIgmpSnoopingVlanEnabled.<vlan_id> = status

@@ -29,7 +29,6 @@ from switches.views import close_device
 
 
 class LogoutView(View):
-
     def get(self, request):
         return self.logout(request)
 
@@ -56,29 +55,37 @@ class LogoutView(View):
 # Class to show the user their profiles
 #
 
+
 class ProfileView(LoginRequiredMixin, View):
     template_name = 'users/profile.html'
 
     def get(self, request):
-
-        return render(request, self.template_name, {
-            'user': request.user,
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                'user': request.user,
+            },
+        )
 
 
 #
 # Class to show admin/staff info about another user.
 #
 
+
 class InfoView(LoginRequiredMixin, View):
     template_name = 'users/profile.html'
 
     def get(self, request, user_id):
-
         if request.user.is_superuser or request.user.is_staff:
             user = get_object_or_404(User, pk=user_id)
-            return render(request, self.template_name, {
-                'user': user,
-            })
+            return render(
+                request,
+                self.template_name,
+                {
+                    'user': user,
+                },
+            )
         else:
             return HttpResponseNotFound("You do not have access to this page!")

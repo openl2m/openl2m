@@ -19,12 +19,25 @@ Note: JUNOS devices are Read-Only for SNMP! See the PyEZ driver for R/W capabili
 """
 from switches.models import Log
 from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
-from switches.connect.constants import POE_PORT_DETECT_DELIVERING, poe_status_name, VLAN_STATUS_PERMANENT, VLAN_STATUS_DYNAMIC, VLAN_STATUS_OTHER
+from switches.connect.constants import (
+    POE_PORT_DETECT_DELIVERING,
+    poe_status_name,
+    VLAN_STATUS_PERMANENT,
+    VLAN_STATUS_DYNAMIC,
+    VLAN_STATUS_OTHER,
+)
 from switches.connect.classes import Error
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.utils import dprint, get_remote_ip
 
-from .constants import JNX_VLAN_TYPE_STATIC, JNX_VLAN_TYPE_DYNAMIC, jnxL2aldVlanTag, jnxL2aldVlanName, jnxL2aldVlanType, jnxL2aldVlanFdbId
+from .constants import (
+    JNX_VLAN_TYPE_STATIC,
+    JNX_VLAN_TYPE_DYNAMIC,
+    jnxL2aldVlanTag,
+    jnxL2aldVlanName,
+    jnxL2aldVlanType,
+    jnxL2aldVlanFdbId,
+)
 
 
 class SnmpConnectorJuniper(SnmpConnector):
@@ -64,29 +77,33 @@ class SnmpConnectorJuniper(SnmpConnector):
         So power entry "1.1" is interface ge-0/0/0, and power entry "1.5" is ge-0/0/4
         """
         dprint("Juniper _map_poe_port_entries_to_interface()")
-        for (pe_index, port_entry) in self.poe_port_entries.items():
+        for pe_index, port_entry in self.poe_port_entries.items():
             # we take the ending part of "1.5" as the index
             (module, port) = port_entry.index.split('.')
-            module = int(module) - 1    # 0-based!
-            port = int(port) - 1        # 0-based!
+            module = int(module) - 1  # 0-based!
+            port = int(port) - 1  # 0-based!
             # find the matching interface:
-            for (if_index, iface) in self.interfaces.items():
+            for if_index, iface in self.interfaces.items():
                 if_name = f"ge-{module}/0/{port}"
                 if iface.name == if_name:
                     dprint(f"   PoE Port Map FOUND {iface.name}")
                     iface.poe_entry = port_entry
                     if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                        warning = f"PoE FAULT status ({port_entry.detect_status} = " \
-                                  f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
+                        warning = (
+                            f"PoE FAULT status ({port_entry.detect_status} = "
+                            f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
+                        )
                         self.add_warning(warning)
                         # log my activity
-                        log = Log(user=self.request.user,
-                                  group=self.group,
-                                  switch=self.switch,
-                                  type=LOG_TYPE_ERROR,
-                                  ip_address=get_remote_ip(self.request),
-                                  action=LOG_PORT_POE_FAULT,
-                                  description=warning)
+                        log = Log(
+                            user=self.request.user,
+                            group=self.group,
+                            switch=self.switch,
+                            type=LOG_TYPE_ERROR,
+                            ip_address=get_remote_ip(self.request),
+                            action=LOG_PORT_POE_FAULT,
+                            description=warning,
+                        )
                         log.save()
                     break
 
@@ -159,7 +176,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                 status = VLAN_STATUS_PERMANENT
             elif val == JNX_VLAN_TYPE_DYNAMIC:
                 status = VLAN_STATUS_DYNAMIC
-            else:   # should not happen!
+            else:  # should not happen!
                 status = VLAN_STATUS_OTHER
             try:
                 self.vlans[self.vlan_id_by_index[vlan_index]].status = status
@@ -183,21 +200,25 @@ class SnmpConnectorJuniper(SnmpConnector):
         return False
 
     def set_interface_admin_status(self, interface=False, status=-1):
-        self.error = Error(status=True,
-                           description="set_interface_admin_status(): JUNOS switches are Read-Only for SNMP!")
+        self.error = Error(
+            status=True, description="set_interface_admin_status(): JUNOS switches are Read-Only for SNMP!"
+        )
         return False
 
     def set_interface_poe_status(self, interface=False, status=-1):
-        self.error = Error(status=True,
-                           description="set_interface_poe_status(): JUNOS switches are Read-Only for SNMP!")
+        self.error = Error(
+            status=True, description="set_interface_poe_status(): JUNOS switches are Read-Only for SNMP!"
+        )
         return False
 
     def set_interface_description(self, interface=False, description=""):
-        self.error = Error(status=True,
-                           description="set_interface_description(): JUNOS switches are Read-Only for SNMP!")
+        self.error = Error(
+            status=True, description="set_interface_description(): JUNOS switches are Read-Only for SNMP!"
+        )
         return False
 
     def set_interface_untagged_vlan(self, interface, old_vlan_id, new_vlan_id):
-        self.error = Error(status=True,
-                           description="set_interface_untagged_vlan(): JUNOS switches are Read-Only for SNMP!")
+        self.error = Error(
+            status=True, description="set_interface_untagged_vlan(): JUNOS switches are Read-Only for SNMP!"
+        )
         return False

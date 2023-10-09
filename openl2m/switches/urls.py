@@ -12,6 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 from django.urls import path, register_converter
+
 # from django.conf.urls import url
 
 from . import views
@@ -38,22 +39,48 @@ urlpatterns = [
     path(r'search', views.switch_search, name='switch_search'),
     path(r'activity', views.admin_activity, name='admin_activity'),
     path(r'stats', views.show_stats, name='show_stats'),
-
     path('<int:group_id>/<int:switch_id>/', views.switch_basics, name='switch_basics'),
     path('<int:group_id>/<int:switch_id>/activity/', views.switch_activity, name='switch_activity'),
     path('<int:group_id>/<int:switch_id>/bulkedit/', views.switch_bulkedit, name='switch_bulkedit'),
     path('<int:group_id>/<int:switch_id>/vlan_manage/', views.switch_vlan_manage, name='switch_vlan_manage'),
     path('<int:group_id>/<int:switch_id>/command/', views.switch_cmd_output, name='switch_cmd_output'),
-    path('<int:group_id>/<int:switch_id>/command_template/', views.switch_cmd_template_output, name='switch_cmd_template_output'),
+    path(
+        '<int:group_id>/<int:switch_id>/command_template/',
+        views.switch_cmd_template_output,
+        name='switch_cmd_template_output',
+    ),
     path('<int:group_id>/<int:switch_id>/details/', views.switch_arp_lldp, name='switch_arp_lldp'),
     path('<int:group_id>/<int:switch_id>/hwinfo/', views.switch_hw_info, name='switch_hw_info'),
     path('<int:group_id>/<int:switch_id>/reload/<str:view>/', views.switch_reload, name='switch_reload'),
     path('<int:group_id>/<int:switch_id>/save/<str:view>/', views.switch_save_config, name='switch_save_config'),
-
-    path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/admin/<int:new_state>/', views.interface_admin_change, name='admin_change'),
-    path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/newdescription/', views.interface_description_change, name='description_change'),
-    path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/newpvid/', views.interface_pvid_change, name='pvid_change'),
-    path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/poe/<int:new_state>/', views.interface_poe_change, name='poe_change'),
-    path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/poetoggle/', views.interface_poe_down_up, name='poe_down_up'),
-    path('<int:group_id>/<int:switch_id>/<ifname:interface_name>/command/', views.interface_cmd_output, name='interface_cmd_output'),
+    path(
+        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/admin/<int:new_state>/',
+        views.interface_admin_change,
+        name='admin_change',
+    ),
+    path(
+        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/newdescription/',
+        views.interface_description_change,
+        name='description_change',
+    ),
+    path(
+        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/newpvid/',
+        views.interface_pvid_change,
+        name='pvid_change',
+    ),
+    path(
+        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/poe/<int:new_state>/',
+        views.interface_poe_change,
+        name='poe_change',
+    ),
+    path(
+        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/poetoggle/',
+        views.interface_poe_down_up,
+        name='poe_down_up',
+    ),
+    path(
+        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/command/',
+        views.interface_cmd_output,
+        name='interface_cmd_output',
+    ),
 ]

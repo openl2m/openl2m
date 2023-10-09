@@ -20,8 +20,14 @@ if we cannot do it all using snmp.
 from django.utils import timezone
 
 from switches.utils import dprint
-from switches.constants import (CONNECTOR_TYPE_SNMP, CONNECTOR_TYPE_AOSCX, CONNECTOR_TYPE_PYEZ, CONNECTOR_TYPE_COMMANDS_ONLY,
-                                CONNECTOR_TYPE_NAPALM, CONNECTOR_TYPE_TESTDUMMY, )
+from switches.constants import (
+    CONNECTOR_TYPE_SNMP,
+    CONNECTOR_TYPE_AOSCX,
+    CONNECTOR_TYPE_PYEZ,
+    CONNECTOR_TYPE_COMMANDS_ONLY,
+    CONNECTOR_TYPE_NAPALM,
+    CONNECTOR_TYPE_TESTDUMMY,
+)
 
 # here are the device specific classes.
 # this should be made dynamic at some point!
@@ -29,6 +35,7 @@ from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.connect.snmp.constants import enterprises
 from switches.connect.snmp.cisco.constants import ENTERPRISE_ID_CISCO
 from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
+
 # Dell is yet to be tested!
 # from switches.connect.snmp.dell.constants import *
 # from switches.connect.snmp.dell.connector import SnmpConnectorDell

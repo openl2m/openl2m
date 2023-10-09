@@ -36,7 +36,6 @@ class Command(BaseCommand):
     help = "Remove log entries older then configured number of days."
 
     def handle(self, *args, **options):
-
         # Remove log entries older then configured value...
         self.stdout.write("Checking for old log entries to remove:")
         if settings.LOG_MAX_AGE:
@@ -46,7 +45,9 @@ class Command(BaseCommand):
                 self.stdout.write(f"\tCut-off time: {cutoff}")
             expired_records = Log.objects.filter(timestamp__lt=cutoff).count()
             if expired_records:
-                self.stdout.write(f"\tDeleting {expired_records} expired log records... ", self.style.WARNING, ending="")
+                self.stdout.write(
+                    f"\tDeleting {expired_records} expired log records... ", self.style.WARNING, ending=""
+                )
                 self.stdout.flush()
                 try:
                     Log.objects.filter(timestamp__lt=cutoff)._raw_delete(using=DEFAULT_DB_ALIAS)
@@ -56,8 +57,6 @@ class Command(BaseCommand):
             else:
                 self.stdout.write("\tNo expired log records found.")
         else:
-            self.stdout.write(
-                f"\tNo-Op: No log maximum age set! (LOG_MAX_AGE = {settings.LOG_MAX_AGE})"
-            )
+            self.stdout.write(f"\tNo-Op: No log maximum age set! (LOG_MAX_AGE = {settings.LOG_MAX_AGE})")
 
         self.stdout.write("Finished.", self.style.SUCCESS)

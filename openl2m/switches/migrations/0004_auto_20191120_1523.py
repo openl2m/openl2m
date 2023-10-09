@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('switches', '0003_auto_20191108_0810'),
     ]
@@ -13,7 +12,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='netmikoprofile',
             name='enable_password',
-            field=models.CharField(blank=True, max_length=64, null=True, verbose_name='Netmiko/SSH enable password, e.g. for Cisco devices (optional)'),
+            field=models.CharField(
+                blank=True,
+                max_length=64,
+                null=True,
+                verbose_name='Netmiko/SSH enable password, e.g. for Cisco devices (optional)',
+            ),
         ),
         migrations.AlterField(
             model_name='snmpprofile',

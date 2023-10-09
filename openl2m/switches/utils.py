@@ -35,11 +35,15 @@ def success_page(request, group, switch, description):
     requires the http request(), Group(), Switch() objects
     and a string description of the success.
     """
-    return render(request, 'success_page.html', {
-        'group': group,
-        'switch': switch,
-        'description': description,
-    })
+    return render(
+        request,
+        'success_page.html',
+        {
+            'group': group,
+            'switch': switch,
+            'description': description,
+        },
+    )
 
 
 def warning_page(request, group, switch, description):
@@ -48,11 +52,15 @@ def warning_page(request, group, switch, description):
     requires the http request(), Group() and Switch() objects,
     and a string description with the warning.
     """
-    return render(request, 'warning_page.html', {
-        'group': group,
-        'switch': switch,
-        'description': description,
-    })
+    return render(
+        request,
+        'warning_page.html',
+        {
+            'group': group,
+            'switch': switch,
+            'description': description,
+        },
+    )
 
 
 def error_page(request, group, switch, error):
@@ -60,11 +68,15 @@ def error_page(request, group, switch, error):
     Generic function to return an error page
     requires the http request(), Group(), Switch() and Error() objects
     """
-    return render(request, 'error_page.html', {
-        'group': group,
-        'switch': switch,
-        'error': error,
-    })
+    return render(
+        request,
+        'error_page.html',
+        {
+            'group': group,
+            'switch': switch,
+            'error': error,
+        },
+    )
 
 
 def dprint(var):
@@ -98,11 +110,11 @@ def uptime_to_string(uptime):
     Convert uptime in seconds to a nice string with days, hrs, mins, seconds
     """
     days = uptime // (24 * 3600)
-    uptime = uptime % (24 * 3600)   # the "left over" seconds beyond the days
+    uptime = uptime % (24 * 3600)  # the "left over" seconds beyond the days
     hours = uptime // 3600
-    uptime %= 3600                  # the "left over" seconds beyond the hours
+    uptime %= 3600  # the "left over" seconds beyond the hours
     minutes = uptime // 60
-    uptime %= 60                    # the remaining seconds
+    uptime %= 60  # the remaining seconds
     return f"{days} Days {hours} Hrs {minutes} Mins {uptime} Secs"
 
 
@@ -142,6 +154,7 @@ def get_remote_ip(request):
     if request:
         # see: https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django
         from ipware import get_client_ip
+
         (ip, routable) = get_client_ip(request)  # we need the request variable from the view!
         if ip is None:
             return '0.0.0.0'
@@ -162,8 +175,8 @@ def is_valid_hostname_or_ip(data):
         if type(address) is ipaddress.IPv4Address:
             return True
         if type(address) is ipaddress.IPv6Address:
-            return False    # v6 not supported for now!
-        return False        # should not happen!
+            return False  # v6 not supported for now!
+        return False  # should not happen!
     except ValueError:
         # not IP v4 or v6!, so check hostname:
         try:

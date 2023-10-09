@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -18,9 +17,26 @@ class Migration(migrations.Migration):
             name='Profile',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('read_only', models.BooleanField(default=False, help_text='If checked, user will have only Read-Only access to switches', verbose_name='Read-Only access')),
-                ('are_you_sure', models.BooleanField(default=True, help_text="If checked, user will get 'Are You Sure?' question on changes", verbose_name='Are You Sure?')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    'read_only',
+                    models.BooleanField(
+                        default=False,
+                        help_text='If checked, user will have only Read-Only access to switches',
+                        verbose_name='Read-Only access',
+                    ),
+                ),
+                (
+                    'are_you_sure',
+                    models.BooleanField(
+                        default=True,
+                        help_text="If checked, user will get 'Are You Sure?' question on changes",
+                        verbose_name='Are You Sure?',
+                    ),
+                ),
+                (
+                    'user',
+                    models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+                ),
             ],
         ),
     ]

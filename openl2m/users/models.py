@@ -40,7 +40,7 @@ class Profile(models.Model):
     read_only = models.BooleanField(
         default=False,
         verbose_name='Read-Only access',
-        help_text="If checked, user will have only Read-Only access to switches"
+        help_text="If checked, user will have only Read-Only access to switches",
     )
     bulk_edit = models.BooleanField(
         default=True,
@@ -60,24 +60,24 @@ class Profile(models.Model):
     edit_if_descr = models.BooleanField(
         default=True,
         verbose_name='Edit Port Description',
-        help_text='If set, allow interface descriptions to be edited.'
+        help_text='If set, allow interface descriptions to be edited.',
     )
     are_you_sure = models.BooleanField(
         default=True,
         verbose_name='Are You Sure?',
-        help_text="If checked, user will get 'Are You Sure?' question on changes"
+        help_text="If checked, user will get 'Are You Sure?' question on changes",
     )
     last_ldap_dn = models.CharField(
         max_length=1024,
         blank=True,
         verbose_name="Last LDAP DN",
-        help_text="The LDAP DN of the last LDAP login (if any)"
+        help_text="The LDAP DN of the last LDAP login (if any)",
     )
     last_ldap_login = models.DateTimeField(
         blank=True,
         null=True,
         verbose_name="Last LDAP login",
-        help_text="The time of the most recent LDAP login (if any)"
+        help_text="The time of the most recent LDAP login (if any)",
     )
 
     class Meta:
@@ -101,20 +101,19 @@ def create_or_save_user_profile(sender, instance, created, **kwargs):
 
 def create_logged_in_log_entry(sender, user, request, **kwargs):
     # log the login!
-    log = Log(user=request.user,
-              ip_address=get_remote_ip(request),
-              action=LOG_LOGIN,
-              description="Logged in",
-              type=LOG_TYPE_LOGIN_OUT)
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        action=LOG_LOGIN,
+        description="Logged in",
+        type=LOG_TYPE_LOGIN_OUT,
+    )
     log.save()
 
 
 def create_logged_out_log_entry(sender, user, request, **kwargs):
     # log the logout!
-    log = Log(ip_address=get_remote_ip(request),
-              action=LOG_LOGOUT,
-              description="Logged out",
-              type=LOG_TYPE_LOGIN_OUT)
+    log = Log(ip_address=get_remote_ip(request), action=LOG_LOGOUT, description="Logged out", type=LOG_TYPE_LOGIN_OUT)
     if isinstance(request.user, User):
         log.user = request.user
     log.save()
@@ -122,11 +121,13 @@ def create_logged_out_log_entry(sender, user, request, **kwargs):
 
 def create_login_failed_log_entry(sender, credentials, request, **kwargs):
     # log the failed login!
-    log = Log(user=None,
-              ip_address=get_remote_ip(request),
-              action=LOG_LOGIN_FAILED,
-              description=f"Login failed: user={credentials['username']}",
-              type=LOG_TYPE_LOGIN_OUT)
+    log = Log(
+        user=None,
+        ip_address=get_remote_ip(request),
+        action=LOG_LOGIN_FAILED,
+        description=f"Login failed: user={credentials['username']}",
+        type=LOG_TYPE_LOGIN_OUT,
+    )
     log.save()
 
 

@@ -69,11 +69,9 @@ def remove_default_counters(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
@@ -90,5 +88,5 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
             },
         ),
-        migrations.RunPython(add_default_counters, remove_default_counters)
+        migrations.RunPython(add_default_counters, remove_default_counters),
     ]

@@ -17,20 +17,20 @@
 
 # Enumeration, see https://www.iana.org/assignments/ianaiftype-mib/ianaiftype-mib
 IF_TYPE_NONE = 0
-IF_TYPE_ETHERNET = 6    # Ethernet-like (ethernetCsmacd)
-IF_TYPE_LOOPBACK = 24   # interface Loopback X (softwareLoopback)
-IF_TYPE_VIRTUAL = 53    # interface Vlan X (proprietary virtual/internal)
-IF_TYPE_TUNNEL = 131    # generic Tunnel interface
-IF_TYPE_LAGG = 161      # IEEE 802.3ad Link Aggregate
-IF_TYPE_MCAST = 1025    # undefined by IEEE, but used by OpenL2M to indicate various multicast virtual interfaces
+IF_TYPE_ETHERNET = 6  # Ethernet-like (ethernetCsmacd)
+IF_TYPE_LOOPBACK = 24  # interface Loopback X (softwareLoopback)
+IF_TYPE_VIRTUAL = 53  # interface Vlan X (proprietary virtual/internal)
+IF_TYPE_TUNNEL = 131  # generic Tunnel interface
+IF_TYPE_LAGG = 161  # IEEE 802.3ad Link Aggregate
+IF_TYPE_MCAST = 1025  # undefined by IEEE, but used by OpenL2M to indicate various multicast virtual interfaces
 
 # duplex settings, from the snmp dot3StatsDuplexStatus object.
 IF_DUPLEX_UNKNOWN = 1
 IF_DUPLEX_HALF = 2
 IF_DUPLEX_FULL = 3
 
-LACP_IF_TYPE_NONE = 0        # not port of LACP aggregation
-LACP_IF_TYPE_MEMBER = 1      # this is a physical port and member
+LACP_IF_TYPE_NONE = 0  # not port of LACP aggregation
+LACP_IF_TYPE_MEMBER = 1  # this is a physical port and member
 LACP_IF_TYPE_AGGREGATOR = 2  # this is an aggregator port (Port-Channel or Bridge-Aggregation)
 
 # the list of interfaces visible to a regular user!
@@ -39,9 +39,9 @@ visible_interfaces = {
     IF_TYPE_LAGG: True,
 }
 
-ENTITY_CLASS_CHASSIS = 3    # chassis(3) - the physical device, eg the 1U switch in a stack
-ENTITY_CLASS_MODULE = 9     # module(9) - a module or blade in a chassis
-ENTITY_CLASS_STACK = 11     # stack(11)
+ENTITY_CLASS_CHASSIS = 3  # chassis(3) - the physical device, eg the 1U switch in a stack
+ENTITY_CLASS_MODULE = 9  # module(9) - a module or blade in a chassis
+ENTITY_CLASS_STACK = 11  # stack(11)
 ENTITY_CLASS_NAME = {}
 ENTITY_CLASS_NAME[ENTITY_CLASS_CHASSIS] = 'Chassis'
 ENTITY_CLASS_NAME[ENTITY_CLASS_MODULE] = 'Module'
@@ -53,27 +53,27 @@ GVRP_DISABLED = 2
 
 # LLDP related
 LLDP_CHASSIS_TYPE_NONE = 0
-LLDP_CHASSIC_TYPE_COMP = 1      # chassisComponent(1)
-LLDP_CHASSIC_TYPE_ALIAS = 2     # interfaceAlias(2), ifAlias from IF-MIB
-LLDP_CHASSIC_TYPE_PORT = 3      # portComponent(3)
+LLDP_CHASSIC_TYPE_COMP = 1  # chassisComponent(1)
+LLDP_CHASSIC_TYPE_ALIAS = 2  # interfaceAlias(2), ifAlias from IF-MIB
+LLDP_CHASSIC_TYPE_PORT = 3  # portComponent(3)
 LLDP_CHASSIC_TYPE_ETH_ADDR = 4  # macAddress(4), standard Ethernet address
 LLDP_CHASSIC_TYPE_NET_ADDR = 5  # networkAddress(5), first byte is address type, next bytes are address.
 # see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml
 IANA_TYPE_IPV4 = 1
 IANA_TYPE_IPV6 = 2
-LLDP_CHASSIC_TYPE_IFNAME = 6    # interfaceName(6), ifName from IF-MIB
-LLDP_CHASSIC_TYPE_LOCAL = 7    # local(7)
+LLDP_CHASSIC_TYPE_IFNAME = 6  # interfaceName(6), ifName from IF-MIB
+LLDP_CHASSIC_TYPE_LOCAL = 7  # local(7)
 
 # Capabilities as announced via lldp bits in SNMP data, translated to integer.
 # see also switches.connect.snmp.constants
-LLDP_CAPABILITIES_OTHER = 128     # other(0),
+LLDP_CAPABILITIES_OTHER = 128  # other(0),
 LLDP_CAPABILITIES_REPEATER = 64  # repeater(1),
-LLDP_CAPABILITIES_BRIDGE = 32    # bridge(2),
-LLDP_CAPABILITIES_WLAN = 16      # wlanAccessPoint(3),
-LLDP_CAPABILITIES_ROUTER = 8    # router(4),
-LLDP_CAPABILITIES_PHONE = 4     # telephone(5)
-LLDP_CAPABILITIES_DOCSIS = 2    # docsisCableDevice(6),
-LLDP_CAPABILITIES_STATION = 1   # stationOnly(7)
+LLDP_CAPABILITIES_BRIDGE = 32  # bridge(2),
+LLDP_CAPABILITIES_WLAN = 16  # wlanAccessPoint(3),
+LLDP_CAPABILITIES_ROUTER = 8  # router(4),
+LLDP_CAPABILITIES_PHONE = 4  # telephone(5)
+LLDP_CAPABILITIES_DOCSIS = 2  # docsisCableDevice(6),
+LLDP_CAPABILITIES_STATION = 1  # stationOnly(7)
 LLDP_CAPABILITIES_NONE = 0
 
 # PoE PowerSupply related
@@ -85,12 +85,12 @@ POE_PSE_STATUS_FAULT = 3
 POE_PORT_ADMIN_ENABLED = 1
 POE_PORT_ADMIN_DISABLED = 2
 
-POE_PORT_DETECT_DISABLED = 1     # '1' = disabled
-POE_PORT_DETECT_SEARCHING = 2    # ’2’ = searching
-POE_PORT_DETECT_DELIVERING = 3   # ’3’ = deliveringPower
-POE_PORT_DETECT_FAULT = 4        # ’4’ = fault
-POE_PORT_DETECT_TEST = 5         # ’5’ = test
-POE_PORT_DETECT_OTHERFAULT = 6   # ’6’ = otherFault
+POE_PORT_DETECT_DISABLED = 1  # '1' = disabled
+POE_PORT_DETECT_SEARCHING = 2  # ’2’ = searching
+POE_PORT_DETECT_DELIVERING = 3  # ’3’ = deliveringPower
+POE_PORT_DETECT_FAULT = 4  # ’4’ = fault
+POE_PORT_DETECT_TEST = 5  # ’5’ = test
+POE_PORT_DETECT_OTHERFAULT = 6  # ’6’ = otherFault
 poe_status_name = {}
 poe_status_name[POE_PORT_DETECT_DISABLED] = 'Disabled'
 poe_status_name[POE_PORT_DETECT_SEARCHING] = 'Searching'
@@ -99,9 +99,9 @@ poe_status_name[POE_PORT_DETECT_FAULT] = 'Fault'
 poe_status_name[POE_PORT_DETECT_TEST] = 'Test'
 poe_status_name[POE_PORT_DETECT_OTHERFAULT] = 'Unknown Fault'
 
-POE_PORT_PRIORITY_CRITICAL = 1   # '1' = Critical
-POE_PORT_PRIORITY_HIGH = 2       # '2' = High
-POE_PORT_PRIORITY_LOW = 3        # '3' = Low
+POE_PORT_PRIORITY_CRITICAL = 1  # '1' = Critical
+POE_PORT_PRIORITY_HIGH = 2  # '2' = High
+POE_PORT_PRIORITY_LOW = 3  # '3' = Low
 poe_priority_name = {}
 poe_priority_name[POE_PORT_PRIORITY_CRITICAL] = "Critical"
 poe_priority_name[POE_PORT_PRIORITY_HIGH] = "High"
@@ -116,4 +116,4 @@ VLAN_ADMIN_ENABLED = 1
 VLAN_ADMIN_DISABLED = 2
 
 # mostly used for Cisco vlans, to avoid the 1000-1003 range. This is "regular(1)" in the Cisco VTP mib
-VLAN_TYPE_NORMAL = 1    # used to indicate 'normal' vlans,
+VLAN_TYPE_NORMAL = 1  # used to indicate 'normal' vlans,

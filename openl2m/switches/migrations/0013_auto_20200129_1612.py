@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('switches', '0012_auto_20200114_1059'),
     ]
@@ -13,11 +12,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='task',
             name='runtime_reverse_arguments',
-            field=models.TextField(blank=True, help_text='Arguments to undo the changes of this task, just prior to task executing, in JSON format', null=True),
+            field=models.TextField(
+                blank=True,
+                help_text='Arguments to undo the changes of this task, just prior to task executing, in JSON format',
+                null=True,
+            ),
         ),
         migrations.AlterField(
             model_name='task',
             name='reverse_arguments',
-            field=models.TextField(blank=True, help_text='Arguments to undo the changes of this task, at submit time, in JSON format', null=True),
+            field=models.TextField(
+                blank=True,
+                help_text='Arguments to undo the changes of this task, at submit time, in JSON format',
+                null=True,
+            ),
         ),
     ]

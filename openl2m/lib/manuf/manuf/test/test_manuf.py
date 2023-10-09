@@ -12,18 +12,14 @@ class ManufTestCase(unittest.TestCase):
 
     #
     def test_update_update(self):
-        self.manuf.update(
-            manuf_url=self.MANUF_URL, wfa_url=self.WFA_URL, manuf_name="manuf_update"
-        )
+        self.manuf.update(manuf_url=self.MANUF_URL, wfa_url=self.WFA_URL, manuf_name="manuf_update")
         assert os.path.exists("manuf_update")
         os.remove("manuf_update")
 
     def test_getAll_whenMacValid_getVendor(self):
         v = self.manuf.get_all("00:00:00:00:00:00")
         self.assertEqual(v.manuf, "00:00:00")
-        self.assertEqual(
-            v.manuf_long, "Officially Xerox, but 0:0:0:0:0:0 is more common"
-        )
+        self.assertEqual(v.manuf_long, "Officially Xerox, but 0:0:0:0:0:0 is more common")
 
     def test_getManuf_getManuf(self):
         m = self.manuf.get_manuf("08:60:6E")

@@ -114,9 +114,7 @@ class MacParser(object):
                 comment = fields[3].strip("#").strip() if len(fields) > 3 else None
                 long_name = fields[2] if len(fields) > 2 else None
 
-                self._masks[(mask, mac_int >> mask)] = Vendor(
-                    manuf=fields[1], manuf_long=long_name, comment=comment
-                )
+                self._masks[(mask, mac_int >> mask)] = Vendor(manuf=fields[1], manuf_long=long_name, comment=comment)
             except Exception:
                 print("Couldn't parse line", line)
                 raise
@@ -312,9 +310,7 @@ class MacParser(object):
 
 def main(*input_args):
     """Simple command line wrapping for MacParser."""
-    argparser = argparse.ArgumentParser(
-        description="Parser utility for Wireshark's OUI database."
-    )
+    argparser = argparse.ArgumentParser(description="Parser utility for Wireshark's OUI database.")
     argparser.add_argument(
         "-m",
         "--manuf",
@@ -331,9 +327,7 @@ def main(*input_args):
     )
     argparser.add_argument("mac_address", nargs="?", help="MAC address to check")
 
-    input_args = (
-        input_args or None
-    )  # if main is called with explicit args parse these - else use sysargs
+    input_args = input_args or None  # if main is called with explicit args parse these - else use sysargs
     args = argparser.parse_args(args=input_args)
     parser = MacParser(manuf_name=args.manuf, update=args.update)
 

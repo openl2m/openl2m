@@ -24,6 +24,7 @@ class Counter(models.Model):
     """
     A simple class to create a counter to track activity.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

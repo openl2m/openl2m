@@ -78,11 +78,11 @@ snmp_mib_variables['vtpVlanState'] = vtpVlanState
 vtpVlanType = '.1.3.6.1.4.1.9.9.46.1.3.1.1.3.1'
 snmp_mib_variables['vtpVlanType'] = vtpVlanType
 
-CISCO_VLAN_TYPE_NORMAL = 1     # regular(1)
-CISCO_VLAN_TYPE_FDDI = 2       # fddi(2)
+CISCO_VLAN_TYPE_NORMAL = 1  # regular(1)
+CISCO_VLAN_TYPE_FDDI = 2  # fddi(2)
 CISCO_VLAN_TYPE_TOKENRING = 3  # tokenRing(3)
-CISCO_VLAN_TYPE_FDDINET = 4    # fddiNet(4)
-CISCO_VLAN_TYPE_TRNET = 5      # trNet(5)
+CISCO_VLAN_TYPE_FDDINET = 4  # fddiNet(4)
+CISCO_VLAN_TYPE_TRNET = 5  # trNet(5)
 
 vtpVlanName = '.1.3.6.1.4.1.9.9.46.1.3.1.1.4.1'
 snmp_mib_variables['vtpVlanName'] = vtpVlanName

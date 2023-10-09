@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('users', '0008_auto_20220323_1555'),
     ]
@@ -13,6 +12,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='last_ldap_login',
-            field=models.DateTimeField(blank=True, help_text='The time of the most recent LDAP login (if any)', null=True, verbose_name='Last LDAP login'),
+            field=models.DateTimeField(
+                blank=True,
+                help_text='The time of the most recent LDAP login (if any)',
+                null=True,
+                verbose_name='Last LDAP login',
+            ),
         ),
     ]

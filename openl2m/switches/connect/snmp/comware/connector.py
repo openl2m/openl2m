@@ -30,12 +30,29 @@ from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_
 from switches.connect.snmp.constants import SNMP_TRUE, dot1qPvid
 from switches.utils import dprint, get_remote_ip
 
-from .constants import (BYTES_FOR_2048_VLANS, HH3C_IF_MODE_INVALID, HH3C_IF_MODE_TRUNK, HH3C_IF_MODE_HYBRID, HH3C_IF_MODE_FABRIC, HH3C_ROUTE_MODE,
-                        hh3cifVLANTrunkAllowListLow, hh3cifVLANTrunkAllowListHigh, hh3cdot1qVlanPorts, hh3cCfgRunModifiedLast,
-                        hh3cCfgRunSavedLast, hh3cCfgStartModifiedLast, hh3cPsePortCurrentPower, hh3cdot1qVlanName, hh3cifVLANType,
-                        hh3cIfLinkMode, hh3cCfgOperateRowStatus, hh3cCfgOperateType, HH3C_running2Startup, HH3C_createAndGo,
-                        hh3cIgmpSnoopingVlanEnabled,
-                        )
+from .constants import (
+    BYTES_FOR_2048_VLANS,
+    HH3C_IF_MODE_INVALID,
+    HH3C_IF_MODE_TRUNK,
+    HH3C_IF_MODE_HYBRID,
+    HH3C_IF_MODE_FABRIC,
+    HH3C_ROUTE_MODE,
+    hh3cifVLANTrunkAllowListLow,
+    hh3cifVLANTrunkAllowListHigh,
+    hh3cdot1qVlanPorts,
+    hh3cCfgRunModifiedLast,
+    hh3cCfgRunSavedLast,
+    hh3cCfgStartModifiedLast,
+    hh3cPsePortCurrentPower,
+    hh3cdot1qVlanName,
+    hh3cifVLANType,
+    hh3cIfLinkMode,
+    hh3cCfgOperateRowStatus,
+    hh3cCfgOperateType,
+    HH3C_running2Startup,
+    HH3C_createAndGo,
+    hh3cIgmpSnoopingVlanEnabled,
+)
 
 
 class SnmpConnectorComware(SnmpConnector):
@@ -86,7 +103,7 @@ class SnmpConnectorComware(SnmpConnector):
         Returns integer
         """
         max_port_id = 0
-        for (if_index, iface) in self.interfaces.items():
+        for if_index, iface in self.interfaces.items():
             if iface.type == IF_TYPE_ETHERNET and iface.port_id > max_port_id:
                 max_port_id = iface.port_id
         return max_port_id
@@ -184,14 +201,18 @@ class SnmpConnectorComware(SnmpConnector):
                 # note that to_hex_string() is same as .__str__ representation,
                 # but we use it for extra clarity!
                 low_vlan_list.reverse_bits_in_bytes()
-                low_oid = (f"{hh3cifVLANTrunkAllowListLow}.{interface.port_id}",
-                           OctetString(hexValue=low_vlan_list.to_hex_string()))
+                low_oid = (
+                    f"{hh3cifVLANTrunkAllowListLow}.{interface.port_id}",
+                    OctetString(hexValue=low_vlan_list.to_hex_string()),
+                )
 
                 # next High-VLANs (2049-4096) on this port:
                 # Comware needs bits in opposite order inside each byte! (go figure)
                 high_vlan_list.reverse_bits_in_bytes()
-                high_oid = (f"{hh3cifVLANTrunkAllowListHigh}.{interface.port_id}",
-                            OctetString(hexValue=high_vlan_list.to_hex_string()))
+                high_oid = (
+                    f"{hh3cifVLANTrunkAllowListHigh}.{interface.port_id}",
+                    OctetString(hexValue=high_vlan_list.to_hex_string()),
+                )
 
                 # finally, set untagged vlan:  dot1qPvid
                 pvid_oid = (f"{dot1qPvid}.{interface.port_id}", Gauge32(new_vlan_id))
@@ -245,14 +266,16 @@ class SnmpConnectorComware(SnmpConnector):
 
                 # now loop to find other existing ports on this vlan:
                 dprint("Finding other ports on this vlan:")
-                for (this_index, this_iface) in self.interfaces.items():
+                for this_index, this_iface in self.interfaces.items():
                     if this_iface.type == IF_TYPE_ETHERNET:
-                        if this_iface.port_id > -1:     # we have a valid PortId
+                        if this_iface.port_id > -1:  # we have a valid PortId
                             if this_iface.is_tagged:
                                 # tagged interface
                                 # is the new vlanId active on this port (i.e. PVID or on trunk) ?
                                 if (this_iface.untagged_vlan == new_vlan_id) or (new_vlan_id in this_iface.vlans):
-                                    dprint(f"   Tagged on VLAN: {this_iface.name} port {this_iface.port_id}, Vlan dict: {this_iface.vlans}")
+                                    dprint(
+                                        f"   Tagged on VLAN: {this_iface.name} port {this_iface.port_id}, Vlan dict: {this_iface.vlans}"
+                                    )
                                     # is this port in Current Egress PortList?
                                     # if not, do NOT add!
                                     # this can happen with a PVID set on a port in trunk mode, but
@@ -267,7 +290,7 @@ class SnmpConnectorComware(SnmpConnector):
                                     """
                             else:
                                 # untagged on this new vlanId ?
-                                if (this_iface.untagged_vlan == new_vlan_id):
+                                if this_iface.untagged_vlan == new_vlan_id:
                                     dprint(f"  Untagged {this_iface.name} Port PVID added to new vlan!")
                                     new_vlan_portlist[this_iface.port_id] = 1
                         else:
@@ -360,6 +383,7 @@ class SnmpConnectorComware(SnmpConnector):
     This gets mapped to an interface later on in
     self._map_poe_port_entries_to_interface(), which is typically device specific
     """
+
     def _parse_mibs_comware_poe(self, oid, val):
         """
         Parse the Comware extended HH3C-POWER-ETH MIB, power usage extension
@@ -467,30 +491,34 @@ class SnmpConnectorComware(SnmpConnector):
          tested, the ifIndex and Q-Bridge port ID are the same!)
         """
         dprint("_map_poe_port_entries_to_interface(Comware)")
-        for (pe_index, port_entry) in self.poe_port_entries.items():
+        for pe_index, port_entry in self.poe_port_entries.items():
             # we take the ending part of "7.12", where 7=PSE#, and 12=port!
             (pse_module, port) = port_entry.index.split('.')
             # calculate the stack member number from PSE#
             member = int((int(pse_module) - 1) / 3)
             if_index = self._get_if_index_from_port_id(int(port))
             dprint(f"  Entry for member {member}, index {if_index}")
-            for (key, iface) in self.interfaces.items():
+            for key, iface in self.interfaces.items():
                 if iface.index == if_index:
                     dprint(f"  Interface found: {iface.name}")
                     iface.poe_entry = port_entry
                     if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                        warning = f"PoE FAULT status ({port_entry.detect_status} = " \
-                                  f"{poe_status_name[port_entry.detect_status]}) " \
-                                  f"on interface {iface.name}"
+                        warning = (
+                            f"PoE FAULT status ({port_entry.detect_status} = "
+                            f"{poe_status_name[port_entry.detect_status]}) "
+                            f"on interface {iface.name}"
+                        )
                         self.add_warning(warning)
                         # log my activity
-                        log = Log(user=self.request.user,
-                                  group=self.group,
-                                  switch=self.switch,
-                                  type=LOG_TYPE_ERROR,
-                                  ip_address=get_remote_ip(self.request),
-                                  action=LOG_PORT_POE_FAULT,
-                                  description=warning)
+                        log = Log(
+                            user=self.request.user,
+                            group=self.group,
+                            switch=self.switch,
+                            type=LOG_TYPE_ERROR,
+                            ip_address=get_remote_ip(self.request),
+                            action=LOG_PORT_POE_FAULT,
+                            description=warning,
+                        )
                         log.save()
                     break
 
@@ -517,10 +545,12 @@ class SnmpConnectorComware(SnmpConnector):
         row_place = self.active_config_rows + 1
         # set_multiple() needs a list of tuples(oid, value, type)
         dprint(f"row_place = {row_place}")
-        retval = self.set_multiple([
-            (f"{hh3cCfgOperateType}.{row_place}", HH3C_running2Startup, 'i'),
-            (f"{hh3cCfgOperateRowStatus}.{row_place}", HH3C_createAndGo, 'i')
-        ])
+        retval = self.set_multiple(
+            [
+                (f"{hh3cCfgOperateType}.{row_place}", HH3C_running2Startup, 'i'),
+                (f"{hh3cCfgOperateRowStatus}.{row_place}", HH3C_createAndGo, 'i'),
+            ]
+        )
         if retval < 0:
             dprint(f"return = {retval}")
             self.add_warning("Error saving via SNMP (hh3cCfgOperateRowStatus)")

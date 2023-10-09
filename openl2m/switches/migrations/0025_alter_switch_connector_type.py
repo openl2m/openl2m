@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('switches', '0024_auto_20210823_1007'),
     ]
@@ -13,6 +12,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='switch',
             name='connector_type',
-            field=models.PositiveSmallIntegerField(choices=[[0, 'SNMP'], [99, 'Napalm'], [100, 'Test Dummy']], default=0, help_text='How we connect to this device.', verbose_name='Connector Type'),
+            field=models.PositiveSmallIntegerField(
+                choices=[[0, 'SNMP'], [99, 'Napalm'], [100, 'Test Dummy']],
+                default=0,
+                help_text='How we connect to this device.',
+                verbose_name='Connector Type',
+            ),
         ),
     ]

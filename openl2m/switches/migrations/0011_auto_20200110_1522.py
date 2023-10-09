@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('switches', '0010_auto_20191203_1012'),
@@ -16,22 +15,81 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='log',
             name='action',
-            field=models.PositiveSmallIntegerField(choices=[[0, 'View Switch Groups'], [1, 'View Switch'], [2, 'View Interface'], [3, 'View PoE'], [4, 'View Vlans'], [5, 'View LLDP'], [6, 'Viewing All Logs'], [7, 'Viewing Site Statistics'], [100, 'Reloading Switch Data'], [101, 'New System ObjectID Found'], [102, 'New System Name Found'], [90, 'Login'], [91, 'Logout'], [92, 'Inactivity Logout'], [93, 'Login Failed'], [103, 'Interface Disable'], [104, 'Interface Enable'], [105, 'Interface Toggle'], [106, 'Interface PoE Disable'], [107, 'Interface PoE Enable'], [108, 'Interface PoE Toggle'], [109, 'Interface PVID Vlan Change'], [110, 'Interface Description Change'], [111, 'Saving Configuration'], [112, 'Execute Command'], [113, 'Port PoE Fault'], [114, 'LDAP New SwitchGroup'], [115, 'Bulk Edit'], [116, 'Bulk Edit Task Submit'], [117, 'Bulk Edit Task Started'], [118, 'Bulk Edit Task Ended OK'], [119, 'Bulk Edit Task Ended With Errors'], [256, 'Undefined Vlan'], [257, 'Vlan Name Mismatch'], [258, 'SNMP Error'], [259, 'LDAP User->SwitchGroup Error'], [260, 'LDAP SwitchGroup Error'], [261, 'Bulk Edit Job Start Error']], default=1, verbose_name='Activity or Action to log'),
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    [0, 'View Switch Groups'],
+                    [1, 'View Switch'],
+                    [2, 'View Interface'],
+                    [3, 'View PoE'],
+                    [4, 'View Vlans'],
+                    [5, 'View LLDP'],
+                    [6, 'Viewing All Logs'],
+                    [7, 'Viewing Site Statistics'],
+                    [100, 'Reloading Switch Data'],
+                    [101, 'New System ObjectID Found'],
+                    [102, 'New System Name Found'],
+                    [90, 'Login'],
+                    [91, 'Logout'],
+                    [92, 'Inactivity Logout'],
+                    [93, 'Login Failed'],
+                    [103, 'Interface Disable'],
+                    [104, 'Interface Enable'],
+                    [105, 'Interface Toggle'],
+                    [106, 'Interface PoE Disable'],
+                    [107, 'Interface PoE Enable'],
+                    [108, 'Interface PoE Toggle'],
+                    [109, 'Interface PVID Vlan Change'],
+                    [110, 'Interface Description Change'],
+                    [111, 'Saving Configuration'],
+                    [112, 'Execute Command'],
+                    [113, 'Port PoE Fault'],
+                    [114, 'LDAP New SwitchGroup'],
+                    [115, 'Bulk Edit'],
+                    [116, 'Bulk Edit Task Submit'],
+                    [117, 'Bulk Edit Task Started'],
+                    [118, 'Bulk Edit Task Ended OK'],
+                    [119, 'Bulk Edit Task Ended With Errors'],
+                    [256, 'Undefined Vlan'],
+                    [257, 'Vlan Name Mismatch'],
+                    [258, 'SNMP Error'],
+                    [259, 'LDAP User->SwitchGroup Error'],
+                    [260, 'LDAP SwitchGroup Error'],
+                    [261, 'Bulk Edit Job Start Error'],
+                ],
+                default=1,
+                verbose_name='Activity or Action to log',
+            ),
         ),
         migrations.AlterField(
             model_name='log',
             name='group',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='switches.SwitchGroup'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='logs',
+                to='switches.SwitchGroup',
+            ),
         ),
         migrations.AlterField(
             model_name='log',
             name='switch',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='switches.Switch'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='logs',
+                to='switches.Switch',
+            ),
         ),
         migrations.AlterField(
             model_name='log',
             name='type',
-            field=models.PositiveSmallIntegerField(choices=[[0, 'View'], [1, 'Change'], [2, 'Warning'], [3, 'Error'], [4, 'Command'], [5, 'Login/out']], default=0, verbose_name='Type of Log Entry'),
+            field=models.PositiveSmallIntegerField(
+                choices=[[0, 'View'], [1, 'Change'], [2, 'Warning'], [3, 'Error'], [4, 'Command'], [5, 'Login/out']],
+                default=0,
+                verbose_name='Type of Log Entry',
+            ),
         ),
         migrations.CreateModel(
             name='Task',
@@ -42,17 +100,78 @@ class Migration(migrations.Migration):
                 ('started', models.DateTimeField(blank=True, help_text='Last time task was started', null=True)),
                 ('completed', models.DateTimeField(blank=True, help_text='Time of completion', null=True)),
                 ('email_result', models.BooleanField(default=True, verbose_name='Email results to user')),
-                ('start_count', models.PositiveSmallIntegerField(default=0, help_text='The number of times the task was started', verbose_name='Run Count')),
-                ('type', models.PositiveSmallIntegerField(choices=[[0, 'No task'], [1, 'Bulk Edit Task']], default=0, verbose_name='Type of Task')),
-                ('status', models.PositiveSmallIntegerField(choices=[[0, 'Deleted'], [1, 'Created'], [2, 'Scheduled'], [3, 'Running'], [4, 'Completed'], [5, 'Errored'], [6, 'Running(Retry)']], default=1, verbose_name='Status of this task')),
+                (
+                    'start_count',
+                    models.PositiveSmallIntegerField(
+                        default=0, help_text='The number of times the task was started', verbose_name='Run Count'
+                    ),
+                ),
+                (
+                    'type',
+                    models.PositiveSmallIntegerField(
+                        choices=[[0, 'No task'], [1, 'Bulk Edit Task']], default=0, verbose_name='Type of Task'
+                    ),
+                ),
+                (
+                    'status',
+                    models.PositiveSmallIntegerField(
+                        choices=[
+                            [0, 'Deleted'],
+                            [1, 'Created'],
+                            [2, 'Scheduled'],
+                            [3, 'Running'],
+                            [4, 'Completed'],
+                            [5, 'Errored'],
+                            [6, 'Running(Retry)'],
+                        ],
+                        default=1,
+                        verbose_name='Status of this task',
+                    ),
+                ),
                 ('description', models.TextField(blank=True, null=True)),
                 ('arguments', models.TextField(blank=True, help_text='Task arguments, in JSON format', null=True)),
-                ('reverse_arguments', models.TextField(blank=True, help_text='Arguments to reverse the changes of this task, in JSON format', null=True)),
-                ('celery_task_id', models.TextField(blank=True, help_text='Celery task id returned when task is submitted', null=True)),
+                (
+                    'reverse_arguments',
+                    models.TextField(
+                        blank=True, help_text='Arguments to reverse the changes of this task, in JSON format', null=True
+                    ),
+                ),
+                (
+                    'celery_task_id',
+                    models.TextField(blank=True, help_text='Celery task id returned when task is submitted', null=True),
+                ),
                 ('results', models.TextField(blank=True, help_text='Task arguments, in JSON format', null=True)),
-                ('group', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='switches.SwitchGroup')),
-                ('switch', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='switches.Switch')),
-                ('user', models.ForeignKey(blank=True, help_text='The user who submitted the task', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to=settings.AUTH_USER_MODEL)),
+                (
+                    'group',
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='tasks',
+                        to='switches.SwitchGroup',
+                    ),
+                ),
+                (
+                    'switch',
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='tasks',
+                        to='switches.Switch',
+                    ),
+                ),
+                (
+                    'user',
+                    models.ForeignKey(
+                        blank=True,
+                        help_text='The user who submitted the task',
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='tasks',
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
                 'verbose_name_plural': 'Scheduled Tasks',

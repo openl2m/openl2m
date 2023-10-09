@@ -15,12 +15,29 @@ from netaddr import IPNetwork
 import re
 
 from switches.utils import dprint
-from switches.connect.constants import (IF_DUPLEX_FULL, IF_TYPE_ETHERNET, IF_TYPE_LAGG, POE_PORT_ADMIN_DISABLED, POE_PORT_ADMIN_ENABLED, POE_PORT_DETECT_SEARCHING,
-                                        LLDP_CHASSIC_TYPE_ETH_ADDR, LLDP_CAPABILITIES_BRIDGE, LLDP_CAPABILITIES_ROUTER, LLDP_CAPABILITIES_WLAN, LLDP_CAPABILITIES_PHONE,
-                                        LACP_IF_TYPE_MEMBER)
+from switches.connect.constants import (
+    IF_DUPLEX_FULL,
+    IF_TYPE_ETHERNET,
+    IF_TYPE_LAGG,
+    POE_PORT_ADMIN_DISABLED,
+    POE_PORT_ADMIN_ENABLED,
+    POE_PORT_DETECT_SEARCHING,
+    LLDP_CHASSIC_TYPE_ETH_ADDR,
+    LLDP_CAPABILITIES_BRIDGE,
+    LLDP_CAPABILITIES_ROUTER,
+    LLDP_CAPABILITIES_WLAN,
+    LLDP_CAPABILITIES_PHONE,
+    LACP_IF_TYPE_MEMBER,
+)
 from switches.connect.classes import Interface, NeighborDevice
 from switches.connect.connector import Connector
-from switches.connect.junos_pyez.utils import junos_speed_to_mbps, junos_parse_power, junos_parse_duplex, junos_remove_unit, junos_parse_if_type
+from switches.connect.junos_pyez.utils import (
+    junos_speed_to_mbps,
+    junos_parse_power,
+    junos_parse_duplex,
+    junos_remove_unit,
+    junos_parse_if_type,
+)
 
 '''
 Basic Junos PyEZ connector. This uses the documented PyEZ library, which uses Netconf underneath.
@@ -35,6 +52,7 @@ class PyEZConnector(Connector):
     '''
     This class implements a Connector() to get switch information from Junos devices supported by the PyEz library.
     '''
+
     def __init__(self, request=False, group=False, switch=False):
         '''
         Initialize the PyEZ Connector() object
@@ -58,8 +76,8 @@ class PyEZConnector(Connector):
         self.can_edit_vlans = True
         self.can_change_poe_status = True
         self.can_change_description = True
-        self.can_save_config = False    # save not needed after commit in Junos!
-        self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
+        self.can_save_config = False  # save not needed after commit in Junos!
+        self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
 
         # this will be the pyJunosPyEZ driver session object
         self.device = False
@@ -158,7 +176,7 @@ class PyEZConnector(Connector):
                 if speed.lower() != 'auto':
                     # actual speed, convert to mbps:
                     iface.speed = junos_speed_to_mbps(speed)
-                else:   # auto-negotiate interface
+                else:  # auto-negotiate interface
                     try:
                         # now look at the  <ethernet-autonegotiation><local-info><local-link-speed> field.
                         speed = intf.findtext('ethernet-autonegotiation/link-partner-speed')
@@ -170,7 +188,7 @@ class PyEZConnector(Connector):
                         # not found ?
                         iface.speed = 0
             except Exception:
-                iface.speed = 0     # should be default!
+                iface.speed = 0  # should be default!
 
             # <link-mode>Full-duplex</link-mode>
             try:
@@ -188,7 +206,7 @@ class PyEZConnector(Connector):
                 except Exception as err:
                     dprint(f"  local duplex not found ({err})")
                     # auto-negotiate and link-mode not found, this is likely a full-duplex-only interface (e.g. 10g and above)
-                    iface.duplex = IF_DUPLEX_FULL   # appears to be duplex if we cannot find otherwize!
+                    iface.duplex = IF_DUPLEX_FULL  # appears to be duplex if we cannot find otherwize!
 
             # look at all Address Families:
             for af in intf.findall('.//address-family'):
@@ -203,7 +221,7 @@ class PyEZConnector(Connector):
                     # some inet interfaces do NOT have ip address fields:
                     try:
                         ip4_address = af.find('.//ifa-local').text
-                        if ip4_address:   # this has an IPv4 address:
+                        if ip4_address:  # this has an IPv4 address:
                             dprint(f"  IPv4 ADDR = {ip4_address}")
                             ip4_net = af.find('.//ifa-destination').text
                             try:
@@ -222,7 +240,7 @@ class PyEZConnector(Connector):
                     # some do not have ipv6 address:
                     try:
                         ip6_address = af.find('.//ifa-local').text
-                        if ip6_address:   # this has an IPv4 address:
+                        if ip6_address:  # this has an IPv4 address:
                             dprint(f"  IPv6 ADDR = {ip6_address}")
                             try:
                                 ip6_net = af.find('.//ifa-destination').text
@@ -241,7 +259,7 @@ class PyEZConnector(Connector):
                     dprint(f" Aggregate Member of {ae_interface}!")
                     iface.lacp_type = LACP_IF_TYPE_MEMBER
                     iface.lacp_master_name = junos_remove_unit(ae_interface)
-                    iface.lacp_master_index = 1     # anything > 0 is fine.
+                    iface.lacp_master_index = 1  # anything > 0 is fine.
                     # and add as member to the master interface:
 
             try:
@@ -488,7 +506,7 @@ class PyEZConnector(Connector):
                 dprint("  Up but Off (Searching)!")
                 # call base class for bookkeeping.
                 super().set_interface_poe_detect_status(iface, POE_PORT_DETECT_SEARCHING)
-            else:   # elif intf['interface-status'] == 'OFF':
+            else:  # elif intf['interface-status'] == 'OFF':
                 consumed = junos_parse_power(intf.find('.//interface-power').text, milliwatts=True)
                 dprint(f" consumed: {consumed} mW")
                 # call base class for bookkeeping.
@@ -540,9 +558,9 @@ class PyEZConnector(Connector):
             dprint("_open_device() failed!")
             return False
         commands = []
-        if new_state == POE_PORT_ADMIN_ENABLED:   # "on"
+        if new_state == POE_PORT_ADMIN_ENABLED:  # "on"
             commands.append(f"delete poe interface {interface.name} disable")
-        else:   # "off"
+        else:  # "off"
             commands.append(f"set poe interface {interface.name} disable")
         if self.execute_commands(commands=commands):
             # call the super class for bookkeeping.
@@ -570,9 +588,9 @@ class PyEZConnector(Connector):
             dprint("_open_device() failed!")
             return False
         commands = []
-        if interface.is_tagged:     # "vlan trunk"
+        if interface.is_tagged:  # "vlan trunk"
             commands.append(f"set interfaces {interface.name} native-vlan-id {new_pvid}")
-        else:   # "plain untagged"
+        else:  # "plain untagged"
             # need vlan by name, not number!
             vlan = self.get_vlan_by_id(new_pvid)
             if not vlan:
@@ -581,7 +599,9 @@ class PyEZConnector(Connector):
                 self.error.description = f"Unknown vlan {new_pvid}"
                 return False
             commands.append(f"delete interfaces {interface.name} unit 0 family ethernet-switching vlan")
-            commands.append(f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {vlan.name}")
+            commands.append(
+                f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {vlan.name}"
+            )
         if self.execute_commands(commands=commands):
             # call the super class for bookkeeping.
             super().set_interface_untagged_vlan(interface=interface, new_pvid=new_pvid)
@@ -723,7 +743,7 @@ class PyEZConnector(Connector):
         commands = []
         if description:
             commands.append(f'set interfaces {interface.name} description "{description}"')
-        else:   # "off"
+        else:  # "off"
             commands.append(f"delete interfaces {interface.name} description")
         if self.execute_commands(commands=commands):
             # call the super class for bookkeeping.
@@ -803,7 +823,7 @@ class PyEZConnector(Connector):
             return False
 
     def _validate_vlan_name(self, vlan_name):
-        ''' Validate the characters in the new vlan name
+        '''Validate the characters in the new vlan name
 
         Args:
             vlan_name (str): the proposed new vlan name
@@ -829,10 +849,12 @@ class PyEZConnector(Connector):
             dprint("  _open_device: No Credentials!")
             return False
 
-        self.device = Device(host=self.switch.primary_ip4,
-                             user=self.switch.netmiko_profile.username,
-                             password=self.switch.netmiko_profile.password,
-                             normalize=True)    # normalize removed trailing/ending \n and spaces.
+        self.device = Device(
+            host=self.switch.primary_ip4,
+            user=self.switch.netmiko_profile.username,
+            password=self.switch.netmiko_profile.password,
+            normalize=True,
+        )  # normalize removed trailing/ending \n and spaces.
         try:
             self.device.open()
         except Exception as error:

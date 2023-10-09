@@ -20,9 +20,22 @@ from django.utils.html import mark_safe
 
 from switches.models import SwitchGroupMembership
 from switches.constants import SWITCH_VIEW_BASIC, SWITCH_VIEW_DETAILS
-from switches.connect.constants import (ENTITY_CLASS_NAME, POE_PSE_STATUS_ON, POE_PSE_STATUS_OFF, POE_PSE_STATUS_FAULT, IF_DUPLEX_FULL, IF_DUPLEX_HALF,
-                                        LLDP_CAPABILITIES_NONE, LLDP_CAPABILITIES_WLAN, LLDP_CAPABILITIES_PHONE, LLDP_CAPABILITIES_ROUTER,
-                                        LLDP_CAPABILITIES_STATION, LLDP_CAPABILITIES_BRIDGE, LLDP_CAPABILITIES_REPEATER, LLDP_CAPABILITIES_OTHER)
+from switches.connect.constants import (
+    ENTITY_CLASS_NAME,
+    POE_PSE_STATUS_ON,
+    POE_PSE_STATUS_OFF,
+    POE_PSE_STATUS_FAULT,
+    IF_DUPLEX_FULL,
+    IF_DUPLEX_HALF,
+    LLDP_CAPABILITIES_NONE,
+    LLDP_CAPABILITIES_WLAN,
+    LLDP_CAPABILITIES_PHONE,
+    LLDP_CAPABILITIES_ROUTER,
+    LLDP_CAPABILITIES_STATION,
+    LLDP_CAPABILITIES_BRIDGE,
+    LLDP_CAPABILITIES_REPEATER,
+    LLDP_CAPABILITIES_OTHER,
+)
 
 # see https://docs.djangoproject.com/en/2.2/ref/templates/api/
 # and https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/
@@ -151,7 +164,7 @@ def get_my_results(results, group_count):
     if num == 0:
         return "We did not find any matching switches!"
     found = ""
-    for (group_id, switch_id, name, description, default_view, group_name) in results:
+    for group_id, switch_id, name, description, default_view, group_name in results:
         if description:
             tooltip = f"<abbr data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"{description}\">"
             tt_end = "</abbr>"
@@ -186,7 +199,7 @@ def get_my_switchgroups(groups):
         s = s + "\n<h4>My Switch Groups:</h4>"
 
     # start groups wrapper:
-    s = s + "\n</div></div>"     # end header row
+    s = s + "\n</div></div>"  # end header row
 
     # calculate column width, if set. Bootstrap uses 12 grid columns per page, max we use is 3 grids
     col_width = 3
@@ -195,7 +208,7 @@ def get_my_switchgroups(groups):
 
     # now list the groups:
     group_num = 0
-    for (group_name, group) in groups.items():
+    for group_name, group in groups.items():
         group_num += 1
         if settings.TOPMENU_MAX_COLUMNS > 1:
             if not ((group_num - 1) % settings.TOPMENU_MAX_COLUMNS):
@@ -209,7 +222,10 @@ def get_my_switchgroups(groups):
         else:
             s = s + f"\n <div class=\"row\">\n  <div class=\"col-md-{col_width}\">"
         # header for collapsible items, i.e. the switchgroup name
-        s = s + "\n  <div class=\"panel-group\">\n   <div class=\"panel panel-default\">\n   <div class=\"panel-heading\">"
+        s = (
+            s
+            + "\n  <div class=\"panel-group\">\n   <div class=\"panel panel-default\">\n   <div class=\"panel-heading\">"
+        )
         s = s + f"<a data-toggle=\"collapse\" href=\"#group{group.id}\">"
         if group.description:
             s = s + f"\n  <span data-toggle=\"tooltip\" title=\"{group.description}\">"
@@ -222,7 +238,7 @@ def get_my_switchgroups(groups):
         s = s + "</a>"
         if group.read_only:
             s = s + " (r/o)"
-        s = s + "</div>"      # this /div ends panel-heading
+        s = s + "</div>"  # this /div ends panel-heading
 
         # the collapsible items:
         s = s + f"\n   <div id=\"group{group.id}\" class=\"panel-collapse"
@@ -232,17 +248,17 @@ def get_my_switchgroups(groups):
         s = s + "\">\n    <ul class=\"list-group\">"
         for member in SwitchGroupMembership.objects.filter(switchgroup=group):
             s = s + f"\n    {get_switch_link(group, member.switch)}"
-        s = s + "\n    </ul>\n   </div>"    # /div ends panel-collapse
+        s = s + "\n    </ul>\n   </div>"  # /div ends panel-collapse
 
         # and end this group header and group:
-        s = s + "\n  </div>\n  </div>"      # end panel-default and panel-group
+        s = s + "\n  </div>\n  </div>"  # end panel-default and panel-group
 
         if settings.TOPMENU_MAX_COLUMNS > 1:
             # end the column div:
             s = s + "\n </div>"
         else:
             # end row
-            s = s + "\n </div>\n</div>"     # end panel-default and panel-group
+            s = s + "\n </div>\n</div>"  # end panel-default and panel-group
 
     # end the last row, and container, if needed:
     if settings.TOPMENU_MAX_COLUMNS > 1:
@@ -328,9 +344,7 @@ def get_interface_info_links(switch, iface):
             if not validate_info_url_fields(info_url, switch, iface):
                 continue
             template = Template(build_url_string(info_url))
-            context = Context({
-                'switch': switch,
-                'iface': iface})
+            context = Context({'switch': switch, 'iface': iface})
             links += template.render(context)
     return mark_safe(links)
 
@@ -345,7 +359,11 @@ def get_vlan_info_links(vlan):
         # do this for all URLs listed:
         for info_url in settings.VLAN_INFO_URLS:
             template = Template(build_url_string(info_url))
-            context = Context({'vlan': vlan, })
+            context = Context(
+                {
+                    'vlan': vlan,
+                }
+            )
             links += template.render(context)
     return mark_safe(links)
 
@@ -360,7 +378,11 @@ def get_ethernet_info_links(ethernet):
         # do this for all URLs listed:
         for info_url in settings.ETHERNET_INFO_URLS:
             template = Template(build_url_string(info_url))
-            context = Context({'ethernet': ethernet, })
+            context = Context(
+                {
+                    'ethernet': ethernet,
+                }
+            )
             links += template.render(context)
     return mark_safe(links)
 
@@ -375,7 +397,11 @@ def get_ip4_info_links(ip4_address):
         # do this for all URLs listed:
         for info_url in settings.IP4_INFO_URLS:
             template = Template(build_url_string(info_url))
-            context = Context({'ip4': ip4_address, })
+            context = Context(
+                {
+                    'ip4': ip4_address,
+                }
+            )
             links += template.render(context)
     return mark_safe(links)
 
@@ -390,7 +416,11 @@ def get_ip6_info_links(ip6_address):
         # do this for all URLs listed:
         for info_url in settings.IP6_INFO_URLS:
             template = Template(build_url_string(info_url))
-            context = Context({'ip6': ip6_address, })
+            context = Context(
+                {
+                    'ip6': ip6_address,
+                }
+            )
             links += template.render(context)
     return mark_safe(links)
 
@@ -410,32 +440,50 @@ def get_interface_link(switch, iface):
     # next make linkable if we can manage it
     if iface.manageable:
         if iface.admin_status:
-            info = info + f"<a onclick=\"return confirm_change('Are you sure you want to DISABLE {iface.name} ?')\" \
+            info = (
+                info
+                + f"<a onclick=\"return confirm_change('Are you sure you want to DISABLE {iface.name} ?')\" \
                      href=\"/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/0/\" \
                      data-toggle=\"tooltip\" title=\"Click here to Disable {iface.name}\">{iface.name}</a>"
+            )
         else:
-            info = info + f"<a onclick=\"return confirm_change('Are you sure you want to ENABLE {iface.name} ?')\" \
+            info = (
+                info
+                + f"<a onclick=\"return confirm_change('Are you sure you want to ENABLE {iface.name} ?')\" \
                      href=\"/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/1/\" \
                      data-toggle=\"tooltip\" title=\"Click here to Enable {iface.name}\">{iface.name}</a>"
+            )
 
     else:
         info = info + f" {iface.name} "
 
     # start with up/down color for interface
     if iface.admin_status:
-        info = info + "&nbsp;&nbsp;<img src=\"/static/img/enabled.png\" \
+        info = (
+            info
+            + "&nbsp;&nbsp;<img src=\"/static/img/enabled.png\" \
                  alt=\"Interface Enabled\" data-toggle=\"tooltip\" title=\"Interface is Enabled\">"
+        )
     else:
-        info = info + "&nbsp;&nbsp;<img src=\"/static/img/disabled.png\" \
+        info = (
+            info
+            + "&nbsp;&nbsp;<img src=\"/static/img/disabled.png\" \
                  alt=\"Interface Disabled\" data-toggle=\"tooltip\" title=\"Interface is Disabled\">"
+        )
 
     # finally, add icons representing interface 'features'
     if iface.is_tagged:
-        info = info + "&nbsp;&nbsp;<i class=\"fas fa-ellipsis-v\" aria-hidden=\"true\" \
+        info = (
+            info
+            + "&nbsp;&nbsp;<i class=\"fas fa-ellipsis-v\" aria-hidden=\"true\" \
                  alt=\"Tagged/Trunked Interface\" data-toggle=\"tooltip\" title=\"Tagged/Trunked Interface\"></i>"
+        )
     if iface.voice_vlan:
-        info = info + f"&nbsp;&nbsp;<i class=\"fas fa-phone\" aria-hidden=\"true\" \
+        info = (
+            info
+            + f"&nbsp;&nbsp;<i class=\"fas fa-phone\" aria-hidden=\"true\" \
                  alt=\"Voice VLAN\" data-toggle=\"tooltip\" title=\"Voice VLAN {iface.voice_vlan}>\""
+        )
 
     return mark_safe(info)
 
@@ -462,8 +510,11 @@ def get_lldp_info(neighbor):
             info += fa_format % ('fa-cogs', 'Router or Switch')
         if capabilities & LLDP_CAPABILITIES_STATION:
             info += fa_format % ('fa-desktop', 'Workstation or Server')
-        if capabilities & LLDP_CAPABILITIES_BRIDGE and not capabilities & LLDP_CAPABILITIES_ROUTER \
-           and not capabilities & LLDP_CAPABILITIES_PHONE:
+        if (
+            capabilities & LLDP_CAPABILITIES_BRIDGE
+            and not capabilities & LLDP_CAPABILITIES_ROUTER
+            and not capabilities & LLDP_CAPABILITIES_PHONE
+        ):
             # We only show Switch if no routing or phone capabilities listed.
             # Most phones and routers also show switch capabilities.
             # In those cases we only show the above Router or Phone icons!

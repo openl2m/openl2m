@@ -37,6 +37,7 @@ class SnmpProfile(models.Model):
     An SNMP profile defines a series of settings for SNMP-based management access.
     A switch can have exactly one snmp profile assigned to it.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -134,6 +135,7 @@ class NetmikoProfile(models.Model):
     via SSH(Netmiko), REST, Napam, or other API's
     A device can have exactly one NetmikoProfile assigned to it.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -202,6 +204,7 @@ class Command(models.Model):
     A command that can be send to a switch.
     %s will signify the switch interface name.
     """
+
     name = models.CharField(
         max_length=32,
         help_text="The name as shown to the user",
@@ -253,6 +256,7 @@ class CommandList(models.Model):
     An SNMP profile defines a series of settings for management access.
     A switch can have exactly one snmp profile assigned to it.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -267,9 +271,9 @@ class CommandList(models.Model):
     global_commands = models.ManyToManyField(
         to='Command',
         limit_choices_to={'type': constants.CMD_TYPE_GLOBAL},
-        blank=True,      # we don't require to have a command
+        blank=True,  # we don't require to have a command
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='global_commands',      # from Commands object, we can now reference "Command.global_commands"
+        related_name='global_commands',  # from Commands object, we can now reference "Command.global_commands"
         verbose_name='Global commands to send to switch.',
         help_text='List of global "show" commands user can send to switch.',
     )
@@ -278,16 +282,16 @@ class CommandList(models.Model):
         limit_choices_to={'type': constants.CMD_TYPE_INTERFACE},
         blank=True,
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='interface_commands',      # from Commands object, we can now reference "Command.interface_commands"
+        related_name='interface_commands',  # from Commands object, we can now reference "Command.interface_commands"
         verbose_name='Interface commands to send to switch.',
         help_text='List of contextual "show interface" commands user can send to switch. %s will be replaced with interface name.',
     )
     global_commands_staff = models.ManyToManyField(
         to='Command',
         limit_choices_to={'type': constants.CMD_TYPE_GLOBAL},
-        blank=True,      # we don't require to have a vlan
+        blank=True,  # we don't require to have a vlan
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='global_commands_staff',      # from Commands object, we can now reference "Command.global_commands_staff"
+        related_name='global_commands_staff',  # from Commands object, we can now reference "Command.global_commands_staff"
         verbose_name='Global commands for Staff.',
         help_text='List of global "show" commands Staff users can send to switch.',
     )
@@ -296,7 +300,7 @@ class CommandList(models.Model):
         limit_choices_to={'type': constants.CMD_TYPE_INTERFACE},
         blank=True,
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='interface_commands_staff',      # from Commands object, we can now reference "Command.interface_commands_staff"
+        related_name='interface_commands_staff',  # from Commands object, we can now reference "Command.interface_commands_staff"
         verbose_name='Interface commands for Staff.',
         help_text='List of contextual "show interface" commands Staff users can send to switch. %s will be replaced with interface name.',
     )
@@ -321,6 +325,7 @@ class CommandTemplate(models.Model):
     A "long" command template that can be send to a switch.
     Up to 8 fields and 3 pick-lists can be defined for the user to fill in values.
     """
+
     name = models.CharField(
         max_length=32,
         help_text="The name as shown to the user",
@@ -623,6 +628,7 @@ class VLAN(models.Model):
     however VLAN IDs need not be unique. A VLAN may optionally be assigned to a VLANGroup,
     within which all VLAN IDs and names but be unique.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -669,6 +675,7 @@ class VlanGroup(models.Model):
     """
     Class that maintains a grouping of one or more vlans, to simplify management in SwitchGroup() objects
     """
+
     name = models.CharField(
         max_length=64,
     )
@@ -678,11 +685,11 @@ class VlanGroup(models.Model):
     )
     vlans = models.ManyToManyField(
         to='VLAN',
-        blank=True,      # we don't require to have a vlan
+        blank=True,  # we don't require to have a vlan
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='vlangroups',      # from VLAN object, we can now reference "VLAN.vlangroups"
+        related_name='vlangroups',  # from VLAN object, we can now reference "VLAN.vlangroups"
         verbose_name='VLANs in group',
-        help_text="A grouping of VLANs, e.g. by department"
+        help_text="A grouping of VLANs, e.g. by department",
     )
 
     class Meta:
@@ -704,12 +711,14 @@ class VlanGroup(models.Model):
 # Switches
 #
 
+
 class Switch(models.Model):
     """
     A Switch represents a piece of physical hardware. Each Switch is assigned a SwitchType.
     Switch names are required, and must be unique.
 
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -766,10 +775,10 @@ class Switch(models.Model):
         to='CommandTemplate',
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
         related_name='command_templates',
-        blank=True,     # we don't require to have them
+        blank=True,  # we don't require to have them
         verbose_name='Assigned Command Templates',
         help_text="These are the command templates assigned. Users in a group this device belongs to "
-                  "can run these command templates."
+        "can run these command templates.",
     )
     read_only = models.BooleanField(
         default=False,
@@ -801,7 +810,7 @@ class Switch(models.Model):
     edit_if_descr = models.BooleanField(
         default=True,
         verbose_name='Edit Port Description',
-        help_text='If set, allow interface descriptions to be edited.'
+        help_text='If set, allow interface descriptions to be edited.',
     )
     status = models.PositiveSmallIntegerField(
         choices=constants.SWITCH_STATUS_CHOICES,
@@ -813,18 +822,18 @@ class Switch(models.Model):
         # on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        unique=False,   # allow duplicates so we can enter same switch with different snmp profile
+        unique=False,  # allow duplicates so we can enter same switch with different snmp profile
         verbose_name='Management IPv4',
         help_text='IPv4 address or hostname, can be duplicate as long as name is unique.',
     )
-#    primary_ip6 = models.CharField(
-#        max_length=64,
-#        on_delete=models.SET_NULL,
-#        blank=True,
-#        null=True,
-#        unique=False,   # we allow duplication, but combination of IP and SnmpProfile should be unique!
-#        verbose_name='Management IPv6',
-#    )
+    #    primary_ip6 = models.CharField(
+    #        max_length=64,
+    #        on_delete=models.SET_NULL,
+    #        blank=True,
+    #        null=True,
+    #        unique=False,   # we allow duplication, but combination of IP and SnmpProfile should be unique!
+    #        verbose_name='Management IPv6',
+    #    )
     comments = models.TextField(
         blank=True,
         help_text='Add any additional information about this switch.',
@@ -890,8 +899,7 @@ class Switch(models.Model):
         Returns True or False.
         """
         if self.netmiko_profile and self.command_list:
-            if self.command_list.interface_commands.count > 0 or \
-               self.command_list.interface_commands_staff.count > 0:
+            if self.command_list.interface_commands.count > 0 or self.command_list.interface_commands_staff.count > 0:
                 # Looks like we do!
                 return True
         return False
@@ -905,8 +913,7 @@ class Switch(models.Model):
         Returns True or False.
         """
         if self.netmiko_profile and self.command_list:
-            if self.command_list.global_commands.count > 0 or \
-               self.command_list.global_commands_staff.count > 0:
+            if self.command_list.global_commands.count > 0 or self.command_list.global_commands_staff.count > 0:
                 # Looks like we do!
                 return True
         return False
@@ -943,7 +950,6 @@ class Switch(models.Model):
 
 # this adds the switches to a group, with all other things needed
 class SwitchGroup(models.Model):
-
     name = models.CharField(
         max_length=64,
         unique=True,
@@ -956,28 +962,26 @@ class SwitchGroup(models.Model):
         blank=True,
         verbose_name="Display name overrides the group name",
         help_text="Display name allows you to override the group name. "
-                  "This is mostly useful for auto-created LDAP groups, that may not have 'display friendly' names."
+        "This is mostly useful for auto-created LDAP groups, that may not have 'display friendly' names.",
     )
     description = models.CharField(
-        max_length=120,
-        blank=True,
-        help_text="Description is shown when hovering over SwitchGroup in main menu."
+        max_length=120, blank=True, help_text="Description is shown when hovering over SwitchGroup in main menu."
     )
     # start with the relationship to the User object
     users = models.ManyToManyField(
         User,
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='switchgroups',      # from User object, we can now reference "User.switchgroups"
-        blank=True,      # we don't require to have a vlan
+        related_name='switchgroups',  # from User object, we can now reference "User.switchgroups"
+        blank=True,  # we don't require to have a vlan
         verbose_name='Group Users',
         help_text="Users add to this group have access to the switches in this group,"
-                  " and the ports on the vlans in this group.",
+        " and the ports on the vlans in this group.",
     )
     # now add additional fields
     read_only = models.BooleanField(
         default=False,
         verbose_name='Read-Only access',
-        help_text="If set, the switches in this group are read-only for all users."
+        help_text="If set, the switches in this group are read-only for all users.",
     )
     bulk_edit = models.BooleanField(
         default=True,
@@ -992,7 +996,7 @@ class SwitchGroup(models.Model):
     edit_if_descr = models.BooleanField(
         default=True,
         verbose_name='Edit Port Description',
-        help_text='If set, allow interface descriptions to be edited.'
+        help_text='If set, allow interface descriptions to be edited.',
     )
     switches = models.ManyToManyField(
         to='Switch',
@@ -1001,11 +1005,11 @@ class SwitchGroup(models.Model):
         # see https://docs.djangoproject.com/en/2.2/topics/db/models/#intermediary-manytomany
         # and https://www.revsys.com/tidbits/tips-using-djangos-manytomanyfield/
         through='SwitchGroupMembership',
-        blank=True,      # we don't require to have a switch
+        blank=True,  # we don't require to have a switch
         verbose_name='Member Switches',
         help_text="For all the switches in this group, group users can manage any "
-                  "interface with a PVID in this list of VLANs. "
-                  "Other interfaces can not be managed."
+        "interface with a PVID in this list of VLANs. "
+        "Other interfaces can not be managed.",
     )
     """
     Allow the above list of switches to be queried in proper sort order from templates
@@ -1014,36 +1018,34 @@ class SwitchGroup(models.Model):
     # def sorted_switches(self):
     #    return self.switches.order_by("order")
     allow_all_vlans = models.BooleanField(
-        default=False,
-        verbose_name='Allow All Vlans',
-        help_text='If set, allow access to all vlans.'
+        default=False, verbose_name='Allow All Vlans', help_text='If set, allow access to all vlans.'
     )
     vlan_groups = models.ManyToManyField(
         to='VlanGroup',
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
         related_name='vlangroups',
-        blank=True,     # we don't require to have vlans from the start!
+        blank=True,  # we don't require to have vlans from the start!
         verbose_name='Allowed VLAN Groups',
         help_text="For all the switches in this group, users in this group can "
-                  "manage any interface with a PVID in these VLAN Groups. "
-                  "Interfaces on VLANs not listed in these groups or "
-                  "the individual vlans below cannot be managed.",
+        "manage any interface with a PVID in these VLAN Groups. "
+        "Interfaces on VLANs not listed in these groups or "
+        "the individual vlans below cannot be managed.",
     )
     vlans = models.ManyToManyField(
         to='VLAN',
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
         related_name='vlans',
-        blank=True,     # we don't require to have vlans from the start!
+        blank=True,  # we don't require to have vlans from the start!
         verbose_name='Allowed VLANs',
         help_text="For all the switches in this group, users in this group can "
-                  "manage any interface with a PVID on these VLANs. "
-                  "Interfaces on VLANs not listed here or in the Vlan Groups "
-                  "above cannot be managed.",
+        "manage any interface with a PVID on these VLANs. "
+        "Interfaces on VLANs not listed here or in the Vlan Groups "
+        "above cannot be managed.",
     )
     comments = models.TextField(
         blank=True,
         help_text="Comment are for additional admin observations only, e.g. ticket #, notes about usage. etc."
-                  "Comments are not shown in the user interface."
+        "Comments are not shown in the user interface.",
     )
 
     class Meta:
@@ -1085,6 +1087,7 @@ class Log(models.Model):
     An ActivityLog entry respresent something that was done to a device,
     either a view/list, or a change.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -1105,7 +1108,7 @@ class Log(models.Model):
         on_delete=models.CASCADE,
         related_name='logs',
         blank=True,
-        null=True,   # we don't require to have a group
+        null=True,  # we don't require to have a group
     )
     switch = models.ForeignKey(
         to='Switch',
@@ -1142,7 +1145,8 @@ class Log(models.Model):
         verbose_name='Activity or Action to log',
     )
     description = models.TextField(
-        blank=True, null=True,  # we don't require it, see save() where a default will be set
+        blank=True,
+        null=True,  # we don't require it, see save() where a default will be set
     )
 
     def save(self, *args, **kwargs):

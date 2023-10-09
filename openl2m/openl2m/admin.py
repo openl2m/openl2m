@@ -22,6 +22,7 @@ class OpenL2MAdminSite(AdminSite):
     """
     Custom admin site
     """
+
     site_header = 'OpenL2M Administration'
     site_title = 'OpenL2M'
     site_url = '/{}'.format(settings.BASE_PATH)

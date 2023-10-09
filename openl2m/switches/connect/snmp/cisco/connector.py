@@ -28,14 +28,49 @@ from switches.connect.constants import poe_status_name, POE_PORT_DETECT_FAULT, V
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.utils import dprint, get_remote_ip
 
-from .constants import (portIfIndex, vmVlan, vmVoiceVlanId, cL2L3IfModeOper, cpeExtPsePortPwrConsumption, cpeExtPsePortPwrAvailable, cpeExtPsePortMaxPwrDrawn,
-                        vtpVlanState, vtpVlanType, vtpVlanName, vlanTrunkPortDynamicState, vlanTrunkPortNativeVlan, vlanTrunkPortVlansEnabled, vlanTrunkPortVlansEnabled2k,
-                        vlanTrunkPortVlansEnabled3k, vlanTrunkPortVlansEnabled4k,
-                        ccmHistoryRunningLastChanged, ccmHistoryRunningLastSaved, ccmHistoryStartupLastChanged, clogHistTableMaxLength, clogHistIndex, clogHistFacility, clogHistSeverity,
-                        clogHistMsgName, clogHistMsgText, clogHistTimestamp, ciscoWriteMem, ccCopySourceFileType, ccCopyDestFileType, ccCopyEntryRowStatus, ccCopyState, rowStatusActive,
-                        copyStateSuccess, copyStateRunning, copyStateWaiting, copyStateFailed, runningConfig, startupConfig,
-                        CISCO_VLAN_TYPE_NORMAL, VTP_TRUNK_STATE_ON, CISCO_ROUTE_MODE
-                        )
+from .constants import (
+    portIfIndex,
+    vmVlan,
+    vmVoiceVlanId,
+    cL2L3IfModeOper,
+    cpeExtPsePortPwrConsumption,
+    cpeExtPsePortPwrAvailable,
+    cpeExtPsePortMaxPwrDrawn,
+    vtpVlanState,
+    vtpVlanType,
+    vtpVlanName,
+    vlanTrunkPortDynamicState,
+    vlanTrunkPortNativeVlan,
+    vlanTrunkPortVlansEnabled,
+    vlanTrunkPortVlansEnabled2k,
+    vlanTrunkPortVlansEnabled3k,
+    vlanTrunkPortVlansEnabled4k,
+    ccmHistoryRunningLastChanged,
+    ccmHistoryRunningLastSaved,
+    ccmHistoryStartupLastChanged,
+    clogHistTableMaxLength,
+    clogHistIndex,
+    clogHistFacility,
+    clogHistSeverity,
+    clogHistMsgName,
+    clogHistMsgText,
+    clogHistTimestamp,
+    ciscoWriteMem,
+    ccCopySourceFileType,
+    ccCopyDestFileType,
+    ccCopyEntryRowStatus,
+    ccCopyState,
+    rowStatusActive,
+    copyStateSuccess,
+    copyStateRunning,
+    copyStateWaiting,
+    copyStateFailed,
+    runningConfig,
+    startupConfig,
+    CISCO_VLAN_TYPE_NORMAL,
+    VTP_TRUNK_STATE_ON,
+    CISCO_ROUTE_MODE,
+)
 
 
 class SnmpConnectorCisco(SnmpConnector):
@@ -248,7 +283,7 @@ class SnmpConnectorCisco(SnmpConnector):
             # something bad happened
             self.add_warning("Error getting Cisco Syslog Messages (ciscoSyslogMIBObjects)")
             self.log_error()
-            return 0    # for now
+            return 0  # for now
 
     def _map_poe_port_entries_to_interface(self):
         """
@@ -260,7 +295,7 @@ class SnmpConnectorCisco(SnmpConnector):
         E.g. "5.12" from the index becomes "5/12", and you then search for an interface with matching ending
         e.g. GigabitEthernet5/12
         """
-        for (pe_index, port_entry) in self.poe_port_entries.items():
+        for pe_index, port_entry in self.poe_port_entries.items():
             if len(self.stack_port_to_if_index) > 0:
                 if pe_index in self.stack_port_to_if_index.keys():
                     if_index = str(self.stack_port_to_if_index[pe_index])
@@ -268,39 +303,47 @@ class SnmpConnectorCisco(SnmpConnector):
                     if iface:
                         iface.poe_entry = port_entry
                         if port_entry.detect_status == POE_PORT_DETECT_FAULT:
-                            warning = f"PoE FAULT status ({port_entry.detect_status} = " \
-                                      f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
+                            warning = (
+                                f"PoE FAULT status ({port_entry.detect_status} = "
+                                f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
+                            )
                             self.add_warning(warning)
                             # log my activity
-                            log = Log(user=self.request.user,
-                                      group=self.group,
-                                      switch=self.switch,
-                                      type=LOG_TYPE_ERROR,
-                                      ip_address=get_remote_ip(self.request),
-                                      action=LOG_PORT_POE_FAULT,
-                                      description=warning)
+                            log = Log(
+                                user=self.request.user,
+                                group=self.group,
+                                switch=self.switch,
+                                type=LOG_TYPE_ERROR,
+                                ip_address=get_remote_ip(self.request),
+                                action=LOG_PORT_POE_FAULT,
+                                description=warning,
+                            )
                             log.save()
 
             else:
                 # map "mod.port" to "mod/port"
                 end = port_entry.index.replace('.', '/')
                 count = len(end)
-                for (if_index, iface) in self.interfaces.items():
+                for if_index, iface in self.interfaces.items():
                     if iface.name[-count:] == end:
                         iface.poe_entry = port_entry
                         if port_entry.detect_status == POE_PORT_DETECT_FAULT:
-                            warning = f"PoE FAULT status ({port_entry.detect_status} = " \
-                                      f"{poe_status_name[port_entry.detect_status]}) " \
-                                      f"on interface {iface.name}"
+                            warning = (
+                                f"PoE FAULT status ({port_entry.detect_status} = "
+                                f"{poe_status_name[port_entry.detect_status]}) "
+                                f"on interface {iface.name}"
+                            )
                             self.add_warning(warning)
                             # log my activity
-                            log = Log(user=self.request.user,
-                                      group=self.group,
-                                      switch=self.switch,
-                                      type=LOG_TYPE_ERROR,
-                                      ip_address=get_remote_ip(self.request),
-                                      action=LOG_PORT_POE_FAULT,
-                                      description=warning)
+                            log = Log(
+                                user=self.request.user,
+                                group=self.group,
+                                switch=self.switch,
+                                type=LOG_TYPE_ERROR,
+                                ip_address=get_remote_ip(self.request),
+                                action=LOG_PORT_POE_FAULT,
+                                description=warning,
+                            )
                             log.save()
                         break
 
@@ -392,7 +435,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # vlan id
         vlan_id = int(oid_in_branch(vtpVlanState, oid))
         if vlan_id:
-            if (int(val) == 1):
+            if int(val) == 1:
                 self.add_vlan_by_id(vlan_id)
             return True
 
@@ -417,7 +460,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # access or trunk mode configured?
         if_index = oid_in_branch(vlanTrunkPortDynamicState, oid)
         if if_index:
-            if (int(val) == VTP_TRUNK_STATE_ON):
+            if int(val) == VTP_TRUNK_STATE_ON:
                 # trunk/tagged port
                 self.set_interface_attribute_by_key(if_index, "is_tagged", True)
             return True
@@ -536,28 +579,28 @@ class SnmpConnectorCisco(SnmpConnector):
             # which bits are set? A hack but it works!
             # note that the bits are actually in system order,
             # ie. bit 1 is first bit in stream, i.e. HIGH order bit!
-            if (byte & 128):
+            if byte & 128:
                 vlan_id = (offset * 8) + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if (byte & 64):
+            if byte & 64:
                 vlan_id = (offset * 8) + 1 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if (byte & 32):
+            if byte & 32:
                 vlan_id = (offset * 8) + 2 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if (byte & 16):
+            if byte & 16:
                 vlan_id = (offset * 8) + 3 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if (byte & 8):
+            if byte & 8:
                 vlan_id = (offset * 8) + 4 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if (byte & 4):
+            if byte & 4:
                 vlan_id = (offset * 8) + 5 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if (byte & 2):
+            if byte & 2:
                 vlan_id = (offset * 8) + 6 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            if (byte & 1):
+            if byte & 1:
                 vlan_id = (offset * 8) + 7 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
             offset += 1
@@ -670,13 +713,15 @@ class SnmpConnectorCisco(SnmpConnector):
                 # approximate / calculate the datetime value:
                 # msg timestamp = time when sysUpTime was read minus seconds between sysUptime and msg timetick
                 dprint(f"TIMES ARE: {self.sys_uptime_timestamp}  {self.sys_uptime}  {timetick}")
-                self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(self.sys_uptime_timestamp - int((self.sys_uptime - timetick)/100))
+                self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(
+                    self.sys_uptime_timestamp - int((self.sys_uptime - timetick) / 100)
+                )
             else:
                 # be save, create; "should" never happen
                 msg = SyslogMsg(index)
                 # approximate / calculate the datetime value:
                 # msg time = time when sysUpTime was read minus seconds between sysUptime and msg timetick
-                msg.datetime = datetime.datetime.fromtimestamp(self.time - int((self.sys_uptime - timetick)/100))
+                msg.datetime = datetime.datetime.fromtimestamp(self.time - int((self.sys_uptime - timetick) / 100))
                 self.syslog_msgs[index] = msg
             return True
 
@@ -705,7 +750,7 @@ class SnmpConnectorCisco(SnmpConnector):
         self.set(oid=f"{ccCopyEntryRowStatus}.{some_number}", value=int(rowStatusActive), snmp_type='i')
         # now wait for this row to return success or fail:
         waittime = settings.CISCO_WRITE_MEM_MAX_WAIT
-        while (waittime):
+        while waittime:
             time.sleep(1)
             (error_status, snmp_ret) = self.get(oid=f"{ccCopyState}.{some_number}")
             if error_status:
@@ -728,11 +773,13 @@ class SnmpConnectorCisco(SnmpConnector):
         elif snmp_ret.value == copyStateWaiting:
             self.error.description = "Copy running to startup still waiting! (for what?)"
         # log error
-        log = Log(user=self.request.user,
-                  type=LOG_TYPE_ERROR,
-                  ip_address=get_remote_ip(self.request),
-                  action=LOG_SAVE_SWITCH,
-                  description=self.error.description)
+        log = Log(
+            user=self.request.user,
+            type=LOG_TYPE_ERROR,
+            ip_address=get_remote_ip(self.request),
+            action=LOG_SAVE_SWITCH,
+            description=self.error.description,
+        )
         log.save()
         # return error status
         return False

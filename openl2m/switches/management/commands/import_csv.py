@@ -22,8 +22,15 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User, Group
 
 from switches.models import Switch, SwitchGroup, VLAN, SnmpProfile, NetmikoProfile, CommandList
-from switches.constants import (SNMP_V3_AUTH_MD5, SNMP_V3_AUTH_SHA, SNMP_V3_PRIV_DES, SNMP_V3_PRIV_AES,
-                                SNMP_V3_SECURITY_NOAUTH_NOPRIV, SNMP_V3_SECURITY_AUTH_NOPRIV, SNMP_V3_SECURITY_AUTH_PRIV)
+from switches.constants import (
+    SNMP_V3_AUTH_MD5,
+    SNMP_V3_AUTH_SHA,
+    SNMP_V3_PRIV_DES,
+    SNMP_V3_PRIV_AES,
+    SNMP_V3_SECURITY_NOAUTH_NOPRIV,
+    SNMP_V3_SECURITY_AUTH_NOPRIV,
+    SNMP_V3_SECURITY_AUTH_PRIV,
+)
 
 
 class Command(BaseCommand):
@@ -33,53 +40,21 @@ class Command(BaseCommand):
         # Positional arguments - NONE
 
         # optional commands
-        parser.add_argument(
-            '--switchgroups',
-            type=str,
-            help='the SwitchGroup CSV file to import'
-        )
+        parser.add_argument('--switchgroups', type=str, help='the SwitchGroup CSV file to import')
 
-        parser.add_argument(
-            '--commands',
-            type=str,
-            help='the Commands CSV file to import'
-        )
+        parser.add_argument('--commands', type=str, help='the Commands CSV file to import')
 
-        parser.add_argument(
-            '--switches',
-            type=str,
-            help='the Switch CSV file to import'
-        )
+        parser.add_argument('--switches', type=str, help='the Switch CSV file to import')
 
-        parser.add_argument(
-            '--netmiko',
-            type=str,
-            help='the Netmiko Profile CSV file to import'
-        )
+        parser.add_argument('--netmiko', type=str, help='the Netmiko Profile CSV file to import')
 
-        parser.add_argument(
-            '--snmp',
-            type=str,
-            help='the SNMP Profile CSV file to import'
-        )
+        parser.add_argument('--snmp', type=str, help='the SNMP Profile CSV file to import')
 
-        parser.add_argument(
-            '--users',
-            type=str,
-            help='the User CSV file to import'
-        )
+        parser.add_argument('--users', type=str, help='the User CSV file to import')
 
-        parser.add_argument(
-            '--vlans',
-            type=str,
-            help='the VLAN CSV file to import'
-        )
+        parser.add_argument('--vlans', type=str, help='the VLAN CSV file to import')
 
-        parser.add_argument(
-            '--update',
-            action='store_true',
-            help='update object if it exists'
-        )
+        parser.add_argument('--update', action='store_true', help='update object if it exists')
 
     def handle(self, *args, **options):
         update = options['update']
@@ -97,11 +72,13 @@ class Command(BaseCommand):
                     try:
                         c = Command.objects.get(name=row['name'], type=row['os'])
                         if not update:
-                            self.stdout.write(self.style.WARNING(f"Command '{row['name']}' already exists, but update NOT allowed!"))
+                            self.stdout.write(
+                                self.style.WARNING(f"Command '{row['name']}' already exists, but update NOT allowed!")
+                            )
                             continue
                     except Exception:
                         c = Command()
-                        c.name = row['name']   # the only mandatory field!
+                        c.name = row['name']  # the only mandatory field!
                     # the remaining fields
                     if 'description' in row.keys():
                         c.description = row['description']
@@ -269,8 +246,12 @@ class Command(BaseCommand):
                             snmp = SnmpProfile.objects.get(name=row['snmp_profile'])
                             switch.snmp_profile = snmp
                         except Exception as e:
-                            self.stdout.write(self.style.ERROR("   Error getting valid SNMP Profile '%s'" % row['snmp_profile']))
-                            self.stdout.write(self.style.ERROR("   We cannot import a switch with an invalid SNMP Profile!"))
+                            self.stdout.write(
+                                self.style.ERROR("   Error getting valid SNMP Profile '%s'" % row['snmp_profile'])
+                            )
+                            self.stdout.write(
+                                self.style.ERROR("   We cannot import a switch with an invalid SNMP Profile!")
+                            )
                             self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
                             self.stdout.write(self.style.ERROR(f"   {format(e)}"))
                             continue
@@ -279,8 +260,12 @@ class Command(BaseCommand):
                             nm = NetmikoProfile.objects.get(name=row['netmiko_profile'])
                             switch.netmiko_profile = nm
                         except Exception as e:
-                            self.stdout.write(self.style.ERROR("   Error getting Netmiko Profile '%s'" % row['netmiko_profile']))
-                            self.stdout.write(self.style.ERROR("   We cannot import a switch with an invalid Netmiko Profile!"))
+                            self.stdout.write(
+                                self.style.ERROR("   Error getting Netmiko Profile '%s'" % row['netmiko_profile'])
+                            )
+                            self.stdout.write(
+                                self.style.ERROR("   We cannot import a switch with an invalid Netmiko Profile!")
+                            )
                             self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
                             self.stdout.write(self.style.ERROR(f"   {format(e)}"))
                             continue
@@ -291,12 +276,19 @@ class Command(BaseCommand):
                         except Exception:
                             # command list does not exist, create a new, empty command list!
                             cl = CommandList()
-                            cl.name = row['command_list']   # the only mandatory field!
+                            cl.name = row['command_list']  # the only mandatory field!
                             try:
                                 cl.save()
-                                self.stdout.write(self.style.WARNING("   EMPTY Command List '%s' created, please edit as needed!" % row['command_list']))
+                                self.stdout.write(
+                                    self.style.WARNING(
+                                        "   EMPTY Command List '%s' created, please edit as needed!"
+                                        % row['command_list']
+                                    )
+                                )
                             except Exception as e:
-                                self.stdout.write(self.style.ERROR("   Error creating Command List '%s'" % row['command_list']))
+                                self.stdout.write(
+                                    self.style.ERROR("   Error creating Command List '%s'" % row['command_list'])
+                                )
                                 self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
                                 self.stdout.write(self.style.ERROR(f"   {format(e)}"))
                                 continue
@@ -328,7 +320,11 @@ class Command(BaseCommand):
                         try:
                             switch.switchgroups.add(g)
                         except Exception as e:
-                            self.stdout.write(self.style.ERROR("   Error adding switch to switchgroup '%s', please do this manually!" % g.name))
+                            self.stdout.write(
+                                self.style.ERROR(
+                                    "   Error adding switch to switchgroup '%s', please do this manually!" % g.name
+                                )
+                            )
                             self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
                             self.stdout.write(self.style.ERROR(f"   {format(e)}"))
                             continue
@@ -347,16 +343,18 @@ class Command(BaseCommand):
                     try:
                         nm = NetmikoProfile.objects.get(name=row['name'])
                         if not update:
-                            self.stdout.write(self.style.WARNING("Existing NetmikeProfile found, but update NOT allowed!"))
+                            self.stdout.write(
+                                self.style.WARNING("Existing NetmikeProfile found, but update NOT allowed!")
+                            )
                             continue
                     except Exception:
                         # create new
                         nm = NetmikoProfile()
-                        nm.name = row['name']    # mandatory
+                        nm.name = row['name']  # mandatory
                     # update the rest
-                    nm.username = row['username']    # mandatory
-                    nm.password = row['password']    # mandatory
-                    nm.device_type = row['device_type']     # mandatory
+                    nm.username = row['username']  # mandatory
+                    nm.password = row['password']  # mandatory
+                    nm.device_type = row['device_type']  # mandatory
 
                     if 'description' in row.keys():
                         nm.description = row['description']
@@ -397,9 +395,9 @@ class Command(BaseCommand):
                     except Exception:
                         # create new
                         s = SnmpProfile()
-                        s.name = row['name']    # mandatory
+                        s.name = row['name']  # mandatory
                     # now update the rest
-                    s.version = int(row['version'])     # mandatory
+                    s.version = int(row['version'])  # mandatory
 
                     if 'description' in row.keys():
                         s.description = row['description']

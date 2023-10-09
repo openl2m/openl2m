@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('users', '0003_profile_allow_poe_toggle'),
     ]
@@ -13,6 +12,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profile',
             name='edit_if_descr',
-            field=models.BooleanField(default=True, help_text='If set, allow interface descriptions to be edited.', verbose_name='Edit Port Description'),
+            field=models.BooleanField(
+                default=True,
+                help_text='If set, allow interface descriptions to be edited.',
+                verbose_name='Edit Port Description',
+            ),
         ),
     ]

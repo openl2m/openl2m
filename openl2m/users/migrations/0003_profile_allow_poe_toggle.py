@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('users', '0002_profile_bulk_edit'),
     ]
@@ -13,6 +12,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profile',
             name='allow_poe_toggle',
-            field=models.BooleanField(default=False, help_text='If set, allow PoE toggle on all interfaces', verbose_name='Poe Toggle All'),
+            field=models.BooleanField(
+                default=False, help_text='If set, allow PoE toggle on all interfaces', verbose_name='Poe Toggle All'
+            ),
         ),
     ]

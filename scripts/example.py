@@ -35,10 +35,12 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'openl2m.settings')
 django.setup()
 
 from django.conf import settings
+
 # load the User() object
 from django.contrib.auth.models import User
+
 # load various OpenL2M objects
-from switches.models import (Switch, SwitchGroup, SnmpProfile, NetmikoProfile, CommandList)
+from switches.models import Switch, SwitchGroup, SnmpProfile, NetmikoProfile, CommandList
 from switches.constants import *
 
 
@@ -46,13 +48,27 @@ def main():
     # setup and parse arguments
     parser = argparse.ArgumentParser(description='Import Data from a CSV file.')
 
-    parser.add_argument('-u', '--userfile', type=str, dest='user_file', action='store',
-                        default='', required=False,
-                        help='the User CSV file to import')
+    parser.add_argument(
+        '-u',
+        '--userfile',
+        type=str,
+        dest='user_file',
+        action='store',
+        default='',
+        required=False,
+        help='the User CSV file to import',
+    )
 
-    parser.add_argument('-s', '--switchfile', type=str, dest='switch_file', action='store',
-                        default='', required=False,
-                        help='the Switch CSV file to import')
+    parser.add_argument(
+        '-s',
+        '--switchfile',
+        type=str,
+        dest='switch_file',
+        action='store',
+        default='',
+        required=False,
+        help='the Switch CSV file to import',
+    )
 
     args = parser.parse_args()
 
@@ -139,7 +155,7 @@ def main():
                     except Exception:
                         # command list does not exist, create it!
                         cl = CommandList()
-                        cl.name = row['command_list']   # the only mandatory field!
+                        cl.name = row['command_list']  # the only mandatory field!
                         try:
                             cl.save()
                             print("   EMPTY Command List '%s' created, please edit as needed!" % row['command_list'])
@@ -159,7 +175,7 @@ def main():
                         try:
                             g.save()
                             print("  SwitchGroup '%s' created" % row['group'])
-                        except Exception
+                        except Exception:
                             print("   Error creating SwitchGroup '%s'" % row['group'])
                             print("   Error details: %s" % sys.exc_info()[0])
                             continue

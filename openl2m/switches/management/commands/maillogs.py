@@ -101,9 +101,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # validate a few things...
         if not settings.EMAIL_HOST:
-            self.stdout.write(
-                "Error: settings.EMAIL_HOST is NOT set!", self.style.ERROR
-            )
+            self.stdout.write("Error: settings.EMAIL_HOST is NOT set!", self.style.ERROR)
             return
 
         if not options["to"]:
@@ -133,9 +131,7 @@ class Command(BaseCommand):
         # validate type choices
         type = options["type"].lower()
         if type not in log_types_by_name:
-            self.stdout.write(
-                f"Error: invalid log type '{type}', select from {log_types.keys()}"
-            )
+            self.stdout.write(f"Error: invalid log type '{type}', select from {log_types.keys()}")
             return
         log_type = log_types_by_name[type]
 
@@ -179,12 +175,10 @@ class Command(BaseCommand):
         cutoff = now - timedelta(hours=options["hours"])
         cutoff_local = cutoff.astimezone(tz=None)
 
-        if options["verbosity"] > 1:    # default = 1
+        if options["verbosity"] > 1:  # default = 1
             now_string = now.strftime(MY_TIMEFORMAT)
             cutoff_string = cutoff.strftime(MY_TIMEFORMAT)
-            self.stdout.write(
-                f"Now: {now_string}, Logs since: {cutoff_string}", self.style.SUCCESS
-            )
+            self.stdout.write(f"Now: {now_string}, Logs since: {cutoff_string}", self.style.SUCCESS)
 
         # looks like we are good to go!
         self.stdout.write(
@@ -193,18 +187,11 @@ class Command(BaseCommand):
 
         # get log since cut-off time
         filter["timestamp__gt"] = cutoff
-        logs = (
-            Log.objects.all()
-            .exclude(action__in=excludes)
-            .filter(**filter)
-            .order_by("timestamp")
-        )
+        logs = Log.objects.all().exclude(action__in=excludes).filter(**filter).order_by("timestamp")
 
         # go outout them!
         if logs:
-            self.stdout.write(
-                f"Emailing {logs.count()} log records... ", self.style.WARNING
-            )
+            self.stdout.write(f"Emailing {logs.count()} log records... ", self.style.WARNING)
             self.stdout.flush()
             # need for-loop here!
             lines = []
@@ -222,25 +209,25 @@ class Command(BaseCommand):
                     worksheet = workbook.add_worksheet()
 
                     worksheet.write(row, COLUMN_TIME, "Time", format_bold)
-                    worksheet.set_column(COLUMN_TIME, COLUMN_TIME, 25)      # Adjust the column width.
+                    worksheet.set_column(COLUMN_TIME, COLUMN_TIME, 25)  # Adjust the column width.
 
                     worksheet.write(row, COLUMN_TYPE, "Type", format_bold)
-                    worksheet.set_column(COLUMN_TYPE, COLUMN_TYPE, 10)      # Adjust the column width.
+                    worksheet.set_column(COLUMN_TYPE, COLUMN_TYPE, 10)  # Adjust the column width.
 
                     worksheet.write(row, COLUMN_ACTION, "Action", format_bold)
-                    worksheet.set_column(COLUMN_ACTION, COLUMN_ACTION, 15)      # Adjust the column width.
+                    worksheet.set_column(COLUMN_ACTION, COLUMN_ACTION, 15)  # Adjust the column width.
 
                     worksheet.write(row, COLUMN_DEVICE, "Device", format_bold)
-                    worksheet.set_column(COLUMN_DEVICE, COLUMN_DEVICE, 25)      # Adjust the column width.
+                    worksheet.set_column(COLUMN_DEVICE, COLUMN_DEVICE, 25)  # Adjust the column width.
 
                     worksheet.write(row, COLUMN_USER, "User", format_bold)
-                    worksheet.set_column(COLUMN_USER, COLUMN_USER, 15)      # Adjust the column width.
+                    worksheet.set_column(COLUMN_USER, COLUMN_USER, 15)  # Adjust the column width.
 
                     worksheet.write(row, COLUMN_IP, "IP", format_bold)
-                    worksheet.set_column(COLUMN_IP, COLUMN_IP, 20)      # Adjust the column width.
+                    worksheet.set_column(COLUMN_IP, COLUMN_IP, 20)  # Adjust the column width.
 
                     worksheet.write(row, COLUMN_DESCRIPTION, "Description", format_bold)
-                    worksheet.set_column(COLUMN_DESCRIPTION, COLUMN_DESCRIPTION, 150)      # Adjust the column width.
+                    worksheet.set_column(COLUMN_DESCRIPTION, COLUMN_DESCRIPTION, 150)  # Adjust the column width.
 
                     lines.append("Log entries are in the attached file!")
                 except Exception as err:

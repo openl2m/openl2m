@@ -20,11 +20,8 @@ def remove_counters(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('counters', '0001_initial'),
     ]
 
-    operations = [
-        migrations.RunPython(add_new_counters, remove_counters)
-    ]
+    operations = [migrations.RunPython(add_new_counters, remove_counters)]

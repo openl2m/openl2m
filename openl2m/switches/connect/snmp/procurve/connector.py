@@ -28,8 +28,14 @@ from switches.connect.constants import POE_PORT_DETECT_DELIVERING, poe_status_na
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.utils import dprint, get_remote_ip
 
-from .constants import (hpicfPoePethPsePortPower, hpEntPowerCurrentPowerUsage, hpnicfIfLinkMode, hpnicfCfgRunModifiedLast,
-                        hpnicfCfgRunSavedLast, HP_ROUTE_MODE)
+from .constants import (
+    hpicfPoePethPsePortPower,
+    hpEntPowerCurrentPowerUsage,
+    hpnicfIfLinkMode,
+    hpnicfCfgRunModifiedLast,
+    hpnicfCfgRunSavedLast,
+    HP_ROUTE_MODE,
+)
 
 
 class SnmpConnectorProcurve(SnmpConnector):
@@ -46,7 +52,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         self.description = 'HP ProCurve SNMP driver'
 
         # some capabilities we cannot do:
-        self.can_save_config = False    # not needed on ProCurve, it has auto-save!
+        self.can_save_config = False  # not needed on ProCurve, it has auto-save!
 
     def _parse_oid(self, oid, val):
         """
@@ -98,6 +104,7 @@ class SnmpConnectorProcurve(SnmpConnector):
     This gets mapped to an interface later on in
     self._map_poe_port_entries_to_interface()
     """
+
     def _parse_mibs_hp_poe(self, oid, val):
         """
         Parse HP specific Power Extention MIBs
@@ -184,7 +191,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         and is likely the ifIndex!
         """
         dprint("Procurve _map_poe_port_entries_to_interface()\n")
-        for (pe_index, port_entry) in self.poe_port_entries.items():
+        for pe_index, port_entry in self.poe_port_entries.items():
             # we take the ending part of "5.12" as the index
             (module, index) = port_entry.index.split('.')
             # for the SnmpConnector() class and sub-classes, the "index" is the key to the Interface()
@@ -194,17 +201,21 @@ class SnmpConnectorProcurve(SnmpConnector):
                 # add this poe entry to the interface
                 iface.poe_entry = port_entry
                 if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                    warning = f"PoE FAULT status ({port_entry.detect_status} = " \
-                              f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
+                    warning = (
+                        f"PoE FAULT status ({port_entry.detect_status} = "
+                        f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
+                    )
                     self.add_warning(warning)
                     # log my activity
-                    log = Log(user=self.request.user,
-                              group=self.group,
-                              switch=self.switch,
-                              type=LOG_TYPE_ERROR,
-                              ip_address=get_remote_ip(self.request),
-                              action=LOG_PORT_POE_FAULT,
-                              description=warning)
+                    log = Log(
+                        user=self.request.user,
+                        group=self.group,
+                        switch=self.switch,
+                        type=LOG_TYPE_ERROR,
+                        ip_address=get_remote_ip(self.request),
+                        action=LOG_PORT_POE_FAULT,
+                        description=warning,
+                    )
                     log.save()
             else:
                 # should not happen!

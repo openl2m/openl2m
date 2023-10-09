@@ -17,13 +17,32 @@ from napalm import get_network_driver
 
 from switches.models import Log
 from switches.utils import dprint, get_remote_ip, uptime_to_string
-from switches.constants import (LOG_TYPE_ERROR, LOG_NAPALM_ERROR_FACTS, LOG_NAPALM_ERROR_INTERFACES, LOG_NAPALM_ERROR_VLANS, LOG_NAPALM_ERROR_IF_IP,
-                                LOG_NAPALM_ERROR_MAC, LOG_NAPALM_ERROR_ARP, LOG_NAPALM_ERROR_LLDP, LOG_NAPALM_ERROR_DRIVER, LOG_NAPALM_ERROR_OPEN)
+from switches.constants import (
+    LOG_TYPE_ERROR,
+    LOG_NAPALM_ERROR_FACTS,
+    LOG_NAPALM_ERROR_INTERFACES,
+    LOG_NAPALM_ERROR_VLANS,
+    LOG_NAPALM_ERROR_IF_IP,
+    LOG_NAPALM_ERROR_MAC,
+    LOG_NAPALM_ERROR_ARP,
+    LOG_NAPALM_ERROR_LLDP,
+    LOG_NAPALM_ERROR_DRIVER,
+    LOG_NAPALM_ERROR_OPEN,
+)
 from switches.connect.classes import Interface, NeighborDevice
 from switches.connect.connector import Connector
 from switches.connect.utils import interface_name_to_long
-from switches.connect.constants import (IF_TYPE_ETHERNET, LLDP_CAPABILITIES_REPEATER, LLDP_CAPABILITIES_BRIDGE, LLDP_CAPABILITIES_ROUTER, LLDP_CAPABILITIES_WLAN,
-                                        LLDP_CAPABILITIES_PHONE, LLDP_CAPABILITIES_DOCSIS, LLDP_CAPABILITIES_STATION, LLDP_CAPABILITIES_OTHER)
+from switches.connect.constants import (
+    IF_TYPE_ETHERNET,
+    LLDP_CAPABILITIES_REPEATER,
+    LLDP_CAPABILITIES_BRIDGE,
+    LLDP_CAPABILITIES_ROUTER,
+    LLDP_CAPABILITIES_WLAN,
+    LLDP_CAPABILITIES_PHONE,
+    LLDP_CAPABILITIES_DOCSIS,
+    LLDP_CAPABILITIES_STATION,
+    LLDP_CAPABILITIES_OTHER,
+)
 
 """
 Basic Napalm connector. This allows us to handle any device supported by
@@ -35,6 +54,7 @@ class NapalmConnector(Connector):
     """
     This class implements a "Napalm" connector to get switch information.
     """
+
     def __init__(self, request=False, group=False, switch=False):
         """
         Initialize the object
@@ -46,7 +66,7 @@ class NapalmConnector(Connector):
         self.switch.read_only = True
 
         self.add_more_info('Connection', 'Type', f"Napalm Connector for '{self.switch.napalm_device_type}'")
-        self.napalm_device = False     # this will be the Napalm driver connection
+        self.napalm_device = False  # this will be the Napalm driver connection
         # and we dont want to cache this:
         self.set_do_not_cache_attribute('napalm_device')
 
@@ -66,12 +86,14 @@ class NapalmConnector(Connector):
             self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.get_facts() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning("Napalm error in get_facts() - Likely not implemented!")
-            log = Log(group=self.group,
-                      switch=self.switch,
-                      ip_address=get_remote_ip(self.request),
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_NAPALM_ERROR_FACTS,
-                      description=f"ERROR: {self.error.details}")
+            log = Log(
+                group=self.group,
+                switch=self.switch,
+                ip_address=get_remote_ip(self.request),
+                type=LOG_TYPE_ERROR,
+                action=LOG_NAPALM_ERROR_FACTS,
+                description=f"ERROR: {self.error.details}",
+            )
             if self.request:
                 log.user = self.request.user
             log.save()
@@ -93,12 +115,14 @@ class NapalmConnector(Connector):
             self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.get_interfaces() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning("Napalm error in get_interfaces() - Likely not implemented!")
-            log = Log(group=self.group,
-                      switch=self.switch,
-                      ip_address=get_remote_ip(self.request),
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_NAPALM_ERROR_INTERFACES,
-                      description=f"ERROR: {self.error.details}")
+            log = Log(
+                group=self.group,
+                switch=self.switch,
+                ip_address=get_remote_ip(self.request),
+                type=LOG_TYPE_ERROR,
+                action=LOG_NAPALM_ERROR_INTERFACES,
+                description=f"ERROR: {self.error.details}",
+            )
             if self.request:
                 log.user = self.request.user
             log.save()
@@ -128,12 +152,14 @@ class NapalmConnector(Connector):
             self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.get_vlans() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning("Napalm error in get_vlans() - Likely not implemented!")
-            log = Log(group=self.group,
-                      switch=self.switch,
-                      ip_address=get_remote_ip(self.request),
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_NAPALM_ERROR_VLANS,
-                      description=f"ERROR: {self.error.details}")
+            log = Log(
+                group=self.group,
+                switch=self.switch,
+                ip_address=get_remote_ip(self.request),
+                type=LOG_TYPE_ERROR,
+                action=LOG_NAPALM_ERROR_VLANS,
+                description=f"ERROR: {self.error.details}",
+            )
             if self.request:
                 log.user = self.request.user
             log.save()
@@ -190,12 +216,14 @@ class NapalmConnector(Connector):
             self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.get_interfaces_ip() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning("Napalm error in get_interfaces_ip() - Likely not implemented!")
-            log = Log(group=self.group,
-                      switch=self.switch,
-                      ip_address=get_remote_ip(self.request),
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_NAPALM_ERROR_IF_IP,
-                      description=f"ERROR: {self.error.details}")
+            log = Log(
+                group=self.group,
+                switch=self.switch,
+                ip_address=get_remote_ip(self.request),
+                type=LOG_TYPE_ERROR,
+                action=LOG_NAPALM_ERROR_IF_IP,
+                description=f"ERROR: {self.error.details}",
+            )
             if self.request:
                 log.user = self.request.user
             log.save()
@@ -233,14 +261,18 @@ class NapalmConnector(Connector):
             self.error.status = True
             self.error.description = "Cannot get arp table"
             self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            dprint(f"   napalm.device.get_mac_address_table() Exception: {e.__class__.__name__}\n{self.error.details}\n")
+            dprint(
+                f"   napalm.device.get_mac_address_table() Exception: {e.__class__.__name__}\n{self.error.details}\n"
+            )
             self.add_warning("Napalm error in get_mac_address_table() - Likely not implemented!")
-            log = Log(group=self.group,
-                      switch=self.switch,
-                      ip_address=get_remote_ip(self.request),
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_NAPALM_ERROR_MAC,
-                      description=f"ERROR: {self.error.details}")
+            log = Log(
+                group=self.group,
+                switch=self.switch,
+                ip_address=get_remote_ip(self.request),
+                type=LOG_TYPE_ERROR,
+                action=LOG_NAPALM_ERROR_MAC,
+                description=f"ERROR: {self.error.details}",
+            )
             if self.request:
                 log.user = self.request.user
             log.save()
@@ -265,12 +297,14 @@ class NapalmConnector(Connector):
             self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.get_arp_table() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning("Napalm error in get_arp_table() - Likely not implemented!")
-            log = Log(group=self.group,
-                      switch=self.switch,
-                      ip_address=get_remote_ip(self.request),
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_NAPALM_ERROR_ARP,
-                      description=f"ERROR: {self.error.details}")
+            log = Log(
+                group=self.group,
+                switch=self.switch,
+                ip_address=get_remote_ip(self.request),
+                type=LOG_TYPE_ERROR,
+                action=LOG_NAPALM_ERROR_ARP,
+                description=f"ERROR: {self.error.details}",
+            )
             if self.request:
                 log.user = self.request.user
             log.save()
@@ -293,14 +327,18 @@ class NapalmConnector(Connector):
             self.error.status = True
             self.error.description = "Cannot get lldp details"
             self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            dprint(f"   napalm.device.get_lldp_neighbors_detail() Exception: {e.__class__.__name__}\n{self.error.details}\n")
+            dprint(
+                f"   napalm.device.get_lldp_neighbors_detail() Exception: {e.__class__.__name__}\n{self.error.details}\n"
+            )
             self.add_warning("Napalm error in get_lldp_neighbors_detail() - Likely not implemented!")
-            log = Log(group=self.group,
-                      switch=self.switch,
-                      ip_address=get_remote_ip(self.request),
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_NAPALM_ERROR_LLDP,
-                      description=f"ERROR: {self.error.details}")
+            log = Log(
+                group=self.group,
+                switch=self.switch,
+                ip_address=get_remote_ip(self.request),
+                type=LOG_TYPE_ERROR,
+                action=LOG_NAPALM_ERROR_LLDP,
+                description=f"ERROR: {self.error.details}",
+            )
             if self.request:
                 log.user = self.request.user
             log.save()
@@ -354,12 +392,14 @@ class NapalmConnector(Connector):
             self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   napalm.get_network_driver() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning("Napalm error in get_network_driver()!")
-            log = Log(group=self.group,
-                      switch=self.switch,
-                      ip_address=get_remote_ip(self.request),
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_NAPALM_ERROR_DRIVER,
-                      description=f"ERROR: {self.error.details}")
+            log = Log(
+                group=self.group,
+                switch=self.switch,
+                ip_address=get_remote_ip(self.request),
+                type=LOG_TYPE_ERROR,
+                action=LOG_NAPALM_ERROR_DRIVER,
+                description=f"ERROR: {self.error.details}",
+            )
             if self.request:
                 log.user = self.request.user
             log.save()
@@ -382,12 +422,14 @@ class NapalmConnector(Connector):
             self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.open() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning("Napalm error in open()!")
-            log = Log(group=self.group,
-                      switch=self.switch,
-                      ip_address=get_remote_ip(self.request),
-                      type=LOG_TYPE_ERROR,
-                      action=LOG_NAPALM_ERROR_OPEN,
-                      description=f"ERROR: {self.error.details}")
+            log = Log(
+                group=self.group,
+                switch=self.switch,
+                ip_address=get_remote_ip(self.request),
+                type=LOG_TYPE_ERROR,
+                action=LOG_NAPALM_ERROR_OPEN,
+                description=f"ERROR: {self.error.details}",
+            )
             if self.request:
                 log.user = self.request.user
             log.save()

@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('switches', '0017_auto_20210104_1520'),
     ]
@@ -29,16 +28,24 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='switch',
             name='details_read_count',
-            field=models.PositiveIntegerField(default=0, help_text='Details read count performed on the switch.', verbose_name='Details(arp/lldp) Reads'),
+            field=models.PositiveIntegerField(
+                default=0,
+                help_text='Details read count performed on the switch.',
+                verbose_name='Details(arp/lldp) Reads',
+            ),
         ),
         migrations.AddField(
             model_name='switch',
             name='read_count',
-            field=models.PositiveIntegerField(default=0, help_text='Basic read count performed on the switch.', verbose_name='Reads'),
+            field=models.PositiveIntegerField(
+                default=0, help_text='Basic read count performed on the switch.', verbose_name='Reads'
+            ),
         ),
         migrations.AddField(
             model_name='switch',
             name='write_count',
-            field=models.PositiveIntegerField(default=0, help_text='Write count performed on the switch.', verbose_name='Writes'),
+            field=models.PositiveIntegerField(
+                default=0, help_text='Write count performed on the switch.', verbose_name='Writes'
+            ),
         ),
     ]

@@ -24,9 +24,14 @@ def user_can_bulkedit(user, group, switch):
     Verify if this user can bulk-edit.
     Return True is so, False if not.
     """
-    if user.profile.bulk_edit and group.bulk_edit and switch.bulk_edit \
-       and not group.read_only and not switch.read_only and \
-       not user.profile.read_only:
+    if (
+        user.profile.bulk_edit
+        and group.bulk_edit
+        and switch.bulk_edit
+        and not group.read_only
+        and not switch.read_only
+        and not user.profile.read_only
+    ):
         return True
     return False
 

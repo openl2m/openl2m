@@ -14,8 +14,8 @@
 
 # Connector type for device (Snmp, Napalm)
 CONNECTOR_TYPE_SNMP = 0
-CONNECTOR_TYPE_AOSCX = 1    # Aruba AOS-CX API devices
-CONNECTOR_TYPE_PYEZ = 2     # Junos PyEZ devices (basically all Junos via Netconf)
+CONNECTOR_TYPE_AOSCX = 1  # Aruba AOS-CX API devices
+CONNECTOR_TYPE_PYEZ = 2  # Junos PyEZ devices (basically all Junos via Netconf)
 CONNECTOR_TYPE_COMMANDS_ONLY = 98
 CONNECTOR_TYPE_NAPALM = 99
 CONNECTOR_TYPE_TESTDUMMY = 100
@@ -125,7 +125,7 @@ BULKEDIT_INTERFACE_CHOICES = [
     [INTERFACE_STATUS_NONE, 'No Change'],
     [INTERFACE_STATUS_CHANGE, 'Change'],
     [INTERFACE_STATUS_DOWN, 'Down'],
-    [INTERFACE_STATUS_UP, 'Up']
+    [INTERFACE_STATUS_UP, 'Up'],
 ]
 
 BULKEDIT_ALIAS_TYPE_REPLACE = 0
@@ -317,6 +317,6 @@ TASK_STATUS_CHOICES = [
 
 
 # Ethernet formats
-ETH_FORMAT_COLON = 0    # aa:bb:cc:dd:ee:ff
-ETH_FORMAT_HYPHEN = 1   # aa-bb-cc-dd-ee-ff
-ETH_FORMAT_CISCO = 2    # aabb.ccdd.eeff
+ETH_FORMAT_COLON = 0  # aa:bb:cc:dd:ee:ff
+ETH_FORMAT_HYPHEN = 1  # aa-bb-cc-dd-ee-ff
+ETH_FORMAT_CISCO = 2  # aabb.ccdd.eeff

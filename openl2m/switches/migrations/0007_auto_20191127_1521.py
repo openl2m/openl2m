@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('switches', '0006_auto_20191127_1512'),
     ]
@@ -13,16 +12,29 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='switchgroup',
             name='display_name',
-            field=models.CharField(blank=True, help_text="Display name allows you to override the group name. This is mostly useful for auto-created LDAP groups, that may not have 'display friendly' names.", max_length=64, verbose_name='Display name overrides the group name'),
+            field=models.CharField(
+                blank=True,
+                help_text="Display name allows you to override the group name. This is mostly useful for auto-created LDAP groups, that may not have 'display friendly' names.",
+                max_length=64,
+                verbose_name='Display name overrides the group name',
+            ),
         ),
         migrations.AlterField(
             model_name='switchgroup',
             name='edit_if_descr',
-            field=models.BooleanField(default=False, help_text='If set, allow interface descriptions to be edited.', verbose_name='Edit Port Description'),
+            field=models.BooleanField(
+                default=False,
+                help_text='If set, allow interface descriptions to be edited.',
+                verbose_name='Edit Port Description',
+            ),
         ),
         migrations.AlterField(
             model_name='switchgroup',
             name='read_only',
-            field=models.BooleanField(default=False, help_text='If set, the switches in this group are read-only for all users.', verbose_name='Read-Only access'),
+            field=models.BooleanField(
+                default=False,
+                help_text='If set, the switches in this group are read-only for all users.',
+                verbose_name='Read-Only access',
+            ),
         ),
     ]

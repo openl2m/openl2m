@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('switches', '0029_auto_20211004_1624'),
     ]
@@ -13,6 +12,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='commandtemplate',
             name='template',
-            field=models.CharField(help_text='The command template. Use {{field[1-8]}} or {{list[1-5]}} as needed.', max_length=512, verbose_name='Command Template'),
+            field=models.CharField(
+                help_text='The command template. Use {{field[1-8]}} or {{list[1-5]}} as needed.',
+                max_length=512,
+                verbose_name='Command Template',
+            ),
         ),
     ]

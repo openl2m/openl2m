@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('switches', '0020_auto_20210315_1636'),
     ]
@@ -14,21 +13,59 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='switch',
             name='command_list',
-            field=models.ForeignKey(blank=True, help_text='This is the list of commands (if any) that can be executed on the switch. Requires a Netmike/SSH profile.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='command_list', to='switches.commandlist'),
+            field=models.ForeignKey(
+                blank=True,
+                help_text='This is the list of commands (if any) that can be executed on the switch. Requires a Netmike/SSH profile.',
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name='command_list',
+                to='switches.commandlist',
+            ),
         ),
         migrations.AlterField(
             model_name='switch',
             name='napalm_device_type',
-            field=models.CharField(blank=True, choices=[('', 'None'), ('eos', 'Arista EOS'), ('ios', 'Cisco IOS'), ('iosxr', 'Cisco IOS-XR'), ('nxos_ssh', 'Cisco NX-OS SSH'), ('junos', 'Juniper JunOS')], default='', help_text='The device type to use if Napalm connector is used.', max_length=64, null=True, verbose_name='Napalm Device Type'),
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ('', 'None'),
+                    ('eos', 'Arista EOS'),
+                    ('ios', 'Cisco IOS'),
+                    ('iosxr', 'Cisco IOS-XR'),
+                    ('nxos_ssh', 'Cisco NX-OS SSH'),
+                    ('junos', 'Juniper JunOS'),
+                ],
+                default='',
+                help_text='The device type to use if Napalm connector is used.',
+                max_length=64,
+                null=True,
+                verbose_name='Napalm Device Type',
+            ),
         ),
         migrations.AlterField(
             model_name='switch',
             name='netmiko_profile',
-            field=models.ForeignKey(blank=True, help_text='The Netmiko/SSH Profile has all the settings to access the switch via SSH for additional command access. Also used for Napalm connections.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='netmiko_profile', to='switches.netmikoprofile', verbose_name='Netmiko/SSH Profile'),
+            field=models.ForeignKey(
+                blank=True,
+                help_text='The Netmiko/SSH Profile has all the settings to access the switch via SSH for additional command access. Also used for Napalm connections.',
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name='netmiko_profile',
+                to='switches.netmikoprofile',
+                verbose_name='Netmiko/SSH Profile',
+            ),
         ),
         migrations.AlterField(
             model_name='switch',
             name='snmp_profile',
-            field=models.ForeignKey(blank=True, help_text='The SNMP Profile has all the settings to read/write data on the switch. Not used for Napalm.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='snmp_profile', to='switches.snmpprofile', verbose_name='SNMP Profile'),
+            field=models.ForeignKey(
+                blank=True,
+                help_text='The SNMP Profile has all the settings to read/write data on the switch. Not used for Napalm.',
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name='snmp_profile',
+                to='switches.snmpprofile',
+                verbose_name='SNMP Profile',
+            ),
         ),
     ]
