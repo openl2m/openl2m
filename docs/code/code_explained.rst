@@ -56,10 +56,13 @@ object. It is in the users/ directory.
 This is where most of the work of the Web GUI is handled. Also the Connector() class and its derived classes and code
 that handle SNMP, Napalm, SSH, etc. are located in the switches/ directory.
 
-* counters
+* :doc:`counters <counters_app/index>`
 
-This is a simple app that add a named counter object and functionality. It is used throughout to track some usage counters.
+This is a simple app that adds a named counter object and functionality. It is used throughout to track some usage counters.
 
+* :doc:`notices <notices_app/index>`
+
+This is a simple app that adds a notification that can be shown during login.
 
 
 **Additional directories**

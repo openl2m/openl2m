@@ -15,9 +15,6 @@ Switch connections are made via the **Connector() class**. The Django "views" in
 The API is defined in *switches/connect/connector.py*. This *Connector()* base class
 is inherited by all device- or vendor-specific connectors.
 
-:doc:`Read the python documentation for this class. <../source/switches.connect>`
-
-
 **connect.py**
 
 **get_connection_object()** figures out what specific Connector() class to get
