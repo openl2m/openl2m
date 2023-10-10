@@ -1,3 +1,4 @@
+{% load helpers %}
 <div class="panel panel-default">
   <div class="panel-heading">
     <strong>{{ log_title }}</strong>
@@ -12,31 +13,49 @@
   </div>
   <div class="table-responsive">
     <table class="table table-hover table-headings">
-      <tr><th>When</th><th>Type</th><th>Activity</th><th>IP</th><th>User</th><th>Switch</th><th>Description</th></tr>
+      <tr><th>When</th><th>Type</th><th>Activity</th><th>IP</th><th>User</th><th>Device</th><th>Description</th></tr>
       {% for l in logs %}
         <tr>
           <td>{{ l.timestamp }}</td>
           <td>{{ l.get_type_display }}</td>
           <td>{{ l.get_action_display }}</td>
-          <td>{{ l.ip_address }}</td>
-          {% if request.user.is_superuser and l.user %}
-          <td><a href="{% url 'users:info' l.user.id %}"
-             data-toggle="tooltip"
-             title="Click here to see info on this user...">
-             {{ l.user }}
-          </a></td>
-          {% else %}
-          <td>{{ l.user }}</td>
-          {% endif %}
+          <td>{{ l.ip_address|get_ip4_info_links }}{{ l.ip_address }}</td>
           <td>
-            {% if l.switch and request.user.is_superuser and l.group %}
-              <a href="{% url 'switches:switch_basics' l.group.id l.switch.id %}"
-                 data-toggle="tooltip"
-                 title="Click here to go to this switch...">
-                 {{ l.switch }}
+            {% if l.user %}
+              {% if request.user.is_superuser or request.user.is_staff %}
+              <a href="{% url 'switches:admin_activity'%}?user={{ l.user.id }}"
+                data-toggle="tooltip"
+                title="Click here to see all logs for '{{ l.user }}'">
+              <i class="fas fa-list-ul" aria-hidden="true"></i>
               </a>
-            {% else %}
-              {{ l.switch }}
+              &nbsp;
+              <a href="{% url 'users:info' l.user.id %}"
+                  data-toggle="tooltip"
+                  title="Click here to see info on '{{ l.user }}'">
+                {{ l.user }}
+                </a>
+              {% else %}
+                {{ l.user }}
+              {% endif %}
+          {% endif %}
+          </td>
+          <td>
+            {% if l.switch and l.group %}
+              {% if request.user.is_superuser or request.user.is_staff %}
+              <a href="{% url 'switches:admin_activity'%}?switch={{ l.switch.id }}"
+                data-toggle="tooltip"
+                title="Click here to see all logs for '{{ l.switch }}'">
+              <i class="fas fa-list-ul" aria-hidden="true"></i>
+              </a>
+              &nbsp;
+              <a href="{% url 'switches:switch_basics' l.group.id l.switch.id %}"
+                  data-toggle="tooltip"
+                  title="Click here to connect to '{{ l.switch }}'">
+                  {{ l.switch }}
+                </a>
+              {% else %}
+                {{ l.switch }}
+              {% endif %}
             {% endif %}
           </td>
           <td>{{ l.description }}</td>
