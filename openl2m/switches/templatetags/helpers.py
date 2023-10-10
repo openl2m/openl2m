@@ -19,7 +19,7 @@ from django.template import Template, Context
 from django.utils.html import mark_safe
 
 from switches.models import SwitchGroupMembership
-from switches.constants import SWITCH_VIEW_BASIC, SWITCH_VIEW_DETAILS
+from switches.constants import SWITCH_STATUS_ACTIVE, SWITCH_VIEW_BASIC, SWITCH_VIEW_DETAILS
 from switches.connect.constants import (
     ENTITY_CLASS_NAME,
     POE_PSE_STATUS_ON,
@@ -247,7 +247,8 @@ def get_my_switchgroups(groups):
             s = s + " collapse"
         s = s + "\">\n    <ul class=\"list-group\">"
         for member in SwitchGroupMembership.objects.filter(switchgroup=group):
-            s = s + f"\n    {get_switch_link(group, member.switch)}"
+            if member.switch.status == SWITCH_STATUS_ACTIVE:
+                s = s + f"\n    {get_switch_link(group, member.switch)}"
         s = s + "\n    </ul>\n   </div>"  # /div ends panel-collapse
 
         # and end this group header and group:
