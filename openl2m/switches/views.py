@@ -1724,8 +1724,8 @@ def switch_save_config(request, group_id, switch_id, view):
         conn.save_cache()
 
     else:
-        log.type = LOG_TYPE_ERROR
-        log.description = "Can not save config"
+        log.type = LOG_TYPE_WARNING
+        log.description = f"Can not save config (needed={conn.set_save_needed}, can={conn.can_save_config})"
         log.save()
         counter_increment(COUNTER_ERRORS)
         error = Error()
