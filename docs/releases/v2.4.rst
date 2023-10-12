@@ -21,6 +21,23 @@ We also add the **ability to create, edit or delete vlans in SNMP devices**.
     See the installation steps for more details.
 
 
+Version 2.4.8
+-------------
+
+Release Date: 2023-10-12
+
+* add SSH command time-out setting, defaults to 15 (from 10 Netmiko default).
+  See the SSH_COMMAND_TIMEOUT value in openl2m/configuration.py
+* update all sources to python black code formatting style.
+* add more log info links for admin & staff.
+
+Bugfixes:
+
+* handle undocumented error condition in SSH send command code.
+* changed cannot-save to log warning message (instead of error).
+* fix menu only shows active devices.
+
+
 Version 2.4.7
 -------------
 
