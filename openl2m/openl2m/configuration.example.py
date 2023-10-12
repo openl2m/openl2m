@@ -463,6 +463,8 @@ EMAIL_SUBJECT_PREFIX_USER = '[OpenL2M] '
 # the max time to wait, in seconds, for a new-style "cisco-copy-mib" "write mem" to complete:
 CISCO_WRITE_MEM_MAX_WAIT = 5
 
+# SSH command read timeout, default = 15 (Netmiko library default = 10)
+SSH_COMMAND_TIMEOUT = 15
 
 # perform hostname lookup from IP addresses found in ARP info, Admin pages, etc.
 # Note this could have impact on page rendering, depending on how fast your

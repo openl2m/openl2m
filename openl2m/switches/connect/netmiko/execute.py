@@ -18,6 +18,8 @@ to execute various 'show' or 'display' commands
 import traceback
 import netmiko
 
+from django.conf import settings
+
 from switches.connect.classes import Error
 from switches.utils import dprint
 
@@ -129,7 +131,13 @@ class NetmikoExecute:
         if self.connection:
             self.disable_paging()
             try:
-                self.output = self.connection.send_command(command)
+                self.output = self.connection.send_command(command, read_timeout=settings.SSH_COMMAND_TIMEOUT)
+            except netmiko.exceptions.ReadTimeout as err:
+                self.output = "Error: the command timed out!"
+                self.error.status = True
+                self.error.description = "Error: the command timed out!"
+                self.error.details = f"Netmiko Error: {repr(err)}"
+                return False
             except Exception as err:
                 self.output = "Error sending command!"
                 self.error.status = True
@@ -143,33 +151,3 @@ class NetmikoExecute:
             self.error.description = "Error sending command!"
             self.error.details = "Netmiko: No Connection found!"
             return False
-
-    # def execute_config_commands(self, commands):
-    #     """
-    #     Put the switch in 'config' mode, and then execute a command string or
-    #     list of commands on the switch.
-
-    #     Returns:
-    #         (boolean): True if success, False on failure.
-    #     """
-    #     dprint(f"NetmikoConnector execute_config_command '{commands}'")
-    #     self.output = ''
-    #     if not self.connection:
-    #         self.connect()
-    #     if self.connection:
-    #         try:
-    #             self.connection.send_config_set(commands)
-    #         except Exception:
-    #             self.output = "Error sending commands!"
-    #             dprint("Exception in connection.send_config_set()!")
-    #             self.error.status = True
-    #             self.error.description = "Error sending command!"
-    #             self.error.details = f""Netmiko Error: {repr(e)} ({str(type(e))})"
-    #             return False
-    #         return True
-    #     else:
-    #         self.output = "No connection found!"
-    #         self.error.status = True
-    #         self.error.description = "Error sending command!"
-    #         self.error.details = "Netmiko: No Connection found!"
-    #         return False

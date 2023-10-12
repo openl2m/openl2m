@@ -414,3 +414,6 @@ LOOKUP_HOSTNAME_ARP = getattr(configuration, 'LOOKUP_HOSTNAME_ARP', False)
 LOOKUP_HOSTNAME_LLDP = getattr(configuration, 'LOOKUP_HOSTNAME_LLDP', False)
 # lookup hostnames for routed interface IP addresses.
 LOOKUP_HOSTNAME_ROUTED_IP = getattr(configuration, 'LOOKUP_HOSTNAME_ROUTED_IP', False)
+
+# SSH command read timeout, default = 15 (Netmiko library default = 10)
+SSH_COMMAND_TIMEOUT = getattr(configuration, 'SSH_COMMAND_TIMEOUT', 15)
