@@ -71,16 +71,16 @@ class NetmikoExecute:
             handle = netmiko.ConnectHandler(**device)
         except netmiko.NetMikoTimeoutException:
             self.error.status = True
-            self.error.description = "Connection time-out! Please ask the admin to correct the switch hostname or IP."
+            self.error.description = "Connection time-out! Please ask the admin to verify the switch hostname or IP, or change the SSH_COMMAND_TIMEOUT configuration."
             return False
         except netmiko.NetMikoAuthenticationException:
             self.error.status = True
             self.error.description = "Access denied! Please ask the admin to correct the switch credentials."
             return False
-        except Exception as e:
+        except Exception as err:
             self.error.status = True
             self.error.description = "SSH Connection denied! Please inform your admin."
-            self.error.details = f"Netmiko Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
             return False
 
         self.connection = handle
@@ -88,8 +88,11 @@ class NetmikoExecute:
 
     def disable_paging(self):
         """
-        disable paging, ie the "hit a key" for more
+        Disable paging, ie the "hit a key" for more
         We call the Netmiko built-in function
+
+        Return:
+            (boolean): True on success, False on error.
         """
         if not self.connection:
             self.connect()
@@ -100,18 +103,24 @@ class NetmikoExecute:
                 command = 'no page'
             else:
                 # other types just use default command (defaults to Cisco)
-                command = 'teminal length 0'
+                command = 'terminal length 0'
             try:
                 self.connection.disable_paging(command)
-            except Exception:
-                self.output = "Error disabling paging!"
+            except Exception as err:
+                self.output = f"Error disabling paging! {err}"
                 return False
         return True
 
     def execute_command(self, command):
         """
-        Execute a single command on the switch and return True on success.
-        Set the command output to self.output
+        Execute a single command on the device.
+        Save the command output to self.output
+
+        Args:
+            command: the string the execute as a command on the device
+
+        Returns:
+            (boolean): True if success, False on failure.
         """
         dprint(f"NetmikoConnector execute_command() '{command}'")
         self.output = ''
@@ -121,32 +130,46 @@ class NetmikoExecute:
             self.disable_paging()
             try:
                 self.output = self.connection.send_command(command)
-            except Exception:
+            except Exception as err:
                 self.output = "Error sending command!"
+                self.error.status = True
+                self.error.description = "Error sending command!"
+                self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})"
                 return False
             return True
         else:
             self.output = "No connection found!"
+            self.error.status = True
+            self.error.description = "Error sending command!"
+            self.error.details = "Netmiko: No Connection found!"
             return False
 
-    def execute_config_commands(self, commands):
-        """
-        Put the switch in 'config' mode, and then execute a command string or
-        list of commands on the switch.
-        Return the command output
-        """
-        dprint(f"NetmikoConnector execute_config_command '{commands}'")
-        self.output = ''
-        if not self.connection:
-            self.connect()
-        if self.connection:
-            try:
-                self.connection.send_config_set(commands)
-            except Exception:
-                self.output = "Error sending commands!"
-                dprint("Exception in connection.send_config_set()!")
-                return False
-            return True
-        else:
-            self.output = "No connection found!"
-            return -1
+    # def execute_config_commands(self, commands):
+    #     """
+    #     Put the switch in 'config' mode, and then execute a command string or
+    #     list of commands on the switch.
+
+    #     Returns:
+    #         (boolean): True if success, False on failure.
+    #     """
+    #     dprint(f"NetmikoConnector execute_config_command '{commands}'")
+    #     self.output = ''
+    #     if not self.connection:
+    #         self.connect()
+    #     if self.connection:
+    #         try:
+    #             self.connection.send_config_set(commands)
+    #         except Exception:
+    #             self.output = "Error sending commands!"
+    #             dprint("Exception in connection.send_config_set()!")
+    #             self.error.status = True
+    #             self.error.description = "Error sending command!"
+    #             self.error.details = f""Netmiko Error: {repr(e)} ({str(type(e))})"
+    #             return False
+    #         return True
+    #     else:
+    #         self.output = "No connection found!"
+    #         self.error.status = True
+    #         self.error.description = "Error sending command!"
+    #         self.error.details = "Netmiko: No Connection found!"
+    #         return False
