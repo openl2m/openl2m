@@ -16,12 +16,12 @@ import re
 
 from django.conf import settings
 
-from switches.utils import dprint
+from switches.utils import dprint, get_remote_ip
 
 # are we actually using LDAP
 if settings.LDAP_CONFIG is not None:
     from django.dispatch import receiver
-    from django_auth_ldap.backend import populate_user, LDAPBackend
+    from django_auth_ldap.backend import populate_user, ldap_error, LDAPBackend
 
     from switches.models import SwitchGroup, Log
     import switches.constants as constants
@@ -117,3 +117,25 @@ if settings.LDAP_CONFIG is not None:
                         )
                         log.save()
                         dprint(f"LDAP: ERROR adding user to switchgroup '{switchgroup_name}'")
+
+    @receiver(ldap_error, sender=LDAPBackend)
+    def ldap_error_handler(context, user, request, exception, **kwargs):
+        """
+        Django Signal handler that logs LDAP related login errors
+
+        This signal gets called the Django Auth LDAP Package receives and LDAP error
+        See https://django-auth-ldap.readthedocs.io/en/latest/reference.html#django_auth_ldap.backend.ldap_error
+        and LDAPError() at https://www.python-ldap.org/en/latest/reference/ldap.html#ldap.LDAPError
+        """
+        ldap_error_string = f"context={context}, LDAPError()={exception}, user={user}, request={request}"
+        dprint(f"### LDAP ERROR: {ldap_error_string}")
+
+        # Log the ldap error
+        log = Log(
+            user=user,
+            ip_address=get_remote_ip(request),
+            action=constants.LOG_LDAP_ERROR_BACKEND,
+            description=f"LDAP Backend error: {ldap_error_string}",
+            type=constants.LOG_TYPE_ERROR,
+        )
+        log.save()
