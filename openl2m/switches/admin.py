@@ -38,7 +38,6 @@ from switches.models import (
 # register with the custom admin site
 from openl2m.admin import admin_site
 
-
 # See:
 # https://docs.djangoproject.com/en/dev/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal
 #

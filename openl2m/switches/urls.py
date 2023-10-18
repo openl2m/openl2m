@@ -15,12 +15,25 @@ from django.urls import path, register_converter
 
 # from django.conf.urls import url
 
-from . import views
+from switches import views
+from switches.views import (
+    APISwitchDetailView,
+    APISwitchSpeedView,
+    APISwitchArpView,
+    APISwitchStateView,
+    APISwitchVlanView,
+    APIInterfaceDetailView,
+    APIInterfaceSpeedView,
+    APIInterfaceArpView,
+    APIInterfaceStateView,
+    APIInterfaceVlanView,
+    APIObtainAuthToken,
+)
 
 
 class InterfaceNameConvertor:
     # convertor class to make sure interface names follow url-safe formats
-    regex = '[a-zA-Z0-9\/_\-]*'
+    regex = "[a-zA-Z0-9\/_\-]*"
 
     def to_python(self, value):
         # replace _ with /
@@ -31,9 +44,12 @@ class InterfaceNameConvertor:
         return value.replace("/", "_")
 
 
-register_converter(InterfaceNameConvertor, 'ifname')
+register_converter(
+    InterfaceNameConvertor,
+    "ifname",
+)
 
-app_name = 'switches'
+app_name = "switches"
 urlpatterns = [
     path('', views.switches, name='groups'),
     path(r'search', views.switch_search, name='switch_search'),
@@ -82,5 +98,63 @@ urlpatterns = [
         '<int:group_id>/<int:switch_id>/<ifname:interface_name>/command/',
         views.interface_cmd_output,
         name='interface_cmd_output',
+    ),
+    # api switch views
+    path(
+        "api/details/<int:group_id>/<int:switch_id>/",
+        APISwitchDetailView.as_view(),
+        name="api_interface_detail_view",
+    ),
+    path(
+        "api/speed/<int:group_id>/<int:switch_id>/",
+        APISwitchSpeedView.as_view(),
+        name="api_interface_detail_view",
+    ),
+    path(
+        "api/arp/<int:group_id>/<int:switch_id>/",
+        APISwitchArpView.as_view(),
+        name="api_interface_detail_view",
+    ),
+    path(
+        "api/vlan/<int:group_id>/<int:switch_id>/",
+        APISwitchVlanView.as_view(),
+        name="api_interface_detail_view",
+    ),
+    path(
+        "api/state/<int:group_id>/<int:switch_id>/",
+        APISwitchStateView.as_view(),
+        name="api_interface_detail_view",
+    ),
+    # api interface views
+    path(
+        "api/details/<int:group_id>/<int:switch_id>/<ifname:interface_name>/",
+        APIInterfaceDetailView.as_view(),
+        name="api_interface_detail_view",
+    ),
+    path(
+        "api/speed/<int:group_id>/<int:switch_id>/<ifname:interface_name>/",
+        APIInterfaceSpeedView.as_view(),
+        name="api_interface_detail_view",
+    ),
+    path(
+        "api/arp/<int:group_id>/<int:switch_id>/<ifname:interface_name>/",
+        APIInterfaceArpView.as_view(),
+        name="api_interface_detail_view",
+    ),
+    path(
+        "api/vlan/<int:group_id>/<int:switch_id>/<ifname:interface_name>/",
+        APIInterfaceVlanView.as_view(),
+        name="api_interface_detail_view",
+    ),
+    path(
+        "api/state/<int:group_id>/<int:switch_id>/<ifname:interface_name>/",
+        APIInterfaceStateView.as_view(),
+        name="api_interface_detail_view",
+    ),
+    # api token path @post only
+    path(
+        "api/token/",
+        APIObtainAuthToken.as_view(),
+        name="api_get_token_for_user",
     ),
 ]

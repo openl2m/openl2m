@@ -124,6 +124,20 @@ from counters.constants import (
 )
 from notices.models import Notice
 
+# rest_framework
+from django.contrib.auth.mixins import LoginRequiredMixin
+from rest_framework.authentication import (
+    SessionAuthentication,
+    BasicAuthentication,
+    TokenAuthentication,
+)
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
 
 def close_device(request):
     """Close out any session left over from the previous device user was looking at
@@ -165,7 +179,7 @@ def switches(request):
     It shows the list of switches a user has access to
     """
 
-    template_name = 'home.html'
+    template_name = "home.html"
 
     # close out any previous device user was working on
     close_device(request=request)
@@ -181,12 +195,12 @@ def switches(request):
     permissions = {}
     if request.user.is_superuser or request.user.is_staff:
         # optimize data queries, get all related field at once!
-        groups = SwitchGroup.objects.all().order_by('name')
+        groups = SwitchGroup.objects.all().order_by("name")
 
     else:
-        # figure out what this users has access to.
+        # figure out what this user has access to.
         # Note we use the ManyToMany 'related_name' attribute for readability!
-        groups = request.user.switchgroups.all().order_by('name')
+        groups = request.user.switchgroups.all().order_by("name")
 
     for group in groups:
         if group.switches.count():
@@ -204,7 +218,7 @@ def switches(request):
                         group.name,
                     )
 
-    save_to_http_session(request, 'permissions', permissions)
+    save_to_http_session(request, "permissions", permissions)
 
     # log my activity
     log = Log(
@@ -227,8 +241,8 @@ def switches(request):
         request,
         template_name,
         {
-            'groups': switchgroups,
-            'groups_count': len(switchgroups),
+            "groups": switchgroups,
+            "groups_count": len(switchgroups),
         },
     )
 
@@ -240,13 +254,13 @@ def switch_search(request):
     """
 
     if not settings.SWITCH_SEARCH_FORM:
-        return redirect(reverse('switches:groups'))
+        return redirect(reverse("switches:groups"))
 
-    search = str(request.POST.get('switchname', ''))
+    search = str(request.POST.get("switchname", ""))
     # remove leading and trailing white spaceA
     search = search.strip()
     if not search:
-        return redirect(reverse('switches:groups'))
+        return redirect(reverse("switches:groups"))
 
     template_name = "search_results.html"
 
@@ -263,7 +277,7 @@ def switch_search(request):
     results = []
     result_groups = {}
     warning = False
-    permissions = get_from_http_session(request, 'permissions')
+    permissions = get_from_http_session(request, "permissions")
     if permissions and isinstance(permissions, dict):
         for group_id in permissions.keys():
             switches = permissions[group_id]
@@ -302,7 +316,7 @@ def switch_basics(request, group_id, switch_id):
     Simply call switch_view() with proper parameter
     """
     counter_increment(COUNTER_VIEWS)
-    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='basic')
+    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="basic")
 
 
 @login_required(redirect_field_name=None)
@@ -312,7 +326,7 @@ def switch_arp_lldp(request, group_id, switch_id):
     Simply call switch_view() with proper parameter
     """
     counter_increment(COUNTER_DETAILVIEWS)
-    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='arp_lldp')
+    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="arp_lldp")
 
 
 @login_required(redirect_field_name=None)
@@ -322,11 +336,18 @@ def switch_hw_info(request, group_id, switch_id):
     Simply call switch_view() with proper parameter
     """
     counter_increment(COUNTER_HWINFO)
-    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='hw_info')
+    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="hw_info")
 
 
 def switch_view(
-    request, group_id, switch_id, view, command_id=-1, interface_name='', command_string='', command_template=False
+    request,
+    group_id,
+    switch_id,
+    view,
+    command_id=-1,
+    interface_name="",
+    command_string="",
+    command_template=False,
 ):
     """
     This shows the various data about a switch, either from a new SNMP read,
@@ -336,16 +357,16 @@ def switch_view(
     such as ethernet, arp & lldp tables.
     """
 
-    template_name = 'switch.html'
+    template_name = "switch.html"
 
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
+    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
 
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        error.details = "You do not have access to this device!"
-        return error_page(request=request, group=False, switch=False, error=error)
+    #    if not rights_to_group_and_switch(request, group_id, switch_id):
+    #         error = Error()
+    #         error.status = True
+    #         error.description = "Access denied!"
+    #         counter_increment(COUNTER_ACCESS_DENIED)
+    #         return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(
         user=request.user,
@@ -388,7 +409,7 @@ def switch_view(
 
     dprint("Basic Info OK")
 
-    if view == 'hw_info':
+    if view == "hw_info":
         # catch errors in case not trapped in drivers
         try:
             if not conn.get_hardware_details():
@@ -407,7 +428,7 @@ def switch_view(
             log.save()
             return error_page(request=request, group=group, switch=switch, error=conn.error)
 
-    if view == 'arp_lldp':
+    if view == "arp_lldp":
         # catch errors in case not trapped in drivers
         try:
             if not conn.get_client_data():
@@ -447,7 +468,7 @@ def switch_view(
             # success !
             log.type = LOG_TYPE_COMMAND
             log.action = LOG_EXECUTE_COMMAND
-            log.description = cmd['command']
+            log.description = cmd["command"]
         log.save()
     elif command_string:
         dprint("CALLING RUN_COMMAND_STRING")
@@ -464,31 +485,31 @@ def switch_view(
             # success !
             log.type = LOG_TYPE_COMMAND
             log.action = LOG_EXECUTE_COMMAND
-            log.description = cmd['command']
+            log.description = cmd["command"]
             log.save()
             # if the result of a command template, we may need to parse the output:
             if command_template:
                 # do we need to match output to show match/fail result?
-                output = cmd['output']
+                output = cmd["output"]
                 if command_template.output_match_regex:
-                    if string_contains_regex(cmd['output'], command_template.output_match_regex):
-                        cmd['output'] = (
+                    if string_contains_regex(cmd["output"], command_template.output_match_regex):
+                        cmd["output"] = (
                             command_template.output_match_text if command_template.output_match_text else "OK!"
                         )
                     else:
-                        cmd['output'] = (
+                        cmd["output"] = (
                             command_template.output_fail_text if command_template.output_fail_text else "FAIL!"
                         )
                 # do we need to filter (original) output to keep only matching lines?
                 if command_template.output_lines_keep_regex:
-                    matched_lines = ''
+                    matched_lines = ""
                     lines = output.splitlines()
                     for line in lines:
                         # we can probably improve performance by compiling the regex first...
                         if string_contains_regex(line, command_template.output_lines_keep_regex):
                             matched_lines = f"{matched_lines}\n{line}"
                     if matched_lines:
-                        cmd['output'] += "\nPartial output:\n" + matched_lines
+                        cmd["output"] += "\nPartial output:\n" + matched_lines
 
     else:
         # log the access:
@@ -499,7 +520,7 @@ def switch_view(
     logs = (
         Log.objects.all()
         .filter(switch=switch, type__gt=LOG_TYPE_VIEW)
-        .order_by('-timestamp')[: settings.RECENT_SWITCH_LOG_COUNT]
+        .order_by("-timestamp")[: settings.RECENT_SWITCH_LOG_COUNT]
     )
 
     time_since_last_read = time_duration(time.time() - conn.basic_info_read_timestamp)
@@ -514,17 +535,17 @@ def switch_view(
         request,
         template_name,
         {
-            'group': group,
-            'switch': switch,
-            'connection': conn,
-            'logs': logs,
-            'log_title': log_title,
-            'logs_link': True,
-            'view': view,
-            'cmd': cmd,
-            'bulk_edit': bulk_edit,
-            'edit_vlans': edit_vlans,
-            'time_since_last_read': time_since_last_read,
+            "group": group,
+            "switch": switch,
+            "connection": conn,
+            "logs": logs,
+            "log_title": log_title,
+            "logs_link": True,
+            "view": view,
+            "cmd": cmd,
+            "bulk_edit": bulk_edit,
+            "edit_vlans": edit_vlans,
+            "time_since_last_read": time_since_last_read,
         },
     )
 
@@ -537,16 +558,7 @@ def switch_bulkedit(request, group_id, switch_id):
     """
     Change several interfaces at once.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        error.details = "You do not have access to this device!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
+    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
     counter_increment(COUNTER_BULKEDITS)
 
     remote_ip = get_remote_ip(request)
@@ -570,17 +582,20 @@ def switch_bulkedit(request, group_id, switch_id):
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # read the submitted form data:
-    interface_change = int(request.POST.get('interface_change', INTERFACE_STATUS_NONE))
-    poe_choice = int(request.POST.get('poe_choice', BULKEDIT_POE_NONE))
-    new_pvid = int(request.POST.get('new_pvid', -1))
-    new_description = str(request.POST.get('new_description', ''))
-    new_description_type = int(request.POST.get('new_description_type', BULKEDIT_ALIAS_TYPE_REPLACE))
-    interface_list = request.POST.getlist('interface_list')
+    interface_change = int(request.POST.get("interface_change", INTERFACE_STATUS_NONE))
+    poe_choice = int(request.POST.get("poe_choice", BULKEDIT_POE_NONE))
+    new_pvid = int(request.POST.get("new_pvid", -1))
+    new_description = str(request.POST.get("new_description", ""))
+    new_description_type = int(request.POST.get("new_description_type", BULKEDIT_ALIAS_TYPE_REPLACE))
+    interface_list = request.POST.getlist("interface_list")
 
     # was anything submitted?
     if len(interface_list) == 0:
         return warning_page(
-            request=request, group=group, switch=switch, description=mark_safe("Please select at least 1 interface!")
+            request=request,
+            group=group,
+            switch=switch,
+            description=mark_safe("Please select at least 1 interface!"),
         )
 
     if (
@@ -613,7 +628,7 @@ def switch_bulkedit(request, group_id, switch_id):
                 description=f"Description not allowed: {new_description}",
             )
             log.save()
-            new_description = ''
+            new_description = ""
             counter_increment(COUNTER_ERRORS)
             errors.append(f"The description is not allowed: {new_description}")
 
@@ -666,15 +681,15 @@ def switch_bulkedit(request, group_id, switch_id):
     )
 
     # indicate we need to save config!
-    if results['success_count'] > 0:
+    if results["success_count"] > 0:
         conn.set_save_needed(True)
         # and save data in session
         conn.save_cache()
 
     # now build the results page from the outputs
-    result_str = "\n<br>".join(results['outputs'])
+    result_str = "\n<br>".join(results["outputs"])
     description = f"\n<div><strong>Bulk-Edit Results:</strong></div>\n<br>{result_str}"
-    if results['error_count'] > 0:
+    if results["error_count"] > 0:
         err = Error()
         err.description = "Bulk-Edit errors"
         err.details = mark_safe(description)
@@ -684,7 +699,15 @@ def switch_bulkedit(request, group_id, switch_id):
 
 
 def bulkedit_processor(
-    request, group, switch, interface_change, poe_choice, new_pvid, new_description, new_description_type, interfaces
+    request,
+    group,
+    switch,
+    interface_change,
+    poe_choice,
+    new_pvid,
+    new_description,
+    new_description_type,
+    interfaces,
 ):
     """
     Function to handle the bulk edit processing, from form-submission or scheduled job.
@@ -733,15 +756,19 @@ def bulkedit_processor(
         iface_count += 1
 
         # save the current state, right before we make a change!
-        current_state = {}
-        current_state['if_key'] = if_key
-        current_state['name'] = iface.name  # for readability
+        current_state = {"if_key": if_key, "name": iface.name}
 
         # now check all the things we could be changing,
         # start with UP/DOWN state:
         if interface_change != INTERFACE_STATUS_NONE:
-            log = Log(user=request.user, ip_address=remote_ip, if_name=iface.name, switch=switch, group=group)
-            current_state['admin_state'] = iface.admin_status
+            log = Log(
+                user=request.user,
+                ip_address=remote_ip,
+                if_name=iface.name,
+                switch=switch,
+                group=group,
+            )
+            current_state["admin_state"] = iface.admin_status
             if interface_change == INTERFACE_STATUS_CHANGE:
                 if iface.admin_status:
                     new_state = False
@@ -763,7 +790,7 @@ def bulkedit_processor(
                 log.action = LOG_CHANGE_INTERFACE_UP
 
             # are we actually making a change?
-            if new_state != current_state['admin_state']:
+            if new_state != current_state["admin_state"]:
                 # yes, apply the change:
                 retval = conn.set_interface_admin_status(iface, new_state)
                 if retval:
@@ -788,8 +815,14 @@ def bulkedit_processor(
             if not iface.poe_entry:
                 outputs.append(f"Interface {iface.name}: Ignored - not PoE capable")
             else:
-                log = Log(user=request.user, ip_address=remote_ip, if_name=iface.name, switch=switch, group=group)
-                current_state['poe_state'] = iface.poe_entry.admin_status
+                log = Log(
+                    user=request.user,
+                    ip_address=remote_ip,
+                    if_name=iface.name,
+                    switch=switch,
+                    group=group,
+                )
+                current_state["poe_state"] = iface.poe_entry.admin_status
                 if poe_choice == BULKEDIT_POE_DOWN_UP:
                     # Down / Up on interfaces with PoE Enabled:
                     if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
@@ -858,7 +891,7 @@ def bulkedit_processor(
                         log.action = LOG_CHANGE_INTERFACE_POE_UP
 
                     # are we actually making a change?
-                    if new_state != current_state['poe_state']:
+                    if new_state != current_state["poe_state"]:
                         # yes, go do it:
                         retval = conn.set_interface_poe_status(iface, new_state)
                         if retval < 0:
@@ -907,7 +940,7 @@ def bulkedit_processor(
                     group=group,
                     action=LOG_CHANGE_INTERFACE_PVID,
                 )
-                current_state['pvid'] = iface.untagged_vlan
+                current_state["pvid"] = iface.untagged_vlan
                 if new_pvid != iface.untagged_vlan:
                     # new vlan, go set it:
                     retval = conn.set_interface_untagged_vlan(iface, new_pvid)
@@ -966,7 +999,7 @@ def bulkedit_processor(
                 group=group,
                 action=LOG_CHANGE_INTERFACE_ALIAS,
             )
-            current_state['description'] = iface.description
+            current_state["description"] = iface.description
             retval = conn.set_interface_description(iface, iface_new_description)
             if retval < 0:
                 error_count += 1
@@ -1002,10 +1035,11 @@ def bulkedit_processor(
         log.description = "Bulk Edits OK!"
     log.save()
 
-    results = {}
-    results['success_count'] = success_count
-    results['error_count'] = error_count
-    results['outputs'] = outputs
+    results = {
+        "success_count": success_count,
+        "error_count": error_count,
+        "outputs": outputs,
+    }
     return results
 
 
@@ -1050,8 +1084,8 @@ def switch_vlan_manage(request, group_id, switch_id):
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # parse form items:
-    vlan_id = int(request.POST.get('vlan_id', -1))
-    vlan_name = str(request.POST.get('vlan_name', '')).strip()
+    vlan_id = int(request.POST.get("vlan_id", -1))
+    vlan_name = str(request.POST.get("vlan_name", "")).strip()
 
     if request.POST.get("vlan_create"):
         if not conn.vlan_exists(vlan_id) and vlan_name:
@@ -1167,7 +1201,10 @@ def switch_vlan_manage(request, group_id, switch_id):
                 conn.save_cache()
                 counter_increment(COUNTER_VLAN_MANAGE)
                 return success_page(
-                    request=request, group=group, switch=switch, description=f"Vlan {vlan_id} was deleted!"
+                    request=request,
+                    group=group,
+                    switch=switch,
+                    description=f"Vlan {vlan_id} was deleted!",
                 )
             else:
                 error = Error()
@@ -1189,9 +1226,7 @@ def switch_vlan_manage(request, group_id, switch_id):
             # NOT allowed if you are not super user!
             error = Error()
             error.status = True
-            error.description = (
-                f"Access Denied: vlan {vlan_id} does not exist, or you need to be SuperUser to delete a VLAN"
-            )
+            error.description = "Access Denied: you need to be SuperUser to delete a VLAN"
             return error_page(request=request, group=group, switch=switch, error=error)
 
     error = Error()
@@ -1208,17 +1243,15 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
     """
     Toggle the admin status of an interface, ie admin up or down.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
+    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
 
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        error.details = "You do not have access to this device!"
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    log = Log(user=request.user, ip_address=get_remote_ip(request), switch=switch, group=group, if_name=interface_name)
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        if_name=interface_name,
+    )
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1279,15 +1312,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
     """
     Change the ifAlias aka description on an interfaces.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        error.details = "You do not have access to this device!"
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
 
     log = Log(
         user=request.user,
@@ -1323,7 +1348,7 @@ def interface_description_change(request, group_id, switch_id, interface_name):
         return error_page(request=request, group=group, switch=switch, error=error)
 
     # read the submitted form data:
-    new_description = str(request.POST.get('new_description', ''))
+    new_description = str(request.POST.get("new_description", ""))
 
     if interface.description == new_description:
         description = "New description is the same, please change it first!"
@@ -1394,14 +1419,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
     Change the PVID untagged vlan on an interfaces.
     This still needs to handle dot1q trunked ports.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
 
     log = Log(
         user=request.user,
@@ -1496,17 +1514,15 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
     Change the PoE status of an interfaces.
     This still needs to be tested for propper PoE port to interface ifIndex mappings.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
+    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
 
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.status = True
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    log = Log(user=request.user, ip_address=get_remote_ip(request), switch=switch, group=group, if_name=interface_name)
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        if_name=interface_name,
+    )
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1581,17 +1597,15 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
     """
     Toggle the PoE status of an interfaces. I.e disable, wait some, then enable again.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
+    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
 
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.status = True
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    log = Log(user=request.user, ip_address=get_remote_ip(request), switch=switch, group=group, if_name=interface_name)
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        if_name=interface_name,
+    )
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1677,14 +1691,7 @@ def switch_save_config(request, group_id, switch_id, view):
     """
     This will save the running config to flash/startup/whatever, on supported platforms
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
 
     log = Log(
         user=request.user,
@@ -1745,8 +1752,14 @@ def switch_cmd_output(request, group_id, switch_id):
     """
     Go parse a global switch command that was submitted in the form
     """
-    command_id = int(request.POST.get('command_id', -1))
-    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view='basic', command_id=command_id)
+    command_id = int(request.POST.get("command_id", -1))
+    return switch_view(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+        view="basic",
+        command_id=command_id,
+    )
 
 
 @login_required(redirect_field_name=None)
@@ -1754,16 +1767,9 @@ def switch_cmd_template_output(request, group_id, switch_id):
     """
     Go parse a switch command template that was submitted in the form
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
+    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
 
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    template_id = int(request.POST.get('template_id', -1))
+    template_id = int(request.POST.get("template_id", -1))
     t = get_object_or_404(CommandTemplate, pk=template_id)
 
     # now build the command template:
@@ -1776,10 +1782,10 @@ def switch_cmd_template_output(request, group_id, switch_id):
     """
     # do we need to parse field1:
     if "{{field1}}" in t.template:
-        field1 = request.POST.get('field1', False)
+        field1 = request.POST.get("field1", False)
         if field1:
             if string_matches_regex(field1, t.field1_regex):
-                values['field1'] = str(field1)
+                values["field1"] = str(field1)
             else:
                 errors = True
                 error_string = f"{ t.field1_name } - Invalid entry: { field1 }"
@@ -1790,10 +1796,10 @@ def switch_cmd_template_output(request, group_id, switch_id):
 
     # do we need to parse field2:
     if "{{field2}}" in t.template:
-        field2 = request.POST.get('field2', False)
+        field2 = request.POST.get("field2", False)
         if field2:
             if string_matches_regex(field2, t.field2_regex):
-                values['field2'] = str(field2)
+                values["field2"] = str(field2)
             else:
                 errors = True
                 error_string += f"<br/>{ t.field2_name } - Invalid entry: { field2 }"
@@ -1804,10 +1810,10 @@ def switch_cmd_template_output(request, group_id, switch_id):
 
     # do we need to parse field3:
     if "{{field3}}" in t.template:
-        field3 = request.POST.get('field3', False)
+        field3 = request.POST.get("field3", False)
         if field3:
             if string_matches_regex(field3, t.field3_regex):
-                values['field3'] = str(field3)
+                values["field3"] = str(field3)
             else:
                 errors = True
                 error_string += f"<br/>{ t.field3_name } - Invalid entry: { field3 }"
@@ -1818,10 +1824,10 @@ def switch_cmd_template_output(request, group_id, switch_id):
 
     # do we need to parse field4:
     if "{{field4}}" in t.template:
-        field4 = request.POST.get('field4', False)
+        field4 = request.POST.get("field4", False)
         if field4:
             if string_matches_regex(field4, t.field4_regex):
-                values['field4'] = str(field4)
+                values["field4"] = str(field4)
             else:
                 errors = True
                 error_string += f"<br/>{ t.field4_name } - Invalid entry: { field4 } "
@@ -1832,10 +1838,10 @@ def switch_cmd_template_output(request, group_id, switch_id):
 
     # do we need to parse field5:
     if "{{field5}}" in t.template:
-        field5 = request.POST.get('field5_regex', False)
+        field5 = request.POST.get("field5_regex", False)
         if field5:
             if string_matches_regex(field5, t.field5_regex):
-                values['field5'] = str(field5)
+                values["field5"] = str(field5)
             else:
                 errors = True
                 error_string += f"<br/>{t.field5_name} - Invalid entry: { field5 }"
@@ -1846,10 +1852,10 @@ def switch_cmd_template_output(request, group_id, switch_id):
 
     # do we need to parse field6:
     if "{{field6}}" in t.template:
-        field6 = request.POST.get('field6', False)
+        field6 = request.POST.get("field6", False)
         if field6:
             if string_matches_regex(field1, t.field6_regex):
-                values['field6'] = str(field6)
+                values["field6"] = str(field6)
             else:
                 errors = True
                 error_string += f"<br/>{t.field6_name} - Invalid entry: { field6 } "
@@ -1860,10 +1866,10 @@ def switch_cmd_template_output(request, group_id, switch_id):
 
     # do we need to parse field7:
     if "{{field7}}" in t.template:
-        field7 = request.POST.get('field7', False)
+        field7 = request.POST.get("field7", False)
         if field7:
             if string_matches_regex(field7, t.field7_regex):
-                values['field7'] = str(field7)
+                values["field7"] = str(field7)
             else:
                 errors = True
                 error_string += f"<br/>{t.field7_name} - Invalid entry: { field7 }"
@@ -1874,10 +1880,10 @@ def switch_cmd_template_output(request, group_id, switch_id):
 
     # do we need to parse field8:
     if "{{field8}}" in t.template:
-        field8 = request.POST.get('field8', False)
+        field8 = request.POST.get("field8", False)
         if field8:
             if string_matches_regex(field8, t.field8_regex):
-                values['field8'] = str(field8)
+                values["field8"] = str(field8)
             else:
                 errors = True
                 error_string += f"<br/>{t.field8_name} - Invalid entry: { field8 }"
@@ -1889,9 +1895,9 @@ def switch_cmd_template_output(request, group_id, switch_id):
     # and the pick lists:
     # do we need to parse list1:
     if "{{list1}}" in t.template:
-        list1 = request.POST.get('list1', False)
+        list1 = request.POST.get("list1", False)
         if list1:
-            values['list1'] = str(list1)
+            values["list1"] = str(list1)
         else:
             # not found in form (or empty), but reqired (unlikely to happen for list)!
             errors = True
@@ -1899,9 +1905,9 @@ def switch_cmd_template_output(request, group_id, switch_id):
 
     # do we need to parse list2:
     if "{{list2}}" in t.template:
-        list2 = request.POST.get('list2', False)
+        list2 = request.POST.get("list2", False)
         if list2:
-            values['list2'] = str(list2)
+            values["list2"] = str(list2)
         else:
             # not found in form (or empty), but reqired (unlikely to happen for list)!
             errors = True
@@ -1909,9 +1915,9 @@ def switch_cmd_template_output(request, group_id, switch_id):
 
     # do we need to parse list3:
     if "{{list3}}" in t.template:
-        list3 = request.POST.get('list3', False)
+        list3 = request.POST.get("list3", False)
         if list3:
-            values['list3'] = str(list3)
+            values["list3"] = str(list3)
         else:
             # not found in form (or empty), but reqired (unlikely to happen for list)!
             errors = True
@@ -1919,9 +1925,9 @@ def switch_cmd_template_output(request, group_id, switch_id):
 
     # do we need to parse list4:
     if "{{list4}}" in t.template:
-        list4 = request.POST.get('list4', False)
+        list4 = request.POST.get("list4", False)
         if list4:
-            values['list4'] = str(list4)
+            values["list4"] = str(list4)
         else:
             # not found in form (or empty), but reqired (unlikely to happen for list)!
             errors = True
@@ -1929,9 +1935,9 @@ def switch_cmd_template_output(request, group_id, switch_id):
 
     # do we need to parse list5:
     if "{{list5}}" in t.template:
-        list5 = request.POST.get('list5', False)
+        list5 = request.POST.get("list5", False)
         if list5:
-            values['list5'] = str(list5)
+            values["list5"] = str(list5)
         else:
             # not found in form (or empty), but reqired (unlikely to happen for list)!
             errors = True
@@ -1951,9 +1957,9 @@ def switch_cmd_template_output(request, group_id, switch_id):
         request=request,
         group_id=group_id,
         switch_id=switch_id,
-        view='basic',
+        view="basic",
         command_id=-1,
-        interface_name='',
+        interface_name="",
         command_string=command,
         command_template=t,
     )
@@ -1964,12 +1970,12 @@ def interface_cmd_output(request, group_id, switch_id, interface_name):
     """
     Parse the interface-specific form and build the commands
     """
-    command_id = int(request.POST.get('command_id', -1))
+    command_id = int(request.POST.get("command_id", -1))
     return switch_view(
         request=request,
         group_id=group_id,
         switch_id=switch_id,
-        view='basic',
+        view="basic",
         command_id=command_id,
         interface_name=interface_name,
     )
@@ -1980,15 +1986,7 @@ def switch_reload(request, group_id, switch_id, view):
     """
     This forces a new reading of basic switch SNMP data
     """
-
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
 
     log = Log(
         user=request.user,
@@ -2012,24 +2010,15 @@ def switch_activity(request, group_id, switch_id):
     """
     This shows recent activity for a specific switch
     """
-    template_name = 'switch_activity.html'
-
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id):
-        error = Error()
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
+    template_name = "switch_activity.html"
+    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
 
     # only show this switch. May add more filters later...
-    filter = {}
-    filter['switch_id'] = switch_id
-    logs = Log.objects.all().filter(**filter).order_by('-timestamp')
+    filter = {"switch_id": switch_id}
+    logs = Log.objects.all().filter(**filter).order_by("-timestamp")
 
     # setup pagination of the resulting activity logs
-    page_number = int(request.GET.get('page', default=1))
+    page_number = int(request.GET.get("page", default=1))
     paginator = Paginator(logs, settings.PAGINATE_COUNT)  # Show set number of contacts per page.
     logs_page = paginator.get_page(page_number)
 
@@ -2046,22 +2035,22 @@ def switch_activity(request, group_id, switch_id):
     log.save()
 
     # get the url to this switch:
-    switch_url = reverse('switches:switch_basics', kwargs={'group_id': group.id, 'switch_id': switch.id})
+    switch_url = reverse("switches:switch_basics", kwargs={"group_id": group.id, "switch_id": switch.id})
     # formulate the title and link
     title = mark_safe(
-        f"All Activity for <a href=\"{switch_url}\" data-toggle=\"tooltip\" title=\"Go back to switch\">{switch.name}</a>"
+        f'All Activity for <a href="{switch_url}" data-toggle="tooltip" title="Go back to switch">{switch.name}</a>'
     )
     # render the template
     return render(
         request,
         template_name,
         {
-            'logs': logs_page,
-            'paginator': paginator,
-            'group': group,
-            'switch': switch,
-            'log_title': title,
-            'logs_link': False,
+            "logs": logs_page,
+            "paginator": paginator,
+            "group": group,
+            "switch": switch,
+            "log_title": title,
+            "logs_link": False,
         },
     )
 
@@ -2072,7 +2061,7 @@ def show_stats(request):
     This shows various site statistics
     """
 
-    template_name = 'admin_stats.html'
+    template_name = "admin_stats.html"
 
     # log my activity
     log = Log(
@@ -2084,15 +2073,16 @@ def show_stats(request):
     )
     log.save()
 
-    environment = {}  # OS environment information
-    environment['Python'] = f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
+    environment = {
+        "Python": f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
+    }  # OS environment information
     uname = os.uname()
-    environment['OS'] = f"{uname.sysname} ({uname.release})"
+    environment["OS"] = f"{uname.sysname} ({uname.release})"
     # environment['Version'] = uname.version
-    environment['Distro'] = f"{distro.name()} {distro.version(best=True)}"
-    environment['Hostname'] = uname.nodename
-    environment['Django'] = django.get_version()
-    environment['OpenL2M version'] = f"{settings.VERSION} ({settings.VERSION_DATE})"
+    environment["Distro"] = f"{distro.name()} {distro.version(best=True)}"
+    environment["Hostname"] = uname.nodename
+    environment["Django"] = django.get_version()
+    environment["OpenL2M version"] = f"{settings.VERSION} ({settings.VERSION_DATE})"
     import git
 
     try:
@@ -2101,26 +2091,25 @@ def show_stats(request):
         short_sha = repo.git.rev_parse(sha, short=8)
         branch = repo.active_branch
         commit_date = time.strftime("%a, %d %b %Y %H:%M UTC", time.gmtime(repo.head.object.committed_date))
-        environment['Git version'] = f"{branch} ({short_sha})"
-        environment['Git commit'] = commit_date
+        environment["Git version"] = f"{branch} ({short_sha})"
+        environment["Git commit"] = commit_date
     except Exception:
-        environment['Git version'] = 'Not found!'
+        environment["Git version"] = "Not found!"
 
-    db_items = {}  # database object item counts
-    db_items['Switches'] = Switch.objects.count()
+    db_items = {"Switches": Switch.objects.count()}  # database object item counts
     # need to calculate switchgroup count, as we count only groups with switches!
     group_count = 0
     for group in SwitchGroup.objects.all():
         if group.switches.count():
             group_count += 1
-    db_items['Switch Groups'] = group_count
-    db_items['Vlans'] = VLAN.objects.count()
-    db_items['Vlan Groups'] = VlanGroup.objects.count()
-    db_items['SNMP Profiles'] = SnmpProfile.objects.count()
-    db_items['Netmiko Profiles'] = NetmikoProfile.objects.count()
-    db_items['Commands'] = Command.objects.count()
-    db_items['Command Lists'] = CommandList.objects.count()
-    db_items['Log Entries'] = Log.objects.count()
+    db_items["Switch Groups"] = group_count
+    db_items["Vlans"] = VLAN.objects.count()
+    db_items["Vlan Groups"] = VlanGroup.objects.count()
+    db_items["SNMP Profiles"] = SnmpProfile.objects.count()
+    db_items["Netmiko Profiles"] = NetmikoProfile.objects.count()
+    db_items["Commands"] = Command.objects.count()
+    db_items["Command Lists"] = CommandList.objects.count()
+    db_items["Log Entries"] = Log.objects.count()
 
     usage = {}  # usage statistics
 
@@ -2141,36 +2130,38 @@ def show_stats(request):
     filter['timestamp__date'] = datetime.date.today()
     usage['Changes today'] = Log.objects.filter(**filter).count()
 
-    filter = {}
-    filter['type'] = int(LOG_TYPE_CHANGE)
-    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=7)
-    usage['Changes last 7 days'] = Log.objects.filter(**filter).count()
+    filter = {
+        "type": int(LOG_TYPE_CHANGE),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
+    }
+    usage["Changes last 7 days"] = Log.objects.filter(**filter).count()
 
-    filter = {}
-    filter['type'] = int(LOG_TYPE_CHANGE)
-    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
-    usage['Changes last 31 days'] = Log.objects.filter(**filter).count()
+    filter = {
+        "type": int(LOG_TYPE_CHANGE),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
+    }
+    usage["Changes last 31 days"] = Log.objects.filter(**filter).count()
 
     # the total change count since install from Counter()'changes') object:
-    usage['Total Changes'] = Counter.objects.get(name='changes').value
+    usage["Total Changes"] = Counter.objects.get(name="changes").value
 
-    filter = {}
-    filter['type'] = int(LOG_TYPE_COMMAND)
-    filter['timestamp__date'] = datetime.date.today()
-    usage['Commands today'] = Log.objects.filter(**filter).count()
+    filter = {"type": int(LOG_TYPE_COMMAND), "timestamp__date": datetime.date.today()}
+    usage["Commands today"] = Log.objects.filter(**filter).count()
 
-    filter = {}
-    filter['type'] = int(LOG_TYPE_COMMAND)
-    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=7)
-    usage['Commands last 7 days'] = Log.objects.filter(**filter).count()
+    filter = {
+        "type": int(LOG_TYPE_COMMAND),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
+    }
+    usage["Commands last 7 days"] = Log.objects.filter(**filter).count()
 
-    filter = {}
-    filter['type'] = int(LOG_TYPE_COMMAND)
-    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
-    usage['Commands last 31 days'] = Log.objects.filter(**filter).count()
+    filter = {
+        "type": int(LOG_TYPE_COMMAND),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
+    }
+    usage["Commands last 31 days"] = Log.objects.filter(**filter).count()
 
     # total number of commands run:
-    usage['Total Commands'] = Counter.objects.get(name='commands').value
+    usage["Total Commands"] = Counter.objects.get(name="commands").value
 
     user_list = get_current_users()
 
@@ -2179,10 +2170,10 @@ def show_stats(request):
         request,
         template_name,
         {
-            'db_items': db_items,
-            'usage': usage,
-            'environment': environment,
-            'user_list': user_list,
+            "db_items": db_items,
+            "usage": usage,
+            "environment": environment,
+            "user_list": user_list,
         },
     )
 
@@ -2198,7 +2189,7 @@ def admin_activity(request):
     This shows recent activity
     """
 
-    template_name = 'admin_activity.html'
+    template_name = "admin_activity.html"
 
     # what do we have rights to:
     if not request.user.is_superuser and not request.user.is_staff:
@@ -2219,33 +2210,38 @@ def admin_activity(request):
         return error_page(request=request, group=False, switch=False, error=error)
 
     # log my activity
-    log = Log(user=request.user, ip_address=get_remote_ip(request), type=LOG_TYPE_VIEW, action=LOG_VIEW_ALL_LOGS)
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        type=LOG_TYPE_VIEW,
+        action=LOG_VIEW_ALL_LOGS,
+    )
 
-    page_number = int(request.GET.get('page', default=1))
+    page_number = int(request.GET.get("page", default=1))
 
     # look at query string, and filter as needed
     filter = {}
     if len(request.GET) > 0:
-        if request.GET.get('type', ''):
-            filter['type'] = int(request.GET['type'])
-        if request.GET.get('action', ''):
-            filter['action'] = int(request.GET['action'])
-        if request.GET.get('user', ''):
-            filter['user_id'] = int(request.GET['user'])
-        if request.GET.get('switch', ''):
-            filter['switch_id'] = int(request.GET['switch'])
-        if request.GET.get('group', ''):
-            filter['group_id'] = int(request.GET['group'])
+        if request.GET.get("type", ""):
+            filter["type"] = int(request.GET["type"])
+        if request.GET.get("action", ""):
+            filter["action"] = int(request.GET["action"])
+        if request.GET.get("user", ""):
+            filter["user_id"] = int(request.GET["user"])
+        if request.GET.get("switch", ""):
+            filter["switch_id"] = int(request.GET["switch"])
+        if request.GET.get("group", ""):
+            filter["group_id"] = int(request.GET["group"])
 
     # now set the filter, if found
     if len(filter) > 0:
-        logs = Log.objects.all().filter(**filter).order_by('-timestamp')
+        logs = Log.objects.all().filter(**filter).order_by("-timestamp")
         log.description = f"Viewing filtered logs: {filter} (page {page_number})"
-        title = 'Filtered Activities'
+        title = "Filtered Activities"
     else:
-        logs = Log.objects.all().order_by('-timestamp')
+        logs = Log.objects.all().order_by("-timestamp")
         log.description = f"Viewing all logs (page {page_number})"
-        title = 'All Activities'
+        title = "All Activities"
     log.save()
 
     # setup pagination of the resulting activity logs
@@ -2257,18 +2253,871 @@ def admin_activity(request):
         request,
         template_name,
         {
-            'logs': logs_page,
-            'paginator': paginator,
-            'filter': filter,
-            'types': LOG_TYPE_CHOICES,
-            'actions': LOG_ACTION_CHOICES,
-            'switches': Switch.objects.all().order_by('name'),
-            'switchgroups': SwitchGroup.objects.all().order_by('name'),
-            'users': User.objects.all().order_by('username'),
-            'log_title': title,
-            'logs_link': False,
+            "logs": logs_page,
+            "paginator": paginator,
+            "filter": filter,
+            "types": LOG_TYPE_CHOICES,
+            "actions": LOG_ACTION_CHOICES,
+            "switches": Switch.objects.all().order_by("name"),
+            "switchgroups": SwitchGroup.objects.all().order_by("name"),
+            "users": User.objects.all().order_by("username"),
+            "log_title": title,
+            "logs_link": False,
         },
     )
+
+
+# Here we implement all api views as classes
+class APIInterfaceDetailView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+        SessionAuthentication,
+        BasicAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name="",
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+            if response_error:
+                return response_error
+            data = {
+                "interface": interface_name,
+                "macaddress": None,
+                "vlan": None,
+                "state": None,
+                "online": None,
+                "speed": None,
+            }
+            if conn.eth_addr_count > 0:
+                for key, iface in conn.interfaces.items():
+                    if key == interface_name:
+                        data["interface"] = interface_name
+                        for macaddress, eth in iface.eth.items():
+                            if macaddress != "":
+                                data["macaddress"] = macaddress
+                        if iface.untagged_vlan > 0:
+                            data["vlan"] = iface.untagged_vlan
+                        if iface.admin_status:
+                            data["state"] = "Enabled"
+                        else:
+                            data["state"] = "Disabled"
+                        if iface.oper_status:
+                            data["online"] = True
+                        else:
+                            data["online"] = False
+                        if iface.speed:
+                            data["speed"] = iface.speed
+                return Response(
+                    data=data,
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+            if response_error:
+                return response_error
+            # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+
+
+class APIInterfaceVlanView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name="",
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+            if response_error:
+                return response_error
+            data = {
+                "interface": interface_name,
+                "vlan": None,
+            }
+            if conn.eth_addr_count:
+                for key, iface in conn.interfaces.items():
+                    if key == interface_name:
+                        data["interface"] = interface_name
+                        if iface.untagged_vlan > 0:
+                            data["vlan"] = iface.untagged_vlan
+                return Response(
+                    data=data,
+                    status=status.HTTP_200_OK,
+                )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+            if response_error:
+                return response_error
+            # TODO: here we need to parse for the change of the primary untagged vlan for the interface
+
+
+class APIInterfaceSpeedView(
+    APIView,
+):
+    """
+        Return only the speed data for the selected interface.
+    All Interfaces should be integer based
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name=None,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+            if response_error:
+                return response_error
+            data = {
+                "interface": interface_name,
+                "speed": None,
+            }
+            if conn.eth_addr_count > 0:
+                for key, iface in conn.interfaces.items():
+                    if key == interface_name:
+                        data["interface"] = interface_name
+                        if iface.speed:
+                            data["speed"] = iface.speed
+                return Response(
+                    data=data,
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn = get_connection_switch(
+                request=request,
+                group=group,
+                switch=switch,
+            )
+            # TODO: here we need to parse the change for the speed of the interface (?hard checks?)
+
+
+class APIInterfaceStateView(
+    APIView,
+):
+    """
+        Return only the speed data for the selected interface.
+    All Interfaces should be integer based
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name=None,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+            if response_error:
+                return response_error
+            data = {
+                "interface": interface_name,
+                "state": None,
+                "online": None,
+            }
+            if conn.eth_addr_count > 0:
+                for key, iface in conn.interfaces.items():
+                    if key == interface_name:
+                        data["interface"] = interface_name
+                        if iface.admin_status:
+                            data["state"] = "Enabled"
+                        else:
+                            data["state"] = "Disabled"
+                        if iface.oper_status:
+                            data["online"] = True
+                        else:
+                            data["online"] = False
+                return Response(
+                    data=data,
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+            if response_error:
+                return response_error
+            # TODO: now here we need to parse the incoming data to actually change the state of the interface.
+
+
+class APIInterfaceArpView(
+    APIView,
+):
+    """
+        Return only the speed data for the selected interface.
+    All Interfaces should be integer based
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name=None,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+            if response_error:
+                return response_error
+            data = {
+                "interface": interface_name,
+                "macaddress": None,
+            }
+            if conn.eth_addr_count > 0:
+                for key, iface in conn.interfaces.items():
+                    if key == interface_name:
+                        data["interface"] = interface_name
+                        for macaddress, eth in iface.eth.items():
+                            if macaddress != "":
+                                data["macaddress"] = macaddress
+                return Response(
+                    data=data,
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if interface_name:
+            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+            if response_error:
+                return response_error
+            # TODO: now here we need to parse the incoming data and maybe change the macaddress
+
+
+"""
+This class gets all information from a switch about its Interfaces
+"""
+
+
+class APISwitchDetailView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+        SessionAuthentication,
+        BasicAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        if response_error:
+            return response_error
+        data = {
+            "switch": switch_id,
+            "interfaces": None,
+        }
+        interfaces = list()
+        if conn.eth_addr_count > 0:
+            for key, iface in conn.interfaces.items():
+                inf = {}
+                inf["interface"] = key
+                for macaddress, eth in iface.eth.items():
+                    if macaddress != "":
+                        inf["macaddress"] = macaddress
+                if iface.untagged_vlan > 0:
+                    inf["vlan"] = iface.untagged_vlan
+                if iface.admin_status:
+                    inf["state"] = "Enabled"
+                else:
+                    inf["state"] = "Disabled"
+                if iface.oper_status:
+                    inf["online"] = True
+                else:
+                    inf["online"] = False
+                if iface.speed:
+                    inf["speed"] = iface.speed
+                interfaces.append(inf)
+            data["interfaces"] = interfaces
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        if response_error:
+            return response_error
+        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+
+
+"""
+This class gets the speed of each interface from a switch about its Interfaces
+"""
+
+
+class APISwitchSpeedView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        if response_error:
+            return response_error
+        data = {
+            "switch": switch_id,
+            "interfaces": None,
+        }
+        interfaces = list()
+        if conn.eth_addr_count > 0:
+            for key, iface in conn.interfaces.items():
+                inf = {}
+                inf["interface"] = key
+                if iface.speed:
+                    inf["speed"] = iface.speed
+                interfaces.append(inf)
+            data["interfaces"] = interfaces
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        if response_error:
+            return response_error
+        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+
+
+class APISwitchVlanView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        if response_error:
+            return response_error
+        data = {
+            "switch": switch_id,
+            "interfaces": None,
+        }
+        interfaces = list()
+        if conn.eth_addr_count > 0:
+            for key, iface in conn.interfaces.items():
+                inf = {}
+                inf["interface"] = key
+                if iface.untagged_vlan > 0:
+                    inf["vlan"] = iface.untagged_vlan
+                interfaces.append(inf)
+            data["interfaces"] = interfaces
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        if response_error:
+            return response_error
+        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+
+
+"""
+This class gets all information from a switch about its Interfaces
+"""
+
+
+class APISwitchArpView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        if response_error:
+            return response_error
+        data = {
+            "switch": switch_id,
+            "interfaces": None,
+        }
+        interfaces = list()
+        if conn.eth_addr_count > 0:
+            for key, iface in conn.interfaces.items():
+                inf = {}
+                inf["interface"] = key
+                for macaddress, eth in iface.eth.items():
+                    if macaddress != "":
+                        inf["macaddress"] = macaddress
+                interfaces.append(inf)
+            data["interfaces"] = interfaces
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        if response_error:
+            return response_error
+        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+
+
+"""
+This class gets all information from a switch about its Interfaces
+"""
+
+
+class APISwitchStateView(
+    APIView,
+):
+    """
+    Return the ARP Information for an interface if there is any to return
+    All Interfaces should be integer
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        if response_error:
+            return response_error
+        data = {
+            "switch": switch_id,
+            "interfaces": None,
+        }
+        interfaces = list()
+        if conn.eth_addr_count > 0:
+            for key, iface in conn.interfaces.items():
+                inf = {}
+                inf["interface"] = key
+                if iface.admin_status:
+                    inf["state"] = "Enabled"
+                else:
+                    inf["state"] = "Disabled"
+                if iface.oper_status:
+                    inf["online"] = True
+                else:
+                    inf["online"] = False
+                interfaces.append(inf)
+            data["interfaces"] = interfaces
+            return Response(
+                data=data,
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            data=data,
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        if response_error:
+            return response_error
+        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+
+
+"""
+This class extends the ObtainAuthToken class
+"""
+
+
+class APIObtainAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(
+            raise_exception=True,
+        )
+        user = serializer.validated_data["user"]
+        token, created = Token.objects.get_or_create(user=user)
+        return Response(
+            {
+                "token": token.key,
+                "user_id": user.pk,
+                "email": user.email,
+            }
+        )
+
+
+"""
+This function is used to return us a conn object for requests to switches.
+Again it's usefull in deduplication.
+"""
+
+
+def get_connection_switch(request, group, switch):
+    response_error = None
+    try:
+        conn = get_connection_object(request, group, switch)
+    except ConnectionError as e:
+        error = f"The following ConnectionError: {e} occurred."
+        dprint(error)
+
+        response_error = Response(
+            data=error,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    try:
+        if not conn.get_basic_info():
+            error = "ERROR in get_basic_switch_info()"
+            dprint(error)
+        if not conn.get_client_data():
+            error = "ERROR in get_client_data()"
+            dprint(error)
+    except Exception as e:
+        error = f"Exception for get switch info {e}"
+        dprint(error)
+        response_error = Response(
+            data=error,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    conn.save_cache()
+    return conn, response_error
+
+
+"""
+This function removes all duplicate testing code
+"""
+
+
+def confirm_access_rights(
+    request=None,
+    group_id=None,
+    switch_id=None,
+):
+    """
+    Check if the current user has rights to this switch in this group
+    Returns the switch_group and switch_id for further processing
+    """
+    group = get_object_or_404(
+        SwitchGroup,
+        pk=group_id,
+    )
+    switch = get_object_or_404(
+        Switch,
+        pk=switch_id,
+    )
+    if not rights_to_group_and_switch(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+    ):
+        error = Error()
+        error.status = True
+        error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
+        return error_page(request=request, group=False, switch=False, error=error)
+    return group, switch
 
 
 def rights_to_group_and_switch(request, group_id, switch_id):
@@ -2279,9 +3128,29 @@ def rights_to_group_and_switch(request, group_id, switch_id):
     if request.user.is_superuser or request.user.is_staff:
         return True
     # for regular users, check permissions:
-    permissions = get_from_http_session(request, 'permissions')
+    permissions = get_from_http_session(request, "permissions")
     if permissions and isinstance(permissions, dict) and int(group_id) in permissions.keys():
         switches = permissions[int(group_id)]
         if isinstance(switches, dict) and int(switch_id) in switches.keys():
             return True
+    return False
+
+
+def user_can_access_task(request, task=False):
+    """
+    Check if the current user has rights to this task.
+    This needs more work, for now keep it simle.
+    Return True or False
+    """
+    if request.user.is_superuser or request.user.is_staff:
+        return True
+    if task:
+        if task.user == request.user:
+            return True
+        # does the user have rights to the group of this task?
+        permissions = get_from_http_session(request, "permissions")
+        if permissions and isinstance(permissions, dict) and str(task.group.id) in permissions.keys():
+            #  if member of group there is no need to check switch!
+            return True
+    # deny others
     return False
