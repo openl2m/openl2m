@@ -150,6 +150,20 @@ class Connector:
             self, 'get_my_hardware_details'
         )  # can we get more then basic device info?
 
+    def as_dict(self):
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        return {
+            'hostname': self.hostname,
+            'vendor': self.vendor_name,
+            'name': self.switch.name,
+            'id': self.switch.id,
+            'group': self.group.name,
+            'group_id': self.group.id,
+            # more to add later...
+        }
+
     def _close_device(self):
         """_close_device() is called to clean-up any session, REST credentials,etc when done with this device.
         This is called when changing device or logging out of the application.

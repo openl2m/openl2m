@@ -28,6 +28,11 @@ IF_TYPE_MCAST = 1025  # undefined by IEEE, but used by OpenL2M to indicate vario
 IF_DUPLEX_UNKNOWN = 1
 IF_DUPLEX_HALF = 2
 IF_DUPLEX_FULL = 3
+duplex_name = {
+    IF_DUPLEX_UNKNOWN: "Unknown",
+    IF_DUPLEX_HALF: "Half",
+    IF_DUPLEX_FULL: "Full",
+}
 
 LACP_IF_TYPE_NONE = 0  # not port of LACP aggregation
 LACP_IF_TYPE_MEMBER = 1  # this is a physical port and member
@@ -111,9 +116,16 @@ poe_priority_name[POE_PORT_PRIORITY_LOW] = "Low"
 VLAN_STATUS_OTHER = 1
 VLAN_STATUS_PERMANENT = 2
 VLAN_STATUS_DYNAMIC = 3
+vlan_status_name = {}
+vlan_status_name[VLAN_STATUS_OTHER] = "Other"
+vlan_status_name[VLAN_STATUS_PERMANENT] = "Permanent"
+vlan_status_name[VLAN_STATUS_DYNAMIC] = "Dynamic"
 
 VLAN_ADMIN_ENABLED = 1
 VLAN_ADMIN_DISABLED = 2
+vlan_admin_name = {}
+vlan_admin_name[VLAN_ADMIN_ENABLED] = "Enabled"
+vlan_admin_name[VLAN_ADMIN_DISABLED] = "Disabled"
 
 # mostly used for Cisco vlans, to avoid the 1000-1003 range. This is "regular(1)" in the Cisco VTP mib
 VLAN_TYPE_NORMAL = 1  # used to indicate 'normal' vlans,

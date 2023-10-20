@@ -21,17 +21,24 @@ All the generic classes we use to represent
 switch vlans, switch interfaces, switch neighbor devices, etc.
 """
 from switches.connect.constants import (
+    ENTITY_CLASS_NAME,
     IF_TYPE_NONE,
     IF_DUPLEX_UNKNOWN,
     LACP_IF_TYPE_NONE,
     VLAN_ADMIN_ENABLED,
     VLAN_STATUS_OTHER,
+    VLAN_STATUS_PERMANENT,
+    VLAN_STATUS_DYNAMIC,
     VLAN_TYPE_NORMAL,
     LLDP_CAPABILITIES_NONE,
     POE_PSE_STATUS_ON,
     POE_PSE_STATUS_OFF,
     POE_PSE_STATUS_FAULT,
     POE_PORT_DETECT_SEARCHING,
+    duplex_name,
+    poe_priority_name,
+    poe_status_name,
+    vlan_status_name,
 )
 from switches.utils import dprint, get_ip_dns_name
 
@@ -74,6 +81,19 @@ class StackMember:
         self.version = ""  # software revision of this device
         self.model = ""  # vendor model number
         self.info = ""  # hardware info string
+
+    def as_dict(self):
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        return {
+            'id': self.id,
+            'type': ENTITY_CLASS_NAME[self.type],
+            'serial': self.serial,  # this needs work to get a string return!
+            'version': self.version,
+            'model': self.model,
+            'info': self.info,
+        }
 
 
 class VendorData:
@@ -253,6 +273,53 @@ class Interface:
         self.lldp[neighbor.index] = neighbor
         return True
 
+    def as_dict(self):
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        inf = {}
+        inf["id"] = self.key
+        inf["name"] = self.name
+        inf["description"] = self.description
+        if self.is_routed:
+            inf["mode"] = "Routed"
+        elif self.is_tagged:
+            inf['mode'] = "Tagged"
+            # need to handle tagged vlans
+            inf["tagged_vlans"] = ", ".join(map(str, self.vlans))
+        else:
+            inf["mode"] = "Access"
+        if self.untagged_vlan > 0:
+            inf["vlan"] = self.untagged_vlan
+        if self.admin_status:
+            inf["state"] = "Enabled"
+        else:
+            inf["state"] = "Disabled"
+        if self.oper_status:
+            inf["online"] = True
+        else:
+            inf["online"] = False
+        if self.speed:
+            inf["speed"] = self.speed
+        inf["duplex"] = duplex_name[self.duplex]
+        if self.mtu:
+            inf["mtu"] = self.mtu
+
+        # add the learned mac addresses:
+        addresses = []
+        for address, eth in self.eth.items():
+            addresses.append(eth.as_dict())
+        inf['ethernet_addresses'] = addresses
+
+        # add the heard neighbors:
+        neighbors = []
+        for key, neighbor in self.lldp.items():
+            neighbors.append(neighbor.as_dict())
+        inf['neighbors'] = neighbors
+
+        # and return the dictionary:
+        return inf
+
     def display_name(self):
         s = self.name  # use the IF-MIB new interface name
         if self.description:
@@ -302,6 +369,24 @@ class Vlan:
         if self.name:
             return self.name
         return str(self.id)
+
+    def as_dict(self):
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        # vlan active status
+        if self.admin_status == VLAN_ADMIN_ENABLED:
+            vlan_status = "Enabled"
+        else:
+            vlan_status = "Disabled"
+        # and put it all in a dictionary:
+        return {
+            'id': self.id,
+            'name': self.name,
+            'state': vlan_admin_name[self.admin_status],
+            'type': vlan_status_name[self.status],
+            'igmp_snooping': self.igmp_snooping,
+        }
 
     def __str__(self):
         return self.display_name()
@@ -464,6 +549,18 @@ class EthernetAddress(netaddr.EUI):
     def set_ip6_address(self, ip6_address):
         self.address_ip6 = ip6_address
 
+    def as_dict(self):
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        return {
+            'address': self.__str__(),
+            'vlan': self.vlan_id,
+            'ipv4': self.address_ip4,
+            'ipv6': self.address_ip6,
+            'hostname': self.hostname,
+        }
+
     def __str__(self):
         """
         Print the ethernet string, formatted per the settings value.
@@ -586,6 +683,20 @@ class NeighborDevice:
         '''
         self.capabilities += capability
 
+    def as_dict(self):
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        return {
+            'port_name': self.port_name,
+            'port_description': self.port_descr,
+            'system_name': self.sys_name,
+            'system_description': self.sys_descr,
+            'hostname': self.hostname,
+            # need to handle capabilities, etc.
+            'capabilities': "TBD",
+        }
+
     def display_name(self):
         return self.sys_name
 
@@ -646,6 +757,18 @@ class PoePSE:
         except Exception:
             self.consumed_power = 0
 
+    def as_dict(self):
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        return {
+            'index': self.index,
+            'status': self.status,  # this needs work to get a string return!
+            'threshold': self.threshold,  # this needs work to get a string return!
+            'max_power': self.max_power,
+            'power_consumed': self.power_consumed,
+        }
+
     def display_name(self):
         return f"PS #{self.index}"
 
@@ -680,6 +803,19 @@ class PoePort:
         self.power_available = 0  # power available in milliWatt
         self.max_power_consumed = 0  # max power drawn since PoE reset, in milliWatt
 
+    def as_dict(self):
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        return {
+            'admin_status': self.admin_status,
+            'detect_status': poe_status_name[self.detect_status],
+            'power_consumption_supported': self.power_consumption_supported,
+            'power_consumed': self.power_consumed,
+            'power_available': self.power_available,
+            'max_power_consumed': self.max_power_consumed,
+        }
+
     def __str__(self):
         return (
             f"PoePort:\nIndex={self.index}\nAdmin={self.admin_status}\n"
@@ -707,6 +843,19 @@ class SyslogMsg:
         # datetime() value of message. Generic SYSLOG-MSG-MIB has time "string" (DateAndTime)
         # some vendor mibs have sys-uptime timetick. Recalculate all to datetime() object
         self.datetime = 0
+
+    def as_dict(self):
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        return {
+            'index': self.index,
+            'facility': self.facility,
+            'severity': self.severity,
+            'name': self.name,
+            'message': self.message,
+            'datetime': self.datetime,
+        }
 
     def __str__(self):
         return self.message  # for now.
