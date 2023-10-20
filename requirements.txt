@@ -9,6 +9,7 @@ easysnmp==0.2.5
 gitpython
 gunicorn
 hiredis
+httpie  # used for REST framework testing
 ip_address>=1.0.23
 isort
 Jinja2
@@ -51,5 +52,16 @@ PyYAML>=6.0
 pipenv
 XlsxWriter~=3.1.6
 
-djangorestframework~=3.14.0
+# A REST API framework for Django projects
+# https://www.django-rest-framework.org/community/release-notes/
+djangorestframework
+
+# Sane and flexible OpenAPI 3 schema generation for Django REST framework.
+# https://github.com/tfranzel/drf-spectacular/blob/master/CHANGELOG.rst
+drf-spectacular
+
+# Serve self-contained distribution builds of Swagger UI and Redoc with Django.
+# https://github.com/tfranzel/drf-spectacular-sidecar
+drf-spectacular-sidecar
+
 urllib3~=2.0.5

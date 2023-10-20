@@ -16,19 +16,6 @@ from django.urls import path, register_converter
 # from django.conf.urls import url
 
 from switches import views
-from switches.views import (
-    APISwitchDetailView,
-    APISwitchSpeedView,
-    APISwitchArpView,
-    APISwitchStateView,
-    APISwitchVlanView,
-    APIInterfaceDetailView,
-    APIInterfaceSpeedView,
-    APIInterfaceArpView,
-    APIInterfaceStateView,
-    APIInterfaceVlanView,
-    APIObtainAuthToken,
-)
 
 
 class InterfaceNameConvertor:
@@ -98,63 +85,5 @@ urlpatterns = [
         '<int:group_id>/<int:switch_id>/<ifname:interface_name>/command/',
         views.interface_cmd_output,
         name='interface_cmd_output',
-    ),
-    # api switch views
-    path(
-        "api/details/<int:group_id>/<int:switch_id>/",
-        APISwitchDetailView.as_view(),
-        name="api_interface_detail_view",
-    ),
-    path(
-        "api/speed/<int:group_id>/<int:switch_id>/",
-        APISwitchSpeedView.as_view(),
-        name="api_interface_detail_view",
-    ),
-    path(
-        "api/arp/<int:group_id>/<int:switch_id>/",
-        APISwitchArpView.as_view(),
-        name="api_interface_detail_view",
-    ),
-    path(
-        "api/vlan/<int:group_id>/<int:switch_id>/",
-        APISwitchVlanView.as_view(),
-        name="api_interface_detail_view",
-    ),
-    path(
-        "api/state/<int:group_id>/<int:switch_id>/",
-        APISwitchStateView.as_view(),
-        name="api_interface_detail_view",
-    ),
-    # api interface views
-    path(
-        "api/details/<int:group_id>/<int:switch_id>/<ifname:interface_name>/",
-        APIInterfaceDetailView.as_view(),
-        name="api_interface_detail_view",
-    ),
-    path(
-        "api/speed/<int:group_id>/<int:switch_id>/<ifname:interface_name>/",
-        APIInterfaceSpeedView.as_view(),
-        name="api_interface_detail_view",
-    ),
-    path(
-        "api/arp/<int:group_id>/<int:switch_id>/<ifname:interface_name>/",
-        APIInterfaceArpView.as_view(),
-        name="api_interface_detail_view",
-    ),
-    path(
-        "api/vlan/<int:group_id>/<int:switch_id>/<ifname:interface_name>/",
-        APIInterfaceVlanView.as_view(),
-        name="api_interface_detail_view",
-    ),
-    path(
-        "api/state/<int:group_id>/<int:switch_id>/<ifname:interface_name>/",
-        APIInterfaceStateView.as_view(),
-        name="api_interface_detail_view",
-    ),
-    # api token path @post only
-    path(
-        "api/token/",
-        APIObtainAuthToken.as_view(),
-        name="api_get_token_for_user",
     ),
 ]

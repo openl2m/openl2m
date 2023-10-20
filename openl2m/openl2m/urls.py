@@ -28,6 +28,8 @@ from django.urls import include, path
 # from django.conf.urls import include
 from django.http import HttpResponseRedirect
 
+from openl2m.api.views import APIObtainAuthToken, APIRootView, APIStatsView
+
 from users.views import LogoutView
 
 # Custom admin site:
@@ -61,6 +63,20 @@ urlpatterns = [
     path(r"users/", include("users.urls")),
     # Admin - customized, see admin.py
     path(r"admin/", admin_site.urls),
+    # API paths
+    path(r"api/", APIRootView.as_view(), name="api-root"),
+    # api token path @post only
+    path(
+        "api/token/",
+        APIObtainAuthToken.as_view(),
+        name="api-token",
+    ),
+    path(r"api/switches/", include("switches.api.urls")),
+    path(r"api/stats/", APIStatsView.as_view(), name='api-stats'),
+    # to be implemented:
+    # path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='api_docs'),
+    # path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='api_redocs'),
 ]
 
 if settings.DEBUG and settings.DEBUG_TOOLBAR:
