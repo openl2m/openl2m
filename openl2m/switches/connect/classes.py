@@ -36,8 +36,11 @@ from switches.connect.constants import (
     POE_PSE_STATUS_FAULT,
     POE_PORT_DETECT_SEARCHING,
     duplex_name,
-    poe_priority_name,
+    poe_admin_status_name,
+    #    poe_priority_name,
+    poe_pse_status_name,
     poe_status_name,
+    vlan_admin_name,
     vlan_status_name,
 )
 from switches.utils import dprint, get_ip_dns_name
@@ -107,6 +110,15 @@ class VendorData:
     def __init__(self, name, value):
         self.name = name
         self.value = value
+
+    def as_dict(self):
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        return {
+            'name': self.name,
+            'value': self.value,
+        }
 
 
 class IPNetworkHostname(netaddr.IPNetwork):
@@ -304,6 +316,9 @@ class Interface:
         inf["duplex"] = duplex_name[self.duplex]
         if self.mtu:
             inf["mtu"] = self.mtu
+        # PoE data:
+        if self.poe_entry:
+            inf['poe'] = self.poe_entry.as_dict()
 
         # add the learned mac addresses:
         addresses = []
@@ -374,17 +389,11 @@ class Vlan:
         '''
         return this class as a dictionary for use by the API
         '''
-        # vlan active status
-        if self.admin_status == VLAN_ADMIN_ENABLED:
-            vlan_status = "Enabled"
-        else:
-            vlan_status = "Disabled"
-        # and put it all in a dictionary:
         return {
             'id': self.id,
             'name': self.name,
             'state': vlan_admin_name[self.admin_status],
-            'type': vlan_status_name[self.status],
+            'status': vlan_status_name[self.status],
             'igmp_snooping': self.igmp_snooping,
         }
 
@@ -721,6 +730,18 @@ class PoePSE:
         self.power_consumed = 0  # total power consumed on this power supply
         self.threshold = 0
 
+    def as_dict(self):
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        return {
+            'id': self.index,
+            'max_power': self.max_power,
+            'status': poe_pse_status_name[self.status],
+            'power_consumed': self.power_consumed,
+            'threshold': self.threshold,
+        }
+
     def set_enabled(self):
         '''
         Set status as Enabled.
@@ -756,18 +777,6 @@ class PoePSE:
             self.power_consumed = int(power)
         except Exception:
             self.consumed_power = 0
-
-    def as_dict(self):
-        '''
-        return this class as a dictionary for use by the API
-        '''
-        return {
-            'index': self.index,
-            'status': self.status,  # this needs work to get a string return!
-            'threshold': self.threshold,  # this needs work to get a string return!
-            'max_power': self.max_power,
-            'power_consumed': self.power_consumed,
-        }
 
     def display_name(self):
         return f"PS #{self.index}"
@@ -808,8 +817,9 @@ class PoePort:
         return this class as a dictionary for use by the API
         '''
         return {
-            'admin_status': self.admin_status,
+            'admin_status': poe_admin_status_name[self.admin_status],
             'detect_status': poe_status_name[self.detect_status],
+            # 'priority': poe_priority_name[self.priority]
             'power_consumption_supported': self.power_consumption_supported,
             'power_consumed': self.power_consumed,
             'power_available': self.power_available,

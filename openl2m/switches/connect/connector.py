@@ -154,7 +154,7 @@ class Connector:
         '''
         return this class as a dictionary for use by the API
         '''
-        return {
+        data = {
             'hostname': self.hostname,
             'vendor': self.vendor_name,
             'name': self.switch.name,
@@ -163,6 +163,19 @@ class Connector:
             'group_id': self.group.id,
             # more to add later...
         }
+        if self.poe_capable:
+            poe = {
+                'enabled': self.poe_enabled,
+                'max_power': self.poe_max_power,
+                'power_consumed': self.poe_power_consumed,
+            }
+            supplies = []
+            for pse in self.poe_pse_devices.values():
+                supplies.append(pse.as_dict())
+            poe['power-supplies'] = supplies
+        data['poe'] = poe
+        # this data represents the info about the connected device
+        return data
 
     def _close_device(self):
         """_close_device() is called to clean-up any session, REST credentials,etc when done with this device.

@@ -85,10 +85,19 @@ LLDP_CAPABILITIES_NONE = 0
 POE_PSE_STATUS_ON = 1
 POE_PSE_STATUS_OFF = 2
 POE_PSE_STATUS_FAULT = 3
+poe_pse_status_name = {
+    POE_PSE_STATUS_ON: "On",
+    POE_PSE_STATUS_OFF: "Off",
+    POE_PSE_STATUS_FAULT: "Fault",
+}
 
 # PoE port/interface related
 POE_PORT_ADMIN_ENABLED = 1
 POE_PORT_ADMIN_DISABLED = 2
+poe_admin_status_name = {
+    POE_PORT_ADMIN_ENABLED: "Enabled",
+    POE_PORT_ADMIN_DISABLED: "Disabled",
+}
 
 POE_PORT_DETECT_DISABLED = 1  # '1' = disabled
 POE_PORT_DETECT_SEARCHING = 2  # ’2’ = searching
