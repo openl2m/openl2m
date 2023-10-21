@@ -43,18 +43,17 @@ api_info = {
 }
 
 
-class APISwitchDetailView(
+class APISwitchBasicView(
     APIView,
 ):
     """
-    Return the full information for a device. This includes all interfaces,
-    with mac-address, lldp, poe and other details.
+    Return the basic information for a device. This includes all interfaces.
+    To save time we do NOT include mac-address, lldp, poe and other details.
     """
 
     authentication_classes = [
         TokenAuthentication,
         SessionAuthentication,
-        BasicAuthentication,
     ]
     permission_classes = [
         IsAuthenticated,
@@ -72,6 +71,56 @@ class APISwitchDetailView(
             switch_id=switch_id,
         )
         conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        if response_error:
+            return response_error
+        data = {
+            "switch": conn.as_dict(),
+            "interfaces": None,
+        }
+        interfaces = list()
+        for key, iface in conn.interfaces.items():
+            interfaces.append(iface.as_dict())
+        data["interfaces"] = interfaces
+        return Response(
+            data=data,
+            status=status.HTTP_200_OK,
+        )
+
+
+#        return Response(
+#            data=data,
+#            status=status.HTTP_404_NOT_FOUND,
+#        )
+
+
+class APISwitchDetailView(
+    APIView,
+):
+    """
+    Return the full information for a device. This includes all interfaces,
+    with mac-address, lldp, poe and other details.
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+        SessionAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        group, switch = confirm_access_rights(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        conn, response_error = get_connection_switch(request=request, group=group, switch=switch, details=True)
         if response_error:
             return response_error
         data = {
@@ -268,12 +317,12 @@ Again it's useful in deduplication.
 """
 
 
-def get_connection_switch(request, group, switch):
+def get_connection_switch(request, group, switch, details=False):
     response_error = None
     try:
         conn = get_connection_object(request, group, switch)
     except ConnectionError as e:
-        error = f"The following ConnectionError: {e} occurred."
+        error = f"The following ConnectionError occured: {e}"
         dprint(error)
 
         response_error = Response(
@@ -284,11 +333,11 @@ def get_connection_switch(request, group, switch):
         if not conn.get_basic_info():
             error = "ERROR in get_basic_switch_info()"
             dprint(error)
-        if not conn.get_client_data():
+        if details and not conn.get_client_data():
             error = "ERROR in get_client_data()"
             dprint(error)
     except Exception as e:
-        error = f"Exception for get switch info {e}"
+        error = f"Exception for get switch info: {e}"
         dprint(error)
         response_error = Response(
             data=error,

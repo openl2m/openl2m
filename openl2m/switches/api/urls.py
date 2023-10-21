@@ -14,6 +14,7 @@
 from django.urls import path
 
 from switches.api.views import (
+    APISwitchBasicView,
     APISwitchDetailView,
     APISwitchAddVlan,
     APIInterfaceSetVlan,
@@ -26,6 +27,11 @@ app_name = 'switches-api'
 
 # api switch views
 urlpatterns = [
+    path(
+        "basic/<int:group_id>/<int:switch_id>/",
+        APISwitchBasicView.as_view(),
+        name="api_switch_basic_view",
+    ),
     path(
         "details/<int:group_id>/<int:switch_id>/",
         APISwitchDetailView.as_view(),
