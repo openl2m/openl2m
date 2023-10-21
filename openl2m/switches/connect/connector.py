@@ -163,6 +163,12 @@ class Connector:
             'group_id': self.group.id,
             # more to add later...
         }
+        # add vlan data:
+        vlans = []
+        for v in self.vlans.values():
+            vlans.append(v.as_dict())
+        data['vlans'] = vlans
+        # add PoE data:
         if self.poe_capable:
             poe = {
                 'enabled': self.poe_enabled,
