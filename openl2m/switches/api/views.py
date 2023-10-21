@@ -43,6 +43,36 @@ api_info = {
 }
 
 
+class APISwitchMyView(
+    APIView,
+):
+    """
+    Return the groups of devices we have access to.
+    """
+
+    authentication_classes = [
+        TokenAuthentication,
+        SessionAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get(
+        self,
+        request,
+    ):
+        data = {
+            "user": request.user.username,
+            "groups": False,
+            "warning": "This API call is not yet implemented!",
+        }
+        return Response(
+            data=data,
+            status=status.HTTP_200_OK,
+        )
+
+
 class APISwitchBasicView(
     APIView,
 ):
