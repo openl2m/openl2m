@@ -31,6 +31,8 @@ from rest_framework import status
 
 from switches.views import confirm_access_rights
 from switches.connect.connect import get_connection_object
+from switches.constants import SWITCH_VIEW_CHOICES
+from switches.utils import get_my_device_permissions
 
 API_VERSION = 1
 
@@ -43,7 +45,38 @@ api_info = {
 }
 
 
-class APISwitchMyView(
+def confirm_access_rights_api(
+    request=None,
+    group_id=None,
+    switch_id=None,
+):
+    """
+    Check if the current user has rights to this switch in this group
+    Returns the switch_group and switch_id for further processing
+    """
+    group = get_object_or_404(
+        SwitchGroup,
+        pk=group_id,
+    )
+    switch = get_object_or_404(
+        Switch,
+        pk=switch_id,
+    )
+    if not rights_to_group_and_switch(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+    ):
+        dprint("confirm_access_rights(): ACCESS DENINED!")
+        error = Error()
+        error.status = True
+        error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
+        return error_page(request=request, group=False, switch=False, error=error)
+    return group, switch
+
+
+class APISwitchMenuView(
     APIView,
 ):
     """
@@ -62,10 +95,10 @@ class APISwitchMyView(
         self,
         request,
     ):
+        permissions = get_my_device_permissions(user=request.user)
         data = {
             "user": request.user.username,
-            "groups": False,
-            "warning": "This API call is not yet implemented!",
+            'groups': permissions,
         }
         return Response(
             data=data,
@@ -95,22 +128,24 @@ class APISwitchBasicView(
         group_id,
         switch_id,
     ):
-        group, switch = confirm_access_rights(
+        group, switch = confirm_access_rights_api(
             request=request,
             group_id=group_id,
             switch_id=switch_id,
         )
-        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
-        if response_error:
-            return response_error
+        permissions = get_my_device_permissions(request.user)
+        # conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        # if response_error:
+        #    return response_error
         data = {
-            "switch": conn.as_dict(),
+            #    "switch": conn.as_dict(),
+            "permissions": permissions,
             "interfaces": None,
         }
-        interfaces = list()
-        for key, iface in conn.interfaces.items():
-            interfaces.append(iface.as_dict())
-        data["interfaces"] = interfaces
+        # interfaces = list()
+        # for key, iface in conn.interfaces.items():
+        #    interfaces.append(iface.as_dict())
+        # data["interfaces"] = interfaces
         return Response(
             data=data,
             status=status.HTTP_200_OK,
