@@ -31,6 +31,7 @@ from rest_framework.views import APIView
 from switches.views import confirm_access_rights
 from switches.connect.connect import get_connection_object
 from switches.constants import SWITCH_STATUS_ACTIVE
+from switches.connect.constants import POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DISABLED
 from switches.utils import dprint
 from switches.models import Switch, SwitchGroup, Log
 
@@ -223,6 +224,25 @@ class APIInterfaceSetPoE(
         if response_error:
             return response_error
         # TODO: now here we need to parse the incoming data to actually change the state of the interface.
+        dprint(f"  POST = {request.POST}")
+        try:
+            poe_state = request.POST['poe_state']
+        except Exception:
+            return response_error("Missing required parameter: 'poe_state'")
+        poe_on = ["on", "yes", "enabled", "enable", "true", "1"]
+        if poe_state.lower() in poe_on:
+            new_state = POE_PORT_ADMIN_ENABLED
+        else:
+            new_state = POE_PORT_ADMIN_DISABLED
+        # now go set the new description:
+        dprint(f"*** REST poe_state = '{poe_state} ({new_state})'")
+        iface = conn.get_interface_by_key(interface_id)
+        if not iface:
+            return response_error(f"Interface ID not found: '{interface_id}'")
+        retval = conn.set_interface_poe_status(iface, new_state)
+        if retval < 0:
+            return response_error(f"Interface {iface.name}: PoE State ERROR: {conn.error.description}")
+        return response_ok("New PoE state applied!")
 
 
 class APIInterfaceSetDescription(
