@@ -195,6 +195,27 @@ class APIInterfaceSetVlan(
         if response_error:
             return response_error
         # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+        dprint(f"  POST = {request.POST}")
+        try:
+            new_pvid = int(request.POST['vlan'])
+        except Exception:
+            return respond_error("Missing required numeric parameter: 'vlan'")
+        dprint(f"*** REST vlan = '{new_pvid}'")
+
+        # need to test if this user is allowed to change to this vlan!
+        conn._set_allowed_vlans()
+        if new_pvid not in conn.allowed_vlans.keys():  # now go set the new vlan
+            return respond_error(f"Access to vlan {new_pvid} is denied!")
+
+        iface = conn.get_interface_by_key(interface_id)
+        if not iface:
+            return respond_error(f"Interface ID not found: '{interface_id}'")
+        if new_pvid == iface.untagged_vlan:
+            return respond_ok(f"Ignored, vlan already {new_pvid}")
+        retval = conn.set_interface_untagged_vlan(iface, new_pvid)
+        if retval < 0:
+            return respond_error(f"Interface {iface.name}: change Vlan ERROR: {conn.error.description}")
+        return respond_ok("New Vlan applied!")
 
 
 class APIInterfaceSetPoE(
@@ -228,7 +249,7 @@ class APIInterfaceSetPoE(
         try:
             poe_state = request.POST['poe_state']
         except Exception:
-            return response_error("Missing required parameter: 'poe_state'")
+            return respond_error("Missing required parameter: 'poe_state'")
         poe_on = ["on", "yes", "enabled", "enable", "true", "1"]
         if poe_state.lower() in poe_on:
             new_state = POE_PORT_ADMIN_ENABLED
@@ -238,11 +259,11 @@ class APIInterfaceSetPoE(
         dprint(f"*** REST poe_state = '{poe_state} ({new_state})'")
         iface = conn.get_interface_by_key(interface_id)
         if not iface:
-            return response_error(f"Interface ID not found: '{interface_id}'")
+            return respond_error(f"Interface ID not found: '{interface_id}'")
         retval = conn.set_interface_poe_status(iface, new_state)
         if retval < 0:
-            return response_error(f"Interface {iface.name}: PoE State ERROR: {conn.error.description}")
-        return response_ok("New PoE state applied!")
+            return respond_error(f"Interface {iface.name}: PoE State ERROR: {conn.error.description}")
+        return respond_ok("New PoE state applied!")
 
 
 class APIInterfaceSetDescription(
@@ -276,16 +297,16 @@ class APIInterfaceSetDescription(
         try:
             description = request.POST['description']
         except Exception:
-            return response_error("Missing required parameter: 'description'")
+            return respond_error("Missing required parameter: 'description'")
         # now go set the new description:
         dprint(f"*** REST description = '{description}'")
         iface = conn.get_interface_by_key(interface_id)
         if not iface:
-            return response_error(f"Interface ID not found: '{interface_id}'")
+            return respond_error(f"Interface ID not found: '{interface_id}'")
         retval = conn.set_interface_description(iface, description)
         if retval < 0:
-            return response_error(f"Interface {iface.name}: Descr ERROR: {conn.error.description}")
-        return response_ok("New description applied!")
+            return respond_error(f"Interface {iface.name}: Descr ERROR: {conn.error.description}")
+        return respond_ok("New description applied!")
 
 
 class APISwitchAddVlan(
@@ -467,7 +488,7 @@ def get_connection_switch(request, group_id, switch_id, details=False):
     return conn, response_error
 
 
-def response_ok(comment):
+def respond_ok(comment):
     return Response(
         data={
             "result": f"{comment}",
@@ -476,7 +497,7 @@ def response_ok(comment):
     )
 
 
-def response_error(reason):
+def respond_error(reason):
     return Response(
         data={
             "reason": f"{reason}",
