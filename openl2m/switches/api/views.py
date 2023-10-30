@@ -35,6 +35,8 @@ from switches.connect.constants import POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DI
 from switches.utils import dprint
 from switches.models import Switch, SwitchGroup, Log
 
+on_values = ["on", "yes", "enabled", "enable", "true", "1"]
+
 
 class APISwitchMenuView(
     APIView,
@@ -166,6 +168,30 @@ class APIInterfaceSetState(
         if response_error:
             return response_error
         # TODO: now here we need to parse the incoming data to actually change the state of the interface.
+        dprint(f"  POST = {request.POST}")
+        # need to test access permissions here!
+        # TBD
+        try:
+            state = request.POST['state']
+        except Exception:
+            return respond_error("Missing required parameter: 'state'")
+        if state.lower() in on_values:
+            new_state = True
+        else:
+            new_state = False
+        # now go set the new admin state:
+        dprint(f"*** REST admin state = '{new_state}' ({state})")
+        iface = conn.get_interface_by_key(interface_id)
+        if not iface:
+            return respond_error(f"Interface ID not found: '{interface_id}'")
+
+        if not iface.manageable:
+            return respond_error(iface.unmanage_reason)
+
+        retval = conn.set_interface_admin_status(iface, new_state)
+        if retval < 0:
+            return respond_error(f"Interface {iface.name}: Admin State ERROR: {conn.error.description}")
+        return respond_ok("New admin state applied!")
 
 
 class APIInterfaceSetVlan(
@@ -210,6 +236,10 @@ class APIInterfaceSetVlan(
         iface = conn.get_interface_by_key(interface_id)
         if not iface:
             return respond_error(f"Interface ID not found: '{interface_id}'")
+
+        if not iface.manageable:
+            return respond_error(iface.unmanage_reason)
+
         if new_pvid == iface.untagged_vlan:
             return respond_ok(f"Ignored, vlan already {new_pvid}")
         retval = conn.set_interface_untagged_vlan(iface, new_pvid)
@@ -246,20 +276,26 @@ class APIInterfaceSetPoE(
             return response_error
         # TODO: now here we need to parse the incoming data to actually change the state of the interface.
         dprint(f"  POST = {request.POST}")
+
+        # need to test permissions - TBD
+
         try:
             poe_state = request.POST['poe_state']
         except Exception:
             return respond_error("Missing required parameter: 'poe_state'")
-        poe_on = ["on", "yes", "enabled", "enable", "true", "1"]
-        if poe_state.lower() in poe_on:
+        if poe_state.lower() in on_values:
             new_state = POE_PORT_ADMIN_ENABLED
         else:
             new_state = POE_PORT_ADMIN_DISABLED
-        # now go set the new description:
+        # now go set the new PoE state:
         dprint(f"*** REST poe_state = '{poe_state} ({new_state})'")
         iface = conn.get_interface_by_key(interface_id)
         if not iface:
             return respond_error(f"Interface ID not found: '{interface_id}'")
+
+        if not iface.manageable:
+            return respond_error(iface.unmanage_reason)
+
         retval = conn.set_interface_poe_status(iface, new_state)
         if retval < 0:
             return respond_error(f"Interface {iface.name}: PoE State ERROR: {conn.error.description}")
@@ -294,6 +330,7 @@ class APIInterfaceSetDescription(
             return response_error
         # TODO: now here we need to parse the incoming data to actually change the state of the interface.
         dprint(f"  POST = {request.POST}")
+        # need to test permissions - TBD
         try:
             description = request.POST['description']
         except Exception:
@@ -303,6 +340,10 @@ class APIInterfaceSetDescription(
         iface = conn.get_interface_by_key(interface_id)
         if not iface:
             return respond_error(f"Interface ID not found: '{interface_id}'")
+
+        if not iface.manageable:
+            return respond_error(iface.unmanage_reason)
+
         retval = conn.set_interface_description(iface, description)
         if retval < 0:
             return respond_error(f"Interface {iface.name}: Descr ERROR: {conn.error.description}")

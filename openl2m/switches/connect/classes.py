@@ -319,6 +319,9 @@ class Interface:
         # PoE data:
         if self.poe_entry:
             inf['poe'] = self.poe_entry.as_dict()
+        inf['manageable'] = self.manageable
+        if not self.manageable:
+            inf['unmanage_reason'] = self.unmanage_reason
 
         # add the learned mac addresses:
         addresses = []
