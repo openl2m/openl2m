@@ -161,6 +161,8 @@ class Connector:
             'id': self.switch.id,
             'group': self.group.name,
             'group_id': self.group.id,
+            "read_only": self.switch.read_only,
+            "primary_ipv4": self.switch.primary_ip4,
             # more to add later...
         }
         # add vlan data:

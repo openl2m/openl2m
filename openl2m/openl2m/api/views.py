@@ -23,6 +23,9 @@ from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
@@ -59,6 +62,14 @@ class APIRootView(APIView):
     This is the root of OpenL2M's REST API. API endpoints are arranged by app; e.g. `/api/switches/`.
     """
 
+    authentication_classes = [
+        TokenAuthentication,
+        SessionAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
     def get_view_name(self):
         return "API Root"
 
@@ -66,7 +77,7 @@ class APIRootView(APIView):
     def get(self, request, format=None):
         return Response(
             {
-                #                'switches': reverse('switches-api:api_switch_detail_view', request=request, format=format),
+                #                'switches': reverse('switches-api:api_switch_menu_view', request=request, format=format),
                 'stats': reverse('api-stats', request=request, format=format),
             }
         )
@@ -76,6 +87,14 @@ class APIStatsView(APIView):
     """
     A lightweight read-only endpoint for conveying OpenL2M's current usage statistics.
     """
+
+    authentication_classes = [
+        TokenAuthentication,
+        SessionAuthentication,
+    ]
+    permission_classes = [
+        IsAuthenticated,
+    ]
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):

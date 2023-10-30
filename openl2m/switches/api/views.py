@@ -17,75 +17,34 @@
 #
 
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 
 # Use the Django Rest Framework:
-from rest_framework.authentication import (
-    SessionAuthentication,
-    BasicAuthentication,
-    TokenAuthentication,
-)
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.parsers import JSONParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request as RESTRequest
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from switches.views import confirm_access_rights
 from switches.connect.connect import get_connection_object
-from switches.constants import SWITCH_VIEW_CHOICES
-from switches.utils import get_my_device_permissions
-
-API_VERSION = 1
-
-"""
-This class gets all information from a switch about its Interfaces
-"""
-api_info = {
-    'version': API_VERSION,
-    'openl2m_version': settings.VERSION,
-}
-
-
-def confirm_access_rights_api(
-    request=None,
-    group_id=None,
-    switch_id=None,
-):
-    """
-    Check if the current user has rights to this switch in this group
-    Returns the switch_group and switch_id for further processing
-    """
-    group = get_object_or_404(
-        SwitchGroup,
-        pk=group_id,
-    )
-    switch = get_object_or_404(
-        Switch,
-        pk=switch_id,
-    )
-    if not rights_to_group_and_switch(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-    ):
-        dprint("confirm_access_rights(): ACCESS DENINED!")
-        error = Error()
-        error.status = True
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-    return group, switch
+from switches.constants import SWITCH_STATUS_ACTIVE
+from switches.utils import dprint
+from switches.models import Switch, SwitchGroup, Log
 
 
 class APISwitchMenuView(
     APIView,
 ):
     """
-    Return the groups of devices we have access to.
+    Return the groups and devices we have access to.
     """
 
     authentication_classes = [
         TokenAuthentication,
-        SessionAuthentication,
+        SessionAuthentication,  # useful for AJAX calls from web ui clients.
     ]
     permission_classes = [
         IsAuthenticated,
@@ -95,7 +54,9 @@ class APISwitchMenuView(
         self,
         request,
     ):
-        permissions = get_my_device_permissions(user=request.user)
+        if isinstance(request, RESTRequest):
+            dprint("***REST CALL ***")
+        (permissions, permitted) = get_my_device_permissions(user=request.user)
         data = {
             "user": request.user.username,
             'groups': permissions,
@@ -104,6 +65,27 @@ class APISwitchMenuView(
             data=data,
             status=status.HTTP_200_OK,
         )
+
+
+def switch_info(request, group_id, switch_id, details):
+    conn, response_error = get_connection_switch(
+        request=request, group_id=group_id, switch_id=switch_id, details=details
+    )
+    if response_error:
+        return response_error
+    data = {
+        "switch": conn.as_dict(),
+        "interfaces": None,
+    }
+    interfaces = list()
+    for key, iface in conn.interfaces.items():
+        interfaces.append(iface.as_dict())
+    data["interfaces"] = interfaces
+    conn.save_cache()  # this only works for SessionAuthentication !
+    return Response(
+        data=data,
+        status=status.HTTP_200_OK,
+    )
 
 
 class APISwitchBasicView(
@@ -116,7 +98,7 @@ class APISwitchBasicView(
 
     authentication_classes = [
         TokenAuthentication,
-        SessionAuthentication,
+        SessionAuthentication,  # useful for AJAX calls from web ui clients.
     ]
     permission_classes = [
         IsAuthenticated,
@@ -128,34 +110,7 @@ class APISwitchBasicView(
         group_id,
         switch_id,
     ):
-        group, switch = confirm_access_rights_api(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
-        )
-        permissions = get_my_device_permissions(request.user)
-        # conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
-        # if response_error:
-        #    return response_error
-        data = {
-            #    "switch": conn.as_dict(),
-            "permissions": permissions,
-            "interfaces": None,
-        }
-        # interfaces = list()
-        # for key, iface in conn.interfaces.items():
-        #    interfaces.append(iface.as_dict())
-        # data["interfaces"] = interfaces
-        return Response(
-            data=data,
-            status=status.HTTP_200_OK,
-        )
-
-
-#        return Response(
-#            data=data,
-#            status=status.HTTP_404_NOT_FOUND,
-#        )
+        return switch_info(request=request, group_id=group_id, switch_id=switch_id, details=False)
 
 
 class APISwitchDetailView(
@@ -168,7 +123,7 @@ class APISwitchDetailView(
 
     authentication_classes = [
         TokenAuthentication,
-        SessionAuthentication,
+        SessionAuthentication,  # useful for AJAX calls from web ui clients.
     ]
     permission_classes = [
         IsAuthenticated,
@@ -180,32 +135,7 @@ class APISwitchDetailView(
         group_id,
         switch_id,
     ):
-        group, switch = confirm_access_rights(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
-        )
-        conn, response_error = get_connection_switch(request=request, group=group, switch=switch, details=True)
-        if response_error:
-            return response_error
-        data = {
-            "switch": conn.as_dict(),
-            "interfaces": None,
-        }
-        interfaces = list()
-        for key, iface in conn.interfaces.items():
-            interfaces.append(iface.as_dict())
-        data["interfaces"] = interfaces
-        return Response(
-            data=data,
-            status=status.HTTP_200_OK,
-        )
-
-
-#        return Response(
-#            data=data,
-#            status=status.HTTP_404_NOT_FOUND,
-#        )
+        return switch_info(request=request, group_id=group_id, switch_id=switch_id, details=True)
 
 
 class APIInterfaceSetState(
@@ -217,6 +147,7 @@ class APIInterfaceSetState(
 
     authentication_classes = [
         TokenAuthentication,
+        SessionAuthentication,  # useful for AJAX calls from web ui clients.
     ]
     permission_classes = [
         IsAuthenticated,
@@ -228,18 +159,12 @@ class APIInterfaceSetState(
         group_id,
         switch_id,
         interface_id,
-        state,
     ):
-        group, switch = confirm_access_rights(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
-        )
-        if interface_name:
-            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
-            if response_error:
-                return response_error
-            # TODO: now here we need to parse the incoming data to actually change the state of the interface.
+        dprint("APIInterfaceSetState(POST)")
+        conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
+        if response_error:
+            return response_error
+        # TODO: now here we need to parse the incoming data to actually change the state of the interface.
 
 
 class APIInterfaceSetVlan(
@@ -251,6 +176,7 @@ class APIInterfaceSetVlan(
 
     authentication_classes = [
         TokenAuthentication,
+        SessionAuthentication,  # useful for AJAX calls from web ui clients.
     ]
     permission_classes = [
         IsAuthenticated,
@@ -262,14 +188,9 @@ class APIInterfaceSetVlan(
         group_id,
         switch_id,
         interface_id,
-        vlan,
     ):
-        group, switch = confirm_access_rights(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
-        )
-        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        dprint("APIInterfaceSetVlan(POST)")
+        conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
         if response_error:
             return response_error
         # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
@@ -284,6 +205,7 @@ class APIInterfaceSetPoE(
 
     authentication_classes = [
         TokenAuthentication,
+        SessionAuthentication,  # useful for AJAX calls from web ui clients.
     ]
     permission_classes = [
         IsAuthenticated,
@@ -295,18 +217,12 @@ class APIInterfaceSetPoE(
         group_id,
         switch_id,
         interface_id,
-        poe_state,
     ):
-        group, switch = confirm_access_rights(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
-        )
-        if interface_name:
-            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
-            if response_error:
-                return response_error
-            # TODO: now here we need to parse the incoming data to actually change the state of the interface.
+        dprint("APIInterfaceSetPoE(POST)")
+        conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
+        if response_error:
+            return response_error
+        # TODO: now here we need to parse the incoming data to actually change the state of the interface.
 
 
 class APIInterfaceSetDescription(
@@ -318,6 +234,7 @@ class APIInterfaceSetDescription(
 
     authentication_classes = [
         TokenAuthentication,
+        SessionAuthentication,  # useful for AJAX calls from web ui clients.
     ]
     permission_classes = [
         IsAuthenticated,
@@ -329,18 +246,26 @@ class APIInterfaceSetDescription(
         group_id,
         switch_id,
         interface_id,
-        description,
     ):
-        group, switch = confirm_access_rights(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
-        )
-        if interface_name:
-            conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
-            if response_error:
-                return response_error
-            # TODO: now here we need to parse the incoming data to actually change the state of the interface.
+        dprint("APIInterfaceSetDescription(POST)")
+        conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
+        if response_error:
+            return response_error
+        # TODO: now here we need to parse the incoming data to actually change the state of the interface.
+        dprint(f"  POST = {request.POST}")
+        try:
+            description = request.POST['description']
+        except Exception:
+            return response_error("Missing required parameter: 'description'")
+        # now go set the new description:
+        dprint(f"*** REST description = '{description}'")
+        iface = conn.get_interface_by_key(interface_id)
+        if not iface:
+            return response_error(f"Interface ID not found: '{interface_id}'")
+        retval = conn.set_interface_description(iface, description)
+        if retval < 0:
+            return response_error(f"Interface {iface.name}: Descr ERROR: {conn.error.description}")
+        return response_ok("New description applied!")
 
 
 class APISwitchAddVlan(
@@ -352,6 +277,7 @@ class APISwitchAddVlan(
 
     authentication_classes = [
         TokenAuthentication,
+        SessionAuthentication,  # useful for AJAX calls from web ui clients.
     ]
     permission_classes = [
         IsAuthenticated,
@@ -365,35 +291,144 @@ class APISwitchAddVlan(
         vlan_id,
         vlan_name,
     ):
-        group, switch = confirm_access_rights(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
-        )
-        conn, response_error = get_connection_switch(request=request, group=group, switch=switch)
+        dprint("APISwitchAddVlan(POST)")
+        conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
         if response_error:
             return response_error
         # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
 
 
 """
-This function is used to return us a conn object for requests to switches.
-Again it's useful in deduplication.
+Support functions.
 """
 
 
-def get_connection_switch(request, group, switch, details=False):
+def get_my_device_permissions(user, group_id=-1, switch_id=-1):
+    """
+    find the SwitchGroups, and Switch()-es in those groups, that this user has rights to
+
+    Args:
+        user:  current User() object, typically from 'request.user'
+
+    Returns:
+        tuple of
+        permissions:    dict of switchgroups this user is member of,
+                        each is a dict of active devices(switches).
+        permitted (boolean): True if group_id and switch_id given, and they are allowed!
+    """
+    if user.is_superuser or user.is_staff:
+        # optimize data queries, get all related field at once!
+        switchgroups = SwitchGroup.objects.all().order_by("name")
+
+    else:
+        # figure out what this user has access to.
+        # Note we use the ManyToMany 'related_name' attribute for readability!
+        switchgroups = user.switchgroups.all().order_by("name")
+
+    # now find active devices in these groups
+    permissions = {}
+    permitted = False
+
+    for group in switchgroups:
+        if group.switches.count():
+            # set this group, and the switches, in web session to track permissions
+            group_info = {
+                'name': group.name,
+                'description': group.description,
+                'display_name': group.display_name,
+                'read_only': group.read_only,
+                'comments': group.comments,
+            }
+            members = {}
+            for switch in group.switches.all():
+                if switch.status == SWITCH_STATUS_ACTIVE:
+                    # we save the names as well, so we can search them!
+                    members[int(switch.id)] = {
+                        "name": switch.name,
+                        # "hostname": switch.hostname,
+                        "description": switch.description,
+                        "default_view": switch.default_view,
+                        "default_view_name": switch.get_default_view_display(),
+                        "connector_type": switch.connector_type,
+                        "connector_type_name": switch.get_connector_type_display(),
+                        "read_only": switch.read_only,
+                        "primary_ipv4": switch.primary_ip4,
+                        "comments": switch.comments,
+                    }
+                    # is this the switch in the group we are looking for?
+                    if switch.id == switch_id and group.id == group_id:
+                        permitted = True
+            group_info['members'] = members
+            permissions[int(group.id)] = group_info
+    return (permissions, permitted)
+
+
+def confirm_access_rights_api(
+    request=None,
+    group_id=None,
+    switch_id=None,
+):
+    """
+    Check if the current user has rights to this switch in this group
+    Returns the switch_group and switch_id for further processing
+    """
+    permissions, permitted = get_my_device_permissions(user=request.user, group_id=group_id, switch_id=switch_id)
+    if permitted:
+        group = get_object_or_404(
+            SwitchGroup,
+            pk=group_id,
+        )
+        switch = get_object_or_404(
+            Switch,
+            pk=switch_id,
+        )
+        dprint("confirm_access_rights_api(): OK!")
+        return permitted, group, switch
+    else:
+        return False, None, None
+
+
+def get_connection_switch(request, group_id, switch_id, details=False):
+    """Test permission to switch, and get connection object if allowed.
+
+    Params:
+        request: the http Request() object of this call.
+        group_id (int): the pk for the SwitchGroup() object
+        switch_id (int): the pk for the Switch() object.
+        details (boolean): the True, return will include ARP, MAC, LLDP data.
+
+    Returns:
+        (connection, response_error):
+        connection is a fully loaded Connection() object if all is valid, or None if not.
+        If all OK, response_error will None, but on errors it will be a valid Response() object.
+    """
     response_error = None
+    # test permission first:
+    permitted, group, switch = confirm_access_rights_api(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+    )
+    if not permitted:
+        return None, Response(
+            data={
+                "message": "Access denied!",
+            },
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # access allowed, try to get a connection:
     try:
         conn = get_connection_object(request, group, switch)
-    except ConnectionError as e:
-        error = f"The following ConnectionError occured: {e}"
+    except Exception as e:
+        error = f"A Connection Error occured: {e}"
         dprint(error)
 
-        response_error = Response(
+        return None, Response(
             data=error,
             status=status.HTTP_400_BAD_REQUEST,
         )
+    # finally try to read the data:
     try:
         if not conn.get_basic_info():
             error = "ERROR in get_basic_switch_info()"
@@ -402,11 +437,29 @@ def get_connection_switch(request, group, switch, details=False):
             error = "ERROR in get_client_data()"
             dprint(error)
     except Exception as e:
-        error = f"Exception for get switch info: {e}"
+        error = f"Error getting switch info: {e}"
         dprint(error)
         response_error = Response(
             data=error,
             status=status.HTTP_400_BAD_REQUEST,
         )
-    conn.save_cache()
+    # conn.save_cache() #
     return conn, response_error
+
+
+def response_ok(comment):
+    return Response(
+        data={
+            "result": f"{comment}",
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+def response_error(reason):
+    return Response(
+        data={
+            "reason": f"{reason}",
+        },
+        status=status.HTTP_400_BAD_REQUEST,
+    )

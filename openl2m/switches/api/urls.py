@@ -44,27 +44,27 @@ urlpatterns = [
         name="api_switch_detail_view",
     ),
     path(
-        "add_vlan/<int:group_id>/<int:switch_id>/<int:vlan_id>",
+        "add_vlan/<int:group_id>/<int:switch_id>/",
         APISwitchAddVlan.as_view(),
         name="api_switch_add_vlan",
     ),
     path(
-        "interface/vlan/<int:group_id>/<int:switch_id>/<str:interface_id>/<int:vlan_id>",
+        "interface/vlan/<int:group_id>/<int:switch_id>/<str:interface_id>/",
         APIInterfaceSetVlan.as_view(),
         name="api_interface_set_vlan",
     ),
     path(
-        "interface/state/<int:group_id>/<int:switch_id>/<int:state>",
+        "interface/state/<int:group_id>/<int:switch_id>/<str:interface_id>/",
         APIInterfaceSetState.as_view(),
         name="api_interface_set_state",
     ),
     path(
-        "interface/poe_state/<int:group_id>/<int:switch_id>/<int:poe_state>",
+        "interface/poe_state/<int:group_id>/<int:switch_id>/<str:interface_id>/",
         APIInterfaceSetPoE.as_view(),
         name="api_interface_set_poe_state",
     ),
     path(
-        "interface/description/<int:group_id>/<int:switch_id>/<str:description>",
+        "interface/description/<int:group_id>/<int:switch_id>/<str:interface_id>/",
         APIInterfaceSetDescription.as_view(),
         name="api_interface_set_description",
     ),

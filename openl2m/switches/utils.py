@@ -26,64 +26,7 @@ import re
 from django.conf import settings
 from django.utils.timezone import get_default_timezone
 
-from switches.constants import SWITCH_STATUS_ACTIVE
-
-
 logger_console = logging.getLogger("openl2m.console")
-
-
-def get_my_device_permissions(user):
-    """
-    find the SwitchGroups that this user has rights to
-
-    Args:
-        user:  current User() object, typically from 'request.user'
-
-    Returns:
-        permissions:  dict of switchgroups this user is member of,
-                      each is a dict of active devices(switches).
-    """
-    if user.is_superuser or user.is_staff:
-        # optimize data queries, get all related field at once!
-        switchgroups = SwitchGroup.objects.all().order_by("name")
-
-    else:
-        # figure out what this user has access to.
-        # Note we use the ManyToMany 'related_name' attribute for readability!
-        switchgroups = user.switchgroups.all().order_by("name")
-
-    # now find active devices in these groups
-    permissions = {}
-
-    for group in switchgroups:
-        if group.switches.count():
-            # set this group, and the switches, in web session to track permissions
-            group_info = {
-                'name': group.name,
-                'description': group.description,
-                'display_name': group.display_name,
-                'read_only': group.read_only,
-                'comments': group.comments,
-            }
-            members = {}
-            for switch in group.switches.all():
-                if switch.status == SWITCH_STATUS_ACTIVE:
-                    # we save the names as well, so we can search them!
-                    members[int(switch.id)] = {
-                        "name": switch.name,
-                        # "hostname": switch.hostname,
-                        "description": switch.description,
-                        "default_view": switch.default_view,
-                        "default_view_name": switch.get_default_view_display(),
-                        "connector_type": switch.connector_type,
-                        "connector_type_name": switch.get_connector_type_display(),
-                        "read_only": switch.read_only,
-                        "primary_ipv4": switch.primary_ip4,
-                        "comments": switch.comments,
-                    }
-            group_info['members'] = members
-            permissions[int(group.id)] = group_info
-    return permissions
 
 
 def success_page(request, group, switch, description):
