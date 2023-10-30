@@ -370,14 +370,32 @@ class APISwitchAddVlan(
         request,
         group_id,
         switch_id,
-        vlan_id,
-        vlan_name,
     ):
         dprint("APISwitchAddVlan(POST)")
         conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
         if response_error:
             return response_error
         # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
+        dprint(f"  POST = {request.POST}")
+        # need to test permissions - TBD
+        try:
+            vlan_name = str(request.POST['vlan_name']).strip()
+            vlan_id = int(request.POST['vlan_id'])
+        except Exception:
+            return respond_error("Missing required parameter: 'vlan_name' or 'vlan_id'")
+        # now go create the new vlan:
+        dprint(f"*** REST new vlan: '{vlan_name}' = {vlan_id}")
+
+        # test if user is permitted to add vlans:
+        # if not not user_can_edit_vlans(request.user, group, switch)
+
+        if conn.vlan_exists(vlan_id) or not vlan_name:
+            respond_error("Invalid parameters!")
+
+        retval = conn.vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+        if not retval:
+            return respond_error(f"Vlan creation error: {conn.error.description}")
+        return respond_ok("New vlan created!")
 
 
 """
