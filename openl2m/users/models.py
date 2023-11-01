@@ -167,9 +167,7 @@ class Token(models.Model):
     created = models.DateTimeField(verbose_name='created', auto_now_add=True)
     expires = models.DateTimeField(verbose_name='expires', blank=True, null=True)
     last_used = models.DateTimeField(verbose_name='last used', blank=True, null=True)
-    key = models.CharField(
-        verbose_name='key', max_length=40, unique=True, validators=[MinLengthValidator(40)]
-    )
+    key = models.CharField(verbose_name='key', max_length=40, unique=True, validators=[MinLengthValidator(40)])
     write_enabled = models.BooleanField(
         verbose_name='write enabled', default=True, help_text='Permit create/update/delete operations using this key'
     )
