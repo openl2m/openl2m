@@ -232,7 +232,10 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "openl2m.api.authentication.TokenAuthentication",  # custom Token(), adopted from Netbox.
         "rest_framework.authentication.SessionAuthentication",  # useful for AJAX calls from web ui clients.
-    ]
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 # In developer mode, we add some extra stuff:
@@ -429,3 +432,4 @@ SSH_COMMAND_TIMEOUT = getattr(configuration, 'SSH_COMMAND_TIMEOUT', 15)
 
 # REST API Settings
 ALLOW_TOKEN_RETRIEVAL = getattr(configuration, 'ALLOW_TOKEN_RETRIEVAL', True)
+MAX_API_TOKENS = getattr(configuration, 'MAX_API_TOKENS', 5)

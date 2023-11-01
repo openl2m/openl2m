@@ -131,8 +131,8 @@ class TokenAuthentication(authentication.TokenAuthentication):
         if token.is_expired:
             # log access denied!
             log = Log(
-                user=user,
-                ip_address=ip_address,
+                # user=user,
+                # ip_address=ip_address,
                 # switch=None,
                 # # group=False,
                 action=LOG_LOGIN_REST_API,
@@ -163,7 +163,7 @@ class TokenAuthentication(authentication.TokenAuthentication):
             # log access denied!
             log = Log(
                 user=user,
-                ip_address=ip_address,
+                # ip_address=ip_address,
                 # switch=None,
                 # # group=False,
                 action=LOG_LOGIN_REST_API,
