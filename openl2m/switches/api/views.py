@@ -44,9 +44,9 @@ class APISwitchMenuView(
     Return the groups and devices we have access to.
     """
 
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    # permission_classes = [
+    #     IsAuthenticated,
+    # ]
 
     def get(
         self,
@@ -94,9 +94,9 @@ class APISwitchBasicView(
     To save time we do NOT include mac-address, lldp, poe and other details.
     """
 
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    # permission_classes = [
+    #     IsAuthenticated,
+    # ]
 
     def get(
         self,
@@ -115,9 +115,9 @@ class APISwitchDetailView(
     with mac-address, lldp, poe and other details.
     """
 
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    # permission_classes = [
+    #     IsAuthenticated,
+    # ]
 
     def get(
         self,
@@ -135,9 +135,9 @@ class APIInterfaceSetState(
     Set the admin state of the selected interface.
     """
 
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    # permission_classes = [
+    #     IsAuthenticated,
+    # ]
 
     def post(
         self,
@@ -184,9 +184,9 @@ class APIInterfaceSetVlan(
     Set the untagged VLAN for an interface.
     """
 
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    # permission_classes = [
+    #     IsAuthenticated,
+    # ]
 
     def post(
         self,
@@ -234,9 +234,9 @@ class APIInterfaceSetPoE(
     Set the PoE state of an interface.
     """
 
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    # permission_classes = [
+    #     IsAuthenticated,
+    # ]
 
     def post(
         self,
@@ -284,9 +284,9 @@ class APIInterfaceSetDescription(
     Set the description for the selected interface.
     """
 
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    # permission_classes = [
+    #     IsAuthenticated,
+    # ]
 
     def post(
         self,
@@ -328,9 +328,9 @@ class APISwitchAddVlan(
     Add a VLAN to a switch.
     """
 
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    # permission_classes = [
+    #     IsAuthenticated,
+    # ]
 
     def post(
         self,
