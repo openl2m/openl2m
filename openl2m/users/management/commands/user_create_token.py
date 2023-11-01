@@ -17,9 +17,9 @@
 #    https://simpleisbetterthancomplex.com/tutorial/2018/08/27/how-to-create-custom-django-management-commands.html
 
 #
-# this allow a REST API token to created from CLI management command.
+# this allows a REST API token to created from CLI management command.
 #
-import sys
+from django.conf import settings
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
@@ -59,20 +59,25 @@ class Command(BaseCommand):
         except Exception:
             self.stdout.write(self.style.ERROR(f"Error: user '{username}' not found!"))
             return
-        # get a new token:
-        t = Token()
-        t.user = user
-        t.key = Token.generate_key()
-        self.stdout.write(self.style.SUCCESS(f"New token for '{username}': {t.key}"))
-        t.save()
-        # log this!
-        log = Log(
-            user=user,
-            # ip_address=None,
-            # switch=None,
-            # # group=False,
-            action=LOG_REST_API_TOKEN_CREATED,
-            type=LOG_TYPE_CHANGE,
-            description=f"REST API token created from CLI",
-        )
-        log.save()
+        # check if we exceed max:
+        count = Token.objects.all().filter(user=user).count()
+        if count >= settings.MAX_API_TOKENS:
+            self.stdout.write(self.style.ERROR(f"Error: Maximum number of tokens exceeded for '{username}'!"))
+        else:
+            # get a new token:
+            t = Token()
+            t.user = user
+            t.key = Token.generate_key()
+            self.stdout.write(self.style.SUCCESS(f"New token for '{username}': {t.key}"))
+            t.save()
+            # log this!
+            log = Log(
+                user=user,
+                # ip_address=None,
+                # switch=None,
+                # # group=False,
+                action=LOG_REST_API_TOKEN_CREATED,
+                type=LOG_TYPE_CHANGE,
+                description=f"REST API token created from CLI",
+            )
+            log.save()
