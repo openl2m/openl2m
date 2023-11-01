@@ -60,6 +60,7 @@ See more in the development section below.
    screenshots.rst
    faq.rst
    howto/index.rst
+   api/index.rst
    roadmap.rst
    references.rst
 

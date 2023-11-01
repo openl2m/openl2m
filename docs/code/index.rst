@@ -28,5 +28,6 @@ It provides module information from Google Code Style documentation that we use 
    templating.rst
    aos-cx-driver.rst
    junos-driver.rst
+   api/index.rst
    documentation.rst
 
