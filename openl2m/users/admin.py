@@ -14,8 +14,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from django.utils import timezone
 
-from .models import Profile
+from users.models import Profile, Token
 from switches.models import SwitchGroup
 
 # pull in the custom admin site
@@ -85,5 +86,40 @@ class MyUserAdmin(UserAdmin):
         return False
 
 
+# Define a new User admin
+class MyTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'created', 'expires', 'last_used', 'write_enabled', 'description')
+
+    # fieldsets = (
+    #     (None, {'fields': ('username', 'password')}),
+    #     (('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
+    #     (
+    #         ('Permissions'),
+    #         {
+    #             'fields': (
+    #                 'is_active',
+    #                 'is_staff',
+    #                 'is_superuser',
+    #             )
+    #         },
+    #     ),
+    #     (('Important dates'), {'fields': ('last_login', 'date_joined')}),
+    # )
+
+    # add action to deactivate token
+    actions = ['deactivate_token']
+
+    # this does the work of deactivating users
+    @admin.action(description='Deactivate selected tokens')
+    def deactivate_token(modeladmin, request, queryset):
+        queryset.update(expires=timezone.now())
+
+    # # disable delete Token (we don't want to loose records)
+    # def has_delete_permission(self, request, obj=None):
+    #     # Disable delete
+    #     return False
+
+
 # we have a custom admin site, i.e. register with admin_site, not with default "admin.site"!
 admin_site.register(User, MyUserAdmin)
+admin_site.register(Token, MyTokenAdmin)

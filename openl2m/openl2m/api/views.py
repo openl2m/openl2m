@@ -23,8 +23,7 @@ from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authentication import TokenAuthentication, SessionAuthentication
-from rest_framework.authtoken.models import Token
+from users.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -62,10 +61,6 @@ class APIRootView(APIView):
     This is the root of OpenL2M's REST API. API endpoints are arranged by app; e.g. `/api/switches/`.
     """
 
-    authentication_classes = [
-        TokenAuthentication,
-        SessionAuthentication,
-    ]
     permission_classes = [
         IsAuthenticated,
     ]
@@ -88,10 +83,6 @@ class APIStatsView(APIView):
     A lightweight read-only endpoint for conveying OpenL2M's current usage statistics.
     """
 
-    authentication_classes = [
-        TokenAuthentication,
-        SessionAuthentication,
-    ]
     permission_classes = [
         IsAuthenticated,
     ]

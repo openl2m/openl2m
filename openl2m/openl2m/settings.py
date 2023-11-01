@@ -192,7 +192,7 @@ SESSION_COOKIE_SECURE = getattr(configuration, "SESSION_COOKIE_SECURE", False)
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # override the maximum GET/POST item count.
-# with large numbers of switches in a group, we may exceeed the default (1000):
+# with large numbers of switches in a group, we may exceed the default (1000):
 DATA_UPLOAD_MAX_NUMBER_FIELDS = getattr(configuration, "DATA_UPLOAD_MAX_NUMBER_FIELDS", 10000)
 
 # Quick-start development settings - unsuitable for production
@@ -230,8 +230,8 @@ MIDDLEWARE = [
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.BasicAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
+        "openl2m.api.authentication.TokenAuthentication",  # custom Token(), adopted from Netbox.
+        "rest_framework.authentication.SessionAuthentication",  # useful for AJAX calls from web ui clients.
     ]
 }
 
@@ -426,3 +426,6 @@ LOOKUP_HOSTNAME_ROUTED_IP = getattr(configuration, "LOOKUP_HOSTNAME_ROUTED_IP", 
 
 # SSH command read timeout, default = 15 (Netmiko library default = 10)
 SSH_COMMAND_TIMEOUT = getattr(configuration, 'SSH_COMMAND_TIMEOUT', 15)
+
+# REST API Settings
+ALLOW_TOKEN_RETRIEVAL = getattr(configuration, 'ALLOW_TOKEN_RETRIEVAL', True)

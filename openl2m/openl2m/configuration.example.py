@@ -478,3 +478,8 @@ LOOKUP_HOSTNAME_ARP = False
 LOOKUP_HOSTNAME_LLDP = False
 # lookup hostnames for routed interface IP addresses.
 LOOKUP_HOSTNAME_ROUTED_IP = False
+
+# REST API Settings
+# if True, users can see their tokens again after they have been created.
+# if False, only last few chars will be shown.
+ALLOW_TOKEN_RETRIEVAL = getattr(configuration, 'ALLOW_TOKEN_RETRIEVAL', True)

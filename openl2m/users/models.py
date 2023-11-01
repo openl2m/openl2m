@@ -11,11 +11,19 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+import binascii
+import os
+
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
+from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
+from django.core.validators import MinLengthValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 from switches.constants import LOG_TYPE_LOGIN_OUT, LOG_LOGIN, LOG_LOGOUT, LOG_LOGIN_FAILED
 from switches.models import Log
@@ -135,3 +143,89 @@ def create_login_failed_log_entry(sender, credentials, request, **kwargs):
 user_logged_in.connect(create_logged_in_log_entry)
 user_logged_out.connect(create_logged_out_log_entry)
 user_login_failed.connect(create_login_failed_log_entry)
+
+#
+# this is adopted from Netbox: users.models
+#
+#
+# REST API
+#
+
+
+def generate_key():
+    # Generate a random 160-bit key expressed in hexadecimal.
+    return binascii.hexlify(os.urandom(20)).decode()
+
+
+class Token(models.Model):
+    """
+    An API token used for user authentication. This extends the stock model to allow each user to have multiple tokens.
+    It also supports setting an expiration time and toggling write ability.
+    """
+
+    user = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name='tokens')
+    created = models.DateTimeField(verbose_name='created', auto_now_add=True)
+    expires = models.DateTimeField(verbose_name='expires', blank=True, null=True)
+    last_used = models.DateTimeField(verbose_name='last used', blank=True, null=True)
+    key = models.CharField(
+        verbose_name='key', max_length=40, unique=True, validators=[MinLengthValidator(40)]
+    )
+    write_enabled = models.BooleanField(
+        verbose_name='write enabled', default=True, help_text='Permit create/update/delete operations using this key'
+    )
+    description = models.CharField(verbose_name='description', max_length=200, blank=True)
+    allowed_ips = models.CharField(
+        verbose_name='allowed IPs',
+        max_length=200,
+        blank=True,
+        help_text='Allowed IPv4/IPv6 networks from where the token can be used. Leave blank for no restrictions. '
+        'Ex: "10.1.1.0/24, 192.168.10.16/32, 2001:DB8:1::/64"',
+    )
+
+    class Meta:
+        verbose_name = 'token'
+        verbose_name_plural = 'tokens'
+
+    def __str__(self):
+        return self.key if settings.ALLOW_TOKEN_RETRIEVAL else self.partial
+
+    def get_absolute_url(self):
+        return reverse('users:token', args=[self.pk])
+
+    @property
+    def partial(self):
+        return f'**********************************{self.key[-6:]}' if self.key else ''
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
+        return super().save(*args, **kwargs)
+
+    @staticmethod
+    def generate_key():
+        # Generate a random 160-bit key expressed in hexadecimal.
+        return binascii.hexlify(os.urandom(20)).decode()
+
+    @property
+    def is_expired(self):
+        if self.expires is None or timezone.now() < self.expires:
+            return False
+        return True
+
+    def validate_client_ip(self, client_ip):
+        """
+        Validate the API client IP address against the source IP restrictions (if any) set on the token.
+        """
+        if not self.allowed_ips:
+            return True
+
+        #
+        # this needs work:
+        # parsing of string of networks
+        #
+        # # for ip_network in self.allowed_ips:
+        #    if client_ip in IPNetwork(ip_network):
+        #        return True
+        #
+        # return False
+        return True

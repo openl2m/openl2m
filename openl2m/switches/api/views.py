@@ -21,7 +21,6 @@ from django.shortcuts import get_object_or_404
 
 # Use the Django Rest Framework:
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request as RESTRequest
@@ -45,10 +44,6 @@ class APISwitchMenuView(
     Return the groups and devices we have access to.
     """
 
-    authentication_classes = [
-        TokenAuthentication,
-        SessionAuthentication,  # useful for AJAX calls from web ui clients.
-    ]
     permission_classes = [
         IsAuthenticated,
     ]
@@ -99,10 +94,6 @@ class APISwitchBasicView(
     To save time we do NOT include mac-address, lldp, poe and other details.
     """
 
-    authentication_classes = [
-        TokenAuthentication,
-        SessionAuthentication,  # useful for AJAX calls from web ui clients.
-    ]
     permission_classes = [
         IsAuthenticated,
     ]
@@ -124,10 +115,6 @@ class APISwitchDetailView(
     with mac-address, lldp, poe and other details.
     """
 
-    authentication_classes = [
-        TokenAuthentication,
-        SessionAuthentication,  # useful for AJAX calls from web ui clients.
-    ]
     permission_classes = [
         IsAuthenticated,
     ]
@@ -148,10 +135,6 @@ class APIInterfaceSetState(
     Set the admin state of the selected interface.
     """
 
-    authentication_classes = [
-        TokenAuthentication,
-        SessionAuthentication,  # useful for AJAX calls from web ui clients.
-    ]
     permission_classes = [
         IsAuthenticated,
     ]
@@ -201,10 +184,6 @@ class APIInterfaceSetVlan(
     Set the untagged VLAN for an interface.
     """
 
-    authentication_classes = [
-        TokenAuthentication,
-        SessionAuthentication,  # useful for AJAX calls from web ui clients.
-    ]
     permission_classes = [
         IsAuthenticated,
     ]
@@ -255,10 +234,6 @@ class APIInterfaceSetPoE(
     Set the PoE state of an interface.
     """
 
-    authentication_classes = [
-        TokenAuthentication,
-        SessionAuthentication,  # useful for AJAX calls from web ui clients.
-    ]
     permission_classes = [
         IsAuthenticated,
     ]
@@ -309,10 +284,6 @@ class APIInterfaceSetDescription(
     Set the description for the selected interface.
     """
 
-    authentication_classes = [
-        TokenAuthentication,
-        SessionAuthentication,  # useful for AJAX calls from web ui clients.
-    ]
     permission_classes = [
         IsAuthenticated,
     ]
@@ -357,10 +328,6 @@ class APISwitchAddVlan(
     Add a VLAN to a switch.
     """
 
-    authentication_classes = [
-        TokenAuthentication,
-        SessionAuthentication,  # useful for AJAX calls from web ui clients.
-    ]
     permission_classes = [
         IsAuthenticated,
     ]
