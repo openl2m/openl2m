@@ -466,6 +466,9 @@ CISCO_WRITE_MEM_MAX_WAIT = 5
 # SSH command read timeout, default = 15 (Netmiko library default = 10)
 SSH_COMMAND_TIMEOUT = 15
 
+# connect timeout for Junos devices via the Netconf interface
+JUNOS_PYEZ_CONN_TIMEOUT = 10
+
 # perform hostname lookup from IP addresses found in ARP info, Admin pages, etc.
 # Note this could have impact on page rendering, depending on how fast your
 # dns resolution is and how may retries the underlying host OS is configured for.

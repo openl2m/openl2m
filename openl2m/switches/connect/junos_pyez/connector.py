@@ -14,6 +14,8 @@
 from netaddr import IPNetwork
 import re
 
+from django.conf import settings
+
 from switches.utils import dprint
 from switches.connect.constants import (
     IF_DUPLEX_FULL,
@@ -79,10 +81,13 @@ class PyEZConnector(Connector):
         self.can_save_config = False  # save not needed after commit in Junos!
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
 
-        # this will be the pyJunosPyEZ driver session object
+        # this will be the Junos PyEZ driver session object
         self.device = False
         # and we dont want to cache this:
         self.set_do_not_cache_attribute('device')
+        if not self._open_device():
+            dprint("  _open_device() failed! Raising exception")
+            raise Exception("PyEZ connection failed! Please check the device configuration!")
 
     def get_my_basic_info(self):
         '''
@@ -854,6 +859,7 @@ class PyEZConnector(Connector):
             user=self.switch.netmiko_profile.username,
             password=self.switch.netmiko_profile.password,
             normalize=True,
+            conn_open_timeout=settings.JUNOS_PYEZ_CONN_TIMEOUT,
         )  # normalize removed trailing/ending \n and spaces.
         try:
             self.device.open()

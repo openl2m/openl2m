@@ -430,6 +430,9 @@ LOOKUP_HOSTNAME_ROUTED_IP = getattr(configuration, "LOOKUP_HOSTNAME_ROUTED_IP", 
 # SSH command read timeout, default = 15 (Netmiko library default = 10)
 SSH_COMMAND_TIMEOUT = getattr(configuration, 'SSH_COMMAND_TIMEOUT', 15)
 
+# connect timeout for Junos devices via the Netconf interface
+JUNOS_PYEZ_CONN_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CONN_TIMEOUT', 10)
+
 # REST API Settings
 ALLOW_TOKEN_RETRIEVAL = getattr(configuration, 'ALLOW_TOKEN_RETRIEVAL', True)
 MAX_API_TOKENS = getattr(configuration, 'MAX_API_TOKENS', 5)
