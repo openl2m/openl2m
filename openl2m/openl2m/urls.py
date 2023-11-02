@@ -71,7 +71,7 @@ urlpatterns = [
         APIObtainAuthToken.as_view(),
         name="api-token",
     ),
-    path(r"api/switches/", include("switches.api.urls")),
+    path(r"api/switches/", include("switches.api.urls"), name="switches-api"),
     path(r"api/stats/", APIStatsView.as_view(), name='api-stats'),
     # to be implemented:
     # path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

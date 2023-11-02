@@ -111,7 +111,8 @@ class APIRootView(APIView):
         dprint("APIRootView(GET)")
         return Response(
             {
-                # 'switches': reverse('switches-api:api_switch_menu_view', request=request, format=format),
+                'switches': reverse('switches-api:api_switch_menu_view', request=request, format=format),
+                #                'switches/description': reverse('switches-api:api_interface_set_description', request=request, format=format),
                 'stats': reverse('api-stats', request=request, format=format),
             }
         )
