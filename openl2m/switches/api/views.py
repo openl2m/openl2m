@@ -25,11 +25,12 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request as RESTRequest
 from rest_framework.response import Response
+from rest_framework.reverse import reverse as rest_reverse
 from rest_framework.views import APIView
 
 from switches.views import confirm_access_rights
 from switches.connect.connect import get_connection_object
-from switches.constants import SWITCH_STATUS_ACTIVE
+from switches.constants import SWITCH_STATUS_ACTIVE, SWITCH_VIEW_BASIC
 from switches.connect.constants import POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DISABLED
 from switches.utils import dprint
 from switches.models import Switch, SwitchGroup, Log
@@ -54,7 +55,7 @@ class APISwitchMenuView(
     ):
         if isinstance(request, RESTRequest):
             dprint("***REST CALL ***")
-        (permissions, permitted) = get_my_device_permissions(user=request.user)
+        (permissions, permitted) = get_my_device_permissions(request=request)
         data = {
             "user": request.user.username,
             'groups': permissions,
@@ -370,27 +371,29 @@ Support functions.
 """
 
 
-def get_my_device_permissions(user, group_id=-1, switch_id=-1):
+def get_my_device_permissions(request, group_id=-1, switch_id=-1):
     """
     find the SwitchGroups, and Switch()-es in those groups, that this user has rights to
 
     Args:
-        user:  current User() object, typically from 'request.user'
+        request:  current Request() object
+        group_id (int): the pk of the SwitchGroup()
+        switch_id (int): the pk of the Switch()
 
     Returns:
         tuple of
-        permissions:    dict of switchgroups this user is member of,
+        permissions:    dict of pk's of SwitchGroup() objects this user is member of,
                         each is a dict of active devices(switches).
         permitted (boolean): True if group_id and switch_id given, and they are allowed!
     """
-    if user.is_superuser or user.is_staff:
+    if request.user.is_superuser or request.user.is_staff:
         # optimize data queries, get all related field at once!
         switchgroups = SwitchGroup.objects.all().order_by("name")
 
     else:
         # figure out what this user has access to.
         # Note we use the ManyToMany 'related_name' attribute for readability!
-        switchgroups = user.switchgroups.all().order_by("name")
+        switchgroups = request.user.switchgroups.all().order_by("name")
 
     # now find active devices in these groups
     permissions = {}
@@ -410,12 +413,25 @@ def get_my_device_permissions(user, group_id=-1, switch_id=-1):
             for switch in group.switches.all():
                 if switch.status == SWITCH_STATUS_ACTIVE:
                     # we save the names as well, so we can search them!
+                    if switch.default_view == SWITCH_VIEW_BASIC:
+                        url = rest_reverse(
+                            "switches-api:api_switch_basic_view",
+                            request=request,
+                            kwargs={"group_id": group.id, "switch_id": switch.id},
+                        )
+                    else:
+                        url = rest_reverse(
+                            "switches-api:api_switch_detail_view",
+                            request=request,
+                            kwargs={"group_id": group.id, "switch_id": switch.id},
+                        )
                     members[int(switch.id)] = {
                         "name": switch.name,
                         # "hostname": switch.hostname,
                         "description": switch.description,
                         "default_view": switch.default_view,
                         "default_view_name": switch.get_default_view_display(),
+                        "url": url,
                         "connector_type": switch.connector_type,
                         "connector_type_name": switch.get_connector_type_display(),
                         "read_only": switch.read_only,
@@ -439,7 +455,7 @@ def confirm_access_rights_api(
     Check if the current user has rights to this switch in this group
     Returns the switch_group and switch_id for further processing
     """
-    permissions, permitted = get_my_device_permissions(user=request.user, group_id=group_id, switch_id=switch_id)
+    permissions, permitted = get_my_device_permissions(request=request, group_id=group_id, switch_id=switch_id)
     if permitted:
         group = get_object_or_404(
             SwitchGroup,
