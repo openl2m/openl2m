@@ -82,6 +82,10 @@ class AosCxConnector(Connector):
         self.can_save_config = False  # not needed.
         self.can_reload_all = False
 
+        if not self._open_device():
+            dprint("  _open_device() failed, throwing exception!")
+            raise Exception("AOS-CX session failed! Please check the device configuration!")
+
     def get_my_basic_info(self):
         '''
         load 'basic' list of interfaces with status.
@@ -618,7 +622,7 @@ class AosCxConnector(Connector):
             dprint("AOS-CX Session FOUND!")
             return True
 
-        # first connection", we need to authenticate:
+        # first "connection", we need to authenticate:
         if not self.switch.netmiko_profile:
             self.error.status = True
             self.error.description = "Please configure a Credentials Profile to be able to connect to this device!"
