@@ -11,7 +11,9 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-from django.urls import path
+from django.urls import path, register_converter
+
+from switches.urls import InterfaceNameConvertor
 
 from switches.api.views import (
     APISwitchMenuView,
@@ -25,6 +27,11 @@ from switches.api.views import (
 )
 
 app_name = 'switches-api'
+
+register_converter(
+    InterfaceNameConvertor,
+    "ifname",
+)
 
 # api switch views
 urlpatterns = [
@@ -49,22 +56,22 @@ urlpatterns = [
         name="api_switch_add_vlan",
     ),
     path(
-        "interface/vlan/<int:group_id>/<int:switch_id>/<str:interface_id>/",
+        "interface/vlan/<int:group_id>/<int:switch_id>/<ifname:interface_id>/",
         APIInterfaceSetVlan.as_view(),
         name="api_interface_set_vlan",
     ),
     path(
-        "interface/state/<int:group_id>/<int:switch_id>/<str:interface_id>/",
+        "interface/state/<int:group_id>/<int:switch_id>/<ifname:interface_id>/",
         APIInterfaceSetState.as_view(),
         name="api_interface_set_state",
     ),
     path(
-        "interface/poe_state/<int:group_id>/<int:switch_id>/<str:interface_id>/",
+        "interface/poe_state/<int:group_id>/<int:switch_id>/<ifname:interface_id>/",
         APIInterfaceSetPoE.as_view(),
         name="api_interface_set_poe_state",
     ),
     path(
-        "interface/description/<int:group_id>/<int:switch_id>/<str:interface_id>/",
+        "interface/description/<int:group_id>/<int:switch_id>/<ifname:interface_id>/",
         APIInterfaceSetDescription.as_view(),
         name="api_interface_set_description",
     ),

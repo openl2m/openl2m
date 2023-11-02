@@ -38,6 +38,8 @@ from switches.connect.constants import (
 from switches.connect.netmiko.execute import NetmikoExecute
 from django.contrib.auth.models import User
 
+from rest_framework.reverse import reverse as rest_reverse
+
 '''
 Base Connector() class for OpenL2M.
 This implements the interface that is expected by the higher level code
@@ -170,6 +172,14 @@ class Connector:
         for v in self.vlans.values():
             vlans.append(v.as_dict())
         data['vlans'] = vlans
+        data["url_add_vlan"] = (
+            rest_reverse(
+                "switches-api:api_switch_add_vlan",
+                request=self.request,
+                kwargs={"group_id": self.group.id, "switch_id": self.switch.id},
+            ),
+        )
+
         # add PoE data:
         if self.poe_capable:
             poe = {

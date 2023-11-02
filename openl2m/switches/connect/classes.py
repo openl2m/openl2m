@@ -15,6 +15,9 @@ import array
 import netaddr
 
 from django.conf import settings
+from django.utils.encoding import iri_to_uri
+
+from rest_framework.reverse import reverse as rest_reverse
 
 """
 All the generic classes we use to represent
@@ -287,10 +290,17 @@ class Interface:
 
     def as_dict(self):
         '''
-        return this class as a dictionary for use by the API
+        return this Interface() class as a dictionary for use by the API
+
+        Params:
+            None.
+
+        Returns:
+            dict(): key-value pairs with information about this interface.
         '''
         inf = {}
-        inf["id"] = self.key
+        # for the id or key, we use the same encoded as django template url() function
+        inf["id"] = iri_to_uri(self.key)
         inf["name"] = self.name
         inf["description"] = self.description
         if self.is_routed:

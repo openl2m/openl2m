@@ -74,11 +74,34 @@ def switch_info(request, group_id, switch_id, details):
         return response_error
     data = {
         "switch": conn.as_dict(),
-        "interfaces": None,
     }
     interfaces = list()
     for key, iface in conn.interfaces.items():
-        interfaces.append(iface.as_dict())
+        inf = iface.as_dict()
+        # add some url info:
+        inf["url_set_vlan"] = rest_reverse(
+            "switches-api:api_interface_set_vlan",
+            request=request,
+            kwargs={"group_id": group_id, "switch_id": switch_id, "interface_id": iface.key},
+        )
+        inf["url_set_state"] = rest_reverse(
+            "switches-api:api_interface_set_state",
+            request=request,
+            kwargs={"group_id": group_id, "switch_id": switch_id, "interface_id": iface.key},
+        )
+        inf["url_set_poe_state"] = rest_reverse(
+            "switches-api:api_interface_set_poe_state",
+            request=request,
+            kwargs={"group_id": group_id, "switch_id": switch_id, "interface_id": iface.key},
+        )
+        inf["url_set_description"] = rest_reverse(
+            "switches-api:api_interface_set_description",
+            request=request,
+            kwargs={"group_id": group_id, "switch_id": switch_id, "interface_id": iface.key},
+        )
+        # now append this data to the list of interfaces:
+        interfaces.append(inf)
+    # add to return data:
     data["interfaces"] = interfaces
     conn.save_cache()  # this only works for SessionAuthentication !
     return Response(
@@ -432,6 +455,11 @@ def get_my_device_permissions(request, group_id=-1, switch_id=-1):
                         "default_view": switch.default_view,
                         "default_view_name": switch.get_default_view_display(),
                         "url": url,
+                        "url_add_vlan": rest_reverse(
+                            "switches-api:api_switch_add_vlan",
+                            request=request,
+                            kwargs={"group_id": group.id, "switch_id": switch.id},
+                        ),
                         "connector_type": switch.connector_type,
                         "connector_type_name": switch.get_connector_type_display(),
                         "read_only": switch.read_only,
