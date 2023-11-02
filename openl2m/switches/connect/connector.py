@@ -165,7 +165,6 @@ class Connector:
             'group_id': self.group.id,
             "read_only": self.switch.read_only,
             "primary_ipv4": self.switch.primary_ip4,
-            "save_config": self.can_save_config,
             "change_vlan": self.can_change_admin_status,
             "change_admin_status": self.can_change_admin_status,
             "change_vlan": self.can_change_vlan,
@@ -174,6 +173,16 @@ class Connector:
             "edit_vlans": self.can_edit_vlans,
             # more to add later...
         }
+        data["save_config"] = self.can_save_config
+        if self.can_save_config:
+            data["url_save_config"] = (
+                rest_reverse(
+                    "switches-api:api_switch_save_config",
+                    request=self.request,
+                    kwargs={"group_id": self.group.id, "switch_id": self.switch.id},
+                ),
+            )
+
         # add vlan data:
         vlans = []
         for v in self.vlans.values():

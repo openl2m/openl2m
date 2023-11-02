@@ -35,7 +35,7 @@ from switches.connect.constants import POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DI
 from switches.utils import dprint
 from switches.models import Switch, SwitchGroup, Log
 
-on_values = ["on", "yes", "enabled", "enable", "true", "1"]
+on_values = ["on", "yes", "y", "enabled", "enable", "true", "1"]
 
 
 class APISwitchMenuView(
@@ -150,6 +150,46 @@ class APISwitchDetailView(
         switch_id,
     ):
         return switch_info(request=request, group_id=group_id, switch_id=switch_id, details=True)
+
+
+class APISwitchSaveConfig(
+    APIView,
+):
+    """
+    Save the device configuration.
+    """
+
+    # permission_classes = [
+    #     IsAuthenticated,
+    # ]
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_id,
+    ):
+        dprint("APISwitchSaveConfig(POST)")
+        conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
+        if response_error:
+            return response_error
+        # TODO: now here we need to parse the incoming data to actually change the state of the interface.
+        dprint(f"  POST = {request.POST}")
+        # need to test access permissions here!
+        # TBD
+        try:
+            save = request.POST['save']
+        except Exception:
+            return respond_error("Missing required parameter and value: 'save=yes'")
+        if save.lower() not in on_values:
+            return respond_error("No save requested (why did you call us?).")
+
+        # now go save the config:
+        retval = conn.save_running_config()
+        if retval < 0:
+            return respond_error(f"Save ERROR: {conn.error.description}")
+        return respond_ok("Configuration saved!")
 
 
 class APIInterfaceSetState(

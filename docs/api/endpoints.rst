@@ -6,6 +6,8 @@ API Endpoints
 
 This is the list of REST API endpoints, and their functionality.
 
+*<group>* and *<switch>* are the ID's as retrieved from the 'menu' call at *api/switches/*
+
 .. list-table:: API endpoints
     :widths: 25 15 15 100 100
     :header-rows: 1
@@ -34,7 +36,7 @@ This is the list of REST API endpoints, and their functionality.
       - Yes
       - No
       -
-      - Get list of allowed devices
+      - Get list of allowed devices (ie. the 'menu')
     * - api/switches/basic/<group>/<switch>/
       - Yes
       - No
@@ -50,6 +52,11 @@ This is the list of REST API endpoints, and their functionality.
       - Yes
       - vlan_name(str), vlan_id(int)
       - Add a vlan to the device.
+    * - api/switches/save/<group>/<switch>/
+      - No
+      - Yes
+      - save(str), "on,enabled,enable,yes,y,1"
+      - Save the configuration of the device.
     * - api/switches/vlan/<group>/<switch>/<interface>/
       - No
       - Yes
@@ -58,12 +65,12 @@ This is the list of REST API endpoints, and their functionality.
     * - api/switches/state/<group>/<switch>/<interface>/
       - No
       - Yes
-      - state(str), "on,enabled,enable,yes,1" for UP, else DOWN
+      - state(str), "on,enabled,enable,yes,y,1" for UP, else DOWN
       - Set the administrative state of an interface.
     * - api/switches/poe_state/<group>/<switch>/<interface>/
       - No
       - Yes
-      - poe_state(str), "on,enabled,enable,yes,1" for UP, else DOWN
+      - poe_state(str), "on,enabled,enable,yes,y,1" for UP, else DOWN
       - Set the PoE state of an interface.
     * - api/switches/description/<group>/<switch>/<interface>/
       - No

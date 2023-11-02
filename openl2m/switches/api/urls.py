@@ -19,6 +19,7 @@ from switches.api.views import (
     APISwitchMenuView,
     APISwitchBasicView,
     APISwitchDetailView,
+    APISwitchSaveConfig,
     APISwitchAddVlan,
     APIInterfaceSetVlan,
     APIInterfaceSetState,
@@ -49,6 +50,11 @@ urlpatterns = [
         "details/<int:group_id>/<int:switch_id>/",
         APISwitchDetailView.as_view(),
         name="api_switch_detail_view",
+    ),
+    path(
+        "save/<int:group_id>/<int:switch_id>/",
+        APISwitchSaveConfig.as_view(),
+        name="api_switch_save_config",
     ),
     path(
         "add_vlan/<int:group_id>/<int:switch_id>/",
