@@ -485,6 +485,7 @@ def get_connection_switch(request, group_id, switch_id, details=False):
         connection is a fully loaded Connection() object if all is valid, or None if not.
         If all OK, response_error will None, but on errors it will be a valid Response() object.
     """
+    dprint("API-get_connection_switch()")
     response_error = None
     # test permission first:
     permitted, group, switch = confirm_access_rights_api(
@@ -493,24 +494,17 @@ def get_connection_switch(request, group_id, switch_id, details=False):
         switch_id=switch_id,
     )
     if not permitted:
-        return None, Response(
-            data={
-                "message": "Access denied!",
-            },
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        return None, response_error(reason="Access denied!")
 
     # access allowed, try to get a connection:
     try:
+        dprint("  BEFORE get_connection_object()")
         conn = get_connection_object(request, group, switch)
+        dprint("  AFTER get_connection_object()")
     except Exception as e:
         error = f"A Connection Error occured: {e}"
         dprint(error)
-
-        return None, Response(
-            data=error,
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return None, respond_error(reason=error)
     # finally try to read the data:
     try:
         if not conn.get_basic_info():
@@ -522,10 +516,7 @@ def get_connection_switch(request, group_id, switch_id, details=False):
     except Exception as e:
         error = f"Error getting switch info: {e}"
         dprint(error)
-        response_error = Response(
-            data=error,
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        response_error = respond_error(reason=error)
     # conn.save_cache() #
     return conn, response_error
 
@@ -533,7 +524,7 @@ def get_connection_switch(request, group_id, switch_id, details=False):
 def respond_ok(comment):
     return Response(
         data={
-            "result": f"{comment}",
+            "result": comment,
         },
         status=status.HTTP_200_OK,
     )
@@ -542,7 +533,7 @@ def respond_ok(comment):
 def respond_error(reason):
     return Response(
         data={
-            "reason": f"{reason}",
+            "reason": reason,
         },
         status=status.HTTP_400_BAD_REQUEST,
     )
