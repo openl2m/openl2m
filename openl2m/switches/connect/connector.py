@@ -181,6 +181,8 @@ class Connector:
             for pse in self.poe_pse_devices.values():
                 supplies.append(pse.as_dict())
             poe['power-supplies'] = supplies
+        else:
+            poe = False
         data['poe'] = poe
         # this data represents the info about the connected device
         return data
