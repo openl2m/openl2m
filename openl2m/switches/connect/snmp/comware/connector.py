@@ -67,6 +67,7 @@ class SnmpConnectorComware(SnmpConnector):
         dprint("Comware SnmpConnector __init__")
         super().__init__(request, group, switch)
         self.description = 'HPE Comware SNMP driver'
+        self.vendor_name = "HPE (Comware)"
         self.can_save_config = True
         # needed for saving config file:
         self.active_config_rows = 0

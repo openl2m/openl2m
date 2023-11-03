@@ -366,6 +366,7 @@ class SnmpConnector(Connector):
         dprint("SnmpConnector() __init__")
         super().__init__(request, group, switch)
 
+        self.vendor_name = "Generic SNMP device"
         self.description = "Standard SNMP connector"  # what type of class is running!
 
         # SNMP specific attributes:

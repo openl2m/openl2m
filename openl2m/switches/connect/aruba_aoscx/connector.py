@@ -65,6 +65,7 @@ class AosCxConnector(Connector):
         dprint("AosCxConnector() __init__")
         super().__init__(request, group, switch)
         self.description = "Aruba AOS-CX API driver"
+        self.vendor_name = "Aruba Networks"
 
         # this is a read-write driver:
         self.switch.read_only = False

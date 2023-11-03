@@ -31,6 +31,7 @@ class CommandsOnlyConnector(Connector):
         dprint("Commands-Only Connector __init__")
         super().__init__(request, group, switch)
         self.description = 'Commands-Only (Netmiko) driver'
+        self.vendor_name = "Netmiko (Commands-Only)"
         # force READ-ONLY
         self.switch.read_only = True
         if switch.description:

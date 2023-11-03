@@ -84,6 +84,7 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint("CISCO SnmpConnector __init__")
         super().__init__(request, group, switch)
         self.description = 'Cisco SNMP driver'
+        self.vendor_name = "Cisco"
         """
         # capabilities of the Cisco snmp driver are identical to the snmp driver:
         self.can_change_admin_status = True

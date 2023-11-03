@@ -70,6 +70,7 @@ class PyEZConnector(Connector):
         dprint("PyEZConnector() __init__")
         super().__init__(request, group, switch)
         self.description = 'Junos PyEZ Netconf driver'
+        self.vendor_name = "Juniper Networks"
         self.switch.read_only = False
 
         # current capabilities of the PyEZ drivers:

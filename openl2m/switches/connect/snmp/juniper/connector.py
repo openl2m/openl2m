@@ -54,6 +54,8 @@ class SnmpConnectorJuniper(SnmpConnector):
         self.description = 'Juniper SNMP (R/O) driver'
         # force READ-ONL. JUNOS devices are Read-Only for SNMP! See the PyEZ driver for R/W capabilities!
         self.switch.read_only = True
+        self.vendor_name = "Juniper Networks"
+        self.description = "Juniper Networks SNMP driver"
 
     def _parse_oid(self, oid, val):
         """

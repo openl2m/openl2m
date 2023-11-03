@@ -35,6 +35,7 @@ class DummyConnector(Connector):
         dprint("Dummy Connector __init__")
         super().__init__(request, group, switch)
         self.description = 'Dummy Test driver'
+        self.vendor_name = "Dummy Test Device"
         # We allow write, this will call base class bookkeeping functions in Connector()
         self.switch.read_only = False
         self.add_more_info('System', 'Type', "Software Dummy Switch")
