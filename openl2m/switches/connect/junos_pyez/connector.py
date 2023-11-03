@@ -107,12 +107,13 @@ class PyEZConnector(Connector):
             # self.error already set!
             return False
 
+        self.hostname = self.device.facts['hostname']
         # if first time for this device (or changed), update hostname
         if self.switch.hostname != self.device.facts['hostname']:
             self.switch.hostname = self.device.facts['hostname']
             self.switch.save()
 
-        self.add_more_info('System', 'Hostname', self.device.facts['hostname'])
+        self.add_more_info('System', 'Hostname', self.hostname)
         self.add_more_info('System', 'Model', self.device.facts['model'])
         self.add_more_info('System', 'Version', self.device.facts['version'])
         if self.device.facts['domain']:  # this is None when not set!

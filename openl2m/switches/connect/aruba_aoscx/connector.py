@@ -117,6 +117,7 @@ class AosCxConnector(Connector):
         # the create call (__init__()) already calls get_firmware_version
         # firmware = device.get_firmware_version()
 
+        self.hostname = aoscx_device.hostname
         # if first time for this device (or changed), update hostname
         if self.switch.hostname != aoscx_device.hostname:
             self.switch.hostname = aoscx_device.hostname
@@ -129,7 +130,7 @@ class AosCxConnector(Connector):
         # self.add_more_info('System', 'Firmware', aoscx_device.firmware_version)
         self.add_more_info('System', 'Platform', aoscx_device.platform_name)
         if aoscx_device.hostname:  # this is None when not set!
-            self.add_more_info('System', 'Hostname', aoscx_device.hostname)
+            self.add_more_info('System', 'Hostname', self.hostname)
         else:
             self.add_more_info('System', 'Hostname', '')
         if aoscx_device.domain_name:  # this is None when not set!

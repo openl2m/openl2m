@@ -44,6 +44,7 @@ class CommandsOnlyConnector(Connector):
         Implemented to surpress the warning if not implemented.
         """
         dprint("Commands-Only Connector get_my_basic_info()")
+        self.hostname = self.switch.hostname
         return True
 
     def can_run_commands(self):

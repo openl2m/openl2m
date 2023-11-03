@@ -36,9 +36,11 @@ class DummyConnector(Connector):
         super().__init__(request, group, switch)
         self.description = 'Dummy Test driver'
         self.vendor_name = "Dummy Test Device"
+        self.hostname = "dummy.example.org"
         # We allow write, this will call base class bookkeeping functions in Connector()
         self.switch.read_only = False
         self.add_more_info('System', 'Type', "Software Dummy Switch")
+        self.add_more_info("System", "Hostname", self.hostname)
 
     def get_my_basic_info(self):
         dprint("Dummy Connector get_my_basic_info()")

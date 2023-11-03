@@ -159,6 +159,7 @@ class Connector:
         data = {
             'hostname': self.hostname,
             'vendor': self.vendor_name,
+            'driver': self.__class__.__name__,
             'name': self.switch.name,
             'id': self.switch.id,
             'group': self.group.name,

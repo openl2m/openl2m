@@ -101,7 +101,8 @@ class NapalmConnector(Connector):
             return False
         dprint(f"facts = \n{ facts }\n")
 
-        self.add_more_info('System', 'Hostname', facts['hostname'])
+        self.hostname = facts['hostname']
+        self.add_more_info('System', 'Hostname', self.hostname)
         self.add_more_info('System', 'Vendor', facts['vendor'])
         self.add_more_info('System', 'OS', facts['os_version'])
         self.add_more_info('System', 'Model', facts['model'])
