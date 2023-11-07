@@ -1,0 +1,34 @@
+{% extends '_base.html' %}
+
+{% block title %}Error!{% endblock %}
+
+{% block content %}
+<div class="row">
+  {% if error.details %}
+    <div class="col-md-8">
+  {% else %}
+    <div class="col-md-4">
+  {% endif %}
+      <div class="panel panel-danger">
+          <div class="panel-heading">
+              <strong>An Error Has Occured</strong>
+          </div>
+
+          <div class="panel-body">
+            <div>{{ error.description }}</div>
+            {% if error.details %}
+              <div>
+                <a data-toggle="collapse" href="#details" aria-expanded="false" aria-controls="details">Click to see details</a>
+              </div>
+              <div id="details" class="collapse">
+                <pre>{{ error.details }}</pre>
+              </div>
+            {% endif %}
+            {% if switch_id %}
+              <div><a href="{% url 'switches:groups'%}">Go back to the Menu</a>, or <a href="{% url 'switches:switch_basics' group_id switch_id %}">Retry device.</a></div>
+            {% endif %}
+          </div>
+      </div>
+    </div>
+</div>
+{% endblock %}
