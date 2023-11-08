@@ -30,6 +30,7 @@ from counters.models import counter_increment
 
 from switches.connect.classes import Error
 from switches.constants import (
+    LOG_SAVE_SWITCH,
     LOG_TYPE_CHANGE,
     LOG_TYPE_ERROR,
     LOG_CHANGE_INTERFACE_ALIAS,
@@ -55,13 +56,13 @@ def get_connection_if_permitted(request, group, switch, write_access=False):
             Error() object describing the error, e.g. access denied.
 
     """
+    dprint("get_connection_if_permitted()")
     log = Log(
         user=request.user,
         ip_address=get_remote_ip(request),
         switch=switch,
         group=group,
         action=LOG_CHANGE_INTERFACE_ALIAS,
-        if_name=interface_key,
     )
     if not group or not switch:
         log.type = LOG_TYPE_ERROR
@@ -76,7 +77,7 @@ def get_connection_if_permitted(request, group, switch, write_access=False):
         return False, error
 
     if write_access:
-        if request.user.read_only or group.read_only or switch.read_only:
+        if request.user.profile.read_only or group.read_only or switch.read_only:
             log.type = LOG_TYPE_ERROR
             log.action = LOG_DENIED
             log.description = "Access Denied! (group or switch is read-only)"
@@ -90,7 +91,7 @@ def get_connection_if_permitted(request, group, switch, write_access=False):
             return False, error
 
     try:
-        conn = get_connection_object(request, group, switch)
+        connection = get_connection_object(request, group, switch)
     except Exception as err:
         dprint(f"  Error caught from get_connection_object(): {err}")
         log.type = LOG_TYPE_ERROR
@@ -103,7 +104,7 @@ def get_connection_if_permitted(request, group, switch, write_access=False):
         error.details = "This is likely a configuration error, such as incorrect SNMP or Credentials settings!"
         return False, error
 
-    return Connection, None
+    return connection, None
 
 
 def perform_interface_description_change(request, group_id, switch_id, interface_key, new_description):
@@ -136,7 +137,7 @@ def perform_interface_description_change(request, group_id, switch_id, interface
     interface = connection.get_interface_by_key(str(interface_key))
     if not interface:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Alias-Change: Error getting interface data for {interface_key}"
+        log.description = f"Description-Change: Error getting interface data for {interface_key}"
         log.save()
         counter_increment(COUNTER_ERRORS)
         error = Error()
@@ -261,15 +262,16 @@ def perform_switch_save_config(request, group_id, switch_id):
         error.description = "This switch model cannot save or does not need to save the config"
         return False, error
 
-    if not connection.save_needed:
-        # this is unlikely to happen
-        log.type = LOG_TYPE_ERROR
-        log.description = "Device does not need saving!"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = log.description
-        return False, error
+    # the following condition is ignored. If this is called from WebUI, we know "save_needed" state.
+    # However, from API we have no state (the caller needs to track it), so we simply save when called!
+    # if not connection.save_needed:
+    #     log.type = LOG_TYPE_WARNING
+    #     log.description = "Device does not need saving!"
+    #     log.save()
+    #     counter_increment(COUNTER_ERRORS)
+    #     error = Error()
+    #     error.description = log.description
+    #     return True, error
 
     # we can save
     if connection.save_running_config() < 0:
@@ -284,10 +286,10 @@ def perform_switch_save_config(request, group_id, switch_id):
         return False, error
 
     # clear save flag
-    conn.set_save_needed(False)
+    connection.set_save_needed(False)
 
     # save cachable/session data
-    conn.save_cache()
+    connection.save_cache()
 
     # all OK
     log.save()

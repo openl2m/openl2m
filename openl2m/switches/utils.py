@@ -364,8 +364,10 @@ def get_my_device_permissions(request, group_id=-1, switch_id=-1):
         group:  SwitchGroup() object or None
         switch: Switch() object or None
     """
+    dprint("get_my_device_permissions()")
     permitted = False
     if request.user.is_superuser or request.user.is_staff:
+        dprint("  Superuser or Staff!")
         # optimize data queries, get all related field at once!
         switchgroups = SwitchGroup.objects.all().order_by("name")
     else:
@@ -485,7 +487,7 @@ def perform_user_rights_to_group_and_switch(request, group_id, switch_id):
                 request=request, group_id=group_id, switch_id=switch_id
             )
             return group, switch
-        dprint("RESTRequest() bu request.auth NOT None!")
+        dprint("RESTRequest() but request.auth NOT None!")
 
     # web ui, regular app or api browser
     dprint("  WEB UI - calling get_from_http_session")

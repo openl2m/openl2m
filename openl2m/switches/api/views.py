@@ -29,7 +29,7 @@ from switches.connect.connect import get_connection_object
 from switches.connect.constants import POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DISABLED
 from switches.utils import get_my_device_permissions, dprint
 from switches.models import Switch, SwitchGroup, Log
-from switches.actions import perform_interface_description_change
+from switches.actions import perform_interface_description_change, perform_switch_save_config
 
 on_values = ["on", "yes", "y", "enabled", "enable", "true", "1"]
 
@@ -159,18 +159,9 @@ class APISwitchSaveConfig(
         if save.lower() not in on_values:
             return respond_error("No save requested (why did you call us?).")
 
-        conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
-        if response_error:
-            return response_error
-        # TODO: now here we need to parse the incoming data to actually change the state of the interface.
-        dprint(f"  POST = {request.POST}")
-        # need to test access permissions here!
-        # TBD
-
-        # now go save the config:
-        retval = conn.save_running_config()
-        if retval < 0:
-            return respond_error(f"Save ERROR: {conn.error.description}")
+        retval, error = perform_switch_save_config(request, group_id, switch_id)
+        if not retval:
+            return respond(status=error.code, text=error.description)
         return respond_ok("Configuration saved!")
 
 
