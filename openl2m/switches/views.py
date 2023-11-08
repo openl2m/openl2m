@@ -19,7 +19,7 @@ import datetime
 import traceback
 import re
 
-import django
+# import django
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.models import User
@@ -100,6 +100,9 @@ from switches.utils import (
     success_page,
     warning_page,
     error_page,
+    success_page_by_id,
+    warning_page_by_id,
+    error_page_by_id,
     dprint,
     get_from_http_session,
     save_to_http_session,
@@ -167,7 +170,8 @@ def switches(request):
 
     template_name = "home.html"
 
-    # close out any previous device user was working on
+    # dprint(f"HOME (/): user={request.user.username}, auth={request.auth}")
+
     close_device(request=request)
 
     # clear session cache, so we re-read switches as needed
@@ -1298,6 +1302,36 @@ def interface_description_change(request, group_id, switch_id, interface_name):
     """
     Change the ifAlias aka description on an interfaces.
     """
+    dprint("interface_description_change()")
+
+    # read the submitted form data:
+    # new_description = str(request.POST.get("new_description", ""))
+    try:
+        description = request.POST['new_description']
+    except Exception:
+        error = Error()
+        error.description = "Missing required parameter: 'new_description'"
+        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
+
+    retval, error = perform_interface_description_change(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+        interface_key=interface_name,
+        new_description=description,
+    )
+    if not retval:
+        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
+
+    message = f"Interface {interface.name} description changed"
+    return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
+
+
+@login_required(redirect_field_name=None)
+def interface_description_change_ORIGINAL(request, group_id, switch_id, interface_name):
+    """
+    Change the ifAlias aka description on an interfaces.
+    """
     group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
 
     log = Log(
@@ -1673,7 +1707,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
 
 
 @login_required(redirect_field_name=None)
-def switch_save_config(request, group_id, switch_id, view):
+def switch_save_config(request, group_id, switch_id):
     """
     This will save the running config to flash/startup/whatever, on supported platforms
     """
@@ -2265,7 +2299,7 @@ def confirm_access_rights(
 ):
     """
     Check if the current user has rights to this switch in this group
-    Returns the switch_group and switch_id for further processing
+    Returns the switch_group and switch for further processing
     """
     group = get_object_or_404(
         SwitchGroup,
@@ -2296,7 +2330,7 @@ def rights_to_group_and_switch(request, group_id, switch_id):
     if request.user.is_superuser or request.user.is_staff:
         return True
     # for regular users, check permissions:
-    permissions = get_from_http_session(request, "permissions")
+    permissions = get_from_http_session(request=request, name="permissions")
     if permissions and isinstance(permissions, dict) and int(group_id) in permissions.keys():
         switches = permissions[int(group_id)]
         if isinstance(switches, dict) and int(switch_id) in switches.keys():

@@ -1095,7 +1095,7 @@ class Connector:
             stop_time = time.time()
             self.add_timing("Cache load", count, stop_time - start_time)
             return True
-
+        dprint("  NO cache found!")
         return False
 
     def load_my_cache(self):

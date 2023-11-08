@@ -412,6 +412,7 @@ class SnmpConnector(Connector):
         self._snmp_session = False  # EasySNMP session object
         # initialize the snmp "connection/session"
         if not self._set_snmp_session():
+            dprint("   ERROR: cannot get SNMP session!")
             raise Exception("Cannot get SNMP session, did you configure a profile?")
 
     def _set_snmp_session(self, com_or_ctx=''):

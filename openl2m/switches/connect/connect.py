@@ -19,6 +19,8 @@ if we cannot do it all using snmp.
 
 from django.utils import timezone
 
+from rest_framework.request import Request as RESTRequest
+
 from switches.utils import dprint
 from switches.constants import (
     CONNECTOR_TYPE_SNMP,
@@ -134,6 +136,11 @@ def get_connection_object(request, group, switch):
         raise Exception("Invalid connector type configured on switch!")
 
     # load caches (http session, memory cache (future), whatever else for performance)
-    connection.load_cache()
+    if not connection.load_cache() and isinstance(request, RESTRequest):
+        # API call with token, there is no cache so always load the basic switch config:
+        dprint("  API call: calling get_basic_info()")
+        if not connection.get_basic_info():
+            dprint(f"  ERROR in get_basic_info(): {self.error.description}")
+            raise Exception(self.error.description)
     # then return object
     return connection

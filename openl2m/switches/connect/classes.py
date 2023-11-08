@@ -17,6 +17,7 @@ import netaddr
 from django.conf import settings
 from django.utils.encoding import iri_to_uri
 
+from rest_framework import status as http_status
 from rest_framework.reverse import reverse as rest_reverse
 
 """
@@ -58,7 +59,8 @@ class Error:
         """
         Default state is error occured!
         """
-        self.status = True
+        self.status = True  # True if error, False if not.
+        self.code = http_status.HTTP_400_BAD_REQUEST
         self.description = "An Unknown Error Occured!"  # simple description of error
         self.details = ""  # more details about the error, typically a 'traceback'
 
@@ -67,6 +69,7 @@ class Error:
         Clear error status
         """
         self.status = False  # True if error
+        self.code = http_status.HTTP_200_OK
         self.description = ""  # simple description of error
         self.details = ""  # more details about the error, typically a 'traceback'
 
