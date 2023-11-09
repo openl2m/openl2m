@@ -214,6 +214,7 @@ def switches(request):
         template_name,
         {
             "groups": groups,
+            "groups_count": len(groups),
         },
     )
 
@@ -223,6 +224,7 @@ def switch_search(request):
     """
     search for a switch by name
     """
+    dprint("switch_search()")
 
     if not settings.SWITCH_SEARCH_FORM:
         return redirect(reverse("switches:groups"))
@@ -249,12 +251,16 @@ def switch_search(request):
     result_groups = {}
     warning = False
     permissions = get_from_http_session(request, "permissions")
+
     if permissions and isinstance(permissions, dict):
-        for group_id in permissions.keys():
-            switches = permissions[group_id]
-            if isinstance(switches, dict):
-                for switch_id in switches.keys():
-                    (name, hostname, description, default_view, group_name) = switches[switch_id]
+        for group_id, group in permissions.items():
+            if isinstance(group, dict):
+                group_name = group['name']
+                for switch_id, switch in group['members'].items():
+                    name = switch['name']
+                    hostname = switch['hostname']
+                    description = switch['description']
+                    default_view = switch['default_view']
                     # now check the name, hostname for the search pattern:
                     try:
                         if re.search(search, name, re.IGNORECASE) or re.search(search, hostname, re.IGNORECASE):

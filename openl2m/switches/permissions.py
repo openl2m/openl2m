@@ -107,7 +107,7 @@ def get_my_device_groups(request):
                         )
                     members[int(switch.id)] = {
                         "name": switch.name,
-                        # "hostname": switch.hostname,
+                        "hostname": switch.hostname,
                         "description": switch.description,
                         "default_view": switch.default_view,
                         "default_view_name": switch.get_default_view_display(),
@@ -243,12 +243,10 @@ def _get_group_and_switch_from_permissions(permissions, group_id, switch_id):
     if permissions and isinstance(permissions, dict) and int(group_id) in permissions.keys():
         devices = permissions[int(group_id)]
         if isinstance(devices, dict) and int(switch_id) in devices['members'].keys():
-            dprint("  FOUND switch in group member")
             try:
                 group = SwitchGroup.objects.get(pk=group_id)
                 switch = Switch.objects.get(pk=switch_id)
             except Exception as err:
                 group = None
                 switch = None
-                dprint(f"  GROUP or SWITCH OBJECT NOT FOUND!, error {err}")
     return group, switch
