@@ -24,7 +24,6 @@ from rest_framework import status as http_status
 from counters.constants import (
     COUNTER_CHANGES,
     COUNTER_ERRORS,
-    COUNTER_ACCESS_DENIED,
 )
 from counters.models import counter_increment
 
@@ -34,77 +33,16 @@ from switches.constants import (
     LOG_TYPE_CHANGE,
     LOG_TYPE_ERROR,
     LOG_CHANGE_INTERFACE_ALIAS,
-    LOG_CONNECTION_ERROR,
-    LOG_DENIED,
 )
-from switches.connect.connect import get_connection_object
 from switches.models import Log
-from switches.utils import dprint, get_remote_ip, perform_user_rights_to_group_and_switch
+from switches.utils import dprint, get_remote_ip
 
-
-def get_connection_if_permitted(request, group, switch, write_access=False):
-    """Get a Connection() object if access to this switch is permitted.
-
-    Params:
-        request:  HttpRequest() object.
-        group: SwitchGroup() object.
-        switch: Switch() object
-
-    Returns:
-        connection, error:
-            Connection() object if permitted, None if not.
-            Error() object describing the error, e.g. access denied.
-
-    """
-    dprint("get_connection_if_permitted()")
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        action=LOG_CHANGE_INTERFACE_ALIAS,
-    )
-    if not group or not switch:
-        log.type = LOG_TYPE_ERROR
-        log.action = LOG_DENIED
-        log.description = "Access Denied!"
-        log.save()
-        counter_increment(COUNTER_ACCESS_DENIED)
-        error = Error()
-        error.status = True
-        error.code = http_status.HTTP_403_FORBIDDEN
-        error.description = "Access denied!"
-        return False, error
-
-    if write_access:
-        if request.user.profile.read_only or group.read_only or switch.read_only:
-            log.type = LOG_TYPE_ERROR
-            log.action = LOG_DENIED
-            log.description = "Access Denied! (group or switch is read-only)"
-            log.save()
-            counter_increment(COUNTER_ACCESS_DENIED)
-            error = Error()
-            error.status = True
-            error.code = http_status.HTTP_403_FORBIDDEN
-            error.description = "Access denied!"
-            error.details = "User, Group or Switch is read-only!"
-            return False, error
-
-    try:
-        connection = get_connection_object(request, group, switch)
-    except Exception as err:
-        dprint(f"  Error caught from get_connection_object(): {err}")
-        log.type = LOG_TYPE_ERROR
-        log.action = LOG_CONNECTION_ERROR
-        log.description = "Could not get connection"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
-        error.details = "This is likely a configuration error, such as incorrect SNMP or Credentials settings!"
-        return False, error
-
-    return connection, None
+from switches.permissions import (
+    get_my_device_groups,
+    get_group_switch_from_permissions,
+    perform_user_rights_to_group_and_switch,
+    get_connection_if_permitted,
+)
 
 
 def perform_interface_description_change(request, group_id, switch_id, interface_key, new_description):
@@ -132,6 +70,14 @@ def perform_interface_description_change(request, group_id, switch_id, interface
     if connection is None:
         return False, error
 
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_CHANGE_INTERFACE_ALIAS,
+    )
+
     dprint(f"  Key '{interface_key}' is type {type(interface_key)}")
 
     interface = connection.get_interface_by_key(str(interface_key))
@@ -143,6 +89,8 @@ def perform_interface_description_change(request, group_id, switch_id, interface
         error = Error()
         error.description = "Could not get interface data. Please contact your administrator!"
         return False, error
+
+    log.if_name = interface.name
 
     # can the user manage the interface?
     if not interface.manageable:

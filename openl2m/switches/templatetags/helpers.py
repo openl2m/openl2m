@@ -12,11 +12,13 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import json
+import pprint
 
 from django.conf import settings
 from django import template
 from django.template import Template, Context
 from django.utils.html import mark_safe
+from django.urls import reverse
 
 from switches.models import SwitchGroupMembership
 from switches.constants import SWITCH_STATUS_ACTIVE, SWITCH_VIEW_BASIC, SWITCH_VIEW_DETAILS
@@ -36,6 +38,8 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_REPEATER,
     LLDP_CAPABILITIES_OTHER,
 )
+
+from switches.utils import dprint
 
 # see https://docs.djangoproject.com/en/2.2/ref/templates/api/
 # and https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/
@@ -64,23 +68,29 @@ def build_url_string(values):
     return s
 
 
-def get_switch_link(group, switch):
+def get_switch_link(group_id, switch_id, switch):
     """
     Build custom html link to switch, based on switch attributes
     """
     s = "<li class=\"list-group-item\">"
-    if switch.description:
-        s = s + f"<span data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"{switch.description}\">"
+    if switch['description']:
+        s = s + f"<span data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"{switch['description']}\">"
     # do proper indenting:
     indent = ''
-    for i in range(switch.indent_level):
+    for i in range(switch['indent_level']):
         indent = indent + "&nbsp;&nbsp;&nbsp;"
-    if switch.default_view == SWITCH_VIEW_BASIC:
-        s = s + f"{indent}<a href=\"/switches/{group.id}/{switch.id}/\">"
+    if switch['default_view'] == SWITCH_VIEW_BASIC:
+        s = (
+            s
+            + f'{indent}<a href="{reverse("switches:switch_basics", kwargs={"group_id": group_id, "switch_id": switch_id})}">'
+        )
     else:
-        s = s + f"<a href=\"/switches/{group.id}/{switch.id}/details/\">"
-    s = s + f"{switch.name}</a>"
-    if switch.description:
+        s = (
+            s
+            + f'<a href="{reverse("switches:switch_arp_lldp", kwargs={"group_id": group_id, "switch_id": switch_id})}">'
+        )
+    s = s + f"{switch['name']}</a>"
+    if switch['description']:
         s = s + "</span>"
     s = s + "</li>"
     return s
@@ -182,10 +192,13 @@ def get_my_results(results, group_count):
 
 
 @register.filter
-def get_my_switchgroups(groups):
+def get_my_group_menu(groups):
     """
     Build custom html menu of all the switchgroups and their switches
     """
+    dprint('get_my_group_menu()')
+    dprint(pprint.pformat(groups))
+
     num_groups = len(groups)
     if not num_groups:
         s = "<strong>You are not a member of any switch groups!</strong></br>Please contact the OpenL2M administrator!\n"
@@ -208,7 +221,7 @@ def get_my_switchgroups(groups):
 
     # now list the groups:
     group_num = 0
-    for group_name, group in groups.items():
+    for group_id, group in groups.items():
         group_num += 1
         if settings.TOPMENU_MAX_COLUMNS > 1:
             if not ((group_num - 1) % settings.TOPMENU_MAX_COLUMNS):
@@ -226,29 +239,28 @@ def get_my_switchgroups(groups):
             s
             + "\n  <div class=\"panel-group\">\n   <div class=\"panel panel-default\">\n   <div class=\"panel-heading\">"
         )
-        s = s + f"<a data-toggle=\"collapse\" href=\"#group{group.id}\">"
-        if group.description:
-            s = s + f"\n  <span data-toggle=\"tooltip\" title=\"{group.description}\">"
-        if group.display_name:
-            s = s + group.display_name
+        s = s + f"<a data-toggle=\"collapse\" href=\"#group{group_id}\">"
+        if group["description"]:
+            s = s + f"\n  <span data-toggle=\"tooltip\" title=\"{group['description']}\">"
+        if group["display_name"]:
+            s = s + group["display_name"]
         else:
-            s = s + group.name
-        if group.description:
+            s = s + group["name"]
+        if group["description"]:
             s = s + "</span>"
         s = s + "</a>"
-        if group.read_only:
+        if group["read_only"]:
             s = s + " (r/o)"
         s = s + "</div>"  # this /div ends panel-heading
 
         # the collapsible items:
-        s = s + f"\n   <div id=\"group{group.id}\" class=\"panel-collapse"
+        s = s + f"\n   <div id=\"group{group_id}\" class=\"panel-collapse"
         # if only 1 group, show all items
         if num_groups > 1:
             s = s + " collapse"
         s = s + "\">\n    <ul class=\"list-group\">"
-        for member in SwitchGroupMembership.objects.filter(switchgroup=group):
-            if member.switch.status == SWITCH_STATUS_ACTIVE:
-                s = s + f"\n    {get_switch_link(group, member.switch)}"
+        for switch_id, switch in group['members'].items():
+            s = s + f"\n    {get_switch_link(group_id, switch_id, switch)}"
         s = s + "\n    </ul>\n   </div>"  # /div ends panel-collapse
 
         # and end this group header and group:

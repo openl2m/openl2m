@@ -117,6 +117,8 @@ from switches.utils import (
     string_matches_regex,
     get_choice_name,
 )
+from switches.permissions import get_my_device_groups
+
 from users.utils import user_can_bulkedit, user_can_edit_vlans, get_current_users
 from counters.models import Counter, counter_increment
 from counters.constants import (
@@ -175,7 +177,7 @@ def switches(request):
 
     template_name = "home.html"
 
-    # dprint(f"HOME (/): user={request.user.username}, auth={request.auth}")
+    dprint(f"HOME (/): user={request.user.username}")
 
     close_device(request=request)
 
@@ -186,34 +188,8 @@ def switches(request):
     save_to_http_session(request, "remote_ip", get_remote_ip(request))
 
     # find the groups with switches that we have rights to:
-    switchgroups = {}
-    permissions = {}
-    if request.user.is_superuser or request.user.is_staff:
-        # optimize data queries, get all related field at once!
-        groups = SwitchGroup.objects.all().order_by("name")
-
-    else:
-        # figure out what this user has access to.
-        # Note we use the ManyToMany 'related_name' attribute for readability!
-        groups = request.user.switchgroups.all().order_by("name")
-
-    for group in groups:
-        if group.switches.count():
-            switchgroups[group.name] = group
-            # set this group, and the switches, in web session to track permissions
-            permissions[int(group.id)] = {}
-            for switch in group.switches.all():
-                if switch.status == SWITCH_STATUS_ACTIVE:
-                    # we save the names as well, so we can search them!
-                    permissions[int(group.id)][int(switch.id)] = (
-                        switch.name,
-                        switch.hostname,
-                        switch.description,
-                        switch.default_view,
-                        group.name,
-                    )
-
-    save_to_http_session(request, "permissions", permissions)
+    groups, group, switch = get_my_device_groups(request=request)
+    save_to_http_session(request, "permissions", groups)
 
     # log my activity
     log = Log(
@@ -232,12 +208,12 @@ def switches(request):
             messages.add_message(request=request, level=notice.priority, message=notice.content)
 
     # render the template
+    dprint("HOME calling render()")
     return render(
         request,
         template_name,
         {
-            "groups": switchgroups,
-            "groups_count": len(switchgroups),
+            "groups": groups,
         },
     )
 
