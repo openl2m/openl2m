@@ -28,7 +28,7 @@ from rest_framework.views import APIView
 from switches.actions import perform_interface_description_change, perform_switch_save_config
 from switches.connect.connect import get_connection_object
 from switches.connect.constants import POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DISABLED
-from switches.permissions import get_my_device_groups
+from switches.permissions import get_my_device_groups, get_group_and_switch
 from switches.utils import dprint
 
 on_values = ["on", "yes", "y", "enabled", "enable", "true", "1"]
@@ -49,7 +49,7 @@ class APISwitchMenuView(
             dprint("***REST CALL ***")
         dprint(f"  REST Menu: user={request.user.username}, auth={request.auth}")
 
-        groups, group, switch = get_my_device_groups(request=request)
+        groups = get_my_device_groups(request=request)
         data = {
             "user": request.user.username,
             'groups': groups,
@@ -389,7 +389,7 @@ def get_connection_switch(request, group_id, switch_id, details=False):
     """
     dprint("API-get_connection_switch()")
     # test permission first:
-    groups, group, switch = get_my_device_groups(
+    group, switch = get_group_and_switch(
         request=request,
         group_id=group_id,
         switch_id=switch_id,

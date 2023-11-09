@@ -19,7 +19,7 @@ import datetime
 import traceback
 import re
 
-# import django
+import django
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.models import User
@@ -117,7 +117,7 @@ from switches.utils import (
     string_matches_regex,
     get_choice_name,
 )
-from switches.permissions import get_my_device_groups
+from switches.permissions import get_group_and_switch, get_my_device_groups
 
 from users.utils import user_can_bulkedit, user_can_edit_vlans, get_current_users
 from counters.models import Counter, counter_increment
@@ -188,7 +188,7 @@ def switches(request):
     save_to_http_session(request, "remote_ip", get_remote_ip(request))
 
     # find the groups with switches that we have rights to:
-    groups, group, switch = get_my_device_groups(request=request)
+    groups = get_my_device_groups(request=request)
     save_to_http_session(request, "permissions", groups)
 
     # log my activity
@@ -330,7 +330,7 @@ def switch_view(
 
     template_name = "switch.html"
 
-    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
     #    if not rights_to_group_and_switch(request, group_id, switch_id):
     #         error = Error()
@@ -348,6 +348,16 @@ def switch_view(
         type=LOG_TYPE_VIEW,
         description=f"Viewing device ({view})",
     )
+
+    if group == None or switch == None:
+        log.type = LOG_TYPE_ERROR
+        log.description = "Permission denied! ()"
+        log.save()
+        error = Error()
+        error.status = True
+        error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
+        return error_page(request=request, group=False, switch=False, error=error)
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1282,6 +1292,15 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
 def interface_description_change(request, group_id, switch_id, interface_name):
     """
     Change the ifAlias aka description on an interfaces.
+
+    Params:
+        request:  HttpRequest() object
+        group_id: (int) the pk of the SwitchGroup()
+        switch_id: (int) the pk of the Switch()
+        interface_name: (str) the key or to the Interface() in the list of Interface()s
+
+    Returns:
+        renders either OK or Error page, depending permissions and result.
     """
     dprint("interface_description_change()")
 
@@ -1304,7 +1323,9 @@ def interface_description_change(request, group_id, switch_id, interface_name):
     if not retval:
         return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-    message = f"Interface {interface.name} description changed"
+    # we don't know the name of the interface, only the key or id.
+    # message = f"Interface {interface_name} description changed"
+    message = f"Interface description changed"
     return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
@@ -2193,6 +2214,7 @@ def confirm_access_rights(
     Check if the current user has rights to this switch in this group
     Returns the switch_group and switch for further processing
     """
+    dprint("config_access_rights()")
     group = get_object_or_404(
         SwitchGroup,
         pk=group_id,

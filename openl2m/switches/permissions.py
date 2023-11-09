@@ -15,12 +15,11 @@
 #
 # Functions that perform actions on interfaces, called by both the WEB UI and REST API
 #
-import re
-
 from django.conf import settings
 
 from rest_framework import status as http_status
 from rest_framework.reverse import reverse as rest_reverse
+from rest_framework.request import Request as RESTRequest
 
 from counters.constants import (
     COUNTER_CHANGES,
@@ -40,43 +39,39 @@ from switches.constants import (
     SWITCH_STATUS_ACTIVE,
     SWITCH_VIEW_BASIC,
 )
+import switches
 from switches.connect.connect import get_connection_object
-from switches.models import Log, SwitchGroup
-from switches.utils import dprint, get_remote_ip
+from switches.models import Log, Switch, SwitchGroup
+from switches.utils import dprint, get_remote_ip, get_from_http_session
 
 # ###################################################
 # Permission functions, used by Web UI and REST API #
 #####################################################
 
 
-def get_my_device_groups(request, group_id=-1, switch_id=-1):
+def get_my_device_groups(request):
     """
-    find the SwitchGroups, and Switch()-es in those groups, that this user has rights to.
-    For API use, group_id and switch_id are given. Then check if we have rights
-    to this specific device, and return SwitchGroup() and Switch() objects.
+    Find the SwitchGroup()s, and Switch()s in those groups, that this user has rights to.
+    Returns a dictionary of groups and the devices in those groups.
 
     Args:
         request:  current Request() object
-        group_id (int): the pk of the SwitchGroup()
-        switch_id (int): the pk of the Switch()
 
     Returns:
-        tuple of
-        permissions:    dict of pk's of SwitchGroup() objects this user is member of,
-                        each is a dict of active devices(switches).
-        group:  SwitchGroup() object or None
-        switch: Switch() object or None
+        groups: dict of pk's of SwitchGroup() objects this user is member of,
+                each is a dict of active devices(switches).
     """
     dprint("get_my_device_groups()")
     permitted = False
     if request.user.is_superuser or request.user.is_staff:
         dprint("  Superuser or Staff!")
         # optimize data queries, get all related field at once!
-        switchgroups = SwitchGroup.objects.all().order_by("name")
+        groups = SwitchGroup.objects.all().order_by("name")
     else:
         # figure out what this user has access to.
         # Note we use the ManyToMany 'related_name' attribute for readability!
-        switchgroups = request.user.switchgroups.all().order_by("name")
+        dprint("  Regular user.")
+        groups = request.user.switchgroups.all().order_by("name")
 
     # now find active devices in these groups
     permissions = {}
@@ -84,7 +79,7 @@ def get_my_device_groups(request, group_id=-1, switch_id=-1):
     this_group = None
     this_switch = None
 
-    for group in switchgroups:
+    for group in groups:
         if group.switches.count():
             # set this group, and the switches, in web session to track permissions
             group_info = {
@@ -129,49 +124,15 @@ def get_my_device_groups(request, group_id=-1, switch_id=-1):
                         "comments": switch.comments,
                         "indent_level": switch.indent_level,
                     }
-                    # is this the switch in the group we are looking for?
-                    if switch.id == switch_id and group.id == group_id:
-                        this_group = group
-                        this_switch = switch
             group_info['members'] = members
             permissions[int(group.id)] = group_info
-    return (permissions, this_group, this_switch)
+    return permissions
 
 
-def get_group_switch_from_permissions(request, permissions, group_id, switch_id):
-    """Check access to the group and switch. Return the SwitchGroup and Switch objects
-
-    Params:
-        request:  HttpRequest() object
-        permissions: dictionary as created by get_my_device_groups()
-        group_id: (int) SwitchGroup() pk
-        switch_id: (int) Switch() pk
-
-    Returns:
-        group, switch:  SwitchGroup() or None, Switch() or None.
+def get_group_and_switch(request, group_id, switch_id):
     """
-    dprint(f"get_group_switch_from_permissions(group={group_id}, switch={switch_id})")
-    group = None
-    switch = None
-    if permissions and isinstance(permissions, dict) and int(group_id) in permissions.keys():
-        switches = permissions[int(group_id)]
-        if isinstance(switches, dict) and int(switch_id) in switches.members.keys():
-            dprint("  FOUND switch in group member")
-            try:
-                group = SwitchGroup().objects.filter(pk=group_id)
-                switch = Switch().objects.filter(pk=switch_id)
-            except Exception:
-                group = None
-                switch = None
-                dprint("  GROUP or SWITCH OBJECT NOT FOUND!")
-    return group, switch
-
-
-def perform_user_rights_to_group_and_switch(request, group_id, switch_id):
-    """
-    Check if the current user has rights to this switch in this group.
-    This handles both Session auth (web ui), and REST auth (api).
-    Returns True if allowed, False if not!
+    Get the Group() and Switch() if the current user has rights.
+    This handles both Session auth (web ui), and Token auth (api).
 
     Params:
         request: Request() object.
@@ -182,19 +143,18 @@ def perform_user_rights_to_group_and_switch(request, group_id, switch_id):
         group: SwitchGroup() object or None
         switch: Switch() object or None.
     """
-    dprint("perform_user_rights_to_group_and_switch()")
-    # web ui, or api using token ?
-    if isinstance(request, RESTRequest):
-        if request.auth != None:
-            dprint("  API - calling get_my_device_groups()")
-            permissions, group, switch = get_my_device_groups(request=request, group_id=group_id, switch_id=switch_id)
-            return group, switch
-        dprint("RESTRequest() but request.auth NOT None!")
-
-    # web ui, regular app or api browser
-    dprint("  WEB UI - calling get_from_http_session")
-    permissions = get_from_http_session(request=request, name="permissions")
-    return get_group_switch_from_permissions(request, permissions, group_id, switch_id)
+    dprint("get_group_and_switch()")
+    # api using token, or session based ?
+    if isinstance(request, RESTRequest) and request.auth != None:
+        # API user with Token, need to read groups every time:
+        dprint("  API Token - calling get_my_device_groups()")
+        groups = get_my_device_groups(request=request)
+    else:
+        # session based, ie. web ui, or api via ajax/browser, get groups from session store:
+        dprint("  WEB UI or API Session - calling get_from_http_session")
+        groups = get_from_http_session(request=request, name="permissions")
+    dprint(f"user groups =\n{groups}\n\n")
+    return _get_group_and_switch_from_permissions(permissions=groups, group_id=group_id, switch_id=switch_id)
 
 
 def get_connection_if_permitted(request, group, switch, write_access=False):
@@ -262,190 +222,33 @@ def get_connection_if_permitted(request, group, switch, write_access=False):
     return connection, None
 
 
-def perform_interface_description_change(request, group_id, switch_id, interface_key, new_description):
-    """
-    Change the description on an interface.
+def _get_group_and_switch_from_permissions(permissions, group_id, switch_id):
+    """Check access to the group and switch.
+       Return the full permissions, and requested SwitchGroup() and Switch() objects.
 
     Params:
-        request: Request() object
-        group_id(int): SwitchGroup() pk
-        switch_id: Switch() pk
-        interface_key:  Interface() 'key' attribute
-        new_description (str): new description for Interface().
+        request:  HttpRequest() object
+        permissions: dictionary as created by get_my_device_groups()
+        group_id: (int) SwitchGroup() pk
+        switch_id: (int) Switch() pk
 
     Returns:
-        boolean, Error() :
-            boolean: True if successful, False if error occurred.
-                    On error, Error() object will be set accordingly.
+        group, switch:  SwitchGroup() or None, Switch() or None.
     """
-    dprint(
-        f"perform_interface_description_change(g={group_id}, s={switch_id}, k={interface_key}, d='{new_description}')"
-    )
-    group, switch = perform_user_rights_to_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
-    connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
-
-    if connection is None:
-        return False, error
-
-    dprint(f"  Key '{interface_key}' is type {type(interface_key)}")
-
-    interface = connection.get_interface_by_key(str(interface_key))
-    if not interface:
-        log.type = LOG_TYPE_ERROR
-        log.description = f"Description-Change: Error getting interface data for {interface_key}"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get interface data. Please contact your administrator!"
-        return False, error
-
-    # can the user manage the interface?
-    if not interface.manageable:
-        log.description = f"Can not manage {interface.name}: description edit not allowed!"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "You can not manage this interface!"
-        error.details = interface.unmanage_reason
-        return False, error
-
-    # are we allowed to change description ?
-    if not interface.can_edit_description:
-        log.description = f"Interface {interface.name} description edit not allowed!"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.code = http_status.HTTP_403_FORBIDDEN
-        error.description = "You are not allowed to change the interface description!"
-        return False, error
-
-    # check the new description
-    if interface.description == new_description:
-        error = Error()
-        error.description = "New description is the same, please change it first!"
-        return False, error
-
-    log.type = LOG_TYPE_CHANGE
-
-    # check if the description is allowed:
-    if settings.IFACE_ALIAS_NOT_ALLOW_REGEX:
-        match = re.match(settings.IFACE_ALIAS_NOT_ALLOW_REGEX, new_description)
-        if match:
-            log.type = LOG_TYPE_ERROR
-            log.description = "New description matches admin deny setting!"
-            log.save()
-            counter_increment(COUNTER_ERRORS)
-            error = Error()
-            error.code = http_status.HTTP_403_FORBIDDEN
-            error.description = f"The description '{new_description}' is not allowed!"
-            return False, error
-
-    # check if the original description starts with a string we have to keep
-    if settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX:
-        keep_format = f"(^{settings.IFACE_ALIAS_KEEP_BEGINNING_REGEX})"
-        match = re.match(keep_format, interface.description)
-        if match:
-            # check of new submitted description begins with this string:
-            match_new = re.match(keep_format, new_description)
-            if not match_new:
-                # required start string NOT found on new description, so prepend it!
-                new_description = f"{match[1]} {new_description}"
-
-    # log the work!
-    log.description = f"Interface {interface.name}: Description = {new_description}"
-    # and do the work:
-    if not connection.set_interface_description(interface, new_description):
-        log.description = f"ERROR: {conn.error.description}"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        return False, conn.error
-
-    # indicate we need to save config!
-    connection.set_save_needed(True)
-
-    # and save cachable/session data
-    connection.save_cache()
-
-    log.save()
-    counter_increment(COUNTER_CHANGES)
-
-    return True, None
-
-
-def perform_switch_save_config(request, group_id, switch_id):
-    """
-    This will save the running config to flash/startup/whatever, on supported platforms
-
-    Params:
-        request: Request() object
-        group_id(int): SwitchGroup() pk
-        switch_id: Switch() pk
-
-    Returns:
-        boolean, Error() :
-            boolean: True if successful, False if error occurred.
-                    On error, Error() object will be set accordingly.
-    """
-    dprint("perform_switch_save_config()")
-
-    group, switch = perform_user_rights_to_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
-    connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
-
-    if connection is None:
-        return False, error
-
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        action=LOG_SAVE_SWITCH,
-        type=LOG_TYPE_CHANGE,
-        description="Saving switch config",
-    )
-
-    if not connection.can_save_config:
-        # we should not be called, since device cannot save or does not need to save config
-        log.type = LOG_TYPE_ERROR
-        log.description = f"Device cannot or does not need to save config"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "This switch model cannot save or does not need to save the config"
-        return False, error
-
-    # the following condition is ignored. If this is called from WebUI, we know "save_needed" state.
-    # However, from API we have no state (the caller needs to track it), so we simply save when called!
-    # if not connection.save_needed:
-    #     log.type = LOG_TYPE_WARNING
-    #     log.description = "Device does not need saving!"
-    #     log.save()
-    #     counter_increment(COUNTER_ERRORS)
-    #     error = Error()
-    #     error.description = log.description
-    #     return True, error
-
-    # we can save
-    if connection.save_running_config() < 0:
-        # an error happened!
-        log.type = LOG_TYPE_ERROR
-        log.description = f"Error saving config: {connection.error.description}"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = log.description
-        error.details = connection.error.details
-        return False, error
-
-    # clear save flag
-    connection.set_save_needed(False)
-
-    # save cachable/session data
-    connection.save_cache()
-
-    # all OK
-    log.save()
-    return True, None
+    group_id = int(group_id)
+    switch_id = int(switch_id)
+    dprint(f"_get_group_and_switch_from_permissions(group={group_id}, switch={switch_id})")
+    group = None
+    switch = None
+    if permissions and isinstance(permissions, dict) and int(group_id) in permissions.keys():
+        devices = permissions[int(group_id)]
+        if isinstance(devices, dict) and int(switch_id) in devices['members'].keys():
+            dprint("  FOUND switch in group member")
+            try:
+                group = SwitchGroup.objects.get(pk=group_id)
+                switch = Switch.objects.get(pk=switch_id)
+            except Exception as err:
+                group = None
+                switch = None
+                dprint(f"  GROUP or SWITCH OBJECT NOT FOUND!, error {err}")
+    return group, switch

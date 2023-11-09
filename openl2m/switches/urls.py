@@ -55,7 +55,7 @@ urlpatterns = [
     path('<int:group_id>/<int:switch_id>/details/', views.switch_arp_lldp, name='switch_arp_lldp'),
     path('<int:group_id>/<int:switch_id>/hwinfo/', views.switch_hw_info, name='switch_hw_info'),
     path('<int:group_id>/<int:switch_id>/reload/<str:view>/', views.switch_reload, name='switch_reload'),
-    path('<int:group_id>/<int:switch_id>/save/<str:view>/', views.switch_save_config, name='switch_save_config'),
+    path('<int:group_id>/<int:switch_id>/save/', views.switch_save_config, name='switch_save_config'),
     path(
         '<int:group_id>/<int:switch_id>/<ifname:interface_name>/admin/<int:new_state>/',
         views.interface_admin_change,

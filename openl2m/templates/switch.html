@@ -63,7 +63,7 @@
 
           {% if connection.save_needed %}
           <td>
-            <a href="{% url 'switches:switch_save_config' group.id switch.id view %}"
+            <a href="{% url 'switches:switch_save_config' group.id switch.id %}"
                data-toggle="tooltip"
                title="Click here to save changes to the startup config of the switch!"
                class="btn btn-warning">

@@ -38,9 +38,7 @@ from switches.models import Log
 from switches.utils import dprint, get_remote_ip
 
 from switches.permissions import (
-    get_my_device_groups,
-    get_group_switch_from_permissions,
-    perform_user_rights_to_group_and_switch,
+    get_group_and_switch,
     get_connection_if_permitted,
 )
 
@@ -64,7 +62,7 @@ def perform_interface_description_change(request, group_id, switch_id, interface
     dprint(
         f"perform_interface_description_change(g={group_id}, s={switch_id}, k={interface_key}, d='{new_description}')"
     )
-    group, switch = perform_user_rights_to_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
     if connection is None:
@@ -150,11 +148,11 @@ def perform_interface_description_change(request, group_id, switch_id, interface
     log.description = f"Interface {interface.name}: Description = {new_description}"
     # and do the work:
     if not connection.set_interface_description(interface, new_description):
-        log.description = f"ERROR: {conn.error.description}"
+        log.description = f"ERROR: {connection.error.description}"
         log.type = LOG_TYPE_ERROR
         log.save()
         counter_increment(COUNTER_ERRORS)
-        return False, conn.error
+        return False, connection.error
 
     # indicate we need to save config!
     connection.set_save_needed(True)
@@ -184,7 +182,7 @@ def perform_switch_save_config(request, group_id, switch_id):
     """
     dprint("perform_switch_save_config()")
 
-    group, switch = perform_user_rights_to_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
     if connection is None:
