@@ -33,6 +33,8 @@ from switches.constants import (
     LOG_TYPE_CHANGE,
     LOG_TYPE_ERROR,
     LOG_CHANGE_INTERFACE_ALIAS,
+    LOG_CHANGE_INTERFACE_DOWN,
+    LOG_CHANGE_INTERFACE_UP,
 )
 from switches.models import Log
 from switches.utils import dprint, get_remote_ip
@@ -41,6 +43,98 @@ from switches.permissions import (
     get_group_and_switch,
     get_connection_if_permitted,
 )
+
+
+#
+# Change admin status, ie port Enable/Disable
+#
+def perform_interface_admin_change(request, group_id, switch_id, interface_key, new_state):
+    """
+    Set the admin status of an interface, ie admin up or down.
+
+    Params:
+        request: Request() object
+        group_id(int): SwitchGroup() pk
+        switch_id: Switch() pk
+        interface_key:  Interface() 'key' attribute
+        new_state (bool): True if UP, False if DOWN
+
+    Returns:
+        boolean, Error() :
+            boolean: True if successful, False if error occurred.
+                    On error, Error() object will be set accordingly.
+    """
+    dprint(f"perform_interface_admin_change(g={group_id}, s={switch_id}, k={interface_key}, state='{new_state}')")
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+    connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
+
+    if connection is None:
+        return False, error
+
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+    )
+
+    dprint(f"  Key '{interface_key}' is type {type(interface_key)}")
+
+    interface = connection.get_interface_by_key(interface_key)
+    if not interface:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Admin-Change: Error getting interface data for {interface_key}"
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.description = "Could not get interface data. Please contact your administrator!"
+        error.details = "Sorry, no more details available!"
+        return False, error
+
+    log.if_name = interface.name
+
+    # can the user manage the interface?
+    if not interface.manageable:
+        log.description = f"Can not manage {interface.name}: description edit not allowed!"
+        log.type = LOG_TYPE_ERROR
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.code = http_status.HTTP_403_FORBIDDEN
+        error.description = "You can not manage this interface!"
+        error.details = interface.unmanage_reason
+        return False, error
+
+    log.type = LOG_TYPE_CHANGE
+    if new_state:
+        log.action = LOG_CHANGE_INTERFACE_UP
+        log.description = f"Interface {interface.name}: Enabled"
+        state = "Enabled"
+    else:
+        log.action = LOG_CHANGE_INTERFACE_DOWN
+        log.description = f"Interface {interface.name}: Disabled"
+        state = "Disabled"
+
+    if not connection.set_interface_admin_status(interface, bool(new_state)):
+        log.description = f"ERROR: {connection.error.description}"
+        log.type = LOG_TYPE_ERROR
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        return False, connection.error
+
+    # indicate we need to save config!
+    connection.set_save_needed(True)
+
+    # and save data in session
+    connection.save_cache()
+
+    log.save()
+    counter_increment(COUNTER_CHANGES)
+
+    success = Error()
+    success.status = False  # no error!
+    success.description = f"Interface {interface.name} is now {state}"
+    return True, success
 
 
 def perform_interface_description_change(request, group_id, switch_id, interface_key, new_description):
@@ -97,6 +191,7 @@ def perform_interface_description_change(request, group_id, switch_id, interface
         log.save()
         counter_increment(COUNTER_ERRORS)
         error = Error()
+        error.code = http_status.HTTP_403_FORBIDDEN
         error.description = "You can not manage this interface!"
         error.details = interface.unmanage_reason
         return False, error
@@ -163,7 +258,10 @@ def perform_interface_description_change(request, group_id, switch_id, interface
     log.save()
     counter_increment(COUNTER_CHANGES)
 
-    return True, None
+    success = Error()
+    success.status = False  # no error
+    success.description = f"Interface {interface.name} description was changed!"
+    return True, success
 
 
 def perform_switch_save_config(request, group_id, switch_id):
@@ -239,4 +337,7 @@ def perform_switch_save_config(request, group_id, switch_id):
 
     # all OK
     log.save()
-    return True, None
+    success = Error()
+    success.status = False  # no error
+    success.description = "Configuration was saved!"
+    return True, success

@@ -33,6 +33,7 @@ from django.template import Template, Context
 from django.contrib import messages
 
 from switches.actions import (
+    perform_interface_admin_change,
     perform_interface_description_change,
     perform_switch_save_config,
 )
@@ -1229,75 +1230,37 @@ def switch_vlan_manage(request, group_id, switch_id):
 def interface_admin_change(request, group_id, switch_id, interface_name, new_state):
     """
     Toggle the admin status of an interface, ie admin up or down.
+    Params:
+        request:  HttpRequest() object
+        group_id: (int) the pk of the SwitchGroup()
+        switch_id: (int) the pk of the Switch()
+        interface_name: (str) the key or to the Interface() in the list of Interface()s
+        new_state: (int) the desired state, 0=DOWN, 1=UP
+
+    Returns:
+        renders either OK or Error page, depending permissions and result.
     """
-    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
-
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        if_name=interface_name,
+    dprint("interface_admin_change()")
+    retval, info = perform_interface_admin_change(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+        interface_key=interface_name,
+        new_state=bool(new_state),
     )
+    if not retval:
+        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-    try:
-        conn = get_connection_object(request, group, switch)
-    except Exception:
-        log.type = LOG_TYPE_ERROR
-        log.action = LOG_CONNECTION_ERROR
-        log.description = "Could not get connection"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
-        error.details = "This is likely a configuration error, such as incorrect SNMP settings."
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    interface = conn.get_interface_by_key(interface_name)
-    if not interface:
-        log.type = LOG_TYPE_ERROR
-        log.description = f"Admin-Change: Error getting interface data for {interface_name}"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get interface data. Please contact your administrator!"
-        error.details = "Sorry, no more details available!"
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    log.type = LOG_TYPE_CHANGE
-    if new_state:
-        log.action = LOG_CHANGE_INTERFACE_UP
-        log.description = f"Interface {interface.name}: Enabled"
-        state = "Enabled"
-    else:
-        log.action = LOG_CHANGE_INTERFACE_DOWN
-        log.description = f"Interface {interface.name}: Disabled"
-        state = "Disabled"
-
-    if not conn.set_interface_admin_status(interface, bool(new_state)):
-        log.description = f"ERROR: {conn.error.description}"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=group, switch=switch, error=conn.error)
-
-    # indicate we need to save config!
-    conn.set_save_needed(True)
-
-    # and save data in session
-    conn.save_cache()
-
-    log.save()
-    counter_increment(COUNTER_CHANGES)
-
-    description = f"Interface {interface.name} is now {state}"
-    return success_page(request, group, switch, description)
+    # we don't know the name of the interface, only the key or id.
+    # message = f"Interface {interface_name} description changed"
+    # message = f"Interface description changed"
+    return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 @login_required(redirect_field_name=None)
 def interface_description_change(request, group_id, switch_id, interface_name):
     """
-    Change the ifAlias aka description on an interfaces.
+    Change the description on an interfaces.
 
     Params:
         request:  HttpRequest() object

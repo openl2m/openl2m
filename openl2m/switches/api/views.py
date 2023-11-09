@@ -25,7 +25,11 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse as rest_reverse
 from rest_framework.views import APIView
 
-from switches.actions import perform_interface_description_change, perform_switch_save_config
+from switches.actions import (
+    perform_interface_description_change,
+    perform_interface_admin_change,
+    perform_switch_save_config,
+)
 from switches.connect.connect import get_connection_object
 from switches.connect.constants import POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DISABLED
 from switches.permissions import get_my_device_groups, get_group_and_switch
@@ -159,9 +163,9 @@ class APISwitchSaveConfig(
         if save.lower() not in on_values:
             return respond_error("No save requested (why did you call us?).")
 
-        retval, error = perform_switch_save_config(request, group_id, switch_id)
+        retval, info = perform_switch_save_config(request, group_id, switch_id)
         if not retval:
-            return respond(status=error.code, text=error.description)
+            return respond(status=info.code, text=info.description)
         return respond_ok("Configuration saved!")
 
 
@@ -169,7 +173,7 @@ class APIInterfaceSetState(
     APIView,
 ):
     """
-    Set the admin state of the selected interface.
+    Set the description for the selected interface.
     """
 
     def post(
@@ -180,13 +184,7 @@ class APIInterfaceSetState(
         interface_id,
     ):
         dprint("APIInterfaceSetState(POST)")
-        conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
-        if response_error:
-            return response_error
-        # TODO: now here we need to parse the incoming data to actually change the state of the interface.
-        dprint(f"  POST = {request.POST}")
-        # need to test access permissions here!
-        # TBD
+        # need to test permissions - TBD
         try:
             state = request.POST['state']
         except Exception:
@@ -195,19 +193,13 @@ class APIInterfaceSetState(
             new_state = True
         else:
             new_state = False
-        # now go set the new admin state:
-        dprint(f"*** REST admin state = '{new_state}' ({state})")
-        iface = conn.get_interface_by_key(interface_id)
-        if not iface:
-            return respond_error(f"Interface ID not found: '{interface_id}'")
-
-        if not iface.manageable:
-            return respond_error(iface.unmanage_reason)
-
-        retval = conn.set_interface_admin_status(iface, new_state)
-        if retval < 0:
-            return respond_error(f"Interface {iface.name}: Admin State ERROR: {conn.error.description}")
-        return respond_ok("New admin state applied!")
+        retval, info = perform_interface_admin_change(
+            request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, new_state=new_state
+        )
+        if not retval:
+            return respond(status=info.code, text=info.description)
+        # on success, error.description
+        return respond_ok(info.description)
 
 
 class APIInterfaceSetVlan(
@@ -322,10 +314,10 @@ class APIInterfaceSetDescription(
             description = request.POST['description']
         except Exception:
             return respond_error("Missing required parameter: 'description'")
-        retval, error = perform_interface_description_change(request, group_id, switch_id, interface_id, description)
+        retval, info = perform_interface_description_change(request, group_id, switch_id, interface_id, description)
         if not retval:
-            return respond(status=error.code, text=error.description)
-        return respond_ok("New description applied!")
+            return respond(status=info.code, text=info.description)
+        return respond_ok(info.description)
 
 
 class APISwitchAddVlan(
