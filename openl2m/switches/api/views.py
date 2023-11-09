@@ -54,8 +54,15 @@ class APISwitchMenuView(
         dprint(f"  REST Menu: user={request.user.username}, auth={request.auth}")
 
         groups = get_my_device_groups(request=request)
+        user = {
+            "name": request.user.username,
+            "read_only": request.user.profile.read_only,
+            "vlan_edit": request.user.profile.vlan_edit,
+            "allow_poe_toggle": request.user.profile.allow_poe_toggle,
+            "edit_if_descr": request.user.profile.edit_if_descr,
+        }
         data = {
-            "user": request.user.username,
+            "user": user,
             'groups': groups,
         }
         return Response(
