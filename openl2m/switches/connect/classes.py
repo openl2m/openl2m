@@ -55,14 +55,16 @@ class Error:
     Simple error information object, created with error status indicated!
     """
 
-    def __init__(self):
+    def __init__(
+        self, status=True, code=http_status.HTTP_400_BAD_REQUEST, description="An Unknown Error Occured!", details=""
+    ):
         """
         Default state is error occured!
         """
-        self.status = True  # True if error, False if not.
-        self.code = http_status.HTTP_400_BAD_REQUEST
-        self.description = "An Unknown Error Occured!"  # simple description of error
-        self.details = ""  # more details about the error, typically a 'traceback'
+        self.status = status  # True if error, False if not.
+        self.code = code
+        self.description = description  # simple description of error
+        self.details = details  # more details about the error, typically a 'traceback'
 
     def clear(self):
         """
