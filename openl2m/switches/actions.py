@@ -28,6 +28,8 @@ from counters.constants import (
 from counters.models import counter_increment
 
 from switches.connect.classes import Error
+from switches.connect.constants import POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DISABLED
+
 from switches.constants import (
     LOG_SAVE_SWITCH,
     LOG_TYPE_CHANGE,
@@ -35,6 +37,9 @@ from switches.constants import (
     LOG_CHANGE_INTERFACE_ALIAS,
     LOG_CHANGE_INTERFACE_DOWN,
     LOG_CHANGE_INTERFACE_UP,
+    LOG_CHANGE_INTERFACE_PVID,
+    LOG_CHANGE_INTERFACE_POE_UP,
+    LOG_CHANGE_INTERFACE_POE_DOWN,
 )
 from switches.models import Log
 from switches.utils import dprint, get_remote_ip
@@ -64,7 +69,7 @@ def perform_interface_admin_change(request, group_id, switch_id, interface_key, 
             boolean: True if successful, False if error occurred.
                     On error, Error() object will be set accordingly.
     """
-    dprint(f"perform_interface_admin_change(g={group_id}, s={switch_id}, k={interface_key}, state='{new_state}')")
+    dprint(f"perform_interface_admin_change(g={group_id}, s={switch_id}, k={interface_key}, state={new_state})")
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
@@ -78,7 +83,7 @@ def perform_interface_admin_change(request, group_id, switch_id, interface_key, 
         group=group,
     )
 
-    dprint(f"  Key '{interface_key}' is type {type(interface_key)}")
+    dprint(f"  Key is type {type(interface_key)}")
 
     interface = connection.get_interface_by_key(interface_key)
     if not interface:
@@ -105,15 +110,18 @@ def perform_interface_admin_change(request, group_id, switch_id, interface_key, 
         error.details = interface.unmanage_reason
         return False, error
 
-    log.type = LOG_TYPE_CHANGE
     if new_state:
         log.action = LOG_CHANGE_INTERFACE_UP
-        log.description = f"Interface {interface.name}: Enabled"
         state = "Enabled"
     else:
         log.action = LOG_CHANGE_INTERFACE_DOWN
-        log.description = f"Interface {interface.name}: Disabled"
         state = "Disabled"
+
+    # are we requesting a change?
+    if interface.admin_status == new_state:
+        error = Error()
+        error.description = f"New interface status is the same ({state}), please change status!"
+        return False, error
 
     if not connection.set_interface_admin_status(interface, bool(new_state)):
         log.description = f"ERROR: {connection.error.description}"
@@ -128,6 +136,8 @@ def perform_interface_admin_change(request, group_id, switch_id, interface_key, 
     # and save data in session
     connection.save_cache()
 
+    log.type = LOG_TYPE_CHANGE
+    log.description = f"Interface {interface.name}: {state}"
     log.save()
     counter_increment(COUNTER_CHANGES)
 
@@ -154,7 +164,7 @@ def perform_interface_description_change(request, group_id, switch_id, interface
                     On error, Error() object will be set accordingly.
     """
     dprint(
-        f"perform_interface_description_change(g={group_id}, s={switch_id}, k={interface_key}, d='{new_description}')"
+        f"perform_interface_description_change(g={group_id}, s={switch_id}, i={interface_key}, d='{new_description}')"
     )
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
@@ -170,7 +180,7 @@ def perform_interface_description_change(request, group_id, switch_id, interface
         action=LOG_CHANGE_INTERFACE_ALIAS,
     )
 
-    dprint(f"  Key '{interface_key}' is type {type(interface_key)}")
+    dprint(f"  Key is type {type(interface_key)}")
 
     interface = connection.get_interface_by_key(str(interface_key))
     if not interface:
@@ -261,6 +271,229 @@ def perform_interface_description_change(request, group_id, switch_id, interface
     success = Error()
     success.status = False  # no error
     success.description = f"Interface {interface.name} description was changed!"
+    return True, success
+
+
+def perform_interface_pvid_change(request, group_id, switch_id, interface_key, new_pvid):
+    """
+    Change the PVID untagged vlan on an interfaces.
+    This still needs to handle dot1q trunked ports.
+
+    Params:
+        request: Request() object
+        group_id(int): SwitchGroup() pk
+        switch_id: Switch() pk
+        interface_key:  Interface() 'key' attribute
+        new_pvid (int): new untagged vlan.
+
+    Returns:
+        boolean, Error() :
+            boolean: True if successful, False if error occurred.
+                    On error, Error() object will be set accordingly.
+    """
+    dprint(f"perform_interface_pvid_change(g={group_id}, s={switch_id}, i={interface_key}, p={new_pvid})")
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+    connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
+
+    if connection is None:
+        return False, error
+
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_CHANGE_INTERFACE_PVID,
+    )
+
+    dprint(f"  Interface Key is type {type(interface_key)}")
+    dprint(f"  PVID is type {type(new_pvid)}")
+
+    interface = connection.get_interface_by_key(str(interface_key))
+    if not interface:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"PVID-Change: Error getting interface data for {interface_key}"
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.description = "Could not get interface data. Please contact your administrator!"
+        return False, error
+
+    log.if_name = interface.name
+
+    # can the user manage the interface?
+    if not interface.manageable:
+        log.description = f"Can not manage {interface.name}: vlan change not allowed!"
+        log.type = LOG_TYPE_ERROR
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.code = http_status.HTTP_403_FORBIDDEN
+        error.description = "You can not manage this interface!"
+        error.details = interface.unmanage_reason
+        return False, error
+
+    # this should not happen:
+    if new_pvid == 0:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Pvid-Change: new vlan = 0 (?)"
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.description = "Could not read new vlan (0?). Please contact your administrator!"
+        return False, error
+
+    # did the vlan change?
+    if interface.untagged_vlan == new_pvid:
+        error = Error()
+        error.description = f"New vlan {interface.untagged_vlan} is the same, please change the vlan first!"
+        return False, error
+
+    # are we allowed to change to this vlan ?
+    connection._set_allowed_vlans()
+    if new_pvid not in connection.allowed_vlans.keys():
+        log.type = LOG_TYPE_ERROR
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.description = f"New vlan {new_pvid} is not valid or allowed on this device"
+        return False, error
+
+    # make sure we cast the proper type here! Ie this needs an Integer()
+    if not connection.set_interface_untagged_vlan(interface, new_pvid):
+        log.description = f"ERROR: {connection.error.description}"
+        log.type = LOG_TYPE_ERROR
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.description = f"Error setting untagged vlan on interface {interface.name}"
+        error.details = connection.error.description
+        return False, error
+
+    log.type = LOG_TYPE_CHANGE
+    log.description = f"Interface {interface.name}: new PVID = {new_pvid} (was {interface.untagged_vlan})"
+
+    # indicate we need to save config!
+    connection.set_save_needed(True)
+
+    # and save cachable/session data
+    connection.save_cache()
+
+    # all OK, save log
+    log.save()
+    counter_increment(COUNTER_CHANGES)
+
+    success = Error()
+    success.status = False  # not an error
+    success.description = f"Interface {interface.name} changed to vlan {new_pvid}"
+    return True, success
+
+
+def perform_interface_poe_change(request, group_id, switch_id, interface_key, new_state):
+    """
+    Change the PoE status of an interfaces.
+
+    Params:
+        request: Request() object
+        group_id(int): SwitchGroup() pk
+        switch_id: Switch() pk
+        interface_key:  Interface() 'key' attribute
+        new_state (bool): True to set PoE Enabled, False to set PoE Disabled.
+
+    Returns:
+        boolean, Error() :
+            boolean: True if successful, False if error occurred.
+                    On error, Error() object will be set accordingly.
+    """
+    dprint(f"perform_interface_poe_change(g={group_id}, s={switch_id}, i={interface_key}, st={new_state})")
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+    connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
+
+    if connection is None:
+        return False, error
+
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_CHANGE_INTERFACE_PVID,
+    )
+
+    dprint(f"  Interface Key is type {type(interface_key)}")
+
+    interface = connection.get_interface_by_key(str(interface_key))
+    if not interface:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"PoE-Change: Error getting interface data for {interface_key}"
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.description = "Could not get interface data. Please contact your administrator!"
+        return False, error
+
+    log.if_name = interface.name
+
+    # can the user manage the interface?
+    if not interface.manageable:
+        dprint(" NOT manageable!")
+        log.description = f"Can not manage {interface.name}: PoE change not allowed!"
+        log.type = LOG_TYPE_ERROR
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.code = http_status.HTTP_403_FORBIDDEN
+        error.description = "You can not manage this interface!"
+        error.details = interface.unmanage_reason
+        return False, error
+
+    if not interface.poe_entry:
+        dprint("  NOT PoE Capable!")
+        # should not happen...
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Interface {interface.name} does not support PoE"
+        error = Error()
+        error.status = True
+        error.description = log.descr
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        return False, error
+
+    log.type = LOG_TYPE_CHANGE
+    if new_state:
+        log.action = LOG_CHANGE_INTERFACE_POE_UP
+        log.description = f"Interface {interface.name}: Enabling PoE"
+        state = "Enabled"
+        new_state = POE_PORT_ADMIN_ENABLED
+    else:
+        log.action = LOG_CHANGE_INTERFACE_POE_DOWN
+        log.description = f"Interface {interface.name}: Disabling PoE"
+        state = "Disabled"
+        new_state = POE_PORT_ADMIN_DISABLED
+
+    # do the work:
+    retval = connection.set_interface_poe_status(interface, new_state)
+    if retval < 0:
+        log.description = f"ERROR: {connection.error.description}"
+        log.type = LOG_TYPE_ERROR
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.description = log.description
+        error.details = connection.error.details
+        return False, error
+
+    # indicate we need to save config!
+    connection.set_save_needed(True)
+
+    # and save cachable/session data
+    connection.save_cache()
+
+    log.save()
+    counter_increment(COUNTER_CHANGES)
+    success = Error()
+    success.status = False  # no error
+    success.description = f"Interface {interface.name} PoE is now {state}"
     return True, success
 
 

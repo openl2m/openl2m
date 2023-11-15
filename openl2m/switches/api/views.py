@@ -28,6 +28,8 @@ from rest_framework.views import APIView
 from switches.actions import (
     perform_interface_description_change,
     perform_interface_admin_change,
+    perform_interface_pvid_change,
+    perform_interface_poe_change,
     perform_switch_save_config,
 )
 from switches.connect.connect import get_connection_object
@@ -224,35 +226,17 @@ class APIInterfaceSetVlan(
         interface_id,
     ):
         dprint("APIInterfaceSetVlan(POST)")
-        conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
-        if response_error:
-            return response_error
-        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
-        dprint(f"  POST = {request.POST}")
         try:
             new_pvid = int(request.POST['vlan'])
         except Exception:
             return respond_error("Missing required numeric parameter: 'vlan'")
-        dprint(f"*** REST vlan = '{new_pvid}'")
-
-        # need to test if this user is allowed to change to this vlan!
-        conn._set_allowed_vlans()
-        if new_pvid not in conn.allowed_vlans.keys():  # now go set the new vlan
-            return respond_error(f"Access to vlan {new_pvid} is denied!")
-
-        iface = conn.get_interface_by_key(interface_id)
-        if not iface:
-            return respond_error(f"Interface ID not found: '{interface_id}'")
-
-        if not iface.manageable:
-            return respond_error(iface.unmanage_reason)
-
-        if new_pvid == iface.untagged_vlan:
-            return respond_ok(f"Ignored, vlan already {new_pvid}")
-        retval = conn.set_interface_untagged_vlan(iface, new_pvid)
-        if retval < 0:
-            return respond_error(f"Interface {iface.name}: change Vlan ERROR: {conn.error.description}")
-        return respond_ok("New Vlan applied!")
+        retval, info = perform_interface_pvid_change(
+            request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, new_vlan=new_vlan
+        )
+        if not retval:
+            return respond(status=info.code, text=info.description)
+        # on success, error.description
+        return respond_ok(info.description)
 
 
 class APIInterfaceSetPoE(
@@ -270,35 +254,22 @@ class APIInterfaceSetPoE(
         interface_id,
     ):
         dprint("APIInterfaceSetPoE(POST)")
-        conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
-        if response_error:
-            return response_error
-        # TODO: now here we need to parse the incoming data to actually change the state of the interface.
-        dprint(f"  POST = {request.POST}")
-
-        # need to test permissions - TBD
-
         try:
             poe_state = request.POST['poe_state']
         except Exception:
             return respond_error("Missing required parameter: 'poe_state'")
         if poe_state.lower() in on_values:
-            new_state = POE_PORT_ADMIN_ENABLED
+            new_state = True
         else:
-            new_state = POE_PORT_ADMIN_DISABLED
-        # now go set the new PoE state:
-        dprint(f"*** REST poe_state = '{poe_state} ({new_state})'")
-        iface = conn.get_interface_by_key(interface_id)
-        if not iface:
-            return respond_error(f"Interface ID not found: '{interface_id}'")
+            new_state = False
 
-        if not iface.manageable:
-            return respond_error(iface.unmanage_reason)
-
-        retval = conn.set_interface_poe_status(iface, new_state)
-        if retval < 0:
-            return respond_error(f"Interface {iface.name}: PoE State ERROR: {conn.error.description}")
-        return respond_ok("New PoE state applied!")
+        retval, info = perform_interface_poe_change(
+            request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, new_state=new_state
+        )
+        if not retval:
+            return respond(status=info.code, text=info.description)
+        # on success, error.description
+        return respond_ok(info.description)
 
 
 class APIInterfaceSetDescription(

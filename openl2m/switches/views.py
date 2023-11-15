@@ -35,6 +35,8 @@ from django.contrib import messages
 from switches.actions import (
     perform_interface_admin_change,
     perform_interface_description_change,
+    perform_interface_pvid_change,
+    perform_interface_poe_change,
     perform_switch_save_config,
 )
 
@@ -209,7 +211,6 @@ def switches(request):
             messages.add_message(request=request, level=notice.priority, message=notice.content)
 
     # render the template
-    dprint("HOME calling render()")
     return render(
         request,
         template_name,
@@ -1303,91 +1304,37 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
     """
     Change the PVID untagged vlan on an interfaces.
     This still needs to handle dot1q trunked ports.
+
+    Params:
+        request:  HttpRequest() object
+        group_id: (int) the pk of the SwitchGroup()
+        switch_id: (int) the pk of the Switch()
+        interface_name: (str) the key or to the Interface() in the list of Interface()s
+
+    Returns:
+        renders either OK or Error page, depending permissions and result.
     """
-    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
-
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        action=LOG_CHANGE_INTERFACE_PVID,
-        if_name=interface_name,
-    )
-
-    try:
-        conn = get_connection_object(request, group, switch)
-    except Exception:
-        log.type = LOG_TYPE_ERROR
-        log.action = LOG_CONNECTION_ERROR
-        log.description = "Could not get connection"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    interface = conn.get_interface_by_key(interface_name)
-    if not interface:
-        log.type = LOG_TYPE_ERROR
-        log.description = f"Pvid-Change: Error getting interface data for {interface_name}"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get interface data. Please contact your administrator!"
-        return error_page(request=request, group=group, switch=switch, error=error)
+    dprint("interface_description_change()")
 
     # read the submitted form data:
-    new_pvid = int(request.POST.get('new_pvid', 0))
-    # this should not happen:
-    if new_pvid == 0:
-        log.type = LOG_TYPE_ERROR
-        log.description = f"Pvid-Change: new vlan = 0 (?)"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
+    try:
+        new_pvid = int(request.POST.get('new_pvid'))
+    except Exception:
         error = Error()
-        error.description = "Could not read new vlan. Please contact your administrator!"
-        return error_page(request=request, group=group, switch=switch, error=error)
+        error.description = "Missing required parameter: 'new_pvid'"
+        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-    # did the vlan change?
-    if interface.untagged_vlan == new_pvid:
-        description = f"New vlan {interface.untagged_vlan} is the same, please change the vlan first!"
-        return warning_page(request=request, group=group, switch=switch, description=description)
+    retval, info = perform_interface_pvid_change(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+        interface_key=interface_name,
+        new_pvid=new_pvid,
+    )
+    if not retval:
+        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-    log.type = LOG_TYPE_CHANGE
-    log.description = f"Interface {interface.name}: new PVID = {new_pvid} (was {interface.untagged_vlan})"
-
-    # are we allowed to change to this vlan ?
-    conn._set_allowed_vlans()
-    if new_pvid not in conn.allowed_vlans.keys():
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.status = True
-        error.description = f"New vlan {new_pvid} is not valid or allowed on this device"
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    # make sure we cast the proper type here! Ie this needs an Integer()
-    if not conn.set_interface_untagged_vlan(interface, new_pvid):
-        log.description = f"ERROR: {conn.error.description}"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=group, switch=switch, error=conn.error)
-
-    # indicate we need to save config!
-    conn.set_save_needed(True)
-
-    # and save cachable/session data
-    conn.save_cache()
-
-    # all OK, save log
-    log.save()
-    counter_increment(COUNTER_CHANGES)
-
-    description = f"Interface {interface.name} changed to vlan {new_pvid}"
-    return success_page(request, group, switch, description)
+    return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 #
@@ -1398,80 +1345,35 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
     """
     Change the PoE status of an interfaces.
     This still needs to be tested for propper PoE port to interface ifIndex mappings.
+
+    Params:
+        request:  HttpRequest() object
+        group_id: (int) the pk of the SwitchGroup()
+        switch_id: (int) the pk of the Switch()
+        interface_name: (str) the key or to the Interface() in the list of Interface()s
+        new_state: (int) either POE_PORT_ADMIN_ENABLED (1) or POE_PORT_ADMIN_DISABLED (2).
+
+    Returns:
+        renders either OK or Error page, depending permissions and result.
     """
-    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
+    dprint(f"interface_poe_change()")
 
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        if_name=interface_name,
-    )
-
-    try:
-        conn = get_connection_object(request, group, switch)
-    except Exception:
-        log.type = LOG_TYPE_ERROR
-        log.action = LOG_CONNECTION_ERROR
-        log.description = "Could not get connection"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    interface = conn.get_interface_by_key(interface_name)
-    if not interface:
-        log.type = LOG_TYPE_ERROR
-        log.description = f"PoE-Change: Error getting interface data for {interface_name}"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get interface data. Please contact your administrator!"
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    log.type = LOG_TYPE_CHANGE
     if new_state == POE_PORT_ADMIN_ENABLED:
-        log.action = LOG_CHANGE_INTERFACE_POE_UP
-        log.description = f"Interface {interface.name}: Enabling PoE"
-        state = "Enabled"
+        enable = True
     else:
-        log.action = LOG_CHANGE_INTERFACE_POE_DOWN
-        log.description = f"Interface {interface.name}: Disabling PoE"
-        state = "Disabled"
+        enable = False
 
-    if not interface.poe_entry:
-        # should not happen...
-        log.type = LOG_TYPE_ERROR
-        log.description = f"Interface {interface.name} does not support PoE"
-        error = Error()
-        error.status = True
-        error.description = log.descr
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=group, switch=switch, error=error)
+    retval, info = perform_interface_poe_change(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+        interface_key=interface_name,
+        new_state=enable,
+    )
+    if not retval:
+        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-    # do the work:
-    retval = conn.set_interface_poe_status(interface, new_state)
-    if retval < 0:
-        log.description = f"ERROR: {conn.error.description}"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=group, switch=switch, error=conn.error)
-
-    # indicate we need to save config!
-    conn.set_save_needed(True)
-
-    # and save cachable/session data
-    conn.save_cache()
-
-    log.save()
-    counter_increment(COUNTER_CHANGES)
-
-    description = f"Interface {interface.name} PoE is now {state}"
-    return success_page(request, group, switch, description)
+    return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 #
@@ -1586,67 +1488,6 @@ def switch_save_config(request, group_id, switch_id):
         return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
     return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message="Configuration was saved.")
-
-
-@login_required(redirect_field_name=None)
-def switch_save_config_ORIGINAL(request, group_id, switch_id):
-    """
-    This will save the running config to flash/startup/whatever, on supported platforms
-    """
-    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
-
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        action=LOG_SAVE_SWITCH,
-        type=LOG_TYPE_CHANGE,
-        description="Saving switch config",
-    )
-
-    try:
-        conn = get_connection_object(request, group, switch)
-    except Exception:
-        log.type = LOG_TYPE_ERROR
-        log.action = LOG_CONNECTION_ERROR
-        log.description = "Could not get connection"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    if conn.save_needed and conn.can_save_config:
-        # we can save
-        if conn.save_running_config() < 0:
-            # an error happened!
-            log.type = LOG_TYPE_ERROR
-            log.save()
-            counter_increment(COUNTER_ERRORS)
-            return error_page(request=request, group=group, switch=switch, error=conn.error)
-
-        # clear save flag
-        conn.set_save_needed(False)
-
-        # save cachable/session data
-        conn.save_cache()
-
-    else:
-        log.type = LOG_TYPE_WARNING
-        log.description = f"Can not save config (needed={conn.set_save_needed}, can={conn.can_save_config})"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "This switch model cannot save or does not need to save the config"
-        conn.set_save_needed(False)  # clear flag that should not be set in the first place!
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    # all OK
-    log.save()
-
-    description = f"Config was saved for {switch.name}"
-    return success_page(request, group, switch, description)
 
 
 @login_required(redirect_field_name=None)

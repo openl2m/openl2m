@@ -196,8 +196,8 @@ def get_my_group_menu(groups):
     """
     Build custom html menu of all the switchgroups and their switches
     """
-    dprint('get_my_group_menu()')
-    dprint(pprint.pformat(groups))
+    # dprint('get_my_group_menu()')
+    # dprint(pprint.pformat(groups))
 
     num_groups = len(groups)
     if not num_groups:
