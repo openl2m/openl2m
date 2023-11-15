@@ -153,7 +153,7 @@ def get_group_and_switch(request, group_id, switch_id):
         # session based, ie. web ui, or api via ajax/browser, get groups from session store:
         dprint("  WEB UI or API Session - calling get_from_http_session")
         groups = get_from_http_session(request=request, name="permissions")
-    dprint(f"user groups =\n{groups}\n\n")
+    # dprint(f"user groups =\n{groups}\n\n")
     return _get_group_and_switch_from_permissions(permissions=groups, group_id=group_id, switch_id=switch_id)
 
 
