@@ -20,7 +20,9 @@ from switches.api.views import (
     APISwitchBasicView,
     APISwitchDetailView,
     APISwitchSaveConfig,
-    APISwitchAddVlan,
+    APISwitchVlanAdd,
+    APISwitchVlanEdit,
+    APISwitchVlanDelete,
     APIInterfaceSetVlan,
     APIInterfaceSetState,
     APIInterfaceSetPoE,
@@ -57,9 +59,19 @@ urlpatterns = [
         name="api_switch_save_config",
     ),
     path(
-        "add_vlan/<int:group_id>/<int:switch_id>/",
-        APISwitchAddVlan.as_view(),
-        name="api_switch_add_vlan",
+        "vlan_add/<int:group_id>/<int:switch_id>/",
+        APISwitchVlanAdd.as_view(),
+        name="api_switch_vlan_add",
+    ),
+    path(
+        "vlan_edit/<int:group_id>/<int:switch_id>/",
+        APISwitchVlanEdit.as_view(),
+        name="api_switch_vlan_edit",
+    ),
+    path(
+        "vlan_delete/<int:group_id>/<int:switch_id>/",
+        APISwitchVlanDelete.as_view(),
+        name="api_switch_vlan_delete",
     ),
     path(
         "interface/vlan/<int:group_id>/<int:switch_id>/<ifname:interface_id>/",

@@ -24,6 +24,7 @@ from rest_framework import status as http_status
 from counters.constants import (
     COUNTER_CHANGES,
     COUNTER_ERRORS,
+    COUNTER_VLAN_MANAGE,
 )
 from counters.models import counter_increment
 
@@ -40,6 +41,9 @@ from switches.constants import (
     LOG_CHANGE_INTERFACE_PVID,
     LOG_CHANGE_INTERFACE_POE_UP,
     LOG_CHANGE_INTERFACE_POE_DOWN,
+    LOG_VLAN_CREATE,
+    LOG_VLAN_DELETE,
+    LOG_VLAN_EDIT,
 )
 from switches.models import Log
 from switches.utils import dprint, get_remote_ip
@@ -574,3 +578,231 @@ def perform_switch_save_config(request, group_id, switch_id):
     success.status = False  # no error
     success.description = "Configuration was saved!"
     return True, success
+
+
+def perform_switch_vlan_add(request, group_id, switch_id, vlan_id, vlan_name):
+    """
+    This will create a vlan on the device.
+
+    Params:
+        request: Request() object
+        group_id(int): SwitchGroup() pk
+        switch_id: Switch() pk
+        vlan_id (int): the value for the new vlan
+        vlan_name (str): the name of the new vlan
+
+    Returns:
+        boolean, Error() :
+            boolean: True if successful, False if error occurred.
+                    On error, Error() object will be set accordingly.
+
+    """
+    dprint("perform_switch_vlan_create()")
+
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+    connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
+
+    if connection is None:
+        return False, error
+
+    if not request.user.is_superuser and not request.user.profile.vlan_edit:
+        error = Error()
+        error.description = "Access denied!"
+        return False, error
+
+    if connection.vlan_exists(vlan_id):
+        error = Error()
+        error.description = f"Vlan {vlan_id} already exists!"
+        return False, error
+
+    if not vlan_name:
+        error = Error()
+        error.description = "Please provide a vlan name!"
+        return False, error
+
+    # all OK, go create
+    counter_increment(COUNTER_VLAN_MANAGE)
+    status = connection.vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+    if status:
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            switch=switch,
+            group=group,
+            action=LOG_VLAN_CREATE,
+            type=LOG_TYPE_CHANGE,
+            description=f"Vlan {vlan_id} ({vlan_name}) created.",
+        )
+        log.save()
+        # need to save changes
+        connection.set_save_needed(True)
+        # and save data in session
+        connection.save_cache()
+        info = Error()
+        info.status = False  # no error
+        info.description = log.description
+        return True, info
+    else:
+        error = Error()
+        error.status = True
+        error.description = f"Error creating vlan {vlan_id}!"
+        error.details = connection.error.details
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            switch=switch,
+            group=group,
+            action=LOG_VLAN_CREATE,
+            type=LOG_TYPE_ERROR,
+            description=f"Error creating vlan {vlan_id} ({vlan_name}): {connection.error.details}",
+        )
+        log.save()
+        return False, error
+
+
+def perform_switch_vlan_delete(request, group_id, switch_id, vlan_id):
+    """
+    This will create a vlan on the device.
+
+    Params:
+        request: Request() object
+        group_id(int): SwitchGroup() pk
+        switch_id: Switch() pk
+        vlan_id (int): the value for the new vlan
+        vlan_name (str): the name of the new vlan
+
+    Returns:
+        boolean, Error() :
+            boolean: True if successful, False if error occurred.
+                    On error, Error() object will be set accordingly.
+    """
+    dprint("perform_switch_vlan_delete()")
+
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+    connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
+
+    if connection is None:
+        return False, error
+
+    if not request.user.is_superuser:
+        # Only superuser can delete!
+        error = Error()
+        error.description = "Access Denied: you need to be SuperUser to delete a VLAN"
+        return False, error
+
+    if not connection.vlan_exists(vlan_id):
+        error = Error()
+        error.description = f"Vlan {vlan_id} does not exist!"
+        return False, error
+
+    # go delete:
+    status = connection.vlan_delete(vlan_id=vlan_id)
+    if status:
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            switch=switch,
+            group=group,
+            action=LOG_VLAN_DELETE,
+            type=LOG_TYPE_CHANGE,
+            description=f"Vlan {vlan_id} deleted.",
+        )
+        log.save()
+        # need to save changes
+        connection.set_save_needed(True)
+        # and save data in session
+        connection.save_cache()
+        counter_increment(COUNTER_VLAN_MANAGE)
+        info = Error()
+        info.status = False  # no error
+        info.description = f"Vlan {vlan_id} was deleted!"
+        return True, info
+    else:
+        error = Error()
+        error.status = True
+        error.description = "Error deleting vlan {vlan_id}!"
+        error.details = connection.error.details
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            switch=switch,
+            group=group,
+            action=LOG_VLAN_DELETE,
+            type=LOG_TYPE_ERROR,
+            description=f"Error deleting vlan {vlan_id}: {connection.error.details}",
+        )
+        log.save()
+        return False, error
+
+
+def perform_switch_vlan_edit(request, group_id, switch_id, vlan_id, vlan_name):
+    """
+    This will create a vlan on the device.
+
+    Params:
+        request: Request() object
+        group_id(int): SwitchGroup() pk
+        switch_id: Switch() pk
+        vlan_id (int): the value for the new vlan
+        vlan_name (str): the name of the new vlan
+
+    Returns:
+        boolean, Error() :
+            boolean: True if successful, False if error occurred.
+                    On error, Error() object will be set accordingly.
+    """
+    dprint("perform_switch_vlan_edit()")
+
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+    connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
+
+    if connection is None:
+        return False, error
+
+    if not connection.vlan_exists(vlan_id):
+        error = Error()
+        error.description = f"Vlan {vlan_id} does not exist!"
+        return False, error
+
+    if not vlan_name:
+        error = Error()
+        error.description = "Vlan name can not be empty!"
+        return False, error
+
+    status = connection.vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
+    if status:
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            switch=switch,
+            group=group,
+            action=LOG_VLAN_EDIT,
+            type=LOG_TYPE_CHANGE,
+            description=f"Vlan {vlan_id} renamed to '{vlan_name}'",
+        )
+        log.save()
+        # need to save changes
+        connection.set_save_needed(True)
+        # and save data in session
+        connection.save_cache()
+        counter_increment(COUNTER_VLAN_MANAGE)
+        info = Error()
+        info.status = False  # no error
+        info.description = f"Updated name for vlan {vlan_id} to '{vlan_name}'"
+        return True, info
+    else:
+        error = Error()
+        error.status = True
+        error.description = f"Error updating vlan {vlan_id}!"
+        error.details = connection.error.details
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            switch=switch,
+            group=group,
+            action=LOG_VLAN_EDIT,
+            type=LOG_TYPE_ERROR,
+            description=f"Error updating vlan {vlan_id} name to '{vlan_name}': {connection.error.details}",
+        )
+        log.save()
+        return False, error

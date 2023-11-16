@@ -31,6 +31,9 @@ from switches.actions import (
     perform_interface_pvid_change,
     perform_interface_poe_change,
     perform_switch_save_config,
+    perform_switch_vlan_add,
+    perform_switch_vlan_edit,
+    perform_switch_vlan_delete,
 )
 from switches.connect.connect import get_connection_object
 from switches.connect.constants import POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DISABLED
@@ -292,13 +295,15 @@ class APIInterfaceSetDescription(
             description = request.POST['description']
         except Exception:
             return respond_error("Missing required parameter: 'description'")
-        retval, info = perform_interface_description_change(request, group_id, switch_id, interface_id, description)
+        retval, info = perform_interface_description_change(
+            request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, description=description
+        )
         if not retval:
             return respond(status=info.code, text=info.description)
         return respond_ok(info.description)
 
 
-class APISwitchAddVlan(
+class APISwitchVlanAdd(
     APIView,
 ):
     """
@@ -311,31 +316,75 @@ class APISwitchAddVlan(
         group_id,
         switch_id,
     ):
-        dprint("APISwitchAddVlan(POST)")
-        conn, response_error = get_connection_switch(request=request, group_id=group_id, switch_id=switch_id)
-        if response_error:
-            return response_error
-        # TODO: here we need to parse all information and validate the information so that we can do a bulk update for the interface
-        dprint(f"  POST = {request.POST}")
-        # need to test permissions - TBD
+        dprint("APISwitchVlanAdd(POST)")
         try:
             vlan_name = str(request.POST['vlan_name']).strip()
             vlan_id = int(request.POST['vlan_id'])
         except Exception:
-            return respond_error("Missing required parameter: 'vlan_name' or 'vlan_id'")
+            return respond_error("One or more missing or invalid required parameters: 'vlan_name', 'vlan_id'")
         # now go create the new vlan:
-        dprint(f"*** REST new vlan: '{vlan_name}' = {vlan_id}")
-
-        # test if user is permitted to add vlans:
-        # if not not user_can_edit_vlans(request.user, group, switch)
-
-        if conn.vlan_exists(vlan_id) or not vlan_name:
-            respond_error("Invalid parameters!")
-
-        retval = conn.vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+        dprint(f"   New vlan: '{vlan_name}' = {vlan_id}")
+        retval, info = perform_switch_vlan_add(
+            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
+        )
         if not retval:
-            return respond_error(f"Vlan creation error: {conn.error.description}")
-        return respond_ok("New vlan created!")
+            return respond(status=info.code, text=info.description)
+        return respond_ok(info.description)
+
+
+class APISwitchVlanEdit(
+    APIView,
+):
+    """
+    Add a VLAN to a switch.
+    """
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("APISwitchVlanEdit(POST)")
+        try:
+            vlan_name = str(request.POST['vlan_name']).strip()
+            vlan_id = int(request.POST['vlan_id'])
+        except Exception:
+            return respond_error("One or more missing or invalid required parameters: 'vlan_name', 'vlan_id'")
+        dprint(f"   Edit vlan: {vlan_id} = '{vlan_name}'")
+        retval, info = perform_switch_vlan_edit(
+            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
+        )
+        if not retval:
+            return respond(status=info.code, text=info.description)
+        return respond_ok(info.description)
+
+
+class APISwitchVlanDelete(
+    APIView,
+):
+    """
+    Add a VLAN to a switch.
+    """
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("APISwitchVlanDelete(POST)")
+        try:
+            vlan_id = int(request.POST['vlan_id'])
+        except Exception:
+            return respond_error("Missing or invalid required parameter: 'vlan_id'")
+        dprint(f"   Delete vlan: {vlan_id}")
+        retval, info = perform_switch_vlan_delete(
+            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id
+        )
+        if not retval:
+            return respond(status=info.code, text=info.description)
+        return respond_ok(info.description)
 
 
 """

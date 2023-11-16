@@ -113,7 +113,7 @@ def get_my_device_groups(request):
                         "default_view_name": switch.get_default_view_display(),
                         "url": url,
                         "url_add_vlan": rest_reverse(
-                            "switches-api:api_switch_add_vlan",
+                            "switches-api:api_switch_vlan_add",
                             request=request,
                             kwargs={"group_id": group.id, "switch_id": switch.id},
                         ),

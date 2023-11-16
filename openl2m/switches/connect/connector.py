@@ -191,7 +191,7 @@ class Connector:
         data['vlans'] = vlans
         data["url_add_vlan"] = (
             rest_reverse(
-                "switches-api:api_switch_add_vlan",
+                "switches-api:api_switch_vlan_add",
                 request=self.request,
                 kwargs={"group_id": self.group.id, "switch_id": self.switch.id},
             ),

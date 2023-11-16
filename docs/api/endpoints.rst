@@ -47,16 +47,26 @@ This is the list of REST API endpoints, and their functionality.
       - No
       -
       - Get the details device view (ie. add arp, lldp, etc.)
-    * - api/switches/add_vlan/<group>/<switch>/
-      - No
-      - Yes
-      - vlan_name(str), vlan_id(int)
-      - Add a vlan to the device.
     * - api/switches/save/<group>/<switch>/
       - No
       - Yes
       - save(str), "on,enabled,enable,yes,y,1"
       - Save the configuration of the device.
+    * - api/switches/vlan_add/<group>/<switch>/
+      - No
+      - Yes
+      - vlan_name(str), vlan_id(int)
+      - Add a vlan to the device.
+    * - api/switches/vlan_edit/<group>/<switch>/
+      - No
+      - Yes
+      - vlan_name(str), vlan_id(int)
+      - Edit the name of a vlan on the device.
+    * - api/switches/vlan_delete/<group>/<switch>/
+      - No
+      - Yes
+      - vlan_id(int)
+      - Delete a vlan from the device.
     * - api/switches/vlan/<group>/<switch>/<interface>/
       - No
       - Yes

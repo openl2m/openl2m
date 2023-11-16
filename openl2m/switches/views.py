@@ -38,6 +38,9 @@ from switches.actions import (
     perform_interface_pvid_change,
     perform_interface_poe_change,
     perform_switch_save_config,
+    perform_switch_vlan_add,
+    perform_switch_vlan_edit,
+    perform_switch_vlan_delete,
 )
 
 from switches.connect.classes import Error
@@ -1039,189 +1042,50 @@ def bulkedit_processor(
 def switch_vlan_manage(request, group_id, switch_id):
     """
     Manage vlan to a device. Form data will be POST-ed.
+
+    Params:
+        request:    HttpRequest() object
+        group_id (int): SwitchGroup() pk
+        switch_id (int): Switch() pk
+
+    Returns:
+        render() via success_page or error_page with appropriate success or failure info.
     """
-    group = get_object_or_404(SwitchGroup, pk=group_id)
-    switch = get_object_or_404(Switch, pk=switch_id)
-
-    if not rights_to_group_and_switch(request, group_id, switch_id) or not user_can_edit_vlans(
-        request.user, group, switch
-    ):
-        error = Error()
-        error.description = "Access denied!"
-        error.details = "You are not allowed to edit vlans on this device!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    remote_ip = get_remote_ip(request)
-
-    try:
-        conn = get_connection_object(request, group, switch)
-    except Exception:
-        log = Log(
-            user=request.user,
-            ip_address=remote_ip,
-            switch=switch,
-            group=group,
-            action=LOG_CONNECTION_ERROR,
-            type=LOG_TYPE_ERROR,
-            description="Could not get connection",
-        )
-        log.save()
-        error = Error()
-        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
-        error.details = "This is likely a configuration error, such as wrong SNMP settings."
-        return error_page(request=request, group=group, switch=switch, error=error)
-
     # parse form items:
     vlan_id = int(request.POST.get("vlan_id", -1))
     vlan_name = str(request.POST.get("vlan_name", "")).strip()
 
     if request.POST.get("vlan_create"):
-        if not conn.vlan_exists(vlan_id) and vlan_name:
-            # all OK, go create
-            counter_increment(COUNTER_VLAN_MANAGE)
-            status = conn.vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
-            if status:
-                log = Log(
-                    user=request.user,
-                    ip_address=remote_ip,
-                    switch=switch,
-                    group=group,
-                    action=LOG_VLAN_CREATE,
-                    type=LOG_TYPE_CHANGE,
-                    description=f"Vlan {vlan_id} ({vlan_name}) created.",
-                )
-                log.save()
-                # need to save changes
-                conn.set_save_needed(True)
-                # and save data in session
-                conn.save_cache()
-                return success_page(
-                    request=request, group=group, switch=switch, description=f"Vlan {vlan_id} created successfully!"
-                )
-            else:
-                error = Error()
-                error.status = True
-                error.description = f"Error creating vlan {vlan_id}!"
-                error.details = conn.error.details
-                log = Log(
-                    user=request.user,
-                    ip_address=remote_ip,
-                    switch=switch,
-                    group=group,
-                    action=LOG_VLAN_CREATE,
-                    type=LOG_TYPE_ERROR,
-                    description=f"Error creating vlan {vlan_id} ({vlan_name}): {conn.error.details}",
-                )
-                log.save()
-                return error_page(request=request, group=group, switch=switch, error=error)
-        else:
-            error = Error()
-            error.status = True
-            error.description = (
-                f"Invalid or existing new vlan id ({vlan_id}) or name ('{vlan_name}'), please try again!"
-            )
-            return error_page(request=request, group=group, switch=switch, error=error)
+        dprint("switch_vlan_manage(create)")
+        retval, info = perform_switch_vlan_add(
+            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
     elif request.POST.get("vlan_edit"):
-        if conn.vlan_exists(vlan_id) and vlan_name:
-            status = conn.vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
-            if status:
-                log = Log(
-                    user=request.user,
-                    ip_address=remote_ip,
-                    switch=switch,
-                    group=group,
-                    action=LOG_VLAN_EDIT,
-                    type=LOG_TYPE_CHANGE,
-                    description=f"Vlan {vlan_id} renamed to '{vlan_name}'",
-                )
-                log.save()
-                # need to save changes
-                conn.set_save_needed(True)
-                # and save data in session
-                conn.save_cache()
-                counter_increment(COUNTER_VLAN_MANAGE)
-                return success_page(
-                    request=request,
-                    group=group,
-                    switch=switch,
-                    description=f"Updated name for vlan {vlan_id} to '{vlan_name}'",
-                )
-            else:
-                error = Error()
-                error.status = True
-                error.description = f"Error updating vlan {vlan_id}!"
-                error.details = conn.error.details
-                log = Log(
-                    user=request.user,
-                    ip_address=remote_ip,
-                    switch=switch,
-                    group=group,
-                    action=LOG_VLAN_EDIT,
-                    type=LOG_TYPE_ERROR,
-                    description=f"Error updating vlan {vlan_id} name to '{vlan_name}': {conn.error.details}",
-                )
-                log.save()
-                return error_page(request=request, group=group, switch=switch, error=error)
-        else:
-            error = Error()
-            error.status = True
-            error.description = "Vlan does not exists, or invalid new name, please try again!"
-            return error_page(request=request, group=group, switch=switch, error=error)
+        dprint("switch_vlan_manage(edit)")
+        retval, info = perform_switch_vlan_edit(
+            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
     elif request.POST.get("vlan_delete"):
-        if request.user.is_superuser and conn.vlan_exists(vlan_id):
-            status = conn.vlan_delete(vlan_id=vlan_id)
-            if status:
-                log = Log(
-                    user=request.user,
-                    ip_address=remote_ip,
-                    switch=switch,
-                    group=group,
-                    action=LOG_VLAN_DELETE,
-                    type=LOG_TYPE_CHANGE,
-                    description=f"Vlan {vlan_id} deleted.",
-                )
-                log.save()
-                # need to save changes
-                conn.set_save_needed(True)
-                # and save data in session
-                conn.save_cache()
-                counter_increment(COUNTER_VLAN_MANAGE)
-                return success_page(
-                    request=request,
-                    group=group,
-                    switch=switch,
-                    description=f"Vlan {vlan_id} was deleted!",
-                )
-            else:
-                error = Error()
-                error.status = True
-                error.description = "Error deleting vlan {vlan_id}!"
-                error.details = conn.error.details
-                log = Log(
-                    user=request.user,
-                    ip_address=remote_ip,
-                    switch=switch,
-                    group=group,
-                    action=LOG_VLAN_DELETE,
-                    type=LOG_TYPE_ERROR,
-                    description=f"Error deleting vlan {vlan_id}: {conn.error.details}",
-                )
-                log.save()
-                return error_page(request=request, group=group, switch=switch, error=error)
-        else:
-            # NOT allowed if you are not super user!
-            error = Error()
-            error.status = True
-            error.description = "Access Denied: you need to be SuperUser to delete a VLAN"
-            return error_page(request=request, group=group, switch=switch, error=error)
+        dprint("switch_vlan_manage(delete)")
+        retval, info = perform_switch_vlan_delete(
+            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
     error = Error()
     error.status = True
     error.description = f"UNKNOWN vlan management action: POST={dict(request.POST.items())}"
-    return error_page(request=request, group=group, switch=switch, error=error)
+    return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
 
 #
