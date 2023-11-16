@@ -222,6 +222,46 @@ def get_connection_if_permitted(request, group, switch, write_access=False):
     return connection, None
 
 
+def get_interface_to_change(connection, interface_key):
+    """Get an Interface() object for the key given. Test if it is writable.
+
+    Params:
+        connection: valid Connection() object to the device.
+        interface_key: key into the Connection.interfaces dict().
+
+    Returns:
+        connection, error:
+            a valid Interface() or False on error.
+            In former case, error=False, in latter case error=Error() object.
+    """
+    dprint("get_interface_to_change()")
+    interface = connection.get_interface_by_key(interface_key)
+    if not interface:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Error getting interface data for {interface_key}"
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.description = "Could not get interface data. Please contact your administrator!"
+        error.details = "Sorry, no more details available!"
+        return False, error
+
+    # can the user manage the interface?
+    if not interface.manageable:
+        log.description = f"Can not manage interface '{interface.name}'"
+        log.type = LOG_TYPE_ERROR
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        error = Error()
+        error.code = http_status.HTTP_403_FORBIDDEN
+        error.description = "You can not manage this interface!"
+        error.details = interface.unmanage_reason
+        return False, error
+
+    # return the interface:
+    return interface, False
+
+
 def _get_group_and_switch_from_permissions(permissions, group_id, switch_id):
     """Check access to the group and switch.
        Return the full permissions, and requested SwitchGroup() and Switch() objects.

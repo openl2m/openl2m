@@ -1504,7 +1504,7 @@ class Connector:
             if iface.type not in visible_interfaces.keys():
                 iface.visible = False
                 iface.manageable = False  # just to be safe :-)
-                iface.unmanage_reason = "Interface type is not visible!"  # should never show!
+                iface.unmanage_reason = "Interface access denied: type is not visible!"  # should never show!
                 continue
 
             # see if this regex matches the interface name, e.g. GigabitEthernetx/x/x
@@ -1512,7 +1512,7 @@ class Connector:
                 match = re.match(settings.IFACE_HIDE_REGEX_IFNAME, iface.name)
                 if match:
                     iface.manageable = False  # match, so we cannot modify! Show anyway...
-                    iface.unmanage_reason = "Access denied: interface name matches admin setting!"
+                    iface.unmanage_reason = "Interface access denied: name matches admin deny setting!"
                     continue
 
             # see if this regex matches the interface 'ifAlias' aka. the interface description
@@ -1520,19 +1520,19 @@ class Connector:
                 match = re.match(settings.IFACE_HIDE_REGEX_IFDESCR, iface.description)
                 if match:
                     iface.manageable = False  # match, so we cannot modify! Show anyway...
-                    iface.unmanage_reason = "Access denied: interface description matches admin setting!"
+                    iface.unmanage_reason = "Interface access denied: description matches admin deny setting!"
                     continue
 
             # see if we should hide interfaces with speeds above this value in Mbps.
             if int(settings.IFACE_HIDE_SPEED_ABOVE) > 0 and int(iface.speed) > int(settings.IFACE_HIDE_SPEED_ABOVE):
                 iface.manageable = False  # match, so we cannot modify! Show anyway...
-                iface.unmanage_reason = "Access denied: interface speed is denied by admin setting!"
+                iface.unmanage_reason = "Interface access denied: speed is denied by admin setting!"
                 continue
 
             # check if this vlan is in the group allowed vlans list:
             if int(iface.untagged_vlan) not in self.allowed_vlans.keys():
                 iface.manageable = False  # match, so we cannot modify! Show anyway...
-                iface.unmanage_reason = "Access denied: vlan is not allowed!"
+                iface.unmanage_reason = "Interface access denied: you do not have access to the interface vlan!"
                 continue
 
             # finally, we can edit this interface!
