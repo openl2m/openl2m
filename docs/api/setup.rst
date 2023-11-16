@@ -29,3 +29,11 @@ Note: the above uses the Python HTTPIE package.
 
 
 Once you have succesfully tested access, you can start accessing :doc:`the various API endpoints available.<endpoints>`
+
+Saving Changes
+--------------
+
+If the device requires a command to save the current configuration to the startup config (aka. "write mem"),
+your API code is responsible for calling the "save" API !
+
+**Note that devices that require saving have that specific flag set to *True* in their API info.**
