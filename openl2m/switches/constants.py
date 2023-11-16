@@ -223,6 +223,9 @@ LOG_NAPALM_ERROR_LLDP = 309
 
 LOG_AOSCX_ERROR_GENERIC = 321
 
+LOG_INTERFACE_NOT_FOUND = 509
+LOG_INTERFACE_DENIED = 510
+LOG_ERROR = 511
 LOG_DENIED = 512
 
 
@@ -292,7 +295,10 @@ LOG_ACTION_CHOICES = [
     [LOG_NAPALM_ERROR_LLDP, 'Napalm LLDP'],
     [LOG_AOSCX_ERROR_GENERIC, 'AOS-Cx Error'],
     [LOG_REST_API_TOKEN_CREATED, 'API Token Created'],
-    [LOG_DENIED, 'Denied'],
+    [LOG_INTERFACE_NOT_FOUND, "Interface Not Found"],
+    [LOG_INTERFACE_DENIED, "Interface Access Denied"],
+    [LOG_ERROR, 'Generic Error'],
+    [LOG_DENIED, 'Access Denied'],
 ]
 
 # tasks related constants

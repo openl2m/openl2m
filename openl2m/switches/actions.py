@@ -51,6 +51,7 @@ from switches.utils import dprint, get_remote_ip
 from switches.permissions import (
     get_group_and_switch,
     get_connection_if_permitted,
+    get_interface_to_change,
 )
 
 
@@ -87,32 +88,15 @@ def perform_interface_admin_change(request, group_id, switch_id, interface_key, 
         group=group,
     )
 
-    dprint(f"  Key is type {type(interface_key)}")
-
-    interface = connection.get_interface_by_key(interface_key)
+    interface, error = get_interface_to_change(connection=connection, interface_key=interface_key)
     if not interface:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Admin-Change: Error getting interface data for {interface_key}"
+        log.description = f"Admin-Change: ERROR - {error.description}"
         log.save()
         counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get interface data. Please contact your administrator!"
-        error.details = "Sorry, no more details available!"
         return False, error
 
     log.if_name = interface.name
-
-    # can the user manage the interface?
-    if not interface.manageable:
-        log.description = f"Can not manage {interface.name}: description edit not allowed!"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.code = http_status.HTTP_403_FORBIDDEN
-        error.description = "You can not manage this interface!"
-        error.details = interface.unmanage_reason
-        return False, error
 
     if new_state:
         log.action = LOG_CHANGE_INTERFACE_UP
@@ -184,31 +168,15 @@ def perform_interface_description_change(request, group_id, switch_id, interface
         action=LOG_CHANGE_INTERFACE_ALIAS,
     )
 
-    dprint(f"  Key is type {type(interface_key)}")
-
-    interface = connection.get_interface_by_key(str(interface_key))
+    interface, error = get_interface_to_change(connection=connection, interface_key=interface_key)
     if not interface:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Description-Change: Error getting interface data for {interface_key}"
+        log.description = f"Description-Change: ERROR - {error.description}"
         log.save()
         counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get interface data. Please contact your administrator!"
         return False, error
 
     log.if_name = interface.name
-
-    # can the user manage the interface?
-    if not interface.manageable:
-        log.description = f"Can not manage {interface.name}: description edit not allowed!"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.code = http_status.HTTP_403_FORBIDDEN
-        error.description = "You can not manage this interface!"
-        error.details = interface.unmanage_reason
-        return False, error
 
     # are we allowed to change description ?
     if not interface.can_edit_description:
@@ -310,32 +278,15 @@ def perform_interface_pvid_change(request, group_id, switch_id, interface_key, n
         action=LOG_CHANGE_INTERFACE_PVID,
     )
 
-    dprint(f"  Interface Key is type {type(interface_key)}")
-    dprint(f"  PVID is type {type(new_pvid)}")
-
-    interface = connection.get_interface_by_key(str(interface_key))
+    interface, error = get_interface_to_change(connection=connection, interface_key=interface_key)
     if not interface:
         log.type = LOG_TYPE_ERROR
-        log.description = f"PVID-Change: Error getting interface data for {interface_key}"
+        log.description = f"PVID-Change: ERROR - {error.description}"
         log.save()
         counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get interface data. Please contact your administrator!"
         return False, error
 
     log.if_name = interface.name
-
-    # can the user manage the interface?
-    if not interface.manageable:
-        log.description = f"Can not manage {interface.name}: vlan change not allowed!"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.code = http_status.HTTP_403_FORBIDDEN
-        error.description = "You can not manage this interface!"
-        error.details = interface.unmanage_reason
-        return False, error
 
     # this should not happen:
     if new_pvid == 0:
@@ -424,32 +375,15 @@ def perform_interface_poe_change(request, group_id, switch_id, interface_key, ne
         action=LOG_CHANGE_INTERFACE_PVID,
     )
 
-    dprint(f"  Interface Key is type {type(interface_key)}")
-
-    interface = connection.get_interface_by_key(str(interface_key))
+    interface, error = get_interface_to_change(connection=connection, interface_key=interface_key)
     if not interface:
         log.type = LOG_TYPE_ERROR
-        log.description = f"PoE-Change: Error getting interface data for {interface_key}"
+        log.description = f"Admin-Change: ERROR - {error.description}"
         log.save()
         counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get interface data. Please contact your administrator!"
         return False, error
 
     log.if_name = interface.name
-
-    # can the user manage the interface?
-    if not interface.manageable:
-        dprint(" NOT manageable!")
-        log.description = f"Can not manage {interface.name}: PoE change not allowed!"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.code = http_status.HTTP_403_FORBIDDEN
-        error.description = "You can not manage this interface!"
-        error.details = interface.unmanage_reason
-        return False, error
 
     if not interface.poe_entry:
         dprint("  NOT PoE Capable!")

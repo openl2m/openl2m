@@ -22,7 +22,6 @@ from rest_framework.reverse import reverse as rest_reverse
 from rest_framework.request import Request as RESTRequest
 
 from counters.constants import (
-    COUNTER_CHANGES,
     COUNTER_ERRORS,
     COUNTER_ACCESS_DENIED,
 )
@@ -30,11 +29,12 @@ from counters.models import counter_increment
 
 from switches.connect.classes import Error
 from switches.constants import (
-    LOG_SAVE_SWITCH,
-    LOG_TYPE_CHANGE,
     LOG_TYPE_ERROR,
     LOG_CHANGE_INTERFACE_ALIAS,
     LOG_CONNECTION_ERROR,
+    LOG_INTERFACE_NOT_FOUND,
+    LOG_INTERFACE_DENIED,
+    LOG_ERROR,
     LOG_DENIED,
     SWITCH_STATUS_ACTIVE,
     SWITCH_VIEW_BASIC,
@@ -237,8 +237,15 @@ def get_interface_to_change(connection, interface_key):
     dprint("get_interface_to_change()")
     interface = connection.get_interface_by_key(interface_key)
     if not interface:
-        log.type = LOG_TYPE_ERROR
-        log.description = f"Error getting interface data for {interface_key}"
+        log = Log(
+            user=connection.request.user,
+            ip_address=get_remote_ip(connection.request),
+            switch=connection.switch,
+            group=connection.group,
+            type=LOG_TYPE_ERROR,
+            action=LOG_INTERFACE_NOT_FOUND,
+            description=f"Error getting interface data for {interface_key}",
+        )
         log.save()
         counter_increment(COUNTER_ERRORS)
         error = Error()
@@ -248,8 +255,15 @@ def get_interface_to_change(connection, interface_key):
 
     # can the user manage the interface?
     if not interface.manageable:
-        log.description = f"Can not manage interface '{interface.name}'"
-        log.type = LOG_TYPE_ERROR
+        log = Log(
+            user=connection.request.user,
+            ip_address=get_remote_ip(connection.request),
+            switch=connection.switch,
+            group=connection.group,
+            type=LOG_TYPE_ERROR,
+            action=LOG_INTERFACE_DENIED,
+            description=f"Can not manage interface '{interface.name}'",
+        )
         log.save()
         counter_increment(COUNTER_ERRORS)
         error = Error()
