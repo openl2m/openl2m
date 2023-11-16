@@ -343,13 +343,6 @@ def switch_view(
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
-    #    if not rights_to_group_and_switch(request, group_id, switch_id):
-    #         error = Error()
-    #         error.status = True
-    #         error.description = "Access denied!"
-    #         counter_increment(COUNTER_ACCESS_DENIED)
-    #         return error_page(request=request, group=False, switch=False, error=error)
-
     log = Log(
         user=request.user,
         ip_address=get_remote_ip(request),
@@ -550,7 +543,27 @@ def switch_bulkedit(request, group_id, switch_id):
     """
     Change several interfaces at once.
     """
-    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_VIEW_SWITCH,
+        type=LOG_TYPE_VIEW,
+    )
+
+    if group == None or switch == None:
+        log.type = LOG_TYPE_ERROR
+        log.description = "Permission denied! ()"
+        log.save()
+        error = Error()
+        error.status = True
+        error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
+        return error_page(request=request, group=False, switch=False, error=error)
+
     counter_increment(COUNTER_BULKEDITS)
 
     remote_ip = get_remote_ip(request)
@@ -1248,7 +1261,7 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
     """
     Toggle the PoE status of an interfaces. I.e disable, wait some, then enable again.
     """
-    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
     log = Log(
         user=request.user,
@@ -1257,6 +1270,17 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
         group=group,
         if_name=interface_name,
     )
+
+    if group == None or switch == None:
+        log.type = LOG_TYPE_ERROR
+        log.action = LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP
+        log.description = "Permission denied! ()"
+        log.save()
+        error = Error()
+        error.status = True
+        error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
+        return error_page(request=request, group=False, switch=False, error=error)
 
     try:
         conn = get_connection_object(request, group, switch)
@@ -1374,7 +1398,23 @@ def switch_cmd_template_output(request, group_id, switch_id):
     """
     Go parse a switch command template that was submitted in the form
     """
-    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+
+    if group == None or switch == None:
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            switch=switch,
+            group=group,
+            type=LOG_TYPE_ERROR,
+            description="Permission denied!",
+        )
+        log.save()
+        error = Error()
+        error.status = True
+        error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
+        return error_page(request=request, group=False, switch=False, error=error)
 
     template_id = int(request.POST.get("template_id", -1))
     t = get_object_or_404(CommandTemplate, pk=template_id)
@@ -1593,7 +1633,23 @@ def switch_reload(request, group_id, switch_id, view):
     """
     This forces a new reading of basic switch SNMP data
     """
-    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+
+    if group == None or switch == None:
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            switch=switch,
+            group=group,
+            type=LOG_TYPE_ERROR,
+            description="Permission denied!",
+        )
+        log.save()
+        error = Error()
+        error.status = True
+        error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
+        return error_page(request=request, group=False, switch=False, error=error)
 
     log = Log(
         user=request.user,
@@ -1618,7 +1674,23 @@ def switch_activity(request, group_id, switch_id):
     This shows recent activity for a specific switch
     """
     template_name = "switch_activity.html"
-    group, switch = confirm_access_rights(request=request, group_id=group_id, switch_id=switch_id)
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+
+    if group == None or switch == None:
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            switch=switch,
+            group=group,
+            type=LOG_TYPE_ERROR,
+            description="Permission denied!",
+        )
+        log.save()
+        error = Error()
+        error.status = True
+        error.description = "Access denied!"
+        counter_increment(COUNTER_ACCESS_DENIED)
+        return error_page(request=request, group=False, switch=False, error=error)
 
     # only show this switch. May add more filters later...
     filter = {"switch_id": switch_id}
@@ -1872,55 +1944,3 @@ def admin_activity(request):
             "logs_link": False,
         },
     )
-
-
-"""
-This function removes all duplicate testing code
-"""
-
-
-def confirm_access_rights(
-    request=None,
-    group_id=None,
-    switch_id=None,
-):
-    """
-    Check if the current user has rights to this switch in this group
-    Returns the switch_group and switch for further processing
-    """
-    dprint("config_access_rights()")
-    group = get_object_or_404(
-        SwitchGroup,
-        pk=group_id,
-    )
-    switch = get_object_or_404(
-        Switch,
-        pk=switch_id,
-    )
-    if not rights_to_group_and_switch(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-    ):
-        error = Error()
-        error.status = True
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-    return group, switch
-
-
-def rights_to_group_and_switch(request, group_id, switch_id):
-    """
-    Check if the current user has rights to this switch in this group
-    Returns True if allowed, False if not!
-    """
-    if request.user.is_superuser or request.user.is_staff:
-        return True
-    # for regular users, check permissions:
-    permissions = get_from_http_session(request=request, name="permissions")
-    if permissions and isinstance(permissions, dict) and int(group_id) in permissions.keys():
-        switches = permissions[int(group_id)]
-        if isinstance(switches, dict) and int(switch_id) in switches.keys():
-            return True
-    return False
