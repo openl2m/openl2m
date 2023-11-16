@@ -54,9 +54,7 @@ class APISwitchMenuView(
         self,
         request,
     ):
-        if isinstance(request, RESTRequest):
-            dprint("***REST CALL ***")
-        dprint(f"  REST Menu: user={request.user.username}, auth={request.auth}")
+        dprint(f"APISwitchMenuView(): user={request.user.username}, auth={request.auth}")
 
         groups = get_my_device_groups(request=request)
         user = {
@@ -77,16 +75,16 @@ class APISwitchMenuView(
 
 
 def switch_info(request, group_id, switch_id, details):
-    conn, response_error = get_connection_switch(
+    connection, response_error = get_connection_to_switch(
         request=request, group_id=group_id, switch_id=switch_id, details=details
     )
     if response_error:
         return response_error
     data = {
-        "switch": conn.as_dict(),
+        "switch": connection.as_dict(),
     }
     interfaces = list()
-    for key, iface in conn.interfaces.items():
+    for key, iface in connection.interfaces.items():
         inf = iface.as_dict()
         # add some url info:
         inf["url_set_vlan"] = rest_reverse(
@@ -113,7 +111,7 @@ def switch_info(request, group_id, switch_id, details):
         interfaces.append(inf)
     # add to return data:
     data["interfaces"] = interfaces
-    conn.save_cache()  # this only works for SessionAuthentication !
+    connection.save_cache()  # this only works for SessionAuthentication !
     return Response(
         data=data,
         status=http_status.HTTP_200_OK,
@@ -392,7 +390,7 @@ Support functions.
 """
 
 
-def get_connection_switch(request, group_id, switch_id, details=False):
+def get_connection_to_switch(request, group_id, switch_id, details=False):
     """Test permission to switch, and get connection object if allowed.
 
     Params:
@@ -406,7 +404,7 @@ def get_connection_switch(request, group_id, switch_id, details=False):
         connection is a fully loaded Connection() object if all is valid, or None if not.
         If all OK, response_error will None, but on errors it will be a valid Response() object.
     """
-    dprint("API-get_connection_switch()")
+    dprint("get_connection_to_switch()")
     # test permission first:
     group, switch = get_group_and_switch(
         request=request,
@@ -418,19 +416,17 @@ def get_connection_switch(request, group_id, switch_id, details=False):
 
     # access allowed, try to get a connection:
     try:
-        dprint("  BEFORE get_connection_object()")
-        conn = get_connection_object(request, group, switch)
-        dprint("  AFTER get_connection_object()")
+        connection = get_connection_object(request, group, switch)
     except Exception as e:
-        dprint(f"A Connection Error occured: {conn.error.description}")
-        return None, respond_error(reason=conn.error.description)
+        dprint(f"ERROR in get_connection_object(): {connection.error.description}")
+        return None, respond_error(reason=connection.error.description)
 
     # read details as needed:
-    if details and not conn.get_client_data():
-        dprint(f"ERROR gettting device details: {conn.error.description}")
-        return None, respond_error(reason=conn.error.description)
+    if details and not connection.get_client_data():
+        dprint(f"ERROR getting device details: {connection.error.description}")
+        return None, respond_error(reason=connection.error.description)
 
-    return conn, None
+    return connection, None
 
 
 def respond(status, text):
