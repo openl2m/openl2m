@@ -28,12 +28,20 @@ you can do something like the example below to get the list of devices you can a
 Note: the above uses the Python HTTPIE package.
 
 
-Once you have succesfully tested access, you can start accessing :doc:`the various API endpoints available.<endpoints>`
+Once you have successfully tested access, you can start accessing :doc:`the various API endpoints available.<endpoints>`
 
 Saving Changes
 --------------
 
-If the device requires a command to save the current configuration to the startup config (aka. "write mem"),
-your API code is responsible for calling the "save" API !
+If you make changes with an API call, and the device requires a command to save the current configuration
+to the startup config (aka. "write mem"), **your API code is responsible for calling the "save" API !**
 
-**Note that devices that require saving have that specific flag set to *True* in their API info.**
+Devices that require saving have a flag set to *True* in the "switch" section of the "basic" or "details"
+info API call. Look for this entry, if present and True, you need to call the "save" api endpoint after changes:
+
+.. code-block:: python
+
+    "switch": {
+        "save_config": true,
+        ...
+    }
