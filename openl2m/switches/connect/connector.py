@@ -184,19 +184,6 @@ class Connector:
                 ),
             )
 
-        # add vlan data:
-        vlans = []
-        for v in self.vlans.values():
-            vlans.append(v.as_dict())
-        data['vlans'] = vlans
-        data["url_add_vlan"] = (
-            rest_reverse(
-                "switches-api:api_switch_vlan_add",
-                request=self.request,
-                kwargs={"group_id": self.group.id, "switch_id": self.switch.id},
-            ),
-        )
-
         # add PoE data:
         if self.poe_capable:
             poe = {
@@ -211,8 +198,30 @@ class Connector:
         else:
             poe = False
         data['poe'] = poe
+
+        data["url_vlan_add"] = rest_reverse(
+            "switches-api:api_switch_vlan_add",
+            request=self.request,
+            kwargs={"group_id": self.group.id, "switch_id": self.switch.id},
+        )
+
         # this data represents the info about the connected device
         return data
+
+    def vlans_as_dict(self):
+        '''
+        return the vlans as a dictionary for use by the API
+        '''
+        # add vlan data:
+        vlans = {}
+        for v in self.vlans.values():
+            vlans[v.id] = v.as_dict()
+            # can this user access this vlan?
+            if v.id in self.allowed_vlans:
+                vlans[v.id]['access'] = True
+            else:
+                vlans[v.id]['access'] = False
+        return vlans
 
     def _close_device(self):
         """_close_device() is called to clean-up any session, REST credentials,etc when done with this device.
