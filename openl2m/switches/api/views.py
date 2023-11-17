@@ -82,6 +82,7 @@ def switch_info(request, group_id, switch_id, details):
         return response_error
     data = {
         "switch": connection.as_dict(),
+        "vlans": connection.vlans_as_dict(),
     }
     interfaces = list()
     for key, iface in connection.interfaces.items():
@@ -232,7 +233,7 @@ class APIInterfaceSetVlan(
         except Exception:
             return respond_error("Missing required numeric parameter: 'vlan'")
         retval, info = perform_interface_pvid_change(
-            request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, new_vlan=new_vlan
+            request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, new_pvid=new_pvid
         )
         if not retval:
             return respond(status=info.code, text=info.description)
@@ -294,7 +295,11 @@ class APIInterfaceSetDescription(
         except Exception:
             return respond_error("Missing required parameter: 'description'")
         retval, info = perform_interface_description_change(
-            request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, description=description
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            interface_key=interface_id,
+            new_description=description,
         )
         if not retval:
             return respond(status=info.code, text=info.description)
