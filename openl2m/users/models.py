@@ -192,7 +192,7 @@ class Token(models.Model):
 
     @property
     def partial(self):
-        return f'**********************************{self.key[-6:]}' if self.key else ''
+        return f'******{self.key[-6:]}' if self.key else ''
 
     def save(self, *args, **kwargs):
         if not self.key:

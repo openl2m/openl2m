@@ -18,10 +18,10 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.views.decorators.http import require_http_methods
 from django.views.generic import View
 
 from switches.views import close_device
+from users.models import Token
 
 #
 # Logout view only, Login comes from default auth.
@@ -80,11 +80,13 @@ class InfoView(LoginRequiredMixin, View):
     def get(self, request, user_id):
         if request.user.is_superuser or request.user.is_staff:
             user = get_object_or_404(User, pk=user_id)
+            tokens = Token.objects.filter(user=user)
             return render(
                 request,
                 self.template_name,
                 {
                     'user': user,
+                    'tokens': tokens,
                 },
             )
         else:

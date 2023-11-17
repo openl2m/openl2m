@@ -44,7 +44,13 @@
           <tr><td class="text-muted">PoE Toggle</td><td>{{ user.profile.allow_poe_toggle|yesno|capfirst }}</td></tr>
           <tr><td class="text-muted">Edit Description</td><td>{{ user.profile.edit_if_descr|yesno|capfirst }}</td></tr>
           <tr><td class="text-muted">Ask Are You Sure?</td><td>{{ user.profile.are_you_sure|yesno|capfirst }}</td></tr>
-          </tbody>
+          {% if tokens %}
+          <tr><td><strong>API Tokens:</strong></td><td></td></tr>
+            {% for token in tokens %}
+          <tr><td class="text-muted">#{{ forloop.counter }}</td><td>{{ token.partial }}</td></tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
         </table>
       </div>
     </div>
