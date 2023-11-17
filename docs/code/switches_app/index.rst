@@ -62,7 +62,7 @@ See :doc:`Netmiko Connector <netmiko>` for more.
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Here is what is available at this time:
 
    connections.rst

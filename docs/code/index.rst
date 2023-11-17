@@ -13,7 +13,7 @@ It provides module information from Google Code Style documentation that we use 
 (Note: work in progress!)
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Here is what is available at this time:
 
    requirements.rst

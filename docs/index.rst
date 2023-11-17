@@ -68,7 +68,7 @@ See more in the development section below.
 If you are interesting in contributing, writing drivers for new devices, or just learning about the internals of OpenL2M, read the following.
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
   :caption: For Developers:
 
   code/index.rst

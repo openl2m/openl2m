@@ -17,7 +17,7 @@ Here is an example of calls to the "basic" and"details" endpoints:
     http http://localhost:8000/api/switches/details/35/272/ 'Authorization: Token ***34b'
 
 
-It returns a dictionary with 2 keys, "interfaces", "switch" and "vlans".
+Both calls return a dictionary with 3 keys, "*interfaces*", "*switch*" and "*vlans*".
 
 **The "interfaces" entry:**
 

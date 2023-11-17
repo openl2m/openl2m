@@ -87,3 +87,25 @@ This is the list of REST API endpoints, and their functionality.
       - Yes
       - vlan_id(int)
       - Delete a vlan from the device.
+
+.. note::
+
+  All API calls that change a setting will **fail** if you are trying to set the current state!
+  I.e. if you enable an interface that is already enabled, the API will return a HTTP 404 error.
+  Likewize for PoE state, Vlan and Description.
+
+Saving Changes
+--------------
+
+If you make changes with an API call, and the device requires a command to save the current configuration
+to the startup config (aka. "write mem"), **your API code is responsible for calling the "save" API !**
+
+Devices that require saving have a flag set to *True* in the "switch" section of the "basic" or "details"
+info API call. Look for this entry, if present and True, you need to call the "save" api endpoint after changes:
+
+.. code-block:: python
+
+    "switch": {
+        "save_config": true,
+        ...
+    }
