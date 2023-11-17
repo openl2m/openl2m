@@ -59,17 +59,17 @@ urlpatterns = [
         name="api_switch_save_config",
     ),
     path(
-        "vlan_add/<int:group_id>/<int:switch_id>/",
+        "vlan/add/<int:group_id>/<int:switch_id>/",
         APISwitchVlanAdd.as_view(),
         name="api_switch_vlan_add",
     ),
     path(
-        "vlan_edit/<int:group_id>/<int:switch_id>/",
+        "vlan/edit/<int:group_id>/<int:switch_id>/",
         APISwitchVlanEdit.as_view(),
         name="api_switch_vlan_edit",
     ),
     path(
-        "vlan_delete/<int:group_id>/<int:switch_id>/",
+        "vlan/delete/<int:group_id>/<int:switch_id>/",
         APISwitchVlanDelete.as_view(),
         name="api_switch_vlan_delete",
     ),
