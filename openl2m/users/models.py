@@ -12,6 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import binascii
+import netaddr
 import os
 
 from django.db import models
@@ -27,7 +28,7 @@ from django.utils import timezone
 
 from switches.constants import LOG_TYPE_LOGIN_OUT, LOG_LOGIN, LOG_LOGOUT, LOG_LOGIN_FAILED
 from switches.models import Log
-from switches.utils import get_remote_ip
+from switches.utils import dprint, get_remote_ip
 
 #
 # add additional fields to the User models
@@ -157,6 +158,32 @@ def generate_key():
     return binascii.hexlify(os.urandom(20)).decode()
 
 
+def ip_in_list(client_ip, ip_list):
+    """Validate client IP again list IP's.
+
+    Args:
+        client_ip (str): the IP address to check.
+        ip_list (str): list of comma-separated IP's in CIDR format.
+
+    Returns:
+        (boolean): True if found in list, False if not.
+    """
+    dprint("ip_in_list()")
+    for net in ip_list.replace(" ", "").split(","):
+        dprint(f"  Checking for net '{ net }'")
+        try:
+            ipnet = netaddr.IPNetwork(net)
+        except Exception as err:
+            # bad network string, IGNORE!
+            dprint(f"  IGNORING BAD network: '{ net }'")
+            continue
+        else:
+            if client_ip in ipnet:
+                dprint(f"  IP '{client_ip}' found in '{ net }'")
+                return True
+    return False
+
+
 class Token(models.Model):
     """
     An API token used for user authentication. This extends the stock model to allow each user to have multiple tokens.
@@ -214,16 +241,24 @@ class Token(models.Model):
         """
         Validate the API client IP address against the source IP restrictions (if any) set on the token.
         """
-        if not self.allowed_ips:
-            return True
+        dprint(f"Token().validate_client_ip() for { client_ip }")
 
-        #
-        # this needs work:
-        # parsing of string of networks
-        #
-        # # for ip_network in self.allowed_ips:
-        #    if client_ip in IPNetwork(ip_network):
-        #        return True
-        #
-        # return False
+        # are we globally denying this IP address?
+        if settings.API_CLIENT_IP_DENIED and ip_in_list(client_ip=client_ip, ip_list=settings.API_CLIENT_IP_DENIED):
+            dprint(f"  Client denied, in settings.API_CLIENT_IP_DENIED!")
+            return False
+
+        # is this IP globally permitted?
+        if settings.API_CLIENT_IP_ALLOWED and not ip_in_list(
+            client_ip=client_ip, ip_list=settings.API_CLIENT_IP_ALLOWED
+        ):
+            dprint(f"  Client denied, not in settings.API_CLIENT_IP_ALLOWED!")
+            return False
+
+        # Check the Token allowed IP list:
+        if self.allowed_ips and not ip_in_list(client_ip=client_ip, ip_list=self.allowed_ips):
+            dprint("  Client denied, not in token.allowed_ips!")
+            return False
+
+        dprint("  Client ALLOWED!")
         return True

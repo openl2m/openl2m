@@ -436,3 +436,5 @@ JUNOS_PYEZ_CONN_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CONN_TIMEOUT', 10)
 # REST API Settings
 ALLOW_TOKEN_RETRIEVAL = getattr(configuration, 'ALLOW_TOKEN_RETRIEVAL', False)
 MAX_API_TOKENS = getattr(configuration, 'MAX_API_TOKENS', 3)
+API_CLIENT_IP_DENIED = getattr(configuration, 'API_CLIENT_IP_DENIED', "")
+API_CLIENT_IP_ALLOWED = getattr(configuration, 'API_CLIENT_IP_ALLOWED', "")

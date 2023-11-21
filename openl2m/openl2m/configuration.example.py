@@ -483,8 +483,18 @@ LOOKUP_HOSTNAME_LLDP = False
 LOOKUP_HOSTNAME_ROUTED_IP = False
 
 # REST API Settings
+#
 # if True, users can see their tokens again after they have been created.
 # if False, only last few chars will be shown.
 ALLOW_TOKEN_RETRIEVAL = False
 # maximum number of tokens per user
 MAX_API_TOKENS = 3
+# If the API client IP is in this denied list, access is globally denied.
+# This is a comma-separated list of IPv4/IPv6 networks in CIDR notation.
+# Leave blank for no restrictions.
+API_CLIENT_IP_DENIED = ""
+# If the API client IP is in this allowed list, access is globally allowed.
+# Each Token can further restricted by setting the 'allowed_ips' attribute.
+# This is a comma-separated list of IPv4/IPv6 networks in CIDR notation
+# Leave blank for no restrictions.
+API_CLIENT_IP_ALLOWED = ""
