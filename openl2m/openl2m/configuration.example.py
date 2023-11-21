@@ -485,6 +485,6 @@ LOOKUP_HOSTNAME_ROUTED_IP = False
 # REST API Settings
 # if True, users can see their tokens again after they have been created.
 # if False, only last few chars will be shown.
-ALLOW_TOKEN_RETRIEVAL = True
+ALLOW_TOKEN_RETRIEVAL = False
 # maximum number of tokens per user
-MAX_API_TOKENS = 5
+MAX_API_TOKENS = 3

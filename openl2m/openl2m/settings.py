@@ -434,5 +434,5 @@ SSH_COMMAND_TIMEOUT = getattr(configuration, 'SSH_COMMAND_TIMEOUT', 15)
 JUNOS_PYEZ_CONN_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CONN_TIMEOUT', 10)
 
 # REST API Settings
-ALLOW_TOKEN_RETRIEVAL = getattr(configuration, 'ALLOW_TOKEN_RETRIEVAL', True)
-MAX_API_TOKENS = getattr(configuration, 'MAX_API_TOKENS', 5)
+ALLOW_TOKEN_RETRIEVAL = getattr(configuration, 'ALLOW_TOKEN_RETRIEVAL', False)
+MAX_API_TOKENS = getattr(configuration, 'MAX_API_TOKENS', 3)
