@@ -17,6 +17,11 @@ from . import views
 
 app_name = 'users'
 urlpatterns = [
-    path(r'profile/', views.ProfileView.as_view(), name='profile'),
-    path(r'info/<int:user_id>/', views.InfoView.as_view(), name='info'),
+    path('profile/', views.ProfileView.as_view(), name='profile'),
+    path('info/<int:user_id>/', views.InfoView.as_view(), name='info'),
+    path('tokens/', views.TokenListView.as_view(), name='token_list'),
+    path('tokens/add/', views.token_add, name='token_add'),
+    path('tokens/edit/<int:token_id>/', views.token_edit, name='token_edit'),
+    path('tokens/delete/<int:token_id>/', views.token_delete, name='token_delete'),
+    #    path('tokens/<int:pk>/', include(get_model_urls('users', 'token'))),
 ]

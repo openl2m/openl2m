@@ -1,0 +1,110 @@
+{% extends '_base.html' %}
+{% load helpers %}
+
+{% block title %}API Token{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8">
+    <div class="panel panel-success">
+      <div class="panel-heading">
+        {% if action == "edit" %}
+            <strong>Edit your API Token</strong>
+        {% else %}
+            <strong>Add an API Token</strong>
+        {% endif %}
+      </div>
+      <div class="panel-body">
+        {% if action == "edit" %}
+        <form name="token_edit"
+          action="{% url 'users:token_edit' token.id %}"
+          method="post"
+          >
+        {% else%}
+          <form name="token_add"
+          action="{% url 'users:token_add' %}"
+          method="post"
+          >
+        {% endif %}
+        {% csrf_token %}
+        <table class="table table-hover table-headings">
+          <tbody>
+          <tr>
+            <th>Token</th>
+            {% if action == "add" %}
+                <th><input type="text" size=80 name="key" value="{{ token.key }}"
+                    data-toggle="tooltip" title="This is your new token!" readonly /></th>
+            {% else %}
+              {% if settings.ALLOW_TOKEN_RETRIEVAL %}
+                <th>{{token.key }}</th>
+              {% else %}
+                <th>{{token.partial }}</th>
+              {% endif %}
+            {% endif %}
+          </tr>
+          <tr>
+            <td>Description</td>
+            <td><input type="text" size=80 name="description" value="{{ token.description }}"
+            data-toggle="tooltip" title="Type a token description here!" /></td>
+          </tr>
+          <tr>
+            <td>Writable</td>
+            <td><input type="checkbox" name="write_enabled"
+                data-toggle="tooltip" title="Un-check for Read-Only token, or leave checked for Write-Capable!"
+                {% if token.write_enabled %}checked{% endif %} /></td>
+          </tr>
+          <!--  THIS NEEDS WORK TO PARSE PROPERLY IN POST HANDLING:
+            <tr>
+            <td>Expires</td>
+            <td><input
+                id="party"
+                type="datetime-local"
+                name="expires"
+                data-toggle="tooltip" title="Select token expiration, or leave blank for none."
+                {# value="{{ token.expires }}" #} value="" /></td>
+          </tr>
+        -->
+          <tr>
+            <td>Allowed IPs</td>
+            <td><input type="text" size=80 name="allowed_ips" value="{{ token.allowed_ips }}"
+                data-toggle="tooltip" title="Comma-separated list of allowed IPv4/IPv6 networks in CIDR notation. Leave blank to allow all! E.g. 192.168.1.0/24,2001:db8:1::/64" /></td>
+          </tr>
+          <tr>
+            {% if action == "add" %}
+              <td>
+                <input type="submit"
+                value="Add Token"
+                class="btn btn-primary"
+                data-toggle="tooltip" title="Click here to add a token!"
+                {% if request.user.profile.are_you_sure %}
+                onclick="return confirm_change('Are you sure you want add a new token ?')"
+                {% endif %}
+                >
+              </td>
+              <td>
+                {% if not settings.ALLOW_TOKEN_RETRIEVAL %}
+                <strong>Make sure you save this new key!!! This is the only time you will see the full key string!</strong>
+                {% endif %}
+              </td>
+            {% else %}{# edit #}
+            <td>
+                <input type="submit"
+                value="Update Token"
+                class="btn btn-primary"
+                data-toggle="tooltip" title="Click here to update this token!"
+                {% if request.user.profile.are_you_sure %}
+                onclick="return confirm_change('Are you sure you want update this token ?')"
+                {% endif %}
+                >
+              </td>
+              <td></td>
+            {% endif %}
+          </tr>
+        </form>
+        </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends '_base.html' %}
+{% load helpers %}
+
+{% block title %}API Token{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8">
+    <div class="panel panel-success">
+      <div class="panel-heading">
+      {% if request.user.id == user.id %}
+        <strong>Your API Tokens</strong>
+      {% else %}
+        <strong>API Tokens for '{{ user.username }}'</strong>
+      {% endif %}
+      </div>
+      <div class="panel-body">
+        <table class="table table-hover table-headings">
+          <tbody>
+          <tr>
+            <th></th>
+            <th></th>
+            <th>Token</th>
+            {# TO BE IMPLEMENTED <th>Expires</th> #}
+            <th>Last Used</th>
+            <th>Writable</th>
+            <th>Description</th>
+          </tr>
+          {% if tokens %}
+            {% for token in tokens %}
+          <tr>
+            <td><a href="{% url 'users:token_delete' token.id %}"
+                title="Delete token"
+                {% if request.user.profile.are_you_sure %}
+                onclick="return confirm_change('Are you sure you want to delete this API token ?')"
+                {% endif %}
+                ><i class="fas fa-trash-alt"></i></a></td>
+            <td><a href="{% url 'users:token_edit' token.id %}" title="Edit token"><i class="fas fa-edit"></i></a></td>
+            {% if settings.ALLOW_TOKEN_RETRIEVAL %}
+            <td>{{token.key }}</td>
+            {% else %}
+            <td>{{token.partial }}</td>
+            {% endif %}
+            {# TO BE IMPLEMENTED <td>{{ token.expires }}</td> #}
+            <td>{{ token.last_used }}</td>
+            <td>{% if token.write_enabled %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-times"></i>{% endif %}</td>
+            <td>{{ token.description }}</td>
+          </tr>
+            {% endfor %}
+          {% endif %}
+        </tbody>
+        </table>
+        {% if not tokens or tokens|length < settings.MAX_API_TOKENS %}
+        <a href="{% url 'users:token_add' %}" title="Create a new token"><i class="fas fa-plus-circle"></i> Add a token</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

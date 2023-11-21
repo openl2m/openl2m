@@ -57,6 +57,7 @@
                     <li><a href="{% url 'password_change' %}"><i class="fas fa-key"></i> Change Password</a></li>
                     {% endif %}
                     <li><a href="{% url 'users:profile' %}"><i class="fas fa-user-circle"></i> Profile</a></li>
+                    <li><a href="{% url 'users:token_list' %}"><i class="fas fa-user-secret"></i> API Tokens</a></li>
                     <li class="divider"></li>
                     <li><a><i class="fas fa-info" aria-hidden="true"></i> OpenL2M v{{ settings.VERSION }}</a></li>
                     <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Log out</a></li>

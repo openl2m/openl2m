@@ -47,7 +47,7 @@
           {% if tokens %}
           <tr><td><strong>API Tokens:</strong></td><td></td></tr>
             {% for token in tokens %}
-          <tr><td class="text-muted">#{{ forloop.counter }}</td><td>{{ token.partial }}</td></tr>
+          <tr><td class="text-muted">#{{ forloop.counter }}</td><td>{{ token.partial }}{% if token.description %} - {{ token.description }} {% endif %}</td></tr>
             {% endfor %}
           {% endif %}
         </tbody>
