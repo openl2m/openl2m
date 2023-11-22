@@ -35,7 +35,7 @@
                 onclick="return confirm_change('Are you sure you want to delete this API token ?')"
                 {% endif %}
                 ><i class="fas fa-trash-alt"></i></a></td>
-            <td><a href="{% url 'users:token_edit' token.id %}" title="Edit token"><i class="fas fa-edit"></i></a></td>
+            <td><a href="{% url 'users:token_edit' token.id %}" title="Edit token"><i class="fas fa-pen"></i></a></td>
             {% if settings.ALLOW_TOKEN_RETRIEVAL %}
             <td>{{token.key }}</td>
             {% else %}
