@@ -53,17 +53,17 @@
                 data-toggle="tooltip" title="Un-check for Read-Only token, or leave checked for Write-Capable!"
                 {% if token.write_enabled %}checked{% endif %} /></td>
           </tr>
-          <!--  THIS NEEDS WORK TO PARSE PROPERLY IN POST HANDLING:
-            <tr>
+          <tr>
             <td>Expires</td>
             <td><input
                 id="party"
                 type="datetime-local"
                 name="expires"
                 data-toggle="tooltip" title="Select token expiration, or leave blank for none."
-                {# value="{{ token.expires }}" #} value="" /></td>
+                value="{{ token.expires|date:"Y-m-d\TH:i:s" }}" />{# date:"<format>" outputs ISO format for datetime-local element #}
+                  {% if settings.API_MAX_TOKEN_DURATION %}<strong>&nbsp;Token cannot expire more the {{ settings.API_MAX_TOKEN_DURATION }} days into the future!<strong>{% endif %}
+            </td>
           </tr>
-        -->
           <tr>
             <td>Allowed IPs</td>
             <td><input type="text" size=80 name="allowed_ips" value="{{ token.allowed_ips }}"

@@ -21,7 +21,7 @@
             <th></th>
             <th></th>
             <th>Token</th>
-            {# TO BE IMPLEMENTED <th>Expires</th> #}
+            <th>Expires</th>
             <th>Last Used</th>
             <th>Writable</th>
             <th>Description</th>
@@ -41,7 +41,7 @@
             {% else %}
             <td>{{token.partial }}</td>
             {% endif %}
-            {# TO BE IMPLEMENTED <td>{{ token.expires }}</td> #}
+            <td>{{ token.expires }}</td>
             <td>{{ token.last_used }}</td>
             <td>{% if token.write_enabled %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-times"></i>{% endif %}</td>
             <td>{{ token.description }}</td>

@@ -498,3 +498,7 @@ API_CLIENT_IP_DENIED = ""
 # This is a comma-separated list of IPv4/IPv6 networks in CIDR notation
 # Leave blank for no restrictions.
 API_CLIENT_IP_ALLOWED = ""
+# Max token duration, in days. If user sets token expiration beyond this number
+# of days into future, it will be limited to this number of days into future.
+# Ignored if 0.
+API_MAX_TOKEN_DURATION = 0
