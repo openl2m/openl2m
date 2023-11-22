@@ -304,3 +304,29 @@ def _get_group_and_switch_from_permissions(permissions, group_id, switch_id):
                 group = None
                 switch = None
     return group, switch
+
+
+def user_can_write(request):
+    """Validate the user can write changes. This means either Session auth (ie. WebUI),
+       or an API Token() with the 'write_enabled" attribute set to True.
+
+    Args:
+        request (HttpRequest()): the HttpRequest of the caller.
+
+    Returns:
+        boolean, info:
+            True if the user of this request can write, False if not.
+            info is an Error() object with code and description set accordingly.
+    """
+    dprint(f"user_can_write(), request = {type(request)}")
+    if hasattr(request, "auth"):
+        if request.auth != None:  # Token from REST API
+            if not request.auth.write_enabled:
+                error = Error()
+                error.code = http_status.HTTP_403_FORBIDDEN
+                error.description = "This token cannot write!"
+                return False, error
+    info = Error()
+    info.status = False
+    info.description = "All OK!"
+    return True, info

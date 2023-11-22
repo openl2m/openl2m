@@ -52,6 +52,7 @@ from switches.permissions import (
     get_group_and_switch,
     get_connection_if_permitted,
     get_interface_to_change,
+    user_can_write,
 )
 
 
@@ -75,6 +76,11 @@ def perform_interface_admin_change(request, group_id, switch_id, interface_key, 
                     On error, Error() object will be set accordingly.
     """
     dprint(f"perform_interface_admin_change(g={group_id}, s={switch_id}, k={interface_key}, state={new_state})")
+
+    status, info = user_can_write(request)
+    if not status:
+        return False, info
+
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
@@ -154,6 +160,11 @@ def perform_interface_description_change(request, group_id, switch_id, interface
     dprint(
         f"perform_interface_description_change(g={group_id}, s={switch_id}, i={interface_key}, d='{new_description}')"
     )
+
+    status, info = user_can_write(request)
+    if not status:
+        return False, info
+
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
@@ -264,6 +275,11 @@ def perform_interface_pvid_change(request, group_id, switch_id, interface_key, n
                     On error, Error() object will be set accordingly.
     """
     dprint(f"perform_interface_pvid_change(g={group_id}, s={switch_id}, i={interface_key}, p={new_pvid})")
+
+    status, info = user_can_write(request)
+    if not status:
+        return False, info
+
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
@@ -361,6 +377,11 @@ def perform_interface_poe_change(request, group_id, switch_id, interface_key, ne
                     On error, Error() object will be set accordingly.
     """
     dprint(f"perform_interface_poe_change(g={group_id}, s={switch_id}, i={interface_key}, st={new_state})")
+
+    status, info = user_can_write(request)
+    if not status:
+        return False, info
+
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
@@ -451,6 +472,10 @@ def perform_switch_save_config(request, group_id, switch_id):
     """
     dprint("perform_switch_save_config()")
 
+    status, info = user_can_write(request)
+    if not status:
+        return False, info
+
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
@@ -533,6 +558,10 @@ def perform_switch_vlan_add(request, group_id, switch_id, vlan_id, vlan_name):
     """
     dprint("perform_switch_vlan_create()")
 
+    status, info = user_can_write(request)
+    if not status:
+        return False, info
+
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
@@ -612,6 +641,10 @@ def perform_switch_vlan_delete(request, group_id, switch_id, vlan_id):
     """
     dprint("perform_switch_vlan_delete()")
 
+    status, info = user_can_write(request)
+    if not status:
+        return False, info
+
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
@@ -686,6 +719,10 @@ def perform_switch_vlan_edit(request, group_id, switch_id, vlan_id, vlan_name):
                     On error, Error() object will be set accordingly.
     """
     dprint("perform_switch_vlan_edit()")
+
+    status, info = user_can_write(request)
+    if not status:
+        return False, info
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
