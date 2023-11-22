@@ -88,24 +88,30 @@ class MyUserAdmin(UserAdmin):
 
 # Define a new User admin
 class MyTokenAdmin(admin.ModelAdmin):
-    list_display = ('user', 'created', 'expires', 'last_used', 'write_enabled', 'description')
+    list_display = ('user', 'partial', 'last_used', 'expires', 'write_enabled', 'description')
 
-    # fieldsets = (
-    #     (None, {'fields': ('username', 'password')}),
-    #     (('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
-    #     (
-    #         ('Permissions'),
-    #         {
-    #             'fields': (
-    #                 'is_active',
-    #                 'is_staff',
-    #                 'is_superuser',
-    #             )
-    #         },
-    #     ),
-    #     (('Important dates'), {'fields': ('last_login', 'date_joined')}),
-    # )
+    fieldsets = (
+        (None, {'fields': ('user', 'key', 'last_used', 'created')}),
+        (
+            ('Token info'),
+            {
+                'fields': (
+                    'description',
+                    'write_enabled',
+                    'expires',
+                    'allowed_ips',
+                )
+            },
+        ),
+    )
 
+    # do not allow edit of ldap info fields.
+    readonly_fields = (
+        'user',
+        'created',
+        'last_used',
+        'key',
+    )
     # add action to deactivate token
     actions = ['deactivate_token']
 
