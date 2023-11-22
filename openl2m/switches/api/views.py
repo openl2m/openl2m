@@ -423,8 +423,8 @@ def get_connection_to_switch(request, group_id, switch_id, details=False):
     try:
         connection = get_connection_object(request, group, switch)
     except Exception as e:
-        dprint(f"ERROR in get_connection_object(): {connection.error.description}")
-        return None, respond_error(reason=connection.error.description)
+        dprint(f"ERROR in get_connection_object(): {e}")
+        return None, respond_error(reason=f"ERROR in get_connection_object(): {e}")
 
     # read details as needed:
     if details and not connection.get_client_data():
