@@ -79,7 +79,6 @@ from switches.constants import (
     LOG_VIEW_ADMIN_STATS,
     LOG_VIEW_SWITCH_SEARCH,
     LOG_EXECUTE_COMMAND,
-    LOG_SAVE_SWITCH,
     LOG_RELOAD_SWITCH,
     INTERFACE_STATUS_NONE,
     BULKEDIT_POE_NONE,
@@ -92,14 +91,10 @@ from switches.constants import (
     BULKEDIT_POE_CHANGE,
     BULKEDIT_POE_DOWN,
     BULKEDIT_POE_UP,
-    SWITCH_STATUS_ACTIVE,
     LOG_TYPE_WARNING,
     INTERFACE_STATUS_CHANGE,
     INTERFACE_STATUS_DOWN,
     INTERFACE_STATUS_UP,
-    LOG_VLAN_CREATE,
-    LOG_VLAN_EDIT,
-    LOG_VLAN_DELETE,
 )
 from switches.connect.connector import clear_switch_cache
 from switches.connect.connect import get_connection_object
@@ -112,7 +107,6 @@ from switches.utils import (
     warning_page,
     error_page,
     success_page_by_id,
-    warning_page_by_id,
     error_page_by_id,
     dprint,
     get_from_http_session,
@@ -136,7 +130,6 @@ from counters.constants import (
     COUNTER_VIEWS,
     COUNTER_DETAILVIEWS,
     COUNTER_HWINFO,
-    COUNTER_VLAN_MANAGE,
 )
 from notices.models import Notice
 
@@ -1261,104 +1254,33 @@ def interface_poe_down_up(request, group_id, switch_id, interface_name):
     """
     Toggle the PoE status of an interfaces. I.e disable, wait some, then enable again.
     """
-    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
-
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        if_name=interface_name,
+    # disable power first:
+    retval, info = perform_interface_poe_change(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+        interface_key=interface_name,
+        new_state=False,
     )
-
-    if group == None or switch == None:
-        log.type = LOG_TYPE_ERROR
-        log.action = LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP
-        log.description = "Permission denied! ()"
-        log.save()
-        error = Error()
-        error.status = True
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    try:
-        conn = get_connection_object(request, group, switch)
-    except Exception:
-        log.type = LOG_TYPE_ERROR
-        log.action = LOG_CONNECTION_ERROR
-        log.description = "Could not get connection"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    interface = conn.get_interface_by_key(interface_name)
-    if not interface:
-        log.type = LOG_TYPE_ERROR
-        log.description = f"PoE-Down-Up: Error getting interface data for {interface_name}"
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = "Could not get interface data. Please contact your administrator!"
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    log.type = LOG_TYPE_CHANGE
-    log.action = LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP
-    log.description = f"Interface {interface.name}: PoE Toggle Down-Up"
-
-    if not interface.poe_entry:
-        # should not happen...
-        log.type = LOG_TYPE_ERROR
-        log.description = f"Interface {interface.name} does not support PoE"
-        error = Error()
-        error.status = True
-        error.description = log.description
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    # the PoE information (index) is kept in the interface.poe_entry
-    if not interface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
-        # should not happen...
-        log.type = LOG_TYPE_ERROR
-        log.description = f"Interface {interface.name} does not have PoE enabled"
-        error = Error()
-        error.status = True
-        error.description = log.description
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    # disable PoE:
-    if not conn.set_interface_poe_status(interface, POE_PORT_ADMIN_DISABLED):
-        log.description = f"ERROR: Toggle-Disable PoE on {interface.name} - {conn.error.description}"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=group, switch=switch, error=conn.error)
+    if not retval:
+        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
     # delay to let the device cold-boot properly
     time.sleep(settings.POE_TOGGLE_DELAY)
 
-    # and enable PoE again...
-    if not conn.set_interface_poe_status(interface, POE_PORT_ADMIN_ENABLED):
-        log.description = f"ERROR: Toggle-Enable PoE on {interface.name} - {conn.error.description}"
-        log.type = LOG_TYPE_ERROR
-        log.save()
-        counter_increment(COUNTER_ERRORS)
-        return error_page(request=request, group=group, switch=switch, error=conn.error)
+    # and enable again:
+    retval, info = perform_interface_poe_change(
+        request=request,
+        group_id=group_id,
+        switch_id=switch_id,
+        interface_key=interface_name,
+        new_state=True,
+    )
+    if not retval:
+        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-    # no state change, so no save needed!
-    log.save()
-
-    # and save cachable/session data
-    conn.save_cache()
-    counter_increment(COUNTER_CHANGES)
-
-    description = f"Interface {interface.name} PoE was toggled!"
-    return success_page(request, group, switch, description)
+    description = "Interface PoE was toggled!"
+    return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message=description)
 
 
 @login_required(redirect_field_name=None)
