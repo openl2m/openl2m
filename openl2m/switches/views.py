@@ -743,7 +743,6 @@ def bulkedit_processor(
     #        conn.get_basic_info()
 
     # now do the work, and log each change
-    runtime_undo_info = {}
     iface_count = 0
     success_count = 0
     error_count = 0
@@ -756,9 +755,6 @@ def bulkedit_processor(
             continue
         iface_count += 1
 
-        # save the current state, right before we make a change!
-        current_state = {"if_key": if_key, "name": iface.name}
-
         # now check all the things we could be changing,
         # start with UP/DOWN state:
         if interface_change != INTERFACE_STATUS_NONE:
@@ -769,7 +765,7 @@ def bulkedit_processor(
                 switch=switch,
                 group=group,
             )
-            current_state["admin_state"] = iface.admin_status
+            current_state = iface.admin_status
             if interface_change == INTERFACE_STATUS_CHANGE:
                 if iface.admin_status:
                     new_state = False
@@ -791,7 +787,7 @@ def bulkedit_processor(
                 log.action = LOG_CHANGE_INTERFACE_UP
 
             # are we actually making a change?
-            if new_state != current_state["admin_state"]:
+            if new_state != current_state:
                 # yes, apply the change:
                 retval = conn.set_interface_admin_status(iface, new_state)
                 if retval:
@@ -823,7 +819,7 @@ def bulkedit_processor(
                     switch=switch,
                     group=group,
                 )
-                current_state["poe_state"] = iface.poe_entry.admin_status
+                current_state = iface.poe_entry.admin_status
                 if poe_choice == BULKEDIT_POE_DOWN_UP:
                     # Down / Up on interfaces with PoE Enabled:
                     if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
@@ -892,7 +888,7 @@ def bulkedit_processor(
                         log.action = LOG_CHANGE_INTERFACE_POE_UP
 
                     # are we actually making a change?
-                    if new_state != current_state["poe_state"]:
+                    if new_state != current_state:
                         # yes, go do it:
                         retval = conn.set_interface_poe_status(iface, new_state)
                         if retval < 0:
@@ -941,7 +937,6 @@ def bulkedit_processor(
                     group=group,
                     action=LOG_CHANGE_INTERFACE_PVID,
                 )
-                current_state["pvid"] = iface.untagged_vlan
                 if new_pvid != iface.untagged_vlan:
                     # new vlan, go set it:
                     retval = conn.set_interface_untagged_vlan(iface, new_pvid)
@@ -1000,7 +995,6 @@ def bulkedit_processor(
                 group=group,
                 action=LOG_CHANGE_INTERFACE_ALIAS,
             )
-            current_state["description"] = iface.description
             retval = conn.set_interface_description(iface, iface_new_description)
             if retval < 0:
                 error_count += 1
@@ -1016,9 +1010,6 @@ def bulkedit_processor(
                 counter_increment(COUNTER_CHANGES)
             outputs.append(log.description)
             log.save()
-
-        # done with this interface, add pre-change state!
-        runtime_undo_info[if_key] = current_state
 
     # log final results
     log = Log(
