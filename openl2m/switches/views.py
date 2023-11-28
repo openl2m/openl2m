@@ -549,7 +549,7 @@ def switch_bulkedit(request, group_id, switch_id):
 
     if group == None or switch == None:
         log.type = LOG_TYPE_ERROR
-        log.description = "Permission denied! ()"
+        log.description = "Permission denied!"
         log.save()
         error = Error()
         error.status = True
@@ -560,24 +560,6 @@ def switch_bulkedit(request, group_id, switch_id):
     counter_increment(COUNTER_BULKEDITS)
 
     remote_ip = get_remote_ip(request)
-
-    try:
-        conn = get_connection_object(request, group, switch)
-    except Exception:
-        log = Log(
-            user=request.user,
-            ip_address=remote_ip,
-            switch=switch,
-            group=group,
-            action=LOG_CONNECTION_ERROR,
-            type=LOG_TYPE_ERROR,
-            description="Could not get connection",
-        )
-        log.save()
-        error = Error()
-        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
-        error.details = "This is likely a configuration error, such as wrong SNMP settings."
-        return error_page(request=request, group=group, switch=switch, error=error)
 
     # read the submitted form data:
     interface_change = int(request.POST.get("interface_change", INTERFACE_STATUS_NONE))
@@ -630,6 +612,25 @@ def switch_bulkedit(request, group_id, switch_id):
             counter_increment(COUNTER_ERRORS)
             errors.append(f"The description is not allowed: {new_description}")
 
+    # now we are ready to get a device connection
+    try:
+        conn = get_connection_object(request, group, switch)
+    except Exception:
+        log = Log(
+            user=request.user,
+            ip_address=remote_ip,
+            switch=switch,
+            group=group,
+            action=LOG_CONNECTION_ERROR,
+            type=LOG_TYPE_ERROR,
+            description="Could not get connection",
+        )
+        log.save()
+        error = Error()
+        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
+        error.details = "This is likely a configuration error, such as wrong SNMP settings."
+        return error_page(request=request, group=group, switch=switch, error=error)
+
     # safety-check: is the new PVID allowed:
     if new_pvid > 0:
         conn._set_allowed_vlans()
@@ -667,15 +668,16 @@ def switch_bulkedit(request, group_id, switch_id):
 
     # handle regular submit, execute now!
     results = bulkedit_processor(
-        request,
-        group,
-        switch,
-        interface_change,
-        poe_choice,
-        new_pvid,
-        new_description,
-        new_description_type,
-        interfaces,
+        request=request,
+        group=group,
+        switch=switch,
+        conn=conn,
+        interface_change=interface_change,
+        poe_choice=poe_choice,
+        new_pvid=new_pvid,
+        new_description=new_description,
+        new_description_type=new_description_type,
+        interfaces=interfaces,
     )
 
     # indicate we need to save config!
@@ -700,6 +702,7 @@ def bulkedit_processor(
     request,
     group,
     switch,
+    conn,
     interface_change,
     poe_choice,
     new_pvid,
@@ -733,11 +736,11 @@ def bulkedit_processor(
     log.save()
 
     # this needs work:
-    conn = get_connection_object(request, group, switch)
-    if not request:
-        # running asynchronously (as task), we need to read the device
-        # to get access to interfaces.
-        conn.get_basic_info()
+    # conn = get_connection_object(request, group, switch)
+    # if not request:
+    # running asynchronously (as task), we need to read the device
+    # to get access to interfaces.
+    #        conn.get_basic_info()
 
     # now do the work, and log each change
     runtime_undo_info = {}
