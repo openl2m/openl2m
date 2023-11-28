@@ -783,37 +783,46 @@ class PyEZConnector(Connector):
             if conf.commit_check():
                 dprint("commit_check() OK")
                 conf.commit()
+                dprint("conf.commit() succeeded")
                 ret_val = True
             else:
                 dprint("commit_check() FAILED!")
                 conf.rollback()
+                dprint("conf.rollback() succeeded")
                 self.error.status = True
                 self.error.description = "Commit-Check failed! Not executing command."
                 self.error.details = ''
                 ret_val = False
+            dprint("calling conf.unlock()")
             conf.unlock()
+            dprint(f"conf.unlock() OK, returning ret_val={ret_val}")
             return ret_val
         except RpcError as err:
+            dprint("Error: RcpError")
             self.error.status = True
             self.error.description = "Network Communications Error, change was NOT applied!"
             self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except ConfigLoadError as err:
+            dprint("Error: ConfigLoadError")
             self.error.status = True
             self.error.description = "Error loading config, change was NOT applied!"
             self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except CommitError as err:
+            dprint("Error: CommitError")
             self.error.status = True
             self.error.description = "Commit-Check failed, change was NOT applied!"
             self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except LockError as err:
+            dprint("Error: LockError")
             self.error.status = True
             self.error.description = "Cannot get lock, change was NOT applied!"
             self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except UnlockError as err:
+            dprint("Error: UnlockError")
             self.error.status = True
             self.error.description = "Cannot release lock, but change was applied!"
             self.error.details = f"Error: '{err}', commands '{commands}'"
@@ -824,6 +833,7 @@ class PyEZConnector(Connector):
             self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except Exception as err:
+            dprint(f"Error generic: {type(err).__name__}")
             self.error.status = True
             self.error.description = "Unknown error occured, change was NOT applied!"
             self.error.details = f"Error: '{err}', command was '{commands}'"
