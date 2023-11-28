@@ -53,6 +53,7 @@ from switches.permissions import (
     get_connection_if_permitted,
     get_interface_to_change,
     user_can_write,
+    log_write_denied,
 )
 
 
@@ -79,6 +80,9 @@ def perform_interface_admin_change(request, group_id, switch_id, interface_key, 
 
     status, info = user_can_write(request)
     if not status:
+        log_write_denied(
+            request=request, group_id=group_id, switch_id=switch_id, function="perform_interface_admin_change()"
+        )
         return False, info
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
@@ -113,6 +117,9 @@ def perform_interface_admin_change(request, group_id, switch_id, interface_key, 
 
     # are we requesting a change?
     if interface.admin_status == new_state:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Interface {interface.name}: Change requested to current state!"
+        log.save()
         error = Error()
         error.description = f"New interface status is the same ({state}), please change status!"
         return False, error
@@ -163,6 +170,9 @@ def perform_interface_description_change(request, group_id, switch_id, interface
 
     status, info = user_can_write(request)
     if not status:
+        log_write_denied(
+            request=request, group_id=group_id, switch_id=switch_id, function="perform_interface_description_change()"
+        )
         return False, info
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
@@ -278,6 +288,9 @@ def perform_interface_pvid_change(request, group_id, switch_id, interface_key, n
 
     status, info = user_can_write(request)
     if not status:
+        log_write_denied(
+            request=request, group_id=group_id, switch_id=switch_id, function="perform_interface_pvid_change()"
+        )
         return False, info
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
@@ -380,6 +393,9 @@ def perform_interface_poe_change(request, group_id, switch_id, interface_key, ne
 
     status, info = user_can_write(request)
     if not status:
+        log_write_denied(
+            request=request, group_id=group_id, switch_id=switch_id, function="perform_interface_poe_change()"
+        )
         return False, info
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
@@ -474,6 +490,9 @@ def perform_switch_save_config(request, group_id, switch_id):
 
     status, info = user_can_write(request)
     if not status:
+        log_write_denied(
+            request=request, group_id=group_id, switch_id=switch_id, function="perform_switch_save_config()"
+        )
         return False, info
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
@@ -560,6 +579,7 @@ def perform_switch_vlan_add(request, group_id, switch_id, vlan_id, vlan_name):
 
     status, info = user_can_write(request)
     if not status:
+        log_write_denied(request=request, group_id=group_id, switch_id=switch_id, function="perform_switch_vlan_add()")
         return False, info
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
@@ -643,6 +663,9 @@ def perform_switch_vlan_delete(request, group_id, switch_id, vlan_id):
 
     status, info = user_can_write(request)
     if not status:
+        log_write_denied(
+            request=request, group_id=group_id, switch_id=switch_id, function="perform_switch_vlan_delete()"
+        )
         return False, info
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
@@ -722,6 +745,7 @@ def perform_switch_vlan_edit(request, group_id, switch_id, vlan_id, vlan_name):
 
     status, info = user_can_write(request)
     if not status:
+        log_write_denied(request=request, group_id=group_id, switch_id=switch_id, function="perform_switch_vlan_edit()")
         return False, info
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)

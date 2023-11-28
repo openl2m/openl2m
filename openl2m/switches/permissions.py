@@ -34,12 +34,10 @@ from switches.constants import (
     LOG_CONNECTION_ERROR,
     LOG_INTERFACE_NOT_FOUND,
     LOG_INTERFACE_DENIED,
-    LOG_ERROR,
     LOG_DENIED,
     SWITCH_STATUS_ACTIVE,
     SWITCH_VIEW_BASIC,
 )
-import switches
 from switches.connect.connect import get_connection_object
 from switches.models import Log, Switch, SwitchGroup
 from switches.utils import dprint, get_remote_ip, get_from_http_session
@@ -330,3 +328,28 @@ def user_can_write(request):
     info.status = False
     info.description = "All OK!"
     return True, info
+
+
+def log_write_denied(request, group_id, switch_id, function):
+    """
+    Log a message indicating writing to device was denied.
+
+    Params:
+        request: Request() object
+        group_id(int): SwitchGroup() pk
+        switch_id: Switch() pk
+        function (str): the change function was attempted but denied.
+
+    Returns:
+        nothing
+    """
+    dprint(f"log_write_denied(g={group_id}, s={switch_id}, function={function})")
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        type=LOG_TYPE_ERROR,
+        action=LOG_DENIED,
+        description=f"{function}: Writing denied to switch {switch_id} in group {group_id}",
+    )
+    log.save()
+    counter_increment(COUNTER_ACCESS_DENIED)
