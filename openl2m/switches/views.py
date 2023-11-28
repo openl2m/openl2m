@@ -364,7 +364,7 @@ def switch_view(
         log.description = f"CONNECTION ERROR: Viewing device ({view})"
         log.save()
         error = Error()
-        error.description = "There was a failure communicating with this switch. Please contact your administrator to make sure switch data is correct in the database!"
+        error.description = "We could not communicate with this device. Please contact your administrator to make sure the device is properly configured in OpenL2M!"
         error.details = traceback.format_exc()
         return error_page(request=request, group=group, switch=switch, error=error)
 
