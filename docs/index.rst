@@ -30,6 +30,9 @@ Documentation is written in ReStructured Text format, which is rendered with the
 
 **What's New:**
 
+v3.0 introduces a REST API. This allows for remotely making changes to devices without needing to know the underlying vendor.
+Read the API section of the documentation for more details.
+
 v2.4 upgrades the Django framework to v4.2 LTS
 
 v2.3 adds support for Juniper Junos devices.

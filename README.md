@@ -23,7 +23,7 @@ __Devices Supported:__
 * Most devices supported by Napalm (read-only)
 See the documentation for more information.
 
-__Basic Features:__
+__Features:__
 * enable/disable interface
 * change vlan on interface
 * enable/disable PoE
@@ -32,9 +32,13 @@ __Basic Features:__
 * add, edit or delete vlans on devices
 * run configurable pre-defined 'static' commands on the device
 * run configurable pre-defined 'form input' commands on the device
+* pluggable backend to support other vendors' devices, allowing easy development
+* vendor-agnostic REST API. Automate changes from scripts, etc.
 * and more...
 
 __What's New:__
+
+v3.0 adds a vendor-agnostic REST API for remote scription and automation.
 
 v2.4 adds vlan add/edit/delete for all supported devices, and upgrades the Django framework to v4.2 LTS
 

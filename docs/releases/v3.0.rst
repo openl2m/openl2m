@@ -1,0 +1,15 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 3.0
+===========
+
+**Version 3.0 add a REST API**
+
+
+Version 3.0
+-----------
+
+Release Date: TBD
+
+* add REST API. :doc:`See more here<../api/index>`

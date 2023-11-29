@@ -4,7 +4,7 @@
 The API
 =======
 
-This described the use of the REST API to read and change settings of devices.
+This describes the use of the REST API to read and change settings of devices.
 
 .. toctree::
    :maxdepth: 1
@@ -18,4 +18,6 @@ This described the use of the REST API to read and change settings of devices.
    api_interface_vlan.rst
    api_interface_poe.rst
    api_interface_description.rst
-
+   api_save_config.rst
+   api_vlan_manage.rst
+   api_stats.rst
