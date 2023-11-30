@@ -484,6 +484,8 @@ LOOKUP_HOSTNAME_ROUTED_IP = False
 
 # REST API Settings
 #
+# API access can be turn off. If False API access is disabled.
+API_ENABLED = True
 # if True, users can see their tokens again after they have been created.
 # if False, only last few chars will be shown.
 ALLOW_TOKEN_RETRIEVAL = False

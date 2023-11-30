@@ -25,6 +25,8 @@ class TokenAuthentication(authentication.TokenAuthentication):
     model = Token
 
     def authenticate(self, request):
+        if not settings.API_ENABLED:
+            raise exceptions.AuthenticationFailed("API is disabled.")
         ip_address = get_remote_ip(request)
         url = f"{request.method}: {request.get_full_path_info()}"
         dprint(f"*** REST: authenticate() from {ip_address} for {url}")
