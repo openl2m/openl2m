@@ -166,6 +166,9 @@ Other variables in the configuration files are commented. Change settings as nee
 
 Set this to the appropriate time, to get logs, etc. in the local time.
 
+**API settings**
+
+:doc:`API settings are discussed here.<api>`
 
 **Run Upgrade**
 
