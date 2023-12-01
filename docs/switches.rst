@@ -20,23 +20,26 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 * *Catalyst 2960* series; single and stacked units.
 * *Catalyst 4500-E* series, with Sup6L-E and Sup7L-E.
 
-**HP/Aruba**
+**HP/Aruba (ProCurve/ArubaOS)**
 
 * *HP 2520* series; single units.
 * *HP 2530* series; single units.
 * *HP 2540* series; single units.
+* *HP 2810* series, single units.
 * *HP 4200* series, specifically 4204vl (J8770A).
-* *Aruba 2930* F/M series; single units.
+* *Aruba 2930F/M* series; single units.
 * *Aruba 5400* series; chassis based, regular, zl, and zl2.
 
 **Aruba AOS-CX**
 
+* *Aruba CX 6000* series; single units. (R/W support via the REST API v10.08)
 * *Aruba CX 6100* series; single units. (R/W support via the REST API v10.08)
 * *Aruba CX 6300* series; single units. (R/W support via the REST API v10.08)
 
 **HP Enterprise (HPE)**
 
 * *HPE 1950* series switches, running Comware 7; single and IRF-stacked units.
+* HPE J3400CL-24G (J4905A)
 * *HPE 5130* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5140* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5500* series switches, running Comware 5; single units.
