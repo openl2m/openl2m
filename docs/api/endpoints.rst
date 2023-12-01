@@ -10,7 +10,7 @@ This is the list of REST API endpoints, and their functionality.
 
 **API calls that succeed** will return an **HTTP code 200**, and typically a "reason" JSON return variable.
 
-**API calls that fail** will return a 4xx code. This can be 403 (forbidden, ie. access denied), 
+**API calls that fail** will return a 4xx code. This can be 403 (forbidden, ie. access denied),
 400 for badly formed requests, or other 400-level codes. Typically, there is a "reason" JSON return variable
 with more information on the failure.
 
@@ -54,22 +54,22 @@ with more information on the failure.
       - No
       -
       - Get the details device view (ie. add arp, lldp, etc.)
-    * - api/switches/vlan/<group>/<switch>/<interface>/
+    * - api/switches/interface/vlan/<group>/<switch>/<interface>/
       - No
       - Yes
       - vlan(int)
       - Set the untagged vlan on an interface.
-    * - api/switches/state/<group>/<switch>/<interface>/
+    * - api/switches/interface/state/<group>/<switch>/<interface>/
       - No
       - Yes
       - state(str), "on,enabled,enable,yes,y,1" for UP, else DOWN
       - Set the administrative state of an interface.
-    * - api/switches/poe_state/<group>/<switch>/<interface>/
+    * - api/switches/interface/poe_state/<group>/<switch>/<interface>/
       - No
       - Yes
       - poe_state(str), "on,enabled,enable,yes,y,1" for UP, else DOWN
       - Set the PoE state of an interface.
-    * - api/switches/description/<group>/<switch>/<interface>/
+    * - api/switches/interface/description/<group>/<switch>/<interface>/
       - No
       - Yes
       - description(str)
