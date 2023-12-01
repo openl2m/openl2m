@@ -38,7 +38,8 @@ This is a dictionary of the vlans defined on the device, and various attributes 
 Example output
 --------------
 
-The abbreviated example output below shows several interfaces, and the switch information.
+The abbreviated example output below is from the *details* call.
+It shows several interfaces, with some ethernet and lldp information, as well as the switch information.
 
 .. code-block:: python
 
