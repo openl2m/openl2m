@@ -28,7 +28,7 @@ from django.urls import include, path
 # from django.conf.urls import include
 from django.http import HttpResponseRedirect
 
-from openl2m.api.views import APIObtainAuthToken, APIRootView, APIStatsView
+from openl2m.api.views import APIRootView, APIStatsView
 
 from users.views import LogoutView
 
@@ -65,14 +65,9 @@ urlpatterns = [
     path(r"admin/", admin_site.urls),
     # API paths
     path(r"api/", APIRootView.as_view(), name="api-root"),
-    # api token path @post only
-    path(
-        "api/token/",
-        APIObtainAuthToken.as_view(),
-        name="api-token",
-    ),
     path(r"api/switches/", include("switches.api.urls"), name="switches-api"),
     path(r"api/stats/", APIStatsView.as_view(), name='api-stats'),
+    path(r"api/users/", include("users.api.urls"), name="users-api"),
     # to be implemented:
     # path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='api_docs'),
