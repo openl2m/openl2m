@@ -143,4 +143,5 @@ def get_connection_object(request, group, switch):
             dprint(f"  ERROR in get_basic_info(): {self.error.description}")
             raise Exception(self.error.description)
     # then return object
+    dprint("  Returning connection() from get_connection_object()")
     return connection
