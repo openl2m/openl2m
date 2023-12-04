@@ -54,12 +54,27 @@ which maps to specific functions or classes for each api url.
 The API root is defined in openl2m/views.py, in *class APIRootView()*,
 as is the statistics endpoint in *class APIStatsView()*.
 
+
 Switches API
 ------------
 
 Switches app API endpoints are defined in *switches/api/urls.py*,
 and the implementations of those are in *switches/api/views.py*
 
-*More api docs to be written!*
+All API endpoints are :doc:`documented here.<../../api/endpoints>`
+
+Code has been refactored, such that both the WEB UI, and the API use the same functions to perform actions.
+Ie. both *switches/views.py* and *switches/api/views.py* now call various *perform_xyz()* functions implemented in *switches/actions.py*
+
+This ensures that security, and actions are identical, independent of the path to the action (WEB UI or API).
+
+
+Users API
+---------
+
+Users app API endpoints are defined in *users/api/urls.py*,
+and the implementations of those are in *users/api/views.py*
 
 All API endpoints are :doc:`documented here.<../../api/endpoints>`
+
+At time of this writing, the Users API only implemented the 'get token' call, at /api/users/token.

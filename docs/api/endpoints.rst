@@ -89,11 +89,11 @@ with more information on the failure.
       - Yes
       - vlan_name(str), vlan_id(int)
       - Edit the name of a vlan on the device.
-    * - api/switches/vlan/delete/<group>/<switch>/
+    * - api/users/token/
       - No
       - Yes
-      - vlan_id(int)
-      - Delete a vlan from the device.
+      - username(str), password (str)
+      - Create an API token.
 
 
 .. note::

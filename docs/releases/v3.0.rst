@@ -10,6 +10,10 @@ Version 3.0
 Version 3.0
 -----------
 
-Release Date: TBD
+Release Date: 2023-12-04
 
 * add REST API. :doc:`See more here<../api/index>`
+
+Bug Fixes:
+
+* fix session in Aruba AOS-CX driver. No longer new session for each request.

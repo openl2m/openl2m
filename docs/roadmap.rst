@@ -4,16 +4,26 @@
 Roadmap / To Do
 ===============
 
-Planned for version 2 and beyond
---------------------------------
+Planned improvements:
+----------------
 
-* support for Arista device via the eApi.
+* improve Aruba AOS-CX SNMP driver, as v10.12 and up now can set port vlans via SNMP.
+
+* add support for LLDP innthe Aruba AOS-CX REST driver, since it is now part of their pyaoscx class as of v2.4
+
+* export ARP/MAC, and LLDP info to an Excel spreadsheet.
+
+* move all functions implementing urls to View() class, to get improved handling of non-implemented GET/POST.
 
 
 Features Being Considered
 -------------------------
 
 Here are some other features we are considering implementing (*in no particular order!*)
+
+* change user model, from standard user mode with separate profile table, to a new user class that has it all :-)
+
+* support for Arista device via the eApi.
 
 * Single-Sign-On (SSO) via SAML, and possibly OAUTH for authorization (switch group membership)
   with as primary SSO compatibility target Shiboleth SAML SSO. We plan to use the Python Social Auth library.
