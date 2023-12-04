@@ -13,6 +13,7 @@
 #
 import datetime
 import traceback
+import pprint
 
 from switches.models import Log
 from switches.utils import dprint, get_remote_ip
@@ -82,10 +83,6 @@ class AosCxConnector(Connector):
         self.can_change_description = True
         self.can_save_config = False  # not needed.
         self.can_reload_all = False
-
-        if not self._open_device():
-            dprint("  _open_device() failed, throwing exception!")
-            raise Exception("AOS-CX session failed! Please check the device configuration!")
 
     def get_my_basic_info(self):
         '''
@@ -621,8 +618,15 @@ class AosCxConnector(Connector):
         '''
         dprint("AOS-CX _open_device()")
 
+        # do we want to check SSL certificates ?
+        if not self.switch.netmiko_profile.verify_hostkey:
+            # disable unknown cert warnings
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            # or all warnings:
+            # urllib3.disable_warnings()
+
         if self.aoscx_session:
-            dprint("AOS-CX Session FOUND!")
+            dprint("  AOS-CX Session FOUND!")
             return True
 
         # first "connection", we need to authenticate:
@@ -632,20 +636,17 @@ class AosCxConnector(Connector):
             dprint("  _open_device: No Credentials!")
             return False
 
-        # do we want to check SSL certificates ?
-        if not self.switch.netmiko_profile.verify_hostkey:
-            # disable unknown cert warnings
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            # or all warnings:
-            # urllib3.disable_warnings()
-
         try:
-            dprint(f"Creating AosCxSession(ip_address={self.switch.primary_ip4}, api={API_VERSION})")
+            dprint(f"  Creating AosCxSession(ip_address={self.switch.primary_ip4}, api={API_VERSION})")
             self.aoscx_session = AosCxSession(ip_address=self.switch.primary_ip4, api=API_VERSION)
             self.aoscx_session.open(
                 username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password
             )
             dprint("  session OK!")
+            # dprint(f"  SESSION.cookies():\n{self.aoscx_session.cookies()}")
+            # dprint(f"  SESSION.s:\n{self.aoscx_session.s}")
+            # dprint(f"  SESSION.s(pformat):\n{pprint.pformat(self.aoscx_session.s)}")
+
             return True
         except Exception as error:
             self.error.status = True
