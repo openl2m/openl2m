@@ -2302,61 +2302,65 @@ class SnmpConnector(Connector):
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
         return True on success, False on error and set self.error variables
         """
+        dprint(f"connection.set_interface_untagged_vlan(i={interface}, vlan={new_vlan_id})")
+        if not interface:
+            dprint("  Invalid interface!, returning False")
+            return False
         # now check the Q-Bridge PortID
-        if interface and interface.port_id > -1:
-            old_vlan_id = interface.untagged_vlan
-            # set this switch port on the new vlan:
-            # Q-BIRDGE mib: VlanIndex = Unsigned32
-            dprint("Setting NEW VLAN on port")
-            if not self.set(f"{dot1qPvid}.{interface.port_id}", int(new_vlan_id), 'u'):
-                return False
+        if interface.port_id < 0:
+            dprint(f"  Invalid interface.port_id ({interface.port_id}), returning False")
+            return False
+        dprint("   valid interface and port_id")
+        old_vlan_id = interface.untagged_vlan
+        # set this switch port on the new vlan:
+        # Q-BIRDGE mib: VlanIndex = Unsigned32
+        dprint("Setting NEW VLAN on port")
+        if not self.set(f"{dot1qPvid}.{interface.port_id}", int(new_vlan_id), 'u'):
+            return False
 
-            # some switches need a little "settling time" here (value is in seconds)
-            time.sleep(0.5)
+        # some switches need a little "settling time" here (value is in seconds)
+        time.sleep(0.5)
 
-            # Remove port from list of ports on old vlan,
-            # i.e. read current Egress PortList bitmap first:
-            (error_status, snmpval) = self.get(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}")
-            if error_status:
-                # Hmm, not sure what to do
-                return False
+        # Remove port from list of ports on old vlan,
+        # i.e. read current Egress PortList bitmap first:
+        (error_status, snmpval) = self.get(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}")
+        if error_status:
+            # Hmm, not sure what to do
+            return False
 
-            # now calculate new bitmap by removing this switch port
-            old_vlan_portlist = PortList()
-            old_vlan_portlist.from_unicode(snmpval.value)
-            dprint(f"OLD VLAN Current Egress Ports = {old_vlan_portlist.to_hex_string()}")
-            # unset bit for port, i.e. remove from active portlist on vlan:
-            old_vlan_portlist[interface.port_id] = 0
+        # now calculate new bitmap by removing this switch port
+        old_vlan_portlist = PortList()
+        old_vlan_portlist.from_unicode(snmpval.value)
+        dprint(f"OLD VLAN Current Egress Ports = {old_vlan_portlist.to_hex_string()}")
+        # unset bit for port, i.e. remove from active portlist on vlan:
+        old_vlan_portlist[interface.port_id] = 0
 
-            # now send update to switch:
-            # use PySNMP to do this work:
-            octet_string = OctetString(hexValue=old_vlan_portlist.to_hex_string())
-            try:
-                pysnmp = pysnmpHelper(self.switch)
-            except Exception as err:
-                self.error.status = True
-                self.error.description = "Error getting snmp connection object (pysnmpHelper())"
-                self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
-                return False
-            if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", octet_string):
-                self.error.status = True
-                self.error.description += "\nError in setting port (dot1qVlanStaticEgressPorts)"
-                # copy over the error details from the call:
-                self.error.details = pysnmp.error.details
-                return False
+        # now send update to switch:
+        # use PySNMP to do this work:
+        octet_string = OctetString(hexValue=old_vlan_portlist.to_hex_string())
+        try:
+            pysnmp = pysnmpHelper(self.switch)
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+            self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            return False
+        if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", octet_string):
+            self.error.status = True
+            self.error.description += "\nError in setting port (dot1qVlanStaticEgressPorts)"
+            # copy over the error details from the call:
+            self.error.details = pysnmp.error.details
+            return False
 
-            # and re-read the dot1qVlanCurrentEgressPorts, all ports
-            # tagged/untagged on the old and new vlan
-            # note the 0 to hopefull deactivate time filter!
-            dprint("Get OLD VLAN Current Egress Ports")
-            (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{old_vlan_id}")
-            dprint("Get NEW VLAN Current Egress Ports")
-            (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}")
-            interface.untagged_vlan = new_vlan_id
-            return True
-
-        # interface not found, return False!
-        return False
+        # and re-read the dot1qVlanCurrentEgressPorts, all ports
+        # tagged/untagged on the old and new vlan
+        # note the 0 to hopefull deactivate time filter!
+        dprint("Get OLD VLAN Current Egress Ports")
+        (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{old_vlan_id}")
+        dprint("Get NEW VLAN Current Egress Ports")
+        (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}")
+        interface.untagged_vlan = new_vlan_id
+        return True
 
     def vlan_create(self, vlan_id, vlan_name):
         '''
