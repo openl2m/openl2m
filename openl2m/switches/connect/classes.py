@@ -18,7 +18,6 @@ from django.conf import settings
 from django.utils.encoding import iri_to_uri
 
 from rest_framework import status as http_status
-from rest_framework.reverse import reverse as rest_reverse
 
 """
 All the generic classes we use to represent
@@ -31,8 +30,6 @@ from switches.connect.constants import (
     LACP_IF_TYPE_NONE,
     VLAN_ADMIN_ENABLED,
     VLAN_STATUS_OTHER,
-    VLAN_STATUS_PERMANENT,
-    VLAN_STATUS_DYNAMIC,
     VLAN_TYPE_NORMAL,
     LLDP_CAPABILITIES_NONE,
     POE_PSE_STATUS_ON,
@@ -46,6 +43,17 @@ from switches.connect.constants import (
     poe_status_name,
     vlan_admin_name,
     vlan_status_name,
+)
+from switches.connect.constants import (
+    LLDP_CAPABILITIES_OTHER,
+    LLDP_CAPABILITIES_REPEATER,
+    LLDP_CAPABILITIES_BRIDGE,
+    LLDP_CAPABILITIES_WLAN,
+    LLDP_CAPABILITIES_ROUTER,
+    LLDP_CAPABILITIES_PHONE,
+    LLDP_CAPABILITIES_DOCSIS,
+    LLDP_CAPABILITIES_STATION,
+    LLDP_CAPABILITIES_NONE,
 )
 from switches.utils import dprint, get_ip_dns_name
 
@@ -712,6 +720,44 @@ class NeighborDevice:
         '''
         self.capabilities += capability
 
+    def capabilities_as_string(self):
+        """Return a string respresenting the capabilities of the lldp neighbor.
+
+        Args:
+            self: the current object
+
+        Returns:
+            (str): names of capabilies of this neighbor.
+        """
+        info = []
+        if self.capabilities == LLDP_CAPABILITIES_NONE:
+            info.append('NOT Advertized')
+        else:
+            if self.capabilities & LLDP_CAPABILITIES_WLAN:
+                info.append('Wireless AP')
+            if self.capabilities & LLDP_CAPABILITIES_PHONE:
+                info.append('VOIP Phone')
+            if self.capabilities & LLDP_CAPABILITIES_ROUTER:
+                info.append('Router or Switch')
+            if self.capabilities & LLDP_CAPABILITIES_STATION:
+                info.append('Workstation or Server')
+            if (
+                self.capabilities & LLDP_CAPABILITIES_BRIDGE
+                and not self.capabilities & LLDP_CAPABILITIES_ROUTER
+                and not self.capabilities & LLDP_CAPABILITIES_PHONE
+            ):
+                # We only show Switch if no routing or phone capabilities listed.
+                # Most phones and routers also show switch capabilities.
+                # In those cases we only show the above Router or Phone icons!
+                info.append('Switch')
+            if self.capabilities & LLDP_CAPABILITIES_REPEATER:
+                info.append('Hub or Repeater')
+            if self.capabilities & LLDP_CAPABILITIES_DOCSIS:
+                info.append('Cable-Modem')  # unlikely to see this!
+            if self.capabilities & LLDP_CAPABILITIES_OTHER:
+                info.append('Other')
+        return ','.join(info)
+
     def as_dict(self):
         '''
         return this class as a dictionary for use by the API
@@ -722,8 +768,9 @@ class NeighborDevice:
             'system_name': self.sys_name,
             'system_description': self.sys_descr,
             'hostname': self.hostname,
-            # need to handle capabilities, etc.
-            'capabilities': "TBD",
+            'chassis_id': self.chassis_string,
+            'chassis_type': self.chassis_type,
+            'capabilities': self.capabilities_as_string(),
         }
 
     def display_name(self):
