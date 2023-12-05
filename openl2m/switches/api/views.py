@@ -20,7 +20,6 @@ from django.conf import settings
 
 # Use the Django Rest Framework:
 from rest_framework import status as http_status
-from rest_framework.request import Request as RESTRequest
 from rest_framework.response import Response
 from rest_framework.reverse import reverse as rest_reverse
 from rest_framework.views import APIView
@@ -417,19 +416,19 @@ def get_connection_to_switch(request, group_id, switch_id, details=False):
         switch_id=switch_id,
     )
     if not group or not switch:
-        return None, response(status=http_status.HTTP_403_FORBIDDEN, comment="Access denied!")
+        return None, respond(status=http_status.HTTP_403_FORBIDDEN, text="Access denied!")
 
     # access allowed, try to get a connection:
     try:
         connection = get_connection_object(request, group, switch)
     except Exception as e:
         dprint(f"ERROR in get_connection_object(): {e}")
-        return None, respond_error(reason=f"ERROR in get_connection_object(): {e}")
+        return None, respond_error(f"ERROR in get_connection_object(): {e}")
 
     # read details as needed:
     if details and not connection.get_client_data():
         dprint(f"ERROR getting device details: {connection.error.description}")
-        return None, respond_error(reason=connection.error.description)
+        return None, respond_error(connection.error.description)
 
     return connection, None
 
@@ -445,10 +444,10 @@ def respond(status, text):
     )
 
 
-def respond_ok(comment):
+def respond_ok(result):
     return Response(
         data={
-            "result": comment,
+            "result": result,
         },
         status=http_status.HTTP_200_OK,
     )
