@@ -1178,7 +1178,7 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
     Returns:
         renders either OK or Error page, depending permissions and result.
     """
-    dprint("interface_description_change()")
+    dprint("interface_pvid_change()")
 
     # read the submitted form data:
     try:
