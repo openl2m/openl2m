@@ -55,22 +55,31 @@
       <strong>Device/Stacking Info</strong>
     </div>
     <div class="panel-body">
+      <table class="table table-striped w-auto">
+        <tbody>
       {% for dev_id,dev in connection.stack_members.items %}
-        <div>ID {{ dev_id }} - {{ dev|get_device_class }}
-          {% if dev.model %}
-            , model no. {{ dev.model }}
-          {% endif %}
-          {% if dev.serial %}
-            , serial no. {{ dev.serial }}
-          {% endif %}
-          {% if dev.version %}
-            , software rev. {{ dev.version }}
-          {% endif %}
-          {% if dev.info %}
-            , {{ dev.info }}
-          {% endif %}
-        </div>
-      {% endfor%}
+          <tr>
+            <td>ID {{ dev_id }} - {{ dev|get_device_class }}
+            {% if dev.description %}
+              , &quot;{{ dev.description }}&quot;
+            {% endif %}
+            {% if dev.model %}
+              , model no. {{ dev.model }}
+            {% endif %}
+            {% if dev.serial %}
+              , serial no. {{ dev.serial }}
+            {% endif %}
+            {% if dev.version %}
+              , software rev. {{ dev.version }}
+            {% endif %}
+            {% if dev.info %}
+              , {{ dev.info }}
+            {% endif %}
+            </td>
+          </tr>
+          {% endfor%}
+        </tbody>
+      </table>
     </div>
   </div>
   {% endif %}

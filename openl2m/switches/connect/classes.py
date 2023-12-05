@@ -89,9 +89,10 @@ class StackMember:
         self.id = id
         self.type = type  # see ENTITY_CLASS_NAME
         self.serial = ""  # serial number
-        self.version = ""  # software revision of this device
+        self.version = ""  # software revision of this device module
         self.model = ""  # vendor model number
         self.info = ""  # hardware info string
+        self.description = ""  # module description
 
     def as_dict(self):
         '''
@@ -104,6 +105,7 @@ class StackMember:
             'version': self.version,
             'model': self.model,
             'info': self.info,
+            'description': self.description,
         }
 
 

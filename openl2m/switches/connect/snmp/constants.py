@@ -451,6 +451,7 @@ snmp_mib_variables['ifStackStatus'] = ifStackStatus
 1.3.6.1.2.1.47.1.1.1.1.2 (entPhysicalDescr)
 1.3.6.1.2.1.47.1.1.1.1.3 (entPhysicalVendorType)
 1.3.6.1.2.1.47.1.1.1.1.4 (entPhysicalContainedIn)
+1.3.6.1.2.1.47.1.1.1.1.5 (entPhysicalClass)
 1.3.6.1.2.1.47.1.1.1.1.6 (entPhysicalParentRelPos)
 1.3.6.1.2.1.47.1.1.1.1.7 (entPhysicalName)
 1.3.6.1.2.1.47.1.1.1.1.8 (entPhysicalHardwareRev)
@@ -465,8 +466,18 @@ snmp_mib_variables['ifStackStatus'] = ifStackStatus
 1.3.6.1.2.1.47.1.1.1.1.17 (entPhysicalMfgDate)
 1.3.6.1.2.1.47.1.1.1.1.18 (entPhysicalUris)
 """
-entPhysicalIndex = '.1.3.6.1.2.1.47.1.1.1.1'
+
+entPhysicalEntry = '.1.3.6.1.2.1.47.1.1.1.1'
+snmp_mib_variables['entPhysicalEntry'] = entPhysicalEntry
+
+entPhysicalIndex = '.1.3.6.1.2.1.47.1.1.1.1.1'
 snmp_mib_variables['entPhysicalIndex'] = entPhysicalIndex
+
+entPhysicalDescr = '.1.3.6.1.2.1.47.1.1.1.1.2'
+snmp_mib_variables['entPhysicalDescr'] = entPhysicalDescr
+
+entPhysicalClass = '.1.3.6.1.2.1.47.1.1.1.1.5'  # entPhysicalClass
+snmp_mib_variables['entPhysicalClass'] = entPhysicalClass
 
 entPhysicalSerialNum = '.1.3.6.1.2.1.47.1.1.1.1.11'
 snmp_mib_variables['entPhysicalSerialNum'] = entPhysicalSerialNum
@@ -477,8 +488,6 @@ snmp_mib_variables['entPhysicalSoftwareRev'] = entPhysicalSoftwareRev
 entPhysicalModelName = '.1.3.6.1.2.1.47.1.1.1.1.13'  # entPhysicalModelName
 snmp_mib_variables['entPhysicalModelName'] = entPhysicalModelName
 
-entPhysicalClass = '.1.3.6.1.2.1.47.1.1.1.1.5'  # entPhysicalClass
-snmp_mib_variables['entPhysicalClass'] = entPhysicalClass
 """
  other(1),
        unknown(2),

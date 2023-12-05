@@ -128,7 +128,9 @@ from switches.connect.snmp.constants import (
     dot1dBasePortIfIndex,
     ipAdEntIfIndex,
     ipAdEntNetMask,
+    entPhysicalEntry,
     entPhysicalClass,
+    entPhysicalDescr,
     entPhysicalSerialNum,
     entPhysicalSoftwareRev,
     entPhysicalModelName,
@@ -1193,44 +1195,6 @@ class SnmpConnector(Connector):
             return True
 
         """
-        ENTITY MIB, info about the device, eg stack or single unit, # of units, serials
-        and other interesting pieces
-        """
-
-        dev_id = int(oid_in_branch(entPhysicalClass, oid))
-        if dev_id:
-            dev_type = int(val)
-            if dev_type == ENTITY_CLASS_STACK or dev_type == ENTITY_CLASS_CHASSIS or dev_type == ENTITY_CLASS_MODULE:
-                # save this info!
-                member = StackMember(dev_id, dev_type)
-                self.stack_members[dev_id] = member
-            return True
-
-        dev_id = int(oid_in_branch(entPhysicalSerialNum, oid))
-        if dev_id:
-            serial = str(val)
-            if dev_id in self.stack_members.keys():
-                # save this info!
-                self.stack_members[dev_id].serial = serial
-            return True
-
-        dev_id = int(oid_in_branch(entPhysicalSoftwareRev, oid))
-        if dev_id:
-            version = str(val)
-            if dev_id in self.stack_members.keys():
-                # save this info!
-                self.stack_members[dev_id].version = version
-            return True
-
-        dev_id = int(oid_in_branch(entPhysicalModelName, oid))
-        if dev_id:
-            model = str(val)
-            if dev_id in self.stack_members.keys():
-                # save this info!
-                self.stack_members[dev_id].model = model
-            return True
-
-        """
         SYSLOG-MSG-MIB - mostly mean to define notification, but we can read the log size
         """
         sub_oid = oid_in_branch(syslogMsgTableMaxSize, oid)
@@ -1688,6 +1652,53 @@ class SnmpConnector(Connector):
             return True
         return False
 
+    def _parse_mibs_entity_physical(self, oid, val):
+        """
+        Parse a single OID with data returned from the (various) Entity-Physical mib entries.
+        ENTITY MIB, info about the device, eg stack or single unit, # of units, serials
+        and other interesting pieces. We are looking at Chassis, Stack, or Module info only,
+        not sensors, etc.
+
+        Will return True if we have parsed this, and False if not.
+        """
+        hw_to_check = [ENTITY_CLASS_STACK, ENTITY_CLASS_CHASSIS, ENTITY_CLASS_MODULE]
+        dprint("_parse_mibs_entity_physical()")
+        dev_id = int(oid_in_branch(entPhysicalClass, oid))
+        if dev_id:
+            dev_type = int(val)
+            if dev_type in hw_to_check:
+                # save this info!
+                member = StackMember(dev_id, dev_type)
+                self.stack_members[dev_id] = member
+            return True
+
+        dev_id = int(oid_in_branch(entPhysicalDescr, oid))
+        if dev_id:
+            if dev_id in self.stack_members.keys():
+                self.stack_members[dev_id].description = str(val)
+            return True
+
+        dev_id = int(oid_in_branch(entPhysicalSerialNum, oid))
+        if dev_id:
+            if dev_id in self.stack_members.keys():
+                self.stack_members[dev_id].serial = str(val)
+            return True
+
+        dev_id = int(oid_in_branch(entPhysicalSoftwareRev, oid))
+        if dev_id:
+            if dev_id in self.stack_members.keys():
+                self.stack_members[dev_id].version = str(val)
+            return True
+
+        dev_id = int(oid_in_branch(entPhysicalModelName, oid))
+        if dev_id:
+            if dev_id in self.stack_members.keys():
+                self.stack_members[dev_id].model = str(val)
+            return True
+
+        # not parsed here!
+        return False
+
     def _get_if_index_from_port_id(self, port_id):
         """
         Return the ifIndex from the Q-Bridge port_id. This assumes we have walked
@@ -1807,20 +1818,29 @@ class SnmpConnector(Connector):
         This reads information about the modules, software revisions, etc.
         Return a negative value if error occured, or 1 if success
         """
-        # get physical device info
-        retval = self.get_snmp_branch('entPhysicalClass')
+        # do NOT just get the whole entity-Physical branch:
+        # get physical device class info first, since we filter on some types of classes! this!
+        retval = self.get_snmp_branch(branch_name='entPhysicalClass', parser=self._parse_mibs_entity_physical)
         if retval < 0:
             self.add_warning("Error getting 'Entity-Class' ('entPhysicalClass')")
             return retval
-        retval = self.get_snmp_branch('entPhysicalSerialNum')
+
+        retval = self.get_snmp_branch(branch_name='entPhysicalDescr', parser=self._parse_mibs_entity_physical)
+        if retval < 0:
+            self.add_warning("Error getting 'Entity-Description' ('entPhysicalDescr')")
+            return retval
+
+        retval = self.get_snmp_branch(branch_name='entPhysicalSerialNum', parser=self._parse_mibs_entity_physical)
         if retval < 0:
             self.add_warning("Error getting 'Entity-Serial' (entPhysicalSerialNum)")
             return retval
-        retval = self.get_snmp_branch('entPhysicalSoftwareRev')
+
+        retval = self.get_snmp_branch(branch_name='entPhysicalSoftwareRev', parser=self._parse_mibs_entity_physical)
         if retval < 0:
             self.add_warning("Error getting 'Entity-Software' (entPhysicalSoftwareRev)")
             return retval
-        retval = self.get_snmp_branch('entPhysicalModelName')
+
+        retval = self.get_snmp_branch(branch_name='entPhysicalModelName', parser=self._parse_mibs_entity_physical)
         if retval < 0:
             self.add_warning("Error getting 'Entity-Model' (entPhysicalModelName)")
             return retval
