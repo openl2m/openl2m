@@ -596,6 +596,7 @@ class EthernetAddress(netaddr.EUI):
             'ipv4': self.address_ip4,
             'ipv6': self.address_ip6,
             'hostname': self.hostname,
+            'vendor': self.vendor,
         }
 
     def __str__(self):
