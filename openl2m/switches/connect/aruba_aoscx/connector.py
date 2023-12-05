@@ -336,19 +336,26 @@ class AosCxConnector(Connector):
                 )
                 log.save()
                 continue
-            # this gets ethernet addresses by vlan:
-            vlan_macs = AosCxMac.get_all(session=self.aoscx_session, parent_vlan=v)
-            for mac in vlan_macs.values():
-                mac.get()  # materialize the object from the device
-                dprint(f"  MAC Address: {mac} -> {mac.port}")
-                # for name in mac.__dict__:
-                #    dprint(f"      attribute: {name} = {mac.__dict__[name]}")
-                # add this to the known addressess:
-                a = self.add_learned_ethernet_address(mac.port.name, mac.mac_address)
-                # dprint("ethernet added, setting vlan!")
-                if a:
-                    # dprint("about to set vlan")
-                    a.set_vlan(vlan_id)
+            try:
+                # this gets ethernet addresses by vlan:
+                vlan_macs = AosCxMac.get_all(session=self.aoscx_session, parent_vlan=v)
+            except Exception as err:
+                dprint(f"ERROR in AosCxMac.get_all(): {err}")
+            else:
+                # now get details for each mac address
+                for mac in vlan_macs.values():
+                    try:  # this occasionally fails!
+                        mac.get()  # materialize the object from the device
+                        dprint(f"  MAC Address: {mac} -> {mac.port}")
+                        # for name in mac.__dict__:
+                        #    dprint(f"      attribute: {name} = {mac.__dict__[name]}")
+                        # add this to the known addressess:
+                        a = self.add_learned_ethernet_address(
+                            if_name=mac.port.name, eth_address=mac.mac_address, vlan_id=vlan_id
+                        )
+                    except Exception as err:
+                        dprint(f"ERROR in mac.get(): {err}")
+                    # just try the next one...
 
         # done...
         # self._close_device()
@@ -508,21 +515,39 @@ class AosCxConnector(Connector):
             return False
 
         dprint("  Get AosCxVlan()")
-        aoscx_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=new_pvid)
-        # aoscx_vlan.get()
-        dprint("  set_untagged_vlan()")
-        changed = aoscx_interface.set_untagged_vlan(aoscx_vlan)
-        # change = aoscs_vlan.apply()
-        # self._close_device()
-        if changed:
-            dprint("   Vlan Change OK!")
-            # call the super class for bookkeeping.
-            super().set_interface_untagged_vlan(interface, new_pvid)
-            return True
-        else:
-            dprint("   Vlan Change FAILED!")
-            # we need to add error info here!!!
+        try:
+            aoscx_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=new_pvid)
+        except Exception as err:
+            dprint(f"ERROR getting AosCxVlan() object: {err}")
+            self.error.status = True
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"ERROR getting AosCxVlan() object: {format(error)}"
+            self._close_device()
             return False
+        else:
+            # aoscx_vlan.get()
+            dprint("  set_untagged_vlan()")
+            try:
+                changed = aoscx_interface.set_untagged_vlan(aoscx_vlan)
+            except Exception as err:
+                dprint(f"ERROR in aoscx_interface.set_untagged_vlan() object: {err}")
+                self.error.status = True
+                self.error.description = "Error establishing connection!"
+                self.error.details = f"ERROR in aoscx_interface.set_untagged_vlan(): {format(error)}"
+                self._close_device()
+                return False
+            else:
+                # change = aoscs_vlan.apply()
+                # self._close_device()
+                if changed:
+                    dprint("   Vlan Change OK!")
+                    # call the super class for bookkeeping.
+                    super().set_interface_untagged_vlan(interface, new_pvid)
+                    return True
+                else:
+                    dprint("   Vlan Change FAILED!")
+                    # we need to add error info here!!!
+                    return False
 
     def vlan_create(self, vlan_id, vlan_name):
         '''
