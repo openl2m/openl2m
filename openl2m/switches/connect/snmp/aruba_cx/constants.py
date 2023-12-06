@@ -43,3 +43,11 @@ snmp_mib_variables['arubaWiredVsfv2MemberPartNumber'] = arubaWiredVsfv2MemberPar
 
 arubaWiredVsfv2MemberProductName = '.1.3.6.1.4.1.47196.4.1.1.3.15.1.2.1.6'
 snmp_mib_variables['arubaWiredVsfv2MemberProductName'] = arubaWiredVsfv2MemberProductName
+
+# the OIDs for "write mem"
+arubaWiredVsfv2ConfigOperationType = '.1.3.6.1.4.1.47196.4.1.1.3.20.1.0.1.1.18.5'
+arubaWiredVsfv2ConfigOperationSetSource = '.1.3.6.1.4.1.47196.4.1.1.3.20.1.0.1.1.2.5'
+arubaWiredVsfv2ConfigOperationSetDestination = '.1.3.6.1.4.1.47196.4.1.1.3.20.1.0.1.1.3.5'
+ARUBA_CONFIG_ACTION_WRITE = 4
+ARUBA_CONFIG_TYPE_STARTUP = 2
+ARUBA_CONFIG_TYPE_RUNNING = 3

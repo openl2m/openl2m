@@ -26,10 +26,19 @@ ifAdminStatus (ie interface up/down), and pethPsePortAdminEnable (ie. PoE enable
 """
 from switches.connect.classes import Vlan
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.connect.snmp.constants import ieee8021QBridgeVlanStaticName, ieee8021QBridgePortVlanEntry
+from switches.connect.snmp.constants import dot1qPvid, ieee8021QBridgeVlanStaticName, ieee8021QBridgePortVlanEntry
 from switches.utils import dprint
 
-from .constants import arubaWiredPoePethPsePortPowerDrawn, arubaWiredVsfv2MemberProductName
+from switches.connect.snmp.aruba_cx.constants import (
+    arubaWiredPoePethPsePortPowerDrawn,
+    arubaWiredVsfv2MemberProductName,
+    arubaWiredVsfv2ConfigOperationType,
+    arubaWiredVsfv2ConfigOperationSetSource,
+    arubaWiredVsfv2ConfigOperationSetDestination,
+    ARUBA_CONFIG_ACTION_WRITE,
+    ARUBA_CONFIG_TYPE_STARTUP,
+    ARUBA_CONFIG_TYPE_RUNNING,
+)
 
 
 class SnmpConnectorArubaCx(SnmpConnector):
@@ -47,14 +56,20 @@ class SnmpConnectorArubaCx(SnmpConnector):
         self.switch.read_only = (
             False  # the new Aruba AOS switches support some R/W over SNMP. Full Write-access is via REST API.
         )
-
-        # we cannot implement some the following capabilities due to limitations of the SNMP code in AOS-CX:
-        self.can_change_admin_status = True
-        self.can_change_vlan = False
-        self.can_change_poe_status = True
-        self.can_change_description = False
-        self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
+        # all firmware versions support admin-status and poe-status change via snmp:
+        self.can_change_admin_status = True
+        self.can_change_poe_status = True
+        # firmware v10.09 allows description change via snmp
+        # see https://www.arubanetworks.com/techdocs/AOS-CX/10.09/PDF/snmp_mib.pdf
+        self.can_change_description = True
+        # firmware v10.10 allow "save startup-config running-config" via snmp
+        # see https://www.arubanetworks.com/techdocs/AOS-CX/10.10/PDF/snmp_mib.pdf
+        self.can_save_config = True
+        # firmware v10.13 allows vlan change via snmp
+        # see https://www.arubanetworks.com/techdocs/AOS-CX/10.13/PDF/snmp_mib.pdf
+        self.can_change_vlan = False  # not working yet
+        self.can_set_vlan_name = False  # vlan create/delete allowed over snmp, but cannot set name!
 
     def _parse_oid(self, oid, val):
         """
@@ -191,4 +206,50 @@ class SnmpConnectorArubaCx(SnmpConnector):
         if retval < 0:
             self.add_warning("Error getting 'Aruba Vsf Product name' ('arubaWiredVsfv2MemberProductName')")
             return False
+        return True
+
+    def set_interface_untagged_vlan(self, interface, new_vlan_id):
+        """
+        Override the base SnmpConnector().set_interface_untagged_vlan()
+        Aos-Cx simply sets dot1qPvid.
+
+        Change the VLAN via the Q-BRIDGE MIB (ie generic)
+        return True on success, False on error and set self.error variables
+        """
+        dprint(f"SnmpConnectorArubaCx.set_interface_untagged_vlan(i={interface}, vlan={new_vlan_id})")
+        if not interface:
+            dprint("  Invalid interface!, returning False")
+            return False
+        old_vlan_id = interface.untagged_vlan
+        # set this switch port on the new vlan:
+        # Q-BRIDGE mib: VlanIndex = Unsigned32
+        dprint("  Setting NEW VLAN on port")
+        if not self.set(f"{dot1qPvid}.{interface.port_id}", int(new_vlan_id), 'u'):
+            return False
+        interface.untagged_vlan = new_vlan_id
+        return True
+
+    def save_running_config(self):
+        """
+        Aruba Aos-Cx interface to save the current config to startup via SNMP
+        For details on how this works, see firmware v10.10 and above,
+        read https://www.arubanetworks.com/techdocs/AOS-CX/10.10/PDF/snmp_mib.pdf
+        Returns True is this succeeds, False on failure. self.error() will be set in that case
+        """
+        dprint("save_running_config(AOS-CX)")
+
+        # According to page 12 of https://www.arubanetworks.com/techdocs/AOS-CX/10.13/PDF/snmp_mib.pdf
+        # this implementes "copy running-config startup-config" using SNMP.
+        retval = self.set_multiple(
+            [
+                (arubaWiredVsfv2ConfigOperationType, ARUBA_CONFIG_ACTION_WRITE, 'i'),
+                (arubaWiredVsfv2ConfigOperationSetSource, ARUBA_CONFIG_TYPE_RUNNING, 'i'),
+                (arubaWiredVsfv2ConfigOperationSetDestination, ARUBA_CONFIG_TYPE_STARTUP, 'i'),
+            ]
+        )
+        if retval < 0:
+            dprint(f"  return = {retval}")
+            self.add_warning("Error saving via SNMP (arubaWiredVsfv2ConfigOperation)")
+            return False
+        dprint("  All OK")
         return True
