@@ -50,7 +50,7 @@ sphinx_rtd_theme
 textfsm
 PyYAML>=6.0
 pipenv
-XlsxWriter~=3.1.6
+XlsxWriter>=3.1.9
 
 # A REST API framework for Django projects
 # https://www.django-rest-framework.org/community/release-notes/

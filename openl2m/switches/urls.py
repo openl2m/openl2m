@@ -57,6 +57,11 @@ urlpatterns = [
     path('<int:group_id>/<int:switch_id>/reload/<str:view>/', views.switch_reload, name='switch_reload'),
     path('<int:group_id>/<int:switch_id>/save/', views.switch_save_config, name='switch_save_config'),
     path(
+        '<int:group_id>/<int:switch_id>/download_ethernet/',
+        views.SwitchDownloadEthernetAndNeighbors.as_view(),
+        name='switch_download_ethernet_neighbors',
+    ),
+    path(
         '<int:group_id>/<int:switch_id>/<ifname:interface_name>/admin/<int:new_state>/',
         views.interface_admin_change,
         name='admin_change',

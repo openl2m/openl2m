@@ -31,6 +31,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import redirect
 from django.template import Template, Context
 from django.contrib import messages
+from django.views import View
 
 from switches.actions import (
     perform_interface_admin_change,
@@ -102,6 +103,9 @@ from switches.connect.constants import (
     POE_PORT_ADMIN_ENABLED,
     POE_PORT_ADMIN_DISABLED,
 )
+from switches.download import create_eth_neighbor_xls_file, send_file
+from switches.permissions import get_group_and_switch, get_connection_if_permitted
+
 from switches.utils import (
     success_page,
     warning_page,
@@ -1860,3 +1864,65 @@ def admin_activity(request):
             "logs_link": False,
         },
     )
+
+
+class SwitchDownloadEthernetAndNeighbors(View):
+    """
+    Download list of known ethernet addressess on a device.
+    """
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchDownloadEthernetAndNeighbors() - GET called")
+
+        # log = Log(
+        #     user=request.user,
+        #     switch=switch,
+        #     group=group,
+        #     ip_address=remote_ip,
+        #     action=LOG_BULK_EDIT_TASK_START,
+        #     description=f"Downloading Eth/Arp/Lldp to Excel",
+        #     type=LOG_TYPE_CHANGE,
+        # )
+        # log.save()
+
+        group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+        connection, error = get_connection_if_permitted(request=request, group=group, switch=switch)
+
+        if connection is None:
+            return error_page(request=request, group=group, switch=switch, error=error)
+
+        # load ethernet, neighbor info, etc. again
+        try:
+            if not connection.get_client_data():
+                log = Log(
+                    user=request.user,
+                    ip_address=get_remote_ip(request),
+                    type=LOG_TYPE_ERROR,
+                    action=LOG_VIEW_SWITCH,
+                    description="ERROR get_client_data()",
+                )
+                log.save()
+                # don't render error, since we have already read the basic interface data
+                # Note that errors are already added to warnings!
+                # return error_page(request=request, group=group, switch=switch, error=conn.error)
+            dprint("ARP-LLDP Info OK")
+        except Exception as e:
+            log.type = LOG_TYPE_ERROR
+            log.description = (
+                f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            )
+            dprint(log.description)
+            log.save()
+            return error_page(request=request, group=group, switch=switch, error=connection.error)
+
+        filename, error = create_eth_neighbor_xls_file(connection)
+        if not filename:
+            return error_page(request=request, group=group, switch=switch, error=error)
+
+        return send_file(request=request, filename=filename)
+        # return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message="Downloading Ethernet Addresses!")
