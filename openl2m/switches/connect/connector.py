@@ -20,6 +20,7 @@ import time
 from django.conf import settings
 
 from switches.models import Command, Log
+from switches.connect.constants import LLDP_CHASSIC_TYPE_ETH_ADDR
 from switches.constants import LOG_TYPE_WARNING, LOG_CONNECTION_ERROR, LOG_TYPE_ERROR, CMD_TYPE_INTERFACE
 from switches.utils import dprint, get_remote_ip, get_ip_dns_name
 from switches.connect.classes import Error, PoePort, PoePSE, Vlan, VendorData
@@ -1731,7 +1732,8 @@ class Connector:
         return
 
     def _lookup_ethernet_vendors(self):
-        """Look up the vendor names for the ethernet address found on interfaces.
+        """Look up the vendor names for the ethernet addresses found on interfaces.
+           This will also lookup lldp neighbor vendors if the chassis info is ethernet.
 
         Args:
             none
@@ -1753,6 +1755,14 @@ class Connector:
                 elif vendor.manuf:
                     eth.vendor = vendor.manuf
                 dprint(f"  eth = {eth}, vendor = {eth.vendor}")
+            # also lookup vendor for Neighbors where the chassis-string is an ethernet address:
+            for neighbor in interface.lldp.values():
+                if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
+                    vendor = parser.get_all(neighbor.chassis_string)
+                    if vendor.manuf_long:
+                        neighbor.vendor = vendor.manuf_long
+                    elif vendor.manuf:
+                        neighbor.vendor = vendor.manuf
 
     def __str__(self):
         return self.display_name

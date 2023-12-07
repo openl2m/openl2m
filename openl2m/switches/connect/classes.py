@@ -625,6 +625,7 @@ class NeighborDevice:
         # chassis_string is assumed to be a string with the IP4/6 address set.
         self.chassis_string_type = 0
         self.chassis_string = ""  # LldpChassisId, OctetString format depends on type.
+        self.vendor = ""  # if chassis-string is ethernet address, this is the OUI vendor.
         self.capabilities = LLDP_CAPABILITIES_NONE
         # self.capabilities = bytes(2)  # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
         #                               # this is the equivalent to LLDP_CAPABILITIES_NONE from connect.constants

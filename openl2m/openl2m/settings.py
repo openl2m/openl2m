@@ -440,3 +440,6 @@ MAX_API_TOKENS = getattr(configuration, 'MAX_API_TOKENS', 3)
 API_CLIENT_IP_DENIED = getattr(configuration, 'API_CLIENT_IP_DENIED', "")
 API_CLIENT_IP_ALLOWED = getattr(configuration, 'API_CLIENT_IP_ALLOWED', "")
 API_MAX_TOKEN_DURATION = getattr(configuration, 'API_MAX_TOKEN_DURATION', 0)
+
+# WEB-UI Data Export Settings
+ALLOW_ARP_LLDP_DOWNLOAD = getattr(configuration, 'ALLOW_ARP_LLDP_DOWNLOAD', True)

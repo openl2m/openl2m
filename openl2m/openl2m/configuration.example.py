@@ -504,3 +504,9 @@ API_CLIENT_IP_ALLOWED = ""
 # of days into future, it will be limited to this number of days into future.
 # Ignored if 0.
 API_MAX_TOKEN_DURATION = 0
+
+# WEB-UI Data Export Settings
+#
+# if you want to disallow downloading of ethernet-arp-lldp information
+# into Excel spreadsheets, set this to False.
+ALLOW_ARP_LLDP_DOWNLOAD = True
