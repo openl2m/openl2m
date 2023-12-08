@@ -1420,6 +1420,7 @@ class SnmpConnector(Connector):
             # the last 6 decimals need to be converted to hex values with hyphens aa-bb-cc-11-22-33
             eth_string = decimal_to_hex_string_ethernet(eth_decimals)
             port_id = int(val)
+            fdb_index = int(fdb_index)
             # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
             if port_id:
                 # if_index = self.qbridge_port_to_if_index[int(val)]
@@ -1435,11 +1436,17 @@ class SnmpConnector(Connector):
                         # see if we can use Forward DB mapping:
                         # double lookup: from fdb index find vlan index, then from vlan index find vlan id!
                         """
-                        vlan_index = self.dot1tp_fdb_to_vlan_index.get(int(fdb_index), 0)
+                        vlan_index = self.dot1tp_fdb_to_vlan_index.get(fdb_index, 0)
                         vlan_id = self.vlan_id_by_index.get(vlan_index, 0)
-                        dprint(f"Eth found in fdb_index {int(fdb_index)} => vlan_index {vlan_index} => vlan_id {vlan_id}")
+                        dprint(f"Eth found in fdb_index {fdb_index} => vlan_index {vlan_index} => vlan_id {vlan_id}")
                         """
-                        e.vlan_id = self.vlan_id_by_index.get(self.dot1tp_fdb_to_vlan_index.get(int(fdb_index), 0), 0)
+                        e.vlan_id = self.vlan_id_by_index.get(self.dot1tp_fdb_to_vlan_index.get(fdb_index, 0), 0)
+                        # if vlan_id is still 0, if could be the fbd_index is the vlan id!
+                        if e.vlan_id == 0:
+                            # if fdb_index is a valid vlan id, assume so!
+                            if fdb_index in self.vlans.keys():
+                                e.vlan_id = fdb_index
+                    dprint(f"  NEW MAC: {e}, vlan: {e.vlan_id}, interface {self.interfaces[if_index].name}")
                     if str(e) not in self.interfaces[if_index].eth:
                         self.interfaces[if_index].eth[str(e)] = e
                         self.eth_addr_count += 1
