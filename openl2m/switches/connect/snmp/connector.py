@@ -1391,8 +1391,11 @@ class SnmpConnector(Connector):
                         # to make sure we use a consistent key.
                         # See below were we find this entry in _parse_mibs_net_to_media()
                         # and _parse_mibs_q_bridge_eth()
-                    self.interfaces[if_index].eth[str(e)] = e
-                    self.eth_addr_count += 1
+                    if str(e) not in self.interfaces[if_index].eth:
+                        self.interfaces[if_index].eth[str(e)] = e
+                        self.eth_addr_count += 1
+                    else:
+                        dprint(f"  Duplicate MAC: {e}")
                 # else:
                 #    dprint(f"  if_index = {if_index}: NOT FOUND!")
             return True
@@ -1437,8 +1440,11 @@ class SnmpConnector(Connector):
                         dprint(f"Eth found in fdb_index {int(fdb_index)} => vlan_index {vlan_index} => vlan_id {vlan_id}")
                         """
                         e.vlan_id = self.vlan_id_by_index.get(self.dot1tp_fdb_to_vlan_index.get(int(fdb_index), 0), 0)
-                    self.interfaces[if_index].eth[str(e)] = e
-                    self.eth_addr_count += 1
+                    if str(e) not in self.interfaces[if_index].eth:
+                        self.interfaces[if_index].eth[str(e)] = e
+                        self.eth_addr_count += 1
+                    else:
+                        dprint(f"  Duplicate MAC: {e}")
                 # else:
                 #    dprint(f"  if_index = {if_index}: NOT FOUND!")
             return True
