@@ -79,6 +79,7 @@ from switches.constants import (
     LOG_VIEW_ALL_LOGS,
     LOG_VIEW_ADMIN_STATS,
     LOG_VIEW_SWITCH_SEARCH,
+    LOG_VIEW_DOWNLOAD_ARP_LLDP,
     LOG_EXECUTE_COMMAND,
     LOG_RELOAD_SWITCH,
     INTERFACE_STATUS_NONE,
@@ -1879,38 +1880,27 @@ class SwitchDownloadEthernetAndNeighbors(View):
     ):
         dprint("SwitchDownloadEthernetAndNeighbors() - GET called")
 
-        # log = Log(
-        #     user=request.user,
-        #     switch=switch,
-        #     group=group,
-        #     ip_address=remote_ip,
-        #     action=LOG_BULK_EDIT_TASK_START,
-        #     description=f"Downloading Eth/Arp/Lldp to Excel",
-        #     type=LOG_TYPE_CHANGE,
-        # )
-        # log.save()
-
         group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
         connection, error = get_connection_if_permitted(request=request, group=group, switch=switch)
 
         if connection is None:
             return error_page(request=request, group=group, switch=switch, error=error)
 
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            switch=switch,
+            group=group,
+            type=LOG_TYPE_VIEW,
+            action=LOG_VIEW_DOWNLOAD_ARP_LLDP,
+        )
         # load ethernet, neighbor info, etc. again
         try:
             if not connection.get_client_data():
-                log = Log(
-                    user=request.user,
-                    ip_address=get_remote_ip(request),
-                    type=LOG_TYPE_ERROR,
-                    action=LOG_VIEW_SWITCH,
-                    description="ERROR get_client_data()",
-                )
+                log.type = LOG_TYPE_ERROR
+                log.description = "ERROR get_client_data()"
                 log.save()
-                # don't render error, since we have already read the basic interface data
-                # Note that errors are already added to warnings!
-                # return error_page(request=request, group=group, switch=switch, error=conn.error)
-            dprint("ARP-LLDP Info OK")
+                return error_page(request=request, group=group, switch=switch, error=connection.error)
         except Exception as e:
             log.type = LOG_TYPE_ERROR
             log.description = (
@@ -1922,7 +1912,11 @@ class SwitchDownloadEthernetAndNeighbors(View):
 
         filename, error = create_eth_neighbor_xls_file(connection)
         if not filename:
+            log.type = LOG_TYPE_ERROR
+            log.description = f"{error.description}: {error.details}"
+            log.save()
             return error_page(request=request, group=group, switch=switch, error=error)
 
+        log.description = f"Downloading '{filename}'"
+        log.save()
         return send_file(request=request, filename=filename)
-        # return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message="Downloading Ethernet Addresses!")
