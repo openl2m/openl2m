@@ -773,6 +773,7 @@ class NeighborDevice:
             'chassis_id': self.chassis_string,
             'chassis_type': self.chassis_type,
             'capabilities': self.capabilities_as_string(),
+            'port_name': self.port_name,
         }
 
     def display_name(self):
