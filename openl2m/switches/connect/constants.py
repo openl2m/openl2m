@@ -81,6 +81,18 @@ LLDP_CAPABILITIES_DOCSIS = 2  # docsisCableDevice(6),
 LLDP_CAPABILITIES_STATION = 1  # stationOnly(7)
 LLDP_CAPABILITIES_NONE = 0
 
+# this is used to indate the type of data sent by lldpRemPortId
+# see https://www.circitor.fr/Mibs/Html/L/LLDP-MIB.php#LldpChassisIdSubtype
+# chassisComponent(1), interfaceAlias(2), portComponent(3), macAddress(4),
+# networkAddress(5), interfaceName(6), local(7)
+LLDP_PORT_SUBTYPE_CHASSIS_COMPONENT = 1
+LLDP_PORT_SUBTYPE_INTERFACE_ALIAS = (2,)
+LLDP_PORT_SUBTYPE_PORT_COMPONENT = 3
+LLDP_PORT_SUBTYPE_MAC_ADDRESS = (4,)
+LLDP_PORT_SUBTYPE_NETWORK_ADDRESS = 5
+LLDP_PORT_SUBTYPE_INTERFACE_NAME = 6
+LLDP_PORT_SUBTYPE_LOCAL = 7
+
 # PoE PowerSupply related
 POE_PSE_STATUS_ON = 1
 POE_PSE_STATUS_OFF = 2

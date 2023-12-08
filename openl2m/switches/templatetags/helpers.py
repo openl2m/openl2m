@@ -508,21 +508,21 @@ def get_lldp_info(neighbor):
     To keep things simple, we return a single icon, even when multiple capabilities exist.
     """
 
-    info = ''
+    icon = ''
     # add an image for the capabilities
-    fa_format = "<i class=\"fas %s\" data-toggle=\"tooltip\" title=\"%s\"></i>&nbsp;"
+    icon_format = "<i class=\"fas %s\" data-toggle=\"tooltip\" title=\"%s\"></i>&nbsp;"
     capabilities = neighbor.capabilities
     if capabilities == LLDP_CAPABILITIES_NONE:
-        info += fa_format % ('fa-question', 'Capabilities NOT Advertized')
+        icon = icon_format % ('fa-question', 'Capabilities NOT Advertized')
     else:
         if capabilities & LLDP_CAPABILITIES_WLAN:
-            info += fa_format % ('fa-wifi', 'Wireless AP')
+            icon += icon_format % ('fa-wifi', 'Wireless AP')
         if capabilities & LLDP_CAPABILITIES_PHONE:
-            info += fa_format % ('fa-phone', 'VOIP Phone')
+            icon += icon_format % ('fa-phone', 'VOIP Phone')
         if capabilities & LLDP_CAPABILITIES_ROUTER:
-            info += fa_format % ('fa-cogs', 'Router or Switch')
+            icon += icon_format % ('fa-cogs', 'Router or Switch')
         if capabilities & LLDP_CAPABILITIES_STATION:
-            info += fa_format % ('fa-desktop', 'Workstation or Server')
+            icon += icon_format % ('fa-desktop', 'Workstation or Server')
         if (
             capabilities & LLDP_CAPABILITIES_BRIDGE
             and not capabilities & LLDP_CAPABILITIES_ROUTER
@@ -531,34 +531,36 @@ def get_lldp_info(neighbor):
             # We only show Switch if no routing or phone capabilities listed.
             # Most phones and routers also show switch capabilities.
             # In those cases we only show the above Router or Phone icons!
-            info += fa_format % ('fa-ethernet', 'Switch')
+            icon += icon_format % ('fa-ethernet', 'Switch')
         if capabilities & LLDP_CAPABILITIES_REPEATER:
-            info += fa_format % ('fa-ethernet', 'Hub or Repeater')
+            icon += icon_format % ('fa-ethernet', 'Hub or Repeater')
         # elif capabilities & LLDP_CAPABILITIES_DOCSIS:
         # unlikely to see this!
         #    icon = "unknown"
         if capabilities & LLDP_CAPABILITIES_OTHER:
-            info += fa_format % ('fa-question', 'Other Capabilities')
+            icon += icon_format % ('fa-question', 'Other Capabilities')
 
-    name = ''
-    if neighbor.sys_name:
+    if neighbor.hostname:
+        name = neighbor.hostname
+    elif neighbor.sys_name:
         name = neighbor.sys_name
     else:
         name = 'Unknown'
 
-    if neighbor.sys_descr or neighbor.hostname:
-        if neighbor.hostname:
-            hostname = neighbor.hostname + " - "
-        else:
-            hostname = ""
-        info = f"{info}<abbr data-toggle=\"tooltip\" title=\"{hostname}{neighbor.sys_descr}\">{name}"
-        if neighbor.chassis_string:
-            info = f"{info} - {neighbor.chassis_string}"
-        info = info + "</abbr>"
+    if neighbor.port_name:
+        port = f"({neighbor.port_name})"
     else:
-        info = f"{info}{name}"
-        if neighbor.chassis_string:
-            info = f"{info} - {neighbor.chassis_string}"
+        port = ""
+
+    if neighbor.chassis_string:
+        chassis = f" - {neighbor.chassis_string}"
+    else:
+        chassis = ""
+
+    if neighbor.sys_descr:
+        info = f"{icon}<abbr data-toggle=\"tooltip\" title=\"{neighbor.sys_descr}\">{name}{port}{chassis}</abbr>"
+    else:
+        info = f"{icon}{name}{port}{chassis}"
 
     return mark_safe(info)
 

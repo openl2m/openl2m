@@ -71,6 +71,9 @@ from switches.connect.constants import (
     LLDP_CHASSIS_TYPE_NONE,
     LLDP_CHASSIC_TYPE_ETH_ADDR,
     LLDP_CHASSIC_TYPE_NET_ADDR,
+    LLDP_PORT_SUBTYPE_CHASSIS_COMPONENT,
+    LLDP_PORT_SUBTYPE_PORT_COMPONENT,
+    LLDP_PORT_SUBTYPE_LOCAL,
     GVRP_ENABLED,
     ENTITY_CLASS_STACK,
     ENTITY_CLASS_CHASSIS,
@@ -148,6 +151,7 @@ from switches.connect.snmp.constants import (
     ipNetToMediaPhysAddress,
     lldpRemChassisId,
     lldpRemPortId,
+    lldpRemPortIdSubType,
     lldpRemPortDesc,
     lldpRemSysName,
     lldpRemSysDesc,
@@ -1526,8 +1530,36 @@ class SnmpConnector(Connector):
             if if_index in self.interfaces.keys():
                 # add new LLDP neighbor
                 # self.interfaces[if_index].lldp[lldp_index] = NeighborDevice(lldp_index, if_index)
-                self.interfaces[if_index].lldp[lldp_index] = NeighborDevice(lldp_index)
+                neighbor = NeighborDevice(lldp_index)
+                # val is likely the "name" of the remote port, depending on the value of "lldapRemPortIdSubType" !
+                neighbor.port_name = val
+                # and add to interface lldp info:
+                self.interfaces[if_index].lldp[lldp_index] = neighbor
                 self.neighbor_count += 1
+            return True
+
+        # lldpRemPortIdSubType is used to indicate what the value from "lldpRemPortId" means.
+        lldp_index = oid_in_branch(lldpRemPortIdSubType, oid)
+        if lldp_index:
+            (extra_one, port_id, extra_two) = lldp_index.split('.')
+            port_id = int(port_id)
+            # store the new lldp object, based on the string index.
+            # need to find the ifIndex first.
+            # did we find Q-Bridge mappings?
+            if_index = self._get_if_index_from_port_id(port_id)
+            if if_index in self.interfaces.keys():
+                sub_type = int(val)
+                # depending on type, we may need to blank neighbor.port_name!
+                # we 'think' we can handle these: LLDP_PORT_SUBTYPE_INTERFACE_ALIAS, LLDP_PORT_SUBTYPE_MAC_ADDRESS
+                # LLDP_PORT_SUBTYPE_NETWORK_ADDRESS, LLDP_PORT_SUBTYPE_INTERFACE_NAME
+                # not sure how to interpret these:
+                if sub_type in (
+                    LLDP_PORT_SUBTYPE_CHASSIS_COMPONENT,
+                    LLDP_PORT_SUBTYPE_PORT_COMPONENT,
+                    LLDP_PORT_SUBTYPE_LOCAL,
+                ):
+                    dprint(f"  Clearning LLDP.port_name - interface subtype: {sub_type}")
+                    self.interfaces[if_index].lldp[lldp_index].port_name = ""
             return True
 
         lldp_index = oid_in_branch(lldpRemPortDesc, oid)
@@ -2141,11 +2173,19 @@ class SnmpConnector(Connector):
 
         # go read and parse LLDP data, we do NOT (False) want to cache this data!
         # we have a custom parser, so we do not have to run this through the long and slow default parser!
+        # start with "lldpRemPortId", this gives us the local port a neighbor is heard on
+        # so we can start with a NeighborDevice() object attached to the proper device Interface().lldp{}
+        # the value of "lldpRemPortId" also gives us the name of the remote device interface we are
+        # connected to (see _parse_mibs_lldp() for more)
         retval = self.get_snmp_branch('lldpRemPortId', self._parse_mibs_lldp)
         if retval < 0:
             self.add_warning("Error getting 'LLDP-Remote-Ports' (lldpRemPortId)")
             return retval
         if retval > 0:  # there are neighbors entries! Go get the details.
+            retval = self.get_snmp_branch('lldpRemPortIdSubType', self._parse_mibs_lldp)
+            if retval < 0:
+                self.add_warning("Error getting 'LLDP-Remote-Port-ID-Subtype' (lldpRemPortIdSubType)")
+                return retval
             retval = self.get_snmp_branch('lldpRemPortDesc', self._parse_mibs_lldp)
             if retval < 0:
                 self.add_warning("Error getting 'LLDP-Remote-Port-Description' (lldpRemPortDesc)")

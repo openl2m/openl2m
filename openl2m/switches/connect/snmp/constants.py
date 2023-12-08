@@ -637,6 +637,11 @@ snmp_mib_variables['lldpRemChassisIdSubtype'] = lldpRemChassisIdSubtype
 lldpRemChassisId = '.1.0.8802.1.1.2.1.4.1.1.5'
 snmp_mib_variables['lldpRemChassisId'] = lldpRemChassisId
 
+# this is used to indate the type of data sent by lldpRemPortId
+# see https://www.circitor.fr/Mibs/Html/L/LLDP-MIB.php#LldpChassisIdSubtype
+lldpRemPortIdSubType = '.1.0.8802.1.1.2.1.4.1.1.6'
+snmp_mib_variables['lldpRemPortIdSubType'] = lldpRemPortIdSubType
+
 lldpRemPortId = '.1.0.8802.1.1.2.1.4.1.1.7'
 snmp_mib_variables['lldpRemPortId'] = lldpRemPortId
 
