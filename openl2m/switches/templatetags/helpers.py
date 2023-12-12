@@ -557,8 +557,12 @@ def get_lldp_info(neighbor):
     else:
         chassis = ""
 
-    if neighbor.sys_descr:
-        info = f"{icon}<abbr data-toggle=\"tooltip\" title=\"{neighbor.sys_descr}\">{name}{port}{chassis}</abbr>"
+    if neighbor.sys_descr or neighbor.management_address:
+        if neighbor.management_address:
+            mgmt = f"Mgmt IP: {neighbor.management_address}&#10;&#13;"  # lf/cr may not be supported by all browsers.
+        else:
+            mgmt = ""
+        info = f"{icon}<abbr data-toggle=\"tooltip\" title=\"{mgmt}{neighbor.sys_descr}\">{name}{port}{chassis}</abbr>"
     else:
         info = f"{icon}{name}{port}{chassis}"
 
