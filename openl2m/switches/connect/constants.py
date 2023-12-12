@@ -64,6 +64,7 @@ LLDP_CHASSIC_TYPE_PORT = 3  # portComponent(3)
 LLDP_CHASSIC_TYPE_ETH_ADDR = 4  # macAddress(4), standard Ethernet address
 LLDP_CHASSIC_TYPE_NET_ADDR = 5  # networkAddress(5), first byte is address type, next bytes are address.
 # see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml
+IANA_TYPE_OTHER = 0
 IANA_TYPE_IPV4 = 1
 IANA_TYPE_IPV6 = 2
 LLDP_CHASSIC_TYPE_IFNAME = 6  # interfaceName(6), ifName from IF-MIB

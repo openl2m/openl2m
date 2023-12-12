@@ -36,6 +36,9 @@ from switches.connect.constants import (
     POE_PSE_STATUS_OFF,
     POE_PSE_STATUS_FAULT,
     POE_PORT_DETECT_SEARCHING,
+    IANA_TYPE_OTHER,
+    IANA_TYPE_IPV4,
+    IANA_TYPE_IPV6,
     duplex_name,
     poe_admin_status_name,
     #    poe_priority_name,
@@ -634,6 +637,8 @@ class NeighborDevice:
         self.sys_name = "Unknown Device"
         self.sys_descr = "Unknown Device Description"
         self.hostname = ""  # if set, the hostname of the device, possibly resolved from chassis_string
+        self.management_address_type = IANA_TYPE_OTHER  # valid is either IANA_TYPE_IPV4 or IANA_TYPE_IPV6
+        self.management_address = ""  # IP address, either v4 or v6
 
     def set_port_name(self, port_name):
         '''
@@ -707,6 +712,18 @@ class NeighborDevice:
             none
         '''
         self.chassis_string = description
+
+    def set_management_address(self, address, type):
+        """Set remote device management address.
+
+        Args:
+            address (str): the management address
+            type (int): the address type, a valid IANA protocol number, either IANA_TYPE_IPV4, or IANA_TYPE_IPV6
+
+        """
+        dprint(f"NeighborDevice().set_management_address('{address}', type {type})")
+        self.management_address = address
+        self.management_address_type = type
 
     def set_capability(self, capability):
         '''
