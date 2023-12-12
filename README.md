@@ -28,7 +28,7 @@ __Features:__
 * change vlan on interface
 * enable/disable PoE
 * change description
-* see ethernet addresses, lldp neighbors
+* see ethernet addresses, lldp neighbors, and download to spreadsheet
 * add, edit or delete vlans on devices
 * run configurable pre-defined 'static' commands on the device
 * run configurable pre-defined 'form input' commands on the device
@@ -38,7 +38,7 @@ __Features:__
 
 __What's New:__
 
-v3.0 adds a vendor-agnostic REST API for remote scription and automation.
+v3.0 adds a vendor-agnostic REST API for remote scripting and automation.
 
 v2.4 adds vlan add/edit/delete for all supported devices, and upgrades the Django framework to v4.2 LTS
 

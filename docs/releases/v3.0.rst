@@ -7,6 +7,25 @@ Version 3.0
 **Version 3.0 add a REST API**
 
 
+
+Version 3.0.1
+-------------
+
+Release Date: 2023-12-12
+
+* Known Ethernet addresses and Neighbor info can be downloaded to an Excel spreadsheet.
+* add remote port info to LLDP neighbors from snmp. Also add to API output.
+* add heard ethernet vlan from snmp for some devices.
+* add Ethernet vendor lookup for LLDP neighbors that send chassis Ethernet address.
+* Aruba AOS-CX devices via SNMP can change description, and save config changes.
+
+Bugfixes:
+
+* fix duplicate known ethernet address from snmp.
+* various improvements in error handling for snmp.
+* add Ethernet vendor to API output.
+* fix LLDP capabilities string in API output.
+
 Version 3.0
 -----------
 

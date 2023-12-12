@@ -9,9 +9,7 @@ Planned improvements:
 
 * improve Aruba AOS-CX SNMP driver, as v10.12 and up now can set port vlans via SNMP.
 
-* add support for LLDP innthe Aruba AOS-CX REST driver, since it is now part of their pyaoscx class as of v2.4
-
-* export ARP/MAC, and LLDP info to an Excel spreadsheet.
+* add support for LLDP in the Aruba AOS-CX REST driver, since it is now part of their pyaoscx class as of v2.5.1
 
 * move all functions implementing urls to View() class, to get improved handling of non-implemented GET/POST.
 
