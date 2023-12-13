@@ -672,6 +672,37 @@ LLDP_CAPA_BITS_PHONE = 0x04  # telephone(5)
 LLDP_CAPA_BITS_DOCSIS = 0x02  # docsisCableDevice(6),
 LLDP_CAPA_BITS_STATION = 0x01  # stationOnly(7)
 
+# the management address entries of the remove device:
+# MIB base at lldpRemManAddrEntry
+lldpRemManAddrEntry = '.1.0.8802.1.1.2.1.4.2.1'
+snmp_mib_variables['lldpRemManAddrEntry'] = lldpRemManAddrEntry
+#
+# Note: most devices do not send .1, .2 or .3
+#
+# lldpRemManAddrSubtype is either IANA_TYPE_IPV4 or IPV6
+# lldpRemManAddrSubtype = '.1.0.8802.1.1.2.1.4.2.1.1'
+# snmp_mib_variables['lldpRemManAddrSubtype'] = lldpRemManAddrSubtype
+#
+# a string for the address, of type indicated by above lldpRemManAddrSubtype
+# lldpRemManAddr = '.11.0.8802.1.1.2.1.4.2.1.2'
+# snmp_mib_variables['lldpRemManAddr'] = lldpRemManAddr
+#
+# management address interface numbering method
+lldpRemManAddrIfSubtype = '.1.0.8802.1.1.2.1.4.2.1.3'
+snmp_mib_variables['lldpRemManAddrIfSubtype'] = lldpRemManAddrIfSubtype
+LLDP_REM_MAN_ADDR_TYPE_UNKNOWN = 1  # unknown(1)
+LLDP_REM_MAN_ADDR_TYPE_IFINDEX = 2  # ifIndex(2)
+LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER = 3  # systemPortNumber(3)
+#
+# these two don't add much:
+#
+# management address interface id
+# lldpRemManAddrIfId = '.11.0.8802.1.1.2.1.4.2.1.4'
+# snmp_mib_variables['lldpRemManAddrIfId'] = lldpRemManAddrIfId
+# management address device OID:
+# lldpRemManAddrOID = '.11.0.8802.1.1.2.1.4.2.1.5'
+# snmp_mib_variables['	lldpRemManAddrOID'] = 	lldpRemManAddrOID
+
 
 #
 # LACP MIB

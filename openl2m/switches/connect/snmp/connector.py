@@ -157,6 +157,10 @@ from switches.connect.snmp.constants import (
     lldpRemSysDesc,
     lldpRemSysCapEnabled,
     lldpRemChassisIdSubtype,
+    lldpRemManAddrEntry,
+    lldpRemManAddrIfSubtype,
+    LLDP_REM_MAN_ADDR_TYPE_IFINDEX,
+    LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER,
     enterprises,
     enterprise_id_info,
     IF_ADMIN_STATUS_UP,
@@ -1499,8 +1503,13 @@ class SnmpConnector(Connector):
     def _parse_mibs_lldp(self, oid, val):
         """
         Parse a single OID with data returned from the LLDP MIBs
-        Will return True if we have parsed this, and False if not.
-        This will be used upstream to cache or not cache this OID.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
         """
         dprint(f"_parse_mibs_lldp() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
 
@@ -1672,7 +1681,77 @@ class SnmpConnector(Connector):
                         neighbor.chassis_string = chassis_info
 
             return True
+        return False
 
+    def _parse_mibs_lldp_management(self, oid, val):
+        """Parse LLDP entries related to remote management info.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"_parse_mibs_lldp_management() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+
+        # these 2 do not seems to be implemented!
+        # # the management address type, ie ipv4 or ipv6:
+        # lldp_index = oid_in_branch(lldpRemManAddrSubtype, oid)
+        # if lldp_index:
+        #     (extra_one, port_id, extra_two) = lldp_index.split('.')
+        #     port_id = int(port_id)
+        #     # at this point, we should have already found the lldp neighbor and created an object
+        #     # did we find Q-Bridge mappings?
+        #     if_index = self._get_if_index_from_port_id(port_id)
+        #     if if_index in self.interfaces.keys():
+        #         if lldp_index in self.interfaces[if_index].lldp.keys():
+        #             # store management address type
+        #             self.interfaces[if_index].lldp[lldp_index].management_address_type = int(val)
+        #     return True
+
+        # # the actual management address:
+        # lldp_index = oid_in_branch(lldpRemManAddr, oid)
+        # if lldp_index:
+        #     (extra_one, port_id, extra_two) = lldp_index.split('.')
+        #     port_id = int(port_id)
+        #     # at this point, we should have already found the lldp neighbor and created an object
+        #     # did we find Q-Bridge mappings?
+        #     if_index = self._get_if_index_from_port_id(port_id)
+        #     if if_index in self.interfaces.keys():
+        #         if lldp_index in self.interfaces[if_index].lldp.keys():
+        #             # set management address
+        #             self.interfaces[if_index].lldp[lldp_index].management_address = val
+        #     return True
+
+        sub_oid = oid_in_branch(lldpRemManAddrIfSubtype, oid)
+        if sub_oid:
+            numbers = sub_oid.split('.')
+            # dprint(f"  FOUND lldpRemManAddrIfSubtype, size {len(numbers)}, val = {int(val)}")
+            # some bizarre "checking" for the right OID format. It appears to be:
+            # 3 digits for LLDP index (index, port_id, extra), then "1.4", following by IP in dotted format, eg "10.1.1.1"
+            if (
+                len(numbers) == 9
+                and int(val) in (LLDP_REM_MAN_ADDR_TYPE_IFINDEX, LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER)
+                and numbers[3] == '1'
+                and numbers[4] == '4'
+            ):
+                # dprint("  LLDP FOUND MGMT IPv4 !")
+                # this appears to be an IPv4 address embedded in sub-OID
+                port_id = int(numbers[1])
+                lldp_index = f"{numbers[0]}.{numbers[1]}.{numbers[2]}"
+                # at this point, we should have already found the lldp neighbor and created an object
+                # did we find Q-Bridge mappings?
+                if_index = self._get_if_index_from_port_id(port_id)
+                # dprint(f"  INFO: lldp_index='{lldp_index}', port_id='{port_id}', if_index='{if_index}'")
+                if if_index in self.interfaces.keys():
+                    if lldp_index in self.interfaces[if_index].lldp.keys():
+                        # set management address
+                        mgmt_ip = f"{numbers[5]}.{numbers[6]}.{numbers[7]}.{numbers[8]}"
+                        dprint(f"  SETTING MGMT IPv4 = {mgmt_ip}")
+                        self.interfaces[if_index].lldp[lldp_index].management_address = mgmt_ip
+                        self.interfaces[if_index].lldp[lldp_index].management_address_type = IANA_TYPE_IPV4
+            return True
         return False
 
     def _add_vlan_to_interface_by_port_id(self, port_id, vlan_id):
@@ -2211,6 +2290,11 @@ class SnmpConnector(Connector):
             retval = self.get_snmp_branch('lldpRemChassisId', self._parse_mibs_lldp)
             if retval < 0:
                 self.add_warning("Error getting 'LLDP-Remote-Chassis-Id' (lldpRemChassisId)")
+                return retval
+            # remote management info:
+            retval = self.get_snmp_branch('lldpRemManAddrEntry', self._parse_mibs_lldp_management)
+            if retval < 0:
+                self.add_warning("Error getting 'LLDP-Remote-Management-Info' (lldpRemManAddrEntry)")
                 return retval
 
         return 1
