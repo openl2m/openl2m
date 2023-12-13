@@ -18,7 +18,7 @@ import pprint
 from switches.models import Log
 from switches.utils import dprint, get_remote_ip
 from switches.constants import LOG_TYPE_ERROR, LOG_AOSCX_ERROR_GENERIC
-from switches.connect.classes import Interface, PoePort
+from switches.connect.classes import Interface, PoePort, NeighborDevice
 from switches.connect.connector import Connector
 from switches.connect.aruba_aoscx.utils import aoscx_parse_duplex
 from switches.connect.constants import (
@@ -29,6 +29,14 @@ from switches.connect.constants import (
     IF_TYPE_LAGG,
     LACP_IF_TYPE_MEMBER,
     LACP_IF_TYPE_AGGREGATOR,
+    LLDP_CHASSIC_TYPE_ETH_ADDR,
+    LLDP_CAPABILITIES_BRIDGE,
+    LLDP_CAPABILITIES_ROUTER,
+    LLDP_CAPABILITIES_WLAN,
+    LLDP_CAPABILITIES_PHONE,
+    IANA_TYPE_OTHER,
+    IANA_TYPE_IPV4,
+    IANA_TYPE_IPV6,
 )
 
 
@@ -47,6 +55,8 @@ from pyaoscx.vlan import Vlan as AosCxVlan
 from pyaoscx.mac import Mac as AosCxMac
 from pyaoscx.interface import Interface as AosCxInterface
 from pyaoscx.poe_interface import PoEInterface as AosCxPoEInterface
+from pyaoscx.lldp_neighbor import LLDPNeighbor as AosCxLLDPNeighbor
+
 
 # used to disable unknown SSL cert warnings:
 import urllib3
@@ -357,6 +367,69 @@ class AosCxConnector(Connector):
                         dprint(f"ERROR in mac.get(): {err}")
                     # just try the next one...
 
+        dprint("Getting LLDP data per INTERFACE:")
+        for if_name in self.interfaces.keys():
+            dprint(f"  Interface {if_name}:")
+            try:
+                aoscx_iface = AosCxInterface(session=self.aoscx_session, name=if_name)
+                neighbors = AosCxLLDPNeighbor.get_all(session=self.aoscx_session, parent_interface=aoscx_iface)
+                for nb_name, nb in neighbors.items():
+                    dprint(f"AOS-CX LLDP FOUND: on {if_name} => {nb_name} -> {nb}")
+                    try:  # this occasionally fails!
+                        nb.get()
+                        # for attrib, value in nb.__dict__.items():
+                        #    dprint(f"  {attrib} -> {value}")
+                        # get an OpenL2M NeighborDevice()
+                        neighbor = NeighborDevice(nb.chassis_id)
+                        neighbor.set_sys_name(nb.neighbor_info['chassis_name'])
+                        neighbor.set_sys_description(nb.neighbor_info['chassis_description'])
+                        # remote device port info:
+                        neighbor.port_name = nb.port_id
+                        neighbor.set_port_description(nb.neighbor_info['port_description'])
+                        # remote chassis info:
+                        neighbor.set_chassis_string(nb.chassis_id)
+                        if nb.neighbor_info['chassis_id_subtype'] == 'link_local_addr':
+                            neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
+                        # parse capabilities:
+                        capabilities = nb.neighbor_info['chassis_capability_enabled'].lower()
+                        dprint(f"  Capabilities: {capabilities}")
+                        if 'bridge' in capabilities:
+                            neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
+                        if 'router' in capabilities:
+                            neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
+                        # Following NOT tested; we are assuming the following two are correct:
+                        if 'wlan' in capabilities:
+                            neighbor.set_capability(LLDP_CAPABILITIES_WLAN)
+                        if 'phone' in capabilities:
+                            neighbor.set_capability(LLDP_CAPABILITIES_PHONE)
+                        # remote device management address, this is a list(), take first entry
+                        if len(nb.neighbor_info['mgmt_ip_list']) > 0:
+                            # hardcoding to IPv4 for now...
+                            neighbor.set_management_address(
+                                address=nb.neighbor_info['mgmt_ip_list'], type=IANA_TYPE_IPV4
+                            )
+                        # add to device interface:
+                        self.add_neighbor_object(if_name, neighbor)
+
+                    except Exception as err:
+                        dprint(f"ERROR in neighbor.get(): {err}")
+                    # just try the next one...
+            except Exception as err:
+                dprint(f"neighbors = AosCxLLDPNeighbor.get_all() error: {err}")
+                description = f"Cannot get LLDP table for interface '{if_name}'"
+                details = f"pyaoscx LLDPNeighbor() Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                self.add_warning(description)
+                log = Log(
+                    group=self.group,
+                    switch=self.switch,
+                    ip_address=get_remote_ip(self.request),
+                    type=LOG_TYPE_ERROR,
+                    action=LOG_AOSCX_ERROR_GENERIC,
+                    description=details,
+                )
+                log.save()
+                continue
+
         # done...
         # self._close_device()
         return True
@@ -597,7 +670,7 @@ class AosCxConnector(Connector):
             vlan.get()
             vlan.name = vlan_name
             changed = vlan.apply()
-        except Exception:
+        except Exception as err:
             self.error.status = True
             self.error.details = f"Error trapped while updating vlan {vlan_id} name to '{vlan_name}': {err}"
             return False
@@ -673,11 +746,11 @@ class AosCxConnector(Connector):
             # dprint(f"  SESSION.s(pformat):\n{pprint.pformat(self.aoscx_session.s)}")
 
             return True
-        except Exception as error:
+        except Exception as err:
             self.error.status = True
             self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot open REST session: {format(error)}"
-            dprint(f"  _open_device: AosCxSession.open() failed: {format(error)}")
+            self.error.details = f"Cannot open REST session: {format(err)}"
+            dprint(f"  _open_device: AosCxSession.open() failed: {format(err)}")
             return False
 
     def _close_device(self):
