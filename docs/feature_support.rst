@@ -33,7 +33,7 @@ Features Supported
 
    * - Port VLAN Change
      - Yes
-     - Yes
+     -
      - Yes
      - Yes
      -
@@ -70,7 +70,7 @@ Features Supported
      - Yes
      - Yes
      -
-     - Partial (Eth. only!)
+     - Yes
      - Yes
      - Yes
      -
@@ -80,7 +80,7 @@ Features Supported
      - Yes (v10.12 and up)
      - Yes
      - Yes
-     - Yes
+     -
      - Yes
      - Yes
      -
