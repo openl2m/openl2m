@@ -23,6 +23,7 @@
                             </span>
                         </td>
                     </tr>
+{% if connection.can_set_vlan_name %}
                     <tr>
                         <td align="right"><label for="id_vlan_id">Name:</label></td>
                         <td align="left">
@@ -31,6 +32,7 @@
                             </span>
                         </td>
                     </tr>
+{% endif %}
                     <tr>
                         <td></td>
                         <td>
@@ -50,6 +52,8 @@
             </div>{# panel #}
         </div>{# col #}
 
+{% if request.user.is_superuser or connection.can_set_vlan_name %}
+    {% if connection.allowed_vlans|length %}{# are we allowed access to any vlan ? #}
         <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -77,6 +81,7 @@
                             </span>
                         </td>
                     </tr>
+        {% if connection.can_set_vlan_name %}
                     <tr>
                         <td align="right"><label for="id_vlan_name">Name:</label></td>
                         <td align="left">
@@ -85,8 +90,10 @@
                             </span>
                         </td>
                     </tr>
+        {% endif %}
                     <tr>
                         <td align="left">
+        {% if connection.can_set_vlan_name %}
                             <input type="submit" name="vlan_edit"
                             class="btn btn-primary"
                             value="Update"
@@ -94,15 +101,16 @@
                             {% if request.user.profile.are_you_sure %}
                             onclick="return confirm_change('Are you sure you want update this vlan?')">
                             {% endif %}
+        {% endif %}
                         </td>
                         <td align="right">
-{% if request.user.is_superuser %}
+        {% if request.user.is_superuser %}
                             <input type="submit" name="vlan_delete"
                             class="btn btn-primary"
                             value="DELETE !!!"
                             id="delete"
                             onclick="return confirm_change('Are you sure you want DELETE this vlan?')">
-{% endif %}
+        {% endif %}
                         </td>
                     </tr>
                     <tbody>
@@ -111,6 +119,7 @@
                 </div>
             </div>{# panel #}
         </div>{# col #}
-
+    {% endif %}{# vlan length #}
+{% endif %}{# superuser or can_set_vlan_name #}
     </div>{# row #}
 </div>{# class panel-group #}
