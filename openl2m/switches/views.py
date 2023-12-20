@@ -31,6 +31,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import redirect
 from django.template import Template, Context
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 
 from switches.actions import (
@@ -1867,7 +1868,7 @@ def admin_activity(request):
     )
 
 
-class SwitchDownloadEthernetAndNeighbors(View):
+class SwitchDownloadEthernetAndNeighbors(LoginRequiredMixin, View):
     """
     Download list of known ethernet addressess on a device.
     """
