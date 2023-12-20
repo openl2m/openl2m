@@ -173,151 +173,182 @@ def close_device(request):
             log.save()
 
 
-@login_required(redirect_field_name=None)
-def switches(request):
+class Switches(LoginRequiredMixin, View):
     """
     This is the "home view", at "/"
     It shows the list of switches a user has access to
     """
 
-    template_name = "home.html"
-
-    dprint(f"HOME (/): user={request.user.username}")
-
-    close_device(request=request)
-
-    # clear session cache, so we re-read switches as needed
-    clear_switch_cache(request)
-
-    # save remote ip in session, so we can use it in current user display!
-    save_to_http_session(request, "remote_ip", get_remote_ip(request))
-
-    # find the groups with switches that we have rights to:
-    groups = get_my_device_groups(request=request)
-    save_to_http_session(request, "permissions", groups)
-
-    # log my activity
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        action=LOG_VIEW_SWITCHGROUPS,
-        description="Viewing switch groups",
-        type=LOG_TYPE_VIEW,
-    )
-    log.save()
-
-    # are there any notices to users?
-    notices = Notice.objects.active_notices()
-    if notices:
-        for notice in notices:
-            messages.add_message(request=request, level=notice.priority, message=notice.content)
-
-    # render the template
-    return render(
+    def get(
+        self,
         request,
-        template_name,
-        {
-            "groups": groups,
-            "groups_count": len(groups),
-        },
-    )
+    ):
+        dprint("Switches() - GET called")
+
+        template_name = "home.html"
+
+        close_device(request=request)
+
+        # clear session cache, so we re-read switches as needed
+        clear_switch_cache(request)
+
+        # save remote ip in session, so we can use it in current user display!
+        save_to_http_session(request, "remote_ip", get_remote_ip(request))
+
+        # find the groups with switches that we have rights to:
+        groups = get_my_device_groups(request=request)
+        save_to_http_session(request, "permissions", groups)
+
+        # log my activity
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            action=LOG_VIEW_SWITCHGROUPS,
+            description="Viewing switch groups",
+            type=LOG_TYPE_VIEW,
+        )
+        log.save()
+
+        # are there any notices to users?
+        notices = Notice.objects.active_notices()
+        if notices:
+            for notice in notices:
+                messages.add_message(request=request, level=notice.priority, message=notice.content)
+
+        # render the template
+        return render(
+            request,
+            template_name,
+            {
+                "groups": groups,
+                "groups_count": len(groups),
+            },
+        )
 
 
-@login_required(redirect_field_name=None)
-def switch_search(request):
+class SwitchSearch(LoginRequiredMixin, View):
     """
     search for a switch by name
     """
-    dprint("switch_search()")
 
-    if not settings.SWITCH_SEARCH_FORM:
-        return redirect(reverse("switches:groups"))
-
-    search = str(request.POST.get("switchname", ""))
-    # remove leading and trailing white spaceA
-    search = search.strip()
-    if not search:
-        return redirect(reverse("switches:groups"))
-
-    template_name = "search_results.html"
-
-    # log my activity
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        action=LOG_VIEW_SWITCH_SEARCH,
-        description=f"Searching for switch '{ search }'",
-        type=LOG_TYPE_VIEW,
-    )
-    log.save()
-
-    results = []
-    result_groups = {}
-    warning = False
-    permissions = get_from_http_session(request, "permissions")
-
-    if permissions and isinstance(permissions, dict):
-        for group_id, group in permissions.items():
-            if isinstance(group, dict):
-                group_name = group['name']
-                for switch_id, switch in group['members'].items():
-                    name = switch['name']
-                    hostname = switch['hostname']
-                    description = switch['description']
-                    default_view = switch['default_view']
-                    # now check the name, hostname for the search pattern:
-                    try:
-                        if re.search(search, name, re.IGNORECASE) or re.search(search, hostname, re.IGNORECASE):
-                            # regular user, add all occurances of device (likely just one!)
-                            results.append((str(group_id), str(switch_id), name, description, default_view, group_name))
-                            result_groups[group_name] = True
-                    except Exception:
-                        # invalid search, just ignore!
-                        warning = f"{search} - This is an invalid search pattern!"
-                        break
-
-    # render the template
-    return render(
+    def post(
+        self,
         request,
-        template_name,
-        {
-            'warning': warning,
-            'search': search,
-            'results': results,
-            'results_count': len(results),
-            'group_count': len(result_groups),
-        },
-    )
+    ):
+        dprint("SwitchSearch() - POST called")
+
+        if not settings.SWITCH_SEARCH_FORM:
+            # we should not be here!
+            return redirect(reverse("switches:groups"))
+
+        search = str(request.POST.get("switchname", ""))
+        # remove leading and trailing white spaceA
+        search = search.strip()
+        if not search:
+            return redirect(reverse("switches:groups"))
+
+        template_name = "search_results.html"
+
+        # log my activity
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            action=LOG_VIEW_SWITCH_SEARCH,
+            description=f"Searching for switch '{ search }'",
+            type=LOG_TYPE_VIEW,
+        )
+        log.save()
+
+        results = []
+        result_groups = {}
+        warning = False
+        permissions = get_from_http_session(request, "permissions")
+
+        if permissions and isinstance(permissions, dict):
+            for group_id, group in permissions.items():
+                if isinstance(group, dict):
+                    group_name = group['name']
+                    for switch_id, switch in group['members'].items():
+                        name = switch['name']
+                        hostname = switch['hostname']
+                        description = switch['description']
+                        default_view = switch['default_view']
+                        # now check the name, hostname for the search pattern:
+                        try:
+                            if re.search(search, name, re.IGNORECASE) or re.search(search, hostname, re.IGNORECASE):
+                                # regular user, add all occurances of device (likely just one!)
+                                results.append(
+                                    (str(group_id), str(switch_id), name, description, default_view, group_name)
+                                )
+                                result_groups[group_name] = True
+                        except Exception:
+                            # invalid search, just ignore!
+                            warning = f"{search} - This is an invalid search pattern!"
+                            break
+
+        # render the template
+        return render(
+            request,
+            template_name,
+            {
+                'warning': warning,
+                'search': search,
+                'results': results,
+                'results_count': len(results),
+                'group_count': len(result_groups),
+            },
+        )
 
 
-@login_required
-def switch_basics(request, group_id, switch_id):
+class SwitchBasics(LoginRequiredMixin, View):
     """
     "basic" switch view, i.e. interface data only.
     Simply call switch_view() with proper parameter
     """
-    counter_increment(COUNTER_VIEWS)
-    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="basic")
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchBasics() - GET called")
+        counter_increment(COUNTER_VIEWS)
+        return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="basic")
 
 
-@login_required(redirect_field_name=None)
-def switch_arp_lldp(request, group_id, switch_id):
+class SwitchDetails(LoginRequiredMixin, View):
     """
     "details" switch view, i.e. with Ethernet/ARP/LLDP data.
     Simply call switch_view() with proper parameter
     """
-    counter_increment(COUNTER_DETAILVIEWS)
-    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="arp_lldp")
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchDetails() - GET called")
+        counter_increment(COUNTER_DETAILVIEWS)
+        return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="arp_lldp")
 
 
-@login_required(redirect_field_name=None)
-def switch_hw_info(request, group_id, switch_id):
+class SwitchHardwareInfo(LoginRequiredMixin, View):
     """
     "hardware info" switch view, i.e. read detailed system hardware ("entity") data.
     Simply call switch_view() with proper parameter
     """
-    counter_increment(COUNTER_HWINFO)
-    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="hw_info")
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchHardwareInfo() - GET called")
+        counter_increment(COUNTER_HWINFO)
+        return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="hw_info")
 
 
 def switch_view(
@@ -537,171 +568,181 @@ def switch_view(
 #
 # Bulk Edit interfaces on a switch
 #
-@login_required(redirect_field_name=None)
-def switch_bulkedit(request, group_id, switch_id):
+class SwitchBulkEdit(LoginRequiredMixin, View):
     """
     Change several interfaces at once.
     """
-    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        action=LOG_VIEW_SWITCH,
-        type=LOG_TYPE_VIEW,
-    )
-
-    if group == None or switch == None:
-        log.type = LOG_TYPE_ERROR
-        log.description = "Permission denied!"
-        log.save()
-        error = Error()
-        error.status = True
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    counter_increment(COUNTER_BULKEDITS)
-
-    remote_ip = get_remote_ip(request)
-
-    # read the submitted form data:
-    interface_change = int(request.POST.get("interface_change", INTERFACE_STATUS_NONE))
-    poe_choice = int(request.POST.get("poe_choice", BULKEDIT_POE_NONE))
-    new_pvid = int(request.POST.get("new_pvid", -1))
-    new_description = str(request.POST.get("new_description", ""))
-    new_description_type = int(request.POST.get("new_description_type", BULKEDIT_ALIAS_TYPE_REPLACE))
-    interface_list = request.POST.getlist("interface_list")
-
-    # was anything submitted?
-    if len(interface_list) == 0:
-        return warning_page(
-            request=request,
-            group=group,
-            switch=switch,
-            description=mark_safe("Please select at least 1 interface!"),
-        )
-
-    if (
-        interface_change == INTERFACE_STATUS_NONE
-        and poe_choice == BULKEDIT_POE_NONE
-        and new_pvid < 0
-        and not new_description
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
     ):
-        return warning_page(
-            request=request,
-            group=group,
-            switch=switch,
-            description=mark_safe("Please select at least 1 thing to change!"),
-        )
+        dprint("SwitchBulkEdit() - POST called")
+        group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
-    # perform some checks on valid data first:
-    errors = []
-
-    # check if the new description/description is allowed:
-    if new_description and new_description_type == BULKEDIT_ALIAS_TYPE_REPLACE and settings.IFACE_ALIAS_NOT_ALLOW_REGEX:
-        match = re.match(settings.IFACE_ALIAS_NOT_ALLOW_REGEX, new_description)
-        if match:
-            log = Log(
-                user=request.user,
-                ip_address=remote_ip,
-                switch=switch,
-                group=group,
-                type=LOG_TYPE_ERROR,
-                action=LOG_CHANGE_BULK_EDIT,
-                description=f"Description not allowed: {new_description}",
-            )
-            log.save()
-            new_description = ""
-            counter_increment(COUNTER_ERRORS)
-            errors.append(f"The description is not allowed: {new_description}")
-
-    # now we are ready to get a device connection
-    try:
-        conn = get_connection_object(request, group, switch)
-    except Exception:
+        remote_ip = get_remote_ip(request)
         log = Log(
             user=request.user,
             ip_address=remote_ip,
             switch=switch,
             group=group,
-            action=LOG_CONNECTION_ERROR,
-            type=LOG_TYPE_ERROR,
-            description="Could not get connection",
+            action=LOG_VIEW_SWITCH,
+            type=LOG_TYPE_VIEW,
         )
-        log.save()
-        error = Error()
-        error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
-        error.details = "This is likely a configuration error, such as wrong SNMP settings."
-        return error_page(request=request, group=group, switch=switch, error=error)
 
-    # safety-check: is the new PVID allowed:
-    if new_pvid > 0:
-        conn._set_allowed_vlans()
-        if new_pvid not in conn.allowed_vlans.keys():
+        if group == None or switch == None:
+            log.type = LOG_TYPE_ERROR
+            log.description = "Permission denied!"
+            log.save()
+            error = Error()
+            error.status = True
+            error.description = "Access denied!"
+            counter_increment(COUNTER_ACCESS_DENIED)
+            return error_page(request=request, group=False, switch=False, error=error)
+
+        counter_increment(COUNTER_BULKEDITS)
+
+        # read the submitted form data:
+        interface_change = int(request.POST.get("interface_change", INTERFACE_STATUS_NONE))
+        poe_choice = int(request.POST.get("poe_choice", BULKEDIT_POE_NONE))
+        new_pvid = int(request.POST.get("new_pvid", -1))
+        new_description = str(request.POST.get("new_description", ""))
+        new_description_type = int(request.POST.get("new_description_type", BULKEDIT_ALIAS_TYPE_REPLACE))
+        interface_list = request.POST.getlist("interface_list")
+
+        # was anything submitted?
+        if len(interface_list) == 0:
+            return warning_page(
+                request=request,
+                group=group,
+                switch=switch,
+                description=mark_safe("Please select at least 1 interface!"),
+            )
+
+        if (
+            interface_change == INTERFACE_STATUS_NONE
+            and poe_choice == BULKEDIT_POE_NONE
+            and new_pvid < 0
+            and not new_description
+        ):
+            return warning_page(
+                request=request,
+                group=group,
+                switch=switch,
+                description=mark_safe("Please select at least 1 thing to change!"),
+            )
+
+        # perform some checks on valid data first:
+        errors = []
+
+        # check if the new description/description is allowed:
+        if (
+            new_description
+            and new_description_type == BULKEDIT_ALIAS_TYPE_REPLACE
+            and settings.IFACE_ALIAS_NOT_ALLOW_REGEX
+        ):
+            match = re.match(settings.IFACE_ALIAS_NOT_ALLOW_REGEX, new_description)
+            if match:
+                log = Log(
+                    user=request.user,
+                    ip_address=remote_ip,
+                    switch=switch,
+                    group=group,
+                    type=LOG_TYPE_ERROR,
+                    action=LOG_CHANGE_BULK_EDIT,
+                    description=f"Description not allowed: {new_description}",
+                )
+                log.save()
+                new_description = ""
+                counter_increment(COUNTER_ERRORS)
+                errors.append(f"The description is not allowed: {new_description}")
+
+        # now we are ready to get a device connection
+        try:
+            conn = get_connection_object(request, group, switch)
+        except Exception:
             log = Log(
                 user=request.user,
                 ip_address=remote_ip,
                 switch=switch,
                 group=group,
+                action=LOG_CONNECTION_ERROR,
                 type=LOG_TYPE_ERROR,
-                action=LOG_CHANGE_BULK_EDIT,
-                description=f"New vlan '{new_pvid}' is not allowed!",
+                description="Could not get connection",
             )
             log.save()
-            new_pvid = -1  # force no change!
-            errors.append(f"New vlan '{new_pvid}' is not allowed!")
-            counter_increment(COUNTER_ERRORS)
+            error = Error()
+            error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
+            error.details = "This is likely a configuration error, such as wrong SNMP settings."
+            return error_page(request=request, group=group, switch=switch, error=error)
 
-    if len(errors) > 0:
-        error = Error()
-        error.description = "Some form values were invalid, please correct and resubmit!"
-        error.details = mark_safe("\n<br>".join(errors))
-        return error_page(request=request, group=group, switch=switch, error=error)
+        # safety-check: is the new PVID allowed:
+        if new_pvid > 0:
+            conn._set_allowed_vlans()
+            if new_pvid not in conn.allowed_vlans.keys():
+                log = Log(
+                    user=request.user,
+                    ip_address=remote_ip,
+                    switch=switch,
+                    group=group,
+                    type=LOG_TYPE_ERROR,
+                    action=LOG_CHANGE_BULK_EDIT,
+                    description=f"New vlan '{new_pvid}' is not allowed!",
+                )
+                log.save()
+                new_pvid = -1  # force no change!
+                errors.append(f"New vlan '{new_pvid}' is not allowed!")
+                counter_increment(COUNTER_ERRORS)
 
-    # get the name of the interfaces as well (with the submitted if_key values)
-    # so that we can show the names in the Log() objects
-    # additionally, also get the current state, to be able to "undo" the update
-    interfaces = {}  # dict() of interfaces to bulk edit
-    undo_info = {}
-    for if_key in interface_list:
-        dprint(f"BulkEdit for {if_key}")
-        interface = conn.get_interface_by_key(if_key)
-        if interface:
-            interfaces[if_key] = interface.name
+        if len(errors) > 0:
+            error = Error()
+            error.description = "Some form values were invalid, please correct and resubmit!"
+            error.details = mark_safe("\n<br>".join(errors))
+            return error_page(request=request, group=group, switch=switch, error=error)
 
-    # handle regular submit, execute now!
-    results = bulkedit_processor(
-        request=request,
-        group=group,
-        switch=switch,
-        conn=conn,
-        interface_change=interface_change,
-        poe_choice=poe_choice,
-        new_pvid=new_pvid,
-        new_description=new_description,
-        new_description_type=new_description_type,
-        interfaces=interfaces,
-    )
+        # get the name of the interfaces as well (with the submitted if_key values)
+        # so that we can show the names in the Log() objects
+        # additionally, also get the current state, to be able to "undo" the update
+        interfaces = {}  # dict() of interfaces to bulk edit
+        undo_info = {}
+        for if_key in interface_list:
+            dprint(f"BulkEdit for {if_key}")
+            interface = conn.get_interface_by_key(if_key)
+            if interface:
+                interfaces[if_key] = interface.name
 
-    # indicate we need to save config!
-    if results["success_count"] > 0:
-        conn.set_save_needed(True)
-        # and save data in session
-        conn.save_cache()
+        # handle regular submit, execute now!
+        results = bulkedit_processor(
+            request=request,
+            group=group,
+            switch=switch,
+            conn=conn,
+            interface_change=interface_change,
+            poe_choice=poe_choice,
+            new_pvid=new_pvid,
+            new_description=new_description,
+            new_description_type=new_description_type,
+            interfaces=interfaces,
+        )
 
-    # now build the results page from the outputs
-    result_str = "\n<br>".join(results["outputs"])
-    description = f"\n<div><strong>Bulk-Edit Results:</strong></div>\n<br>{result_str}"
-    if results["error_count"] > 0:
-        err = Error()
-        err.description = "Bulk-Edit errors"
-        err.details = mark_safe(description)
-        return error_page(request=request, group=group, switch=switch, error=err)
-    else:
-        return success_page(request, group, switch, mark_safe(description))
+        # indicate we need to save config!
+        if results["success_count"] > 0:
+            conn.set_save_needed(True)
+            # and save data in session
+            conn.save_cache()
+
+        # now build the results page from the outputs
+        result_str = "\n<br>".join(results["outputs"])
+        description = f"\n<div><strong>Bulk-Edit Results:</strong></div>\n<br>{result_str}"
+        if results["error_count"] > 0:
+            err = Error()
+            err.description = "Bulk-Edit errors"
+            err.details = mark_safe(description)
+            return error_page(request=request, group=group, switch=switch, error=err)
+        else:
+            return success_page(request, group, switch, mark_safe(description))
 
 
 def bulkedit_processor(
@@ -1044,8 +1085,7 @@ def bulkedit_processor(
 #
 # Manage vlans on a device
 #
-@login_required(redirect_field_name=None)
-def switch_vlan_manage(request, group_id, switch_id):
+class SwitchVlanManage(LoginRequiredMixin, View):
     """
     Manage vlan to a device. Form data will be POST-ed.
 
@@ -1057,48 +1097,56 @@ def switch_vlan_manage(request, group_id, switch_id):
     Returns:
         render() via success_page or error_page with appropriate success or failure info.
     """
-    # parse form items:
-    vlan_id = int(request.POST.get("vlan_id", -1))
-    vlan_name = str(request.POST.get("vlan_name", "")).strip()
 
-    if request.POST.get("vlan_create"):
-        dprint("switch_vlan_manage(create)")
-        retval, info = perform_switch_vlan_add(
-            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
-        )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchVlanManage() - POST called")
 
-    elif request.POST.get("vlan_edit"):
-        dprint("switch_vlan_manage(edit)")
-        retval, info = perform_switch_vlan_edit(
-            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
-        )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+        # parse form items:
+        vlan_id = int(request.POST.get("vlan_id", -1))
+        vlan_name = str(request.POST.get("vlan_name", "")).strip()
 
-    elif request.POST.get("vlan_delete"):
-        dprint("switch_vlan_manage(delete)")
-        retval, info = perform_switch_vlan_delete(
-            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id
-        )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+        if request.POST.get("vlan_create"):
+            dprint("switch_vlan_manage(create)")
+            retval, info = perform_switch_vlan_add(
+                request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
+            )
+            if not retval:
+                return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+            return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
-    error = Error()
-    error.status = True
-    error.description = f"UNKNOWN vlan management action: POST={dict(request.POST.items())}"
-    return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
+        elif request.POST.get("vlan_edit"):
+            dprint("switch_vlan_manage(edit)")
+            retval, info = perform_switch_vlan_edit(
+                request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
+            )
+            if not retval:
+                return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+            return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+
+        elif request.POST.get("vlan_delete"):
+            dprint("switch_vlan_manage(delete)")
+            retval, info = perform_switch_vlan_delete(
+                request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id
+            )
+            if not retval:
+                return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+            return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+
+        error = Error()
+        error.status = True
+        error.description = f"UNKNOWN vlan management action: POST={dict(request.POST.items())}"
+        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
 
 #
 # Change admin status, ie port Enable/Disable
 #
-@login_required(redirect_field_name=None)
-def interface_admin_change(request, group_id, switch_id, interface_name, new_state):
+class InterfaceAdminChange(LoginRequiredMixin, View):
     """
     Toggle the admin status of an interface, ie admin up or down.
     Params:
@@ -1111,25 +1159,33 @@ def interface_admin_change(request, group_id, switch_id, interface_name, new_sta
     Returns:
         renders either OK or Error page, depending permissions and result.
     """
-    dprint("interface_admin_change()")
-    retval, info = perform_interface_admin_change(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-        interface_key=interface_name,
-        new_state=bool(new_state),
-    )
-    if not retval:
-        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-    # we don't know the name of the interface, only the key or id.
-    # message = f"Interface {interface_name} description changed"
-    # message = f"Interface description changed"
-    return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+        new_state,
+    ):
+        dprint("InterfaceAdminChange() - GET called")
+        retval, info = perform_interface_admin_change(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            interface_key=interface_name,
+            new_state=bool(new_state),
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        # we don't know the name of the interface, only the key or id.
+        # message = f"Interface {interface_name} description changed"
+        # message = f"Interface description changed"
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
-@login_required(redirect_field_name=None)
-def interface_description_change(request, group_id, switch_id, interface_name):
+class InterfaceDescriptionChange(LoginRequiredMixin, View):
     """
     Change the description on an interfaces.
 
@@ -1142,35 +1198,42 @@ def interface_description_change(request, group_id, switch_id, interface_name):
     Returns:
         renders either OK or Error page, depending permissions and result.
     """
-    dprint("interface_description_change()")
 
-    # read the submitted form data:
-    # new_description = str(request.POST.get("new_description", ""))
-    try:
-        description = request.POST['new_description']
-    except Exception:
-        error = Error()
-        error.description = "Missing required parameter: 'new_description'"
-        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        dprint("InterfaceDescriptionChange() - POST called")
 
-    retval, error = perform_interface_description_change(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-        interface_key=interface_name,
-        new_description=description,
-    )
-    if not retval:
-        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
+        # read the submitted form data:
+        # new_description = str(request.POST.get("new_description", ""))
+        try:
+            description = request.POST['new_description']
+        except Exception:
+            error = Error()
+            error.description = "Missing required parameter: 'new_description'"
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-    # we don't know the name of the interface, only the key or id.
-    # message = f"Interface {interface_name} description changed"
-    message = f"Interface description changed"
-    return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
+        retval, error = perform_interface_description_change(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            interface_key=interface_name,
+            new_description=description,
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
+
+        # we don't know the name of the interface, only the key or id.
+        # message = f"Interface {interface_name} description changed"
+        message = f"Interface description changed"
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
-@login_required(redirect_field_name=None)
-def interface_pvid_change(request, group_id, switch_id, interface_name):
+class InterfacePvidChange(LoginRequiredMixin, View):
     """
     Change the PVID untagged vlan on an interfaces.
     This still needs to handle dot1q trunked ports.
@@ -1184,34 +1247,41 @@ def interface_pvid_change(request, group_id, switch_id, interface_name):
     Returns:
         renders either OK or Error page, depending permissions and result.
     """
-    dprint("interface_pvid_change()")
 
-    # read the submitted form data:
-    try:
-        new_pvid = int(request.POST.get('new_pvid'))
-    except Exception:
-        error = Error()
-        error.description = "Missing required parameter: 'new_pvid'"
-        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        dprint("InterfacePvidChange() - POST called")
 
-    retval, info = perform_interface_pvid_change(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-        interface_key=interface_name,
-        new_pvid=new_pvid,
-    )
-    if not retval:
-        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+        # read the submitted form data:
+        try:
+            new_pvid = int(request.POST.get('new_pvid'))
+        except Exception:
+            error = Error()
+            error.description = "Missing required parameter: 'new_pvid'"
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-    return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+        retval, info = perform_interface_pvid_change(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            interface_key=interface_name,
+            new_pvid=new_pvid,
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 #
 # Change PoE status, i.e. port power Enable/Disable
 #
-@login_required(redirect_field_name=None)
-def interface_poe_change(request, group_id, switch_id, interface_name, new_state):
+class InterfacePoeChange(LoginRequiredMixin, View):
     """
     Change the PoE status of an interfaces.
     This still needs to be tested for propper PoE port to interface ifIndex mappings.
@@ -1226,646 +1296,721 @@ def interface_poe_change(request, group_id, switch_id, interface_name, new_state
     Returns:
         renders either OK or Error page, depending permissions and result.
     """
-    dprint(f"interface_poe_change()")
 
-    if new_state == POE_PORT_ADMIN_ENABLED:
-        enable = True
-    else:
-        enable = False
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+        new_state,
+    ):
+        dprint("InterfacePoeChange() - GET called")
 
-    retval, info = perform_interface_poe_change(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-        interface_key=interface_name,
-        new_state=enable,
-    )
-    if not retval:
-        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+        if new_state == POE_PORT_ADMIN_ENABLED:
+            enable = True
+        else:
+            enable = False
 
-    return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+        retval, info = perform_interface_poe_change(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            interface_key=interface_name,
+            new_state=enable,
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 #
 # Toggle PoE status Down then Up
 #
-@login_required(redirect_field_name=None)
-def interface_poe_down_up(request, group_id, switch_id, interface_name):
+class InterfacePoeDownUp(LoginRequiredMixin, View):
     """
     Toggle the PoE status of an interfaces. I.e disable, wait some, then enable again.
     """
-    # disable power first:
-    retval, info = perform_interface_poe_change(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-        interface_key=interface_name,
-        new_state=False,
-    )
-    if not retval:
-        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-    # delay to let the device cold-boot properly
-    time.sleep(settings.POE_TOGGLE_DELAY)
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        dprint("InterfacePoeDownUp() - GET called")
+        # disable power first:
+        retval, info = perform_interface_poe_change(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            interface_key=interface_name,
+            new_state=False,
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-    # and enable again:
-    retval, info = perform_interface_poe_change(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-        interface_key=interface_name,
-        new_state=True,
-    )
-    if not retval:
-        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+        # delay to let the device cold-boot properly
+        time.sleep(settings.POE_TOGGLE_DELAY)
 
-    description = "Interface PoE was toggled!"
-    return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message=description)
+        # and enable again:
+        retval, info = perform_interface_poe_change(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            interface_key=interface_name,
+            new_state=True,
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        description = "Interface PoE was toggled!"
+        return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message=description)
 
 
-@login_required(redirect_field_name=None)
-def switch_save_config(request, group_id, switch_id):
+class SwitchSaveConfig(LoginRequiredMixin, View):
     """
     This will save the running config to flash/startup/whatever, on supported platforms
     """
-    dprint("switch_save_config()")
-    retval, error = perform_switch_save_config(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-    )
-    if not retval:
-        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-    return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message="Configuration was saved.")
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchSaveConfig() - GET called")
+        retval, error = perform_switch_save_config(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
+
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message="Configuration was saved.")
 
 
-@login_required(redirect_field_name=None)
-def switch_cmd_output(request, group_id, switch_id):
+class SwitchCmdOutput(LoginRequiredMixin, View):
     """
     Go parse a global switch command that was submitted in the form
     """
-    command_id = int(request.POST.get("command_id", -1))
-    return switch_view(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-        view="basic",
-        command_id=command_id,
-    )
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchCmdOutput() - POST called")
+
+        command_id = int(request.POST.get("command_id", -1))
+        return switch_view(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            view="basic",
+            command_id=command_id,
+        )
 
 
-@login_required(redirect_field_name=None)
-def switch_cmd_template_output(request, group_id, switch_id):
+class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
     """
     Go parse a switch command template that was submitted in the form
     """
-    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
-    if group == None or switch == None:
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchCmdTemplateOutput() - POST called")
+
+        group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+
+        if group == None or switch == None:
+            log = Log(
+                user=request.user,
+                ip_address=get_remote_ip(request),
+                switch=switch,
+                group=group,
+                type=LOG_TYPE_ERROR,
+                description="Permission denied!",
+            )
+            log.save()
+            error = Error()
+            error.status = True
+            error.description = "Access denied!"
+            counter_increment(COUNTER_ACCESS_DENIED)
+            return error_page(request=request, group=False, switch=False, error=error)
+
+        template_id = int(request.POST.get("template_id", -1))
+        t = get_object_or_404(CommandTemplate, pk=template_id)
+
+        # now build the command template:
+        values = {}
+        errors = False
+        error_string = ""
+
+        """
+        do field / list validation here. This can likely be simplified - needs work!
+        """
+        # do we need to parse field1:
+        if "{{field1}}" in t.template:
+            field1 = request.POST.get("field1", False)
+            if field1:
+                if string_matches_regex(field1, t.field1_regex):
+                    values["field1"] = str(field1)
+                else:
+                    errors = True
+                    error_string = f"{ t.field1_name } - Invalid entry: { field1 }"
+            else:
+                # not found in form (or empty), but reqired!
+                errors = True
+                error_string = f"{ t.field1_name } - cannot be blank!"
+
+        # do we need to parse field2:
+        if "{{field2}}" in t.template:
+            field2 = request.POST.get("field2", False)
+            if field2:
+                if string_matches_regex(field2, t.field2_regex):
+                    values["field2"] = str(field2)
+                else:
+                    errors = True
+                    error_string += f"<br/>{ t.field2_name } - Invalid entry: { field2 }"
+            else:
+                # not found in form (or empty), but reqired!
+                errors = True
+                error_string += f"<br/>{ t.field2_name } - cannot be blank!"
+
+        # do we need to parse field3:
+        if "{{field3}}" in t.template:
+            field3 = request.POST.get("field3", False)
+            if field3:
+                if string_matches_regex(field3, t.field3_regex):
+                    values["field3"] = str(field3)
+                else:
+                    errors = True
+                    error_string += f"<br/>{ t.field3_name } - Invalid entry: { field3 }"
+            else:
+                # not found in form (or empty), but reqired!
+                errors = True
+                error_string += f"<br/>{ t.field3_name } - cannot be blank!"
+
+        # do we need to parse field4:
+        if "{{field4}}" in t.template:
+            field4 = request.POST.get("field4", False)
+            if field4:
+                if string_matches_regex(field4, t.field4_regex):
+                    values["field4"] = str(field4)
+                else:
+                    errors = True
+                    error_string += f"<br/>{ t.field4_name } - Invalid entry: { field4 } "
+            else:
+                # not found in form (or empty), but reqired!
+                errors = True
+                error_string += f"<br/>{ t.field4_name } - cannot be blank!"
+
+        # do we need to parse field5:
+        if "{{field5}}" in t.template:
+            field5 = request.POST.get("field5_regex", False)
+            if field5:
+                if string_matches_regex(field5, t.field5_regex):
+                    values["field5"] = str(field5)
+                else:
+                    errors = True
+                    error_string += f"<br/>{t.field5_name} - Invalid entry: { field5 }"
+            else:
+                # not found in form (or empty), but reqired!
+                errors = True
+                error_string += f"<br/>{ t.field5_name } - cannot be blank!"
+
+        # do we need to parse field6:
+        if "{{field6}}" in t.template:
+            field6 = request.POST.get("field6", False)
+            if field6:
+                if string_matches_regex(field1, t.field6_regex):
+                    values["field6"] = str(field6)
+                else:
+                    errors = True
+                    error_string += f"<br/>{t.field6_name} - Invalid entry: { field6 } "
+            else:
+                # not found in form (or empty), but reqired!
+                errors = True
+                error_string += f"<br/>{ t.field6_name } - cannot be blank!"
+
+        # do we need to parse field7:
+        if "{{field7}}" in t.template:
+            field7 = request.POST.get("field7", False)
+            if field7:
+                if string_matches_regex(field7, t.field7_regex):
+                    values["field7"] = str(field7)
+                else:
+                    errors = True
+                    error_string += f"<br/>{t.field7_name} - Invalid entry: { field7 }"
+            else:
+                # not found in form (or empty), but reqired!
+                errors = True
+                error_string += f"<br/>{ t.field7_name } - cannot be blank!"
+
+        # do we need to parse field8:
+        if "{{field8}}" in t.template:
+            field8 = request.POST.get("field8", False)
+            if field8:
+                if string_matches_regex(field8, t.field8_regex):
+                    values["field8"] = str(field8)
+                else:
+                    errors = True
+                    error_string += f"<br/>{t.field8_name} - Invalid entry: { field8 }"
+            else:
+                # not found in form (or empty), but reqired!
+                errors = True
+                error_string += f"<br/>{ t.field8_name } - cannot be blank!"
+
+        # and the pick lists:
+        # do we need to parse list1:
+        if "{{list1}}" in t.template:
+            list1 = request.POST.get("list1", False)
+            if list1:
+                values["list1"] = str(list1)
+            else:
+                # not found in form (or empty), but reqired (unlikely to happen for list)!
+                errors = True
+                error_string += f"<br/>{ t.list1_name } - cannot be blank!"
+
+        # do we need to parse list2:
+        if "{{list2}}" in t.template:
+            list2 = request.POST.get("list2", False)
+            if list2:
+                values["list2"] = str(list2)
+            else:
+                # not found in form (or empty), but reqired (unlikely to happen for list)!
+                errors = True
+                error_string += f"<br/>{ t.list2_name } - cannot be blank!"
+
+        # do we need to parse list3:
+        if "{{list3}}" in t.template:
+            list3 = request.POST.get("list3", False)
+            if list3:
+                values["list3"] = str(list3)
+            else:
+                # not found in form (or empty), but reqired (unlikely to happen for list)!
+                errors = True
+                error_string += f"<br/>{ t.list3_name } - cannot be blank!"
+
+        # do we need to parse list4:
+        if "{{list4}}" in t.template:
+            list4 = request.POST.get("list4", False)
+            if list4:
+                values["list4"] = str(list4)
+            else:
+                # not found in form (or empty), but reqired (unlikely to happen for list)!
+                errors = True
+                error_string += f"<br/>{ t.list4_name } - cannot be blank!"
+
+        # do we need to parse list5:
+        if "{{list5}}" in t.template:
+            list5 = request.POST.get("list5", False)
+            if list5:
+                values["list5"] = str(list5)
+            else:
+                # not found in form (or empty), but reqired (unlikely to happen for list)!
+                errors = True
+                error_string += f"<br/>{ t.list5_name } - cannot be blank!"
+
+        if errors:
+            error = Error()
+            error.description = mark_safe(error_string)
+            return error_page(request=request, group=group, switch=switch, error=error)
+
+        # now do the template expansion, i.e. Jinja2 rendering:
+        template = Template(t.template)
+        context = Context(values)
+        command = template.render(context)
+
+        return switch_view(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            view="basic",
+            command_id=-1,
+            interface_name="",
+            command_string=command,
+            command_template=t,
+        )
+
+
+class InterfaceCmdOutput(LoginRequiredMixin, View):
+    """
+    Parse the interface-specific command form and build the commands
+    """
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        dprint("InterfaceCmdOutput() - POST called")
+        command_id = int(request.POST.get("command_id", -1))
+        return switch_view(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            view="basic",
+            command_id=command_id,
+            interface_name=interface_name,
+        )
+
+
+class SwitchReload(LoginRequiredMixin, View):
+    """
+    This forces a new reading of device data
+    """
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+        view,
+    ):
+        dprint("SwitchReload() - GET called")
+
+        group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+
+        if group == None or switch == None:
+            log = Log(
+                user=request.user,
+                ip_address=get_remote_ip(request),
+                switch=switch,
+                group=group,
+                type=LOG_TYPE_ERROR,
+                description="Permission denied!",
+            )
+            log.save()
+            error = Error()
+            error.status = True
+            error.description = "Access denied!"
+            counter_increment(COUNTER_ACCESS_DENIED)
+            return error_page(request=request, group=False, switch=False, error=error)
+
         log = Log(
             user=request.user,
             ip_address=get_remote_ip(request),
             switch=switch,
             group=group,
-            type=LOG_TYPE_ERROR,
-            description="Permission denied!",
+            description=f"Reloading device ({view})",
+            action=LOG_RELOAD_SWITCH,
+            type=LOG_TYPE_VIEW,
         )
         log.save()
-        error = Error()
-        error.status = True
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
 
-    template_id = int(request.POST.get("template_id", -1))
-    t = get_object_or_404(CommandTemplate, pk=template_id)
+        clear_switch_cache(request)
+        counter_increment(COUNTER_VIEWS)
 
-    # now build the command template:
-    values = {}
-    errors = False
-    error_string = ""
-
-    """
-    do field / list validation here. This can likely be simplified - needs work!
-    """
-    # do we need to parse field1:
-    if "{{field1}}" in t.template:
-        field1 = request.POST.get("field1", False)
-        if field1:
-            if string_matches_regex(field1, t.field1_regex):
-                values["field1"] = str(field1)
-            else:
-                errors = True
-                error_string = f"{ t.field1_name } - Invalid entry: { field1 }"
-        else:
-            # not found in form (or empty), but reqired!
-            errors = True
-            error_string = f"{ t.field1_name } - cannot be blank!"
-
-    # do we need to parse field2:
-    if "{{field2}}" in t.template:
-        field2 = request.POST.get("field2", False)
-        if field2:
-            if string_matches_regex(field2, t.field2_regex):
-                values["field2"] = str(field2)
-            else:
-                errors = True
-                error_string += f"<br/>{ t.field2_name } - Invalid entry: { field2 }"
-        else:
-            # not found in form (or empty), but reqired!
-            errors = True
-            error_string += f"<br/>{ t.field2_name } - cannot be blank!"
-
-    # do we need to parse field3:
-    if "{{field3}}" in t.template:
-        field3 = request.POST.get("field3", False)
-        if field3:
-            if string_matches_regex(field3, t.field3_regex):
-                values["field3"] = str(field3)
-            else:
-                errors = True
-                error_string += f"<br/>{ t.field3_name } - Invalid entry: { field3 }"
-        else:
-            # not found in form (or empty), but reqired!
-            errors = True
-            error_string += f"<br/>{ t.field3_name } - cannot be blank!"
-
-    # do we need to parse field4:
-    if "{{field4}}" in t.template:
-        field4 = request.POST.get("field4", False)
-        if field4:
-            if string_matches_regex(field4, t.field4_regex):
-                values["field4"] = str(field4)
-            else:
-                errors = True
-                error_string += f"<br/>{ t.field4_name } - Invalid entry: { field4 } "
-        else:
-            # not found in form (or empty), but reqired!
-            errors = True
-            error_string += f"<br/>{ t.field4_name } - cannot be blank!"
-
-    # do we need to parse field5:
-    if "{{field5}}" in t.template:
-        field5 = request.POST.get("field5_regex", False)
-        if field5:
-            if string_matches_regex(field5, t.field5_regex):
-                values["field5"] = str(field5)
-            else:
-                errors = True
-                error_string += f"<br/>{t.field5_name} - Invalid entry: { field5 }"
-        else:
-            # not found in form (or empty), but reqired!
-            errors = True
-            error_string += f"<br/>{ t.field5_name } - cannot be blank!"
-
-    # do we need to parse field6:
-    if "{{field6}}" in t.template:
-        field6 = request.POST.get("field6", False)
-        if field6:
-            if string_matches_regex(field1, t.field6_regex):
-                values["field6"] = str(field6)
-            else:
-                errors = True
-                error_string += f"<br/>{t.field6_name} - Invalid entry: { field6 } "
-        else:
-            # not found in form (or empty), but reqired!
-            errors = True
-            error_string += f"<br/>{ t.field6_name } - cannot be blank!"
-
-    # do we need to parse field7:
-    if "{{field7}}" in t.template:
-        field7 = request.POST.get("field7", False)
-        if field7:
-            if string_matches_regex(field7, t.field7_regex):
-                values["field7"] = str(field7)
-            else:
-                errors = True
-                error_string += f"<br/>{t.field7_name} - Invalid entry: { field7 }"
-        else:
-            # not found in form (or empty), but reqired!
-            errors = True
-            error_string += f"<br/>{ t.field7_name } - cannot be blank!"
-
-    # do we need to parse field8:
-    if "{{field8}}" in t.template:
-        field8 = request.POST.get("field8", False)
-        if field8:
-            if string_matches_regex(field8, t.field8_regex):
-                values["field8"] = str(field8)
-            else:
-                errors = True
-                error_string += f"<br/>{t.field8_name} - Invalid entry: { field8 }"
-        else:
-            # not found in form (or empty), but reqired!
-            errors = True
-            error_string += f"<br/>{ t.field8_name } - cannot be blank!"
-
-    # and the pick lists:
-    # do we need to parse list1:
-    if "{{list1}}" in t.template:
-        list1 = request.POST.get("list1", False)
-        if list1:
-            values["list1"] = str(list1)
-        else:
-            # not found in form (or empty), but reqired (unlikely to happen for list)!
-            errors = True
-            error_string += f"<br/>{ t.list1_name } - cannot be blank!"
-
-    # do we need to parse list2:
-    if "{{list2}}" in t.template:
-        list2 = request.POST.get("list2", False)
-        if list2:
-            values["list2"] = str(list2)
-        else:
-            # not found in form (or empty), but reqired (unlikely to happen for list)!
-            errors = True
-            error_string += f"<br/>{ t.list2_name } - cannot be blank!"
-
-    # do we need to parse list3:
-    if "{{list3}}" in t.template:
-        list3 = request.POST.get("list3", False)
-        if list3:
-            values["list3"] = str(list3)
-        else:
-            # not found in form (or empty), but reqired (unlikely to happen for list)!
-            errors = True
-            error_string += f"<br/>{ t.list3_name } - cannot be blank!"
-
-    # do we need to parse list4:
-    if "{{list4}}" in t.template:
-        list4 = request.POST.get("list4", False)
-        if list4:
-            values["list4"] = str(list4)
-        else:
-            # not found in form (or empty), but reqired (unlikely to happen for list)!
-            errors = True
-            error_string += f"<br/>{ t.list4_name } - cannot be blank!"
-
-    # do we need to parse list5:
-    if "{{list5}}" in t.template:
-        list5 = request.POST.get("list5", False)
-        if list5:
-            values["list5"] = str(list5)
-        else:
-            # not found in form (or empty), but reqired (unlikely to happen for list)!
-            errors = True
-            error_string += f"<br/>{ t.list5_name } - cannot be blank!"
-
-    if errors:
-        error = Error()
-        error.description = mark_safe(error_string)
-        return error_page(request=request, group=group, switch=switch, error=error)
-
-    # now do the template expansion, i.e. Jinja2 rendering:
-    template = Template(t.template)
-    context = Context(values)
-    command = template.render(context)
-
-    return switch_view(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-        view="basic",
-        command_id=-1,
-        interface_name="",
-        command_string=command,
-        command_template=t,
-    )
+        return switch_view(request=request, group_id=group_id, switch_id=switch_id, view=view)
 
 
-@login_required(redirect_field_name=None)
-def interface_cmd_output(request, group_id, switch_id, interface_name):
-    """
-    Parse the interface-specific form and build the commands
-    """
-    command_id = int(request.POST.get("command_id", -1))
-    return switch_view(
-        request=request,
-        group_id=group_id,
-        switch_id=switch_id,
-        view="basic",
-        command_id=command_id,
-        interface_name=interface_name,
-    )
-
-
-@login_required(redirect_field_name=None)
-def switch_reload(request, group_id, switch_id, view):
-    """
-    This forces a new reading of basic switch SNMP data
-    """
-    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
-
-    if group == None or switch == None:
-        log = Log(
-            user=request.user,
-            ip_address=get_remote_ip(request),
-            switch=switch,
-            group=group,
-            type=LOG_TYPE_ERROR,
-            description="Permission denied!",
-        )
-        log.save()
-        error = Error()
-        error.status = True
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
-
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        description=f"Reloading device ({view})",
-        action=LOG_RELOAD_SWITCH,
-        type=LOG_TYPE_VIEW,
-    )
-    log.save()
-
-    clear_switch_cache(request)
-    counter_increment(COUNTER_VIEWS)
-
-    return switch_view(request=request, group_id=group_id, switch_id=switch_id, view=view)
-
-
-@login_required(redirect_field_name=None)
-def switch_activity(request, group_id, switch_id):
+class SwitchActivity(LoginRequiredMixin, View):
     """
     This shows recent activity for a specific switch
     """
-    template_name = "switch_activity.html"
-    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
-    if group == None or switch == None:
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchActivity() - GET called")
+        template_name = "switch_activity.html"
+        group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+
+        if group == None or switch == None:
+            log = Log(
+                user=request.user,
+                ip_address=get_remote_ip(request),
+                switch=switch,
+                group=group,
+                type=LOG_TYPE_ERROR,
+                description="Permission denied!",
+            )
+            log.save()
+            error = Error()
+            error.status = True
+            error.description = "Access denied!"
+            counter_increment(COUNTER_ACCESS_DENIED)
+            return error_page(request=request, group=False, switch=False, error=error)
+
+        # only show this switch. May add more filters later...
+        filter = {"switch_id": switch_id}
+        logs = Log.objects.all().filter(**filter).order_by("-timestamp")
+
+        # setup pagination of the resulting activity logs
+        page_number = int(request.GET.get("page", default=1))
+        paginator = Paginator(logs, settings.PAGINATE_COUNT)  # Show set number of contacts per page.
+        logs_page = paginator.get_page(page_number)
+
+        # log my activity
         log = Log(
             user=request.user,
             ip_address=get_remote_ip(request),
             switch=switch,
             group=group,
-            type=LOG_TYPE_ERROR,
-            description="Permission denied!",
+            type=LOG_TYPE_VIEW,
+            action=LOG_VIEW_ALL_LOGS,
+            description=f"Viewing Switch Activity Logs (page {page_number})",
         )
         log.save()
-        error = Error()
-        error.status = True
-        error.description = "Access denied!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
 
-    # only show this switch. May add more filters later...
-    filter = {"switch_id": switch_id}
-    logs = Log.objects.all().filter(**filter).order_by("-timestamp")
-
-    # setup pagination of the resulting activity logs
-    page_number = int(request.GET.get("page", default=1))
-    paginator = Paginator(logs, settings.PAGINATE_COUNT)  # Show set number of contacts per page.
-    logs_page = paginator.get_page(page_number)
-
-    # log my activity
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        switch=switch,
-        group=group,
-        type=LOG_TYPE_VIEW,
-        action=LOG_VIEW_ALL_LOGS,
-        description=f"Viewing Switch Activity Logs (page {page_number})",
-    )
-    log.save()
-
-    # get the url to this switch:
-    switch_url = reverse("switches:switch_basics", kwargs={"group_id": group.id, "switch_id": switch.id})
-    # formulate the title and link
-    title = mark_safe(
-        f'All Activity for <a href="{switch_url}" data-toggle="tooltip" title="Go back to switch">{switch.name}</a>'
-    )
-    # render the template
-    return render(
-        request,
-        template_name,
-        {
-            "logs": logs_page,
-            "paginator": paginator,
-            "group": group,
-            "switch": switch,
-            "log_title": title,
-            "logs_link": False,
-        },
-    )
+        # get the url to this switch:
+        switch_url = reverse("switches:switch_basics", kwargs={"group_id": group.id, "switch_id": switch.id})
+        # formulate the title and link
+        title = mark_safe(
+            f'All Activity for <a href="{switch_url}" data-toggle="tooltip" title="Go back to switch">{switch.name}</a>'
+        )
+        # render the template
+        return render(
+            request,
+            template_name,
+            {
+                "logs": logs_page,
+                "paginator": paginator,
+                "group": group,
+                "switch": switch,
+                "log_title": title,
+                "logs_link": False,
+            },
+        )
 
 
-@login_required(redirect_field_name=None)
-def show_stats(request):
+class ShowStats(LoginRequiredMixin, View):
     """
     This shows various site statistics
     """
 
-    template_name = "admin_stats.html"
-
-    # log my activity
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        type=LOG_TYPE_VIEW,
-        action=LOG_VIEW_ADMIN_STATS,
-        description="Viewing Site Statistics",
-    )
-    log.save()
-
-    environment = {
-        "Python": f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
-    }  # OS environment information
-    uname = os.uname()
-    environment["OS"] = f"{uname.sysname} ({uname.release})"
-    # environment['Version'] = uname.version
-    environment["Distro"] = f"{distro.name()} {distro.version(best=True)}"
-    environment["Hostname"] = uname.nodename
-    environment["Django"] = django.get_version()
-    environment["OpenL2M version"] = f"{settings.VERSION} ({settings.VERSION_DATE})"
-    import git
-
-    try:
-        repo = git.Repo(search_parent_directories=True)
-        sha = repo.head.object.hexsha
-        short_sha = repo.git.rev_parse(sha, short=8)
-        branch = repo.active_branch
-        commit_date = time.strftime("%a, %d %b %Y %H:%M UTC", time.gmtime(repo.head.object.committed_date))
-        environment["Git version"] = f"{branch} ({short_sha})"
-        environment["Git commit"] = commit_date
-    except Exception:
-        environment["Git version"] = "Not found!"
-
-    db_items = {"Switches": Switch.objects.count()}  # database object item counts
-    # need to calculate switchgroup count, as we count only groups with switches!
-    group_count = 0
-    for group in SwitchGroup.objects.all():
-        if group.switches.count():
-            group_count += 1
-    db_items["Switch Groups"] = group_count
-    db_items["Vlans"] = VLAN.objects.count()
-    db_items["Vlan Groups"] = VlanGroup.objects.count()
-    db_items["SNMP Profiles"] = SnmpProfile.objects.count()
-    db_items["Netmiko Profiles"] = NetmikoProfile.objects.count()
-    db_items["Commands"] = Command.objects.count()
-    db_items["Command Lists"] = CommandList.objects.count()
-    db_items["Log Entries"] = Log.objects.count()
-
-    usage = {}  # usage statistics
-
-    filter = {}
-    filter['timestamp__date'] = datetime.date.today()
-    usage['Devices today'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
-
-    filter = {}
-    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=7)
-    usage['Devices last 7 days'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
-
-    filter = {}
-    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
-    usage['Devices last 31 days'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
-
-    filter = {}
-    filter['type'] = int(LOG_TYPE_CHANGE)
-    filter['timestamp__date'] = datetime.date.today()
-    usage['Changes today'] = Log.objects.filter(**filter).count()
-
-    filter = {
-        "type": int(LOG_TYPE_CHANGE),
-        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
-    }
-    usage["Changes last 7 days"] = Log.objects.filter(**filter).count()
-
-    filter = {
-        "type": int(LOG_TYPE_CHANGE),
-        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
-    }
-    usage["Changes last 31 days"] = Log.objects.filter(**filter).count()
-
-    # the total change count since install from Counter()'changes') object:
-    usage["Total Changes"] = Counter.objects.get(name="changes").value
-
-    filter = {"type": int(LOG_TYPE_COMMAND), "timestamp__date": datetime.date.today()}
-    usage["Commands today"] = Log.objects.filter(**filter).count()
-
-    filter = {
-        "type": int(LOG_TYPE_COMMAND),
-        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
-    }
-    usage["Commands last 7 days"] = Log.objects.filter(**filter).count()
-
-    filter = {
-        "type": int(LOG_TYPE_COMMAND),
-        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
-    }
-    usage["Commands last 31 days"] = Log.objects.filter(**filter).count()
-
-    # total number of commands run:
-    usage["Total Commands"] = Counter.objects.get(name="commands").value
-
-    user_list = get_current_users()
-
-    # render the template
-    return render(
+    def get(
+        self,
         request,
-        template_name,
-        {
-            "db_items": db_items,
-            "usage": usage,
-            "environment": environment,
-            "user_list": user_list,
-        },
-    )
+    ):
+        dprint("ShowStats() - GET called")
+
+        template_name = "admin_stats.html"
+
+        # log my activity
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            type=LOG_TYPE_VIEW,
+            action=LOG_VIEW_ADMIN_STATS,
+            description="Viewing Site Statistics",
+        )
+        log.save()
+
+        environment = {
+            "Python": f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
+        }  # OS environment information
+        uname = os.uname()
+        environment["OS"] = f"{uname.sysname} ({uname.release})"
+        # environment['Version'] = uname.version
+        environment["Distro"] = f"{distro.name()} {distro.version(best=True)}"
+        environment["Hostname"] = uname.nodename
+        environment["Django"] = django.get_version()
+        environment["OpenL2M version"] = f"{settings.VERSION} ({settings.VERSION_DATE})"
+        import git
+
+        try:
+            repo = git.Repo(search_parent_directories=True)
+            sha = repo.head.object.hexsha
+            short_sha = repo.git.rev_parse(sha, short=8)
+            branch = repo.active_branch
+            commit_date = time.strftime("%a, %d %b %Y %H:%M UTC", time.gmtime(repo.head.object.committed_date))
+            environment["Git version"] = f"{branch} ({short_sha})"
+            environment["Git commit"] = commit_date
+        except Exception:
+            environment["Git version"] = "Not found!"
+
+        db_items = {"Switches": Switch.objects.count()}  # database object item counts
+        # need to calculate switchgroup count, as we count only groups with switches!
+        group_count = 0
+        for group in SwitchGroup.objects.all():
+            if group.switches.count():
+                group_count += 1
+        db_items["Switch Groups"] = group_count
+        db_items["Vlans"] = VLAN.objects.count()
+        db_items["Vlan Groups"] = VlanGroup.objects.count()
+        db_items["SNMP Profiles"] = SnmpProfile.objects.count()
+        db_items["Netmiko Profiles"] = NetmikoProfile.objects.count()
+        db_items["Commands"] = Command.objects.count()
+        db_items["Command Lists"] = CommandList.objects.count()
+        db_items["Log Entries"] = Log.objects.count()
+
+        usage = {}  # usage statistics
+
+        filter = {}
+        filter['timestamp__date'] = datetime.date.today()
+        usage['Devices today'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
+
+        filter = {}
+        filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=7)
+        usage['Devices last 7 days'] = (
+            Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
+        )
+
+        filter = {}
+        filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
+        usage['Devices last 31 days'] = (
+            Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
+        )
+
+        filter = {}
+        filter['type'] = int(LOG_TYPE_CHANGE)
+        filter['timestamp__date'] = datetime.date.today()
+        usage['Changes today'] = Log.objects.filter(**filter).count()
+
+        filter = {
+            "type": int(LOG_TYPE_CHANGE),
+            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
+        }
+        usage["Changes last 7 days"] = Log.objects.filter(**filter).count()
+
+        filter = {
+            "type": int(LOG_TYPE_CHANGE),
+            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
+        }
+        usage["Changes last 31 days"] = Log.objects.filter(**filter).count()
+
+        # the total change count since install from Counter()'changes') object:
+        usage["Total Changes"] = Counter.objects.get(name="changes").value
+
+        filter = {"type": int(LOG_TYPE_COMMAND), "timestamp__date": datetime.date.today()}
+        usage["Commands today"] = Log.objects.filter(**filter).count()
+
+        filter = {
+            "type": int(LOG_TYPE_COMMAND),
+            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
+        }
+        usage["Commands last 7 days"] = Log.objects.filter(**filter).count()
+
+        filter = {
+            "type": int(LOG_TYPE_COMMAND),
+            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
+        }
+        usage["Commands last 31 days"] = Log.objects.filter(**filter).count()
+
+        # total number of commands run:
+        usage["Total Commands"] = Counter.objects.get(name="commands").value
+
+        user_list = get_current_users()
+
+        # render the template
+        return render(
+            request,
+            template_name,
+            {
+                "db_items": db_items,
+                "usage": usage,
+                "environment": environment,
+                "user_list": user_list,
+            },
+        )
 
 
 #
 # "Administrative" views
 #
-
-
-@login_required(redirect_field_name=None)
-def admin_activity(request):
+class SwitchAdminActivity(LoginRequiredMixin, View):
     """
     This shows recent activity
     """
 
-    template_name = "admin_activity.html"
+    def get(
+        self,
+        request,
+    ):
+        dprint("SwitchAdminActivity() - GET called")
 
-    # what do we have rights to:
-    if not request.user.is_superuser and not request.user.is_staff:
-        # get them out of here!
+        template_name = "admin_activity.html"
+
+        # what do we have rights to:
+        if not request.user.is_superuser and not request.user.is_staff:
+            # get them out of here!
+            # log my activity
+            log = Log(
+                user=request.user,
+                ip_address=get_remote_ip(request),
+                type=LOG_TYPE_ERROR,
+                action=LOG_VIEW_ALL_LOGS,
+                description="Not Allowed to View All Logs",
+            )
+            log.save()
+            error = Error()
+            error.status = True
+            error.description = "You do not have access to this page!"
+            counter_increment(COUNTER_ACCESS_DENIED)
+            return error_page(request=request, group=False, switch=False, error=error)
+
         # log my activity
         log = Log(
             user=request.user,
             ip_address=get_remote_ip(request),
-            type=LOG_TYPE_ERROR,
+            type=LOG_TYPE_VIEW,
             action=LOG_VIEW_ALL_LOGS,
-            description="Not Allowed to View All Logs",
         )
+
+        page_number = int(request.GET.get("page", default=1))
+
+        # look at query string, and filter as needed
+        filter = {}
+        if len(request.GET) > 0:
+            if request.GET.get("type", ""):
+                filter["type"] = int(request.GET["type"])
+            if request.GET.get("action", ""):
+                filter["action"] = int(request.GET["action"])
+            if request.GET.get("user", ""):
+                filter["user_id"] = int(request.GET["user"])
+            if request.GET.get("switch", ""):
+                filter["switch_id"] = int(request.GET["switch"])
+            if request.GET.get("group", ""):
+                filter["group_id"] = int(request.GET["group"])
+
+        # now set the filter, if found
+        if len(filter) > 0:
+            logs = Log.objects.all().filter(**filter).order_by("-timestamp")
+            log.description = f"Viewing filtered logs: {filter} (page {page_number})"
+            title = "Filtered Activities"
+        else:
+            logs = Log.objects.all().order_by("-timestamp")
+            log.description = f"Viewing all logs (page {page_number})"
+            title = "All Activities"
         log.save()
-        error = Error()
-        error.status = True
-        error.description = "You do not have access to this page!"
-        counter_increment(COUNTER_ACCESS_DENIED)
-        return error_page(request=request, group=False, switch=False, error=error)
 
-    # log my activity
-    log = Log(
-        user=request.user,
-        ip_address=get_remote_ip(request),
-        type=LOG_TYPE_VIEW,
-        action=LOG_VIEW_ALL_LOGS,
-    )
+        # setup pagination of the resulting activity logs
+        paginator = Paginator(logs, settings.PAGINATE_COUNT)  # Show set number of contacts per page.
+        logs_page = paginator.get_page(page_number)
 
-    page_number = int(request.GET.get("page", default=1))
-
-    # look at query string, and filter as needed
-    filter = {}
-    if len(request.GET) > 0:
-        if request.GET.get("type", ""):
-            filter["type"] = int(request.GET["type"])
-        if request.GET.get("action", ""):
-            filter["action"] = int(request.GET["action"])
-        if request.GET.get("user", ""):
-            filter["user_id"] = int(request.GET["user"])
-        if request.GET.get("switch", ""):
-            filter["switch_id"] = int(request.GET["switch"])
-        if request.GET.get("group", ""):
-            filter["group_id"] = int(request.GET["group"])
-
-    # now set the filter, if found
-    if len(filter) > 0:
-        logs = Log.objects.all().filter(**filter).order_by("-timestamp")
-        log.description = f"Viewing filtered logs: {filter} (page {page_number})"
-        title = "Filtered Activities"
-    else:
-        logs = Log.objects.all().order_by("-timestamp")
-        log.description = f"Viewing all logs (page {page_number})"
-        title = "All Activities"
-    log.save()
-
-    # setup pagination of the resulting activity logs
-    paginator = Paginator(logs, settings.PAGINATE_COUNT)  # Show set number of contacts per page.
-    logs_page = paginator.get_page(page_number)
-
-    # render the template
-    return render(
-        request,
-        template_name,
-        {
-            "logs": logs_page,
-            "paginator": paginator,
-            "filter": filter,
-            "types": LOG_TYPE_CHOICES,
-            "actions": LOG_ACTION_CHOICES,
-            "switches": Switch.objects.all().order_by("name"),
-            "switchgroups": SwitchGroup.objects.all().order_by("name"),
-            "users": User.objects.all().order_by("username"),
-            "log_title": title,
-            "logs_link": False,
-        },
-    )
+        # render the template
+        return render(
+            request,
+            template_name,
+            {
+                "logs": logs_page,
+                "paginator": paginator,
+                "filter": filter,
+                "types": LOG_TYPE_CHOICES,
+                "actions": LOG_ACTION_CHOICES,
+                "switches": Switch.objects.all().order_by("name"),
+                "switchgroups": SwitchGroup.objects.all().order_by("name"),
+                "users": User.objects.all().order_by("username"),
+                "log_title": title,
+                "logs_link": False,
+            },
+        )
 
 
 class SwitchDownloadEthernetAndNeighbors(LoginRequiredMixin, View):
