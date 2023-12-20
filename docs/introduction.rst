@@ -28,6 +28,7 @@ OpenL2M is written in Python 3 using the Django framework.
 
 OpenL2M can manage interfaces on switches, including:
 
+* vendor-agnostic **REST API** to access features... Automate changes from scripts, etc.
 * **enabling / disabling** of interfaces  (i.e. admin-shutdown/enable).
 * **change vlan** of the interface.
 * **edit** the interface **description** (a.k.a interface "alias").

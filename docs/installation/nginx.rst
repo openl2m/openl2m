@@ -8,33 +8,11 @@ At this time, the Gunicorn Python gateway service should be running. Nginx will 
 The following will serve as a minimal nginx configuration.
 Be sure to modify your server name and installation path appropriately.
 
-**Ubuntu LTS**
+**Ubuntu**
 
 .. code-block:: bash
 
   sudo apt install -y nginx
-
-
-**CentOS 7**
-
-The following will serve as a minimal nginx configuration. The EPEL repo provides Nginx for CentOS7
-Be sure to modify your server name and installation path appropriately:
-
-.. code-block:: bash
-
-  sudo yum install epel-release
-  sudo yum install nginx --enablerepo=epel
-
-
-**CentOS 8**
-
-Here, you need:
-
-.. code-block:: bash
-
-  sudo dnf install nginx
-
-(See more at https://linuxconfig.org/install-nginx-on-redhat-8)
 
 
 Configure nginx
@@ -93,21 +71,12 @@ Please adjust these timeouts as appropriate for your environment
 You will need to allow the standard http (and https) ports through the firewall, assuming you run this.
 To configure allowing this, run:
 
-** Ubuntu LTS **
+**Ubuntu**
 
 .. code-block:: bash
 
   sudo ufw allow http
   sudo ufw allow https
-
-
-** CentOS 7&8 **
-
-.. code-block:: bash
-
-  sudo firewall-cmd --zone=public --permanent --add-service=http
-  sudo firewall-cmd --zone=public --permanent --add-service=https
-  sudo firewall-cmd --reload
 
 
 Debugging

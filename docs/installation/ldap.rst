@@ -25,7 +25,7 @@ Next, modify or create the file *local_requirements.txt* to allow this to be add
 
 .. code-block:: bash
 
-  sudo sh -c "echo 'django-auth-ldap>=2.0.0' >> local_requirements.txt"
+  sudo sh -c "echo 'django-auth-ldap>=4.2.0' >> local_requirements.txt"
 
 
 Configuration
@@ -39,7 +39,7 @@ official documentation at http://django-auth-ldap.readthedocs.io/.
 **General Server Configuration**
 
 
-NOTE: When using Windows Server 2012 you may need to specify a port on `AUTH_LDAP_SERVER_URI`.
+NOTE: When using Windows Server you may need to specify a port on `AUTH_LDAP_SERVER_URI`.
 Use `3269` for secure, or `3268` for non-secure:
 
 .. code-block:: bash
@@ -68,7 +68,7 @@ STARTTLS can be configured by setting `AUTH_LDAP_START_TLS = True` and using the
 
 **User Authentication**
 
-NOTE: When using Windows Server 2012, `AUTH_LDAP_USER_DN_TEMPLATE` should be set to None:
+NOTE: When using Windows Server, `AUTH_LDAP_USER_DN_TEMPLATE` should be set to None:
 
 .. code-block:: bash
 

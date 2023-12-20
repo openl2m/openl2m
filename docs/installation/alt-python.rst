@@ -4,14 +4,14 @@
 Using Alternate Python Versions
 ===============================
 
-On Ubuntu 20.04 LTS the stock python version is 3.8. This is the older version supported.
+On Ubuntu 20.04 the stock python version are 3.8. This is the oldest version currently supported.
 OpenL2M is now developed and tested on Python 3.11
 
 Alternate Python Installation
 -----------------------------
 
 The details of installing an alternate version of Python are left to the user. We recommend
-you use a package repository. The excercise of installing from source is left to the reader.
+you use Python 3.11 from the "Deadsnakes" PPA. The excercise of installing from source is left to the reader.
 
 To install an alternative python version from package repositories,
 you will need the following parts:

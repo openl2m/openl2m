@@ -19,9 +19,7 @@ The particular commands needed to install dependencies on other distributions ma
 Unfortunately, this is outside the control of the OpenL2M maintainers.
 Please consult your distribution's documentation for assistance with any errors.
 
-OpenL2M v2 requires PostgreSQL 9.5 or higher.
-
-**Installation - Ubuntu 20.04 LTS**
+**Installation - Ubuntu**
 
 .. code-block:: bash
 
@@ -29,85 +27,17 @@ OpenL2M v2 requires PostgreSQL 9.5 or higher.
   sudo systemctl start postgresql
   sudo systemctl enable postgresql
 
-
-**Installation - CentOS 8**
-
-CentOS 8 ships with a relatively recent version of PostgreSQL,
-so you can easily install it:
-
-.. code-block:: bash
-
-  sudo dnf install postgresql-server
-
-Initialize the server:
-
-.. code-block:: bash
-
-  sudo postgresql-setup --initdb --unit postgresql
-
-CentOS users should modify the PostgreSQL configuration to accept password-based authentication
-by replacing `ident` with `md5` for all host entries within `/var/lib/pgsql/data/pg_hba.conf`.
-
-For example:
-
-.. code-block:: bash
-
-  host    all             all             127.0.0.1/32            md5
-  host    all             all             ::1/128                 md5
-
-And then start it and set to auto-start on boot:
-
-.. code-block:: bash
-
-  sudo systemctl start postgresql
-  sudo systemctl enable postgresql
-
-If this is a remote database server, see this page for details on how to configure this:
-https://linuxconfig.org/how-to-install-postgres-on-redhat-8
-
-**Installation - CentOS 7**
-
-CentOS 7.x does not ship with a recent enough version of PostgreSQL,
-so it will need to be installed from an external repository.
-The instructions below show the installation of PostgreSQL 9.6:
-
-.. code-block:: bash
-
-  sudo yum install https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-7-x86_64/pgdg-centos96-9.6-3.noarch.rpm
-  sudo yum install postgresql96 postgresql96-server postgresql96-devel
-  sudo /usr/pgsql-9.6/bin/postgresql96-setup initdb
-
-
-CentOS users should modify the PostgreSQL configuration to accept password-based authentication
-by replacing `ident` with `md5` for all host entries within `/var/lib/pgsql/9.6/data/pg_hba.conf`.
-
-For example:
-
-.. code-block:: bash
-
-  host    all             all             127.0.0.1/32            md5
-  host    all             all             ::1/128                 md5
-
-Then, start the service and enable it to run at boot:
-
-.. code-block:: bash
-
-  sudo systemctl start postgresql-9.6
-  sudo systemctl enable postgresql-9.6
-
-
-
 **Database Creation**
 
-Now that we have the database server installed, at a minimum, we need to create a database for OpenL2M and assign it a username and password for
-authentication.
+Now that we have the database server installed, at a minimum, we need to create a database
+for OpenL2M and assign it a username and password for authentication.
 
 NOTE: DO NOT USE THE PASSWORD FROM THE EXAMPLE:
 
 .. code-block:: bash
 
   sudo -u postgres psql
-  psql (12.8)
+  psql (12.17)
   Type "help" for help.
   postgres=# CREATE DATABASE openl2m;
   CREATE DATABASE

@@ -64,3 +64,6 @@ after creation. We recommend for security reasons you leave the latter to False
     ALLOW_TOKEN_RETRIEVAL = False
     # maximum number of tokens per user
     MAX_API_TOKENS = 3
+
+
+If all is well, you are now ready to :doc:`Install Gunicorn<gunicorn>`

@@ -12,35 +12,13 @@ Dependencies
 
 Begin by installing all system packages required by OpenL2M and its dependencies.
 
-**Ubuntu LTS**
+**Ubuntu**
 
 .. code-block:: bash
 
   sudo apt install -y python3 python3-pip python3-venv python3-dev build-essential
   sudo apt install -y libxml2-dev libxslt1-dev libffi-dev libpq-dev libssl-dev zlib1g-dev
   sudo apt install -y libldap2-dev libsasl2-dev libssl-dev snmpd snmp libsnmp-dev git curl
-
-**CentOS 8**
-
-.. code-block:: bash
-
-  sudo dnf install -y gcc make net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel python36-devel
-
-
-**CentOS 7**
-
-
-.. code-block:: bash
-
-  sudo yum install -y gcc make net-snmp net-snmp-utils net-snmp-devel openssl-devel openldap-devel epel-release
-
-You then need the following Python v3 packages:
-
-.. code-block:: bash
-
-  sudo yum install -y python36 python36-devel python36-setuptools
-  sudo easy_install-3.6 pip
-  sudo ln -s /usr/bin/python36 /usr/bin/python3
 
 
 OpenL2M Install
@@ -55,6 +33,7 @@ First, create the user environment for OpenL2M:
 
 Next, install OpenL2M. The easiest is cloning the main branch of its repository on GitHub.
 
+
 **Clone the Git Repository**
 
 Create the base directory for the OpenL2M installation. For this guide, we'll use `/opt/openl2m`:
@@ -66,17 +45,9 @@ Create the base directory for the OpenL2M installation. For this guide, we'll us
 
 If `git` is not already installed, install it:
 
-**CentOS 8**
-
 .. code-block:: bash
 
   sudo apt install -y git
-
-**CentOS 7**
-
-.. code-block:: bash
-
-  sudo yum install -y git
 
 
 Next, clone the **main** branch of the OpenL2M GitHub repository into the current directory:
@@ -87,6 +58,7 @@ Next, clone the **main** branch of the OpenL2M GitHub repository into the curren
   Cloning into '.'...
   ...
   Checking connectivity... done.
+
 
 **Configuration**
 
@@ -166,9 +138,11 @@ Other variables in the configuration files are commented. Change settings as nee
 
 Set this to the appropriate time, to get logs, etc. in the local time.
 
+
 **API settings**
 
 :doc:`API settings are discussed here.<api>`
+
 
 **Run Upgrade**
 
@@ -185,6 +159,7 @@ you've installed all of the system dependencies listed above! :
 
 If you encounter errors while installing the required packages, check that
 you're running a recent version of pip with the command `pip3 -V`.
+
 
 **Create a Super User**
 
@@ -255,8 +230,6 @@ Do not proceed with the rest of this guide until the installation has been corre
 Note that you may need to open the proper firewall port,
 or disable the firewall process temporarily.
 
-** Unbuntu **
-
 .. code-block:: bash
 
   sudo ufw alow 8000
@@ -266,20 +239,6 @@ or:
 .. code-block:: bash
 
   sudo systemctl disable ufw
-
-
-** CentOS 8 **
-
-.. code-block:: bash
-
-  sudo firewall-cmd --zone=public --permanent --add-port=8000/tcp
-  sudo firewall-cmd --reload
-
-or:
-
-.. code-block:: bash
-
-  sudo systemctl stop firewalld
 
 
 Make sure you restart or undo the configuration changes (Both DEBUG and firewall settings!) when done testing!
