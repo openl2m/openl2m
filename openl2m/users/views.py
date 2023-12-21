@@ -128,8 +128,7 @@ class TokenListView(LoginRequiredMixin, View):
         )
 
 
-@login_required(redirect_field_name=None)
-def token_delete(request, token_id):
+class TokenDelete(LoginRequiredMixin, View):
     """Delete a token for a user.
 
     Args:
@@ -140,38 +139,43 @@ def token_delete(request, token_id):
         HttpResponse: calls either error_page() or success_page() to return HttpResponse.
     """
 
-    log = Log(
-        type=LOG_TYPE_CHANGE,
-        user=request.user,
-        ip_address=get_remote_ip(request),
-    )
-    partial_token = ""
-    try:
-        token = Token.objects.get(user=request.user, id=token_id)
-        partial_token = token.partial
-        token.delete()
-    except Exception as err:
-        error = Error()
-        error.description = "Error deleting API key!"
-        error.details = str(err)
-        log.action = LOG_REST_API_TOKEN_DELETE
-        if partial_token:
-            log.description = f"Error deleting API key! (id={token_id}, token={partial_token})"
-        else:
-            log.description = f"Error deleting API key! (id={token_id})"
-        log.save()
-        return error_page(request=request, group=None, switch=None, error=error)
-    else:
-        log.action = LOG_REST_API_TOKEN_DELETE
-        log.description = f"API Key deleted! (id={token_id}, token={partial_token})"
-        log.save()
-        return success_page(
-            request=request, group=None, switch=None, description=f"API Key deleted! (token={partial_token})"
+    def get(
+        self,
+        request,
+        token_id,
+    ):
+        dprint(f"TokenDelete() - GET")
+        log = Log(
+            type=LOG_TYPE_CHANGE,
+            user=request.user,
+            ip_address=get_remote_ip(request),
         )
+        partial_token = ""
+        try:
+            token = Token.objects.get(user=request.user, id=token_id)
+            partial_token = token.partial
+            token.delete()
+        except Exception as err:
+            error = Error()
+            error.description = "Error deleting API key!"
+            error.details = str(err)
+            log.action = LOG_REST_API_TOKEN_DELETE
+            if partial_token:
+                log.description = f"Error deleting API key! (id={token_id}, token={partial_token})"
+            else:
+                log.description = f"Error deleting API key! (id={token_id})"
+            log.save()
+            return error_page(request=request, group=None, switch=None, error=error)
+        else:
+            log.action = LOG_REST_API_TOKEN_DELETE
+            log.description = f"API Key deleted! (id={token_id}, token={partial_token})"
+            log.save()
+            return success_page(
+                request=request, group=None, switch=None, description=f"API Key deleted! (token={partial_token})"
+            )
 
 
-@login_required(redirect_field_name=None)
-def token_edit(request, token_id):
+class TokenEdit(LoginRequiredMixin, View):
     """Edit a token for a user.
 
     Args:
@@ -181,15 +185,20 @@ def token_edit(request, token_id):
     Returns:
         HttpResponse: calls either error_page() or success_page() to return HttpResponse.
     """
-    template_name = "users/token_edit.html"
 
-    log = Log(
-        type=LOG_TYPE_CHANGE,
-        action=LOG_REST_API_TOKEN_EDIT,
-        user=request.user,
-        ip_address=get_remote_ip(request),
-    )
-    if request.method == "GET":
+    def get(
+        self,
+        request,
+        token_id,
+    ):
+        dprint(f"TokenEdit() - GET")
+        template_name = "users/token_edit.html"
+        log = Log(
+            type=LOG_TYPE_CHANGE,
+            action=LOG_REST_API_TOKEN_EDIT,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+        )
         try:
             token = Token.objects.get(user=request.user, id=token_id)
         except Exception as err:
@@ -197,7 +206,7 @@ def token_edit(request, token_id):
             error.description = "Error editing API key!"
             error.details = str(err)
             log.type = LOG_TYPE_ERROR
-            log.description = f"Error editing API key ({partial_token})!"
+            log.description = f"Error editing API key for token id {token_id}!"
             log.save()
             return error_page(request=request, group=None, switch=None, error=error)
         else:
@@ -210,11 +219,24 @@ def token_edit(request, token_id):
                     'token': token,
                 },
             )
-    elif request.method == "POST":
+
+    def post(
+        self,
+        request,
+        token_id,
+    ):
+        dprint(f"TokenEdit() - POST")
+        log = Log(
+            type=LOG_TYPE_CHANGE,
+            action=LOG_REST_API_TOKEN_EDIT,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+        )
         # save this token!
         status, info = update_or_add_token(request=request, token_id=token_id)
         if status:
             log.description = info.description
+            log.save()
             return success_page(request=request, group=None, switch=None, description=info.description)
         else:
             # error occurred
@@ -223,18 +245,8 @@ def token_edit(request, token_id):
             log.save()
             return error_page(request=request, group=None, switch=None, error=info)
 
-    # unsupported HTTP method
-    log.type = LOG_TYPE_ERROR
-    log.description = f"Unsupported Request method: {request.method}"
-    log.save()
-    error = Error()
-    error.description = "Unknown HTTP Method!"
-    error.details = log.description
-    return error_page(request=request, group=None, switch=None, error=error)
 
-
-@login_required(redirect_field_name=None)
-def token_add(request):
+class TokenAdd(LoginRequiredMixin, View):
     """Add a token for a user. Either GET or POST method.
 
     Args:
@@ -243,16 +255,20 @@ def token_add(request):
     Returns:
         HttpResponse: calls either error_page() or success_page() to return HttpResponse.
     """
-    dprint(f"token_add(), method {request.method}")
-    template_name = "users/token_edit.html"
 
-    count = Token.objects.filter(user=request.user).count()
-    if count >= settings.MAX_API_TOKENS:
-        error = Error()
-        error.description = f"You cannot create more API tokens (max = {settings.MAX_API_TOKENS})"
-        return error_page(request=request, group=None, switch=None, error=error)
+    def get(
+        self,
+        request,
+    ):
+        dprint(f"TokenAdd() - GET")
+        template_name = "users/token_edit.html"
 
-    if request.method == "GET":
+        count = Token.objects.filter(user=request.user).count()
+        if count >= settings.MAX_API_TOKENS:
+            error = Error()
+            error.description = f"You cannot create more API tokens (max = {settings.MAX_API_TOKENS})"
+            return error_page(request=request, group=None, switch=None, error=error)
+
         # create a new token, and show the form:
         token = Token()
         token.key = Token.generate_key()
@@ -266,7 +282,18 @@ def token_add(request):
             },
         )
 
-    elif request.method == "POST":
+    def post(
+        self,
+        request,
+    ):
+        dprint(f"TokenAdd() - POST")
+
+        count = Token.objects.filter(user=request.user).count()
+        if count >= settings.MAX_API_TOKENS:
+            error = Error()
+            error.description = f"You cannot create more API tokens (max = {settings.MAX_API_TOKENS})"
+            return error_page(request=request, group=None, switch=None, error=error)
+
         log = Log(
             type=LOG_TYPE_CHANGE,
             action=LOG_REST_API_TOKEN_CREATED,
@@ -285,15 +312,6 @@ def token_add(request):
             log.description = f"Error creating API key!"
             log.save()
             return error_page(request=request, group=None, switch=None, error=info)
-
-    # unsupported HTTP method
-    log.type = LOG_TYPE_ERROR
-    log.description = f"Unsupported Request method: {request.method}"
-    log.save()
-    error = Error()
-    error.description = "Unknown HTTP Method!"
-    error.details = log.description
-    return error_page(request=request, group=None, switch=None, error=error)
 
 
 def update_or_add_token(request, token_id=-1):

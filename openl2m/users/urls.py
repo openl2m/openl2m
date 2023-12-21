@@ -20,8 +20,8 @@ urlpatterns = [
     path('profile/', views.ProfileView.as_view(), name='profile'),
     path('info/<int:user_id>/', views.InfoView.as_view(), name='info'),
     path('tokens/', views.TokenListView.as_view(), name='token_list'),
-    path('tokens/add/', views.token_add, name='token_add'),
-    path('tokens/edit/<int:token_id>/', views.token_edit, name='token_edit'),
-    path('tokens/delete/<int:token_id>/', views.token_delete, name='token_delete'),
+    path('tokens/add/', views.TokenAdd.as_view(), name='token_add'),
+    path('tokens/edit/<int:token_id>/', views.TokenEdit.as_view(), name='token_edit'),
+    path('tokens/delete/<int:token_id>/', views.TokenDelete.as_view(), name='token_delete'),
     #    path('tokens/<int:pk>/', include(get_model_urls('users', 'token'))),
 ]
