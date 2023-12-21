@@ -41,33 +41,33 @@ urlpatterns = [
     path("", lambda r: HttpResponseRedirect("switches/"), name="home"),
     # our own customized form for logout
     # note that we capture login/logout signals in "users/models.py", so we can add log entries
-    path(r"logout/", LogoutView.as_view(), name="logout"),
-    path(r"admin/logout/", LogoutView.as_view(), name="logout"),
-    path(r"accounts/login/", LoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(), name="logout"),
+    path("admin/logout/", LogoutView.as_view(), name="logout"),
+    path("accounts/login/", LoginView.as_view(), name="login"),
     # override some of the password templates, so we can disabled that for ldap
     path(
-        r"accounts/password_change/",
+        "accounts/password_change/",
         PasswordChangeView.as_view(template_name="registration/password_change.html"),
         name="password_change",
     ),
     path(
-        r"accounts/password_change/done/",
+        "accounts/password_change/done/",
         PasswordChangeDoneView.as_view(template_name="registration/password_change_done.html"),
         name="password_change_done",
     ),
     # and the rest are not used:
     # url(r'^accounts/$', include('django.contrib.auth.urls')),
     # application paths
-    path(r"switches/", include("switches.urls")),
+    path("switches/", include("switches.urls")),
     # user profiles, etc.
-    path(r"users/", include("users.urls")),
+    path("users/", include("users.urls")),
     # Admin - customized, see admin.py
-    path(r"admin/", admin_site.urls),
+    path("admin/", admin_site.urls),
     # API paths
-    path(r"api/", APIRootView.as_view(), name="api-root"),
-    path(r"api/switches/", include("switches.api.urls"), name="switches-api"),
-    path(r"api/stats/", APIStatsView.as_view(), name='api-stats'),
-    path(r"api/users/", include("users.api.urls"), name="users-api"),
+    path("api/", APIRootView.as_view(), name="api-root"),
+    path("api/switches/", include("switches.api.urls"), name="switches-api"),
+    path("api/stats/", APIStatsView.as_view(), name='api-stats'),
+    path("api/users/", include("users.api.urls"), name="users-api"),
     # to be implemented:
     # path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='api_docs'),
