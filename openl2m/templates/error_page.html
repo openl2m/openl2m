@@ -29,7 +29,7 @@
               </div>
             {% endif %}
             {% if switch %}
-              <div><a href="/switches/">Go back to the Menu</a>, or <a href="/switches/{{ group.id }}/{{ switch.id }}/">retry  &quot;{{ switch.name }}&quot;</a></div>
+              <div><a href="{% url 'switches:groups' %}">Go back to the Menu</a>, or <a href="{% url 'switches:switch_basics' group.id switch.id %}">retry  &quot;{{ switch.name }}&quot;</a></div>
             {% endif %}
           </div>
       </div>

@@ -275,7 +275,7 @@
                           {% if request.user.profile.are_you_sure %}
                               onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
                           {% endif %}
-                              href="/switches/{{ group.id }}/{{ switch.id }}/{{ iface.key }}/poetoggle/"
+                              href="{% url 'switches:poe_down_up' group.id switch.id iface.key %}"
                               data-toggle="tooltip"
                               title="Toggle PoE Off and then On on interface {{ iface.name }}">
                             <img src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle">

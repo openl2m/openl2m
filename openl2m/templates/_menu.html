@@ -9,7 +9,7 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand"
-                href="/switches/"
+                href="{% url 'switches:groups' %}"
             {% if connection.save_needed %}
                 onclick="return confirm_change('There are UNSAVED changes, are you sure?')"
             {% endif %}
@@ -34,7 +34,7 @@
                       </span>
                   </a>
                   <ul class="dropdown-menu">
-                    <li><a href="{% url 'home' %}"><i class="fas fa-ethernet"></i> Home</a></li>
+                    <li><a href="{% url 'switches:groups' %}"><i class="fas fa-ethernet"></i> Home</a></li>
                     <li><a href="{% static 'docs/html/using/index.html' %}" target="_docs"><i class="fas fa-book" aria-hidden="true"></i> Documentation</a></li>
                     {% if request.user.is_superuser %}
                       <li class="divider"></li>
