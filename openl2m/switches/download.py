@@ -103,6 +103,7 @@ def create_eth_neighbor_xls_file(connection):
             # and loop through lldp:
             for neighbor in interface.lldp.values():
                 row += 1
+                found_ip = False
                 dprint(f"LLDP: on {interface.name} - {neighbor.sys_name}")
                 worksheet.write(row, COL_INTERFACE, interface.name, format_regular)
                 # what kind of chassis address do we have (if any)
@@ -112,10 +113,20 @@ def create_eth_neighbor_xls_file(connection):
                 elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
                     if neighbor.chassis_string_type == IANA_TYPE_IPV4:
                         worksheet.write(row, COL_IPV4, neighbor.chassis_string, format_regular)
+                        found_ip = True
                     elif neighbor.chassis_string_type == IANA_TYPE_IPV6:
                         # TBD, IPv6 not supported yet.
                         dprint("  IPV6 chassis address: NOT supported yet")
                         # worksheet.write(row, COL_IPV6, neighbor.chassis_string, format_regular)
+                # if we don't have IP info yet, do we have management IP?
+                if not found_ip and neighbor.management_address:
+                    if neighbor.management_address_type == IANA_TYPE_IPV4:
+                        worksheet.write(row, COL_IPV4, neighbor.management_address, format_regular)
+                    elif neighbor.management_address_type == IANA_TYPE_IPV6:
+                        # TBD, IPv6 not supported yet.
+                        dprint("  IPV6 management address: NOT supported yet")
+                        # worksheet.write(row, COL_IPV6, neighbor.management_address, format_regular)
+
                 worksheet.write(row, COL_NEIGHBOR_NAME, neighbor.sys_name, format_regular)
                 worksheet.write(row, COL_NEIGHBOR_TYPE, neighbor.capabilities_as_string(), format_regular)
                 worksheet.write(row, COL_NEIGHBOR_DESCRIPTION, neighbor.sys_descr, format_regular)
