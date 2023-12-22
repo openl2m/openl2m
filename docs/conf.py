@@ -33,7 +33,7 @@ master_doc = 'index'
 # ones.
 extensions = [
     'sphinx_rtd_theme',
-    'sphinx.ext.autodoc',
+#    'sphinx.ext.autodoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -75,7 +75,7 @@ today_fmt = '%b %d %Y at %H:%M'
 
 # Our source location:
 #sys.path.append('/opt/openl2m/openl2m')
-sys.path.append(os.path.join(os.path.dirname(__name__), '../openl2m'))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'openl2m.settings'
-import django
-django.setup()
+#sys.path.append(os.path.join(os.path.dirname(__name__), '../openl2m'))
+#os.environ['DJANGO_SETTINGS_MODULE'] = 'openl2m.settings'
+#import django
+#django.setup()

@@ -10,16 +10,20 @@ Version 3.0
 Version 3.0.2
 -------------
 
-To Be Released...
+Release Date: TBD
 
 * add support for LLDP in the Aruba AOS-CX REST driver.
 * improved handling of LLDP neighbor management IP over SNMP.
 * add LLDP neighbor management IP to API.
+* add LLDP neighbor management IP to details downloadable Excel spreadsheet
 * installation documentation updates.
 
 Bugfixes:
 
 * handle devices that do not support vlan name edit.
+* fix temp file auto-deletion for arp/neighbor spreadsheet download.
+* add url handlers are now using View() class, improving security.
+* various small performance fixes.
 
 Version 3.0.1
 -------------
