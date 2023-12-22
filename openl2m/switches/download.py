@@ -11,14 +11,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+import io
 import time
 from pathlib import Path
 import platform
 import tempfile
-import pprint
 import xlsxwriter
-
-from django.http import FileResponse
 
 from switches.connect.classes import Error
 from switches.connect.constants import (
@@ -27,27 +25,7 @@ from switches.connect.constants import (
     IANA_TYPE_IPV4,
     IANA_TYPE_IPV6,
 )
-from switches.utils import dprint, error_page
-
-
-def send_file(request, filename):
-    """Send a file as download to the user.
-
-    Args:
-        request (HttpRequest()): The request object.
-        filename (str): The full path to the file to download.
-    """
-    dprint(f"send_file(filename='{filename}')")
-    try:
-        stream = open(filename, "rb")
-    except Exception as err:
-        dprint(f"ERROR opening file: {err}")
-        error = Error()
-        error.description = "Error opening file to download"
-        error.details = f"{err}"
-        return error_page(request=request, group=False, switch=False, error=error)
-    else:
-        return FileResponse(stream)
+from switches.utils import dprint
 
 
 def create_eth_neighbor_xls_file(connection):
@@ -57,15 +35,13 @@ def create_eth_neighbor_xls_file(connection):
         connection (Connection()): a valid connection object, that has ethernet and neighbor information filled in.
 
     Returns:
-        (str),(error): the full path to the temp file created, or an Error() object if that cannot be created,.
+        (BytesIO() object), Error() ): an open stream, or an Error() object if that cannot be created,.
     """
     dprint("create_eth_neighbor_xls_file()")
     try:
-        # create the Excel file
-        tempdir = Path("/tmp" if platform.system() == "Darwin" else tempfile.gettempdir())
-        temp_filename = f"{tempdir}/{connection.switch.name}-ethernet-neighbor-info.xlsx"
-
-        workbook = xlsxwriter.Workbook(temp_filename)
+        # create the Excel file handler
+        fh = io.BytesIO()
+        workbook = xlsxwriter.Workbook(fh)
 
         # Add some formats to use to highlight cells.
         format_bold = workbook.add_format({'bold': True, 'font_name': 'Calibri', 'font_size': 14})
@@ -149,7 +125,8 @@ def create_eth_neighbor_xls_file(connection):
         error = Error()
         error.description = "Error creating Excel file!"
         error.details = f"ERROR: {err}"
-        return "", error
+        return False, error
 
     # all OK!
-    return temp_filename, None
+    fh.seek(0)  # rewind to beginning of "file"
+    return fh, None

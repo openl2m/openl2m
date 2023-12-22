@@ -23,7 +23,7 @@ import django
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
+from django.http import FileResponse
 from django.urls import reverse
 from django.utils.html import mark_safe
 from django.utils import timezone
@@ -33,6 +33,7 @@ from django.template import Template, Context
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
+
 
 from switches.actions import (
     perform_interface_admin_change,
@@ -105,7 +106,7 @@ from switches.connect.constants import (
     POE_PORT_ADMIN_ENABLED,
     POE_PORT_ADMIN_DISABLED,
 )
-from switches.download import create_eth_neighbor_xls_file, send_file
+from switches.download import create_eth_neighbor_xls_file
 from switches.permissions import get_group_and_switch, get_connection_if_permitted
 
 from switches.utils import (
@@ -2056,13 +2057,16 @@ class SwitchDownloadEthernetAndNeighbors(LoginRequiredMixin, View):
             log.save()
             return error_page(request=request, group=group, switch=switch, error=connection.error)
 
-        filename, error = create_eth_neighbor_xls_file(connection)
-        if not filename:
+        # create a temp file with the spreadsheet
+        stream, error = create_eth_neighbor_xls_file(connection)
+        if not stream:
             log.type = LOG_TYPE_ERROR
             log.description = f"{error.description}: {error.details}"
             log.save()
             return error_page(request=request, group=group, switch=switch, error=error)
 
+        # create tbe download filename
+        filename = f"{connection.switch.name}-ethernet-neighbor-info.xlsx"
         log.description = f"Downloading '{filename}'"
         log.save()
-        return send_file(request=request, filename=filename)
+        return FileResponse(stream, as_attachment=True, filename=filename)
