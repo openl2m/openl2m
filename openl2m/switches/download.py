@@ -62,7 +62,7 @@ def create_eth_neighbor_xls_file(connection):
         worksheet.write(
             row,
             COL_INTERFACE,
-            f"Ethernet and Neighbor data from '{connection.switch.name}' generated for '{connection.request.user}' on: {time.strftime('%d-%m-%Y, %H:%M:%S', time.localtime())}",
+            f"Ethernet and Neighbor data from '{connection.switch.name}' generated for '{connection.request.user}' at {time.strftime('%I:%M %p, %d %B %Y', time.localtime())}",
             format_bold,
         )
 
