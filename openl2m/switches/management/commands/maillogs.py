@@ -20,7 +20,6 @@ import tempfile
 import xlsxwriter
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.core.mail import EmailMessage
 from django.utils import timezone
@@ -186,7 +185,7 @@ class Command(BaseCommand):
         )
 
         # get log since cut-off time
-        filter["timestamp__gt"] = cutoff
+        filter["timestamp__gt"] = cutoff_local
         logs = Log.objects.all().exclude(action__in=excludes).filter(**filter).order_by("timestamp")
 
         # go outout them!
