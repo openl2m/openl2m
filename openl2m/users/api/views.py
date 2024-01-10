@@ -57,7 +57,7 @@ class APIObtainAuthToken(ObtainAuthToken):
                 # # group=False,
                 action=LOG_REST_API_TOKEN_CREATED,
                 type=LOG_TYPE_ERROR,
-                description=f"Too many user tokens exist.",
+                description="Too many user tokens exist.",
             )
             log.save()
             return Response(data={"reason": "Too many tokens exist!"}, status=status.HTTP_400_BAD_REQUEST)
@@ -74,7 +74,7 @@ class APIObtainAuthToken(ObtainAuthToken):
             # # group=False,
             action=LOG_REST_API_TOKEN_CREATED,
             type=LOG_TYPE_CHANGE,
-            description=f"Token created.",
+            description="Token created.",
         )
         log.save()
         return Response(

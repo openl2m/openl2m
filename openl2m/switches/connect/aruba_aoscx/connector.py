@@ -13,7 +13,8 @@
 #
 import datetime
 import traceback
-import pprint
+
+# import pprint
 
 from switches.models import Log
 from switches.utils import dprint, get_remote_ip
@@ -34,9 +35,9 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_ROUTER,
     LLDP_CAPABILITIES_WLAN,
     LLDP_CAPABILITIES_PHONE,
-    IANA_TYPE_OTHER,
+    #   IANA_TYPE_OTHER,
     IANA_TYPE_IPV4,
-    IANA_TYPE_IPV6,
+    #   IANA_TYPE_IPV6,
 )
 
 
@@ -360,7 +361,7 @@ class AosCxConnector(Connector):
                         # for name in mac.__dict__:
                         #    dprint(f"      attribute: {name} = {mac.__dict__[name]}")
                         # add this to the known addressess:
-                        a = self.add_learned_ethernet_address(
+                        self.add_learned_ethernet_address(
                             if_name=mac.port.name, eth_address=mac.mac_address, vlan_id=vlan_id
                         )
                     except Exception as err:
@@ -579,10 +580,10 @@ class AosCxConnector(Connector):
             aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
             aoscx_interface.get()
             dprint(f"  AosCxInterface.get() OK: {aoscx_interface.name}")
-        except Exception as error:
+        except Exception as err:
             self.error.status = True
             self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot read device interface: {format(error)}"
+            self.error.details = f"Cannot read device interface: {format(err)}"
             dprint("  set_interface_untagged_vlan(): AosCxInterface.get() failed!")
             self._close_device()
             return False
@@ -594,7 +595,7 @@ class AosCxConnector(Connector):
             dprint(f"ERROR getting AosCxVlan() object: {err}")
             self.error.status = True
             self.error.description = "Error establishing connection!"
-            self.error.details = f"ERROR getting AosCxVlan() object: {format(error)}"
+            self.error.details = f"ERROR getting AosCxVlan() object: {format(err)}"
             self._close_device()
             return False
         else:
@@ -606,7 +607,7 @@ class AosCxConnector(Connector):
                 dprint(f"ERROR in aoscx_interface.set_untagged_vlan() object: {err}")
                 self.error.status = True
                 self.error.description = "Error establishing connection!"
-                self.error.details = f"ERROR in aoscx_interface.set_untagged_vlan(): {format(error)}"
+                self.error.details = f"ERROR in aoscx_interface.set_untagged_vlan(): {format(err)}"
                 self._close_device()
                 return False
             else:

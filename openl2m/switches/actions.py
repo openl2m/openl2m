@@ -320,7 +320,7 @@ def perform_interface_pvid_change(request, group_id, switch_id, interface_key, n
     # this should not happen:
     if new_pvid == 0:
         log.type = LOG_TYPE_ERROR
-        log.description = f"Pvid-Change: new vlan = 0 (?)"
+        log.description = "Pvid-Change: new vlan = 0 (?)"
         log.save()
         counter_increment(COUNTER_ERRORS)
         error = Error()
@@ -514,7 +514,7 @@ def perform_switch_save_config(request, group_id, switch_id):
     if not connection.can_save_config:
         # we should not be called, since device cannot save or does not need to save config
         log.type = LOG_TYPE_ERROR
-        log.description = f"Device cannot or does not need to save config"
+        log.description = "Device cannot or does not need to save config"
         log.save()
         counter_increment(COUNTER_ERRORS)
         error = Error()

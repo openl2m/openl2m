@@ -140,8 +140,8 @@ def get_connection_object(request, group, switch):
         # API call with token, there is no cache so always load the basic switch config:
         dprint("  API call: calling get_basic_info()")
         if not connection.get_basic_info():
-            dprint(f"  ERROR in get_basic_info(): {self.error.description}")
-            raise Exception(self.error.description)
+            dprint(f"  ERROR in get_basic_info(): {connection.error.description}")
+            raise Exception(connection.error.description)
     # then return object
     dprint("  Returning connection() from get_connection_object()")
     return connection

@@ -31,14 +31,13 @@ from switches.connect.constants import (
     VLAN_ADMIN_ENABLED,
     VLAN_STATUS_OTHER,
     VLAN_TYPE_NORMAL,
-    LLDP_CAPABILITIES_NONE,
     POE_PSE_STATUS_ON,
     POE_PSE_STATUS_OFF,
     POE_PSE_STATUS_FAULT,
     POE_PORT_DETECT_SEARCHING,
     IANA_TYPE_OTHER,
-    IANA_TYPE_IPV4,
-    IANA_TYPE_IPV6,
+    #   IANA_TYPE_IPV4,
+    #   IANA_TYPE_IPV6,
     duplex_name,
     poe_admin_status_name,
     #    poe_priority_name,
@@ -46,8 +45,6 @@ from switches.connect.constants import (
     poe_status_name,
     vlan_admin_name,
     vlan_status_name,
-)
-from switches.connect.constants import (
     LLDP_CAPABILITIES_OTHER,
     LLDP_CAPABILITIES_REPEATER,
     LLDP_CAPABILITIES_BRIDGE,
@@ -790,7 +787,6 @@ class NeighborDevice:
             'chassis_id': self.chassis_string,
             'chassis_type': self.chassis_type,
             'capabilities': self.capabilities_as_string(),
-            'port_name': self.port_name,
             'management_address': self.management_address,
         }
 

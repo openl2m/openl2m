@@ -12,7 +12,8 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import json
-import pprint
+
+# import pprint
 
 from django.conf import settings
 from django import template
@@ -20,8 +21,7 @@ from django.template import Template, Context
 from django.utils.html import mark_safe
 from django.urls import reverse
 
-from switches.models import SwitchGroupMembership
-from switches.constants import SWITCH_STATUS_ACTIVE, SWITCH_VIEW_BASIC, SWITCH_VIEW_DETAILS
+from switches.constants import SWITCH_VIEW_BASIC, SWITCH_VIEW_DETAILS
 from switches.connect.constants import (
     ENTITY_CLASS_NAME,
     POE_PSE_STATUS_ON,
@@ -39,7 +39,7 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_OTHER,
 )
 
-from switches.utils import dprint
+# from switches.utils import dprint
 
 # see https://docs.djangoproject.com/en/2.2/ref/templates/api/
 # and https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/

@@ -16,7 +16,6 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout as auth_logout
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, HttpResponseNotFound
@@ -144,7 +143,7 @@ class TokenDelete(LoginRequiredMixin, View):
         request,
         token_id,
     ):
-        dprint(f"TokenDelete() - GET")
+        dprint("TokenDelete() - GET")
         log = Log(
             type=LOG_TYPE_CHANGE,
             user=request.user,
@@ -191,7 +190,7 @@ class TokenEdit(LoginRequiredMixin, View):
         request,
         token_id,
     ):
-        dprint(f"TokenEdit() - GET")
+        dprint("TokenEdit() - GET")
         template_name = "users/token_edit.html"
         log = Log(
             type=LOG_TYPE_CHANGE,
@@ -225,7 +224,7 @@ class TokenEdit(LoginRequiredMixin, View):
         request,
         token_id,
     ):
-        dprint(f"TokenEdit() - POST")
+        dprint("TokenEdit() - POST")
         log = Log(
             type=LOG_TYPE_CHANGE,
             action=LOG_REST_API_TOKEN_EDIT,
@@ -260,7 +259,7 @@ class TokenAdd(LoginRequiredMixin, View):
         self,
         request,
     ):
-        dprint(f"TokenAdd() - GET")
+        dprint("TokenAdd() - GET")
         template_name = "users/token_edit.html"
 
         count = Token.objects.filter(user=request.user).count()
@@ -286,7 +285,7 @@ class TokenAdd(LoginRequiredMixin, View):
         self,
         request,
     ):
-        dprint(f"TokenAdd() - POST")
+        dprint("TokenAdd() - POST")
 
         count = Token.objects.filter(user=request.user).count()
         if count >= settings.MAX_API_TOKENS:
@@ -309,7 +308,7 @@ class TokenAdd(LoginRequiredMixin, View):
         else:
             # error occurred
             log.type = LOG_TYPE_ERROR
-            log.description = f"Error creating API key!"
+            log.description = "Error creating API key!"
             log.save()
             return error_page(request=request, group=None, switch=None, error=info)
 

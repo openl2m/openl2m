@@ -168,7 +168,6 @@ class Connector:
             'group_id': self.group.id,
             "read_only": self.switch.read_only,
             "primary_ipv4": self.switch.primary_ip4,
-            "change_vlan": self.can_change_admin_status,
             "change_admin_status": self.can_change_admin_status,
             "change_vlan": self.can_change_vlan,
             "change_poe": self.can_change_poe_status,

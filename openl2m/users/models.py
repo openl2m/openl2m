@@ -19,12 +19,12 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
-from django.contrib.postgres.fields import ArrayField
-from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils import timezone
+
 
 from switches.constants import LOG_TYPE_LOGIN_OUT, LOG_LOGIN, LOG_LOGOUT, LOG_LOGIN_FAILED
 from switches.models import Log
@@ -175,7 +175,7 @@ def ip_in_list(client_ip, ip_list):
             ipnet = netaddr.IPNetwork(net)
         except Exception as err:
             # bad network string, IGNORE!
-            dprint(f"  IGNORING BAD network: '{ net }'")
+            dprint(f"  IGNORING BAD network: '{ net }' ({err})")
             continue
         else:
             if client_ip in ipnet:
@@ -245,14 +245,14 @@ class Token(models.Model):
 
         # are we globally denying this IP address?
         if settings.API_CLIENT_IP_DENIED and ip_in_list(client_ip=client_ip, ip_list=settings.API_CLIENT_IP_DENIED):
-            dprint(f"  Client denied, in settings.API_CLIENT_IP_DENIED!")
+            dprint("  Client denied, in settings.API_CLIENT_IP_DENIED!")
             return False
 
         # is this IP globally permitted?
         if settings.API_CLIENT_IP_ALLOWED and not ip_in_list(
             client_ip=client_ip, ip_list=settings.API_CLIENT_IP_ALLOWED
         ):
-            dprint(f"  Client denied, not in settings.API_CLIENT_IP_ALLOWED!")
+            dprint("  Client denied, not in settings.API_CLIENT_IP_ALLOWED!")
             return False
 
         # Check the Token allowed IP list:

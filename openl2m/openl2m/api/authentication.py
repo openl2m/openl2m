@@ -1,6 +1,8 @@
 """
 This file as adapted from Netbox
 """
+import logging
+
 from django.conf import settings
 from django.utils import timezone
 from rest_framework import authentication, exceptions
@@ -114,7 +116,7 @@ class TokenAuthentication(authentication.TokenAuthentication):
                 # # group=False,
                 action=LOG_LOGIN_REST_API,
                 type=LOG_TYPE_ERROR,
-                description=f"Invalid Token.",
+                description="Invalid Token.",
             )
             log.save()
             raise exceptions.AuthenticationFailed("Invalid token")
@@ -139,7 +141,7 @@ class TokenAuthentication(authentication.TokenAuthentication):
                 # # group=False,
                 action=LOG_LOGIN_REST_API,
                 type=LOG_TYPE_ERROR,
-                description=f"Token has expired.",
+                description="Token has expired.",
             )
             log.save()
             raise exceptions.AuthenticationFailed("Token expired")
@@ -170,7 +172,7 @@ class TokenAuthentication(authentication.TokenAuthentication):
                 # # group=False,
                 action=LOG_LOGIN_REST_API,
                 type=LOG_TYPE_ERROR,
-                description=f"User account is inactive.",
+                description="User account is inactive.",
             )
             log.save()
             raise exceptions.AuthenticationFailed("User inactive")

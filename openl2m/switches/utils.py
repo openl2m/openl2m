@@ -26,11 +26,6 @@ import re
 from django.conf import settings
 from django.utils.timezone import get_default_timezone
 
-from rest_framework.reverse import reverse as rest_reverse
-from rest_framework.request import Request as RESTRequest
-
-from switches.constants import SWITCH_STATUS_ACTIVE, SWITCH_VIEW_BASIC
-
 
 logger_console = logging.getLogger("openl2m.console")
 

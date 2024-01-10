@@ -78,6 +78,6 @@ class Command(BaseCommand):
                 # # group=False,
                 action=LOG_REST_API_TOKEN_CREATED,
                 type=LOG_TYPE_CHANGE,
-                description=f"REST API token created from CLI",
+                description="REST API token created from CLI",
             )
             log.save()

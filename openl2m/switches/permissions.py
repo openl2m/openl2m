@@ -15,7 +15,6 @@
 #
 # Functions that perform actions on interfaces, called by both the WEB UI and REST API
 #
-from django.conf import settings
 
 from rest_framework import status as http_status
 from rest_framework.reverse import reverse as rest_reverse
@@ -60,7 +59,6 @@ def get_my_device_groups(request):
                 each is a dict of active devices(switches).
     """
     dprint("get_my_device_groups()")
-    permitted = False
     if request.user.is_superuser or request.user.is_staff:
         dprint("  Superuser or Staff!")
         # optimize data queries, get all related field at once!
@@ -73,10 +71,6 @@ def get_my_device_groups(request):
 
     # now find active devices in these groups
     permissions = {}
-
-    this_group = None
-    this_switch = None
-
     for group in groups:
         if group.switches.count():
             # set this group, and the switches, in web session to track permissions
@@ -143,7 +137,7 @@ def get_group_and_switch(request, group_id, switch_id):
     """
     dprint("get_group_and_switch()")
     # api using token, or session based ?
-    if isinstance(request, RESTRequest) and request.auth != None:
+    if isinstance(request, RESTRequest) and request.auth is not None:
         # API user with Token, need to read groups every time:
         dprint("  API Token - calling get_my_device_groups()")
         groups = get_my_device_groups(request=request)
@@ -298,7 +292,7 @@ def _get_group_and_switch_from_permissions(permissions, group_id, switch_id):
             try:
                 group = SwitchGroup.objects.get(pk=group_id)
                 switch = Switch.objects.get(pk=switch_id)
-            except Exception as err:
+            except Exception:
                 group = None
                 switch = None
     return group, switch
@@ -318,7 +312,7 @@ def user_can_write(request):
     """
     dprint(f"user_can_write(), request = {type(request)}")
     if hasattr(request, "auth"):
-        if request.auth != None:  # Token from REST API
+        if request.auth is not None:  # Token from REST API
             if not request.auth.write_enabled:
                 error = Error()
                 error.code = http_status.HTTP_403_FORBIDDEN

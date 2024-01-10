@@ -39,14 +39,13 @@ from pysnmp.hlapi import (
     usmAesCfb128Protocol,
     usmDESPrivProtocol,
 )
-from pysnmp.proto.rfc1902 import ObjectName, OctetString, Integer
+from pysnmp.proto.rfc1902 import ObjectName, OctetString
 
 from switches.constants import (
     LOG_TYPE_ERROR,
     LOG_TYPE_WARNING,
     LOG_SNMP_ERROR,
     LOG_UNDEFINED_VLAN,
-    LOG_NEW_OID_FOUND,
     LOG_NEW_HOSTNAME_FOUND,
     SNMP_VERSION_2C,
     SNMP_VERSION_3,
@@ -110,7 +109,6 @@ from switches.connect.snmp.constants import (
     ifName,
     ifAlias,
     ifHighSpeed,
-    system,
     sysName,
     sysUpTime,
     sysObjectID,
@@ -131,7 +129,6 @@ from switches.connect.snmp.constants import (
     dot1dBasePortIfIndex,
     ipAdEntIfIndex,
     ipAdEntNetMask,
-    entPhysicalEntry,
     entPhysicalClass,
     entPhysicalDescr,
     entPhysicalSerialNum,
@@ -157,7 +154,6 @@ from switches.connect.snmp.constants import (
     lldpRemSysDesc,
     lldpRemSysCapEnabled,
     lldpRemChassisIdSubtype,
-    lldpRemManAddrEntry,
     lldpRemManAddrIfSubtype,
     LLDP_REM_MAN_ADDR_TYPE_IFINDEX,
     LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER,

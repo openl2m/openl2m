@@ -107,7 +107,7 @@ from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
 )
 from switches.download import create_eth_neighbor_xls_file
-from switches.permissions import get_group_and_switch, get_connection_if_permitted
+from switches.permissions import get_group_and_switch, get_connection_if_permitted, get_my_device_groups
 
 from switches.utils import (
     success_page,
@@ -124,7 +124,6 @@ from switches.utils import (
     string_matches_regex,
     get_choice_name,
 )
-from switches.permissions import get_group_and_switch, get_my_device_groups
 
 from users.utils import user_can_bulkedit, user_can_edit_vlans, get_current_users
 from counters.models import Counter, counter_increment
@@ -384,7 +383,7 @@ def switch_view(
         description=f"Viewing device ({view})",
     )
 
-    if group == None or switch == None:
+    if group is None or switch is None:
         log.type = LOG_TYPE_ERROR
         log.description = "Permission denied! ()"
         log.save()
@@ -593,7 +592,7 @@ class SwitchBulkEdit(LoginRequiredMixin, View):
             type=LOG_TYPE_VIEW,
         )
 
-        if group == None or switch == None:
+        if group is None or switch is None:
             log.type = LOG_TYPE_ERROR
             log.description = "Permission denied!"
             log.save()
@@ -707,7 +706,6 @@ class SwitchBulkEdit(LoginRequiredMixin, View):
         # so that we can show the names in the Log() objects
         # additionally, also get the current state, to be able to "undo" the update
         interfaces = {}  # dict() of interfaces to bulk edit
-        undo_info = {}
         for if_key in interface_list:
             dprint(f"BulkEdit for {if_key}")
             interface = conn.get_interface_by_key(if_key)
@@ -1230,7 +1228,7 @@ class InterfaceDescriptionChange(LoginRequiredMixin, View):
 
         # we don't know the name of the interface, only the key or id.
         # message = f"Interface {interface_name} description changed"
-        message = f"Interface description changed"
+        message = "Interface description changed"
         return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
@@ -1432,7 +1430,7 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
 
         group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
-        if group == None or switch == None:
+        if group is None or switch is None:
             log = Log(
                 user=request.user,
                 ip_address=get_remote_ip(request),
@@ -1684,7 +1682,7 @@ class SwitchReload(LoginRequiredMixin, View):
 
         group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
-        if group == None or switch == None:
+        if group is None or switch is None:
             log = Log(
                 user=request.user,
                 ip_address=get_remote_ip(request),
@@ -1732,7 +1730,7 @@ class SwitchActivity(LoginRequiredMixin, View):
         template_name = "switch_activity.html"
         group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
-        if group == None or switch == None:
+        if group is None or switch is None:
             log = Log(
                 user=request.user,
                 ip_address=get_remote_ip(request),

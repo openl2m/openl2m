@@ -13,9 +13,6 @@
 #
 import io
 import time
-from pathlib import Path
-import platform
-import tempfile
 import xlsxwriter
 
 from switches.connect.classes import Error

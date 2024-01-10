@@ -16,8 +16,6 @@
 # Here we implement all API views as classes
 #
 
-from django.conf import settings
-
 # Use the Django Rest Framework:
 from rest_framework import status as http_status
 from rest_framework.response import Response
@@ -35,7 +33,6 @@ from switches.actions import (
     perform_switch_vlan_delete,
 )
 from switches.connect.connect import get_connection_object
-from switches.connect.constants import POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DISABLED
 from switches.permissions import get_my_device_groups, get_group_and_switch
 from switches.utils import dprint
 
