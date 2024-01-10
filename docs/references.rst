@@ -38,6 +38,9 @@ See https://github.com/netbox-community/netbox
 
 HP/Aruba vlan management tool. https://sourceforge.net/projects/procurve-admin/
 
+Uninett NAV (Network Adminstration Visualized), at https://nav.uninett.no/
+and specifically the SNMP portadmin code at https://github.com/Uninett/nav/tree/master/python/nav/portadmin/snmp
+
 
 **SNMP related**
 
