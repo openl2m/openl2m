@@ -116,6 +116,10 @@ def get_my_device_groups(request):
                         "comments": switch.comments,
                         "indent_level": switch.indent_level,
                     }
+                    if switch.nms_id:
+                        members[int(switch.id)]["nms_id"] = switch.nms_id
+                    else:
+                        members[int(switch.id)]["nms_id"] = ""
             group_info['members'] = members
             permissions[int(group.id)] = group_info
     return permissions
