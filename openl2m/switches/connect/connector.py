@@ -173,6 +173,7 @@ class Connector:
             "change_poe": self.can_change_poe_status,
             "change_description": self.can_change_description,
             "edit_vlans": self.can_edit_vlans,
+            "change_vlan_name": self.can_set_vlan_name,
             # more to add later...
         }
         if self.switch.nms_id:
