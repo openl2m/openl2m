@@ -88,7 +88,7 @@ def perform_interface_admin_change(request, group_id, switch_id, interface_key, 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
-    if connection is None:
+    if not connection:
         return False, error
 
     log = Log(

@@ -167,7 +167,7 @@ def get_connection_if_permitted(request, group, switch, write_access=False):
             Error() object describing the error, e.g. access denied.
 
     """
-    dprint("get_connection_if_permitted()")
+    dprint(f"get_connection_if_permitted(g={group} s={switch})")
     log = Log(
         user=request.user,
         ip_address=get_remote_ip(request),
@@ -175,7 +175,7 @@ def get_connection_if_permitted(request, group, switch, write_access=False):
         group=group,
         action=LOG_CHANGE_INTERFACE_ALIAS,
     )
-    if not group or not switch:
+    if group is None or switch is None:
         log.type = LOG_TYPE_ERROR
         log.action = LOG_DENIED
         log.description = "Access Denied!"
@@ -296,9 +296,15 @@ def _get_group_and_switch_from_permissions(permissions, group_id, switch_id):
             try:
                 group = SwitchGroup.objects.get(pk=group_id)
                 switch = Switch.objects.get(pk=switch_id)
-            except Exception:
+                dprint("   All OK")
+            except Exception as err:
+                dprint("   ERROR getting Group or Switch object: {err}")
                 group = None
                 switch = None
+        else:
+            dprint("  INVALID switch id!")
+    else:
+        dprint("  INVALID group id!")
     return group, switch
 
 
