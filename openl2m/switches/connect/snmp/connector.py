@@ -91,6 +91,7 @@ from switches.connect.classes import (
     EthernetAddress,
     NeighborDevice,
     PortList,
+    Vlan,
 )
 
 # from switches.connect.connect import *
@@ -144,6 +145,10 @@ from switches.connect.snmp.constants import (
     dot3adAggActorAdminKey,
     dot3adAggPortActorAdminKey,
     ieee8021QBridgeMvrpEnabledStatus,
+    ieee8021QBridgeVlanStaticName,
+    ieee8021QBridgePortVlanEntry,
+    ieee8021QBridgeVlanCurrentEgressPorts,
+    ieee8021QBridgeVlanCurrentUntaggedPorts,
     dot1dTpFdbPort,
     ipNetToMediaPhysAddress,
     lldpRemChassisId,
@@ -1062,7 +1067,7 @@ class SnmpConnector(Connector):
             if vlan_id in self.vlans.keys():
                 self.vlans[vlan_id].status = status
             else:
-                # unlikely to happen, we should know vlan by now!
+                # only should happen for non-permanent vlans, we should know static vlans by now!
                 self.add_vlan_by_id(vlan_id)
                 self.vlans[vlan_id].status = int(val)
             return True
@@ -1364,6 +1369,162 @@ class SnmpConnector(Connector):
         """
 
         # we did not parse this. This can happen with Bulk Walks...
+        return False
+
+    def _get_ports_from_vlan_bitmap(self, vlan_id, byte_string):
+        """Parse the list of all egress ports of a VLAN (tagged + untagged) as a hex byte string
+        now look at all the bits in this multi-byte value to find ports on this vlan:
+
+        Args:
+            vlan_id (int): the vlan id that this byte string applies to
+            byte_string (bytes)): the bitmap showing which ports are a member of this vlan
+
+        Returns:
+            True
+        """
+        offset = 0
+        for byte in byte_string:
+            byte = ord(byte)
+            # which bits are set? A hack but it works!
+            # note that the bits are actually in system order,
+            # ie. bit 1 is first bit in stream, i.e. HIGH order bit!
+            if byte & 128:
+                port_id = (offset * 8) + 1
+                self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 64:
+                port_id = (offset * 8) + 2
+                self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 32:
+                port_id = (offset * 8) + 3
+                self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 16:
+                port_id = (offset * 8) + 4
+                self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 8:
+                port_id = (offset * 8) + 5
+                self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 4:
+                port_id = (offset * 8) + 6
+                self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 2:
+                port_id = (offset * 8) + 7
+                self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 1:
+                port_id = (offset * 8) + 8
+                self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
+            offset += 1
+        return True
+
+    def _get_untagged_ports_from_vlan_bitmap(self, vlan_id, byte_string):
+        """Parse the list of current untagged ports of a VLAN as a hex byte string
+        Look at all the bits in this multi-byte value to find ports on this vlan:
+
+        Args:
+            vlan_id (int): the vlan id that this byte string applies to
+            byte_string (bytes)): the bitmap showing which ports are a member of this vlan
+
+        Returns:
+            True
+        """
+        offset = 0
+        for byte in byte_string:
+            byte = ord(byte)
+            # which bits are set? A hack but it works!
+            # note that the bits are actually in system order,
+            # ie. bit 1 is first bit in stream, i.e. HIGH order bit!
+            if byte & 128:
+                port_id = (offset * 8) + 1
+                self._add_untagged_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 64:
+                port_id = (offset * 8) + 2
+                self._add_untagged_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 32:
+                port_id = (offset * 8) + 3
+                self._add_untagged_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 16:
+                port_id = (offset * 8) + 4
+                self._add_untagged_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 8:
+                port_id = (offset * 8) + 5
+                self._add_untagged_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 4:
+                port_id = (offset * 8) + 6
+                self._add_untagged_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 2:
+                port_id = (offset * 8) + 7
+                self._add_untagged_vlan_to_interface_by_port_id(port_id, vlan_id)
+            if byte & 1:
+                port_id = (offset * 8) + 8
+                self._add_untagged_vlan_to_interface_by_port_id(port_id, vlan_id)
+            offset += 1
+        return True
+
+    def _parse_mibs_ieee_qbridge(self, oid, val):
+        """
+        Parse ieee 802.1q bridge Mibs
+        """
+        dprint(f"_parse_mibs_ieee_qbridge() {oid} = {val}")
+        retval = oid_in_branch(ieee8021QBridgeVlanStaticName, oid)
+        if retval:
+            vlan_id = int(retval)
+            # dprint(f"Aruba VLAN {vlan_id} name '{val}'")
+            v = Vlan(id=vlan_id, name=val)
+            self.add_vlan(v)
+            return True
+
+        retval = oid_in_branch(ieee8021QBridgePortVlanEntry, oid)
+        if retval:
+            # retval is in format 1.1.1, for name 1/1/1
+            name = retval.replace('.', '/')
+            # dprint(f"Aruba Port {name} untagged vlan {val}")
+            # however, the key to the interface is the ifIndex, not name!
+            iface = self.get_interface_by_name(name)
+            if iface:
+                # dprint("   Port found !")
+                untagged_vlan = int(val)
+                if not iface.is_tagged and untagged_vlan in self.vlans.keys():
+                    iface.untagged_vlan = untagged_vlan
+                    iface.untagged_vlan_name = self.vlans[untagged_vlan].name
+            else:
+                # AOS-CX appears to report all interfaces for all possible stack members.
+                # even when less then max-stack-members are actualy present!
+                # so we are ignoring this warning for now...
+                # self.add_warning(f"IEEE802.1QBridgePortVlanEntry found, but interface {name} NOT found!")
+                dprint(f"IEEE802.1QBridgePortVlanEntry found, but interface {name} does not exist!")
+            return True
+
+        sub_oid = oid_in_branch(ieee8021QBridgeVlanCurrentEgressPorts, oid)
+        if sub_oid:
+            # vlans with port members
+            dprint(f"Found ieee8021QBridgeVlanCurrentEgressPorts, sub_oid = '{sub_oid}'")
+            # sub oid part is ieee8021QBridgeVlanCurrentEgressPorts.instance.timestamp.vlan_id = bitmap
+            (ignore, time_val, v) = sub_oid.split('.')
+            vlan_id = int(v)
+            # check if vlan is globally defined on switch:
+            if vlan_id not in self.vlans.keys():
+                # not likely, we should know vlan by now, but just in case!
+                self.add_vlan_by_id(vlan_id)
+            # store the egress port list, as some switches need this when setting untagged vlans
+            self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
+            # and go figure out what ports are part of this vlan:
+            self._get_ports_from_vlan_bitmap(vlan_id=vlan_id, byte_string=val)
+            return True
+
+        sub_oid = oid_in_branch(ieee8021QBridgeVlanCurrentUntaggedPorts, oid)
+        if sub_oid:
+            dprint("Found ieee8021QBridgeVlanCurrentUntaggedPorts ")
+            dprint("parsing ignore for now (not functional!)")
+            # # sub oid part is ieee8021QBridgeVlanCurrentUntaggedPorts.somthing.instance.vlan_id = bitmap
+            # (ignore, ignore2, v) = sub_oid.split('.')
+            # vlan_id = int(v)
+            # # check if vlan is globally defined on switch:
+            # if vlan_id not in self.vlans.keys():
+            #     # not likely, we should know vlan by now, but just in case!
+            #     self.add_vlan_by_id(vlan_id)
+            # # figure out untagged ports based on the bitmap
+            # self._get_untagged_ports_from_vlan_bitmap(vlan_id=vlan_id, byte_string=val)
+            return True
+
         return False
 
     #
@@ -1770,6 +1931,29 @@ class SnmpConnector(Connector):
                     self.interfaces[if_index].vlans.append(vlan_id)
                     self.interfaces[if_index].is_tagged = True
             return True
+        return False
+
+    def _add_untagged_vlan_to_interface_by_port_id(self, port_id, vlan_id):
+        """
+        Add a given vlan as untaggfed to the interface identified by the dot1d bridge port id
+        """
+        dprint(f"_add_untagged_vlan_to_interface_by_port_id() port id {port_id} vlan {vlan_id}")
+        # get the interface index first:
+        if_index = self._get_if_index_from_port_id(port_id)
+        if if_index in self.interfaces.keys():
+            if self.interfaces[if_index].untagged_vlan == 0:
+                dprint(f"   PVID was 0, now set!")
+                self.interfaces[if_index].untagged_vlan = vlan_id
+                return True
+            elif self.interfaces[if_index].untagged_vlan == vlan_id:
+                dprint("   PVID already set!")
+                # interface already has this untagged vlan, not adding
+                return True
+            else:
+                dprint("   PVID now set!")
+                self.interfaces[if_index].untagged_vlan = vlan_id
+                return True
+        dprint(f"if_index '{if_index}' not found!")
         return False
 
     def _parse_mibs_entity_physical(self, oid, val):
