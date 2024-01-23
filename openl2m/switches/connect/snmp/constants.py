@@ -580,14 +580,36 @@ syslogMsgMsg = '.1.3.6.1.2.1.192.1.2.1.11'
 
 # IEEE also has a Dot1Q MIB:
 # see also https://mibs.observium.org/mib/IEEE8021-Q-BRIDGE-MIB/
+# or https://www.circitor.fr/Mibs/Html/I/IEEE8021-Q-BRIDGE-MIB.php
 ieee8021QBridgeMib = '.1.3.111.2.802.1.1.4'
 
 ieee8021QBridgeMvrpEnabledStatus = '.1.3.111.2.802.1.1.4.1.1.1.1.6'
 snmp_mib_variables['ieee8021QBridgeMvrpEnabledStatus'] = ieee8021QBridgeMvrpEnabledStatus
 
+# the ports currently active on all vlans, including dynamic.
+# if multiple ports, then port is in trunk mode!
+ieee8021QBridgeVlanCurrentEgressPorts = '.1.3.111.2.802.1.1.4.1.4.2.1.5'
+snmp_mib_variables['ieee8021QBridgeVlanCurrentEgressPorts'] = ieee8021QBridgeVlanCurrentEgressPorts
+
+# the untagged ports on all vlans (including dynamic.)
+ieee8021QBridgeVlanCurrentUntaggedPorts = '.1.3.111.2.802.1.1.4.1.4.2.1.6'
+snmp_mib_variables['ieee8021QBridgeVlanCurrentUntaggedPorts'] = ieee8021QBridgeVlanCurrentUntaggedPorts
+
+# all existing vlans, static and dynamic:
+ieee8021QBridgeVlanStatus = '.1.3.111.2.802.1.1.4.1.4.2.1.7'
+
+
 # vlan names:
 ieee8021QBridgeVlanStaticName = '.1.3.111.2.802.1.1.4.1.4.3.1.3.1'
 snmp_mib_variables['ieee8021QBridgeVlanStaticName'] = ieee8021QBridgeVlanStaticName
+
+# this is the ports on staticly defined vlans only! (not dynamic vlans)
+ieee8021QBridgeVlanStaticEgressPorts = '.1.3.111.2.802.1.1.4.1.4.3.1.4'
+snmp_mib_variables['ieee8021QBridgeVlanStaticEgressPorts'] = ieee8021QBridgeVlanStaticEgressPorts
+
+# this is the ports on staticly defined vlans only! (not dynamic vlans)
+ieee8021QBridgeVlanStaticUntaggedPorts = '.1.3.111.2.802.1.1.4.1.4.3.1.6'
+snmp_mib_variables['ieee8021QBridgeVlanStaticUntaggedPorts'] = ieee8021QBridgeVlanStaticUntaggedPorts
 
 # the PVID of a port is here.
 # see also https://oidref.com/1.3.111.2.802.1.1.4.1.4.5.1.1
