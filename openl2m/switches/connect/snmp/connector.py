@@ -1942,7 +1942,7 @@ class SnmpConnector(Connector):
         if_index = self._get_if_index_from_port_id(port_id)
         if if_index in self.interfaces.keys():
             if self.interfaces[if_index].untagged_vlan == 0:
-                dprint(f"   PVID was 0, now set!")
+                dprint("   PVID was 0, now set!")
                 self.interfaces[if_index].untagged_vlan = vlan_id
                 return True
             elif self.interfaces[if_index].untagged_vlan == vlan_id:
