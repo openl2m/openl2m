@@ -65,6 +65,7 @@ from switches.constants import (
     LOG_TYPE_ERROR,
     LOG_TYPE_COMMAND,
     LOG_TYPE_CHOICES,
+    LOG_TYPE_LOGIN_OUT,
     LOG_ACTION_CHOICES,
     LOG_CHANGE_INTERFACE_DOWN,
     LOG_CHANGE_INTERFACE_UP,
@@ -74,6 +75,7 @@ from switches.constants import (
     LOG_CHANGE_INTERFACE_PVID,
     LOG_CHANGE_INTERFACE_ALIAS,
     LOG_CHANGE_BULK_EDIT,
+    LOG_LOGIN_REST_API,
     LOG_VIEW_SWITCHGROUPS,
     LOG_CONNECTION_ERROR,
     LOG_BULK_EDIT_TASK_START,
@@ -1851,6 +1853,7 @@ class ShowStats(LoginRequiredMixin, View):
 
         usage = {}  # usage statistics
 
+        # Devices accessed:
         filter = {}
         filter['timestamp__date'] = datetime.date.today()
         usage['Devices today'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
@@ -1867,6 +1870,7 @@ class ShowStats(LoginRequiredMixin, View):
             Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
         )
 
+        # Changes made
         filter = {}
         filter['type'] = int(LOG_TYPE_CHANGE)
         filter['timestamp__date'] = datetime.date.today()
@@ -1887,6 +1891,26 @@ class ShowStats(LoginRequiredMixin, View):
         # the total change count since install from Counter()'changes') object:
         usage["Total Changes"] = Counter.objects.get(name="changes").value
 
+        # API requests:
+        filter = {}
+        filter['type'] = int(LOG_TYPE_LOGIN_OUT)
+        filter['action'] = int(LOG_LOGIN_REST_API)
+        filter['timestamp__date'] = datetime.date.today()
+        usage['API calls today'] = Log.objects.filter(**filter).count()
+
+        filter = {
+            "type": int(LOG_TYPE_CHANGE),
+            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
+        }
+        usage["API calls last 7 days"] = Log.objects.filter(**filter).count()
+
+        filter = {
+            "type": int(LOG_TYPE_CHANGE),
+            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
+        }
+        usage["API calls last 31 days"] = Log.objects.filter(**filter).count()
+
+        # Commands run:
         filter = {"type": int(LOG_TYPE_COMMAND), "timestamp__date": datetime.date.today()}
         usage["Commands today"] = Log.objects.filter(**filter).count()
 
