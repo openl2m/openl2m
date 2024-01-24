@@ -298,7 +298,7 @@ def _get_group_and_switch_from_permissions(permissions, group_id, switch_id):
                 switch = Switch.objects.get(pk=switch_id)
                 dprint("   All OK")
             except Exception as err:
-                dprint("   ERROR getting Group or Switch object: {err}")
+                dprint(f"   ERROR getting Group or Switch object: {err}")
                 group = None
                 switch = None
         else:
