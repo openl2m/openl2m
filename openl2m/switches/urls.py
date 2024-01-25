@@ -114,6 +114,11 @@ urlpatterns = [
         name='switch_download_ethernet_neighbors',
     ),
     path(
+        '<int:group_id>/<int:switch_id>/download_interfaces/',
+        views.SwitchDownloadInterfaces.as_view(),
+        name='switch_download_interfaces',
+    ),
+    path(
         '<int:group_id>/<int:switch_id>/<ifname:interface_name>/admin/<int:new_state>/',
         views.InterfaceAdminChange.as_view(),
         name='admin_change',

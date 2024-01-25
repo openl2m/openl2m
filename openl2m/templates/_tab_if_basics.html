@@ -11,7 +11,12 @@
     <table class="table table-hover table-headings w-auto">
       <thead>
       <tr>
-        <th>Interface Name</th>
+        <th>
+          <a data-toggle="tooltip" href="{% url 'switches:switch_download_interfaces' group.id switch.id  %}"
+             title="Click here to download interfaces info to Excel">
+             Interface Name <i class="fas fa-download" aria-hidden="true"></i>
+          </a>
+        </th>
         <th>Link</th>
         <th>Vlan</th>
         {% if connection.poe_capable %}

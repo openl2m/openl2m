@@ -84,6 +84,7 @@ from switches.constants import (
     LOG_VIEW_ADMIN_STATS,
     LOG_VIEW_SWITCH_SEARCH,
     LOG_VIEW_DOWNLOAD_ARP_LLDP,
+    LOG_VIEW_DOWNLOAD_INTERFACES,
     LOG_EXECUTE_COMMAND,
     LOG_RELOAD_SWITCH,
     INTERFACE_STATUS_NONE,
@@ -108,7 +109,7 @@ from switches.connect.constants import (
     POE_PORT_ADMIN_ENABLED,
     POE_PORT_ADMIN_DISABLED,
 )
-from switches.download import create_eth_neighbor_xls_file
+from switches.download import create_eth_neighbor_xls_file, create_interfaces_xls_file
 from switches.permissions import get_group_and_switch, get_connection_if_permitted, get_my_device_groups
 
 from switches.utils import (
@@ -2089,6 +2090,64 @@ class SwitchDownloadEthernetAndNeighbors(LoginRequiredMixin, View):
 
         # create tbe download filename
         filename = f"{connection.switch.name}-ethernet-neighbor-info.xlsx"
+        log.description = f"Downloading '{filename}'"
+        log.save()
+        return FileResponse(stream, as_attachment=True, filename=filename)
+
+
+class SwitchDownloadInterfaces(LoginRequiredMixin, View):
+    """
+    Download list of visible interfaces on a device.
+    """
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchDownloadInterfaces() - GET called")
+
+        group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+        connection, error = get_connection_if_permitted(request=request, group=group, switch=switch)
+
+        if connection is None:
+            return error_page(request=request, group=group, switch=switch, error=error)
+
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            switch=switch,
+            group=group,
+            type=LOG_TYPE_VIEW,
+            action=LOG_VIEW_DOWNLOAD_INTERFACES,
+        )
+        # load ethernet, neighbor info, etc. again
+        try:
+            if not connection.get_client_data():
+                log.type = LOG_TYPE_ERROR
+                log.description = "ERROR get_client_data()"
+                log.save()
+                return error_page(request=request, group=group, switch=switch, error=connection.error)
+        except Exception as e:
+            log.type = LOG_TYPE_ERROR
+            log.description = (
+                f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            )
+            dprint(log.description)
+            log.save()
+            return error_page(request=request, group=group, switch=switch, error=connection.error)
+
+        # create a temp file with the spreadsheet
+        stream, error = create_interfaces_xls_file(connection)
+        if not stream:
+            log.type = LOG_TYPE_ERROR
+            log.description = f"{error.description}: {error.details}"
+            log.save()
+            return error_page(request=request, group=group, switch=switch, error=error)
+
+        # create tbe download filename
+        filename = f"{connection.switch.name}-interfaces.xlsx"
         log.description = f"Downloading '{filename}'"
         log.save()
         return FileResponse(stream, as_attachment=True, filename=filename)

@@ -23,6 +23,8 @@ IF_TYPE_VIRTUAL = 53  # interface Vlan X (proprietary virtual/internal)
 IF_TYPE_TUNNEL = 131  # generic Tunnel interface
 IF_TYPE_LAGG = 161  # IEEE 802.3ad Link Aggregate
 IF_TYPE_MCAST = 1025  # undefined by IEEE, but used by OpenL2M to indicate various multicast virtual interfaces
+# for reporting, create generic list of virtual interfaces:
+VIRTUAL_INTERFACES = [IF_TYPE_LOOPBACK, IF_TYPE_VIRTUAL, IF_TYPE_TUNNEL, IF_TYPE_MCAST]
 
 # duplex settings, from the snmp dot3StatsDuplexStatus object.
 IF_DUPLEX_UNKNOWN = 1

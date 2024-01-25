@@ -21,6 +21,9 @@ from switches.connect.constants import (
     LLDP_CHASSIC_TYPE_NET_ADDR,
     IANA_TYPE_IPV4,
     IANA_TYPE_IPV6,
+    POE_PORT_DETECT_DELIVERING,
+    IF_TYPE_LAGG,
+    IF_TYPE_ETHERNET,
 )
 from switches.utils import dprint
 
@@ -36,7 +39,7 @@ def create_eth_neighbor_xls_file(connection):
     """
     dprint("create_eth_neighbor_xls_file()")
     try:
-        # create the Excel file handler
+        # create the Excel file handler to a temporary byte stream
         fh = io.BytesIO()
         workbook = xlsxwriter.Workbook(fh)
 
@@ -137,6 +140,118 @@ def create_eth_neighbor_xls_file(connection):
                 worksheet.write(row, COL_NEIGHBOR_NAME, neighbor.sys_name, format_regular)
                 worksheet.write(row, COL_NEIGHBOR_TYPE, neighbor.capabilities_as_string(), format_regular)
                 worksheet.write(row, COL_NEIGHBOR_DESCRIPTION, neighbor.sys_descr, format_regular)
+
+        workbook.close()
+    except Exception as err:  # trap all errors from above!
+        error = Error()
+        error.description = "Error creating Excel file!"
+        error.details = f"ERROR: {err}"
+        return False, error
+
+    # all OK!
+    fh.seek(0)  # rewind to beginning of "file"
+    return fh, None
+
+
+def create_interfaces_xls_file(connection):
+    """Create an XLS temp file that contains the interface/port information for a device.
+
+    Args:
+        connection (Connection()): a valid connection object, that has basic (interface) information filled in.
+
+    Returns:
+        (BytesIO() object), Error() ): an open stream, or an Error() object if that cannot be created,.
+    """
+    dprint("create_interfaces_xls_file()")
+    try:
+        # create the Excel file handler to a temporary byte stream
+        fh = io.BytesIO()
+        workbook = xlsxwriter.Workbook(fh)
+
+        # Add some formats to use to highlight cells.
+        format_bold = workbook.add_format({'bold': True, 'font_name': 'Calibri', 'font_size': 14})
+        format_regular = workbook.add_format({'font_name': 'Calibri', 'font_size': 12})
+        # add a tab
+        worksheet = workbook.add_worksheet('Interfaces')
+
+        COL_INTERFACE_NAME = 0
+        COL_INTERFACE_MODE = 1
+        COL_INTERFACE_STATE = 2
+        COL_INTERFACE_VLAN = 3
+        COL_INTERFACE_POE = 4
+        COL_INTERFACE_POE_DRAW = 5
+        COL_INTERFACE_DESCRIPTION = 6
+
+        # start with a date message:
+        row = 0
+        worksheet.write(
+            row,
+            COL_INTERFACE_NAME,
+            f"Interface info from '{connection.switch.name}' generated for '{connection.request.user}' at {time.strftime('%I:%M %p, %d %B %Y', time.localtime())}",
+            format_bold,
+        )
+
+        # write header row
+        row += 1
+        worksheet.write(row, COL_INTERFACE_NAME, 'Interface', format_bold)
+        worksheet.set_column(COL_INTERFACE_NAME, COL_INTERFACE_NAME, 30)  # Adjust the column width.
+
+        worksheet.write(row, COL_INTERFACE_MODE, 'Mode', format_bold)
+        worksheet.set_column(COL_INTERFACE_MODE, COL_INTERFACE_MODE, 20)
+
+        worksheet.write(row, COL_INTERFACE_STATE, 'State', format_bold)
+        worksheet.set_column(COL_INTERFACE_STATE, COL_INTERFACE_STATE, 10)
+
+        worksheet.write(row, COL_INTERFACE_VLAN, 'Untagged VLAN', format_bold)
+        worksheet.set_column(COL_INTERFACE_VLAN, COL_INTERFACE_VLAN, 20)
+
+        worksheet.write(row, COL_INTERFACE_POE, 'PoE Status', format_bold)
+        worksheet.set_column(COL_INTERFACE_POE, COL_INTERFACE_POE, 15)
+
+        worksheet.write(row, COL_INTERFACE_POE_DRAW, 'Power (mW)', format_bold)
+        worksheet.set_column(COL_INTERFACE_POE_DRAW, COL_INTERFACE_POE_DRAW, 15)
+
+        worksheet.write(row, COL_INTERFACE_DESCRIPTION, 'Description', format_bold)
+        worksheet.set_column(COL_INTERFACE_DESCRIPTION, COL_INTERFACE_DESCRIPTION, 50)
+
+        # now loop through all interfaces on the connection:
+        for interface in connection.interfaces.values():
+            if interface.visible:
+                row += 1
+                worksheet.write(row, COL_INTERFACE_NAME, interface.name, format_regular)
+
+                if interface.is_routed:
+                    worksheet.write(row, COL_INTERFACE_MODE, "Routed", format_regular)
+                elif interface.lacp_master_index > 0:
+                    worksheet.write(row, COL_INTERFACE_MODE, "LACP-Member", format_regular)
+                elif interface.type == IF_TYPE_LAGG:
+                    worksheet.write(row, COL_INTERFACE_MODE, "LACP", format_regular)
+                elif interface.is_tagged:
+                    worksheet.write(row, COL_INTERFACE_MODE, "Trunk", format_regular)
+                elif interface.type != IF_TYPE_ETHERNET:
+                    worksheet.write(row, COL_INTERFACE_MODE, "Virtual", format_regular)
+                else:
+                    # anything else is access port:
+                    worksheet.write(row, COL_INTERFACE_MODE, "Access", format_regular)
+
+                if interface.untagged_vlan > 0:
+                    worksheet.write(row, COL_INTERFACE_VLAN, interface.untagged_vlan, format_regular)
+
+                if interface.oper_status:
+                    worksheet.write(row, COL_INTERFACE_STATE, "Up", format_regular)
+                else:
+                    worksheet.write(row, COL_INTERFACE_STATE, "Down", format_regular)
+
+                if interface.poe_entry:
+                    if interface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING:
+                        worksheet.write(row, COL_INTERFACE_POE, "Error", format_regular)
+                    elif interface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING:
+                        worksheet.write(row, COL_INTERFACE_POE, "Delivering", format_regular)
+                        worksheet.write(row, COL_INTERFACE_POE_DRAW, interface.poe_entry.power_consumed, format_regular)
+                    else:
+                        worksheet.write(row, COL_INTERFACE_POE, "Available", format_regular)
+
+                worksheet.write(row, COL_INTERFACE_DESCRIPTION, interface.description, format_regular)
 
         workbook.close()
     except Exception as err:  # trap all errors from above!
