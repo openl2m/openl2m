@@ -30,7 +30,7 @@ This dictionary contains the username for this token, and some permissions flags
 Example output
 --------------
 
-The example below shows 2 groups (#2 and #35), with one (#54) and three (#272, #623, #703) devices respectively.
+The example below shows 2 groups (#2 and #35), with respectively one (#54) and three (#272, #623, #703) devices.
 
 .. code-block:: python
 
@@ -51,6 +51,7 @@ The example below shows 2 groups (#2 and #35), with one (#54) and three (#272, #
                         "hostname": "my_device_1",
                         "indent_level": 0,
                         "name": "My Device #1",
+                        "nms_id": "",
                         "primary_ipv4": "192.168.100.100",
                         "read_only": true,
                         "url": "http://localhost:8000/api/switches/details/2/54/",
@@ -75,6 +76,7 @@ The example below shows 2 groups (#2 and #35), with one (#54) and three (#272, #
                         "hostname": "TEST-LAB-5130",
                         "indent_level": 1,
                         "name": "TEST-LAB 5130",
+                        "nms_id": "5130",
                         "primary_ipv4": "10.100.100.100",
                         "read_only": false,
                         "url": "http://localhost:8000/api/switches/basic/35/272/",
@@ -90,6 +92,7 @@ The example below shows 2 groups (#2 and #35), with one (#54) and three (#272, #
                         "hostname": "aos-cx-test-switch",
                         "indent_level": 1,
                         "name": "AOS-CX-Test",
+                        "nms_id": "",
                         "primary_ipv4": "10.100.100.101",
                         "read_only": false,
                         "url": "http://localhost:8000/api/switches/basic/35/623/",
@@ -105,6 +108,7 @@ The example below shows 2 groups (#2 and #35), with one (#54) and three (#272, #
                         "hostname": "ex2300-test-switch",
                         "indent_level": 1,
                         "name": "Junos-EX2300-TEST",
+                        "nms_id": "ex2300-1",
                         "primary_ipv4": "10.100.100.102",
                         "read_only": false,
                         "url": "http://localhost:8000/api/switches/basic/35/703/",

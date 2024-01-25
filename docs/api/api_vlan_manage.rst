@@ -6,6 +6,11 @@ API Vlan Management
 
 The "Vlan Management" endpoints allow you to create, delete or rename vlans on the device (if permitted).
 
+.. note::
+
+    Not all devices can manage vlans, or if they can, can set names on vlans.
+    Please look at the appropriate fields returned by the device info (*change_vlan* and *change_vlan_name*)
+
 
 Create or Add
 -------------

@@ -33,7 +33,7 @@ Features Supported
 
    * - Port VLAN Change
      - Yes
-     -
+     - Yes (no name)
      - Yes
      - Yes
      -
@@ -55,7 +55,7 @@ Features Supported
 
    * - Description Edit
      - Yes
-     - Yes
+     - Yes (>= v10.09)
      - Yes
      - Yes
      -
@@ -77,7 +77,7 @@ Features Supported
 
    * - VLAN Edit/Create
      - Yes
-     - Yes (v10.12 and up)
+     - Yes (>= v10.12)
      - Yes
      - Yes
      -
@@ -96,3 +96,7 @@ Features Supported
      - Yes
      - Yes
      - Yes
+
+.. note::
+
+  All driver features are automatically supported by the REST API! (except for SSH commands)

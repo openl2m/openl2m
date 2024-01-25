@@ -23,14 +23,14 @@ API Testing
 You can test the API from the command line on most systems, by making HTTP "GET" calls. Once you have your token,
 you can do something like the examples below to get the list of devices you can access:
 
-.. code-block: bash
+.. code-block:: bash
 
     curl -X GET https://<your-doimain>/api/switches/ -H 'Authorization: Token <your-token-string-here>'
 
 
 With the Python HTTPIE package, the following is an elegant way to test:
 
-.. code-block: bash
+.. code-block:: bash
 
     http https://<your-domain>/api/switches/ 'Authorization: Token <your-token-string-here>'
 

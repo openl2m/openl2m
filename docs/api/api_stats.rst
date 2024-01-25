@@ -29,9 +29,9 @@ At the time of this writing, the output will look something like this. In the fu
     {
         "api-version": 1,
         "distro": "Ubuntu 22.04.3",
-        "django-version": "4.2.7",
+        "django-version": "4.2.9",
         "hostname": "dev-server",
-        "openl2m-version": "3.0",
-        "os": "Linux (5.15.0-88-generic)",
-        "python-version": "3.11.6"
+        "openl2m-version": "3.0.1",
+        "os": "Linux (5.15.0-91-generic)",
+        "python-version": "3.11.7"
     }
