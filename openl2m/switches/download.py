@@ -46,29 +46,37 @@ def create_eth_neighbor_xls_file(connection):
         # add a tab
         worksheet = workbook.add_worksheet('Ethernet-Arp-LLDP')
 
-        COL_INTERFACE = 0
-        COL_ETHERNET = 1
-        COL_IPV4 = 2
-        COL_VENDOR = 3
-        COL_NEIGHBOR_NAME = 4
-        COL_NEIGHBOR_TYPE = 5
-        COL_NEIGHBOR_DESCRIPTION = 6
+        COL_INTERFACE_NAME = 0
+        COL_INTERFACE_VLAN = 1
+        COL_INTERFACE_DESCRIPTION = 2
+        COL_ETHERNET = 3
+        COL_IPV4 = 4
+        COL_VENDOR = 5
+        COL_NEIGHBOR_NAME = 6
+        COL_NEIGHBOR_TYPE = 7
+        COL_NEIGHBOR_DESCRIPTION = 8
 
         # start with a date message:
         row = 0
         worksheet.write(
             row,
-            COL_INTERFACE,
+            COL_INTERFACE_NAME,
             f"Ethernet and Neighbor data from '{connection.switch.name}' generated for '{connection.request.user}' at {time.strftime('%I:%M %p, %d %B %Y', time.localtime())}",
             format_bold,
         )
 
         # write header row
         row += 1
-        worksheet.write(row, COL_INTERFACE, 'Interface', format_bold)
-        worksheet.set_column(COL_INTERFACE, COL_INTERFACE, 30)  # Adjust the column width.
+        worksheet.write(row, COL_INTERFACE_NAME, 'Interface', format_bold)
+        worksheet.set_column(COL_INTERFACE_NAME, COL_INTERFACE_NAME, 30)  # Adjust the column width.
 
-        worksheet.write(row, COL_ETHERNET, 'Ethernet', format_bold)
+        worksheet.write(row, COL_INTERFACE_VLAN, 'Untagged VLAN', format_bold)
+        worksheet.set_column(COL_INTERFACE_VLAN, COL_INTERFACE_VLAN, 20)
+
+        worksheet.write(row, COL_INTERFACE_DESCRIPTION, 'Description', format_bold)
+        worksheet.set_column(COL_INTERFACE_DESCRIPTION, COL_INTERFACE_DESCRIPTION, 50)
+
+        worksheet.write(row, COL_ETHERNET, 'Ethernet Heard', format_bold)
         worksheet.set_column(COL_ETHERNET, COL_ETHERNET, 20)
 
         worksheet.write(row, COL_IPV4, 'IPv4 Address', format_bold)
@@ -92,7 +100,9 @@ def create_eth_neighbor_xls_file(connection):
                 row += 1
                 # for now write name first
                 # vendor = eth.vendor
-                worksheet.write(row, COL_INTERFACE, interface.name, format_regular)
+                worksheet.write(row, COL_INTERFACE_NAME, interface.name, format_regular)
+                worksheet.write(row, COL_INTERFACE_VLAN, interface.untagged_vlan, format_regular)
+                worksheet.write(row, COL_INTERFACE_DESCRIPTION, interface.description, format_regular)
                 worksheet.write(row, COL_ETHERNET, str(eth), format_regular)
                 worksheet.write(row, COL_VENDOR, eth.vendor, format_regular)
                 worksheet.write(row, COL_IPV4, eth.address_ip4, format_regular)
@@ -102,7 +112,7 @@ def create_eth_neighbor_xls_file(connection):
                 row += 1
                 found_ip = False
                 dprint(f"LLDP: on {interface.name} - {neighbor.sys_name}")
-                worksheet.write(row, COL_INTERFACE, interface.name, format_regular)
+                worksheet.write(row, COL_INTERFACE_NAME, interface.name, format_regular)
                 # what kind of chassis address do we have (if any)
                 if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
                     worksheet.write(row, COL_ETHERNET, neighbor.chassis_string, format_regular)
