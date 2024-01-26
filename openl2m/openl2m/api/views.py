@@ -79,3 +79,29 @@ class APIStatsView(APIView):
                 'python-version': platform.python_version(),
             }
         )
+
+
+class APIEnvironmentView(APIView):
+    """
+    A lightweight read-only endpoint for conveying OpenL2M's runtime environment.
+    """
+
+    # permission_classes = [
+    #     IsAuthenticated,
+    # ]
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    def get(self, request):
+        dprint("APIEnvironmentView(GET)")
+        uname = os.uname()
+        return Response(
+            {
+                'api-version': API_VERSION,
+                'django-version': DJANGO_VERSION,
+                'openl2m-version': settings.VERSION,
+                'os': f"{uname.sysname} ({uname.release})",
+                'distro': f"{distro.name()} {distro.version(best=True)}",
+                'hostname': uname.nodename,
+                'python-version': platform.python_version(),
+            }
+        )

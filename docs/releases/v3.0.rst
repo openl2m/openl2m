@@ -7,6 +7,20 @@ Version 3.0
 **Version 3.0 adds a REST API**
 
 
+Version 3.0.3
+-------------
+
+Release Date: TBD
+
+NOTE: API endpoint urls have changed from earlier versions!
+
+* endpoint urls changes.
+* add API endpoint for runtime environment information.
+
+Bugfixes:
+
+* only show visible interfaces in API returns
+
 Version 3.0.2
 -------------
 
