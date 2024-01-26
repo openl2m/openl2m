@@ -11,22 +11,16 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-import sys
-import os
-import distro
 import time
-import datetime
 import traceback
 import re
 
-import django
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.models import User
 from django.http import FileResponse
 from django.urls import reverse
 from django.utils.html import mark_safe
-from django.utils import timezone
 from django.core.paginator import Paginator
 from django.shortcuts import redirect
 from django.template import Template, Context
@@ -48,13 +42,7 @@ from switches.actions import (
 
 from switches.connect.classes import Error
 from switches.models import (
-    SnmpProfile,
-    NetmikoProfile,
-    Command,
-    CommandList,
     CommandTemplate,
-    VLAN,
-    VlanGroup,
     Switch,
     SwitchGroup,
     Log,
@@ -65,7 +53,6 @@ from switches.constants import (
     LOG_TYPE_ERROR,
     LOG_TYPE_COMMAND,
     LOG_TYPE_CHOICES,
-    LOG_TYPE_LOGIN_OUT,
     LOG_ACTION_CHOICES,
     LOG_CHANGE_INTERFACE_DOWN,
     LOG_CHANGE_INTERFACE_UP,
@@ -75,7 +62,6 @@ from switches.constants import (
     LOG_CHANGE_INTERFACE_PVID,
     LOG_CHANGE_INTERFACE_ALIAS,
     LOG_CHANGE_BULK_EDIT,
-    LOG_LOGIN_REST_API,
     LOG_VIEW_SWITCHGROUPS,
     LOG_CONNECTION_ERROR,
     LOG_BULK_EDIT_TASK_START,
@@ -112,6 +98,8 @@ from switches.connect.constants import (
 from switches.download import create_eth_neighbor_xls_file, create_interfaces_xls_file
 from switches.permissions import get_group_and_switch, get_connection_if_permitted, get_my_device_groups
 
+from switches.stats import get_environment_info, get_database_info, get_usage_info
+
 from switches.utils import (
     success_page,
     warning_page,
@@ -129,7 +117,7 @@ from switches.utils import (
 )
 
 from users.utils import user_can_bulkedit, user_can_edit_vlans, get_current_users
-from counters.models import Counter, counter_increment
+from counters.models import counter_increment
 from counters.constants import (
     COUNTER_CHANGES,
     COUNTER_BULKEDITS,
@@ -1814,122 +1802,9 @@ class ShowStats(LoginRequiredMixin, View):
         )
         log.save()
 
-        environment = {
-            "Python": f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
-        }  # OS environment information
-        uname = os.uname()
-        environment["OS"] = f"{uname.sysname} ({uname.release})"
-        # environment['Version'] = uname.version
-        environment["Distro"] = f"{distro.name()} {distro.version(best=True)}"
-        environment["Hostname"] = uname.nodename
-        environment["Django"] = django.get_version()
-        environment["OpenL2M version"] = f"{settings.VERSION} ({settings.VERSION_DATE})"
-        import git
-
-        try:
-            repo = git.Repo(search_parent_directories=True)
-            sha = repo.head.object.hexsha
-            short_sha = repo.git.rev_parse(sha, short=8)
-            branch = repo.active_branch
-            commit_date = time.strftime("%a, %d %b %Y %H:%M UTC", time.gmtime(repo.head.object.committed_date))
-            environment["Git version"] = f"{branch} ({short_sha})"
-            environment["Git commit"] = commit_date
-        except Exception:
-            environment["Git version"] = "Not found!"
-
-        db_items = {"Switches": Switch.objects.count()}  # database object item counts
-        # need to calculate switchgroup count, as we count only groups with switches!
-        group_count = 0
-        for group in SwitchGroup.objects.all():
-            if group.switches.count():
-                group_count += 1
-        db_items["Switch Groups"] = group_count
-        db_items["Vlans"] = VLAN.objects.count()
-        db_items["Vlan Groups"] = VlanGroup.objects.count()
-        db_items["SNMP Profiles"] = SnmpProfile.objects.count()
-        db_items["Netmiko Profiles"] = NetmikoProfile.objects.count()
-        db_items["Commands"] = Command.objects.count()
-        db_items["Command Lists"] = CommandList.objects.count()
-        db_items["Log Entries"] = Log.objects.count()
-
-        usage = {}  # usage statistics
-
-        # Devices accessed:
-        filter = {}
-        filter['timestamp__date'] = datetime.date.today()
-        usage['Devices today'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
-
-        filter = {}
-        filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=7)
-        usage['Devices last 7 days'] = (
-            Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
-        )
-
-        filter = {}
-        filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
-        usage['Devices last 31 days'] = (
-            Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
-        )
-
-        # Changes made
-        filter = {}
-        filter['type'] = int(LOG_TYPE_CHANGE)
-        filter['timestamp__date'] = datetime.date.today()
-        usage['Changes today'] = Log.objects.filter(**filter).count()
-
-        filter = {
-            "type": int(LOG_TYPE_CHANGE),
-            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
-        }
-        usage["Changes last 7 days"] = Log.objects.filter(**filter).count()
-
-        filter = {
-            "type": int(LOG_TYPE_CHANGE),
-            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
-        }
-        usage["Changes last 31 days"] = Log.objects.filter(**filter).count()
-
-        # the total change count since install from Counter()'changes') object:
-        usage["Total Changes"] = Counter.objects.get(name="changes").value
-
-        # API requests:
-        filter = {}
-        filter['type'] = int(LOG_TYPE_LOGIN_OUT)
-        filter['action'] = int(LOG_LOGIN_REST_API)
-        filter['timestamp__date'] = datetime.date.today()
-        usage['API calls today'] = Log.objects.filter(**filter).count()
-
-        filter = {
-            "type": int(LOG_TYPE_CHANGE),
-            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
-        }
-        usage["API calls last 7 days"] = Log.objects.filter(**filter).count()
-
-        filter = {
-            "type": int(LOG_TYPE_CHANGE),
-            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
-        }
-        usage["API calls last 31 days"] = Log.objects.filter(**filter).count()
-
-        # Commands run:
-        filter = {"type": int(LOG_TYPE_COMMAND), "timestamp__date": datetime.date.today()}
-        usage["Commands today"] = Log.objects.filter(**filter).count()
-
-        filter = {
-            "type": int(LOG_TYPE_COMMAND),
-            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
-        }
-        usage["Commands last 7 days"] = Log.objects.filter(**filter).count()
-
-        filter = {
-            "type": int(LOG_TYPE_COMMAND),
-            "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
-        }
-        usage["Commands last 31 days"] = Log.objects.filter(**filter).count()
-
-        # total number of commands run:
-        usage["Total Commands"] = Counter.objects.get(name="commands").value
-
+        environment = get_environment_info()
+        db_items = get_database_info()
+        usage = get_usage_info()
         user_list = get_current_users()
 
         # render the template

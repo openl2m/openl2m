@@ -11,12 +11,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-import distro
-import os
-import platform
-
-from django import __version__ as DJANGO_VERSION
-from django.conf import settings
 
 # restframework related:
 from drf_spectacular.utils import extend_schema
@@ -25,6 +19,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
+from switches.stats import get_environment_info, get_database_info, get_usage_info
 from switches.utils import dprint
 
 
@@ -67,16 +62,10 @@ class APIStatsView(APIView):
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
         dprint("APIStatsView(GET)")
-        uname = os.uname()
         return Response(
             {
-                'api-version': API_VERSION,
-                'django-version': DJANGO_VERSION,
-                'openl2m-version': settings.VERSION,
-                'os': f"{uname.sysname} ({uname.release})",
-                'distro': f"{distro.name()} {distro.version(best=True)}",
-                'hostname': uname.nodename,
-                'python-version': platform.python_version(),
+                "database": get_database_info(),
+                "usage": get_usage_info(),
             }
         )
 
@@ -93,15 +82,4 @@ class APIEnvironmentView(APIView):
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
         dprint("APIEnvironmentView(GET)")
-        uname = os.uname()
-        return Response(
-            {
-                'api-version': API_VERSION,
-                'django-version': DJANGO_VERSION,
-                'openl2m-version': settings.VERSION,
-                'os': f"{uname.sysname} ({uname.release})",
-                'distro': f"{distro.name()} {distro.version(best=True)}",
-                'hostname': uname.nodename,
-                'python-version': platform.python_version(),
-            }
-        )
+        return Response(get_environment_info())
