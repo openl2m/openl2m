@@ -82,6 +82,8 @@ def switch_info(request, group_id, switch_id, details):
     }
     interfaces = list()
     for key, iface in connection.interfaces.items():
+        if not iface.is_visible:  # only return interfaces visible to this user!
+            continue
         inf = iface.as_dict()
         # add some url info:
         inf["url_set_vlan"] = rest_reverse(
