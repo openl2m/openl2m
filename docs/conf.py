@@ -18,11 +18,11 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'OpenL2M'
-copyright = '2019-2023, Various'
+copyright = '2019-2024, Various'
 author = 'Various'
 
 # The full version, including alpha/beta/rc tags
-release = 'v3.0.1 (2023-12-12)'
+release = 'v3.0.2 (2024-01-25)'
 
 # -- General configuration ---------------------------------------------------
 

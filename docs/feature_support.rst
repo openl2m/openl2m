@@ -33,7 +33,7 @@ Features Supported
 
    * - Port VLAN Change
      - Yes
-     - Yes (no name)
+     - Yes (>= v10.12, access ports)
      - Yes
      - Yes
      -
@@ -77,7 +77,7 @@ Features Supported
 
    * - VLAN Edit/Create
      - Yes
-     - Yes (>= v10.12)
+     - Yes (>= v10.12, no name)
      - Yes
      - Yes
      -

@@ -119,5 +119,7 @@ for more details.
 
 OpenL2M is influenced by the Netbox_ open source tool.
 OpenL2M sprouted from curiosity to figure out how Netbox works and uses the Django framework.
+Some credit goes to Uninett_ NAV as well, showing various SNMP related actions on devices.
 
 .. _Netbox: https://github.com/netbox-community/netbox
+.. _Uninett: https://nav.uninett.no/
