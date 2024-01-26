@@ -21,3 +21,4 @@ This describes the use of the REST API to read and change settings of devices.
    api_save_config.rst
    api_vlan_manage.rst
    api_stats.rst
+   api_environment.rst

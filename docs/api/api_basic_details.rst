@@ -13,8 +13,8 @@ Here is an example of calls to the "basic" and"details" endpoints:
 
 .. code-block:: python
 
-    http http://localhost:8000/api/switches/basic/35/272/ 'Authorization: Token ***34b'
-    http http://localhost:8000/api/switches/details/35/272/ 'Authorization: Token ***34b'
+    http http://localhost:8000/api/switches/35/272/basic/ 'Authorization: Token ***34b'
+    http http://localhost:8000/api/switches/35/272/details/ 'Authorization: Token ***34b'
 
 
 Both calls return a dictionary with 3 keys, "*interfaces*", "*switch*" and "*vlans*".
@@ -66,10 +66,6 @@ It shows several interfaces, with some ethernet and lldp information, as well as
                 "speed": 1000,
                 "state": "Enabled",
                 "unmanage_reason": "Interface access denied: you do not have access to the interface vlan!",
-                "url_set_description": "http://localhost:8000/api/switches/interface/description/35/272/1/",
-                "url_set_poe_state": "http://localhost:8000/api/switches/interface/poe_state/35/272/1/",
-                "url_set_state": "http://localhost:8000/api/switches/interface/state/35/272/1/",
-                "url_set_vlan": "http://localhost:8000/api/switches/interface/vlan/35/272/1/",
                 "vlan": 1097
             },
             ...
@@ -94,10 +90,6 @@ It shows several interfaces, with some ethernet and lldp information, as well as
                 "speed": 1000,
                 "state": "Enabled",
                 "tagged_vlans": "592, 591",
-                "url_set_description": "http://localhost:8000/api/switches/interface/description/35/272/3/",
-                "url_set_poe_state": "http://localhost:8000/api/switches/interface/poe_state/35/272/3/",
-                "url_set_state": "http://localhost:8000/api/switches/interface/state/35/272/3/",
-                "url_set_vlan": "http://localhost:8000/api/switches/interface/vlan/35/272/3/",
                 "vlan": 1099
             },
             ...
@@ -129,10 +121,6 @@ It shows several interfaces, with some ethernet and lldp information, as well as
                 },
                 "speed": 100,
                 "state": "Enabled",
-                "url_set_description": "http://localhost:8000/api/switches/interface/description/35/272/29/",
-                "url_set_poe_state": "http://localhost:8000/api/switches/interface/poe_state/35/272/29/",
-                "url_set_state": "http://localhost:8000/api/switches/interface/state/35/272/29/",
-                "url_set_vlan": "http://localhost:8000/api/switches/interface/vlan/35/272/29/",
                 "vlan": 98
             },
             ...
@@ -166,10 +154,6 @@ It shows several interfaces, with some ethernet and lldp information, as well as
                 "speed": 1000,
                 "state": "Enabled",
                 "tagged_vlans": "591",
-                "url_set_description": "http://localhost:8000/api/switches/interface/description/35/272/45/",
-                "url_set_poe_state": "http://localhost:8000/api/switches/interface/poe_state/35/272/45/",
-                "url_set_state": "http://localhost:8000/api/switches/interface/state/35/272/45/",
-                "url_set_vlan": "http://localhost:8000/api/switches/interface/vlan/35/272/45/",
                 "vlan": 1
             },
         ],
@@ -202,12 +186,6 @@ It shows several interfaces, with some ethernet and lldp information, as well as
             "primary_ipv4": "192.168.100.100",
             "read_only": false,
             "save_config": true,
-            "url_add_vlan": [
-                "http://localhost:8000/api/switches/vlan/add/35/272/"
-            ],
-            "url_save_config": [
-                "http://localhost:8000/api/switches/save/35/272/"
-            ],
             "vendor": "HPE (Comware)",
         },
         "vlans": [

@@ -4,7 +4,7 @@
 API Statistics
 ==============
 
-The "Stats" endpoint returns some information about the OpenL2M application.
+The "Stats" endpoint returns some statistics and use information about the OpenL2M application.
 
 .. code-block:: bash
 
@@ -19,7 +19,7 @@ The equivalent *curl* example would be:
 Output
 ------
 
-At the time of this writing, the output will look something like this. In the future, additional information may be added.
+At the time of this writing, the output will look something like below. In the future, additional information may be added.
 
 .. code-block:: bash
 
@@ -27,11 +27,5 @@ At the time of this writing, the output will look something like this. In the fu
     Allow: GET, HEAD, OPTIONS
     ...
     {
-        "api-version": 1,
-        "distro": "Ubuntu 22.04.3",
-        "django-version": "4.2.9",
-        "hostname": "dev-server",
-        "openl2m-version": "3.0.1",
-        "os": "Linux (5.15.0-91-generic)",
-        "python-version": "3.11.7"
+       TBD...
     }

@@ -11,7 +11,7 @@ Here is an example of a call to the "Interface PoE" endpoint:
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/switches/interface/poe_state/35/272/3/ 'Authorization: Token ***34b' poe_state=On
+    http --form POST http://localhost:8000/api/switches/35/272/interface/3/poe_state/ 'Authorization: Token ***34b' poe_state=On
 
 Valid values for "on" are: on, enable, enabled, 1, y, yes  (case insensitive!) *Any other value is considered Off!*
 

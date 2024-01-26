@@ -11,7 +11,7 @@ Here is an example of a call to the "Interface State" endpoint, disabling the in
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/switches/interface/state/35/272/3/ 'Authorization: Token ***34b' state=0
+    http --form POST http://localhost:8000/api/switches/35/272/interface/3/state/ 'Authorization: Token ***34b' state=0
 
 Valid values for "on" are: on, enable, enabled, 1, y, yes  (case insensitive!) *Any other value is considered Off!*
 

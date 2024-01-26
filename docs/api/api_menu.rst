@@ -54,8 +54,7 @@ The example below shows 2 groups (#2 and #35), with respectively one (#54) and t
                         "nms_id": "",
                         "primary_ipv4": "192.168.100.100",
                         "read_only": true,
-                        "url": "http://localhost:8000/api/switches/details/2/54/",
-                        "url_add_vlan": "http://localhost:8000/api/switches/vlan/add/2/54/"
+                        "url": "http://localhost:8000/api/switches/2/54/",
                     },
                 },
                 "name": "Test-Group-1",
@@ -79,8 +78,7 @@ The example below shows 2 groups (#2 and #35), with respectively one (#54) and t
                         "nms_id": "5130",
                         "primary_ipv4": "10.100.100.100",
                         "read_only": false,
-                        "url": "http://localhost:8000/api/switches/basic/35/272/",
-                        "url_add_vlan": "http://localhost:8000/api/switches/vlan/add/35/272/"
+                        "url": "http://localhost:8000/api/switches/35/272/",
                     },
                     "623": {
                         "comments": "",
@@ -95,8 +93,7 @@ The example below shows 2 groups (#2 and #35), with respectively one (#54) and t
                         "nms_id": "",
                         "primary_ipv4": "10.100.100.101",
                         "read_only": false,
-                        "url": "http://localhost:8000/api/switches/basic/35/623/",
-                        "url_add_vlan": "http://localhost:8000/api/switches/vlan/add/35/623/"
+                        "url": "http://localhost:8000/api/switches/35/623/",
                     },
                     "703": {
                         "comments": "",
@@ -111,8 +108,7 @@ The example below shows 2 groups (#2 and #35), with respectively one (#54) and t
                         "nms_id": "ex2300-1",
                         "primary_ipv4": "10.100.100.102",
                         "read_only": false,
-                        "url": "http://localhost:8000/api/switches/basic/35/703/",
-                        "url_add_vlan": "http://localhost:8000/api/switches/vlan/add/35/703/"
+                        "url": "http://localhost:8000/api/switches/35/703/",
                     },
                 },
                 "name": "Test-Group",

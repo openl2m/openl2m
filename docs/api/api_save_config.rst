@@ -24,19 +24,19 @@ info API call. Look for this entry, if present and True, you need to call the "s
 Save example
 ------------
 
-To save the config, you need to POST to the */api/switches/save/<group>/<switch>/* URL, and include a POST variable "save=on".
+To save the config, you need to POST to the */api/switches/<group>/<switch>/save/* URL, and include a POST variable "save=on".
 
 Here is an example using Python HTTPIE to save the configuration of switch 272 in group 35:
 
 .. code-block:: bash
 
-     http --form POST https://<your-domain>/api/switches/save/35/272/ 'Authorization: Token <your-token-string-here>' save=1
+     http --form POST https://<your-domain>/api/switches/35/272/save/ 'Authorization: Token <your-token-string-here>' save=1
 
 The equivalent *curl* example would be:
 
 .. code-block:: bash
 
-    curl -X POST https://<your-doimain>/api/switches/save/35/272/ -H 'Authorization: Token <your-token-string-here>' \
+    curl -X POST https://<your-doimain>/api/switches/35/272/save/ -H 'Authorization: Token <your-token-string-here>' \
          -H "Content-Type: application/json" -d '{"save":"1"}'
 
 
@@ -69,7 +69,7 @@ If you happen to call this with save=0, you may get a return like this:
 
 .. code-block:: bash
 
-    http --form POST  https://<your-domain>/api/switches/save/35/272/ 'Authorization: Token xxx' save=0
+    http --form POST  https://<your-domain>/api/switches/35/272/save/ 'Authorization: Token xxx' save=0
     HTTP/1.1 400 Bad Request
     ...
     {

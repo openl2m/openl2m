@@ -34,6 +34,11 @@ with more information on the failure.
       - Yes
       - username(str), password(str)
       - Get an API token.
+    * - api/environment/
+      - Yes
+      - No
+      -
+      - Get some information about the OpenL2M runtime environment.
     * - api/stats/
       - Yes
       - No
@@ -44,47 +49,47 @@ with more information on the failure.
       - No
       -
       - Get list of allowed devices (ie. the 'menu')
-    * - api/switches/basic/<group>/<switch>/
+    * - api/switches/<group>/<switch>/basic/
       - Yes
       - No
       -
       - Get the basic device view
-    * - api/switches/details/<group>/<switch>/
+    * - api/switches/<group>/<switch>/details/
       - Yes
       - No
       -
       - Get the details device view (ie. add arp, lldp, etc.)
-    * - api/switches/interface/vlan/<group>/<switch>/<interface>/
+    * - api/switches/<group>/<switch>/interface/<interface_id>/vlan/
       - No
       - Yes
       - vlan(int)
       - Set the untagged vlan on an interface.
-    * - api/switches/interface/state/<group>/<switch>/<interface>/
+    * - api/switches/<group>/<switch>/interface/<interface_id>/state/
       - No
       - Yes
       - state(str), "on,enabled,enable,yes,y,1" for UP, else DOWN
       - Set the administrative state of an interface.
-    * - api/switches/interface/poe_state/<group>/<switch>/<interface>/
+    * - api/switches/<group>/<switch>/interface/<interface_id>/poe_state/
       - No
       - Yes
       - poe_state(str), "on,enabled,enable,yes,y,1" for UP, else DOWN
       - Set the PoE state of an interface.
-    * - api/switches/interface/description/<group>/<switch>/<interface>/
+    * - api/switches/<group>/<switch>/interface/<interface_id>/description/
       - No
       - Yes
       - description(str)
       - Set the description on an interface.
-    * - api/switches/save/<group>/<switch>/
+    * - api/switches/<group>/<switch>/save/
       - No
       - Yes
       - save(str), "on,enabled,enable,yes,y,1"
       - Save the configuration of the device.
-    * - api/switches/vlan/add/<group>/<switch>/
+    * - api/switches/<group>/<switch>/vlan/add/
       - No
       - Yes
       - vlan_name(str), vlan_id(int)
       - Add a vlan to the device.
-    * - api/switches/vlan/edit/<group>/<switch>/
+    * - api/switches/<group>/<switch>/vlan/edit/
       - No
       - Yes
       - vlan_name(str), vlan_id(int)
@@ -112,7 +117,7 @@ Below is an example of the "Save Config" API call, where the 'save' parameter is
 
 .. code-block::
 
-  http --form POST  https://<domain_name>/api/switches/save/35/272/ 'Authorization: Token <your-token-string-here>'
+  http --form POST  https://<domain_name>/api/switches/35/272/save/ 'Authorization: Token <your-token-string-here>'
   HTTP/1.1 400 Bad Request
   Allow: POST, OPTIONS
   ...

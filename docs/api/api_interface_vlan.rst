@@ -13,7 +13,7 @@ Here is an example of a call to the "Interface Vlan" endpoint, disabling the int
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/switches/interface/vlan/35/272/3/ 'Authorization: Token ***34b' vlan=500
+    http --form POST http://localhost:8000/api/switches/35/272/interface/3/vlan/ 'Authorization: Token ***34b' vlan=500
 
 
 It returns an *HTTP 200 OK* with a *result* field, or an *HTTP 4xx* error code with a *reason*.

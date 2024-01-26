@@ -11,7 +11,7 @@ Here is an example of a call to the "Interface Description" endpoint:
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/switches/interface/description/35/272/3/ 'Authorization: Token ***34b' description="new API description"
+    http --form POST http://localhost:8000/api/switches/35/272/interface/3/description/ 'Authorization: Token ***34b' description="new API description"
 
 It returns an *HTTP 200 OK* with a *result* field, or an *HTTP 4xx* error code with a *reason*.
 
