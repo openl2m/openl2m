@@ -84,30 +84,8 @@ def switch_info(request, group_id, switch_id, details):
     for key, iface in connection.interfaces.items():
         if not iface.visible:  # only return interfaces visible to this user!
             continue
-        inf = iface.as_dict()
-        # add some url info:
-        inf["url_set_vlan"] = rest_reverse(
-            "switches-api:api_interface_set_vlan",
-            request=request,
-            kwargs={"group_id": group_id, "switch_id": switch_id, "interface_id": iface.key},
-        )
-        inf["url_set_state"] = rest_reverse(
-            "switches-api:api_interface_set_state",
-            request=request,
-            kwargs={"group_id": group_id, "switch_id": switch_id, "interface_id": iface.key},
-        )
-        inf["url_set_poe_state"] = rest_reverse(
-            "switches-api:api_interface_set_poe_state",
-            request=request,
-            kwargs={"group_id": group_id, "switch_id": switch_id, "interface_id": iface.key},
-        )
-        inf["url_set_description"] = rest_reverse(
-            "switches-api:api_interface_set_description",
-            request=request,
-            kwargs={"group_id": group_id, "switch_id": switch_id, "interface_id": iface.key},
-        )
-        # now append this data to the list of interfaces:
-        interfaces.append(inf)
+        # append this interface data to the list of interfaces:
+        interfaces.append(iface.as_dict())
     # add to return data:
     data["interfaces"] = interfaces
     connection.save_cache()  # this only works for SessionAuthentication !
@@ -134,7 +112,7 @@ class APISwitchBasicView(
         return switch_info(request=request, group_id=group_id, switch_id=switch_id, details=False)
 
 
-class APISwitchDetailView(
+class APISwitchDetailsView(
     APIView,
 ):
     """

@@ -85,7 +85,7 @@ def get_database_info():
     db_items["Vlans"] = VLAN.objects.count()
     db_items["Vlan Groups"] = VlanGroup.objects.count()
     db_items["SNMP Profiles"] = SnmpProfile.objects.count()
-    db_items["Netmiko Profiles"] = NetmikoProfile.objects.count()
+    db_items["Credentials Profiles"] = NetmikoProfile.objects.count()
     db_items["Commands"] = Command.objects.count()
     db_items["Command Lists"] = CommandList.objects.count()
     db_items["Log Entries"] = Log.objects.count()

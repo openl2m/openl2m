@@ -174,6 +174,11 @@ class Connector:
             "change_description": self.can_change_description,
             "edit_vlans": self.can_edit_vlans,
             "change_vlan_name": self.can_set_vlan_name,
+            "url": rest_reverse(
+                "switches-api:api_switch_view",
+                request=self.request,
+                kwargs={"group_id": self.group.id, "switch_id": self.switch.id},
+            ),
             # more to add later...
         }
         if self.switch.nms_id:
@@ -181,14 +186,6 @@ class Connector:
         else:
             data["nms_id"] = ""
         data["save_config"] = self.can_save_config
-        if self.can_save_config:
-            data["url_save_config"] = (
-                rest_reverse(
-                    "switches-api:api_switch_save_config",
-                    request=self.request,
-                    kwargs={"group_id": self.group.id, "switch_id": self.switch.id},
-                ),
-            )
 
         # add PoE data:
         if self.poe_capable:
@@ -204,12 +201,6 @@ class Connector:
         else:
             poe = False
         data['poe'] = poe
-
-        data["url_vlan_add"] = rest_reverse(
-            "switches-api:api_switch_vlan_add",
-            request=self.request,
-            kwargs={"group_id": self.group.id, "switch_id": self.switch.id},
-        )
 
         # this data represents the info about the connected device
         return data

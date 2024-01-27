@@ -18,7 +18,7 @@ from switches.urls import InterfaceNameConvertor
 from switches.api.views import (
     APISwitchMenuView,
     APISwitchBasicView,
-    APISwitchDetailView,
+    APISwitchDetailsView,
     APISwitchSaveConfig,
     APISwitchVlanAdd,
     APISwitchVlanEdit,
@@ -44,14 +44,14 @@ urlpatterns = [
         name="api_switch_menu_view",
     ),
     path(
-        "<int:group_id>/<int:switch_id>/basic/",
+        "<int:group_id>/<int:switch_id>/",
         APISwitchBasicView.as_view(),
-        name="api_switch_basic_view",
+        name="api_switch_view",
     ),
     path(
         "<int:group_id>/<int:switch_id>/details/",
-        APISwitchDetailView.as_view(),
-        name="api_switch_detail_view",
+        APISwitchDetailsView.as_view(),
+        name="api_switch_details_view",
     ),
     path(
         "<int:group_id>/<int:switch_id>/save/",

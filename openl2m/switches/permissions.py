@@ -35,7 +35,6 @@ from switches.constants import (
     LOG_INTERFACE_DENIED,
     LOG_DENIED,
     SWITCH_STATUS_ACTIVE,
-    SWITCH_VIEW_BASIC,
 )
 from switches.connect.connect import get_connection_object
 from switches.models import Log, Switch, SwitchGroup
@@ -85,27 +84,14 @@ def get_my_device_groups(request):
             for switch in group.switches.all():
                 if switch.status == SWITCH_STATUS_ACTIVE:
                     # we save the names as well, so we can search them!
-                    if switch.default_view == SWITCH_VIEW_BASIC:
-                        url = rest_reverse(
-                            "switches-api:api_switch_basic_view",
-                            request=request,
-                            kwargs={"group_id": group.id, "switch_id": switch.id},
-                        )
-                    else:
-                        url = rest_reverse(
-                            "switches-api:api_switch_detail_view",
-                            request=request,
-                            kwargs={"group_id": group.id, "switch_id": switch.id},
-                        )
                     members[int(switch.id)] = {
                         "name": switch.name,
                         "hostname": switch.hostname,
                         "description": switch.description,
                         "default_view": switch.default_view,
                         "default_view_name": switch.get_default_view_display(),
-                        "url": url,
-                        "url_add_vlan": rest_reverse(
-                            "switches-api:api_switch_vlan_add",
+                        "url": rest_reverse(
+                            "switches-api:api_switch_view",
                             request=request,
                             kwargs={"group_id": group.id, "switch_id": switch.id},
                         ),
