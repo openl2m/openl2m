@@ -6,14 +6,18 @@ API Basic/Details Info
 
 These endpoints return the interface information of a device.
 
-If the *details* call is made, additionally Ethernet, ARP and LLDP info will be returned.
-(*Note: this takes longer!*)
-
-Here is an example of calls to the "basic" and"details" endpoints:
+Here is an example of calls to the "*basic*" endpoints. This returns switch and interface information:
 
 .. code-block:: python
 
-    http http://localhost:8000/api/switches/35/272/basic/ 'Authorization: Token ***34b'
+    http http://localhost:8000/api/switches/35/272/ 'Authorization: Token ***34b'
+
+To get additional details about ARP, LLDP and Ethernet information, call the "*details*" endpoint:
+
+(*Note: this takes longer!*)
+
+.. code-block:: python
+
     http http://localhost:8000/api/switches/35/272/details/ 'Authorization: Token ***34b'
 
 

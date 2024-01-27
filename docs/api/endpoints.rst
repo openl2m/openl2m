@@ -8,7 +8,8 @@ This is the list of REST API endpoints, and their functionality.
 
 *<group>* and *<switch>* are the ID's as retrieved from the 'menu' call at *api/switches/*
 
-**API calls that succeed** will return an **HTTP code 200**, and typically a "reason" JSON return variable.
+**API calls that succeed** will return an **HTTP code 200**, and typically a "result" JSON return
+variable with some textual description of the outcome.
 
 **API calls that fail** will return a 4xx code. This can be 403 (forbidden, ie. access denied),
 400 for badly formed requests, or other 400-level codes. Typically, there is a "reason" JSON return variable
@@ -49,16 +50,16 @@ with more information on the failure.
       - No
       -
       - Get list of allowed devices (ie. the 'menu')
-    * - api/switches/<group>/<switch>/basic/
+    * - api/switches/<group>/<switch>/
       - Yes
       - No
       -
-      - Get the basic device view
+      - Get the basic device interfaces information.
     * - api/switches/<group>/<switch>/details/
       - Yes
       - No
       -
-      - Get the details device view (ie. add arp, lldp, etc.)
+      - Get the details about device connections (including arp, lldp, ethernet, etc.)
     * - api/switches/<group>/<switch>/interface/<interface_id>/vlan/
       - No
       - Yes

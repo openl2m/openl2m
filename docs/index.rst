@@ -6,7 +6,7 @@
 .. image:: _static/openl2m_logo.png
 
 =====================
-Welcome to OpenL2M v2
+Welcome to OpenL2M v3
 =====================
 
 Welcome to the documentation for the "Open Layer 2 Management" project.
@@ -28,25 +28,8 @@ See a list of features per device class supported :doc:`here.<feature_support>`
 OpenL2M is written in Python 3 using the Django framework.
 Documentation is written in ReStructured Text format, which is rendered with the Sphinx documentation generator.
 
-**What's New:**
+Click here to :doc:`See What Is New <what_is_new>`!
 
-v3.0 introduces a REST API. This allows for remotely making changes to devices without needing to know the underlying vendor.
-Read the API section of the documentation for more details.
-
-v2.4 upgrades the Django framework to v4.2 LTS
-
-v2.3 adds support for Juniper Junos devices.
-
-v2.2 adds support for Aruba AOS-CX switches.
-
-v2.1 implements command templates, a controlled method to give users variable input on commands.
-This gives tremendous flexibility in giving users in a controlled fashion more visibility into the device.
-See the Configuration section for more.
-
-v2.0 implements a new plug-in API for add-on device drivers.
-This makes is easy to add support for any kind of network device,
-whether the interface is SSH, REST, NetConf, or other methods.
-See more in the development section below.
 
 .. toctree::
    :maxdepth: 1
@@ -59,11 +42,12 @@ See more in the development section below.
    switch_requirements.rst
    feature_support.rst
    switches.rst
-   releases/index.rst
    screenshots.rst
    faq.rst
    howto/index.rst
    api/index.rst
+   what_is_new.rst
+   releases/index.rst
    roadmap.rst
    references.rst
 
