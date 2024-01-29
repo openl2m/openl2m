@@ -16,6 +16,9 @@ Release Date: TBD
 
 * endpoint urls changes.
 * add API endpoint for runtime environment information.
+* add user, group, device filter to maillogs
+* add *what's new* to menu
+* add token count to stats
 
 Bugfixes:
 
