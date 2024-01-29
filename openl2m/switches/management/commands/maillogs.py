@@ -67,7 +67,7 @@ class Command(BaseCommand):
             "--to",
             type=str,
             default="",
-            help="the email address to send the report to. (no default)",
+            help="the email address to send the report to. (no default).",
         )
 
         parser.add_argument(
@@ -95,6 +95,27 @@ class Command(BaseCommand):
             type=str,
             default="openl2m_logs.xlsx",
             help='Log entries attachment filename. Default is "openl2m_logs.xlsx."',
+        )
+
+        parser.add_argument(
+            "--users",
+            type=str,
+            default="",
+            help="comma-separated list of user names the log entries should pertain to.",
+        )
+
+        parser.add_argument(
+            "--groups",
+            type=str,
+            default="",
+            help="comma-separated list of group names the log entries should pertain to.",
+        )
+
+        parser.add_argument(
+            "--devices",
+            type=str,
+            default="",
+            help="comma-separated list of device names the log entries should pertain to.",
         )
 
     def handle(self, *args, **options):
@@ -169,6 +190,51 @@ class Command(BaseCommand):
                     self.stdout.write(f"ERROR: Invalid action number {n}")
                     return
 
+        # look for specific users only?
+        if options["users"]:
+            try:
+                users = options["users"].replace(" ", "").split(",")
+            except Exception:
+                # ignore!
+                self.stdout.write(
+                    f"Error: invalid 'users' format: {options['users']}",
+                    self.style.ERROR,
+                )
+                return
+            # create a filter of the list of user names,
+            # for the models.User() object referenced in Log() object:
+            filter["user__username__in"] = users
+
+        # look for specific groups only?
+        if options["groups"]:
+            try:
+                groups = options["groups"].replace(" ", "").split(",")
+            except Exception:
+                # ignore!
+                self.stdout.write(
+                    f"Error: invalid 'groups' format: {options['groups']}",
+                    self.style.ERROR,
+                )
+                return
+            # create a filter of the list of group names,
+            # for the SwitchGroup() object referenced in Log() object:
+            filter["group__name__in"] = groups
+
+        # look for specific devices only?
+        if options["devices"]:
+            try:
+                devices = options["devices"].replace(" ", "").split(",")
+            except Exception:
+                # ignore!
+                self.stdout.write(
+                    f"Error: invalid 'devices' format: {options['devices']}",
+                    self.style.ERROR,
+                )
+                return
+            # create a filter of the list of device names,
+            # for the Switch() object referenced in Log() object:
+            filter["switch__name__in"] = devices
+
         # calculate what the cut-off time is. Use local timezone.
         now = timezone.now().astimezone(tz=None)
         cutoff = now - timedelta(hours=options["hours"])
@@ -188,7 +254,7 @@ class Command(BaseCommand):
         filter["timestamp__gt"] = cutoff_local
         logs = Log.objects.all().exclude(action__in=excludes).filter(**filter).order_by("timestamp")
 
-        # go outout them!
+        # go output them!
         if logs:
             self.stdout.write(f"Emailing {logs.count()} log records... ", self.style.WARNING)
             self.stdout.flush()
