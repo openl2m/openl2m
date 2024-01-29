@@ -47,6 +47,8 @@ from switches.models import (
     Log,
 )
 
+from users.models import Token
+
 
 def get_environment_info():
     '''Get information about the runtime environment, and return in a dict().'''
@@ -88,6 +90,7 @@ def get_database_info():
     db_items["Credentials Profiles"] = NetmikoProfile.objects.count()
     db_items["Commands"] = Command.objects.count()
     db_items["Command Lists"] = CommandList.objects.count()
+    db_items["API Tokens"] = Token.objects.count()
     db_items["Log Entries"] = Log.objects.count()
     return db_items
 
