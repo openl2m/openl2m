@@ -35,6 +35,8 @@
                   </a>
                   <ul class="dropdown-menu">
                     <li><a href="{% url 'switches:groups' %}"><i class="fas fa-ethernet"></i> Home</a></li>
+                    <li class="divider"></li>
+                    <li><a href="{% static 'docs/html/what_is_new.html' %}" target="_docs"><i class="fas fa-star" aria-hidden="true"></i> What&apos;s New!</a></li>
                     <li><a href="{% static 'docs/html/using/index.html' %}" target="_docs"><i class="fas fa-book" aria-hidden="true"></i> Documentation</a></li>
                     {% if request.user.is_superuser %}
                       <li class="divider"></li>
