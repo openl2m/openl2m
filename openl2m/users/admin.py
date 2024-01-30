@@ -11,9 +11,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+from django.db import models
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from django.forms import TextInput
+from django.http.request import HttpRequest
 from django.utils import timezone
 
 from users.models import Profile, Token
@@ -90,28 +93,12 @@ class MyUserAdmin(UserAdmin):
 class MyTokenAdmin(admin.ModelAdmin):
     list_display = ('user', 'partial', 'last_used', 'expires', 'write_enabled', 'description')
 
-    fieldsets = (
-        (None, {'fields': ('user', 'key', 'last_used', 'created')}),
-        (
-            ('Token info'),
-            {
-                'fields': (
-                    'description',
-                    'write_enabled',
-                    'expires',
-                    'allowed_ips',
-                )
-            },
-        ),
-    )
+    # do not allow edit/create of last used:
+    readonly_fields = ['last_used']
 
-    # do not allow edit of ldap info fields.
-    readonly_fields = (
-        'user',
-        'created',
-        'last_used',
-        'key',
-    )
+    # increase some form field lengths:
+    formfield_overrides = {models.CharField: {'widget': TextInput(attrs={'size': '50'})}}
+
     # add action to deactivate token
     actions = ['deactivate_token']
 
@@ -120,10 +107,18 @@ class MyTokenAdmin(admin.ModelAdmin):
     def deactivate_token(modeladmin, request, queryset):
         queryset.update(expires=timezone.now())
 
-    # # disable delete Token (we don't want to loose records)
+    # Allow delete!
+    # we actually do not refer directly to the Token() object,
+    # so deleting will not impact anything else (eg. Log() records)
+    # this would disable delete Token:
+    #
     # def has_delete_permission(self, request, obj=None):
-    #     # Disable delete
-    #     return False
+    #    # Disable delete
+    #    return False
+
+    # pre-fill the "key" on "Add" form.
+    def get_changeform_initial_data(self, request: HttpRequest) -> dict[str, str]:
+        return {'key': Token.generate_key()}
 
 
 # we have a custom admin site, i.e. register with admin_site, not with default "admin.site"!
