@@ -144,7 +144,7 @@ class APISwitchSaveConfig(
     ):
         dprint("APISwitchSaveConfig(POST)")
         try:
-            save = request.POST['save']
+            save = request.data['save']
         except Exception:
             return respond_error("Missing required parameter and value: 'save=yes'")
         if save.lower() not in on_values:
@@ -173,7 +173,7 @@ class APIInterfaceSetState(
         dprint("APIInterfaceSetState(POST)")
         # need to test permissions - TBD
         try:
-            state = request.POST['state']
+            state = request.data['state']
         except Exception:
             return respond_error("Missing required parameter: 'state'")
         if state.lower() in on_values:
@@ -205,7 +205,7 @@ class APIInterfaceSetVlan(
     ):
         dprint("APIInterfaceSetVlan(POST)")
         try:
-            new_pvid = int(request.POST['vlan'])
+            new_pvid = int(request.data['vlan'])
         except Exception:
             return respond_error("Missing required numeric parameter: 'vlan'")
         retval, info = perform_interface_pvid_change(
@@ -233,7 +233,7 @@ class APIInterfaceSetPoE(
     ):
         dprint("APIInterfaceSetPoE(POST)")
         try:
-            poe_state = request.POST['poe_state']
+            poe_state = request.data['poe_state']
         except Exception:
             return respond_error("Missing required parameter: 'poe_state'")
         if poe_state.lower() in on_values:
@@ -265,9 +265,8 @@ class APIInterfaceSetDescription(
         interface_id,
     ):
         dprint("APIInterfaceSetDescription(POST)")
-        # need to test permissions - TBD
         try:
-            description = request.POST['description']
+            description = request.data['description']
         except Exception:
             return respond_error("Missing required parameter: 'description'")
         retval, info = perform_interface_description_change(
@@ -297,8 +296,8 @@ class APISwitchVlanAdd(
     ):
         dprint("APISwitchVlanAdd(POST)")
         try:
-            vlan_name = str(request.POST['vlan_name']).strip()
-            vlan_id = int(request.POST['vlan_id'])
+            vlan_name = str(request.data['vlan_name']).strip()
+            vlan_id = int(request.data['vlan_id'])
         except Exception:
             return respond_error("One or more missing or invalid required parameters: 'vlan_name', 'vlan_id'")
         # now go create the new vlan:
@@ -326,8 +325,8 @@ class APISwitchVlanEdit(
     ):
         dprint("APISwitchVlanEdit(POST)")
         try:
-            vlan_name = str(request.POST['vlan_name']).strip()
-            vlan_id = int(request.POST['vlan_id'])
+            vlan_name = str(request.data['vlan_name']).strip()
+            vlan_id = int(request.data['vlan_id'])
         except Exception:
             return respond_error("One or more missing or invalid required parameters: 'vlan_name', 'vlan_id'")
         dprint(f"   Edit vlan: {vlan_id} = '{vlan_name}'")
@@ -354,7 +353,7 @@ class APISwitchVlanDelete(
     ):
         dprint("APISwitchVlanDelete(POST)")
         try:
-            vlan_id = int(request.POST['vlan_id'])
+            vlan_id = int(request.data['vlan_id'])
         except Exception:
             return respond_error("Missing or invalid required parameter: 'vlan_id'")
         dprint(f"   Delete vlan: {vlan_id}")
