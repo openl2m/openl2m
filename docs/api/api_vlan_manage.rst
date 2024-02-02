@@ -16,18 +16,18 @@ Create or Add
 -------------
 
 .. code-block:: bash
-    
+
     http --form POST https://<your-domain>/api/switches/35/272/vlan/add/ 'Authorization: Token <your-token-string-here>' vlan_id=777 vlan_name="seven-times-3"
 
 Rename
 ------
 
-With this API call, we can change the name of an already existing vlan.
+With this API call, we can change the name of an already existing vlan. Note that not all devices support this.
 
 .. code-block:: bash
-    
+
     http --form POST https://<your-domain>/api/switches/35/272/vlan/edit/ 'Authorization: Toke <your-token-string-here>' vlan_id=777 vlan_name="seven-seven-seven"
- 
+
 Delete
 ------
 

@@ -15,6 +15,10 @@ variable with some textual description of the outcome.
 400 for badly formed requests, or other 400-level codes. Typically, there is a "reason" JSON return variable
 with more information on the failure.
 
+**API calls accept both 'form' and 'json' encoding**. I.e. APIs that require POST can use a *Content-Type*
+header of either *application/x-www-form-urlencoded* or *application/json*
+
+**A simple example API client is provided at** https://github.com/openl2m/
 
 .. list-table:: API endpoints
     :widths: 25 15 15 100 100
@@ -68,12 +72,12 @@ with more information on the failure.
     * - api/switches/<group>/<switch>/interface/<interface_id>/state/
       - No
       - Yes
-      - state(str), "on,enabled,enable,yes,y,1" for UP, else DOWN
+      - state(str), "on,enabled,enable,yes,y,1,true" for UP, else DOWN
       - Set the administrative state of an interface.
     * - api/switches/<group>/<switch>/interface/<interface_id>/poe_state/
       - No
       - Yes
-      - poe_state(str), "on,enabled,enable,yes,y,1" for UP, else DOWN
+      - poe_state(str), "on,enabled,enable,yes,y,1,true" for UP, else DOWN
       - Set the PoE state of an interface.
     * - api/switches/<group>/<switch>/interface/<interface_id>/description/
       - No
@@ -94,7 +98,12 @@ with more information on the failure.
       - No
       - Yes
       - vlan_name(str), vlan_id(int)
-      - Edit the name of a vlan on the device.
+      - Edit the name of a vlan on the device (if supported).
+    * - api/switches/<group>/<switch>/vlan/delete/
+      - No
+      - Yes
+      - vlan_id(int)
+      - Fully remove a vlan from the device.
     * - api/users/token/
       - No
       - Yes
