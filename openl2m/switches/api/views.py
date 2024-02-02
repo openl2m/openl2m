@@ -144,9 +144,10 @@ class APISwitchSaveConfig(
     ):
         dprint("APISwitchSaveConfig(POST)")
         try:
-            save = request.data['save']
+            save = str(request.data['save'])
         except Exception:
-            return respond_error("Missing required parameter and value: 'save=yes'")
+            return respond_error("Missing or invalid required parameter and value: 'save=yes'")
+
         if save.lower() not in on_values:
             return respond_error("No save requested (why did you call us?).")
 
@@ -171,11 +172,11 @@ class APIInterfaceSetState(
         interface_id,
     ):
         dprint("APIInterfaceSetState(POST)")
-        # need to test permissions - TBD
         try:
-            state = request.data['state']
+            state = str(request.data['state'])
         except Exception:
-            return respond_error("Missing required parameter: 'state'")
+            return respond_error("Missing or invalid required parameter: 'state'")
+
         if state.lower() in on_values:
             new_state = True
         else:
@@ -207,7 +208,8 @@ class APIInterfaceSetVlan(
         try:
             new_pvid = int(request.data['vlan'])
         except Exception:
-            return respond_error("Missing required numeric parameter: 'vlan'")
+            return respond_error("Missing or invalid required numeric parameter: 'vlan'")
+
         retval, info = perform_interface_pvid_change(
             request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, new_pvid=new_pvid
         )
@@ -233,9 +235,10 @@ class APIInterfaceSetPoE(
     ):
         dprint("APIInterfaceSetPoE(POST)")
         try:
-            poe_state = request.data['poe_state']
+            poe_state = str(request.data['poe_state'])
         except Exception:
-            return respond_error("Missing required parameter: 'poe_state'")
+            return respond_error("Missing or invalid required parameter: 'poe_state'")
+
         if poe_state.lower() in on_values:
             new_state = True
         else:
@@ -266,9 +269,10 @@ class APIInterfaceSetDescription(
     ):
         dprint("APIInterfaceSetDescription(POST)")
         try:
-            description = request.data['description']
+            description = str(request.data['description'])
         except Exception:
-            return respond_error("Missing required parameter: 'description'")
+            return respond_error("Missing or invalid required parameter: 'description'")
+
         retval, info = perform_interface_description_change(
             request=request,
             group_id=group_id,
