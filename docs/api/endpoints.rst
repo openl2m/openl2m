@@ -18,7 +18,7 @@ with more information on the failure.
 **API calls accept both 'form' and 'json' encoding**. I.e. APIs that require POST can use a *Content-Type*
 header of either *application/x-www-form-urlencoded* or *application/json*
 
-**A simple example API client is provided at** https://github.com/openl2m/
+**A simple Python example API client is provided at** https://github.com/openl2m/api_client
 
 .. list-table:: API endpoints
     :widths: 25 15 15 100 100
@@ -34,11 +34,6 @@ header of either *application/x-www-form-urlencoded* or *application/json*
       - No
       -
       - Browsable API interface if Web UI session exists.
-    * - api/token/
-      - No
-      - Yes
-      - username(str), password(str)
-      - Get an API token.
     * - api/environment/
       - Yes
       - No

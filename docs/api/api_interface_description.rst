@@ -1,8 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-=====================
-Interface Description
-=====================
+=========================
+API Interface Description
+=========================
 
 The "Interface Description" endpoint allows you to change the description of an interface (if your token allows it).
 You need to POST the proper *description* parameter.

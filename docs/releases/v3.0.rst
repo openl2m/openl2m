@@ -6,11 +6,21 @@ Version 3.0
 
 **Version 3.0 adds a REST API**
 
+Version 3.0.4
+-------------
+
+Release Date: TBD
+
+Bug fixes:
+
+* API parameter type error handling
+* API allow JSON post values
+* fix admin token management
 
 Version 3.0.3
 -------------
 
-Release Date: TBD
+Release Date: 2024-01-29
 
 **NOTE: API endpoint urls have changed from earlier versions!** :doc:`See API documentation here. <../api/index>`
 
@@ -70,6 +80,6 @@ Release Date: 2023-12-04
 
 * add REST API. :doc:`See more here<../api/index>`
 
-Bug Fixes:
+Bug fixes:
 
 * fix session in Aruba AOS-CX driver. No longer new session for each request.

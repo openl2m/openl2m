@@ -4,11 +4,11 @@
 Making API Calls
 ================
 
-*An example REST client can be found at* https://github.com/openl2m/api_client
+Below are some code snippets in Python3 that might assist in making API calls.
 
-**All examples use the Python "requests" library !**
+*An example Python REST client can be found at* https://github.com/openl2m/api_client
 
-Make a call as such:
+A very simple example to make an API call could like this:
 
 .. code-block:: python
 
@@ -19,11 +19,17 @@ Make a call as such:
         "Content-Type": "application/json",     # we use JSON posting format.
         }
     url="your OpenL2M server url"
-    response = requests.get(url=url, headers=headers)    # a GET api call
-    response = request.post(url=url, headers=headers, json={ 'var': value } )   # a POST api call
+    # a GET api call
+    endpoint = f"{url}/api/switches/"
+    response = requests.get(url=endpoint, headers=headers)
+    # a POST api call
+    endpoint = f"{url}/api/<group>/<switch_id>/interface/<interface_id>/description/"
+    response = request.post(url=endpoint, headers=headers, json={ 'description': "your new description here" } )
 
 If the API return is successful (ie. 200),
 you can find the resulting data in "*response.json()*". Parse as needed.
+
+For most POST calls, if successful, the return will include a "*result*" value that describes the result of the action taken.
 
 If there is an error, the server may return a "reason" entry. You can parse this also with *response.json()*
 

@@ -23,3 +23,4 @@ This describes the use of the REST API to read and change settings of devices.
    api_stats.rst
    api_environment.rst
    api_making_calls.rst
+   api_user_token.rst

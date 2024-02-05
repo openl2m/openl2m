@@ -1,8 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-===============
-Interface State
-===============
+===================
+API Interface State
+===================
 
 The "Interface State" endpoint allows you to enable(up) or disable(down) an interface (if your token allows it).
 You need to POST the proper *state* parameter.

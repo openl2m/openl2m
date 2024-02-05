@@ -6,7 +6,7 @@ API Setup
 
 In order to use the REST API, your user account will need to have at least one token assigned to it.
 
-To create a token, you can go to the top right menu, and select "API Tokens". 
+To create a token, you can go to the top right menu, and select "API Tokens".
 
 Admin Token Creation
 --------------------
@@ -20,6 +20,22 @@ Administrators can also create tokens from the OpenL2M command line interface, a
     (venv)$ python3 manage.py user_create_token <username>
 
 Please contact you administrator for additional help.
+
+API Authentication
+------------------
+
+API calls are authenticated with the above created token.
+The server looks for an HTTP header called "*Authentication*" containing the format "*Token <your token>*".
+E.g.
+
+.. code-block:: python
+
+    # example HTTP request headers:
+    POST /api/switches/9/839/interface/10/description/ HTTP/1.1
+    Host: 127.0.0.1:8000
+    Authorization: Token 84572b48bccce66687754ab7d3dac56d09830ab39
+    ... (additional headers)
+
 
 API Testing
 -----------
@@ -38,5 +54,7 @@ With the Python HTTPIE package, the following is an elegant way to test:
 
     http https://<your-domain>/api/switches/ 'Authorization: Token <your-token-string-here>'
 
+
+**A simple Python example API client is provided at** https://github.com/openl2m/api_client
 
 Once you have successfully tested access, you can start using :doc:`the various API endpoints available.<endpoints>`

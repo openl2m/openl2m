@@ -1,8 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-=============
-Interface PoE
-=============
+=================
+API Interface PoE
+=================
 
 The "Interface PoE" endpoint allows you to enable or disable the PoE setting on an interface (if your token allows it).
 You need to POST the proper *poe_state* parameter.

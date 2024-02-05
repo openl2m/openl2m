@@ -1,8 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-==============
-Interface Vlan
-==============
+==================
+API Interface Vlan
+==================
 
 The "Interface Vlan" endpoint allows you change the untagged (ie. access) vlan of an interface (if your token allows it).
 You need to POST the proper *vlan* parameter.
