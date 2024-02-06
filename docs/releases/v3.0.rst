@@ -9,13 +9,16 @@ Version 3.0
 Version 3.0.4
 -------------
 
-Release Date: TBD
+Release Date: 2024-02-05
+
+* allow Json (and Form) API post values.
+* add REST API Python example client code.
 
 Bug fixes:
 
-* API parameter type error handling
-* API allow JSON post values
-* fix admin token management
+* improved API parameter type error handling.
+* fix admin token management.
+* API documentation fixes and updates.
 
 Version 3.0.3
 -------------
@@ -26,9 +29,9 @@ Release Date: 2024-01-29
 
 * endpoint urls changes.
 * add API endpoint for runtime environment information.
-* add user, group, device filter to maillogs
-* add *what's new* to menu
-* add token count to stats
+* add user, group, device filter to maillogs.
+* add *what's new* to menu.
+* add token count to stats.
 
 Bugfixes:
 

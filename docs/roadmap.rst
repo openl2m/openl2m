@@ -7,10 +7,7 @@ Roadmap / To Do
 Planned improvements:
 ---------------------
 
-* improve Aruba AOS-CX SNMP driver, as firmware v10.12 and up now can set port vlans via SNMP.
-
-* move all functions implementing urls to View() class, to get improved handling of non-implemented GET/POST.
-
+* all planned improvements have been implemented!
 
 Features Being Considered
 -------------------------

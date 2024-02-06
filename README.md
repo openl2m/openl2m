@@ -3,7 +3,7 @@
 __OpenL2M, Open Layer 2 Management__, is an open source network device management
 application designed to allow users with minimal training to perform a set of basic
 configuration changes on network devices, with a focus on port or interface (i.e Layer 2) changes.
-It does so by providing a consistent web interface
+It does so by providing a consistent web interface and API
 for device management, independent of the underlying switch vendor.
 
 OpenL2M attempts to address the needs of distributed IT groups managing parts
@@ -11,17 +11,6 @@ of a shared distributed layer 2 ("switching") network.
 
 While primarily intended to manage network switches, OpenL2M can handle any device that has some
 sort of network API (e.g. SSH, Netconf, REST, etc.)
-
-__Devices Supported:__
-* Aruba AOS-CX switches (via SNMP or REST API)
-* HP/Aruba Procurve switches (via SNMP)
-* HPE Comware switches (via SNMP)
-* Juniper devices (via Junos PyEz API)
-* Cisco switches (some, via SNMP)
-* Generic SNMP devices
-* Any device support by Netmiko library (see SSH devices)
-* Most devices supported by Napalm (read-only)
-See the documentation for more information.
 
 __Features:__
 * enable/disable interface
@@ -35,6 +24,17 @@ __Features:__
 * pluggable backend to support other vendors' devices, allowing easy development
 * vendor-agnostic REST API. Automate changes from scripts, etc.
 * and more...
+
+__Devices Supported:__
+* Aruba AOS-CX switches (via SNMP or REST API)
+* HP/Aruba Procurve switches (via SNMP)
+* HPE Comware switches (via SNMP)
+* Juniper devices (via Junos PyEz API)
+* Cisco switches (some, via SNMP)
+* Generic SNMP devices
+* Any device support by Netmiko library (see SSH devices)
+* Most devices supported by Napalm (read-only)
+See the documentation for more information.
 
 __What's New:__
 
