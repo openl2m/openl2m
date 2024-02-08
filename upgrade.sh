@@ -95,26 +95,26 @@ fi
 # Apply any database migrations
 COMMAND="python3 openl2m/manage.py migrate"
 echo "Applying database migrations ($COMMAND)..."
-eval $COMMAND
+eval $COMMAND || exit 1
 
 cd docs
 
 # Recompile the documentation, these become django static files!
 COMMAND="make clean; make html"
 echo "Updating HTML documentation ($COMMAND)..."
-eval $COMMAND
+eval $COMMAND || exit 1
 
 cd ..
 
 # Collect static files
 COMMAND="python3 openl2m/manage.py collectstatic --no-input"
 echo "Collecting static files ($COMMAND)..."
-eval $COMMAND
+eval $COMMAND || exit 1
 
 # Delete any stale content types
 COMMAND="python3 openl2m/manage.py remove_stale_contenttypes --no-input"
 echo "Removing stale content types ($COMMAND)..."
-eval $COMMAND
+eval $COMMAND || exit 1
 
 # Delete any expired user sessions
 COMMAND="python3 openl2m/manage.py clearsessions"
