@@ -41,10 +41,10 @@
                     {% if request.user.is_superuser %}
                       <li class="divider"></li>
                       <li><a href="{% url 'admin:index' %}"><i class="fas fa-pen"></i> Administration</a></li>
-                      {% if switch is not None %}
+                      {% if switch %}
                       <li><a href="{% url 'admin:switches_switch_change' switch.id %}">&nbsp;&nbsp;&nbsp;<i class="fas fa-pencil-alt"></i> This Device</a></li>
                       {% endif %}
-                      {% if group is not None %}
+                      {% if group %}
                       <li><a href="{% url 'admin:switches_switchgroup_change' group.id %}">&nbsp;&nbsp;&nbsp;<i class="fas fa-pencil-alt"></i> This Group</a></li>
                       {% endif %}
                       <li><a href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true"></i> Activity Logs</a></li>
