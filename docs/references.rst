@@ -36,6 +36,8 @@ Introduction to the Bootstrap framework used for web rendering. See https://www.
 The Netbox project. This is the original project that inspired the birth of OpenL2M :-).
 See https://github.com/netbox-community/netbox
 
+Django Rest Framework, used to implement our REST api. See https://www.django-rest-framework.org/
+
 HP/Aruba vlan management tool. https://sourceforge.net/projects/procurve-admin/
 
 Uninett NAV (Network Adminstration Visualized), at https://nav.uninett.no/
