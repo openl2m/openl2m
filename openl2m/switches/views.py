@@ -1972,7 +1972,7 @@ class SwitchDownloadEthernetAndNeighbors(LoginRequiredMixin, View):
 
 class SwitchDownloadInterfaces(LoginRequiredMixin, View):
     """
-    Download list of visible interfaces on a device.
+    Download a spreadsheet of visible interfaces on a device.
     """
 
     def get(
@@ -1997,22 +1997,6 @@ class SwitchDownloadInterfaces(LoginRequiredMixin, View):
             type=LOG_TYPE_VIEW,
             action=LOG_VIEW_DOWNLOAD_INTERFACES,
         )
-        # load ethernet, neighbor info, etc. again
-        try:
-            if not connection.get_client_data():
-                log.type = LOG_TYPE_ERROR
-                log.description = "ERROR get_client_data()"
-                log.save()
-                return error_page(request=request, group=group, switch=switch, error=connection.error)
-        except Exception as e:
-            log.type = LOG_TYPE_ERROR
-            log.description = (
-                f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            )
-            dprint(log.description)
-            log.save()
-            return error_page(request=request, group=group, switch=switch, error=connection.error)
-
         # create a temp file with the spreadsheet
         stream, error = create_interfaces_xls_file(connection)
         if not stream:
