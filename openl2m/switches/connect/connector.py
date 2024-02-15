@@ -183,7 +183,7 @@ class Connector:
             # more to add later...
         }
         if self.switch.nms_id:
-            data["nms_id"]: self.switch.nms_id
+            data["nms_id"] = self.switch.nms_id
         else:
             data["nms_id"] = ""
         data["save_config"] = self.can_save_config
