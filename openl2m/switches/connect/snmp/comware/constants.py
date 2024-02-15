@@ -112,14 +112,12 @@ BYTES_FOR_2048_VLANS = 256  # 2048 vlans / 8 bits-per-byte
 # hh3cifVLANTrunkAllowListLow and High, NOTE: BITMAP of VLANS!!!
 # on a port in "trunk mode"  (i.e. not bitmap of ports as in Q-Bridge!)
 hh3cifVLANTrunkAllowListLow = '.1.3.6.1.4.1.25506.8.35.5.1.3.1.6'  # + portId = VlanBitMap for vlan 1 - 2048
-snmp_mib_variables[
-    'hh3cifVLANTrunkAllowListLow'
-] = hh3cifVLANTrunkAllowListLow  # + portId = VlanBitMap for vlan 1 - 2048
+snmp_mib_variables['hh3cifVLANTrunkAllowListLow'] = hh3cifVLANTrunkAllowListLow
+# hh3cifVLANTrunkAllowListLow + portId = VlanBitMap for vlan 1 - 2048
 
 hh3cifVLANTrunkAllowListHigh = '.1.3.6.1.4.1.25506.8.35.5.1.3.1.7'  # + portId = VlanBitMap for vlan 2049 - 4096
-snmp_mib_variables[
-    'hh3cifVLANTrunkAllowListHigh'
-] = hh3cifVLANTrunkAllowListHigh  # + portId = VlanBitMap for vlan 2049 - 4096
+snmp_mib_variables['hh3cifVLANTrunkAllowListHigh'] = hh3cifVLANTrunkAllowListHigh
+# hh3cifVLANTrunkAllowListHigh + portId = VlanBitMap for vlan 2049 - 4096
 
 # IGMP snooping, from hh3cIgmpSnoopingVlanStatusTable.
 hh3cIgmpSnoopingVlanEnabled = '.1.3.6.1.4.1.25506.8.35.7.1.9.1.2'  # hh3cIgmpSnoopingVlanEnabled.<vlan_id> = status
