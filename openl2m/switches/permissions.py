@@ -204,12 +204,17 @@ def get_connection_if_permitted(request, group, switch, write_access=False):
     return connection, None
 
 
-def get_interface_to_change(connection, interface_key):
+PERMISSION_INTERFACE_MANAGE = 0  # generic management access
+PERMISSION_INTERFACE_POE = 1  # PoE Up or Down access
+
+
+def get_interface_to_change(connection, interface_key, permission=PERMISSION_INTERFACE_MANAGE):
     """Get an Interface() object for the key given. Test if it is writable.
 
     Params:
-        connection: valid Connection() object to the device.
-        interface_key: key into the Connection.interfaces dict().
+        connection (Connector): valid Connector() object to the device.
+        interface_key (str): key into the Connection.interfaces dict().
+        permission (int):
 
     Returns:
         connection, error:
@@ -234,6 +239,11 @@ def get_interface_to_change(connection, interface_key):
         error.description = "Could not get interface data. Please contact your administrator!"
         error.details = "Sorry, no more details available!"
         return False, error
+
+    # specific management request?
+    if permission == PERMISSION_INTERFACE_POE:
+        if interface.allow_poe_toggle:
+            return interface, False
 
     # can the user manage the interface?
     if not interface.manageable:

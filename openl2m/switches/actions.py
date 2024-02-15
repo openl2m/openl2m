@@ -51,6 +51,7 @@ from switches.utils import dprint, get_remote_ip
 from switches.permissions import (
     get_group_and_switch,
     get_connection_if_permitted,
+    PERMISSION_INTERFACE_POE,
     get_interface_to_change,
     user_can_write,
     log_write_denied,
@@ -412,7 +413,9 @@ def perform_interface_poe_change(request, group_id, switch_id, interface_key, ne
         action=LOG_CHANGE_INTERFACE_PVID,
     )
 
-    interface, error = get_interface_to_change(connection=connection, interface_key=interface_key)
+    interface, error = get_interface_to_change(
+        connection=connection, interface_key=interface_key, permission=PERMISSION_INTERFACE_POE
+    )
     if not interface:
         log.type = LOG_TYPE_ERROR
         log.description = f"Admin-Change: ERROR - {error.description}"
