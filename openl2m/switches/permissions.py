@@ -271,14 +271,15 @@ def _get_group_and_switch_from_permissions(permissions, group_id, switch_id):
     Returns:
         group, switch:  SwitchGroup() or None, Switch() or None.
     """
-    group_id = int(group_id)
-    switch_id = int(switch_id)
+    # with JSONSerializer, all Dict() keys are strings!
+    group_id = str(group_id)
+    switch_id = str(switch_id)
     dprint(f"_get_group_and_switch_from_permissions(group={group_id}, switch={switch_id})")
     group = None
     switch = None
-    if permissions and isinstance(permissions, dict) and int(group_id) in permissions.keys():
-        devices = permissions[int(group_id)]
-        if isinstance(devices, dict) and int(switch_id) in devices['members'].keys():
+    if permissions and isinstance(permissions, dict) and group_id in permissions.keys():
+        devices = permissions[group_id]
+        if isinstance(devices, dict) and switch_id in devices['members'].keys():
             try:
                 group = SwitchGroup.objects.get(pk=group_id)
                 switch = Switch.objects.get(pk=switch_id)

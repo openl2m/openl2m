@@ -14,6 +14,7 @@
 from collections import OrderedDict
 import lib.manuf.manuf as manuf
 import natsort
+import jsonpickle
 import re
 import time
 
@@ -78,8 +79,8 @@ class Connector:
         self.error.status = False  # we don't actually have an error yet :-)
 
         # caching related. All attributes but these will be cached:
-        self.do_not_cache = [
-            "do_not_cache",
+        self._do_not_cache = [
+            "_do_not_cache",
             "request",
             "group",
             "switch",
@@ -1056,8 +1057,8 @@ class Connector:
         Return:
             none
         '''
-        if name not in self.do_not_cache:
-            self.do_not_cache.append(name)
+        if name not in self._do_not_cache:
+            self._do_not_cache.append(name)
         return
 
     def load_cache(self):
@@ -1087,13 +1088,15 @@ class Connector:
             # get myself from cache :-)
             for attr_name, value in self.__dict__.items():
                 dprint(f"Reading cached attribute '{attr_name}'")
-                if attr_name not in self.do_not_cache:
+                if attr_name not in self._do_not_cache:
                     if attr_name in self.request.session.keys():
                         dprint("   Valid attribute!")
-                        self.__setattr__(attr_name, self.request.session[attr_name])
+                        # with Django 5, Pickle serialization is no longer supported, so to use the JSON session cache
+                        # we use jsonpickle to make sure we can store *any* class object in the sesssion!
+                        self.__setattr__(attr_name, jsonpickle.decode(self.request.session[attr_name]))
                         count += 1
                 else:
-                    dprint("   Ignoring (do_not_cache)!")
+                    dprint("   Ignoring (_do_not_cache)!")
 
             # call the child-class specific load_my_cache()
             self.load_my_cache()
@@ -1141,12 +1144,16 @@ class Connector:
             self.request.session['switch_id'] = self.switch.id
             # can I cache myself :-) ?
             for attr_name, value in self.__dict__.items():
-                if attr_name not in self.do_not_cache:
-                    dprint(f"Caching Attrib = {attr_name}")
-                    self.request.session[attr_name] = value
+                if attr_name not in self._do_not_cache:
+                    # with Django 5, Pickle serialization is no longer supported, so to use the JSON session cache
+                    # we use jsonpickle to make sure we can store *any* class object in the sesssion!
+                    dprint(f"  Caching Attrib = {attr_name}")
+                    pickled_value = jsonpickle.encode(value)
+                    self.request.session[attr_name] = pickled_value
                     count += 1
                 else:
-                    dprint(f"NOT caching attrib = {attr_name}")
+                    dprint(f"  NOT caching attrib = {attr_name}")
+            dprint("  End of for-loop)")
             # now notify we changed the session data:
             self.request.session.modified = True
 
@@ -1157,6 +1164,7 @@ class Connector:
         # else:
         # only happens if running in CLI or tasks
         # dprint("_set_http_session_cache() called but NO http.request found!")
+        dprint("save_cache() DONE!")
         return True
 
     def save_my_cache(self):
@@ -1170,6 +1178,7 @@ class Connector:
         Returns:
             none
         '''
+
         return
 
     def clear_cache(self):

@@ -14,6 +14,7 @@ httpie  # used for REST framework testing
 ip_address>=1.0.23
 isort
 Jinja2
+jsonpickle
 junos-eznc~=2.6.7
 jxmlease
 lxml

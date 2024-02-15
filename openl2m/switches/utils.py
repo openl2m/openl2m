@@ -204,7 +204,9 @@ def save_to_http_session(request, name, data):
     """
     Save an object in the http request session store
     """
+    dprint(f"save_to_http_session({name})")
     request.session[name] = data
+    request.session.modified = True
 
 
 def get_from_http_session(request, name, delete=False):
@@ -212,12 +214,15 @@ def get_from_http_session(request, name, delete=False):
     Retrieve an object from the http session store.
     If delete=True, object will be removed from the store
     """
+    dprint(f"get_from_http_session(name={name}, delete={delete}")
     if name in request.session.keys():
         data = request.session[name]
         if delete:
             del request.session[name]
+            request.session.modified = True
         return data
     else:
+        dprint("  NOT found in session cache!")
         return None
 
 

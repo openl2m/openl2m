@@ -182,8 +182,8 @@ if LOGIN_TIMEOUT is not None:
 if SESSION_FILE_PATH is not None:
     SESSION_ENGINE = "django.contrib.sessions.backends.file"
 
-# we use the PickleSerializer instead of JSON, so we can better cache objects:
-SESSION_SERIALIZER = "django.contrib.sessions.serializers.PickleSerializer"
+# The PickleSerializer is deprecated in Django 5.0. We now use the default JSONSerializer
+# SESSION_SERIALIZER = "django.contrib.sessions.serializers.PickleSerializer"
 
 # if using SSL, these should be set to True:
 CSRF_COOKIE_SECURE = getattr(configuration, "CSRF_COOKIE_SECURE", False)
