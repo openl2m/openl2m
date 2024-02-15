@@ -141,13 +141,15 @@ def get_usage_info():
     usage['API calls today'] = Log.objects.filter(**filter).count()
 
     filter = {
-        "type": int(LOG_TYPE_CHANGE),
+        "type": int(LOG_TYPE_LOGIN_OUT),
+        "action": int(LOG_LOGIN_REST_API),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
     }
     usage["API calls last 7 days"] = Log.objects.filter(**filter).count()
 
     filter = {
-        "type": int(LOG_TYPE_CHANGE),
+        "type": int(LOG_TYPE_LOGIN_OUT),
+        "action": int(LOG_LOGIN_REST_API),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
     }
     usage["API calls last 31 days"] = Log.objects.filter(**filter).count()
