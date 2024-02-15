@@ -384,7 +384,6 @@ class SnmpConnector(Connector):
         self.object_id = ""  # SNMP system OID value, used to find type of switch
         self.sys_uptime = 0  # sysUptime is a tick count in 1/100th of seconds per tick, since boot
         self.sys_uptime_timestamp = 0  # timestamp when sysUptime was read.
-        self.poe_port_entries = {}  # PoePort() port power entries, used to store until we can map to interface
         self.qbridge_port_to_if_index = {}  # this maps Q-Bridge port id as key (int) to MIB-II ifIndex (string)
         self.dot1tp_fdb_to_vlan_index = (
             {}
@@ -418,13 +417,15 @@ class SnmpConnector(Connector):
         """
         attributes to track EasySnmp library
         """
-        # caching related. Add attributes that do not get cached:
-        self.set_do_not_cache_attribute("_snmp_session")
         self._snmp_session = False  # EasySNMP session object
         # initialize the snmp "connection/session"
         if not self._set_snmp_session():
             dprint("   ERROR: cannot get SNMP session!")
             raise Exception("Cannot get SNMP session, did you configure a profile?")
+
+        # caching related. Add attributes that do not get cached:
+        self.set_do_not_cache_attribute("_snmp_session")
+        self.set_do_not_cache_attribute("poe_port_entries")
 
     def _set_snmp_session(self, com_or_ctx=''):
         """
@@ -1274,7 +1275,7 @@ class SnmpConnector(Connector):
         device_id.port_num for stack members.
         This gets mapped to an interface later on in
         self._map_poe_port_entries_to_interface(), which is typically device specific
-        (i.e. implemented in the device-specific classes iin
+        (i.e. implemented in the device-specific classes in
         vendor/cisco/snmp.py, vendor/comware/snmp.py, etc.)
         """
 
