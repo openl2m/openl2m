@@ -156,231 +156,6 @@ class IPNetworkHostname(netaddr.IPNetwork):
             self.hostname = get_ip_dns_name(self.ip)
 
 
-class Interface:
-    """
-    Class to represent all the attributes of a single device (switch) interface.
-    """
-
-    def __init__(self, key):
-        """
-        Initialize the object. We map the MIB-II entity names to similar class attributes.
-        """
-        self.key = str(key)  # the key used to find the index in the connector.interfaces{} dict
-        self.visible = True  # if True, this user can "see" this interface
-        self.manageable = False  # if True, this interface is manageable by the current user
-        self.disabled = False  # if True, this interface is disabled by the Connector() driver.
-        self.unmanage_reason = "Access denied!"  # string with reason why interface is not manageable or disabled
-        self.can_edit_description = False  # if True, can change interface description (snmp ifAlias)
-        self.index = key  # ifIndex, the key to all MIB-2 data!
-        # self.ifDescr = ""           # the old name of the interface, NOT the "description" attribute which is the ifAlias !!!
-        self.name = ""  # the name from IFMIB ifName entry! Falls back to older MIB-2ifDescr is not found!
-        self.type = IF_TYPE_NONE  # ifType, the MIB-2 type of the interface
-        self.is_routed = False  # if True interface is in routed mode (i.e. a layer 3 interface)
-        self.admin_status = False  # administrative status of the interface, True is Admin-Up (snmp ifAdminStatus)
-        self.oper_status = False  # operation status of interface, True is Oper-Up (snmp ifOperStatus)
-        self.mtu = 0  # ifMTU value, for L3 interfaces
-        self.speed = 0  # speed counter, in 1 Mbps (ie. like ifHighSpeed data from IF-MIB)
-        self.duplex = IF_DUPLEX_UNKNOWN  # interface duplex setting, if known.
-        self.phys_addr = 0x0
-        self.description = ""  # the interface description, as set by the switch configuration, from IF-MIB
-        self.addresses_ip4 = {}  # dictionary of all my ipv4 addresses on this interface
-        self.addresses_ip6 = {}  # dictionary of all my ipv6 addresses on this interface
-        self.igmp_snooping = False  # if True, interface does IGMP snooping
-        # vlan related
-        self.port_id = -1  # Q-Bridge MIB port id
-        self.untagged_vlan = -1  # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
-        self.vlans = []  # list (array) of vlanId's on this interface. If size > 0 this is a tagged port!
-        self.vlan_count = 0
-        self.is_tagged = False  # if 802.1q tagging or trunking is enabled
-        self.if_vlan_mode = -1  # some vendors (e.g. Comware) have a interface vlan mode, such as access, trunk, hybrid
-        self.voice_vlan = 0  # Cisco specific "Voice Vlan"
-        self.can_change_vlan = True  # if set, we can change the vlan; some device types this is not implemented yet!
-        self.gvrp_enabled = False  # the value representing the status of MVRP/GVRP on the interface
-        self.last_change = 0  # ifLastChange, tick count since uptime when interface last changed
-        # LACP related
-        self.lacp_type = LACP_IF_TYPE_NONE
-        # for LACP aggregator, a dictionary of lacp member interfaces. key=ifIndex, value=ifName of member interfaces
-        self.lacp_admin_key = -1  # "LacpKey" admin key. Member interfaces map back to this.
-        self.lacp_members = {}
-        # for members:
-        self.lacp_master_index = (
-            -1
-        )  # we are member of an LACP interface. ifIndex of the master aggregate. Mutually exclusive with above!
-        self.lacp_master_name = ""  # we are member of an LACP interface. ifname of the master aggregate.
-        # Power related
-        self.poe_entry = False  # if interface has PoE capabilities, will be a PoePort() object
-        self.allow_poe_toggle = False  # if set, any user can toggle PoE OFF-ON
-        # a variety of data about what is happening on this interface:
-        self.eth = {}  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
-        self.lldp = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
-
-    def add_ip4_network(self, address, prefix_len=''):
-        '''
-        Add an IPv4 address to this interface, as given by the IPv4 address and prefix_len
-        It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
-        return True on success, False on failure.
-        '''
-        if prefix_len:
-            self.addresses_ip4[address] = IPNetworkHostname(f"{address}/{prefix_len}")
-        else:
-            self.addresses_ip4[address] = IPNetworkHostname(address)
-        if settings.LOOKUP_HOSTNAME_ROUTED_IP:
-            self.addresses_ip4[address].resolve_ip_address()
-        return True
-
-    def add_ip6_network(self, address, prefix_len):
-        '''
-        Add an IPv6 address to this interface, as given by the IPv6 address and prefix_len
-        It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
-        return True on success, False on failure.
-        '''
-        self.addresses_ip6[address] = IPNetworkHostname(f"{address}/{prefix_len}")
-        if settings.LOOKUP_HOSTNAME_ROUTED_IP:
-            self.addresses_ip6[address].resolve_ip_address()
-        return True
-
-    def add_tagged_vlan(self, vlan_id):
-        '''
-        Add a Vlan() object for the vlan_id to this interface. Set tagged mode as well.
-        vlan_id = vlan to add as integer
-        Return True on success, False on failure and sets error variable.
-        '''
-        self.is_tagged = True
-        self.vlans.append(vlan_id)
-        return True
-
-    def remove_tagged_vlan(self, vlan_id):
-        '''
-        Remove a Vlan() object from this interface.
-        vlan_id = vlan to remove as integer
-        Return True on success, False on failure and sets error variable.
-        '''
-        if vlan_id in self.vlans:
-            self.vlans.remove(vlan_id)
-        return True
-
-    def add_learned_ethernet_address(self, eth_address, vlan_id=-1, ip4_address=''):
-        '''
-        Add an ethernet address to this interface, as given by the layer2 CAM/Switching tables.
-        It gets stored indexed by address. Create new EthernetAddress() object is not found yet.
-        If the object already exists, return it.
-
-        Args:
-            eth_address(str): ethernet address as string.
-            vlan_id(int): the vlan this ethernet address was heard on.
-
-        Returns:
-            EthernetAddress(), either existing or new.
-        '''
-        dprint(f"Interface().add_learned_ethernet_address() for {eth_address}, vlan={vlan_id}, ip4={ip4_address}")
-        if eth_address in self.eth.keys():
-            # already known!
-            dprint("  Eth already known!")
-            if vlan_id > 0:
-                self.eth[eth_address].set_vlan(vlan_id)
-            if ip4_address:
-                self.eth[eth_address].set_ip4_address(ip4_address)
-            return self.eth[eth_address]
-        else:
-            # add the new ethernet address
-            dprint("  New ethernet, adding.")
-            a = EthernetAddress(eth_address)
-            if vlan_id > 0:
-                a.set_vlan(vlan_id)
-            if ip4_address:
-                a.set_ip4_address(ip4_address)
-            self.eth[eth_address] = a
-            return a
-
-    def add_neighbor(self, neighbor):
-        '''
-        Add an lldp neighbor to this interface.
-        neighbor = NeighborDevice() object.
-        It gets stored indexed by lldp "index", mostly for snmp purposes.
-        return True on success, False on failure.
-        '''
-        dprint(f"add_neighbor() for {str(neighbor)}")
-        self.lldp[neighbor.index] = neighbor
-        return True
-
-    def as_dict(self):
-        '''
-        return this Interface() class as a dictionary for use by the API
-
-        Params:
-            None.
-
-        Returns:
-            dict(): key-value pairs with information about this interface.
-        '''
-        inf = {}
-        # for the id or key, we use the same encoded as django template url() function
-        inf["id"] = iri_to_uri(self.key)
-        inf["name"] = self.name
-        inf["description"] = self.description
-        if self.is_routed:
-            inf["mode"] = "Routed"
-        elif self.is_tagged:
-            inf['mode'] = "Tagged"
-            # need to handle tagged vlans
-            inf["tagged_vlans"] = ", ".join(map(str, self.vlans))
-        else:
-            inf["mode"] = "Access"
-        if self.untagged_vlan > 0:
-            inf["vlan"] = self.untagged_vlan
-        if self.admin_status:
-            inf["state"] = "Enabled"
-        else:
-            inf["state"] = "Disabled"
-        if self.oper_status:
-            inf["online"] = True
-        else:
-            inf["online"] = False
-        if self.speed:
-            inf["speed"] = self.speed
-        inf["duplex"] = duplex_name[self.duplex]
-        if self.mtu:
-            inf["mtu"] = self.mtu
-        # PoE data:
-        if self.poe_entry:
-            inf['poe'] = self.poe_entry.as_dict()
-        inf['manageable'] = self.manageable
-        if not self.manageable:
-            inf['unmanage_reason'] = self.unmanage_reason
-
-        # add the learned mac addresses:
-        addresses = []
-        for address, eth in self.eth.items():
-            addresses.append(eth.as_dict())
-        inf['ethernet_addresses'] = addresses
-
-        # add the heard neighbors:
-        neighbors = []
-        for key, neighbor in self.lldp.items():
-            neighbors.append(neighbor.as_dict())
-        inf['neighbors'] = neighbors
-
-        # and return the dictionary:
-        return inf
-
-    def display_name(self):
-        s = self.name  # use the IF-MIB new interface name
-        if self.description:
-            s = f"{s}: {self.description} {self.admin_status} {self.oper_status}"
-        if self.admin_status:
-            s = f"{s} (UP/"
-        else:
-            s = f"{s} (DOWN/"
-        if self.oper_status:
-            s = f"{s}UP)"
-        else:
-            s = f"{s}DOWN)"
-        return s
-
-    def __str__(self):
-        return self.display_name()
-
-
 class Vlan:
     """
     Class to represent a vlan found on the switch
@@ -953,3 +728,230 @@ class SyslogMsg:
 
     def __str__(self):
         return self.message  # for now.
+
+
+class Interface:
+    """
+    Class to represent all the attributes of a single device (switch) interface.
+    """
+
+    def __init__(self, key):
+        """
+        Initialize the object. We map the MIB-II entity names to similar class attributes.
+        """
+        self.key = str(key)  # the key used to find the index in the connector.interfaces{} dict
+        self.visible = True  # if True, this user can "see" this interface
+        self.manageable = False  # if True, this interface is manageable by the current user
+        self.disabled = False  # if True, this interface is disabled by the Connector() driver.
+        self.unmanage_reason = "Access denied!"  # string with reason why interface is not manageable or disabled
+        self.can_edit_description = False  # if True, can change interface description (snmp ifAlias)
+        self.index = key  # ifIndex, the key to all MIB-2 data!
+        # self.ifDescr = ""           # the old name of the interface, NOT the "description" attribute which is the ifAlias !!!
+        self.name = ""  # the name from IFMIB ifName entry! Falls back to older MIB-2ifDescr is not found!
+        self.type = IF_TYPE_NONE  # ifType, the MIB-2 type of the interface
+        self.is_routed = False  # if True interface is in routed mode (i.e. a layer 3 interface)
+        self.admin_status = False  # administrative status of the interface, True is Admin-Up (snmp ifAdminStatus)
+        self.oper_status = False  # operation status of interface, True is Oper-Up (snmp ifOperStatus)
+        self.mtu = 0  # ifMTU value, for L3 interfaces
+        self.speed = 0  # speed counter, in 1 Mbps (ie. like ifHighSpeed data from IF-MIB)
+        self.duplex = IF_DUPLEX_UNKNOWN  # interface duplex setting, if known.
+        self.phys_addr = 0x0
+        self.description = ""  # the interface description, as set by the switch configuration, from IF-MIB
+        self.addresses_ip4 = {}  # dictionary of all my ipv4 addresses on this interface
+        self.addresses_ip6 = {}  # dictionary of all my ipv6 addresses on this interface
+        self.igmp_snooping = False  # if True, interface does IGMP snooping
+        # vlan related
+        self.port_id = -1  # Q-Bridge MIB port id
+        self.untagged_vlan = -1  # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
+        self.vlans = []  # list (array) of vlanId's on this interface. If size > 0 this is a tagged port!
+        self.vlan_count = 0
+        self.is_tagged = False  # if 802.1q tagging or trunking is enabled
+        self.if_vlan_mode = -1  # some vendors (e.g. Comware) have a interface vlan mode, such as access, trunk, hybrid
+        self.voice_vlan = 0  # Cisco specific "Voice Vlan"
+        self.can_change_vlan = True  # if set, we can change the vlan; some device types this is not implemented yet!
+        self.gvrp_enabled = False  # the value representing the status of MVRP/GVRP on the interface
+        self.last_change = 0  # ifLastChange, tick count since uptime when interface last changed
+        # LACP related
+        self.lacp_type = LACP_IF_TYPE_NONE
+        # for LACP aggregator, a dictionary of lacp member interfaces. key=ifIndex, value=ifName of member interfaces
+        self.lacp_admin_key = -1  # "LacpKey" admin key. Member interfaces map back to this.
+        self.lacp_members = {}
+        # for members:
+        self.lacp_master_index = (
+            -1
+        )  # we are member of an LACP interface. ifIndex of the master aggregate. Mutually exclusive with above!
+        self.lacp_master_name = ""  # we are member of an LACP interface. ifname of the master aggregate.
+        # Power related
+        self.poe_entry = False  # if interface has PoE capabilities, will be a PoePort() object
+        self.allow_poe_toggle = False  # if set, any user can toggle PoE OFF-ON
+        # a variety of data about what is happening on this interface:
+        self.eth = {}  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
+        self.lldp = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
+
+    def add_ip4_network(self, address, prefix_len=''):
+        '''
+        Add an IPv4 address to this interface, as given by the IPv4 address and prefix_len
+        It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
+        return True on success, False on failure.
+        '''
+        if prefix_len:
+            self.addresses_ip4[address] = IPNetworkHostname(f"{address}/{prefix_len}")
+        else:
+            self.addresses_ip4[address] = IPNetworkHostname(address)
+        if settings.LOOKUP_HOSTNAME_ROUTED_IP:
+            self.addresses_ip4[address].resolve_ip_address()
+        return True
+
+    def add_ip6_network(self, address, prefix_len):
+        '''
+        Add an IPv6 address to this interface, as given by the IPv6 address and prefix_len
+        It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
+        return True on success, False on failure.
+        '''
+        self.addresses_ip6[address] = IPNetworkHostname(f"{address}/{prefix_len}")
+        if settings.LOOKUP_HOSTNAME_ROUTED_IP:
+            self.addresses_ip6[address].resolve_ip_address()
+        return True
+
+    def add_tagged_vlan(self, vlan_id):
+        '''
+        Add a Vlan() object for the vlan_id to this interface. Set tagged mode as well.
+        vlan_id = vlan to add as integer
+        Return True on success, False on failure and sets error variable.
+        '''
+        self.is_tagged = True
+        self.vlans.append(vlan_id)
+        return True
+
+    def remove_tagged_vlan(self, vlan_id):
+        '''
+        Remove a Vlan() object from this interface.
+        vlan_id = vlan to remove as integer
+        Return True on success, False on failure and sets error variable.
+        '''
+        if vlan_id in self.vlans:
+            self.vlans.remove(vlan_id)
+        return True
+
+    def add_learned_ethernet_address(
+        self, eth_address: str, vlan_id: int = -1, ip4_address: str = ''
+    ) -> EthernetAddress:
+        '''
+        Add an ethernet address to this interface, as given by the layer2 CAM/Switching tables.
+        It gets stored indexed by address. Create new EthernetAddress() object is not found yet.
+        If the object already exists, return it.
+
+        Args:
+            eth_address(str): ethernet address as string.
+            vlan_id(int): the vlan this ethernet address was heard on.
+
+        Returns:
+            EthernetAddress(), either existing or new.
+        '''
+        dprint(f"Interface().add_learned_ethernet_address() for {eth_address}, vlan={vlan_id}, ip4={ip4_address}")
+        if eth_address in self.eth.keys():
+            # already known!
+            dprint("  Eth already known!")
+            if vlan_id > 0:
+                self.eth[eth_address].set_vlan(vlan_id)
+            if ip4_address:
+                self.eth[eth_address].set_ip4_address(ip4_address)
+            return self.eth[eth_address]
+        else:
+            # add the new ethernet address
+            dprint("  New ethernet, adding.")
+            a = EthernetAddress(eth_address)
+            if vlan_id > 0:
+                a.set_vlan(vlan_id)
+            if ip4_address:
+                a.set_ip4_address(ip4_address)
+            self.eth[eth_address] = a
+            return a
+
+    def add_neighbor(self, neighbor):
+        '''
+        Add an lldp neighbor to this interface.
+        neighbor = NeighborDevice() object.
+        It gets stored indexed by lldp "index", mostly for snmp purposes.
+        return True on success, False on failure.
+        '''
+        dprint(f"add_neighbor() for {str(neighbor)}")
+        self.lldp[neighbor.index] = neighbor
+        return True
+
+    def as_dict(self):
+        '''
+        return this Interface() class as a dictionary for use by the API
+
+        Params:
+            None.
+
+        Returns:
+            dict(): key-value pairs with information about this interface.
+        '''
+        inf = {}
+        # for the id or key, we use the same encoded as django template url() function
+        inf["id"] = iri_to_uri(self.key)
+        inf["name"] = self.name
+        inf["description"] = self.description
+        if self.is_routed:
+            inf["mode"] = "Routed"
+        elif self.is_tagged:
+            inf['mode'] = "Tagged"
+            # need to handle tagged vlans
+            inf["tagged_vlans"] = ", ".join(map(str, self.vlans))
+        else:
+            inf["mode"] = "Access"
+        if self.untagged_vlan > 0:
+            inf["vlan"] = self.untagged_vlan
+        if self.admin_status:
+            inf["state"] = "Enabled"
+        else:
+            inf["state"] = "Disabled"
+        if self.oper_status:
+            inf["online"] = True
+        else:
+            inf["online"] = False
+        if self.speed:
+            inf["speed"] = self.speed
+        inf["duplex"] = duplex_name[self.duplex]
+        if self.mtu:
+            inf["mtu"] = self.mtu
+        # PoE data:
+        if self.poe_entry:
+            inf['poe'] = self.poe_entry.as_dict()
+        inf['manageable'] = self.manageable
+        if not self.manageable:
+            inf['unmanage_reason'] = self.unmanage_reason
+
+        # add the learned mac addresses:
+        addresses = []
+        for address, eth in self.eth.items():
+            addresses.append(eth.as_dict())
+        inf['ethernet_addresses'] = addresses
+
+        # add the heard neighbors:
+        neighbors = []
+        for key, neighbor in self.lldp.items():
+            neighbors.append(neighbor.as_dict())
+        inf['neighbors'] = neighbors
+
+        # and return the dictionary:
+        return inf
+
+    def display_name(self):
+        s = self.name  # use the IF-MIB new interface name
+        if self.description:
+            s = f"{s}: {self.description} {self.admin_status} {self.oper_status}"
+        if self.admin_status:
+            s = f"{s} (UP/"
+        else:
+            s = f"{s} (DOWN/"
+        if self.oper_status:
+            s = f"{s}UP)"
+        else:
+            s = f"{s}DOWN)"
+        return s
+
+    def __str__(self):
+        return self.display_name()
