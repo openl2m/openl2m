@@ -327,7 +327,7 @@ class AosCxConnector(Connector):
         for vlan_id in self.vlans.keys():
             dprint(f"Vlan {vlan_id}:")
             try:
-                v = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
+                v = AosCxVlan(session=self.aoscx_session, vlan_id=int(vlan_id))
                 v.get()
                 if hasattr(v, 'name'):
                     # vlan 1 does not typically have a name!
@@ -362,7 +362,7 @@ class AosCxConnector(Connector):
                         #    dprint(f"      attribute: {name} = {mac.__dict__[name]}")
                         # add this to the known addressess:
                         self.add_learned_ethernet_address(
-                            if_name=mac.port.name, eth_address=mac.mac_address, vlan_id=vlan_id
+                            if_name=mac.port.name, eth_address=mac.mac_address, vlan_id=int(vlan_id)
                         )
                     except Exception as err:
                         dprint(f"ERROR in mac.get(): {err}")
