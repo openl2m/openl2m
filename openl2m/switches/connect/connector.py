@@ -795,7 +795,7 @@ class Connector:
             True on success, False on error
         '''
         key = str(key)
-        dprint(f"set_interface_attribute_by_key() for {key}, {attribute} = {value}")
+        dprint(f"set_interface_attribute_by_key() for {key} ({type(key)}), {attribute} = {value} ({type(value)})")
         try:
             setattr(self.interfaces[key], attribute, value)
             return True
