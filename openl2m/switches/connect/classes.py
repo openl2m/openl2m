@@ -125,11 +125,11 @@ class VendorData:
     This gets added to connector.vendor_data{} with category as key.
     """
 
-    def __init__(self, name, value):
+    def __init__(self, name: str, value: str):
         self.name = name
         self.value = value
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         '''
         return this class as a dictionary for use by the API
         '''
@@ -145,11 +145,11 @@ class IPNetworkHostname(netaddr.IPNetwork):
     This can be used to set a FQDN for the Ip address portion of the network.
     """
 
-    def __init__(self, network):
+    def __init__(self, network: netaddr.IPNetwork):
         self.hostname = ''
         super().__init__(network)
 
-    def resolve_ip_address(self):
+    def resolve_ip_address(self) -> None:
         '''Use dns resolution to resolve the IP address to a hostname.'''
         # if hostname not already set:
         if not self.hostname:
@@ -161,7 +161,7 @@ class Vlan:
     Class to represent a vlan found on the switch
     """
 
-    def __init__(self, id=0, index=0, name=''):
+    def __init__(self, id: int = 0, index: int = 0, name: str = ''):
         """
         Vlan() requires passing in the vlan id
         """
@@ -180,15 +180,15 @@ class Vlan:
         # self.untagged_ports_bitmap = 0x0    # exactly what you think, PortList format ! :-)
         # self.hh3c_dot1q_vlan_ports = PortList()   # hh3cdot1qVlanPorts is HH3C specific vlan untagged PortList() bitmap
 
-    def set_name(self, name):
+    def set_name(self, name: str) -> None:
         self.name = name
 
-    def display_name(self):
+    def display_name(self) -> str:
         if self.name:
             return self.name
         return str(self.id)
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         '''
         return this class as a dictionary for use by the API
         '''
@@ -200,7 +200,7 @@ class Vlan:
             'igmp_snooping': self.igmp_snooping,
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.display_name()
 
 
@@ -220,14 +220,14 @@ class PortList:
     def __init__(self):
         self.portlist = array.array('B')
 
-    def from_unicode(self, bitmap_string):
+    def from_unicode(self, bitmap_string: str) -> None:
         """
         Initialize the bytes from this unicode bitmap string
         """
         for byte in bitmap_string:
             self.portlist.append(ord(byte))
 
-    def from_byte_count(self, bytecount):
+    def from_byte_count(self, bytecount: int) -> None:
         """
         Initialize by setting a number of bytes to 0
         """
@@ -235,13 +235,13 @@ class PortList:
         for i in range(int(bytecount)):
             self.portlist.append(0)
 
-    def tobytes(self):
+    def tobytes(self) -> bytes:
         """
         call the array.tobytes() function to return
         """
         return self.portlist.tobytes()
 
-    def to_unicode(self):
+    def to_unicode(self) -> str:
         """
         Encode the bytes as unicode, since the EasySnmp library, and the
         underlying net-snmp want OCTETSTRING variables as Unicode strings,
@@ -252,7 +252,7 @@ class PortList:
         """
         return self.portlist.tobytes().decode(encoding="UTF-8", errors="ignore")
 
-    def to_hex_string(self):
+    def to_hex_string(self) -> str:
         """
         Return a hexadecimal string representation of this bitmap.
 
@@ -261,7 +261,7 @@ class PortList:
         digits = ["%02x" % octet for octet in self.portlist]
         return "".join(digits)
 
-    def reverse_bits_in_bytes(self):
+    def reverse_bits_in_bytes(self) -> None:
         """
         Reverse all bits in each byte. I.e. bit 8 goes to 1, 7 to 2, etc.
         There is probably a much more efficient way to do this!
@@ -288,16 +288,16 @@ class PortList:
             self.portlist[offset] = new_octet
             offset += 1
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.portlist) * 8
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Handle the "string" representation
         """
         return f"{self.__class__.__name__}({repr(self.to_hex_string())})"
 
-    def __setitem__(self, position, value):
+    def __setitem__(self, position: int, value: int) -> None:
         """
         Set the bit in position position to val.  NOTE: The most
         significant bit is regarded as bit 0 in this context.
@@ -316,7 +316,7 @@ class PortList:
             else:
                 self.portlist[block] = block_value ^ (128 >> shift)
 
-    def __getitem__(self, position):
+    def __getitem__(self, position: int):
         """
         Get the value of the bit in position.  NOTE: The most
         significant bit is regarded as bit 0 in this context.
@@ -340,7 +340,7 @@ class EthernetAddress(netaddr.EUI):
     We reuse most of the netaddr library abilities to find vendor.
     """
 
-    def __init__(self, ethernet_string):
+    def __init__(self, ethernet_string: str):
         """
         EthernetAddress() requires passing in the hyphen or colon format of the 6 ethernet bytes.
         """
@@ -352,16 +352,16 @@ class EthernetAddress(netaddr.EUI):
         self.address_ip6 = ""  # ipv6 address, if known
         self.hostname = ""  # reverse lookup for ip4 or ip6 address.
 
-    def set_vlan(self, vlan_id):
+    def set_vlan(self, vlan_id: int) -> None:
         self.vlan_id = int(vlan_id)
 
-    def set_ip4_address(self, ip4_address):
+    def set_ip4_address(self, ip4_address: str) -> None:
         self.address_ip4 = ip4_address
 
-    def set_ip6_address(self, ip6_address):
+    def set_ip6_address(self, ip6_address: str) -> None:
         self.address_ip6 = ip6_address
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         '''
         return this class as a dictionary for use by the API
         '''
@@ -374,7 +374,7 @@ class EthernetAddress(netaddr.EUI):
             'vendor': self.vendor,
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Print the ethernet string, formatted per the settings value.
         """
@@ -388,7 +388,7 @@ class NeighborDevice:
     """
 
     # def __init__(self, lldp_index, if_index):
-    def __init__(self, lldp_index):
+    def __init__(self, lldp_index: str):
         """
         Initialize the object, requires the lldp index
         """
@@ -412,7 +412,7 @@ class NeighborDevice:
         self.management_address_type = IANA_TYPE_OTHER  # valid is either IANA_TYPE_IPV4 or IANA_TYPE_IPV6
         self.management_address = ""  # IP address, either v4 or v6
 
-    def set_port_name(self, port_name):
+    def set_port_name(self, port_name: str) -> None:
         '''
         Set the name of the remote port of this device.
 
@@ -424,7 +424,7 @@ class NeighborDevice:
         '''
         self.port_name = port_name
 
-    def set_port_description(self, description):
+    def set_port_description(self, description: str) -> None:
         '''
         Set the description of the remote port of this device.
 
@@ -436,7 +436,7 @@ class NeighborDevice:
         '''
         self.port_descr = description
 
-    def set_sys_name(self, name):
+    def set_sys_name(self, name: str) -> None:
         '''
         Set the name of the remote device.
 
@@ -448,7 +448,7 @@ class NeighborDevice:
         '''
         self.sys_name = name
 
-    def set_sys_description(self, description):
+    def set_sys_description(self, description: str) -> None:
         '''
         Set the description of the remote device.
 
@@ -460,12 +460,12 @@ class NeighborDevice:
         '''
         self.sys_descr = description
 
-    def set_chassis_type(self, chassis_type):
+    def set_chassis_type(self, chassis_type: int) -> None:
         '''
         Set the name of the remote port of this device.
 
         Args:
-            type(int): the type on the remote device that we are connected to.
+            chassis_type(int): the type on the remote device that we are connected to.
             valid values are defined in snmp.constants, see LLDP_CHASSIC_TYPE_xxx fields.
 
         Returns:
@@ -473,7 +473,7 @@ class NeighborDevice:
         '''
         self.chassis_type = chassis_type
 
-    def set_chassis_string(self, description):
+    def set_chassis_string(self, description: str) -> None:
         '''
         Set the string type of remote chassis.
 
@@ -485,7 +485,7 @@ class NeighborDevice:
         '''
         self.chassis_string = description
 
-    def set_management_address(self, address, type):
+    def set_management_address(self, address: str, type: int) -> None:
         """Set remote device management address.
 
         Args:
@@ -497,7 +497,7 @@ class NeighborDevice:
         self.management_address = address
         self.management_address_type = type
 
-    def set_capability(self, capability):
+    def set_capability(self, capability: int) -> None:
         '''
         Add a capability to this device. These are defined in switches.connect.constants,
         see LLDP_CAPABILITIES_xxx fields. They are accumulative, as a device can have
@@ -511,7 +511,7 @@ class NeighborDevice:
         '''
         self.capabilities += capability
 
-    def capabilities_as_string(self):
+    def capabilities_as_string(self) -> str:
         """Return a string respresenting the capabilities of the lldp neighbor.
 
         Args:
@@ -549,7 +549,7 @@ class NeighborDevice:
                 info.append('Other')
         return ','.join(info)
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         '''
         return this class as a dictionary for use by the API
         '''
@@ -565,10 +565,10 @@ class NeighborDevice:
             'management_address': self.management_address,
         }
 
-    def display_name(self):
+    def display_name(self) -> str:
         return self.sys_name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.display_name()
 
 
@@ -579,7 +579,7 @@ class PoePSE:
     stacks have multiple, e.g. one per line card or stack unit.
     """
 
-    def __init__(self, index):
+    def __init__(self, index: int):
         """
         Initialize the object
         """
@@ -589,7 +589,7 @@ class PoePSE:
         self.power_consumed = 0  # total power consumed on this power supply
         self.threshold = 0
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         '''
         return this class as a dictionary for use by the API
         '''
@@ -601,25 +601,25 @@ class PoePSE:
             'threshold': self.threshold,
         }
 
-    def set_enabled(self):
+    def set_enabled(self) -> None:
         '''
         Set status as Enabled.
         '''
         self.status = POE_PSE_STATUS_ON
 
-    def set_disabled(self):
+    def set_disabled(self) -> None:
         '''
         Set status as Disabled.
         '''
         self.status = POE_PSE_STATUS_OFF
 
-    def set_fault(self):
+    def set_fault(self) -> None:
         '''
         Set status as Faulted.
         '''
         self.status = POE_PSE_STATUS_FAULT
 
-    def set_max_power(self, power):
+    def set_max_power(self, power: int) -> None:
         '''
         Set maximum power available.
         '''
@@ -628,7 +628,7 @@ class PoePSE:
         except Exception:
             self.max_power = 0
 
-    def set_consumed_power(self, power):
+    def set_consumed_power(self, power: int) -> None:
         '''
         Set power consumed.
         '''
@@ -637,10 +637,10 @@ class PoePSE:
         except Exception:
             self.consumed_power = 0
 
-    def display_name(self):
+    def display_name(self) -> str:
         return f"PS #{self.index}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.display_name()
 
     #    return (f"PoePSE:\nIndex={self.index}\nStatus={self.status}\n" \
@@ -654,7 +654,7 @@ class PoePort:
     I.e. this is the per-interface power information.
     """
 
-    def __init__(self, index, admin_status):
+    def __init__(self, index: str, admin_status: int):
         """
         Initialize the object
         """
@@ -671,7 +671,7 @@ class PoePort:
         self.power_available = 0  # power available in milliWatt
         self.max_power_consumed = 0  # max power drawn since PoE reset, in milliWatt
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         '''
         return this class as a dictionary for use by the API
         '''
@@ -685,7 +685,7 @@ class PoePort:
             'max_power_consumed': self.max_power_consumed,
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"PoePort:\nIndex={self.index}\nAdmin={self.admin_status}\n"
             "Detect={self.detect_status}\n"
@@ -700,7 +700,7 @@ class SyslogMsg:
     or vendorm-specific mibs like CISCO-SYSLOG-MIB
     """
 
-    def __init__(self, index):
+    def __init__(self, index: int):
         """
         Initialize the object with the message index
         """
@@ -713,7 +713,7 @@ class SyslogMsg:
         # some vendor mibs have sys-uptime timetick. Recalculate all to datetime() object
         self.datetime = 0
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         '''
         return this class as a dictionary for use by the API
         '''
@@ -726,7 +726,7 @@ class SyslogMsg:
             'datetime': self.datetime,
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message  # for now.
 
 
@@ -735,7 +735,7 @@ class Interface:
     Class to represent all the attributes of a single device (switch) interface.
     """
 
-    def __init__(self, key):
+    def __init__(self, key: str):
         """
         Initialize the object. We map the MIB-II entity names to similar class attributes.
         """
@@ -763,7 +763,7 @@ class Interface:
         # vlan related
         self.port_id = -1  # Q-Bridge MIB port id
         self.untagged_vlan = -1  # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
-        self.vlans = []  # list (array) of vlanId's on this interface. If size > 0 this is a tagged port!
+        self.vlans = []  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
         self.vlan_count = 0
         self.is_tagged = False  # if 802.1q tagging or trunking is enabled
         self.if_vlan_mode = -1  # some vendors (e.g. Comware) have a interface vlan mode, such as access, trunk, hybrid
@@ -788,7 +788,7 @@ class Interface:
         self.eth = {}  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
         self.lldp = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
 
-    def add_ip4_network(self, address, prefix_len=''):
+    def add_ip4_network(self, address: str, prefix_len: int = 0) -> None:
         '''
         Add an IPv4 address to this interface, as given by the IPv4 address and prefix_len
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
@@ -800,9 +800,9 @@ class Interface:
             self.addresses_ip4[address] = IPNetworkHostname(address)
         if settings.LOOKUP_HOSTNAME_ROUTED_IP:
             self.addresses_ip4[address].resolve_ip_address()
-        return True
+        # return True
 
-    def add_ip6_network(self, address, prefix_len):
+    def add_ip6_network(self, address: str, prefix_len: int) -> None:
         '''
         Add an IPv6 address to this interface, as given by the IPv6 address and prefix_len
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
@@ -811,27 +811,28 @@ class Interface:
         self.addresses_ip6[address] = IPNetworkHostname(f"{address}/{prefix_len}")
         if settings.LOOKUP_HOSTNAME_ROUTED_IP:
             self.addresses_ip6[address].resolve_ip_address()
-        return True
+        # return True
 
-    def add_tagged_vlan(self, vlan_id):
+    def add_tagged_vlan(self, vlan_id: int) -> None:
         '''
         Add a Vlan() object for the vlan_id to this interface. Set tagged mode as well.
         vlan_id = vlan to add as integer
         Return True on success, False on failure and sets error variable.
         '''
         self.is_tagged = True
-        self.vlans.append(vlan_id)
-        return True
+        self.vlans.append(int(vlan_id))
+        # return True
 
-    def remove_tagged_vlan(self, vlan_id):
+    def remove_tagged_vlan(self, vlan_id: int) -> None:
         '''
         Remove a Vlan() object from this interface.
         vlan_id = vlan to remove as integer
         Return True on success, False on failure and sets error variable.
         '''
+        vlan_id = int(vlan_id)
         if vlan_id in self.vlans:
             self.vlans.remove(vlan_id)
-        return True
+        # return True
 
     def add_learned_ethernet_address(
         self, eth_address: str, vlan_id: int = -1, ip4_address: str = ''
@@ -868,7 +869,7 @@ class Interface:
             self.eth[eth_address] = a
             return a
 
-    def add_neighbor(self, neighbor):
+    def add_neighbor(self, neighbor: NeighborDevice) -> None:
         '''
         Add an lldp neighbor to this interface.
         neighbor = NeighborDevice() object.
@@ -877,9 +878,9 @@ class Interface:
         '''
         dprint(f"add_neighbor() for {str(neighbor)}")
         self.lldp[neighbor.index] = neighbor
-        return True
+        # return True
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         '''
         return this Interface() class as a dictionary for use by the API
 
@@ -939,7 +940,7 @@ class Interface:
         # and return the dictionary:
         return inf
 
-    def display_name(self):
+    def display_name(self) -> str:
         s = self.name  # use the IF-MIB new interface name
         if self.description:
             s = f"{s}: {self.description} {self.admin_status} {self.oper_status}"
@@ -953,5 +954,5 @@ class Interface:
             s = f"{s}DOWN)"
         return s
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.display_name()
