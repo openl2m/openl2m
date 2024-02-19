@@ -1166,11 +1166,13 @@ class SnmpConnector(Connector):
 
         # Map the Q-BRIDGE port id to the MIB-II if_indexes.
         # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
-        port_id = oid_in_branch(dot1dBasePortIfIndex, oid)
+        port_id = int(oid_in_branch(dot1dBasePortIfIndex, oid))
         if port_id:
+            dprint("Found dot1dBasePortIfIndex = {port_id}")
             # map port ID (as str) to interface ID (as str)
             if_index = str(val)
             if if_index in self.interfaces.keys():
+                dprint(f"  Mapping to if_index = {if_index}")
                 self.qbridge_port_to_if_index[port_id] = if_index
                 # and map Interface() object back to port ID as well:
                 self.set_interface_attribute_by_key(if_index, "port_id", port_id)
