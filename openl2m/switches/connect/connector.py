@@ -100,8 +100,6 @@ class Connector:
         self.ip4_to_if_index = (
             {}
         )  # the IPv4 addresses as keys, with stored value if_index; needed to map netmask to interface
-        self.syslog_msgs = {}  # list of Syslog messages, if any
-        self.syslog_max_msgs = 0  # how many syslog msgs device will store
         # some flags:
         self.cache_loaded = False  # if True, system data was loaded from cache
         # some timestamps:
