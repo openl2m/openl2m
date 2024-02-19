@@ -1,7 +1,7 @@
 black
 distro~=1.8.0
 Django>=4.2,<4.3
-django-ipware>=5.0,<5.1
+django-ipware
 django-minify-html
 django-ordered-model>=3.7,<4.0
 # version post 0.2.5 appear unstable:
@@ -15,7 +15,7 @@ ip_address>=1.0.23
 isort
 Jinja2
 jsonpickle
-junos-eznc~=2.6.7
+junos-eznc
 jxmlease
 lxml
 # no longer used due to Wireshark URL problem
@@ -23,13 +23,13 @@ lxml
 # local copy in openl2m/lib/manuf/
 # manuf
 six
-napalm>=4.0.0
+napalm>=4.1.0
 napalm-aruba-cx
 napalm-dellos10
 napalm-procurve
-natsort~=8.4.0
-netaddr~=0.9.0
-netmiko~=4.2.0
+natsort>=8.4.0
+netaddr>=1.2.1
+netmiko>=4.3.0
 psycopg2-binary
 # We are using a clone of the Aruba pyaoscx library from github.com,
 # as there always seems to be some fix in there that we need that has
@@ -39,12 +39,14 @@ git+https://github.com/aruba/pyaoscx
 #
 # work around compatibility bug with pysnmp=4.4.12 in pyasn1==0.5.0, see
 # https://github.com/pyasn1/pyasn1/issues/28
-pyasn1==0.4.8
+# pyasn1==0.4.8 - see pysnmplib below
 #
 pycodestyle
-# see above comment about pyasn1 !
-pysnmp==4.4.12
-pytz~=2023.3.post1
+# pysnmp (original) is no longer supported.
+# we are now using the maintained clone "pysnmplib"
+# see https://github.com/pysnmp/pysnmp
+pysnmplib
+pytz>=2024.1
 recommonmark
 redis
 Sphinx
@@ -52,7 +54,7 @@ sphinx_rtd_theme
 textfsm
 PyYAML>=6.0
 pipenv
-XlsxWriter>=3.1.9
+XlsxWriter>=3.2
 
 # A REST API framework for Django projects
 # https://www.django-rest-framework.org/community/release-notes/
@@ -66,4 +68,4 @@ drf-spectacular
 # https://github.com/tfranzel/drf-spectacular-sidecar
 drf-spectacular-sidecar
 
-urllib3~=2.0.5
+urllib3>=2.2
