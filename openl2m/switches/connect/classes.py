@@ -64,7 +64,11 @@ class Error:
     """
 
     def __init__(
-        self, status=True, code=http_status.HTTP_400_BAD_REQUEST, description="An Unknown Error Occured!", details=""
+        self,
+        status=True,
+        code: int = http_status.HTTP_400_BAD_REQUEST,
+        description: str = "An Unknown Error Occured!",
+        details: str = "",
     ):
         """
         Default state is error occured!
@@ -90,7 +94,7 @@ class StackMember:
     This could be just one unit (single switch), or multiple if part of a stack
     """
 
-    def __init__(self, id, type):
+    def __init__(self, id: int, type: int):
         """
         Initialize the object
         """
@@ -102,7 +106,7 @@ class StackMember:
         self.info = ""  # hardware info string
         self.description = ""  # module description
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         '''
         return this class as a dictionary for use by the API
         '''
