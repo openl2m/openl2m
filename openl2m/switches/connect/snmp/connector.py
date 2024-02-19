@@ -181,7 +181,7 @@ class pysnmpHelper:
     Based on the pysnmp HPAPI at http://snmplabs.com/pysnmp/examples/contents.html#high-level-snmp
     """
 
-    def __init__(self, switch=False):
+    def __init__(self, switch: bool = False):
         """
         Initialize the PySnmp bindings
         """
@@ -189,7 +189,7 @@ class pysnmpHelper:
         self._set_auth_data()
         self.error = Error()
 
-    def get(self, oid):
+    def get(self, oid: str) -> tuple[bool, str]:
         """
         Get a single specific OID value via SNMP
         Returns a tuple with (error_status (bool), return_value)
@@ -224,7 +224,7 @@ class pysnmpHelper:
             (oid, retval) = varBinds
             return (False, retval)
 
-    def set_vars(self, vars):
+    def set_vars(self, vars: tuple) -> bool:
         """
         Set a single OID value. Note that 'value' has to be properly typed, see
         http://snmplabs.com/pysnmp/docs/api-reference.html#pysnmp.smi.rfc1902.ObjectType
@@ -268,7 +268,7 @@ class pysnmpHelper:
         dprint("pysnmp.set_vars() OK")
         return True
 
-    def set(self, oid, value):
+    def set(self, oid: str, value) -> bool:
         """
         Set a single OID value. Note that 'value' has to be properly typed, see
         http://snmplabs.com/pysnmp/docs/api-reference.html#pysnmp.smi.rfc1902.ObjectType
@@ -279,7 +279,7 @@ class pysnmpHelper:
         var.append(ObjectType(ObjectIdentity(ObjectName(oid)), value))
         return self.set_vars(var)
 
-    def set_multiple(self, oid_values):
+    def set_multiple(self, oid_values: list) -> bool:
         """
         Set multiple OIDs in a single atomic snmp set()
         oid_tuples is a list of tuples (oid, value) containing
@@ -295,7 +295,7 @@ class pysnmpHelper:
         # now call set_vars() to do the work:
         return self.set_vars(vars)
 
-    def _set_auth_data(self):
+    def _set_auth_data(self) -> bool:
         """
         Set the UsmUserData() or CommunityData() object based on the snmp_profile
         """
@@ -427,7 +427,7 @@ class SnmpConnector(Connector):
         self.set_do_not_cache_attribute("_snmp_session")
         self.set_do_not_cache_attribute("poe_port_entries")
 
-    def _set_snmp_session(self, com_or_ctx=''):
+    def _set_snmp_session(self, com_or_ctx: str = '') -> bool:
         """
         Get a EasySnmp Session() object for this snmp connection
         com_or_ctx - the community to override the snmp profile settings if v2,
@@ -593,7 +593,7 @@ class SnmpConnector(Connector):
     This would allow you to implement using pysnmp, netsnmp-python, etc.
     """
 
-    def get(self, oid, parser=False):
+    def get(self, oid: str, parser=False) -> tuple:
         """
         Get a single specific OID value via SNMP
         Update the local OID cache by default.
@@ -620,7 +620,9 @@ class SnmpConnector(Connector):
 
         return (False, retval)
 
-    def get_snmp_branch(self, branch_name, parser=False, max_repetitions=settings.SNMP_MAX_REPETITIONS):
+    def get_snmp_branch(
+        self, branch_name: str, parser=False, max_repetitions: int = settings.SNMP_MAX_REPETITIONS
+    ) -> int:
         """
         Bulk-walk a branch of the snmp mib, fill the data in the oid store.
         This finishes when we leave this branch.
@@ -706,7 +708,7 @@ class SnmpConnector(Connector):
         dprint(f"get_snmp_branch() returns {count}")
         return count
 
-    def set(self, oid, value, snmp_type, parser=False):
+    def set(self, oid: str, value, snmp_type, parser=False) -> bool:
         """
         Set a single OID value. Note that 'value' has to be properly typed!
         Returns True if success.
@@ -732,7 +734,7 @@ class SnmpConnector(Connector):
 
         return True
 
-    def set_multiple(self, oid_values, parser=False):
+    def set_multiple(self, oid_values: list, parser=False) -> bool:
         """
         Set multiple OIDs at the same time, in a single snmp request
         oid_values is a list of tuples (oid, value, type)
@@ -762,7 +764,7 @@ class SnmpConnector(Connector):
     various methods from the base Connector() class implemented here.
     """
 
-    def get_my_basic_info(self):
+    def get_my_basic_info(self) -> bool:
         """
         Get the basic info for this class of devices (ie snmp devices)
         Bulk-walk the needed MIBs to get the basics of this device:
@@ -787,28 +789,25 @@ class SnmpConnector(Connector):
                                 return True
         return False
 
-    def get_my_client_data(self):
+    def get_my_client_data(self) -> bool:
         """
         Get additional information about switch ports, eg. ethernet address, counters...
         Note this is never cached, so anytime we get fresh, "live" data!
         """
         # now load the ethernet tables every time, without caching
-        retval = self._get_known_ethernet_addresses()
-        if retval:  # no error
+        if self._get_known_ethernet_addresses():  # no error
             # read LLDP as well
-            retval = self._get_lldp_data()
-            if retval != -1:
-                # and the arp tables (after we found ethernet address, so we can update with IP)
-                retval = self._get_arp_data()
-                if retval != -1:
-                    self.switch.save()  # update counters
-                    return True
+            self._get_lldp_data()
+            # and the arp tables (after we found ethernet address, so we can update with IP)
+            self._get_arp_data()
+            self.switch.save()  # update counters
+            return True
         return False
 
-    def get_my_hardware_details(self):
+    def get_my_hardware_details(self) -> bool:
         """
         Get all (possible) hardware info, stacking details, etc.
-        return True if succedded, and False if not
+        return True if success, and False if not
         """
         # call the vendor-specific data first, if implemented
         self._get_hardware_data()
@@ -820,7 +819,7 @@ class SnmpConnector(Connector):
     internal class-specific functions
     """
 
-    def _parse_oid_with_fixup(self, oid, value, snmp_type, parser):
+    def _parse_oid_with_fixup(self, oid: str, value, snmp_type, parser):
         """
         Parse OID data from the pysnmp library. We need to map data types, as
         EasySNMP returns everything as a Python str() object!
@@ -866,7 +865,7 @@ class SnmpConnector(Connector):
             # default parser
             self._parse_oid(oid, newvalue)
 
-    def _parse_oid(self, oid, val):
+    def _parse_oid(self, oid: str, val: str) -> bool:
         """
         Parse a single OID with data returned from a switch through some "get" or "getbulk" function
         Will return True if we have parse this, and False if not.
@@ -1070,7 +1069,7 @@ class SnmpConnector(Connector):
             else:
                 # only should happen for non-permanent vlans, we should know static vlans by now!
                 self.add_vlan_by_id(vlan_id)
-                self.vlans[vlan_id].status = int(val)
+                self.vlans[vlan_id].status = status
             return True
 
         # The VLAN name
@@ -1078,11 +1077,11 @@ class SnmpConnector(Connector):
         if vlan_id:
             # not yet sure how to handle this
             if vlan_id in self.vlans.keys():
-                self.vlans[vlan_id].name = str(val)
+                self.vlans[vlan_id].name = val
             else:
                 # vlan not found yet, create it
                 self.add_vlan_by_id(vlan_id)
-                self.vlans[vlan_id].name = str(val)
+                self.vlans[vlan_id].name = val
             return True
 
         """
@@ -1132,7 +1131,7 @@ class SnmpConnector(Connector):
         port_id = int(oid_in_branch(dot1qPvid, oid))
         if port_id:
             if_index = self._get_if_index_from_port_id(port_id)
-            # not yet sure how to handle this
+            # not yet sure how to handle this. val is 'untagged vlan'
             untagged_vlan = int(val)
             self.set_interface_attribute_by_key(if_index, "untagged_vlan", untagged_vlan)
             if untagged_vlan not in self.vlans.keys():
@@ -1460,7 +1459,7 @@ class SnmpConnector(Connector):
             offset += 1
         return True
 
-    def _parse_mibs_ieee_qbridge(self, oid, val):
+    def _parse_mibs_ieee_qbridge(self, oid: str, val: str) -> bool:
         """
         Parse ieee 802.1q bridge Mibs
         """
@@ -1531,7 +1530,7 @@ class SnmpConnector(Connector):
     #
     # Original "dot1d Bridge MIB" Known Ethernet MIB parsing
     #
-    def _parse_mibs_dot1d_bridge_eth(self, oid, val):
+    def _parse_mibs_dot1d_bridge_eth(self, oid: str, val: str) -> bool:
         """
         Parse a single OID with data returned from the Q-Bridge Ethernet MIBs
         Will return True if we have parsed this, and False if not.
@@ -1572,7 +1571,7 @@ class SnmpConnector(Connector):
     #
     # Newer Q-Bridge Known Ethernet MIB parsing
     #
-    def _parse_mibs_q_bridge_eth(self, oid, val):
+    def _parse_mibs_q_bridge_eth(self, oid: str, val: str) -> bool:
         """
         Parse a single OID with data returned from the Q-Bridge Ethernet MIBs
         Will return True if we have parsed this, and False if not.
@@ -1625,7 +1624,7 @@ class SnmpConnector(Connector):
             return True
         return False
 
-    def _parse_mibs_net_to_media(self, oid, val):
+    def _parse_mibs_net_to_media(self, oid: str, val: str) -> bool:
         """
         Parse a single OID with data returned from the (various) Net-To-Media (ie ARP) mibs
         Will return True if we have parsed this, and False if not.
@@ -1660,7 +1659,7 @@ class SnmpConnector(Connector):
     #
     # LLDP MIB parsing
     #
-    def _parse_mibs_lldp(self, oid, val):
+    def _parse_mibs_lldp(self, oid: str, val: str) -> bool:
         """
         Parse a single OID with data returned from the LLDP MIBs
 
@@ -1835,7 +1834,7 @@ class SnmpConnector(Connector):
             return True
         return False
 
-    def _parse_mibs_lldp_management(self, oid, val):
+    def _parse_mibs_lldp_management(self, oid: str, val: str) -> bool:
         """Parse LLDP entries related to remote management info.
 
         Params:
@@ -1949,7 +1948,7 @@ class SnmpConnector(Connector):
         dprint(f"if_index '{if_index}' not found!")
         return False
 
-    def _parse_mibs_entity_physical(self, oid, val):
+    def _parse_mibs_entity_physical(self, oid: str, val: str) -> bool:
         """
         Parse a single OID with data returned from the (various) Entity-Physical mib entries.
         ENTITY MIB, info about the device, eg stack or single unit, # of units, serials
@@ -2035,13 +2034,19 @@ class SnmpConnector(Connector):
                 if if_index == index:
                     return port_id
         else:
-            # we did not find the Q-BRIDGE mib. port_id = ifIndex !
+            # we did not find the Q-BRIDGE mib. if_index = port_id !
             return if_index
 
-    def _get_port_id_from_interface(self, interface):
+    def _get_port_id_from_interface(self, interface: Interface) -> str:
         """
         Return the bridge PortId for the given interface object. This assumes we have walked
         the Q-Bridge mib that maps bridge port id to interfaceId.
+
+        params:
+            interface (Interface): a valid Interface for this device.
+
+        returns:
+            (str): the Q-Bridge port_id for this interface.
         """
         if interface.port_id != -1:
             return interface.port_id
@@ -2049,7 +2054,7 @@ class SnmpConnector(Connector):
             # we did not find the Q-BRIDGE mib. port_id = ifIndex !
             return interface.index
 
-    def _parse_mibs_system(self, oid, value):
+    def _parse_mibs_system(self, oid: str, value: str) -> bool:
         """
         parse the basic 6 system mib entries.
         ie.sys-descr, object-id, uptime, contact, name & location
@@ -2078,8 +2083,9 @@ class SnmpConnector(Connector):
         if oid == sysLocation:
             self.add_more_info('System', 'Location', value)
             return True
+        return False
 
-    def _get_sys_uptime(self):
+    def _get_sys_uptime(self) -> None:
         """
         Get the current sysUpTime timetick for the device.
         """
@@ -2087,7 +2093,7 @@ class SnmpConnector(Connector):
         # sysUpTime is ticks in 1/100th of second since boot
         self.sys_uptime_timestamp = time.time()
 
-    def _get_system_data(self):
+    def _get_system_data(self) -> int:
         """
         get just the System-MIB parts, ie OID, Location, etc.
         Return a negative value if error occured, or 1 if success
@@ -2126,7 +2132,7 @@ class SnmpConnector(Connector):
 
         return 1
 
-    def _get_hardware_data(self):
+    def _get_hardware_data(self) -> int:
         """
         read the various Entity OIDs for the basic data we want
         This reads information about the modules, software revisions, etc.
@@ -2161,7 +2167,7 @@ class SnmpConnector(Connector):
 
         return 1
 
-    def _get_interface_data(self):
+    def _get_interface_data(self) -> int:
         """
         Get Interface MIB data from the switch. We are not reading the whole MIB-II branch at ifTable,
         but to speed it up, we run individual branches that we need ...
@@ -2232,7 +2238,7 @@ class SnmpConnector(Connector):
         #    return False
         return 1
 
-    def _get_vlans(self):
+    def _get_vlans(self) -> int:
         """
         Read the list of defined vlans on the switch
         Returns error value (if < 0), or count of vlans found (0 or greater)
@@ -2270,7 +2276,7 @@ class SnmpConnector(Connector):
         self.vlan_count = len(self.vlans)
         return vlan_count
 
-    def _get_port_vlan_membership(self):
+    def _get_port_vlan_membership(self) -> int:
         """
         Read the Q-Bridge MIB vlan and switchport data. Again, to optimize, we read what we need.
         Returns 1 on success, -1 on failure
@@ -2304,7 +2310,7 @@ class SnmpConnector(Connector):
 
         return 1
 
-    def _get_vlan_data(self):
+    def _get_vlan_data(self) -> int:
         """
         Get all neccesary vlan info (names, id, ports on vlans, etc.) from the switch.
         Returns -1 on error, or a number to indicate vlans found.
@@ -2327,7 +2333,7 @@ class SnmpConnector(Connector):
 
         return self.vlan_count
 
-    def _get_my_ip4_addresses(self):
+    def _get_my_ip4_addresses(self) -> int:
         """
         Read the ipAddrEntry tables for the switch IP4 addresses
         Returns 1 on success, -1 on failure
@@ -2339,7 +2345,7 @@ class SnmpConnector(Connector):
 
         return 1
 
-    def _map_poe_port_entries_to_interface(self):
+    def _map_poe_port_entries_to_interface(self) -> None:
         """
         This function maps the "pethPsePortEntry" indices that are stored in self.poe_port_entries{}
         to interface ifIndex values, so we can store them with the interface and display as needed.
@@ -2355,7 +2361,7 @@ class SnmpConnector(Connector):
                     iface.poe_entry = port_entry
                     break
 
-    def _get_poe_data(self):
+    def _get_poe_data(self) -> int:
         """
         Read Power-over-Etnernet data, still needs works
         Returns 1 on success, -1 on failure
@@ -2385,7 +2391,7 @@ class SnmpConnector(Connector):
                 """
         return 1
 
-    def _get_known_ethernet_addresses(self):
+    def _get_known_ethernet_addresses(self) -> bool:
         """
         Read the Bridge-MIB for known ethernet address on the switch.
         Returns True on success (0 or more addresses found), False on error
@@ -2408,24 +2414,24 @@ class SnmpConnector(Connector):
                 return False
         return True
 
-    def _get_arp_data(self):
+    def _get_arp_data(self) -> bool:
         """
         Read the arp tables from both old style ipNetToMedia,
         and eventually, new style ipNetToPhysical
-        Returns 1 on success, -1 on failure
+        Returns True on success, False on failure
         """
         retval = self.get_snmp_branch('ipNetToMediaPhysAddress', self._parse_mibs_net_to_media)
         if retval < 0:
             self.add_warning("Error getting 'ARP-Table' (ipNetToMediaPhysAddress)")
-            return retval
-        return 1
+            return False
+        return True
 
-    def _get_lldp_data(self):
+    def _get_lldp_data(self) -> bool:
         """
         Read parts of the LLDP mib for neighbors on interfaces
         Note that this needs to be called after _get_known_ethernet_addresses()
         as we need the Bridge-to-IfIndex mapping that is loaded there!
-        Returns 1 on success, -1 on failure
+        Returns True on success, False on failure
         """
         # Probably don't need this part, already got most from MIB-2
         # retval = not self.get_snmp_branch(lldpLocPortTable, self._parse_mibs_lldp):
@@ -2449,57 +2455,57 @@ class SnmpConnector(Connector):
         retval = self.get_snmp_branch('lldpRemPortId', self._parse_mibs_lldp)
         if retval < 0:
             self.add_warning("Error getting 'LLDP-Remote-Ports' (lldpRemPortId)")
-            return retval
+            return False
         if retval > 0:  # there are neighbors entries! Go get the details.
             retval = self.get_snmp_branch('lldpRemPortIdSubType', self._parse_mibs_lldp)
             if retval < 0:
                 self.add_warning("Error getting 'LLDP-Remote-Port-ID-Subtype' (lldpRemPortIdSubType)")
-                return retval
+                return False
             retval = self.get_snmp_branch('lldpRemPortDesc', self._parse_mibs_lldp)
             if retval < 0:
                 self.add_warning("Error getting 'LLDP-Remote-Port-Description' (lldpRemPortDesc)")
-                return retval
+                return False
             retval = self.get_snmp_branch('lldpRemSysName', self._parse_mibs_lldp)
             if retval < 0:
                 self.add_warning("Error getting 'LLDP-Remote-System-Name' (lldpRemSysName)")
-                return retval
+                return False
             retval = self.get_snmp_branch('lldpRemSysDesc', self._parse_mibs_lldp)
             if retval < 0:
                 self.add_warning("Error getting 'LLDP-Remote-System-Decription' (lldpRemSysDesc)")
-                return retval
+                return False
             # get the enabled remote device capabilities
             retval = self.get_snmp_branch('lldpRemSysCapEnabled', self._parse_mibs_lldp)
             if retval < 0:
                 self.add_warning("Error getting 'LLDP-Remote-System-Capabilities' (lldpRemSysCapEnabled)")
-                return retval
+                return False
             # and info about the remote chassis:
             retval = self.get_snmp_branch('lldpRemChassisIdSubtype', self._parse_mibs_lldp)
             if retval < 0:
                 self.add_warning("Error getting 'LLDP-Remote-Chassis-Type' (lldpRemChassisIdSubtype)")
-                return retval
+                return False
             retval = self.get_snmp_branch('lldpRemChassisId', self._parse_mibs_lldp)
             if retval < 0:
                 self.add_warning("Error getting 'LLDP-Remote-Chassis-Id' (lldpRemChassisId)")
-                return retval
+                return False
             # remote management info:
             retval = self.get_snmp_branch('lldpRemManAddrEntry', self._parse_mibs_lldp_management)
             if retval < 0:
                 self.add_warning("Error getting 'LLDP-Remote-Management-Info' (lldpRemManAddrEntry)")
-                return retval
+                return False
+        return True
 
-        return 1
-
-    def _get_lacp_data(self):
+    def _get_lacp_data(self) -> bool:
         """
         Read the IEEE LACP mib, single mib counter gives us enough to identify
         the physical interfaces that are an LACP member.
+        Returns True on success, False on failure
         """
 
         # Get the admin key or "index" for aggregate interfaces
         retval = self.get_snmp_branch('dot3adAggActorAdminKey')
         if retval < 0:
             self.add_warning("Error getting 'LACP-Aggregate-Admin-Key' (dot3adAggActorAdminKey)")
-            return retval
+            return False
 
         # If there are aggregate interfaces, then get the admin key or "index" for physical member interfaces
         # this maps back to the logical or actor aggregates above in dot3adAggActorAdminKey
@@ -2507,28 +2513,30 @@ class SnmpConnector(Connector):
             retval = self.get_snmp_branch('dot3adAggPortActorAdminKey')
             if retval < 0:
                 self.add_warning("Error getting 'LACP-Port-Admin-Key' (dot3adAggPortActorAdminKey)")
-                return retval
+                return False
 
         """
         # this is a shortcut to find aggregates and members all in one, but does not work for every device.
         retval = self.get_snmp_branch('dot3adAggPortAttachedAggID')
         if retval < 0:
             self.add_warning("Error getting 'LACP-Port-AttachedAggID' (dot3adAggPortAttachedAggID)")
-            return retval
+            return False
         """
 
-        return retval
+        return True
 
-    def _get_syslog_msgs(self):
+    def _get_syslog_msgs(self) -> bool:
         """
         Read the SYSLOG-MSG-MIB: note this is meant for notifications, but we can read log size!
+        Returns True on success, False on failure
         """
         retval = self.get_snmp_branch('syslogMsgTableMaxSize')
         if retval < 0:
             self.add_warning("Error getting Log Size Info (syslogMsgTableMaxSize)")
-        return retval
+            return False
+        return True
 
-    def get_system_oid(self):
+    def get_system_oid(self) -> str:
         """Read the SNMP System OID object. Return as string.
 
         Return:
@@ -2552,21 +2560,22 @@ class SnmpConnector(Connector):
     Class specific functions
     """
 
-    def get_switch_vlans(self):
+    def get_switch_vlans(self) -> dict:
         """
         Return the vlans defined on this switch
         """
         return self.vlans
 
-    def get_vlan_by_id(self, vlan_id):
+    def get_vlan_by_id(self, vlan_id: str) -> Vlan:
         """
         Return the Vlan() object for the given id
         """
+        vlan_id = str(vlan_id)
         if vlan_id in self.vlans.keys():
             return self.vlans[vlan_id]
         return False
 
-    def set_interface_admin_status(self, interface, status):
+    def set_interface_admin_status(self, interface: Interface, status: bool) -> bool:
         """
         Set the admin status to up or down.
         interface = Interface() object for the port/interface.
@@ -2584,7 +2593,7 @@ class SnmpConnector(Connector):
             return True
         return False
 
-    def set_interface_poe_status(self, interface=False, status=-1):
+    def set_interface_poe_status(self, interface: Interface = False, status: int = -1) -> bool:
         """
         Set the PoE status to up or down.
         interface = Interface() object for the port/interface.
@@ -2609,7 +2618,7 @@ class SnmpConnector(Connector):
             return True
         return False
 
-    def set_interface_description(self, interface=False, description=""):
+    def set_interface_description(self, interface: Interface = False, description: str = "") -> bool:
         """
         Set a description on an interface.
         return True on success, False on error and set self.error variables
@@ -2624,7 +2633,7 @@ class SnmpConnector(Connector):
             return True
         return False
 
-    def set_interface_untagged_vlan(self, interface, new_vlan_id):
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id) -> bool:
         """
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
         return True on success, False on error and set self.error variables
@@ -2689,7 +2698,7 @@ class SnmpConnector(Connector):
         interface.untagged_vlan = new_vlan_id
         return True
 
-    def vlan_create(self, vlan_id, vlan_name):
+    def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
         '''
         Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
 
@@ -2698,8 +2707,8 @@ class SnmpConnector(Connector):
         needs a different sequency, please override this function in your device driver!
 
         Args:
-            id (int): the vlan id
-            name (str): the name of the vlan
+            vlan_id (int): the vlan id
+            vlan_name (str): the name of the vlan
 
         Returns:
             True on success, False on error and set self.error variables.
@@ -2715,13 +2724,13 @@ class SnmpConnector(Connector):
         super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
         return True
 
-    def vlan_edit(self, vlan_id, vlan_name):
+    def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
         '''
         Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
 
         Args:
-            id (int): the vlan id to edit
-            name (str): the new name of the vlan
+            vlan_id (int): the vlan id to edit
+            vlan_name (str): the new name of the vlan
 
         Returns:
             True on success, False on error and set self.error variables.
@@ -2736,12 +2745,12 @@ class SnmpConnector(Connector):
         super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
         return True
 
-    def vlan_delete(self, vlan_id):
+    def vlan_delete(self, vlan_id: int) -> bool:
         '''
         Deletel the vlan. Upon success, this then needs to call the base class for book keeping!
 
         Args:
-            id (int): the vlan id to edit
+            vlan_id (int): the vlan id to edit
 
         Returns:
             True on success, False on error and set self.error variables.
@@ -2756,17 +2765,17 @@ class SnmpConnector(Connector):
         super().vlan_delete(vlan_id=vlan_id)
         return True
 
-    def display_name(self):
+    def display_name(self) -> str:
         return f"{self.name} for {self.switch.name}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.display_name
 
 
 # --- End of SnmpConnector() ---
 
 
-def oid_in_branch(mib_branch, oid):
+def oid_in_branch(mib_branch: str, oid: str) -> bool | str:
     """
     Check if a given OID is in the branch, if so, return the 'ending' portion after the mib_branch
     E.g. in many cases, the oid end is the 'ifIndex' or vlan_id, or such.
@@ -2784,7 +2793,7 @@ def oid_in_branch(mib_branch, oid):
     return False
 
 
-def get_switch_enterprise_info(system_oid):
+def get_switch_enterprise_info(system_oid: str) -> str:
     """
     Return the Enterprise name from the Object ID given
     """
