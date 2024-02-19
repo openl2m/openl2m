@@ -62,16 +62,18 @@ def get_environment_info():
     environment["Django"] = django.get_version()
     environment["OpenL2M version"] = f"{settings.VERSION} ({settings.VERSION_DATE})"
 
-    try:
-        repo = git.Repo(search_parent_directories=True)
-        sha = repo.head.object.hexsha
-        short_sha = repo.git.rev_parse(sha, short=8)
-        branch = repo.active_branch
-        commit_date = time.strftime("%a, %d %b %Y %H:%M UTC", time.gmtime(repo.head.object.committed_date))
-        environment["Git version"] = f"{branch} ({short_sha})"
-        environment["Git commit"] = commit_date
-    except Exception:
-        environment["Git version"] = "Not found!"
+    if settings.DEBUG:
+        environment['Debug'] = "Enabled"
+        try:
+            repo = git.Repo(search_parent_directories=True)
+            sha = repo.head.object.hexsha
+            short_sha = repo.git.rev_parse(sha, short=8)
+            branch = repo.active_branch
+            commit_date = time.strftime("%a, %d %b %Y %H:%M UTC", time.gmtime(repo.head.object.committed_date))
+            environment["Git version"] = f"{branch} ({short_sha})"
+            environment["Git commit"] = commit_date
+        except Exception:
+            environment["Git version"] = "Not found!"
     return environment
 
 
