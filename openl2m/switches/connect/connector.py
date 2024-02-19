@@ -1093,7 +1093,8 @@ class Connector:
                         dprint("   Valid attribute!")
                         # with Django 5, Pickle serialization is no longer supported, so to use the JSON session cache
                         # we use jsonpickle to make sure we can store *any* class object in the sesssion!
-                        self.__setattr__(attr_name, jsonpickle.decode(self.request.session[attr_name]))
+                        # keys=True ensures that integer dictionary keys are maintained! (e.g self.vlans)
+                        self.__setattr__(attr_name, jsonpickle.decode(self.request.session[attr_name], keys=True))
                         count += 1
                 else:
                     dprint("   Ignoring (_do_not_cache)!")
@@ -1147,9 +1148,9 @@ class Connector:
                 if attr_name not in self._do_not_cache:
                     # with Django 5, Pickle serialization is no longer supported, so to use the JSON session cache
                     # we use jsonpickle to make sure we can store *any* class object in the sesssion!
+                    # keys=True ensures that integer dictionary keys are maintained! (e.g self.vlans)
                     dprint(f"  Caching Attrib = {attr_name}")
-                    pickled_value = jsonpickle.encode(value)
-                    self.request.session[attr_name] = pickled_value
+                    self.request.session[attr_name] = jsonpickle.encode(value, keys=True)
                     count += 1
                 else:
                     dprint(f"  NOT caching attrib = {attr_name}")
