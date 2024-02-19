@@ -1665,7 +1665,7 @@ class Connector:
         dprint(f"get_vlan_by_id({id}={type(vlan_id)})")
         vlan_id = int(vlan_id)
         if vlan_id in self.vlans.keys():
-            return self.vlans[vlan_id, id]
+            return self.vlans[vlan_id]
         return False
 
     def vlan_exists(self, vlan_id: int) -> bool:
