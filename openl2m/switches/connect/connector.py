@@ -1439,8 +1439,7 @@ class Connector:
         self._set_allowed_vlans()
 
         # apply the permission rules to all interfaces
-        for key in self.interfaces:
-            iface = self.interfaces[key]
+        for iface in self.interfaces.values():
             # dprint(f"  checking {iface.name}")
 
             # if disabled by the Connector() driver:
