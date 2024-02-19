@@ -94,8 +94,8 @@ class Connector:
 
         self.show_interfaces = True  # If False, do NOT show interfaces, vlans etc... for command-only devices.
         # data we collect and potentially cache:
-        self.interfaces = {}  # Interface() objects representing the ports on this switch, key is if_name
-        self.vlans = {}  # Vlan() objects on this switch, key is vlan id (not index!)
+        self.interfaces = {}  # Interface() objects representing the ports on this switch, key is if_name *as string!*
+        self.vlans = {}  # Vlan() objects on this switch, key is vlan id *as integer!* (not index!)
         self.vlan_count = 0  # number of vlans defined on device
         self.ip4_to_if_index = (
             {}
@@ -1642,7 +1642,7 @@ class Connector:
             self.vendor_data[category] = []
         self.vendor_data[category].append(vdata)
 
-    def get_switch_vlans(self):
+    def get_switch_vlans(self) -> dict:
         '''
         Return the list of self.vlans defined on this switch
 
@@ -1654,7 +1654,7 @@ class Connector:
         '''
         return self.vlans
 
-    def get_vlan_by_id(self, vlan_id):
+    def get_vlan_by_id(self, vlan_id: int) -> bool | Vlan:
         '''
         Return the Vlan() object for the given id
 
@@ -1664,11 +1664,13 @@ class Connector:
         Returns:
             the Vlan() object if found, else False
         '''
-        if int(vlan_id) in self.vlans.keys():
-            return self.vlans[vlan_id]
+        dprint(f"get_vlan_by_id({id}={type(vlan_id)})")
+        vlan_id = int(vlan_id)
+        if vlan_id in self.vlans.keys():
+            return self.vlans[vlan_id, id]
         return False
 
-    def vlan_exists(self, vlan_id):
+    def vlan_exists(self, vlan_id: int) -> bool:
         '''
         If a vlan ID exists, return True otherwize False.
 
