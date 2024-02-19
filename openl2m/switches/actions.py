@@ -578,7 +578,7 @@ def perform_switch_vlan_add(request, group_id, switch_id, vlan_id, vlan_name):
                     On error, Error() object will be set accordingly.
 
     """
-    dprint("perform_switch_vlan_create()")
+    dprint("perform_switch_vlan_add()")
 
     status, info = user_can_write(request)
     if not status:
@@ -602,9 +602,12 @@ def perform_switch_vlan_add(request, group_id, switch_id, vlan_id, vlan_name):
         return False, error
 
     if not vlan_name:
-        error = Error()
-        error.description = "Please provide a vlan name!"
-        return False, error
+        if connection.can_set_vlan_name:
+            error = Error()
+            error.description = "Please provide a vlan name!"
+            return False, error
+        else:  # set to reasonable default to show in WebUI until refreshed from device.
+            vlan_name = f"VLAN{vlan_id}"
 
     # all OK, go create
     counter_increment(COUNTER_VLAN_MANAGE)
