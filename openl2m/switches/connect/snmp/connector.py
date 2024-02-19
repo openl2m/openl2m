@@ -2560,20 +2560,21 @@ class SnmpConnector(Connector):
     Class specific functions
     """
 
-    def get_switch_vlans(self) -> dict:
-        """
-        Return the vlans defined on this switch
-        """
-        return self.vlans
-
-    def get_vlan_by_id(self, vlan_id: str) -> Vlan:
-        """
-        Return the Vlan() object for the given id
-        """
-        vlan_id = str(vlan_id)
-        if vlan_id in self.vlans.keys():
-            return self.vlans[vlan_id]
-        return False
+    # Duplicates of connect.connector.Connector() base function:
+    # def get_switch_vlans(self) -> dict:
+    #     """
+    #     Return the vlans defined on this switch
+    #     """
+    #     return self.vlans
+    #
+    # def get_vlan_by_id(self, vlan_id: str) -> Vlan:
+    #     """
+    #     Return the Vlan() object for the given id
+    #     """
+    #     vlan_id = str(vlan_id)
+    #     if vlan_id in self.vlans.keys():
+    #         return self.vlans[vlan_id]
+    #     return False
 
     def set_interface_admin_status(self, interface: Interface, status: bool) -> bool:
         """
