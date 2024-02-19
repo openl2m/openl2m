@@ -172,9 +172,14 @@ class SnmpConnectorComware(SnmpConnector):
         Override the VLAN change, this is done Comware specific using the Comware VLAN MIB
         return True on success, False on error and set self.error variables
         """
-        dprint(f"Comware set_interface_untagged_vlan() port {interface.name} to {new_vlan_id}")
+        dprint(f"Comware set_interface_untagged_vlan() port {interface.name} to {new_vlan_id} ({type(new_vlan_id)})")
         new_vlan = self.get_vlan_by_id(new_vlan_id)
-        if interface and new_vlan:
+        if not new_vlan:
+            self.error.status = True
+            self.error.description = f"Cannot find Vlan object for vlan {new_vlan_id}"
+            self.error.details = ""
+            return False
+        if interface:
             if interface.is_tagged:
                 dprint("Tagged/Trunk Mode!")
                 # set the TRUNK_NATIVE_VLAN OID:
