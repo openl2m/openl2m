@@ -24,7 +24,7 @@ from switches.models import Command, Log
 from switches.connect.constants import LLDP_CHASSIC_TYPE_ETH_ADDR
 from switches.constants import LOG_TYPE_WARNING, LOG_CONNECTION_ERROR, LOG_TYPE_ERROR, CMD_TYPE_INTERFACE
 from switches.utils import dprint, get_remote_ip, get_ip_dns_name
-from switches.connect.classes import Error, PoePort, PoePSE, Vlan, VendorData
+from switches.connect.classes import Error, PoePort, PoePSE, Vlan, VendorData, Interface
 from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
     POE_PORT_ADMIN_ENABLED,
@@ -660,7 +660,7 @@ class Connector:
     # various support functions #
     #############################
 
-    def add_vlan_by_id(self, vlan_id, vlan_name=''):
+    def add_vlan_by_id(self, vlan_id: int, vlan_name: str = ''):
         '''
         Add a Vlan() object to the device, based on vlan ID and name (if set).
         Store it in the vlans{} dictionary, indexed by vlan_id
@@ -679,7 +679,7 @@ class Connector:
         self.vlans = dict(sorted(self.vlans.items()))  # note: soted() returns a list of tuples(key, value), NOT dict!
         return True
 
-    def add_vlan(self, vlan):
+    def add_vlan(self, vlan: Vlan):
         '''
         Add a new vlan as an object.
         Store it in the vlans{} dictionary, indexed by vlan.id
@@ -693,7 +693,7 @@ class Connector:
         self.vlans[vlan.id] = vlan
         return True
 
-    def add_interface(self, interface):
+    def add_interface(self, interface: Interface):
         '''
         Add and Interface() object to the self.interfaces{} dictionary,
         indexed by the interface key.
@@ -707,13 +707,13 @@ class Connector:
         self.interfaces[interface.key] = interface
         return True
 
-    def add_poe_powersupply(self, id, power_available):
+    def add_poe_powersupply(self, id: int, power_available: int) -> PoePSE:
         '''
         Add a power supply PoePse() object to the device, and return this new object.
 
         Args:
-            id = index of power supply
-            power_available = max power in Watts
+            id (int): index of power supply
+            power_available (int): max power in Watts
 
         Returns:
             PoePSI() object created.
