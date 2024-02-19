@@ -26,6 +26,8 @@ import re
 from django.conf import settings
 from django.utils.timezone import get_default_timezone
 
+from ipware import get_client_ip
+
 
 logger_console = logging.getLogger("openl2m.console")
 
@@ -232,8 +234,6 @@ def get_remote_ip(request):
     """
     if request:
         # see: https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django
-        from ipware import get_client_ip
-
         (ip, routable) = get_client_ip(request)  # we need the request variable from the view!
         if ip is None:
             return '0.0.0.0'
