@@ -104,7 +104,7 @@ class SnmpConnectorComware(SnmpConnector):
         Returns integer
         """
         max_port_id = 0
-        for if_index, iface in self.interfaces.items():
+        for iface in self.interfaces.values():
             if iface.type == IF_TYPE_ETHERNET and iface.port_id > max_port_id:
                 max_port_id = iface.port_id
         return max_port_id
@@ -272,7 +272,7 @@ class SnmpConnectorComware(SnmpConnector):
 
                 # now loop to find other existing ports on this vlan:
                 dprint("Finding other ports on this vlan:")
-                for this_index, this_iface in self.interfaces.items():
+                for this_iface in self.interfaces.values():
                     if this_iface.type == IF_TYPE_ETHERNET:
                         if this_iface.port_id > -1:  # we have a valid PortId
                             if this_iface.is_tagged:
@@ -497,14 +497,14 @@ class SnmpConnectorComware(SnmpConnector):
          tested, the ifIndex and Q-Bridge port ID are the same!)
         """
         dprint("_map_poe_port_entries_to_interface(Comware)")
-        for pe_index, port_entry in self.poe_port_entries.items():
+        for port_entry in self.poe_port_entries.values():
             # we take the ending part of "7.12", where 7=PSE#, and 12=port!
             (pse_module, port) = port_entry.index.split('.')
             # calculate the stack member number from PSE#
             member = int((int(pse_module) - 1) / 3)
             if_index = self._get_if_index_from_port_id(int(port))
             dprint(f"  Entry for member {member}, index {if_index}")
-            for key, iface in self.interfaces.items():
+            for iface in self.interfaces.values():
                 if iface.index == if_index:
                     dprint(f"  Interface found: {iface.name}")
                     iface.poe_entry = port_entry
