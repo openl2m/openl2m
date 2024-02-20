@@ -79,13 +79,13 @@ class SnmpConnectorJuniper(SnmpConnector):
         So power entry "1.1" is interface ge-0/0/0, and power entry "1.5" is ge-0/0/4
         """
         dprint("Juniper _map_poe_port_entries_to_interface()")
-        for pe_index, port_entry in self.poe_port_entries.items():
+        for port_entry in self.poe_port_entries.values():
             # we take the ending part of "1.5" as the index
             (module, port) = port_entry.index.split('.')
             module = int(module) - 1  # 0-based!
             port = int(port) - 1  # 0-based!
             # find the matching interface:
-            for if_index, iface in self.interfaces.items():
+            for iface in self.interfaces.values():
                 if_name = f"ge-{module}/0/{port}"
                 if iface.name == if_name:
                     dprint(f"   PoE Port Map FOUND {iface.name}")
