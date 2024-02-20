@@ -1428,12 +1428,7 @@ class Connector:
         dprint("_set_interfaces_permissions()")
         switch = self.switch
         group = self.group
-        if self.request:
-            user = self.request.user
-        else:
-            # we are running as a task, simulate 'admin'
-            # permissions were checked when form was generated/submitted
-            user = User.objects.get(pk=1)
+        user = self.request.user
 
         # find allowed vlans for this user
         self._set_allowed_vlans()
