@@ -1645,7 +1645,7 @@ class SnmpConnector(Connector):
                 dprint(f"   MAC={mac_addr}")
                 # see if we can add this to a known ethernet address
                 # time consuming, but useful
-                for index, iface in self.interfaces.items():
+                for iface in self.interfaces.values():
                     if mac_addr in iface.eth.keys():
                         # Found existing MAC addr, adding IP4
                         iface.eth[mac_addr].address_ip4 = ip
