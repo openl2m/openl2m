@@ -14,25 +14,24 @@
 """
 Various utility functions
 """
-from django.shortcuts import render
-
 import datetime
-import pytz
-import logging
-import socket
 import ipaddress
+from ipware import get_client_ip
+import logging
+import pprint
+import pytz
 import re
+import socket
 
 from django.conf import settings
+from django.http.request import HttpRequest
+from django.shortcuts import render
 from django.utils.timezone import get_default_timezone
-
-from ipware import get_client_ip
-
 
 logger_console = logging.getLogger("openl2m.console")
 
 
-def success_page(request, group, switch, description):
+def success_page(request: HttpRequest, group, switch, description: str):
     """
     Generic function to return an 'function succeeded' page
     requires the http request(), Group(), Switch() objects
@@ -49,7 +48,7 @@ def success_page(request, group, switch, description):
     )
 
 
-def success_page_by_id(request, group_id, switch_id, message):
+def success_page_by_id(request: HttpRequest, group_id: int, switch_id: int, message: str):
     """
     Generic function to return an 'function succeeded' page.
 
@@ -73,7 +72,7 @@ def success_page_by_id(request, group_id, switch_id, message):
     )
 
 
-def warning_page(request, group, switch, description):
+def warning_page(request: HttpRequest, group, switch, description: str):
     """
     Generic function to return an warning page
     requires the http request(), Group() and Switch() objects,
@@ -90,7 +89,7 @@ def warning_page(request, group, switch, description):
     )
 
 
-def warning_page_by_id(request, group_id, switch_id, message):
+def warning_page_by_id(request: HttpRequest, group_id: int, switch_id: int, message: str):
     """
     Generic function to return an warning page
 
@@ -114,7 +113,7 @@ def warning_page_by_id(request, group_id, switch_id, message):
     )
 
 
-def error_page(request, group, switch, error):
+def error_page(request: HttpRequest, group, switch, error):
     """
     Generic function to return an error page
     requires the http request(), Group(), Switch() and Error() objects
@@ -130,7 +129,7 @@ def error_page(request, group, switch, error):
     )
 
 
-def error_page_by_id(request, group_id, switch_id, error):
+def error_page_by_id(request: HttpRequest, group_id: int, switch_id: int, error):
     """
     Generic function to return an error page
     requires the http request(), Group(), Switch() and Error() objects
@@ -164,24 +163,36 @@ def dprint(var):
         logger_console.debug(var)
 
 
-def ddump(obj, header=False):
+def dvar(var, header: str = ""):
+    """Debug print any variable with pprint
+
+    Args:
+        var (_type_): the variable to debug
+        header (str, optional): optional header description. Defaults to "".
+    """
+    if settings.DEBUG:
+        if header:
+            logger_console.debug(header)
+        logger_console.debug(pprint.pformat(var, width=1))
+
+
+def dobject(obj, header: str = ""):
     if settings.DEBUG:
         if header:
             logger_console.debug(header)
         logger_console.debug(f"Object = {type(obj)}")
-        for attr in dir(obj):
-            if hasattr(obj, attr):
-                logger_console.debug("obj.%s = %s" % (attr, getattr(obj, attr)))
+        for attr, val in vars(obj).items():
+            logger_console.debug(f"  {attr} = {val} ({type(val)})")
 
 
-def time_duration(seconds):
+def time_duration(seconds: int) -> str:
     """
     show a nice string with the time duration from the seconds given
     """
     return str(datetime.timedelta(seconds=seconds)).rsplit('.', 2)[0]
 
 
-def uptime_to_string(uptime):
+def uptime_to_string(uptime: int) -> str:
     """
     Convert uptime in seconds to a nice string with days, hrs, mins, seconds
     """
@@ -194,7 +205,7 @@ def uptime_to_string(uptime):
     return f"{days} Days {hours} Hrs {minutes} Mins {uptime} Secs"
 
 
-def get_local_timezone_offset():
+def get_local_timezone_offset() -> str:
     """
     Get the offset as <-+00:00> of our local timezone
     This uses the settings.TIME_ZONE variable, if set.
@@ -202,7 +213,7 @@ def get_local_timezone_offset():
     return datetime.datetime.now(pytz.timezone(str(get_default_timezone()))).strftime('%z')
 
 
-def save_to_http_session(request, name, data):
+def save_to_http_session(request: HttpRequest, name: str, data):
     """
     Save an object in the http request session store
     """
@@ -211,7 +222,7 @@ def save_to_http_session(request, name, data):
     request.session.modified = True
 
 
-def get_from_http_session(request, name, delete=False):
+def get_from_http_session(request: HttpRequest, name: str, delete: bool = False):
     """
     Retrieve an object from the http session store.
     If delete=True, object will be removed from the store
@@ -228,7 +239,7 @@ def get_from_http_session(request, name, delete=False):
         return None
 
 
-def get_remote_ip(request):
+def get_remote_ip(request: HttpRequest) -> str:
     """
     Return a string that represents the most likely client IP ip address
     """
@@ -242,7 +253,7 @@ def get_remote_ip(request):
     return "0.0.0.0"
 
 
-def is_valid_hostname_or_ip(data):
+def is_valid_hostname_or_ip(data: str) -> bool:
     """
     Check if the data given is either an IPv4 address, or a valid hostname.
     Return True if so, False otherwize.
@@ -268,7 +279,7 @@ def is_valid_hostname_or_ip(data):
     return False
 
 
-def string_matches_regex(string, regex):
+def string_matches_regex(string: str, regex: str) -> bool:
     """
     Validate data with the given regular expression.
     string: the string to match
@@ -289,7 +300,7 @@ def string_matches_regex(string, regex):
     return True
 
 
-def string_contains_regex(string, regex):
+def string_contains_regex(string: str, regex: str) -> bool:
     """
     Search string for an occurance of the given regular expression.
     string: the string to match
@@ -309,7 +320,7 @@ def string_contains_regex(string, regex):
     return True
 
 
-def get_ip_dns_name(ip):
+def get_ip_dns_name(ip: str) -> str:
     """Get the DNS PTR (reverse name) for the given IP4 or IP6 address.
 
     Args:
@@ -326,7 +337,7 @@ def get_ip_dns_name(ip):
     return hostname
 
 
-def get_choice_name(choice_list, choice):
+def get_choice_name(choice_list: list, choice) -> str:
     """Get the name of a choice
 
     Args:
