@@ -664,17 +664,16 @@ class SnmpConnector(Connector):
             # but also has several extended attributes with SNMP-specific information
             for item in items:
                 count = count + 1
-                # for octetstring, use this:  https://github.com/kamakazikamikaze/easysnmp/issues/91
-                dprint(
-                    "\n\n====> SNMP READ: {oid}.{oid_index} {snmp_type} = {var_type}: {value}".format(
-                        oid=item.oid,
-                        oid_index=item.oid_index,
-                        snmp_type=item.snmp_type,
-                        value=item.value,
-                        var_type=str(type(item.value)),
-                    )
-                )
-                oid_found = '{oid}.{oid_index}'.format(oid=item.oid, oid_index=item.oid_index)
+                oid_found = f"{item.oid}.{item.oid_index}"
+                # Note: with easysnmp, the returned "item.value" is ALWAYS of type str!
+                # the real SNMP type is indicated in item.snmp_type !!!
+                if item.snmp_type == 'OCTETSTR':
+                    # for octetstring, use this:  https://github.com/kamakazikamikaze/easysnmp/issues/91
+                    value = "CAN NOT PRINT!"
+                else:
+                    value = item.value
+                dprint(f"\n\n====> SNMP READ: {oid_found} {item.snmp_type} = {value}")
+
                 if parser:
                     # custom parser
                     parser(oid_found, item.value)
