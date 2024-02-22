@@ -11,7 +11,6 @@ ADD --chown=openl2m requirements.txt /opt/openl2m
 
 WORKDIR /opt/openl2m
 RUN pip3 install -r requirements.txt
-ADD --chown=openl2m openl2m/openl2m/configuration.example.py openl2m/configuration.py
 
 ADD --chown=openl2m entrypoint.sh .
 USER openl2m

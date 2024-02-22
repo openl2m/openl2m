@@ -29,7 +29,8 @@ services:
       - DB_USER=openl2m
       - DB_NAME=openl2m
       - DB_HOST=postgres
-      - DEBUG=true
+      # - DEBUG=True #Note the capital T
+      # - SECRET_KEY=ABCD
     depends_on:
       postgres:
         condition: service_healthy
