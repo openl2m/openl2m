@@ -17,10 +17,11 @@ Some of the code here is inspired by the NAV (Network Administration Visualized)
 Various vendor specific implementations that augment this class exist.
 """
 import datetime
-import time
-import traceback
-import pprint
 import easysnmp
+import pprint
+import time
+from typing import Dict
+import traceback
 
 from django.conf import settings
 
@@ -384,18 +385,19 @@ class SnmpConnector(Connector):
         self.object_id = ""  # SNMP system OID value, used to find type of switch
         self.sys_uptime = 0  # sysUptime is a tick count in 1/100th of seconds per tick, since boot
         self.sys_uptime_timestamp = 0  # timestamp when sysUptime was read.
-        self.qbridge_port_to_if_index = {}  # this maps Q-Bridge port id as key (str) to MIB-II ifIndex (string)
-        self.dot1tp_fdb_to_vlan_index = (
+        self.qbridge_port_to_if_index: Dict[int, str] = (
+            {}
+        )  # this maps Q-Bridge port id as key (int) to MIB-II ifIndex (str)
+        self.dot1tp_fdb_to_vlan_index: Dict[int, int] = (
             {}
         )  # forwarding database index to vlan index mapping. Note many switches do not use this...
-        self.stack_port_to_if_index = {}  # maps (Cisco) stacking port to ifIndex values
-        self.ip4_to_if_index = (
+        self.ip4_to_if_index: Dict[str, str] = (
             {}
         )  # the IPv4 addresses as keys, with stored value ifIndex (string); needed to map netmask to interface
         # self.has_connector = True   # value of IFMIB_CONNECTOR
 
         # VLAN related variables
-        self.vlan_id_by_index = (
+        self.vlan_id_by_index: Dict[int, int] = (
             {}
         )  # list of vlan indexes and their vlan ID's. Note on many switches these two are the same!
 
@@ -403,7 +405,9 @@ class SnmpConnector(Connector):
         self.vlan_id_context = 0  # non-zero if the current function is running in the context of a specific vlan
 
         # PoE related:
-        self.poe_port_entries = {}  # PoePort() port power entries, used to store until we can map to interface
+        self.poe_port_entries: Dict[str, PoePort] = (
+            {}
+        )  # PoePort() port power entries, used to store until we can map to interface
 
         # capabilities of the snmp drivers:
         self.can_change_admin_status = True
@@ -1518,7 +1522,7 @@ class SnmpConnector(Connector):
         sub_oid = oid_in_branch(ieee8021QBridgeVlanCurrentUntaggedPorts, oid)
         if sub_oid:
             dprint("Found ieee8021QBridgeVlanCurrentUntaggedPorts ")
-            dprint("parsing ignore for now (not functional!)")
+            dprint("parsing ignored for now (not functional!)")
             # # sub oid part is ieee8021QBridgeVlanCurrentUntaggedPorts.somthing.instance.vlan_id = bitmap
             # (ignore, ignore2, v) = sub_oid.split('.')
             # vlan_id = int(v)
@@ -2013,7 +2017,7 @@ class SnmpConnector(Connector):
             (str): the string representation of the interface index for this Q-Bridge port.
         """
         dprint(f"_get_if_index_from_port_id(port_id={port_id} ({type(port_id)})")
-        port_id = int(port_id)  # make sure we have the proper format!
+        port_id = int(port_id)  # make sure we have the proper type!
         # if len(self.qbridge_port_to_if_index) > 0 and port_id in self.qbridge_port_to_if_index.keys():
         if port_id in self.qbridge_port_to_if_index.keys():
             dprint(f"  Found in port_to_if_index = {self.qbridge_port_to_if_index[port_id]}")
@@ -2021,7 +2025,7 @@ class SnmpConnector(Connector):
         else:
             # we did not find the Q-BRIDGE mib. port_id = ifIndex !
             dprint("  port_id NOT FOUND, returning port_id as if_index")
-            return port_id
+            return str(port_id)  # if_index is the interface key as string!
 
     def _get_port_id_from_if_index(self, if_index: str) -> str:
         """
@@ -2039,11 +2043,11 @@ class SnmpConnector(Connector):
             for port_id, index in self.qbridge_port_to_if_index.items():
                 if if_index == index:
                     return port_id
-        else:
-            # we did not find the Q-BRIDGE mib. if_index = port_id !
-            return if_index
+        # we did not find the Q-BRIDGE mib. or could not find if_index,
+        # return if_index as port_id !
+        return int(if_index)  # port_id is integer!
 
-    def _get_port_id_from_interface(self, interface: Interface) -> str:
+    def _get_port_id_from_interface(self, interface: Interface) -> int:
         """
         Return the bridge PortId for the given interface object. This assumes we have walked
         the Q-Bridge mib that maps bridge port id to interfaceId.
@@ -2052,13 +2056,13 @@ class SnmpConnector(Connector):
             interface (Interface): a valid Interface for this device.
 
         returns:
-            (str): the Q-Bridge port_id for this interface.
+            (int): the Q-Bridge port_id for this interface.
         """
         if interface.port_id != -1:
             return interface.port_id
         else:
             # we did not find the Q-BRIDGE mib. port_id = ifIndex !
-            return interface.index
+            return int(interface.index)  # port_id is integer!
 
     def _parse_mibs_system(self, oid: str, value: str) -> bool:
         """
@@ -2625,7 +2629,7 @@ class SnmpConnector(Connector):
             return True
         return False
 
-    def set_interface_description(self, interface: Interface = False, description: str = "") -> bool:
+    def set_interface_description(self, interface=False, description: str = "") -> bool:
         """
         Set a description on an interface.
         return True on success, False on error and set self.error variables
@@ -2771,12 +2775,6 @@ class SnmpConnector(Connector):
         # all OK, now do the book keeping
         super().vlan_delete(vlan_id=vlan_id)
         return True
-
-    def display_name(self) -> str:
-        return f"{self.name} for {self.switch.name}"
-
-    def __str__(self) -> str:
-        return self.display_name
 
 
 # --- End of SnmpConnector() ---
