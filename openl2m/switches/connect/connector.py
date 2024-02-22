@@ -1676,18 +1676,6 @@ class Connector:
             return True
         return False
 
-    def display_name(self):
-        '''
-        Set the object display name based on device class and switch named
-
-        Args:
-            none
-
-        Returns:
-            a string representing the device display name.
-        '''
-        return f"{self.name} for {self.switch.name}"
-
     def _lookup_hostname_from_arp(self):
         """Look up the hostnames for found ethernet/arp pairs on all interfaces.
         Fill the hostname attribute for all arp IP's found, using dns resolution of
@@ -1764,7 +1752,19 @@ class Connector:
                     elif vendor.manuf:
                         neighbor.vendor = vendor.manuf
 
-    def __str__(self):
+    def display_name(self) -> str:
+        '''
+        Set the object display name based on device class and switch named
+
+        Args:
+            none
+
+        Returns:
+            a string representing the device display name.
+        '''
+        return f"{self.__class__.__name__} for {self.switch.name}"
+
+    def __str__(self) -> str:
         return self.display_name
 
 
