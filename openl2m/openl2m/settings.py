@@ -32,9 +32,9 @@ import netaddr
 
 from django.core.exceptions import ImproperlyConfigured
 
-# Django 4.1 requires Python 3.8+
-if sys.version_info < (3, 8):
-    raise RuntimeError("OpenL2M requires Python 3.8 or higher (current: Python {})".format(sys.version.split()[0]))
+# Django 5.0 requires Python 3.10+
+if sys.version_info < (3, 10):
+    raise RuntimeError("OpenL2M requires Python 3.10 or higher (current: Python {})".format(sys.version.split()[0]))
 
 # Check for configuration file
 try:
@@ -45,8 +45,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = "3.0.4"
-VERSION_DATE = "2024-02-05"
+VERSION = "3.1"
+VERSION_DATE = "2024-TBD"
 
 # Hostname
 HOSTNAME = platform.node()
