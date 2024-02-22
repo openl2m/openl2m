@@ -66,3 +66,6 @@ drf-spectacular
 drf-spectacular-sidecar
 
 urllib3~=2.0.5
+
+# Addition for docker
+tzdata

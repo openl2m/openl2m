@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16.2-alpine3.19
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_USER=openl2m
+      - POSTGRES_DB=openl2m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openl2m"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  openl2m:
+    image: openl2m:localbuild
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    environment:
+      - DB_PASS=changeme
+      - DB_USER=openl2m
+      - DB_NAME=openl2m
+      - DB_HOST=postgres
+      - DEBUG=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    links:
+      - postgres
+
+volumes:
+  postgres_data:
