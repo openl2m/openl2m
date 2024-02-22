@@ -668,8 +668,12 @@ class SnmpConnector(Connector):
                 # Note: with easysnmp, the returned "item.value" is ALWAYS of type str!
                 # the real SNMP type is indicated in item.snmp_type !!!
                 if item.snmp_type == 'OCTETSTR':
-                    # for octetstring, use this:  https://github.com/kamakazikamikaze/easysnmp/issues/91
-                    value = "CAN NOT PRINT!"
+                    if item.value.isprintable():
+                        value = item.value
+                    else:
+                        # for non-printable octetstring, you can use this:
+                        # https://github.com/kamakazikamikaze/easysnmp/issues/91
+                        value = "CAN NOT PRINT!"
                 else:
                     value = item.value
                 dprint(f"\n\n====> SNMP READ: {oid_found} {item.snmp_type} = {value}")
@@ -1167,7 +1171,7 @@ class SnmpConnector(Connector):
         # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
         port_id = int(oid_in_branch(dot1dBasePortIfIndex, oid))
         if port_id:
-            dprint("Found dot1dBasePortIfIndex = {port_id}")
+            dprint(f"Found dot1dBasePortIfIndex = {port_id}")
             # map port ID (as str) to interface ID (as str)
             if_index = str(val)
             if if_index in self.interfaces.keys():
@@ -1694,7 +1698,7 @@ class SnmpConnector(Connector):
             # store the new lldp object, based on the string index.
             # need to find the ifIndex first.
             # did we find Q-Bridge mappings?
-            if_index = self._get_if_index_from_port_id(port_id)
+            if_index = self._get_if_index_from_port_id(int(port_id))
             if if_index in self.interfaces.keys():
                 # add new LLDP neighbor
                 # self.interfaces[if_index].lldp[lldp_index] = NeighborDevice(lldp_index, if_index)
@@ -1713,7 +1717,7 @@ class SnmpConnector(Connector):
             # store the new lldp object, based on the string index.
             # need to find the ifIndex first.
             # did we find Q-Bridge mappings?
-            if_index = self._get_if_index_from_port_id(port_id)
+            if_index = self._get_if_index_from_port_id(int(port_id))
             if if_index in self.interfaces.keys():
                 sub_type = int(val)
                 # depending on type, we may need to blank neighbor.port_name!
@@ -1734,7 +1738,7 @@ class SnmpConnector(Connector):
             (extra_one, port_id, extra_two) = lldp_index.split('.')
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            if_index = self._get_if_index_from_port_id(port_id)
+            if_index = self._get_if_index_from_port_id(int(port_id))
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system port description
@@ -1746,7 +1750,7 @@ class SnmpConnector(Connector):
             (extra_one, port_id, extra_two) = lldp_index.split('.')
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            if_index = self._get_if_index_from_port_id(port_id)
+            if_index = self._get_if_index_from_port_id(int(port_id))
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system name
@@ -1759,7 +1763,7 @@ class SnmpConnector(Connector):
             port_id = int(port_id)
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            if_index = self._get_if_index_from_port_id(port_id)
+            if_index = self._get_if_index_from_port_id(int(port_id))
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system description
@@ -1772,7 +1776,7 @@ class SnmpConnector(Connector):
             (extra_one, port_id, extra_two) = lldp_index.split('.')
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            if_index = self._get_if_index_from_port_id(port_id)
+            if_index = self._get_if_index_from_port_id(int(port_id))
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system capabilities
@@ -1786,7 +1790,7 @@ class SnmpConnector(Connector):
             (extra_one, port_id, extra_two) = lldp_index.split('.')
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            if_index = self._get_if_index_from_port_id(port_id)
+            if_index = self._get_if_index_from_port_id(int(port_id))
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system chassis type
@@ -1804,7 +1808,7 @@ class SnmpConnector(Connector):
             (extra_one, port_id, extra_two) = lldp_index.split('.')
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
-            if_index = self._get_if_index_from_port_id(port_id)
+            if_index = self._get_if_index_from_port_id(int(port_id))
             if if_index in self.interfaces.keys():
                 if lldp_index in self.interfaces[if_index].lldp.keys():
                     # now update with system chassis info, but only chassis type is known
@@ -1854,7 +1858,7 @@ class SnmpConnector(Connector):
         #     (extra_one, port_id, extra_two) = lldp_index.split('.')
         #     # at this point, we should have already found the lldp neighbor and created an object
         #     # did we find Q-Bridge mappings?
-        #     if_index = self._get_if_index_from_port_id(port_id)
+        #     if_index = self._get_if_index_from_port_id(int(port_id))
         #     if if_index in self.interfaces.keys():
         #         if lldp_index in self.interfaces[if_index].lldp.keys():
         #             # store management address type
@@ -1867,7 +1871,7 @@ class SnmpConnector(Connector):
         #     (extra_one, port_id, extra_two) = lldp_index.split('.')
         #     # at this point, we should have already found the lldp neighbor and created an object
         #     # did we find Q-Bridge mappings?
-        #     if_index = self._get_if_index_from_port_id(port_id)
+        #     if_index = self._get_if_index_from_port_id(int(port_id))
         #     if if_index in self.interfaces.keys():
         #         if lldp_index in self.interfaces[if_index].lldp.keys():
         #             # set management address
@@ -1888,7 +1892,7 @@ class SnmpConnector(Connector):
             ):
                 # dprint("  LLDP FOUND MGMT IPv4 !")
                 # this appears to be an IPv4 address embedded in sub-OID
-                port_id = str(numbers[1])
+                port_id = int(numbers[1])
                 lldp_index = f"{numbers[0]}.{numbers[1]}.{numbers[2]}"
                 # at this point, we should have already found the lldp neighbor and created an object
                 # did we find Q-Bridge mappings?
@@ -1904,7 +1908,7 @@ class SnmpConnector(Connector):
             return True
         return False
 
-    def _add_vlan_to_interface_by_port_id(self, port_id, vlan_id):
+    def _add_vlan_to_interface_by_port_id(self, port_id: int, vlan_id: int):
         """
         Add a given vlan to the interface identified by the dot1d bridge port id
         """
@@ -1926,7 +1930,7 @@ class SnmpConnector(Connector):
             return True
         return False
 
-    def _add_untagged_vlan_to_interface_by_port_id(self, port_id, vlan_id):
+    def _add_untagged_vlan_to_interface_by_port_id(self, port_id: int, vlan_id: int):
         """
         Add a given vlan as untaggfed to the interface identified by the dot1d bridge port id
         """
@@ -1996,7 +2000,7 @@ class SnmpConnector(Connector):
         # not parsed here!
         return False
 
-    def _get_if_index_from_port_id(self, port_id: str) -> str:
+    def _get_if_index_from_port_id(self, port_id: int) -> str:
         """
         Return the ifIndex from the Q-Bridge port_id. This assumes we have walked
         the Q-Bridge mib that maps bridge port id to interfaceId.
@@ -2009,13 +2013,14 @@ class SnmpConnector(Connector):
             (str): the string representation of the interface index for this Q-Bridge port.
         """
         dprint(f"_get_if_index_from_port_id(port_id={port_id} ({type(port_id)})")
-        port_id = str(port_id)
+        port_id = int(port_id)  # make sure we have the proper format!
         # if len(self.qbridge_port_to_if_index) > 0 and port_id in self.qbridge_port_to_if_index.keys():
         if port_id in self.qbridge_port_to_if_index.keys():
             dprint(f"  Found in port_to_if_index = {self.qbridge_port_to_if_index[port_id]}")
             return self.qbridge_port_to_if_index[port_id]
         else:
             # we did not find the Q-BRIDGE mib. port_id = ifIndex !
+            dprint("  port_id NOT FOUND, returning port_id as if_index")
             return port_id
 
     def _get_port_id_from_if_index(self, if_index: str) -> str:
