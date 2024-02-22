@@ -31,6 +31,7 @@ def add_variables(request):
         'IF_TYPE_VIRTUAL': if_constants.IF_TYPE_VIRTUAL,
         'IF_TYPE_LOOPBACK': if_constants.IF_TYPE_LOOPBACK,
         'IF_TYPE_TUNNEL': if_constants.IF_TYPE_TUNNEL,
+        'IF_TYPE_MPLS_TUNNEL': if_constants.IF_TYPE_MPLS_TUNNEL,
         'IF_TYPE_MCAST': if_constants.IF_TYPE_MCAST,
         'LACP_IF_TYPE_NONE': if_constants.LACP_IF_TYPE_NONE,
         'VLAN_TYPE_NORMAL': if_constants.VLAN_TYPE_NORMAL,

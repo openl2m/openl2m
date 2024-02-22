@@ -61,6 +61,13 @@
        data-toggle="tooltip"
        title="Tunnel Interface">
   </i>
+  {% elif iface.type == IF_TYPE_MPLS_TUNNEL %}
+  &nbsp;
+  <i class="fas fa-archway" aria-hidden="true"
+       alt="MPLS Tunnel Interface"
+       data-toggle="tooltip"
+       title="MPLS Tunnel Interface">
+  </i>
 {% elif iface.type == IF_TYPE_MCAST %}
   &nbsp;
   <i class="fas fa-sitemap" aria-hidden="true"

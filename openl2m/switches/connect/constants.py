@@ -21,6 +21,7 @@ IF_TYPE_ETHERNET = 6  # Ethernet-like (ethernetCsmacd)
 IF_TYPE_LOOPBACK = 24  # interface Loopback X (softwareLoopback)
 IF_TYPE_VIRTUAL = 53  # interface Vlan X (proprietary virtual/internal)
 IF_TYPE_TUNNEL = 131  # generic Tunnel interface
+IF_TYPE_MPLS_TUNNEL = 150  # MPLS Tunnel Virtual Interface
 IF_TYPE_LAGG = 161  # IEEE 802.3ad Link Aggregate
 IF_TYPE_MCAST = 1025  # undefined by IEEE, but used by OpenL2M to indicate various multicast virtual interfaces
 # for reporting, create generic list of virtual interfaces:
