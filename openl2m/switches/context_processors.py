@@ -26,6 +26,7 @@ def add_variables(request):
     # the list of variables and constants that need to be available in all templates
     return {
         'IF_TYPE_NONE': if_constants.IF_TYPE_NONE,
+        'IF_TYPE_OTHER': if_constants.IF_TYPE_OTHER,
         'IF_TYPE_ETHERNET': if_constants.IF_TYPE_ETHERNET,
         'IF_TYPE_LAGG': if_constants.IF_TYPE_LAGG,
         'IF_TYPE_VIRTUAL': if_constants.IF_TYPE_VIRTUAL,

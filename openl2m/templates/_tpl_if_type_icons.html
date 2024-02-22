@@ -75,6 +75,13 @@
        data-toggle="tooltip"
        title="Multicast Interface">
   </i>
+{% elif iface.type == IF_TYPE_OTHER %}
+  &nbsp;
+  <i class="fas fa-vihara" aria-hidden="true"
+       alt="Other Interface"
+       data-toggle="tooltip"
+       title="Other Interface">
+  </i>
 {% elif iface.type == IF_TYPE_NONE %}
   &nbsp;
   <!--
