@@ -57,20 +57,6 @@ class SnmpConnectorJuniper(SnmpConnector):
         self.vendor_name = "Juniper Networks"
         self.description = "Juniper Networks SNMP driver"
 
-    def _parse_oid(self, oid, val):
-        """
-        Parse a single OID with data returned from a switch through some "get" function
-        THIS NEEDS WORK TO IMPROVE PERFORMANCE !!!
-        Returns True if we parse the OID and we should cache it!
-        """
-        dprint(f"Juniper _parse_oid() {oid}")
-
-        if self._parse_mibs_juniper_l2ald_vlans(oid, val):
-            return True
-
-        # if not Juniper specific, call the generic parser
-        return super()._parse_oid(oid, val)
-
     def _map_poe_port_entries_to_interface(self):
         """
         This function maps the "pethPsePortEntry" indices that are stored in self.poe_port_entries{}
