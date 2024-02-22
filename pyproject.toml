@@ -11,3 +11,10 @@ profile = "black"
 
 [tool.pylint]
 max-line-length = 120
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module="*"
+ignore_missing_imports = true
