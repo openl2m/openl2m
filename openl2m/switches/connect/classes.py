@@ -13,6 +13,7 @@
 #
 import array
 import netaddr
+from typing import Dict, List
 
 from django.conf import settings
 from django.utils.encoding import iri_to_uri
@@ -761,13 +762,15 @@ class Interface:
         self.duplex = IF_DUPLEX_UNKNOWN  # interface duplex setting, if known.
         self.phys_addr = 0x0
         self.description = ""  # the interface description, as set by the switch configuration, from IF-MIB
-        self.addresses_ip4 = {}  # dictionary of all my ipv4 addresses on this interface
-        self.addresses_ip6 = {}  # dictionary of all my ipv6 addresses on this interface
+        self.addresses_ip4: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
+        self.addresses_ip6: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv6 addresses on this interface
         self.igmp_snooping = False  # if True, interface does IGMP snooping
         # vlan related
         self.port_id = -1  # Q-Bridge MIB port id
         self.untagged_vlan = -1  # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
-        self.vlans = []  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
+        self.vlans: List[int] = (
+            []
+        )  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
         self.vlan_count = 0
         self.is_tagged = False  # if 802.1q tagging or trunking is enabled
         self.if_vlan_mode = -1  # some vendors (e.g. Comware) have a interface vlan mode, such as access, trunk, hybrid
@@ -779,7 +782,7 @@ class Interface:
         self.lacp_type = LACP_IF_TYPE_NONE
         # for LACP aggregator, a dictionary of lacp member interfaces. key=ifIndex, value=ifName of member interfaces
         self.lacp_admin_key = -1  # "LacpKey" admin key. Member interfaces map back to this.
-        self.lacp_members = {}
+        self.lacp_members: Dict[str, str] = {}
         # for members:
         self.lacp_master_index = (
             -1
@@ -789,8 +792,10 @@ class Interface:
         self.poe_entry = False  # if interface has PoE capabilities, will be a PoePort() object
         self.allow_poe_toggle = False  # if set, any user can toggle PoE OFF-ON
         # a variety of data about what is happening on this interface:
-        self.eth = {}  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
-        self.lldp = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
+        self.eth: Dict[str, EthernetAddress] = (
+            {}
+        )  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
+        self.lldp: Dict[str, NeighborDevice] = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
 
     def add_ip4_network(self, address: str, prefix_len: int = 0) -> None:
         '''
