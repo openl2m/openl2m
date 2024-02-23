@@ -22,6 +22,14 @@
                   title="Vlan learned via MVRP or GVRP">
               </i>
             {% endif %}
+            {% if vlan.admin_status == VLAN_ADMIN_DISABLED %}
+            &nbsp;
+            <i class="fas fa-ban" aria-hidden="true"
+                alt="Vlan is Admin Shutdown"
+                data-toggle="tooltip"
+                title="Shutdown Vlan">
+            </i>
+            {% endif %}
             {% if vlan.voice %}
               &nbsp;
               <i class="fas fa-phone" aria-hidden="true"

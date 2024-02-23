@@ -37,6 +37,7 @@ def add_variables(request):
         'LACP_IF_TYPE_NONE': if_constants.LACP_IF_TYPE_NONE,
         'VLAN_TYPE_NORMAL': if_constants.VLAN_TYPE_NORMAL,
         'VLAN_STATUS_DYNAMIC': if_constants.VLAN_STATUS_DYNAMIC,
+        'VLAN_ADMIN_DISABLED': if_constants.VLAN_ADMIN_DISABLED,
         'GVRP_ENABLED': if_constants.GVRP_ENABLED,
         'POE_PORT_ADMIN_ENABLED': if_constants.POE_PORT_ADMIN_ENABLED,
         'POE_PORT_ADMIN_DISABLED': if_constants.POE_PORT_ADMIN_DISABLED,
