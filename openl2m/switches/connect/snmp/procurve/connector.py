@@ -55,19 +55,6 @@ class SnmpConnectorProcurve(SnmpConnector):
         # some capabilities we cannot do:
         self.can_save_config = False  # not needed on ProCurve, it has auto-save!
 
-    def _parse_oid(self, oid, val):
-        """
-        Parse a single OID with data returned from a switch through some "get" function
-        Returns True if we parse the OID!
-        """
-        dprint(f"HP _parse_oid() {oid}")
-        if self._parse_mibs_hp_poe(oid, val):
-            return True
-        if self._parse_mibs_hp_if_linkmode(oid, val):
-            return True
-        # call the generic base parser
-        return super()._parse_oid(oid, val)
-
     def _get_interface_data(self):
         """
         Implement an override of the interface parsing routine,
