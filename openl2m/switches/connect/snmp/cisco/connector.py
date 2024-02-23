@@ -94,48 +94,7 @@ class SnmpConnectorCisco(SnmpConnector):
         self.can_save_config = True    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
         """
-
-    def _parse_oid(self, oid, val):
-        """
-        Parse a single OID with data returned from a switch through some "get" function
-        THIS NEEDS WORK TO IMPROVE PERFORMANCE !!!
-        Returns True if we parse the OID and we should cache it!
-        """
-        dprint(f"CISCO _parse_oid() {oid}")
-
-        if_index = oid_in_branch(vmVoiceVlanId, oid)
-        if if_index:
-            voiceVlanId = int(val)
-            iface = self.get_interface_by_key(if_index)
-            if iface and voiceVlanId in self.vlans.keys():
-                iface.voice_vlan = voiceVlanId
-            return True
-
-        """
-        Stack-MIB PortId to ifIndex mapping
-        """
-        stack_port_id = oid_in_branch(portIfIndex, oid)
-        if stack_port_id:
-            self.stack_port_to_if_index[stack_port_id] = int(val)
-            return True
-
-        if self._parse_mibs_cisco_vtp(oid, val):
-            return True
-
-        if self._parse_mibs_cisco_poe(oid, val):
-            return True
-
-        if self._parse_mibs_cisco_config(oid, val):
-            return True
-
-        if self._parse_mibs_cisco_if_opermode(oid, val):
-            return True
-
-        if self._parse_mibs_cisco_syslog_msg(oid, val):
-            return True
-
-        # if not Cisco specific, call the generic parser
-        return super()._parse_oid(oid, val)
+        self.stack_port_to_if_index = {}  # maps (Cisco) stacking port to ifIndex values
 
     def _get_interface_data(self):
         """
@@ -199,11 +158,11 @@ class SnmpConnectorCisco(SnmpConnector):
                 retval = self.get_snmp_branch('vlanTrunkPortVlansEnabled4k', self._parse_mibs_cisco_vtp)
 
         # finally, if not trunked, read untagged interfaces vlan membership
-        retval = self.get_snmp_branch('vmVlan')
+        retval = self.get_snmp_branch('vmVlan', self._parse_mibs_cisco_vlan)
         if retval < 0:
             return retval
         # and just for giggles, read Voice vlan
-        retval = self.get_snmp_branch('vmVoiceVlanId')
+        retval = self.get_snmp_branch('vmVoiceVlanId', self._parse_mibs_cisco_voice_vlan)
         if retval < 0:
             return retval
         # set vlan count
@@ -253,7 +212,7 @@ class SnmpConnectorCisco(SnmpConnector):
 
         # get Cisco Stack MIB port to ifIndex map first
         # this may be used to find the POE port index
-        retval = self.get_snmp_branch('portIfIndex')
+        retval = self.get_snmp_branch('portIfIndex', self._parse_mibs_cisco_poe)
         if retval < 0:
             return retval
 
@@ -264,15 +223,15 @@ class SnmpConnectorCisco(SnmpConnector):
 
         # probe Cisco specific Extended POE mibs to add data
         # this is what is shown via "show power inline" command:
-        retval = self.get_snmp_branch('cpeExtPsePortPwrAvailable')
+        retval = self.get_snmp_branch('cpeExtPsePortPwrAvailable', self._parse_mibs_cisco_poe)
         if retval < 0:
             return retval
         # this is the consumed power, shown in 'show power inline <name> detail'
-        retval = self.get_snmp_branch('cpeExtPsePortPwrConsumption')
+        retval = self.get_snmp_branch('cpeExtPsePortPwrConsumption', self._parse_mibs_cisco_poe)
         if retval < 0:
             return retval
         # max power consumed since interface power reset
-        retval = self.get_snmp_branch('cpeExtPsePortMaxPwrDrawn')
+        retval = self.get_snmp_branch('cpeExtPsePortMaxPwrDrawn', self._parse_mibs_cisco_poe)
         return retval
 
     def _get_syslog_msgs(self):
@@ -404,6 +363,15 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         Parse Cisco POE Extension MIB database
         """
+
+        """
+        Stack-MIB PortId to ifIndex mapping
+        """
+        stack_port_id = oid_in_branch(portIfIndex, oid)
+        if stack_port_id:
+            self.stack_port_to_if_index[stack_port_id] = int(val)
+            return True
+
         # the actual consumed power, shown in 'show power inline <name> detail'
         pe_index = oid_in_branch(cpeExtPsePortPwrConsumption, oid)
         if pe_index:
@@ -551,6 +519,12 @@ class SnmpConnectorCisco(SnmpConnector):
 
             return True
 
+        return False
+
+    def _parse_mibs_cisco_vlan(self, oid, val):
+        """
+        Parse Cisco specific Vlan related mib entries.
+        """
         if_index = oid_in_branch(vmVlan, oid)
         if if_index:
             iface = self.get_interface_by_key(if_index)
@@ -561,6 +535,18 @@ class SnmpConnectorCisco(SnmpConnector):
                     iface.untagged_vlan_name = self.vlans[untagged_vlan].name
             else:
                 dprint("   UNTAGGED VLAN for invalid trunk port")
+            return True
+
+    def _parse_mibs_cisco_voice_vlan(self, oid, val):
+        """
+        Parse Cisco specific Voice-Vlan related mib entries.
+        """
+        if_index = oid_in_branch(vmVoiceVlanId, oid)
+        if if_index:
+            voiceVlanId = int(val)
+            iface = self.get_interface_by_key(if_index)
+            if iface and voiceVlanId in self.vlans.keys():
+                iface.voice_vlan = voiceVlanId
             return True
 
         return False
