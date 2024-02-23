@@ -18,9 +18,10 @@ from django.contrib import messages
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
+from django.contrib.auth.views import LoginView
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.generic import View
 
@@ -37,6 +38,17 @@ from switches.models import Log
 from switches.views import close_device
 from switches.utils import dprint, success_page, error_page, get_remote_ip
 from users.models import Token
+
+
+#
+# New Login view to always redirect to /switches
+#
+class MyLoginView(LoginView):
+
+    # we define the "success ULR" as always going to "/switches/"
+    def get_success_url(self) -> str:
+        return reverse_lazy("home")
+
 
 #
 # Logout view only, Login comes from default auth.

@@ -30,7 +30,7 @@ from django.http import HttpResponseRedirect
 
 from openl2m.api.views import APIRootView, APIStatsView, APIEnvironmentView
 
-from users.views import LogoutView
+from users.views import MyLoginView, LogoutView
 
 # Custom admin site:
 from .admin import admin_site
@@ -43,7 +43,8 @@ urlpatterns = [
     # note that we capture login/logout signals in "users/models.py", so we can add log entries
     path("logout/", LogoutView.as_view(), name="logout"),
     path("admin/logout/", LogoutView.as_view(), name="logout"),
-    path("accounts/login/", LoginView.as_view(), name="login"),
+    # path("accounts/login/", LoginView.as_view(), name="login"),
+    path("accounts/login/", MyLoginView.as_view(), name="login"),
     # override some of the password templates, so we can disabled that for ldap
     path(
         "accounts/password_change/",
