@@ -45,22 +45,6 @@ class SnmpConnectorDell(SnmpConnector):
         self.vendor_name = "Dell Computing"
         self.description = "Dell Computing SNMP driver"
 
-    def _parse_oid(self, oid, val):
-        """
-        Parse a single OID with data returned from a switch through some "get" function
-        THIS NEEDS WORK TO IMPROVE PERFORMANCE !!!
-        Returns True if we parse the OID and we should cache it!
-        """
-        dprint(f"Dell Parsing OID {oid}")
-
-        """
-        if self._parse_mibs_dell_vlans(oid, val):
-            return True
-        """
-
-        # if not Dell specific, call the generic parser
-        return super()._parse_oid(oid, val)
-
     def set_interface_untagged_vlan(self, interface, new_vlan_id):
         """
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
