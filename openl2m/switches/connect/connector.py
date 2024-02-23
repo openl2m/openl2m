@@ -674,7 +674,7 @@ class Connector:
         v.name = vlan_name
         self.vlans[vlan_id] = v
         # sort ordered by vlan id; this is needed for vlans added by users.
-        self.vlans = dict(sorted(self.vlans.items()))  # note: soted() returns a list of tuples(key, value), NOT dict!
+        self.vlans = dict(sorted(self.vlans.items()))  # note: sorted() returns a list of tuples(key, value), NOT dict!
         return True
 
     def add_vlan(self, vlan: Vlan):
