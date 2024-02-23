@@ -635,7 +635,7 @@ class SnmpConnector(Connector):
         Return count of objects returned from query, or -1 if error.
         On error, self.error() is set appropriately.
         """
-        dprint(f"get_snmp_branch({branch_name})")
+        dprint(f"\n\n### get_snmp_branch({branch_name}) ###\n")
         if branch_name not in snmp_mib_variables.keys():
             self.error.status = True
             self.error.description = f"ERROR: invalid branch name '{branch_name}'"
