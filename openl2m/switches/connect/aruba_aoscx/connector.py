@@ -23,6 +23,7 @@ from switches.connect.aruba_aoscx.utils import aoscx_parse_duplex
 from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
     POE_PORT_ADMIN_ENABLED,
+    VLAN_ADMIN_DISABLED,
     IF_TYPE_VIRTUAL,
     IF_TYPE_ETHERNET,
     IF_TYPE_LAGG,
@@ -176,14 +177,16 @@ class AosCxConnector(Connector):
 
         for id, vlan in aoscx_vlans.items():
             dvar(f"VLAN(): {vlan}")
-            dprint(f"Vlan {id}: {vlan['name']}")
-            self.add_vlan_by_id(int(id), vlan['name'])
+            # dprint(f"Vlan {id}: {vlan['name']}")
+            vlan_id = int(id)
+            self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan['name'])
             # is this vlan enabled?
             if not vlan['admin'] == 'up' and not vlan['oper_state'] == 'up':
-                dprint("  VLAN is down!")
-            if 'voice' in vlan and vlan['voice'] == 'True':
-                dprint("  Voice Vlan!")
-                self.vlans[id].voice = True
+                dprint("  VLAN is disabled!")
+                self.vlans[vlan_id].admin_status = VLAN_ADMIN_DISABLED
+            if 'voice' in vlan and vlan['voice']:
+                dprint(f"Voice Vlan = '{vlan['voice']}' {type(vlan['voice'])})")
+                self.vlans[vlan_id].voice = True
 
         # and get the interfaces:
         try:
