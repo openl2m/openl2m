@@ -1014,7 +1014,7 @@ class SnmpConnector(Connector):
             # check if vlan is globally defined on switch:
             if vlan_id not in self.vlans.keys():
                 # not likely, we should know vlan by now, but just in case!
-                self.add_vlan_by_id(vlan_id)
+                self.add_vlan_by_id(vlan_id=vlan_id)
             # store the egress port list, as some switches need this when setting untagged vlans
             self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
             # now look at all the bits in this multi-byte value to find ports on this vlan:
@@ -1059,7 +1059,7 @@ class SnmpConnector(Connector):
             vlan_id = int(v)
             if vlan_id not in self.vlans.keys():
                 # not likely, but just in case:
-                self.add_vlan_by_id(vlan_id)
+                self.add_vlan_by_id(vlan_id=vlan_id)
             # store bitmap for later use
             self.vlans[vlan_id].untagged_ports_bitmap = val
             return True
@@ -1075,7 +1075,7 @@ class SnmpConnector(Connector):
                 self.vlans[vlan_id].status = status
             else:
                 # only should happen for non-permanent vlans, we should know static vlans by now!
-                self.add_vlan_by_id(vlan_id)
+                self.add_vlan_by_id(vlan_id=vlan_id)
                 self.vlans[vlan_id].status = status
             return True
 
@@ -1087,7 +1087,7 @@ class SnmpConnector(Connector):
                 self.vlans[vlan_id].name = val
             else:
                 # vlan not found yet, create it
-                self.add_vlan_by_id(vlan_id)
+                self.add_vlan_by_id(vlan_id=vlan_id)
                 self.vlans[vlan_id].name = val
             return True
 
@@ -1099,7 +1099,7 @@ class SnmpConnector(Connector):
         if vlan_id:
             if vlan_id not in self.vlans.keys():
                 # not likely, we should know by now, but just in case.
-                self.add_vlan_by_id(vlan_id)
+                self.add_vlan_by_id(vlan_id=vlan_id)
             # store it!
             self.vlans[vlan_id].static_egress_portlist.from_unicode(val)
             return True
@@ -1111,7 +1111,7 @@ class SnmpConnector(Connector):
         if vlan_id:
             if vlan_id not in self.vlans.keys():
                 # unlikely, we should know by now, but just in case
-                self.add_vlan_by_id(vlan_id)
+                self.add_vlan_by_id(vlan_id=vlan_id)
             # store for later use:
             # self.vlans[vlan_id].untagged_ports_bitmap = val
             return True
@@ -1126,7 +1126,7 @@ class SnmpConnector(Connector):
                 # currently we don't parse the status, so nothing to do here
                 return True
             # else add entry, should never happen!
-            self.add_vlan_by_id(vlan_id)
+            self.add_vlan_by_id(vlan_id=vlan_id)
             # assume vlan_id = vlan_index = fdb_index, unless we learn otherwize
             self.vlan_id_by_index[vlan_id] = vlan_id
             self.dot1tp_fdb_to_vlan_index[vlan_id] = vlan_id
@@ -1512,7 +1512,7 @@ class SnmpConnector(Connector):
             # check if vlan is globally defined on switch:
             if vlan_id not in self.vlans.keys():
                 # not likely, we should know vlan by now, but just in case!
-                self.add_vlan_by_id(vlan_id)
+                self.add_vlan_by_id(vlan_id=vlan_id)
             # store the egress port list, as some switches need this when setting untagged vlans
             self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
             # and go figure out what ports are part of this vlan:
@@ -1529,7 +1529,7 @@ class SnmpConnector(Connector):
             # # check if vlan is globally defined on switch:
             # if vlan_id not in self.vlans.keys():
             #     # not likely, we should know vlan by now, but just in case!
-            #     self.add_vlan_by_id(vlan_id)
+            #     self.add_vlan_by_id(vlan_id=vlan_id)
             # # figure out untagged ports based on the bitmap
             # self._get_untagged_ports_from_vlan_bitmap(vlan_id=vlan_id, byte_string=val)
             return True
