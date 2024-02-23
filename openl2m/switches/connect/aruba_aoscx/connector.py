@@ -14,10 +14,8 @@
 import datetime
 import traceback
 
-# import pprint
-
 from switches.models import Log
-from switches.utils import dprint, get_remote_ip
+from switches.utils import dprint, dobject, dvar, get_remote_ip
 from switches.constants import LOG_TYPE_ERROR, LOG_AOSCX_ERROR_GENERIC
 from switches.connect.classes import Interface, PoePort, NeighborDevice
 from switches.connect.connector import Connector
@@ -122,8 +120,7 @@ class AosCxConnector(Connector):
             )
             return False
 
-        # the create call (__init__()) already calls get_firmware_version
-        # firmware = device.get_firmware_version()
+        # dobject(aoscx_device, "AosCxDevice:")
 
         self.hostname = aoscx_device.hostname
         # if first time for this device (or changed), update hostname
@@ -131,11 +128,11 @@ class AosCxConnector(Connector):
             self.switch.hostname = aoscx_device.hostname
             self.switch.save()
 
-        self.add_more_info('System', 'Version', aoscx_device.software_version)
-        if 'build_date' in aoscx_device.software_info:
-            self.add_more_info('System', 'Software Info', f"Build date: {aoscx_device.software_info['build_date']}")
+        self.add_more_info('System', 'Firmware Version', aoscx_device.software_version)
         # this is typically the same as software_version:
-        # self.add_more_info('System', 'Firmware', aoscx_device.firmware_version)
+        # self.add_more_info('System', 'Firmware Version', aoscx_device.firmware_version)
+        if 'build_date' in aoscx_device.software_info:
+            self.add_more_info('System', 'Firmware Info', f"Build date: {aoscx_device.software_info['build_date']}")
         self.add_more_info('System', 'Platform', aoscx_device.platform_name)
         if aoscx_device.hostname:  # this is None when not set!
             self.add_more_info('System', 'Hostname', self.hostname)
@@ -145,14 +142,14 @@ class AosCxConnector(Connector):
             self.add_more_info('System', 'Domain Name', aoscx_device.domain_name)
         else:
             self.add_more_info('System', 'Domain Name', '')
-        # print(f"\nCapabilities = {aoscx_device.capabilities}")
-        # print(f"\nCapacities = {aoscx_device.capacities}")
-        # print(f"\nBoot time = {aoscx_device.boot_time}")
+        # dprint(f"\nCapabilities = {aoscx_device.capabilities}")
+        # dprint(f"\nCapacities = {aoscx_device.capacities}")
+        # dprint(f"\nBoot time = {aoscx_device.boot_time}")
         if aoscx_device.boot_time:
             boot_time = datetime.datetime.fromtimestamp(aoscx_device.boot_time)
             self.add_more_info('System', 'Boot Time', boot_time)
-        # print(f"\nOther Config = {aoscx_device.other_config}")
-        # print(f"\nMgmt Intf Status = {aoscx_device.mgmt_intf_status}")
+        # dprint(f"\nOther Config = {aoscx_device.other_config}")
+        # dprint(f"\nMgmt Intf Status = {aoscx_device.mgmt_intf_status}")
 
         if 'system_contact' in aoscx_device.other_config and aoscx_device.other_config['system_contact']:
             self.add_more_info('System', 'Contact', aoscx_device.other_config['system_contact'])
@@ -166,7 +163,7 @@ class AosCxConnector(Connector):
         # for key in device.subsystems:
         #    print(f"        attribute: {key}")
 
-        # get the VLAN info
+        # get the VLAN info, this get class objects pyaoscx.vlan.Vlan()
         try:
             aoscx_vlans = AosCxVlan.get_facts(session=self.aoscx_session)
         except Exception as error:
@@ -177,17 +174,23 @@ class AosCxConnector(Connector):
             dprint("  get_my_basic_info(): AosCxVlan.get_facts() failed!")
             return False
 
-        for id in aoscx_vlans:
-            vlan = aoscx_vlans[id]
+        for id, vlan in aoscx_vlans.items():
+            dvar(f"VLAN(): {vlan}")
             dprint(f"Vlan {id}: {vlan['name']}")
-            # is this vlan enabled?
             self.add_vlan_by_id(int(id), vlan['name'])
+            # is this vlan enabled?
             if not vlan['admin'] == 'up' and not vlan['oper_state'] == 'up':
                 dprint("  VLAN is down!")
+            if 'voice' in vlan and vlan['voice'] == 'True':
+                dprint("  Voice Vlan!")
+                self.vlans[id].voice = True
 
         # and get the interfaces:
         try:
+            # get_facts() returns Interface() items as dictionaries, not classes!
             aoscx_interfaces = AosCxInterface.get_facts(session=self.aoscx_session)
+            # get_all() return a proper class pyaoscx.interface.Interface() ...
+            # aoscx_interfaces2 = AosCxInterface.get_all(session=self.aoscx_session)
         except Exception as error:
             self._close_device()
             self.error.status = True
@@ -195,9 +198,22 @@ class AosCxConnector(Connector):
             self.error.details = f"Cannot read device interfaces: {format(error)}"
             dprint("  get_my_basic_info(): AosCxInterface.get_facts() failed!")
             return False
-        for if_name in aoscx_interfaces:
-            dprint(f"AosCxInterface: {if_name}")
-            aoscx_interface = aoscx_interfaces[if_name]
+
+        # if you use the class object, and want to get a fully materialized (ie. flushed-out) object,
+        # you need to call .get() on each Interface() object first!
+        # for if_name, aoscx_interface in aoscx_interfaces2.items():
+        #     try:
+        #         aoscx_interface.get()
+        #         dobject(aoscx_interface, f"\n\n=== AosCxInterface() CLASS: {if_name} ===")
+        #     except Exception as err:
+        #         dprint(f"Error '{if_name}'.get(): {err}")
+        # return True
+
+        for if_name, aoscx_interface in aoscx_interfaces.items():
+            dprint(f"AosCxInterface[]: {if_name}")
+            # see the attributes available:
+            # dvar(aoscx_interface, f"AosCxInterface[]: {if_name}")
+
             # add an OpenL2M Interface() object
             iface = Interface(if_name)
             iface.name = if_name
@@ -231,17 +247,27 @@ class AosCxConnector(Connector):
                 if aoscx_interface['type'] == 'vlan':
                     dprint("VLAN interface")
                     iface.type = IF_TYPE_VIRTUAL
-            # find the untagged vlan:
-            if 'vlan_tag' in aoscx_interface and not aoscx_interface['vlan_tag'] is None:
-                for id in aoscx_interface['vlan_tag']:
+
+            #
+            # Find VLAN Info for interface:
+            # set in "applied_vlan_mode", "applied_vlan_tag" and "applied_vlan_trunks"
+            #
+            if 'applied_vlan_tag' in aoscx_interface and aoscx_interface['applied_vlan_tag'] is not None:
+                # the untagged vlan
+                for id in aoscx_interface['applied_vlan_tag']:
                     # there is only 1:
                     iface.untagged_vlan = int(id)
-            # see if there are vlans on the trunk:
-            # vlan_mode = native-untagged
-            # vlan_trunks = {'500': '/rest/v10.04/system/vlans/500', '504': '/rest/v10.04/system/vlans/504'}
-            if 'vlan_trunks' in aoscx_interface:
-                for id in aoscx_interface['vlan_trunks']:
-                    iface.add_tagged_vlan(int(id))
+            if 'applied_vlan_mode' in aoscx_interface:
+                if aoscx_interface['applied_vlan_mode'] == 'access':
+                    iface.is_tagged = False
+                elif aoscx_interface['applied_vlan_mode'] == 'native-untagged':
+                    iface.is_tagged = True
+                    # see if there are vlans on the trunk (untagged vlan is set above)
+                    # vlan_trunks = {'500': '/rest/v10.04/system/vlans/500', '504': '/rest/v10.04/system/vlans/504'}
+                    if 'applied_vlan_trunks' in aoscx_interface:
+                        for id in aoscx_interface['applied_vlan_trunks']:
+                            iface.add_tagged_vlan(int(id))
+
             # check LACP 'stuff':
             if 'lacp' in aoscx_interface and aoscx_interface['lacp'] == 'active':
                 dprint("LAG interface")
@@ -719,6 +745,7 @@ class AosCxConnector(Connector):
 
         # do we want to check SSL certificates ?
         if not self.switch.netmiko_profile.verify_hostkey:
+            dprint("  Cert warnings disabled in urllib3!")
             # disable unknown cert warnings
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             # or all warnings:
@@ -759,6 +786,13 @@ class AosCxConnector(Connector):
         make sure we properly close the AOS-CX REST Session
         '''
         dprint("AOS-CX _close_device()")
+        # do we want to check SSL certificates ?
+        if not self.switch.netmiko_profile.verify_hostkey:
+            dprint("  Cert warnings disabled in urllib3!")
+            # disable unknown cert warnings
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            # or all warnings:
+            # urllib3.disable_warnings()
         self.aoscx_session.close()
         self.aoscx_session = False
         return True
