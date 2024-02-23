@@ -22,6 +22,14 @@
                   title="Vlan learned via MVRP or GVRP">
               </i>
             {% endif %}
+            {% if vlan.voice %}
+              &nbsp;
+              <i class="fas fa-phone" aria-hidden="true"
+                  alt="Voice Vlan"
+                  data-toggle="tooltip"
+                  title="Voice Vlan">
+              </i>
+            {% endif %}
             {% if vlan.igmp_snooping %}
               &nbsp;
               <i class="fas fa-project-diagram" aria-hidden="true"
