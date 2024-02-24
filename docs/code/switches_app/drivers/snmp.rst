@@ -1,8 +1,8 @@
-.. image:: ../../_static/openl2m_logo.png
+.. image:: ../../../_static/openl2m_logo.png
 
-================
-SNMP Connections
-================
+====================
+SNMP Driver Overview
+====================
 
 **switches/connect/snmp/connector.py**
 
@@ -43,6 +43,21 @@ EasySNMP has a hard time dealing with this due to how it internally translates e
 So we use the *pysnmp* library to handle these special cases only.
 
 
+**IMPORTANT DATA TYPES:**
+
+There are several Python dictionaries used to store data. Several of these have specific key data typem requirements. They are:
+
+* self.vlans: the key (index) is an *integer (int)* representing the numeric vlan ID. Items are Vlan() class instances.
+
+* self.interfaces: this key (index) is a *string (str)*, representing a driver-specific key (frequently the name or snmp interface index)
+  Items are Interface() class instances.
+
+* interface.port_id: this is an *integer (int)* representing the switch port ID. This comes into play with SNMP drivers,
+  as the interface index and the switchport ID can be different.
+
+*More details on the SNMP drivers, and specific MIB entries used, will be written as time allows...*
+
+
 Vendor-specific SNMP implementations
 ------------------------------------
 
@@ -57,8 +72,7 @@ The vendor-specific derived classes are:
 * **SnmpConnectorArubaCx()** - switches/connect/snmp/aruba_cx/connector.py - supports the HP/Aruba AOS-CX switches,
   which implement partial SNMP support.(They prefer the AOS-CX API)
 
-See here how to add new vendors that require non-standard connector classes.
-See :doc:`Vendor implementations <vendor_specific>`
+:doc:`See here how to implement new vendor-specific drivers to support new devices.<new-drivers>`
 
 
 VLAN Add/Edit/Delete

@@ -1,13 +1,12 @@
-.. OpenL2M - Open Layer 2 Management documentation entry file, created by
-   sphinx-quickstart on Mon Sep 16 08:48:33 2019.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 .. image:: _static/openl2m_logo.png
 
 ======================
 What Is New In OpenL2M
 ======================
+
+:doc:`Please read the release notes for more details on each release. <releases/index>`
+
+* v3.1 upgrades the Django framework to v5.0 It also adds bug fixes and improved code readability.
 
 * v3.0 introduces a REST API. This allows for remotely making changes to devices without needing to know the underlying vendor.
   Read the API section of the documentation for more details.
@@ -26,6 +25,3 @@ What Is New In OpenL2M
   This makes is easy to add support for any kind of network device,
   whether the interface is SSH, REST, NetConf, or other methods.
   See more in the development section below.
-
-
-:doc:`Please read the release notes for more details on each release. <releases/index>`

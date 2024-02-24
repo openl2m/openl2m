@@ -4,10 +4,19 @@
 Roadmap / To Do
 ===============
 
-Planned improvements:
+Planned Improvements:
 ---------------------
 
-* all planned improvements have been implemented!
+**Code Improvements:**
+
+* change all function calls to use parameter names.
+
+* add typing hints to improve readability and catch problems.
+
+**Development Enhancements:**
+
+* add Docker capability for faster developing and testing (via compose)
+
 
 Features Being Considered
 -------------------------
@@ -25,8 +34,10 @@ Here are some other features we are considering implementing (*in no particular 
 
 * Tagged/Trunked ports tagged vlan management (we can do the untagged vlan now)
 
-* hide change/submit buttons until form has changes (vlan, ifalias, etc.)
+* hide change/submit buttons until form has changes (vlan, ifalias, etc.) This is a big undertaking changing the UI framework used.
 
 * make vendor support dynamic (i.e. discover at runtime what vendors are supported)
 
 * test support for AES-192 and up. This will require Net-SNMP v5.8 (which is available on CentOS 8, Unbuntu 2020-LTS, and later)
+
+* support running production in a Docker container.

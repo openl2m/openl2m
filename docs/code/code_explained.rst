@@ -53,8 +53,9 @@ object. It is in the users/ directory.
 
 * :doc:`switches <switches_app/index>`
 
-This is where most of the work of the Web GUI is handled. Also the Connector() class and its derived classes and code
-that handle SNMP, Napalm, SSH, etc. are located in the switches/ directory.
+This is where most of the work of the Web GUI is handled. Also the Connector() class and
+its derived device driver classes and code
+that handle SNMP, Junos PyEZ, Aruba AOS-CX, Napalm, SSH, etc. are located in the switches/ directory.
 
 * :doc:`counters <counters_app/index>`
 
@@ -89,7 +90,7 @@ files as needed to the *static/* directory.
 
 **Upgrading to new Django versions**
 
-If you need to upgrade to another major.minor Django version, e.g. from 3.2 to 4.1,
+If you need to upgrade to another major.minor Django version, e.g. from 4.2 to 5.0,
 at minimum you need to follow the steps in the Django upgrade version documentation
 
-E.g. for v4.1, this can be found at https://docs.djangoproject.com/en/4.1/howto/upgrade-version/
+E.g. for v5.0, this can be found at https://docs.djangoproject.com/en/5.0/howto/upgrade-version/

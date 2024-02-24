@@ -1,0 +1,36 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 3.1
+===========
+
+**Version 3.1 upgrades the Django framework to v5.0**
+
+*Django v5 requires Python v3.10 or later, and PostgreSQL 12 or later*
+
+*Note: we are developing and testing on Ubuntu 22.04 LTS, using Python v3.11 and PostgreSql 14!*
+
+
+Version 3.1
+-----------
+
+Release Date: 2024-02-23
+
+* Support Django v5.0
+* small performance improvements.
+* improvements in AOS-CX Api driver.
+
+Bug fixes:
+
+* rework the caching mechanism to be compatible with Django v5.0
+* remove unused parsers in snmp code.
+* always redirect logins to home.
+* fix vlan create for devices that cannot create vlan name.
+* several debug output improvements.
+* type hints added in some files to improve finding errors.
+* fix poe toggle if settings allow all
+* fix nms_id in rest api data
+* improved upgrade script error handling.
+* improved vlan parsing for AOS-CX device using REST api driver.
+* add voice vlan flag and display in switch info tab.
+* display shutdown vlan icon in switch info tab.

@@ -9,12 +9,12 @@ functionality is implemented. Most of the rest of this document describes
 various aspects of this app.
 
 **urls.py**
+
 In standard Django fashion, here we map the various urls of our app.
 
-
 **models.py**
-We define a number of classes/objects here.
 
+We define a number of classes/objects here.
 
 **Choices**
 
@@ -39,35 +39,94 @@ See get_FOO_display() in the database API documentation."
 
 
 **views.py**
+
 As is typical in a Django framework application, this is where most of the
-work to handle urls is done. Please read :doc:`Views <views>`
+work to handle urls is done. It is also where Connector() objects are created to connect to devices.
+
+All URLs are mapped to functions in views.py
+
+In general, all view functions follow these high level steps.
+
+1 - Create the Connector() object:
+
+.. code-block:: python
+
+  conn = get_connection_object(request, group, switch)
 
 
-**Connections**
+2 - Next, get the basic switch information. This reads Interface, Vlan, and Power-over-Ethernet data::
 
-Connections to the switch are derived from a base Connector() class.
-We currently provide several sub-connectors (sub-classes): several based on SNMP,
-a Juniper PyEz-NC based driver, a REST-API based connector for the Aruba AOS-CX line of devices,
-and a read-only driver based on the Napalm automation framework.
+.. code-block:: python
+
+   conn.get_switch_basic_info()
+
+This information could be cached for the session, if this is the second time something is done on this switch.
+E.g. you read the basic layout, then disable an interface, and go back to the main switch page.
+That second time around, the cached data will be used.
 
 
-See :doc:`Connections <connections>` for more.
+3 - Then, depending on which view, another function may be called:
+
+If **Ethernet/LLDP** data is requested, we call:
+
+.. code-block:: python
+
+   conn.get_switch_client_data()
+
+This calls the following:
+
+.. code-block:: python
+
+    self._get_known_ethernet_addresses()
+      This calls  _get_branch_by_name('dot1dTpFdbPort')
+
+    self._get_lldp_data()
+      This calls several lldp mib counters.
+
+    self._get_arp_data()
+      This calls   _get_branch_by_name('ipNetToMediaPhysAddress')
+
+
+This Ethernet/LLDP data is *never cached*, so it is always the most recent data from the switch.
+
+Admins have an additional option for some more **Hardware Details** from the switch:
+
+.. code-block:: python
+
+   conn.get_switch_hardware_details()
+
+This calls two functions that need to be implemented in vendor-specific snmp classes:
+
+.. code-block:: python
+
+   self._get_vendor_data()
+
+   self._get_syslog_msgs()
+
+and then it reads the standard Entity MIB hardware info:
+
+.. code-block:: python
+
+   retval = self._get_entity_data()
+
+With the SNMP driver, this reads a number of entityPhysical MIB entries. Other driver can fill in data as desired.
 
 
 **Netmiko for CLI**
 
 We use the Netmiko framework to establish SSH CLI sessions, and execute CLI commands.
 
-See :doc:`Netmiko Connector <netmiko>` for more.
+See :doc:`Netmiko Connector <drivers/netmiko>` for more.
 
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Here is what is available at this time:
+**Connections**
 
-   connections.rst
-   netmiko.rst
-   snmp.rst
-   views.rst
-   vendor_specific.rst
-   napalm.rst
+Connections to the switch are derived from a base Connector() class.
+We currently provide several vendor-specific drivers. Each is a sub-class of the Connector() object:
+
+* several based on SNMP.
+* a Juniper PyEz-NC based driver.
+* a Aruba AOS-CX REST-API based drivers.
+* read-only demonstration driver based on the Napalm automation framework.
+
+See :doc:`Connections and Drivers <drivers/index>` for more.

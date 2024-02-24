@@ -1,8 +1,8 @@
-.. image:: ../../_static/openl2m_logo.png
+.. image:: ../../../_static/openl2m_logo.png
 
-==============================
-Vendor Specific Customizations
-==============================
+========================
+Implementing New Drivers
+========================
 
 Supporting a new vendor device - SNMP
 =====================================
