@@ -1,0 +1,48 @@
+version: '3.9'
+#
+# docker compose file for testing OpenL2M.
+# Note: this is NOT meant to become a production setup!!!
+#
+services:
+  postgres:
+    image: postgres:16.2-alpine3.19
+    # no public mapping of postgres.
+    # ports:
+    #   - 5432:5432
+    # expose to other internal services only:
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_USER=openl2m
+      - POSTGRES_DB=openl2m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openl2m"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  openl2m:
+    image: openl2m:localbuild
+    build:
+      context: /opt/openl2m
+      dockerfile: /opt/openl2m/docker/test/Dockerfile
+    ports:
+      - 8000:8000
+    environment:
+      - DB_PASS=changeme
+      - DB_USER=openl2m
+      - DB_NAME=openl2m
+      - DB_HOST=postgres
+      # - DEBUG=True #Note the capital T
+      # - SECRET_KEY=ABCD
+    depends_on:
+      postgres:
+        condition: service_healthy
+    links:
+      - postgres
+
+volumes:
+  postgres_data:
