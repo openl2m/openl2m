@@ -50,6 +50,7 @@ Click here to :doc:`See What Is New <what_is_new>`!
    releases/index.rst
    roadmap.rst
    references.rst
+   credits.rst
 
 
 If you are interesting in contributing, writing drivers for new devices, or just learning about the internals of OpenL2M, read the following.
