@@ -1,10 +1,17 @@
 version: '3.9'
-
+#
+# docker compose file for testing OpenL2M.
+# Note: this is NOT meant to become a production setup!!!
+#
 services:
   postgres:
     image: postgres:16.2-alpine3.19
-    ports:
-      - 5432:5432
+    # no public mapping of postgres.
+    # ports:
+    #   - 5432:5432
+    # expose to other internal services only:
+    expose:
+      - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
@@ -20,8 +27,8 @@ services:
   openl2m:
     image: openl2m:localbuild
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: /opt/openl2m
+      dockerfile: /opt/openl2m/docker/test/Dockerfile
     ports:
       - 8000:8000
     environment:

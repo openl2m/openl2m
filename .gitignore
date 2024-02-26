@@ -9,6 +9,7 @@ openl2m/lib/manuf/manuf/manuf
 .recycle/
 venv/
 .idea
+*.sh
 *.swp
 .DS_Store
 ._*
