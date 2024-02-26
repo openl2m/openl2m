@@ -201,7 +201,7 @@ def get_my_group_menu(groups):
 
     num_groups = len(groups)
     if not num_groups:
-        s = "<strong>You are not a member of any switch groups!</strong></br>Please contact the OpenL2M administrator!\n"
+        s = "<strong>You are not a member of any switch groups!</strong><br>Please contact the OpenL2M administrator."
         return mark_safe(s)
     # at least one group:
     s = '<div class="row"><div class="col-sm-6 col-md-4">'
