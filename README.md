@@ -38,6 +38,8 @@ See the documentation for more information.
 
 __What's New:__
 
+v3.1 upgrades to Django 5.0, and adds a docker-compose config for quickly testing OpenL2M in a container.
+
 v3.0 adds a vendor-agnostic REST API for remote scripting and automation.
 
 v2.4 adds vlan add/edit/delete for all supported devices, and upgrades the Django framework to v4.2 LTS

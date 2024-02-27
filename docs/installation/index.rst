@@ -4,16 +4,20 @@
 Installation
 ============
 
+**To quickly test OpenL2M in your environment, run in a docker container! Please see ./docker/test/README.txt**
+
+The following steps are for a full, production install of OpenL2M. No containers are supported at this time.
+
 **Requirements**
 
 OpenL2M has some requirements:
 
-* Python 3.8 or greater (OpenL2M is developed and tested on Python 3.11)
+* Python 3.10 or greater (OpenL2M is developed and tested on Python 3.11)
 * net-snmp v5.7 or greater, including net-snmp-devel
 * the Python "easysnmp" package v0.2.5 or greater.
 * a web server, with the WSGI capability. We use Nginx in all our documentation.
   Apache may work but is not tested.
-* the Django framework, v4.2 or greater.
+* the Django framework, v5.0 or greater.
 * a PostgreSQL database, running at least version 12. We use v12 and v14 in our testing.
 
 **Application Stack Overview**

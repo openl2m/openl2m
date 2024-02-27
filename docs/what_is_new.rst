@@ -1,12 +1,13 @@
 .. image:: _static/openl2m_logo.png
 
-======================
-What Is New In OpenL2M
-======================
+=============
+What's New...
+=============
 
 :doc:`Please read the release notes for more details on each release. <releases/index>`
 
 * v3.1 upgrades the Django framework to v5.0 It also adds bug fixes and improved code readability.
+  Also adds a docker-compose config for quickly testing OpenL2M in a container.
 
 * v3.0 introduces a REST API. This allows for remotely making changes to devices without needing to know the underlying vendor.
   Read the API section of the documentation for more details.
