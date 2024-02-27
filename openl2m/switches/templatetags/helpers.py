@@ -541,14 +541,14 @@ def get_lldp_info(neighbor):
             icon += icon_format % ('fa-question', 'Other Capabilities')
 
     if neighbor.hostname:
-        name = neighbor.hostname
+        name = f"{neighbor.hostname} "
     elif neighbor.sys_name:
-        name = neighbor.sys_name
+        name = f"{neighbor.sys_name} "
     else:
-        name = 'Unknown'
+        name = ""
 
     if neighbor.port_name:
-        port = f"({neighbor.port_name})"
+        port = f"({neighbor.port_name}) "
     else:
         port = ""
 
