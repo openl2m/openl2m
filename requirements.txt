@@ -53,6 +53,7 @@ pysnmplib
 #PyTZ and the type library:
 pytz>=2024.1
 types-pytz
+types_requests
 #tzdata needed for Docker
 tzdata
 recommonmark
