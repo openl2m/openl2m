@@ -547,6 +547,8 @@ class SnmpConnectorCisco(SnmpConnector):
             iface = self.get_interface_by_key(if_index)
             if iface and voiceVlanId in self.vlans.keys():
                 iface.voice_vlan = voiceVlanId
+                # mark vlan as voice:
+                self.vlans[voiceVlanId].voice = True
             return True
 
         return False
