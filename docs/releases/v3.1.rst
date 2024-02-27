@@ -10,6 +10,18 @@ Version 3.1
 
 *Note: we are developing and testing on Ubuntu 22.04 LTS, using Python v3.11 and PostgreSql 14!*
 
+Version 3.1.1
+-------------
+
+Release Date: 2024-02-27
+
+* add docker compose for testing
+* add credits for contributors
+
+Bugfixes:
+
+* fix line wrap when no switch groups.
+
 
 Version 3.1
 -----------
