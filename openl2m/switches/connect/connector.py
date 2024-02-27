@@ -1736,21 +1736,40 @@ class Connector:
         # go through the list of ethernet addresses on each interface
         for interface in self.interfaces.values():
             for eth in interface.eth.values():
-                # and try to get the vendor from the OUI list
-                vendor = parser.get_all(str(eth))
-                if vendor.manuf_long:
-                    eth.vendor = vendor.manuf_long
-                elif vendor.manuf:
-                    eth.vendor = vendor.manuf
-                dprint(f"  eth = {eth}, vendor = {eth.vendor}")
+                eth.vendor = self._get_oui_vendor(parser=parser, ethernet_address=str(eth))
+                dprint(f"  Vendor = {eth.vendor}")
             # also lookup vendor for Neighbors where the chassis-string is an ethernet address:
             for neighbor in interface.lldp.values():
                 if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
-                    vendor = parser.get_all(neighbor.chassis_string)
-                    if vendor.manuf_long:
-                        neighbor.vendor = vendor.manuf_long
-                    elif vendor.manuf:
-                        neighbor.vendor = vendor.manuf
+                    neighbor.vendor = self._get_oui_vendor(parser=parser, ethernet_address=neighbor.chassis_string)
+                    dprint(f"  Neighbor vendor = {neighbor.vendor}")
+
+    def _get_oui_vendor(self, parser, ethernet_address: str):
+        '''Look up an ethernet address in the OUI database, and return vendor information.
+
+        Args:
+            parser: a pre-loaded manuf.MacParser() object.
+            ethernet_address (str): the string representing the ethernet address
+
+        Returns:
+            (manu_object): vendor object with either .manuf_long or .manuf string representing OUI vendor name.
+            if unknown, returns ""
+        '''
+        dprint(f"_get_oui_vendor() for '{ethernet_address}'")
+        # try to get the vendor from the OUI list
+        try:
+            vendor = parser.get_all(ethernet_address)
+            if vendor.manuf_long:
+                return vendor.manuf_long
+            elif vendor.manuf:
+                return vendor.manuf
+        except Exception as err:
+            dprint(f"ERROR: cannot get Ethernet vendor for '{ethernet_address}")
+            # this will also add log entry:
+            self.add_warning(f"Error retrieving Ethernet vendor for '{ethernet_address}'")
+            return ''
+
+        return ''
 
     def display_name(self) -> str:
         '''
