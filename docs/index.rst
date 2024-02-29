@@ -5,25 +5,27 @@
 
 .. image:: _static/openl2m_logo.png
 
-=====================
-Welcome to OpenL2M v3
-=====================
+=======================
+Welcome to OpenL2M v3.1
+=======================
 
 Welcome to the documentation for the "Open Layer 2 Management" project.
 
 OpenL2M is an open source network device management
 application designed to allow users with minimal training to perform a set of basic
 configuration changes on those devices, with a focus on port or interface (i.e Layer 2) changes.
-It does so by providing a consistent web interface
+It does so by providing a consistent WebUI and REST API
 for device management, independent of the underlying vendor.
 
 OpenL2M attempts to address the needs of distributed IT groups managing parts
 of a shared distributed layer 2 ("switching") network.
 
-While primarily intended to manage network switches, OpenL2M can handle any device that has some
-sort of network API (e.g. SSH, Netconf, REST, etc.)
+While primarily intended to manage network switches, OpenL2M can support any device that has some
+sort of network API (e.g. SNMP, SSH, Netconf, REST, etc.) through an extendable internal driver class.
 
 See a list of features per device class supported :doc:`here.<feature_support>`
+
+For quick testing of OpenL2M, we provide `Docker Compose configuration files. <https://github.com/openl2m/openl2m/tree/main/docker/test>`_
 
 OpenL2M is written in Python 3 using the Django framework.
 Documentation is written in ReStructured Text format, which is rendered with the Sphinx documentation generator.
@@ -48,6 +50,7 @@ Click here to :doc:`See What Is New <what_is_new>`!
    api/index.rst
    what_is_new.rst
    releases/index.rst
+   docker.rst
    roadmap.rst
    references.rst
    credits.rst

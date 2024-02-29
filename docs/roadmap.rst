@@ -13,10 +13,6 @@ Planned Improvements:
 
 * add typing hints to improve readability and catch problems.
 
-**Development Enhancements:**
-
-* add Docker capability for faster developing and testing (via compose)
-
 
 Features Being Considered
 -------------------------
