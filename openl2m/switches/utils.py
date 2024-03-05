@@ -24,14 +24,18 @@ import re
 import socket
 
 from django.conf import settings
+from django.http import HttpResponse
 from django.http.request import HttpRequest
 from django.shortcuts import render
 from django.utils.timezone import get_default_timezone
 
+# from switches.models import Switch, SwitchGroup
+# from switches.connect.classes import Error
+
 logger_console = logging.getLogger("openl2m.console")
 
 
-def success_page(request: HttpRequest, group, switch, description: str):
+def success_page(request: HttpRequest, group, switch, description: str) -> HttpResponse:
     """
     Generic function to return an 'function succeeded' page
     requires the http request(), Group(), Switch() objects
@@ -48,7 +52,7 @@ def success_page(request: HttpRequest, group, switch, description: str):
     )
 
 
-def success_page_by_id(request: HttpRequest, group_id: int, switch_id: int, message: str):
+def success_page_by_id(request: HttpRequest, group_id: int, switch_id: int, message: str) -> HttpResponse:
     """
     Generic function to return an 'function succeeded' page.
 
@@ -72,7 +76,7 @@ def success_page_by_id(request: HttpRequest, group_id: int, switch_id: int, mess
     )
 
 
-def warning_page(request: HttpRequest, group, switch, description: str):
+def warning_page(request: HttpRequest, group, switch, description: str) -> HttpResponse:
     """
     Generic function to return an warning page
     requires the http request(), Group() and Switch() objects,
@@ -89,7 +93,7 @@ def warning_page(request: HttpRequest, group, switch, description: str):
     )
 
 
-def warning_page_by_id(request: HttpRequest, group_id: int, switch_id: int, message: str):
+def warning_page_by_id(request: HttpRequest, group_id: int, switch_id: int, message: str) -> HttpResponse:
     """
     Generic function to return an warning page
 
@@ -113,7 +117,7 @@ def warning_page_by_id(request: HttpRequest, group_id: int, switch_id: int, mess
     )
 
 
-def error_page(request: HttpRequest, group, switch, error):
+def error_page(request: HttpRequest, group, switch, error) -> HttpResponse:
     """
     Generic function to return an error page
     requires the http request(), Group(), Switch() and Error() objects
@@ -129,7 +133,7 @@ def error_page(request: HttpRequest, group, switch, error):
     )
 
 
-def error_page_by_id(request: HttpRequest, group_id: int, switch_id: int, error):
+def error_page_by_id(request: HttpRequest, group_id: int, switch_id: int, error) -> HttpResponse:
     """
     Generic function to return an error page
     requires the http request(), Group(), Switch() and Error() objects
@@ -154,7 +158,7 @@ def error_page_by_id(request: HttpRequest, group_id: int, switch_id: int, error)
     )
 
 
-def dprint(var):
+def dprint(var: str):
     """
     Output to the configured console logger if debugging is Enabled
     See settings.LOGGING as defined in openl2m/configuration.py

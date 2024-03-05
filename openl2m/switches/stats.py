@@ -50,7 +50,7 @@ from switches.models import (
 from users.models import Token
 
 
-def get_environment_info():
+def get_environment_info() -> dict:
     '''Get information about the runtime environment, and return in a dict().'''
     environment = {"Python": f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"}
     # OS environment information
@@ -77,7 +77,7 @@ def get_environment_info():
     return environment
 
 
-def get_database_info():
+def get_database_info() -> dict:
     '''Get information about various database items, and return as a dict().'''
     db_items = {"Switches": Switch.objects.count()}  # database object item counts
     # need to calculate switchgroup count, as we count only groups with switches!
@@ -97,7 +97,7 @@ def get_database_info():
     return db_items
 
 
-def get_usage_info():
+def get_usage_info() -> dict:
     '''Get OpenL2M application usage, and return as a dict().'''
     usage = {}  # usage statistics
 

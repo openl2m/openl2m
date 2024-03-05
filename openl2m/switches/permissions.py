@@ -16,6 +16,8 @@
 # Functions that perform actions on interfaces, called by both the WEB UI and REST API
 #
 
+from django.http.request import HttpRequest
+
 from rest_framework import status as http_status
 from rest_framework.reverse import reverse as rest_reverse
 from rest_framework.request import Request as RESTRequest
@@ -27,6 +29,7 @@ from counters.constants import (
 from counters.models import counter_increment
 
 from switches.connect.classes import Error
+from switches.connect.connector import Connector, Interface
 from switches.constants import (
     LOG_TYPE_ERROR,
     LOG_CHANGE_INTERFACE_ALIAS,
@@ -45,13 +48,13 @@ from switches.utils import dprint, get_remote_ip, get_from_http_session
 #####################################################
 
 
-def get_my_device_groups(request):
+def get_my_device_groups(request: HttpRequest) -> dict:
     """
     Find the SwitchGroup()s, and Switch()s in those groups, that this user has rights to.
     Returns a dictionary of groups and the devices in those groups.
 
     Args:
-        request:  current Request() object
+        request:  current HttpRequest() object
 
     Returns:
         groups: dict of pk's of SwitchGroup() objects this user is member of,
@@ -111,13 +114,13 @@ def get_my_device_groups(request):
     return permissions
 
 
-def get_group_and_switch(request, group_id, switch_id):
+def get_group_and_switch(request: HttpRequest, group_id: int, switch_id: int) -> tuple[SwitchGroup, Switch]:
     """
     Get the Group() and Switch() if the current user has rights.
     This handles both Session auth (web ui), and Token auth (api).
 
     Params:
-        request: Request() object.
+        request: HttpRequest() object.
         group_id (int): SwitchGroup() pk
         switch_id (int): Switch() pk
 
@@ -139,17 +142,20 @@ def get_group_and_switch(request, group_id, switch_id):
     return _get_group_and_switch_from_permissions(permissions=groups, group_id=group_id, switch_id=switch_id)
 
 
-def get_connection_if_permitted(request, group, switch, write_access=False):
+def get_connection_if_permitted(
+    request: HttpRequest, group: SwitchGroup, switch: Switch, write_access: bool = False
+) -> tuple[Connector, Error]:
     """Get a Connection() object if access to this switch is permitted.
 
     Params:
         request:  HttpRequest() object.
         group: SwitchGroup() object.
         switch: Switch() object
+        write_access (bool): True is we are requesting write-access to device.
 
     Returns:
         connection, error:
-            Connection() object if permitted, None if not.
+            Connector() object if permitted, None if not.
             Error() object describing the error, e.g. access denied.
 
     """
@@ -208,7 +214,9 @@ PERMISSION_INTERFACE_MANAGE = 0  # generic management access
 PERMISSION_INTERFACE_POE = 1  # PoE Up or Down access
 
 
-def get_interface_to_change(connection, interface_key, permission=PERMISSION_INTERFACE_MANAGE):
+def get_interface_to_change(
+    connection: Connector, interface_key: str, permission: int = PERMISSION_INTERFACE_MANAGE
+) -> tuple[Interface, Error]:
     """Get an Interface() object for the key given. Test if it is writable.
 
     Params:
@@ -217,7 +225,7 @@ def get_interface_to_change(connection, interface_key, permission=PERMISSION_INT
         permission (int):
 
     Returns:
-        connection, error:
+        interface, error:
             a valid Interface() or False on error.
             In former case, error=False, in latter case error=Error() object.
     """
@@ -268,12 +276,13 @@ def get_interface_to_change(connection, interface_key, permission=PERMISSION_INT
     return interface, False
 
 
-def _get_group_and_switch_from_permissions(permissions, group_id, switch_id):
+def _get_group_and_switch_from_permissions(
+    permissions: dict, group_id: int, switch_id: int
+) -> tuple[SwitchGroup, Switch]:
     """Check access to the group and switch.
        Return the full permissions, and requested SwitchGroup() and Switch() objects.
 
     Params:
-        request:  HttpRequest() object
         permissions: dictionary as created by get_my_device_groups()
         group_id: (int) SwitchGroup() pk
         switch_id: (int) Switch() pk
@@ -305,7 +314,7 @@ def _get_group_and_switch_from_permissions(permissions, group_id, switch_id):
     return group, switch
 
 
-def user_can_write(request):
+def user_can_write(request: HttpRequest) -> tuple[bool, Error]:
     """Validate the user can write changes. This means either Session auth (ie. WebUI),
        or an API Token() with the 'write_enabled" attribute set to True.
 
@@ -331,7 +340,7 @@ def user_can_write(request):
     return True, info
 
 
-def log_write_denied(request, group_id, switch_id, function):
+def log_write_denied(request: HttpRequest, group_id: int, switch_id: int, function: str):
     """
     Log a message indicating writing to device was denied.
 

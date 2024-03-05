@@ -18,6 +18,7 @@
 import re
 
 from django.conf import settings
+from django.http.request import HttpRequest
 
 from rest_framework import status as http_status
 
@@ -61,15 +62,17 @@ from switches.permissions import (
 #
 # Change admin status, ie port Enable/Disable
 #
-def perform_interface_admin_change(request, group_id, switch_id, interface_key, new_state):
+def perform_interface_admin_change(
+    request: HttpRequest, group_id: int, switch_id: int, interface_key: str, new_state: bool
+):
     """
     Set the admin status of an interface, ie admin up or down.
 
     Params:
         request: Request() object
-        group_id(int): SwitchGroup() pk
-        switch_id: Switch() pk
-        interface_key:  Interface() 'key' attribute
+        group_id (int): SwitchGroup() pk
+        switch_id (int): Switch() pk
+        interface_key (str):  Interface() 'key' attribute
         new_state (bool): True if UP, False if DOWN
 
     Returns:
@@ -149,15 +152,17 @@ def perform_interface_admin_change(request, group_id, switch_id, interface_key, 
     return True, success
 
 
-def perform_interface_description_change(request, group_id, switch_id, interface_key, new_description):
+def perform_interface_description_change(
+    request: HttpRequest, group_id: int, switch_id: int, interface_key: str, new_description: str
+):
     """
     Change the description on an interface.
 
     Params:
         request: Request() object
         group_id(int): SwitchGroup() pk
-        switch_id: Switch() pk
-        interface_key:  Interface() 'key' attribute
+        switch_id (int): Switch() pk
+        interface_key (str):  Interface() 'key' attribute
         new_description (str): new description for Interface().
 
     Returns:
@@ -268,7 +273,9 @@ def perform_interface_description_change(request, group_id, switch_id, interface
     return True, success
 
 
-def perform_interface_pvid_change(request, group_id, switch_id, interface_key, new_pvid):
+def perform_interface_pvid_change(
+    request: HttpRequest, group_id: int, switch_id: int, interface_key: str, new_pvid: int
+):
     """
     Change the PVID untagged vlan on an interfaces.
     This still needs to handle dot1q trunked ports.
@@ -276,8 +283,8 @@ def perform_interface_pvid_change(request, group_id, switch_id, interface_key, n
     Params:
         request: Request() object
         group_id(int): SwitchGroup() pk
-        switch_id: Switch() pk
-        interface_key:  Interface() 'key' attribute
+        switch_id (int): Switch() pk
+        interface_key (str):  Interface() 'key' attribute
         new_pvid (int): new untagged vlan.
 
     Returns:
@@ -374,15 +381,17 @@ def perform_interface_pvid_change(request, group_id, switch_id, interface_key, n
     return True, success
 
 
-def perform_interface_poe_change(request, group_id, switch_id, interface_key, new_state):
+def perform_interface_poe_change(
+    request: HttpRequest, group_id: int, switch_id: int, interface_key: str, new_state: bool
+):
     """
     Change the PoE status of an interfaces.
 
     Params:
         request: Request() object
-        group_id(int): SwitchGroup() pk
-        switch_id: Switch() pk
-        interface_key:  Interface() 'key' attribute
+        group_id (int): SwitchGroup() pk
+        switch_id (int): Switch() pk
+        interface_key (str):  Interface() 'key' attribute
         new_state (bool): True to set PoE Enabled, False to set PoE Disabled.
 
     Returns:
@@ -442,15 +451,15 @@ def perform_interface_poe_change(request, group_id, switch_id, interface_key, ne
         log.action = LOG_CHANGE_INTERFACE_POE_UP
         log.description = f"Interface {interface.name}: Enabling PoE"
         state = "Enabled"
-        new_state = POE_PORT_ADMIN_ENABLED
+        poe_state = POE_PORT_ADMIN_ENABLED
     else:
         log.action = LOG_CHANGE_INTERFACE_POE_DOWN
         log.description = f"Interface {interface.name}: Disabling PoE"
         state = "Disabled"
-        new_state = POE_PORT_ADMIN_DISABLED
+        poe_state = POE_PORT_ADMIN_DISABLED
 
     # do the work:
-    retval = connection.set_interface_poe_status(interface, new_state)
+    retval = connection.set_interface_poe_status(interface, poe_state)
     if retval < 0:
         log.description = f"ERROR: {connection.error.description}"
         log.type = LOG_TYPE_ERROR
@@ -475,7 +484,7 @@ def perform_interface_poe_change(request, group_id, switch_id, interface_key, ne
     return True, success
 
 
-def perform_switch_save_config(request, group_id, switch_id):
+def perform_switch_save_config(request: HttpRequest, group_id: int, switch_id: int):
     """
     This will save the running config to flash/startup/whatever, on supported platforms
 
@@ -561,7 +570,7 @@ def perform_switch_save_config(request, group_id, switch_id):
     return True, success
 
 
-def perform_switch_vlan_add(request, group_id, switch_id, vlan_id, vlan_name):
+def perform_switch_vlan_add(request: HttpRequest, group_id: int, switch_id: int, vlan_id: int, vlan_name: str):
     """
     This will create a vlan on the device.
 
@@ -649,7 +658,7 @@ def perform_switch_vlan_add(request, group_id, switch_id, vlan_id, vlan_name):
         return False, error
 
 
-def perform_switch_vlan_delete(request, group_id, switch_id, vlan_id):
+def perform_switch_vlan_delete(request: HttpRequest, group_id: int, switch_id: int, vlan_id: int):
     """
     This will create a vlan on the device.
 
@@ -731,7 +740,7 @@ def perform_switch_vlan_delete(request, group_id, switch_id, vlan_id):
         return False, error
 
 
-def perform_switch_vlan_edit(request, group_id, switch_id, vlan_id, vlan_name):
+def perform_switch_vlan_edit(request: HttpRequest, group_id: int, switch_id: int, vlan_id: int, vlan_name: str):
     """
     This will create a vlan on the device.
 

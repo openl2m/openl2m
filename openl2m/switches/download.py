@@ -16,6 +16,7 @@ import time
 import xlsxwriter
 
 from switches.connect.classes import Error
+from switches.connect.connector import Connector
 from switches.connect.constants import (
     LLDP_CHASSIC_TYPE_ETH_ADDR,
     LLDP_CHASSIC_TYPE_NET_ADDR,
@@ -28,11 +29,11 @@ from switches.connect.constants import (
 from switches.utils import dprint
 
 
-def create_eth_neighbor_xls_file(connection):
+def create_eth_neighbor_xls_file(connection: Connector):
     """Create an XLS temp file that contains the ethernet and neighbors of a device.
 
     Args:
-        connection (Connection()): a valid connection object, that has ethernet and neighbor information filled in.
+        connection (Connector()): a valid Connector object, that has ethernet and neighbor information filled in.
 
     Returns:
         (BytesIO() object), Error() ): an open stream, or an Error() object if that cannot be created,.
@@ -153,11 +154,11 @@ def create_eth_neighbor_xls_file(connection):
     return fh, None
 
 
-def create_interfaces_xls_file(connection):
+def create_interfaces_xls_file(connection: Connector):
     """Create an XLS temp file that contains the interface/port information for a device.
 
     Args:
-        connection (Connection()): a valid connection object, that has basic (interface) information filled in.
+        connection (Connector()): a valid Connector object, that has basic (interface) information filled in.
 
     Returns:
         (BytesIO() object), Error() ): an open stream, or an Error() object if that cannot be created,.
