@@ -94,7 +94,7 @@ class AosCxConnector(Connector):
         self.can_save_config = False  # not needed.
         self.can_reload_all = False
 
-    def get_my_basic_info(self):
+    def get_my_basic_info(self) -> bool:
         '''
         load 'basic' list of interfaces with status.
         return True on success, False on error and set self.error variables
@@ -235,7 +235,7 @@ class AosCxConnector(Connector):
                     if 'link_speed' in aoscx_interface:  # better be :-)
                         if not aoscx_interface['link_speed'] is None:
                             # iface.speed is in 1Mbps increments:
-                            iface.speed = int(aoscx_interface['link_speed']) / 1000000
+                            iface.speed = int(int(aoscx_interface['link_speed']) / 1000000)
                 else:
                     iface.oper_status = False
             if 'duplex' in aoscx_interface:
@@ -280,7 +280,7 @@ class AosCxConnector(Connector):
                 if 'bond_status' in aoscx_interface:
                     dprint(f"Bond Status found: {aoscx_interface['bond_status']['bond_speed']}")
                     # iface.speed is in 1Mbps increments:
-                    iface.speed = int(aoscx_interface['bond_status']['bond_speed']) / 1000000
+                    iface.speed = int(int(aoscx_interface['bond_status']['bond_speed']) / 1000000)
 
             elif 'lacp_current' in aoscx_interface and aoscx_interface['lacp_current']:
                 # lacp member interface:
@@ -341,7 +341,7 @@ class AosCxConnector(Connector):
 
         return True
 
-    def get_my_client_data(self):
+    def get_my_client_data(self) -> bool:
         '''
         read mac addressess, and lldp neigbor info.
         Not yet fully supported in AOS-CX API.
@@ -464,7 +464,7 @@ class AosCxConnector(Connector):
         # self._close_device()
         return True
 
-    def set_interface_admin_status(self, interface, new_state):
+    def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
         """
         set the interface to the requested state (up or down)
         interface = Interface() object for the requested port
@@ -505,7 +505,7 @@ class AosCxConnector(Connector):
             # we need to add error info here!!!
             return False
 
-    def set_interface_description(self, interface, description):
+    def set_interface_description(self, interface: Interface, description: str) -> bool:
         """
         set the interface description (aka. description) to the string
         interface = Interface() object for the requested port
@@ -540,12 +540,13 @@ class AosCxConnector(Connector):
             # we need to add error info here!!!
             return False
 
-    def set_interface_poe_status(self, interface, new_state):
+    def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
         """
         set the interface Power-over-Ethernet status as given
         interface = Interface() object for the requested port
 
         Args:
+            interface: the Interface to modify
             new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
 
         Returns:
@@ -594,7 +595,7 @@ class AosCxConnector(Connector):
             self.error.details = ""
             return False
 
-    def set_interface_untagged_vlan(self, interface, new_pvid):
+    def set_interface_untagged_vlan(self, interface: Interface, new_pvid: int) -> bool:
         """
         set the interface untagged vlan to the given vlan
         interface = Interface() object for the requested port
@@ -652,7 +653,7 @@ class AosCxConnector(Connector):
                     # we need to add error info here!!!
                     return False
 
-    def vlan_create(self, vlan_id, vlan_name):
+    def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
         '''
         Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
 
@@ -680,7 +681,7 @@ class AosCxConnector(Connector):
         super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
         return True
 
-    def vlan_edit(self, vlan_id, vlan_name):
+    def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
         '''
         Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
 
@@ -713,7 +714,7 @@ class AosCxConnector(Connector):
         super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
         return True
 
-    def vlan_delete(self, vlan_id):
+    def vlan_delete(self, vlan_id: int) -> bool:
         '''
         Delete the vlan. Upon success, this then needs to call the base class for book keeping!
 
@@ -739,7 +740,7 @@ class AosCxConnector(Connector):
         super().vlan_delete(vlan_id=vlan_id)
         return True
 
-    def _open_device(self):
+    def _open_device(self) -> bool:
         '''
         get a pyaoscx "driver" and open a "connection" to the device
         return True on success, False on failure, and will set self.error
@@ -784,7 +785,7 @@ class AosCxConnector(Connector):
             dprint(f"  _open_device: AosCxSession.open() failed: {format(err)}")
             return False
 
-    def _close_device(self):
+    def _close_device(self) -> bool:
         '''
         make sure we properly close the AOS-CX REST Session
         '''

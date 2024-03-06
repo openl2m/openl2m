@@ -15,7 +15,7 @@
 from switches.connect.constants import IF_DUPLEX_UNKNOWN, IF_DUPLEX_HALF, IF_DUPLEX_FULL
 
 
-def aoscx_parse_duplex(duplex):
+def aoscx_parse_duplex(duplex: str) -> int:
     '''
     Convert a duplex string to an integer with the proper duplex meaning.
 
