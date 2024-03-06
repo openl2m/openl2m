@@ -74,10 +74,10 @@ class Error:
         """
         Default state is error occured!
         """
-        self.status = status  # True if error, False if not.
-        self.code = code
-        self.description = description  # simple description of error
-        self.details = details  # more details about the error, typically a 'traceback'
+        self.status: bool = status  # True if error, False if not.
+        self.code: int = code
+        self.description: str = description  # simple description of error
+        self.details: str = details  # more details about the error, typically a 'traceback'
 
     def clear(self):
         """
@@ -99,13 +99,13 @@ class StackMember:
         """
         Initialize the object
         """
-        self.id = id
-        self.type = type  # see ENTITY_CLASS_NAME
-        self.serial = ""  # serial number
-        self.version = ""  # software revision of this device module
-        self.model = ""  # vendor model number
-        self.info = ""  # hardware info string
-        self.description = ""  # module description
+        self.id: int = id
+        self.type: int = type  # see ENTITY_CLASS_NAME
+        self.serial: str = ""  # serial number
+        self.version: str = ""  # software revision of this device module
+        self.model: str = ""  # vendor model number
+        self.info: str = ""  # hardware info string
+        self.description: str = ""  # module description
 
     def as_dict(self) -> dict:
         '''
@@ -131,7 +131,7 @@ class VendorData:
     """
 
     def __init__(self, name: str, value: str):
-        self.name = name
+        self.name: str = name
         self.value = value
 
     def as_dict(self) -> dict:
@@ -151,7 +151,7 @@ class IPNetworkHostname(netaddr.IPNetwork):
     """
 
     def __init__(self, network: netaddr.IPNetwork):
-        self.hostname = ''
+        self.hostname: str = ''
         super().__init__(network)
 
     def resolve_ip_address(self) -> None:
@@ -170,21 +170,21 @@ class Vlan:
         """
         Vlan() requires passing in the vlan id
         """
-        self.id = id  # the vlan ID as sent on the wire
-        self.index = index  # the internal vlan index, used by some MIBs
-        self.fdb_index = 0  # the Forward-DB index, from maps switch database to vlan index
-        self.name = name
-        self.type = VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
-        self.admin_status = VLAN_ADMIN_ENABLED  # ENABLED or DISABLED
-        self.status = VLAN_STATUS_OTHER  # 1-other-0, 2-permanent, 3-dynamic(gvrp)
-        self.igmp_snooping = False  # if True, vlan does IGMP snooping
+        self.id: int = id  # the vlan ID as sent on the wire
+        self.index: int = index  # the internal vlan index, used by some MIBs
+        self.fdb_index: int = 0  # the Forward-DB index, from maps switch database to vlan index
+        self.name: str = name
+        self.type: int = VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
+        self.admin_status: int = VLAN_ADMIN_ENABLED  # ENABLED or DISABLED
+        self.status: int = VLAN_STATUS_OTHER  # 1-other-0, 2-permanent, 3-dynamic(gvrp)
+        self.igmp_snooping: bool = False  # if True, vlan does IGMP snooping
         # dot1qVlanCurrentEgressPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
-        self.current_egress_portlist = PortList()
+        self.current_egress_portlist: PortList = PortList()
         # dot1qVlanStaticPorts OCTETSTRING stored as PortList() object with bitmap of egress ports in this vlan
         # self.static_egress_portlist = PortList()
         # self.untagged_ports_bitmap = 0x0    # exactly what you think, PortList format ! :-)
         # self.hh3c_dot1q_vlan_ports = PortList()   # hh3cdot1qVlanPorts is HH3C specific vlan untagged PortList() bitmap
-        self.voice = False  # if True, this is a "voice vlan"
+        self.voice: bool = False  # if True, this is a "voice vlan"
 
     def set_name(self, name: str) -> None:
         self.name = name
@@ -352,11 +352,11 @@ class EthernetAddress(netaddr.EUI):
         """
         # initiate netaddr EUI class parent object
         super().__init__(ethernet_string)
-        self.vendor = ''
-        self.vlan_id = 0  # the vlan id (number) this was heard on, if known
-        self.address_ip4 = ""  # ipv4 address from arp table, if known
-        self.address_ip6 = ""  # ipv6 address, if known
-        self.hostname = ""  # reverse lookup for ip4 or ip6 address.
+        self.vendor: str = ''
+        self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
+        self.address_ip4: str = ""  # ipv4 address from arp table, if known
+        self.address_ip6: str = ""  # ipv6 address, if known
+        self.hostname: str = ""  # reverse lookup for ip4 or ip6 address.
 
     def set_vlan(self, vlan_id: int) -> None:
         self.vlan_id = int(vlan_id)
@@ -398,25 +398,25 @@ class NeighborDevice:
         """
         Initialize the object, requires the lldp index
         """
-        self.index = lldp_index  # 'string' remainder of OID that is unique per remote device
+        self.index: str = lldp_index  # 'string' remainder of OID that is unique per remote device
         # self.if_index = int(if_index)
         # the above can be set from lldp data via SNMP, when these three fields are found:
-        self.chassis_type = 0  # integer, LldpChassisIdSubtype.
+        self.chassis_type: int = 0  # integer, LldpChassisIdSubtype.
         # If chassis_string_type is set to IANA_TYPE_IPV4 or IANA_TYPE_IPV6, then
         # chassis_string is assumed to be a string with the IP4/6 address set.
-        self.chassis_string_type = 0
-        self.chassis_string = ""  # LldpChassisId, OctetString format depends on type.
-        self.vendor = ""  # if chassis-string is ethernet address, this is the OUI vendor.
-        self.capabilities = LLDP_CAPABILITIES_NONE
+        self.chassis_string_type: int = 0
+        self.chassis_string: str = ""  # LldpChassisId, OctetString format depends on type.
+        self.vendor: str = ""  # if chassis-string is ethernet address, this is the OUI vendor.
+        self.capabilities: int = LLDP_CAPABILITIES_NONE
         # self.capabilities = bytes(2)  # init to 2 0-bytes bitmap of device capabilities, see LLDP mib
         #                               # this is the equivalent to LLDP_CAPABILITIES_NONE from connect.constants
-        self.port_name = ""  # remote port name
-        self.port_descr = ""  # remote port description, as set by config
-        self.sys_name = "Unknown Device"
-        self.sys_descr = "Unknown Device Description"
-        self.hostname = ""  # if set, the hostname of the device, possibly resolved from chassis_string
-        self.management_address_type = IANA_TYPE_OTHER  # valid is either IANA_TYPE_IPV4 or IANA_TYPE_IPV6
-        self.management_address = ""  # IP address, either v4 or v6
+        self.port_name: str = ""  # remote port name
+        self.port_descr: str = ""  # remote port description, as set by config
+        self.sys_name: str = "Unknown Device"
+        self.sys_descr: str = "Unknown Device Description"
+        self.hostname: str = ""  # if set, the hostname of the device, possibly resolved from chassis_string
+        self.management_address_type: int = IANA_TYPE_OTHER  # valid is either IANA_TYPE_IPV4 or IANA_TYPE_IPV6
+        self.management_address: str = ""  # IP address, either v4 or v6
 
     def set_port_name(self, port_name: str) -> None:
         '''
@@ -589,11 +589,11 @@ class PoePSE:
         """
         Initialize the object
         """
-        self.index = int(index)
-        self.max_power = 0  # maximum power available on this power supply
-        self.status = POE_PSE_STATUS_ON
-        self.power_consumed = 0  # total power consumed on this power supply
-        self.threshold = 0
+        self.index: int = int(index)
+        self.max_power: int = 0  # maximum power available on this power supply
+        self.status: int = POE_PSE_STATUS_ON
+        self.power_consumed: int = 0  # total power consumed on this power supply
+        self.threshold: int = 0
 
     def as_dict(self) -> dict:
         '''
@@ -664,18 +664,18 @@ class PoePort:
         """
         Initialize the object
         """
-        self.index = index  # port entry is the value after the PoE OID that is the index to this interface
-        self.admin_status = admin_status
-        self.detect_status = POE_PORT_DETECT_SEARCHING
+        self.index: str = index  # port entry is the value after the PoE OID that is the index to this interface
+        self.admin_status: int = admin_status
+        self.detect_status: int = POE_PORT_DETECT_SEARCHING
         """ currently not used:
         self.priority = 0
         self.description = ""       # rarely used, but available in POE MIB
         """
         # power consumed is not in the standard PoE MIB, but some proprietary MIBs support this (e.g. Cisco)
-        self.power_consumption_supported = False
-        self.power_consumed = 0  # power consumed in milliWatt
-        self.power_available = 0  # power available in milliWatt
-        self.max_power_consumed = 0  # max power drawn since PoE reset, in milliWatt
+        self.power_consumption_supported: bool = False
+        self.power_consumed: int = 0  # power consumed in milliWatt
+        self.power_available: int = 0  # power available in milliWatt
+        self.max_power_consumed: int = 0  # max power drawn since PoE reset, in milliWatt
 
     def as_dict(self) -> dict:
         '''
@@ -710,11 +710,11 @@ class SyslogMsg:
         """
         Initialize the object with the message index
         """
-        self.index = index  # snmp table index
-        self.facility = ""  # some name
-        self.severity = -1  # valid are 0-7
-        self.name = ""  # type or name or app-name of message
-        self.message = ""  # the text of the message
+        self.index: int = index  # snmp table index
+        self.facility: str = ""  # some name
+        self.severity: int = -1  # valid are 0-7
+        self.name: str = ""  # type or name or app-name of message
+        self.message: str = ""  # the text of the message
         # datetime() value of message. Generic SYSLOG-MSG-MIB has time "string" (DateAndTime)
         # some vendor mibs have sys-uptime timetick. Recalculate all to datetime() object
         self.datetime = 0
@@ -745,53 +745,59 @@ class Interface:
         """
         Initialize the object. We map the MIB-II entity names to similar class attributes.
         """
-        self.key = str(key)  # the key used to find the index in the connector.interfaces{} dict
-        self.visible = True  # if True, this user can "see" this interface
-        self.manageable = False  # if True, this interface is manageable by the current user
-        self.disabled = False  # if True, this interface is disabled by the Connector() driver.
-        self.unmanage_reason = "Access denied!"  # string with reason why interface is not manageable or disabled
-        self.can_edit_description = False  # if True, can change interface description (snmp ifAlias)
+        self.key: str = str(key)  # the key used to find the index in the connector.interfaces{} dict
+        self.visible: bool = True  # if True, this user can "see" this interface
+        self.manageable: bool = False  # if True, this interface is manageable by the current user
+        self.disabled: bool = False  # if True, this interface is disabled by the Connector() driver.
+        self.unmanage_reason: str = "Access denied!"  # string with reason why interface is not manageable or disabled
+        self.can_edit_description: bool = False  # if True, can change interface description (snmp ifAlias)
         self.index = key  # ifIndex, the key to all MIB-2 data!
         # self.ifDescr = ""           # the old name of the interface, NOT the "description" attribute which is the ifAlias !!!
-        self.name = ""  # the name from IFMIB ifName entry! Falls back to older MIB-2ifDescr is not found!
-        self.type = IF_TYPE_NONE  # ifType, the MIB-2 type of the interface
-        self.is_routed = False  # if True interface is in routed mode (i.e. a layer 3 interface)
-        self.admin_status = False  # administrative status of the interface, True is Admin-Up (snmp ifAdminStatus)
-        self.oper_status = False  # operation status of interface, True is Oper-Up (snmp ifOperStatus)
-        self.mtu = 0  # ifMTU value, for L3 interfaces
-        self.speed = 0  # speed counter, in 1 Mbps (ie. like ifHighSpeed data from IF-MIB)
-        self.duplex = IF_DUPLEX_UNKNOWN  # interface duplex setting, if known.
+        self.name: str = ""  # the name from IFMIB ifName entry! Falls back to older MIB-2ifDescr is not found!
+        self.type: int = IF_TYPE_NONE  # ifType, the MIB-2 type of the interface
+        self.is_routed: bool = False  # if True interface is in routed mode (i.e. a layer 3 interface)
+        self.admin_status: bool = False  # administrative status of the interface, True is Admin-Up (snmp ifAdminStatus)
+        self.oper_status: bool = False  # operation status of interface, True is Oper-Up (snmp ifOperStatus)
+        self.mtu: int = 0  # ifMTU value, for L3 interfaces
+        self.speed: int = 0  # speed counter, in 1 Mbps (ie. like ifHighSpeed data from IF-MIB)
+        self.duplex: int = IF_DUPLEX_UNKNOWN  # interface duplex setting, if known.
         self.phys_addr = 0x0
-        self.description = ""  # the interface description, as set by the switch configuration, from IF-MIB
+        self.description: str = ""  # the interface description, as set by the switch configuration, from IF-MIB
         self.addresses_ip4: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
         self.addresses_ip6: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv6 addresses on this interface
-        self.igmp_snooping = False  # if True, interface does IGMP snooping
+        self.igmp_snooping: bool = False  # if True, interface does IGMP snooping
         # vlan related
-        self.port_id = -1  # Q-Bridge MIB port id
-        self.untagged_vlan = -1  # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
+        self.port_id: int = -1  # Q-Bridge MIB port id
+        self.untagged_vlan: int = (
+            -1
+        )  # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
         self.vlans: List[int] = (
             []
         )  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
-        self.vlan_count = 0
-        self.is_tagged = False  # if 802.1q tagging or trunking is enabled
-        self.if_vlan_mode = -1  # some vendors (e.g. Comware) have a interface vlan mode, such as access, trunk, hybrid
-        self.voice_vlan = 0  # Cisco specific "Voice Vlan"
-        self.can_change_vlan = True  # if set, we can change the vlan; some device types this is not implemented yet!
-        self.gvrp_enabled = False  # the value representing the status of MVRP/GVRP on the interface
-        self.last_change = 0  # ifLastChange, tick count since uptime when interface last changed
+        self.vlan_count: int = 0
+        self.is_tagged: bool = False  # if 802.1q tagging or trunking is enabled
+        self.if_vlan_mode: int = (
+            -1
+        )  # some vendors (e.g. Comware) have a interface vlan mode, such as access, trunk, hybrid
+        self.voice_vlan: int = 0  # Cisco specific "Voice Vlan"
+        self.can_change_vlan: bool = (
+            True  # if set, we can change the vlan; some device types this is not implemented yet!
+        )
+        self.gvrp_enabled: bool = False  # the value representing the status of MVRP/GVRP on the interface
+        self.last_change: int = 0  # ifLastChange, tick count since uptime when interface last changed
         # LACP related
-        self.lacp_type = LACP_IF_TYPE_NONE
+        self.lacp_type: int = LACP_IF_TYPE_NONE
         # for LACP aggregator, a dictionary of lacp member interfaces. key=ifIndex, value=ifName of member interfaces
-        self.lacp_admin_key = -1  # "LacpKey" admin key. Member interfaces map back to this.
+        self.lacp_admin_key: int = -1  # "LacpKey" admin key. Member interfaces map back to this.
         self.lacp_members: Dict[str, str] = {}
         # for members:
-        self.lacp_master_index = (
+        self.lacp_master_index: int = (
             -1
         )  # we are member of an LACP interface. ifIndex of the master aggregate. Mutually exclusive with above!
-        self.lacp_master_name = ""  # we are member of an LACP interface. ifname of the master aggregate.
+        self.lacp_master_name: str = ""  # we are member of an LACP interface. ifname of the master aggregate.
         # Power related
-        self.poe_entry = False  # if interface has PoE capabilities, will be a PoePort() object
-        self.allow_poe_toggle = False  # if set, any user can toggle PoE OFF-ON
+        self.poe_entry: PoePort | bool = False  # if interface has PoE capabilities, will be a PoePort() object
+        self.allow_poe_toggle: bool = False  # if set, any user can toggle PoE OFF-ON
         # a variety of data about what is happening on this interface:
         self.eth: Dict[str, EthernetAddress] = (
             {}
