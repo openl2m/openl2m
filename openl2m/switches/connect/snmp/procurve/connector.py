@@ -22,7 +22,9 @@ with Procurve/Aruba specific ways of doing things...
 """
 import datetime
 
-from switches.models import Log
+from django.http.request import HttpRequest
+
+from switches.models import Log, Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
 from switches.connect.constants import POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
@@ -45,7 +47,7 @@ class SnmpConnectorProcurve(SnmpConnector):
     with Procurve specific ways of doing things...
     """
 
-    def __init__(self, request, group, switch):
+    def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
         dprint("HP/Procurve SnmpConnector __init__")
         super().__init__(request, group, switch)
@@ -55,7 +57,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         # some capabilities we cannot do:
         self.can_save_config = False  # not needed on ProCurve, it has auto-save!
 
-    def _get_interface_data(self):
+    def _get_interface_data(self) -> bool:
         """
         Implement an override of the interface parsing routine,
         so we can add HP specific interface MIBs
@@ -70,7 +72,7 @@ class SnmpConnectorProcurve(SnmpConnector):
 
         return True
 
-    def get_my_hardware_details(self):
+    def get_my_hardware_details(self) -> bool:
         """
         Implement the get_my_hardware_details(), called from the base object get_hardware_details()
         """
@@ -93,7 +95,7 @@ class SnmpConnectorProcurve(SnmpConnector):
     self._map_poe_port_entries_to_interface()
     """
 
-    def _parse_mibs_hp_poe(self, oid, val):
+    def _parse_mibs_hp_poe(self, oid: str, val: str) -> bool:
         """
         Parse HP specific Power Extention MIBs
         """
@@ -116,7 +118,7 @@ class SnmpConnectorProcurve(SnmpConnector):
 
         return False
 
-    def _parse_mibs_hp_if_linkmode(self, oid, val):
+    def _parse_mibs_hp_if_linkmode(self, oid: str, val: str) -> bool:
         """
         Parse HP specific Interface Extension MIB for link mode, PoE info
         """
@@ -130,7 +132,7 @@ class SnmpConnectorProcurve(SnmpConnector):
             return True
         return False
 
-    def _parse_mibs_procurve_config(self, oid, val):
+    def _parse_mibs_procurve_config(self, oid: str, val: str) -> bool:
         """
         Parse Procurve specific ConfigMan MIBs for running-config info
         This gets added to the Information tab!
@@ -149,7 +151,7 @@ class SnmpConnectorProcurve(SnmpConnector):
             return True
         return False
 
-    def _get_poe_data(self):
+    def _get_poe_data(self) -> int:
         """
         HP has 2 possible MIBs with port(interface) power information:
         the hpicfPoePethPsePortPower or hpEntPowerCurrentPowerUsage tables.
