@@ -20,11 +20,13 @@ import datetime
 import math
 import traceback
 
+from django.http.request import HttpRequest
+
 from pysnmp.proto.rfc1902 import OctetString, Gauge32
 
-from switches.models import Log
+from switches.models import Log, Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
-from switches.connect.classes import PortList
+from switches.connect.classes import Interface, PortList
 from switches.connect.constants import IF_TYPE_ETHERNET, POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_branch
 from switches.connect.snmp.constants import SNMP_TRUE, dot1qPvid
@@ -62,7 +64,7 @@ class SnmpConnectorComware(SnmpConnector):
     with H3C specific ways of doing things...
     """
 
-    def __init__(self, request, group, switch):
+    def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
         dprint("Comware SnmpConnector __init__")
         super().__init__(request, group, switch)
@@ -82,7 +84,7 @@ class SnmpConnectorComware(SnmpConnector):
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
         """
 
-    def _get_interface_data(self):
+    def _get_interface_data(self) -> bool:
         """
         Implement an override of the interface parsing routine,
         so we can add Comware specific interface MIBs
@@ -97,7 +99,7 @@ class SnmpConnectorComware(SnmpConnector):
 
         return True
 
-    def _get_max_qbridge_port_id(self):
+    def _get_max_qbridge_port_id(self) -> int:
         """
         Get the maximum value of the switchport id, for physical ports.
         Used for bitmap/byte sizing.
@@ -109,9 +111,10 @@ class SnmpConnectorComware(SnmpConnector):
                 max_port_id = iface.port_id
         return max_port_id
 
-    def _get_vlan_data(self):
+    def _get_vlan_data(self) -> int:
         """
         Implement an override of vlan parsing to read Comware specific MIB
+        Returns -1 on error, or a number to indicate vlans found.
         """
         dprint("Comware _get_vlan_data()\n")
 
@@ -150,9 +153,9 @@ class SnmpConnectorComware(SnmpConnector):
             dprint("hh3cIgmpSnoopingVlanEnabled returned error!")
             self.add_warning("Error getting 'HH3C-Vlan-IGMP-Info' (hh3cIgmpSnoopingVlanEnabled)")
 
-        return True
+        return 1
 
-    def get_my_hardware_details(self):
+    def get_my_hardware_details(self) -> bool:
         """
         Implement the get_my_hardware_details() called from from the base object get_hardware_details()
         Does not return anything!
@@ -167,7 +170,7 @@ class SnmpConnectorComware(SnmpConnector):
             return False
         return True
 
-    def set_interface_untagged_vlan(self, interface, new_vlan_id):
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
         Override the VLAN change, this is done Comware specific using the Comware VLAN MIB
         return True on success, False on error and set self.error variables
@@ -338,24 +341,24 @@ class SnmpConnectorComware(SnmpConnector):
         # interface not found, return False!
         return False
 
-    def _can_manage_interface(self, iface):
+    def _can_manage_interface(self, interface: Interface) -> bool:
         """
         vendor-specific override of function to check if this interface can be managed.
         We check for IRF ports here. This is detected via 'hh3cifVLANType' MIB value,
         in _parse_mibs_comware_if_type()
         Returns True for normal interfaces, but False for IRF ports.
         """
-        if iface.type == IF_TYPE_ETHERNET:
-            if iface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
-                # dprint(f"Interface {iface.name}: mode={iface.if_vlan_mode}, NO MANAGEMENT ALLOWED!")
-                iface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
+        if interface.type == IF_TYPE_ETHERNET:
+            if interface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
+                # dprint(f"Interface {iface.name}: mode={interface.if_vlan_mode}, NO MANAGEMENT ALLOWED!")
+                interface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
                 return False
-            if iface.if_vlan_mode == HH3C_IF_MODE_HYBRID or iface.if_vlan_mode == HH3C_IF_MODE_FABRIC:
-                iface.unmanage_reason = "Access denied: interface in Hybrid or Fabric mode!"
+            if interface.if_vlan_mode == HH3C_IF_MODE_HYBRID or interface.if_vlan_mode == HH3C_IF_MODE_FABRIC:
+                interface.unmanage_reason = "Access denied: interface in Hybrid or Fabric mode!"
                 return False
         return True
 
-    def _parse_mibs_comware_config(self, oid, val):
+    def _parse_mibs_comware_config(self, oid: str, val: str) -> bool:
         """
         Parse Comware specific ConfigMan MIB
         Mostly entries under 'hh3cCfgLog'
@@ -390,7 +393,7 @@ class SnmpConnectorComware(SnmpConnector):
     self._map_poe_port_entries_to_interface(), which is typically device specific
     """
 
-    def _parse_mibs_comware_poe(self, oid, val):
+    def _parse_mibs_comware_poe(self, oid: str, val: str) -> bool:
         """
         Parse the Comware extended HH3C-POWER-ETH MIB, power usage extension
         return True if we parse it, False if not.
@@ -405,7 +408,7 @@ class SnmpConnectorComware(SnmpConnector):
 
         return False
 
-    def _parse_mibs_comware_vlan(self, oid, val):
+    def _parse_mibs_comware_vlan(self, oid: str, val: str) -> bool:
         """
         Parse Comware specific VLAN MIB
         return True if we parse it, False if not.
@@ -421,7 +424,7 @@ class SnmpConnectorComware(SnmpConnector):
             return True
         return False
 
-    def _parse_mibs_comware_vlan_igmp(self, oid, val):
+    def _parse_mibs_comware_vlan_igmp(self, oid: str, val: str) -> bool:
         """
         Parse Comware specific VLAN IGMP mib
         return True if we parse it, False if not.
@@ -435,7 +438,7 @@ class SnmpConnectorComware(SnmpConnector):
             return True
         return False
 
-    def _parse_mibs_comware_if_type(self, oid, val):
+    def _parse_mibs_comware_if_type(self, oid: str, val: str) -> bool:
         """
         Parse Comware specific Interface Type MIB
         return True if we parse it, False if not.
@@ -449,7 +452,7 @@ class SnmpConnectorComware(SnmpConnector):
             return True
         return False
 
-    def _parse_mibs_comware_if_linkmode(self, oid, val):
+    def _parse_mibs_comware_if_linkmode(self, oid: str, val: str) -> bool:
         """
         Parse Comware specific Interface Extension MIB for link mode
         return True if we parse it, False if not.
@@ -462,7 +465,7 @@ class SnmpConnectorComware(SnmpConnector):
             return True
         return False
 
-    def _parse_mibs_comware_configfile(self, oid, val):
+    def _parse_mibs_comware_configfile(self, oid: str, val: str) -> bool:
         """
         Parse Comware specific ConfigMan MIB
         return True if we parse it, False if not.
@@ -474,7 +477,9 @@ class SnmpConnectorComware(SnmpConnector):
                 self.active_config_rows = int(sub_oid)
             return True
 
-    def _get_poe_data(self):
+        return False
+
+    def _get_poe_data(self) -> int:
         """
         Get PoE data, first via the standard PoE MIB,
         then by calling the Comware extended HH3C-POWER-ETH MIB
@@ -528,7 +533,7 @@ class SnmpConnectorComware(SnmpConnector):
                         log.save()
                     break
 
-    def save_running_config(self):
+    def save_running_config(self) -> bool:
         """
         HP/3COM interface to save the current config to startup via SNMP
         For details on how this works, see
