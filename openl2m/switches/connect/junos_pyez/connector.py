@@ -15,7 +15,9 @@ from netaddr import IPNetwork
 import re
 
 from django.conf import settings
+from django.http.request import HttpRequest
 
+from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 from switches.connect.constants import (
     IF_DUPLEX_FULL,
@@ -55,7 +57,7 @@ class PyEZConnector(Connector):
     This class implements a Connector() to get switch information from Junos devices supported by the PyEz library.
     '''
 
-    def __init__(self, request=False, group=False, switch=False):
+    def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         '''
         Initialize the PyEZ Connector() object
 
@@ -90,7 +92,7 @@ class PyEZConnector(Connector):
             dprint("  _open_device() failed! Raising exception")
             raise Exception("PyEZ connection failed! Please check the device configuration!")
 
-    def get_my_basic_info(self):
+    def get_my_basic_info(self) -> bool:
         '''
         load 'basic' list of interfaces with status.
 
@@ -355,7 +357,7 @@ class PyEZConnector(Connector):
 
         return True
 
-    def get_my_client_data(self):
+    def get_my_client_data(self) -> bool:
         '''
         read mac addressess, and lldp neigbor info.
 
@@ -519,7 +521,7 @@ class PyEZConnector(Connector):
                 # call base class for bookkeeping.
                 super().set_interface_poe_consumed(iface, consumed)
 
-    def set_interface_admin_status(self, interface, new_state):
+    def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
         '''
         Set the interface to the requested state (up or down)
 
@@ -549,7 +551,7 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
-    def set_interface_poe_status(self, interface, new_state):
+    def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
         '''
         Set the interface Power-over-Ethernet status to the requested state (up or down)
 
@@ -579,7 +581,7 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
-    def set_interface_untagged_vlan(self, interface, new_pvid):
+    def set_interface_untagged_vlan(self, interface: Interface, new_pvid: int) -> bool:
         '''
         Set the interface untagged vlan to the given vlan
 
@@ -619,7 +621,7 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
-    def vlan_create(self, vlan_id, vlan_name):
+    def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
         '''
         Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
 
@@ -654,7 +656,7 @@ class PyEZConnector(Connector):
         self.error.details = f"Error creating vlan {vlan_id}: {self.error.description}"
         return False
 
-    def vlan_edit(self, vlan_id, vlan_name):
+    def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
         '''
         Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
 
@@ -696,7 +698,7 @@ class PyEZConnector(Connector):
         self.error.description = f"Error updating vlan {vlan_id} name to '{vlan_name}': {self.error.description}"
         return False
 
-    def vlan_delete(self, vlan_id):
+    def vlan_delete(self, vlan_id: int) -> bool:
         '''
         Delete the vlan. Upon success, this then needs to call the base class for book keeping!
 
@@ -732,7 +734,7 @@ class PyEZConnector(Connector):
         self.error.description = f"Error deleting vlan {vlan_id}: {self.error.description}"
         return False
 
-    def set_interface_description(self, interface, description):
+    def set_interface_description(self, interface: Interface, description: str) -> bool:
         '''
         Set the interface description (aka. description) to the string
 
@@ -762,7 +764,7 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
-    def execute_commands(self, commands, format='set'):
+    def execute_commands(self, commands: list, format: str = 'set') -> bool:
         '''
         Execute a list of command string(s) on the device. Defaults to 'set' format.
 
@@ -839,7 +841,7 @@ class PyEZConnector(Connector):
             self.error.details = f"Error: '{err}', command was '{commands}'"
             return False
 
-    def _validate_vlan_name(self, vlan_name):
+    def _validate_vlan_name(self, vlan_name: str) -> bool:
         '''Validate the characters in the new vlan name
 
         Args:
@@ -850,7 +852,7 @@ class PyEZConnector(Connector):
         '''
         return True
 
-    def _open_device(self):
+    def _open_device(self) -> bool:
         '''
         get a pyJunosPyEZ "driver" and open a "connection" to the device
         return True on success, False on failure, and will set self.error
@@ -884,7 +886,7 @@ class PyEZConnector(Connector):
 
         return True
 
-    def _close_device(self):
+    def _close_device(self) -> bool:
         '''
         make sure we properly close the Junos PyEZ Session
         '''

@@ -25,7 +25,7 @@ from switches.connect.constants import (
 )
 
 
-def junos_speed_to_mbps(speed):
+def junos_speed_to_mbps(speed: str) -> int:
     '''
     Convert speed string to integer in 1Mbps
 
@@ -50,7 +50,7 @@ def junos_speed_to_mbps(speed):
     return 0
 
 
-def junos_parse_power(power, milliwatts=False):
+def junos_parse_power(power: str, milliwatts: bool = False) -> int:
     '''
     Convert a power string to an integer in Watts or milliWatts.
 
@@ -65,15 +65,15 @@ def junos_parse_power(power, milliwatts=False):
         return 0
     if power.endswith('W'):
         # power is something like "12.3W"
-        power = float(power.replace('W', ''))
+        pwr = float(power.replace('W', ''))
         if milliwatts:
-            power = power * 1000
-        return int(power)
+            pwr = pwr * 1000
+        return int(pwr)
     # else hardcode 0 Watts
     return 0
 
 
-def junos_parse_duplex(duplex):
+def junos_parse_duplex(duplex: str) -> int:
     '''
     Convert a duplex string to an integer with the proper duplex meaning.
 
@@ -97,7 +97,7 @@ def junos_parse_duplex(duplex):
     return IF_DUPLEX_UNKNOWN
 
 
-def junos_remove_unit(if_name):
+def junos_remove_unit(if_name: str) -> str:
     '''
     Remove the Junos unit from the interface name.
     E.g. "" eth-0/0/0.0" becomes "eth-0/0/0"
@@ -114,7 +114,7 @@ def junos_remove_unit(if_name):
     return if_name
 
 
-def junos_parse_if_type(if_type):
+def junos_parse_if_type(if_type: str) -> int:
     '''
     Parse the XML "if-type" field, and return an IF_TYPE_XXX flag.
 
