@@ -17,7 +17,9 @@ This re-implements some methods found in the base SNMP() class
 with Juniper specific ways of doing things...
 Note: JUNOS devices are Read-Only for SNMP! See the PyEZ driver for R/W capabilities!
 """
-from switches.models import Log
+from django.http.request import HttpRequest
+
+from switches.models import Log, Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
 from switches.connect.constants import (
     POE_PORT_DETECT_DELIVERING,
@@ -26,7 +28,7 @@ from switches.connect.constants import (
     VLAN_STATUS_DYNAMIC,
     VLAN_STATUS_OTHER,
 )
-from switches.connect.classes import Error
+from switches.connect.classes import Interface, Error
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.utils import dprint, get_remote_ip
 
@@ -47,15 +49,14 @@ class SnmpConnectorJuniper(SnmpConnector):
     with Juniper specific ways of doing things...
     """
 
-    def __init__(self, request, group, switch):
+    def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
         dprint("Juniper Networks SnmpConnector __init__")
-        super().__init__(request, group, switch)
-        self.description = 'Juniper SNMP (R/O) driver'
-        # force READ-ONL. JUNOS devices are Read-Only for SNMP! See the PyEZ driver for R/W capabilities!
+        super().__init__(request=request, group=group, switch=switch)
+        # force READ-ONLY. JUNOS devices are Read-Only for SNMP! See the PyEZ driver for R/W capabilities!
         self.switch.read_only = True
         self.vendor_name = "Juniper Networks"
-        self.description = "Juniper Networks SNMP driver"
+        self.description = "Juniper Networks Read-Only SNMP driver"
 
     def _map_poe_port_entries_to_interface(self):
         """
@@ -95,7 +96,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                         log.save()
                     break
 
-    def _get_vlan_data(self):
+    def _get_vlan_data(self) -> int:
         """
         Implement an override of vlan parsing to read Junos EX specific MIB
         Return 1 on success, -1 on failure
@@ -122,7 +123,7 @@ class SnmpConnectorJuniper(SnmpConnector):
             return 1
         return 0
 
-    def _parse_mibs_juniper_l2ald_vlans(self, oid, val):
+    def _parse_mibs_juniper_l2ald_vlans(self, oid: str, val: str) -> bool:
         """
         Parse JNX EX specific VLAN Mibs
         Returns True if parses, False if not.
@@ -159,10 +160,10 @@ class SnmpConnectorJuniper(SnmpConnector):
         vlan_index = int(oid_in_branch(jnxL2aldVlanType, oid))
         if vlan_index:
             dprint(f"jnxL2aldVlanType {vlan_index} = {val}")
-            val = int(val)
-            if val == JNX_VLAN_TYPE_STATIC:
+            value = int(val)
+            if value == JNX_VLAN_TYPE_STATIC:
                 status = VLAN_STATUS_PERMANENT
-            elif val == JNX_VLAN_TYPE_DYNAMIC:
+            elif value == JNX_VLAN_TYPE_DYNAMIC:
                 status = VLAN_STATUS_DYNAMIC
             else:  # should not happen!
                 status = VLAN_STATUS_OTHER
@@ -187,25 +188,25 @@ class SnmpConnectorJuniper(SnmpConnector):
             return True
         return False
 
-    def set_interface_admin_status(self, interface=False, status=-1):
+    def set_interface_admin_status(self, interface: Interface, status: int) -> bool:
         self.error = Error(
             status=True, description="set_interface_admin_status(): JUNOS switches are Read-Only for SNMP!"
         )
         return False
 
-    def set_interface_poe_status(self, interface=False, status=-1):
+    def set_interface_poe_status(self, nterface: Interface, status: int) -> bool:
         self.error = Error(
             status=True, description="set_interface_poe_status(): JUNOS switches are Read-Only for SNMP!"
         )
         return False
 
-    def set_interface_description(self, interface=False, description=""):
+    def set_interface_description(self, interface: Interface, description: str) -> bool:
         self.error = Error(
             status=True, description="set_interface_description(): JUNOS switches are Read-Only for SNMP!"
         )
         return False
 
-    def set_interface_untagged_vlan(self, interface, old_vlan_id, new_vlan_id):
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         self.error = Error(
             status=True, description="set_interface_untagged_vlan(): JUNOS switches are Read-Only for SNMP!"
         )
