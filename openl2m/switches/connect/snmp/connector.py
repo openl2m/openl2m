@@ -20,10 +20,11 @@ import datetime
 import easysnmp
 import pprint
 import time
-from typing import Dict
+from typing import Dict, Any
 import traceback
 
 from django.conf import settings
+from django.http.request import HttpRequest
 
 from pysnmp.hlapi import (
     getCmd,
@@ -58,7 +59,7 @@ from switches.constants import (
     SNMP_V3_PRIV_DES,
     SNMP_V3_SECURITY_AUTH_PRIV,
 )
-from switches.models import Log
+from switches.models import Log, Switch, SwitchGroup
 from switches.utils import dprint, get_remote_ip
 
 # from switches.connect.utils import *
@@ -182,7 +183,7 @@ class pysnmpHelper:
     Based on the pysnmp HPAPI at http://snmplabs.com/pysnmp/examples/contents.html#high-level-snmp
     """
 
-    def __init__(self, switch: bool = False):
+    def __init__(self, switch: Switch):
         """
         Initialize the PySnmp bindings
         """
@@ -371,7 +372,7 @@ class SnmpConnector(Connector):
     Note: in "vendors" folder are several classes that implement vendor-specific parts of this generic class.
     """
 
-    def __init__(self, request=False, group=False, switch=False):
+    def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         """
         Initialize the object
         """
@@ -826,7 +827,7 @@ class SnmpConnector(Connector):
     internal class-specific functions
     """
 
-    def _parse_oid_with_fixup(self, oid: str, value, snmp_type, parser):
+    def _parse_oid_with_fixup(self, oid: str, value: Any, snmp_type: str, parser):
         """
         Parse OID data from the pysnmp library. We need to map data types, as
         EasySNMP returns everything as a Python str() object!
@@ -1380,7 +1381,7 @@ class SnmpConnector(Connector):
         # we did not parse this. This can happen with Bulk Walks...
         return False
 
-    def _get_ports_from_vlan_bitmap(self, vlan_id, byte_string):
+    def _get_ports_from_vlan_bitmap(self, vlan_id: int, byte_string: bytes):
         """Parse the list of all egress ports of a VLAN (tagged + untagged) as a hex byte string
         now look at all the bits in this multi-byte value to find ports on this vlan:
 
@@ -1389,7 +1390,7 @@ class SnmpConnector(Connector):
             byte_string (bytes)): the bitmap showing which ports are a member of this vlan
 
         Returns:
-            True
+            n/a
         """
         offset = 0
         for byte in byte_string:
@@ -1422,9 +1423,8 @@ class SnmpConnector(Connector):
                 port_id = (offset * 8) + 8
                 self._add_vlan_to_interface_by_port_id(port_id, vlan_id)
             offset += 1
-        return True
 
-    def _get_untagged_ports_from_vlan_bitmap(self, vlan_id, byte_string):
+    def _get_untagged_ports_from_vlan_bitmap(self, vlan_id: int, byte_string: bytes):
         """Parse the list of current untagged ports of a VLAN as a hex byte string
         Look at all the bits in this multi-byte value to find ports on this vlan:
 
@@ -1433,7 +1433,7 @@ class SnmpConnector(Connector):
             byte_string (bytes)): the bitmap showing which ports are a member of this vlan
 
         Returns:
-            True
+            none
         """
         offset = 0
         for byte in byte_string:
@@ -1466,7 +1466,6 @@ class SnmpConnector(Connector):
                 port_id = (offset * 8) + 8
                 self._add_untagged_vlan_to_interface_by_port_id(port_id, vlan_id)
             offset += 1
-        return True
 
     def _parse_mibs_ieee_qbridge(self, oid: str, val: str) -> bool:
         """
@@ -2701,7 +2700,7 @@ class SnmpConnector(Connector):
 
         # and re-read the dot1qVlanCurrentEgressPorts, all ports
         # tagged/untagged on the old and new vlan
-        # note the 0 to hopefull deactivate time filter!
+        # note the 0 to hopefully deactivate time filter!
         dprint("Get OLD VLAN Current Egress Ports")
         (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{old_vlan_id}")
         dprint("Get NEW VLAN Current Egress Ports")

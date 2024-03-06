@@ -21,7 +21,7 @@ This file contains SNMP utility functions
 """
 
 
-def decimal_to_hex_string_ethernet(decimals):
+def decimal_to_hex_string_ethernet(decimals: str) -> str:
     """
     Convert SNMP decimal ethernet string "5.12.13.78.90.100"
     to hex value and colon-string "05:0c:0d:4e:5a:64"
@@ -39,7 +39,7 @@ def decimal_to_hex_string_ethernet(decimals):
     return "00:00:00:00:00:00"
 
 
-def bytes_ethernet_to_string(bytes):
+def bytes_ethernet_to_string(bytes: str) -> str:
     """
     Convert SNMP ethernet in 6-byte octetstring to the selected ethernet string format.
     """
