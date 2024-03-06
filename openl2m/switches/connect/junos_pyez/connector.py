@@ -581,31 +581,31 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
-    def set_interface_untagged_vlan(self, interface: Interface, new_pvid: int) -> bool:
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         '''
         Set the interface untagged vlan to the given vlan
 
         Args:
             interface: the Interface() object for the requested port
-            new_pvid(int): the requested untagged vlan
+            new_vlan_id(int): the requested untagged vlan
 
         Returns:
             (boolean) True on success, False on error and set self.error variables
         '''
-        dprint(f"PyEZCOnnector.set_interface_untagged_vlan() for {interface.name} to vlan {new_pvid}")
+        dprint(f"PyEZCOnnector.set_interface_untagged_vlan() for {interface.name} to vlan {new_vlan_id}")
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
         commands = []
         if interface.is_tagged:  # "vlan trunk"
-            commands.append(f"set interfaces {interface.name} native-vlan-id {new_pvid}")
+            commands.append(f"set interfaces {interface.name} native-vlan-id {new_vlan_id}")
         else:  # "plain untagged"
             # need vlan by name, not number!
-            vlan = self.get_vlan_by_id(new_pvid)
+            vlan = self.get_vlan_by_id(new_vlan_id)
             if not vlan:
-                # cannot find pvid vlan (should not happen!)
+                # cannot find untagged vlan (should not happen!)
                 self.error.status = True
-                self.error.description = f"Unknown vlan {new_pvid}"
+                self.error.description = f"Unknown vlan {new_vlan_id}"
                 return False
             commands.append(f"delete interfaces {interface.name} unit 0 family ethernet-switching vlan")
             commands.append(
@@ -613,7 +613,7 @@ class PyEZConnector(Connector):
             )
         if self.execute_commands(commands=commands):
             # call the super class for bookkeeping.
-            super().set_interface_untagged_vlan(interface=interface, new_pvid=new_pvid)
+            super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
             self._close_device()
             dprint("  change OK!")
             return True

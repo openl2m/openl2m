@@ -595,14 +595,14 @@ class AosCxConnector(Connector):
             self.error.details = ""
             return False
 
-    def set_interface_untagged_vlan(self, interface: Interface, new_pvid: int) -> bool:
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
         set the interface untagged vlan to the given vlan
         interface = Interface() object for the requested port
-        new_pvid = an integer with the requested untagged vlan
+        new_vlan_id = an integer with the requested untagged vlan
         return True on success, False on error and set self.error variables
         """
-        dprint(f"AosCxConnector.set_interface_untagged_vlan() for {interface.name} to vlan {new_pvid}")
+        dprint(f"AosCxConnector.set_interface_untagged_vlan() for {interface.name} to vlan {new_vlan_id}")
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
@@ -620,7 +620,7 @@ class AosCxConnector(Connector):
 
         dprint("  Get AosCxVlan()")
         try:
-            aoscx_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=new_pvid)
+            aoscx_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=new_vlan_id)
         except Exception as err:
             dprint(f"ERROR getting AosCxVlan() object: {err}")
             self.error.status = True
@@ -646,7 +646,7 @@ class AosCxConnector(Connector):
                 if changed:
                     dprint("   Vlan Change OK!")
                     # call the super class for bookkeeping.
-                    super().set_interface_untagged_vlan(interface, new_pvid)
+                    super().set_interface_untagged_vlan(interface, new_vlan_id)
                     return True
                 else:
                     dprint("   Vlan Change FAILED!")

@@ -2534,7 +2534,7 @@ class SnmpConnector(Connector):
 
         return True
 
-    def _get_syslog_msgs(self) -> bool:
+    def _get_syslog_msgs(self):
         """
         Read the SYSLOG-MSG-MIB: note this is meant for notifications, but we can read log size!
         Returns True on success, False on failure
@@ -2542,8 +2542,6 @@ class SnmpConnector(Connector):
         retval = self.get_snmp_branch('syslogMsgTableMaxSize')
         if retval < 0:
             self.add_warning("Error getting Log Size Info (syslogMsgTableMaxSize)")
-            return False
-        return True
 
     def get_system_oid(self) -> str:
         """Read the SNMP System OID object. Return as string.

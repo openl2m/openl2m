@@ -565,19 +565,19 @@ class Connector:
         interface.poe_entry.detect_status = status
         return True
 
-    def set_interface_untagged_vlan(self, interface: Interface, new_pvid: int) -> bool:
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         '''
         Set the interface untagged vlan to the given vlan
 
         Args:
             interface = Interface() object for the requested port
-            new_pvid = an integer with the requested untagged vlan
+            new_vlan_id = an integer with the requested untagged vlan
 
         Returns:
             True on success, False on error and set self.error variables
         '''
-        dprint(f"Connector.set_interface_untagged_vlan() for {interface.name} to vlan {new_pvid}")
-        interface.untagged_vlan = int(new_pvid)
+        dprint(f"Connector.set_interface_untagged_vlan() for {interface.name} to vlan {new_vlan_id}")
+        interface.untagged_vlan = int(new_vlan_id)
         # self.save_cache()
         return True
 
