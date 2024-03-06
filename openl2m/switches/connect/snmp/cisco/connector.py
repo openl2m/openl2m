@@ -20,10 +20,12 @@ import datetime
 import random
 import time
 from django.conf import settings
+from django.http.request import HttpRequest
+from typing import Dict
 
-from switches.models import Log
+from switches.models import Log, Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_SAVE_SWITCH, LOG_PORT_POE_FAULT, SNMP_VERSION_2C
-from switches.connect.classes import SyslogMsg
+from switches.connect.classes import Interface, SyslogMsg
 from switches.connect.constants import poe_status_name, POE_PORT_DETECT_FAULT, VLAN_TYPE_NORMAL
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.utils import dprint, get_remote_ip
@@ -79,7 +81,7 @@ class SnmpConnectorCisco(SnmpConnector):
     We override various functions as needed for the Cisco way of doing things.
     """
 
-    def __init__(self, request, group, switch):
+    def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
         dprint("CISCO SnmpConnector __init__")
         super().__init__(request, group, switch)
@@ -94,9 +96,9 @@ class SnmpConnectorCisco(SnmpConnector):
         self.can_save_config = True    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
         """
-        self.stack_port_to_if_index = {}  # maps (Cisco) stacking port to ifIndex values
+        self.stack_port_to_if_index: Dict[int, int] = {}  # maps (Cisco) stacking port to ifIndex values
 
-    def _get_interface_data(self):
+    def _get_interface_data(self) -> bool:
         """
         Implement an override of the interface parsing routine,
         so we can add Cisco specific interface MIBs
@@ -111,7 +113,7 @@ class SnmpConnectorCisco(SnmpConnector):
 
         return True
 
-    def _get_vlan_data(self):
+    def _get_vlan_data(self) -> int:
         """
         Implement an override of vlan parsing to read Cisco specific MIB
         Get all neccesary vlan info (names, id, ports on vlans, etc.) from the switch.
@@ -169,7 +171,7 @@ class SnmpConnectorCisco(SnmpConnector):
         self.vlan_count = len(self.vlans)
         return self.vlan_count
 
-    def _get_known_ethernet_addresses(self):
+    def _get_known_ethernet_addresses(self) -> bool:
         """
         Read the Bridge-MIB for known ethernet address on the switch.
         On Cisco switches, you have to append the vlan ID after the v1/2c community,
@@ -203,7 +205,7 @@ class SnmpConnectorCisco(SnmpConnector):
         self._set_snmp_session()
         return True
 
-    def _get_poe_data(self):
+    def _get_poe_data(self) -> int:
         """
         Implement reading Cisco-specific PoE mib.
         Returns 1 on success, -1 on failure
@@ -243,7 +245,6 @@ class SnmpConnectorCisco(SnmpConnector):
             # something bad happened
             self.add_warning("Error getting Cisco Syslog Messages (ciscoSyslogMIBObjects)")
             self.log_error()
-            return 0  # for now
 
     def _map_poe_port_entries_to_interface(self):
         """
@@ -307,7 +308,7 @@ class SnmpConnectorCisco(SnmpConnector):
                             log.save()
                         break
 
-    def set_interface_untagged_vlan(self, interface, new_vlan_id):
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
         Override the VLAN change, this is done Cisco specific using the VTP MIB
         Returns True or False
@@ -332,7 +333,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # interface not found:
         return False
 
-    def get_my_hardware_details(self):
+    def get_my_hardware_details(self) -> bool:
         """
         Implement the get_my_hardware_details() function called from the base object get_hardware_details().
         Does not return anything.
@@ -347,7 +348,7 @@ class SnmpConnectorCisco(SnmpConnector):
             return False
         return True
 
-    def _parse_mibs_cisco_if_opermode(self, oid, val):
+    def _parse_mibs_cisco_if_opermode(self, oid: str, val: str) -> bool:
         """
         Parse Cisco specific Interface Config MIB for operational mode
         """
@@ -359,7 +360,7 @@ class SnmpConnectorCisco(SnmpConnector):
             return True
         return False
 
-    def _parse_mibs_cisco_poe(self, oid, val):
+    def _parse_mibs_cisco_poe(self, oid: str, val: str) -> bool:
         """
         Parse Cisco POE Extension MIB database
         """
@@ -397,7 +398,7 @@ class SnmpConnectorCisco(SnmpConnector):
 
         return False
 
-    def _parse_mibs_cisco_vtp(self, oid, val):
+    def _parse_mibs_cisco_vtp(self, oid: str, val: str) -> bool:
         """
         Parse Cisco specific VTP MIB
         """
@@ -521,7 +522,7 @@ class SnmpConnectorCisco(SnmpConnector):
 
         return False
 
-    def _parse_mibs_cisco_vlan(self, oid, val):
+    def _parse_mibs_cisco_vlan(self, oid: str, val: str) -> bool:
         """
         Parse Cisco specific Vlan related mib entries.
         """
@@ -537,7 +538,9 @@ class SnmpConnectorCisco(SnmpConnector):
                 dprint("   UNTAGGED VLAN for invalid trunk port")
             return True
 
-    def _parse_mibs_cisco_voice_vlan(self, oid, val):
+        return False
+
+    def _parse_mibs_cisco_voice_vlan(self, oid: str, val: str) -> bool:
         """
         Parse Cisco specific Voice-Vlan related mib entries.
         """
@@ -553,7 +556,7 @@ class SnmpConnectorCisco(SnmpConnector):
 
         return False
 
-    def _cisco_parse_vlan_bitmap(self, val, vlan_base, iface):
+    def _cisco_parse_vlan_bitmap(self, val: str, vlan_base: int, iface: Interface):
         """
         Parse the 128 byte vlan bitmap entry from vlanTrunkPortVlansEnabled* entries
         to find the vlans on a trunk interface.
@@ -595,7 +598,7 @@ class SnmpConnectorCisco(SnmpConnector):
             offset += 1
         return True
 
-    def _parse_mibs_cisco_config(self, oid, val):
+    def _parse_mibs_cisco_config(self, oid: str, val: str) -> bool:
         """
         Parse Cisco specific ConfigMan MIBs for running-config info
         This gets added to the Information tab!
@@ -622,7 +625,7 @@ class SnmpConnectorCisco(SnmpConnector):
             return True
         return False
 
-    def _parse_mibs_cisco_syslog_msg(self, oid, val):
+    def _parse_mibs_cisco_syslog_msg(self, oid: str, val: str) -> bool:
         """
         Parse Cisco specific Syslog MIB to read syslog messages stored.
         """
@@ -710,13 +713,15 @@ class SnmpConnectorCisco(SnmpConnector):
                 msg = SyslogMsg(index)
                 # approximate / calculate the datetime value:
                 # msg time = time when sysUpTime was read minus seconds between sysUptime and msg timetick
-                msg.datetime = datetime.datetime.fromtimestamp(self.time - int((self.sys_uptime - timetick) / 100))
+                msg.datetime = datetime.datetime.fromtimestamp(
+                    self.sys_uptime_timestamp - int((self.sys_uptime - timetick) / 100)
+                )
                 self.syslog_msgs[index] = msg
             return True
 
         return False
 
-    def save_running_config(self):
+    def save_running_config(self) -> bool:
         """
         Cisco interface to save the current config to startup
         Returns True is this succeeds, False on failure. self.error() will be set in that case
