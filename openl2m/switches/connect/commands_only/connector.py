@@ -15,7 +15,10 @@
 Commands-Only Connector: this implements an SSH connection to the devices
 that is used for excuting commands only!
 """
+from django.http.request import HttpRequest
+
 from switches.connect.connector import Connector
+from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 
 
@@ -26,7 +29,7 @@ class CommandsOnlyConnector(Connector):
     This is purely for testing and to show how to implement a new device interface.
     """
 
-    def __init__(self, request, group, switch):
+    def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
         dprint("Commands-Only Connector __init__")
         super().__init__(request, group, switch)
@@ -38,7 +41,7 @@ class CommandsOnlyConnector(Connector):
             self.add_more_info('System', 'Description', switch.description)
         self.show_interfaces = False  # do NOT show interfaces, vlans etc...
 
-    def get_my_basic_info(self):
+    def get_my_basic_info(self) -> bool:
         """
         placeholder, we are not actually gathering information here
         Implemented to surpress the warning if not implemented.
@@ -47,7 +50,7 @@ class CommandsOnlyConnector(Connector):
         self.hostname = self.switch.hostname
         return True
 
-    def can_run_commands(self):
+    def can_run_commands(self) -> bool:
         """
         Does the device have the ability to execute a 'cli command'
         Returns True or False
