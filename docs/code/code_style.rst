@@ -12,6 +12,8 @@ https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html
 To document functions and classes, we use the Google comment style, see more at
 https://google.github.io/styleguide/pyguide.html
 
-New code should adhere to this, and add Python type hinting.
+New code should add Python type hinting. Specifically, we require type hints as documented in
+`PEP 484 <https://peps.python.org/pep-0484/>`_ and variable annotations per `PEP 526. <https://peps.python.org/pep-0526/>`_
+(We are working on retrofitting existing 3.x code!)
 
 Function calls with more then one parameter should use named parameters, instead of position-based calling.
