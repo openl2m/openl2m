@@ -21,6 +21,7 @@ import netmiko
 from django.conf import settings
 
 from switches.connect.classes import Error
+from switches.models import Switch
 from switches.utils import dprint
 
 
@@ -30,7 +31,7 @@ class NetmikoExecute:
     This implements "Generic" netmiko connection to a switch
     """
 
-    def __init__(self, switch):
+    def __init__(self, switch: Switch):
         """
         Initialize the object with all the settings,
         and connect to the switch
@@ -49,7 +50,7 @@ class NetmikoExecute:
         self.error.status = False
         return
 
-    def connect(self):
+    def connect(self) -> bool:
         """
         Establish the connection
         return True on success, False on error,
@@ -88,7 +89,7 @@ class NetmikoExecute:
         self.connection = handle
         return True
 
-    def disable_paging(self):
+    def disable_paging(self) -> bool:
         """
         Disable paging, ie the "hit a key" for more
         We call the Netmiko built-in function
@@ -113,7 +114,7 @@ class NetmikoExecute:
                 return False
         return True
 
-    def execute_command(self, command):
+    def execute_command(self, command: str) -> bool:
         """
         Execute a single command on the device.
         Save the command output to self.output
