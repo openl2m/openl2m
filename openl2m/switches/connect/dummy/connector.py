@@ -16,9 +16,12 @@
 """
 Dummy Connector
 """
+from django.http.request import HttpRequest
+
 from switches.connect.constants import IF_TYPE_ETHERNET
 from switches.connect.classes import Interface, NeighborDevice
 from switches.connect.connector import Connector
+from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 from switches.connect.constants import LLDP_CAPABILITIES_WLAN, LLDP_CAPABILITIES_ROUTER, LLDP_CAPABILITIES_PHONE
 
@@ -30,7 +33,7 @@ class DummyConnector(Connector):
     This is purely for testing and to show how to implement a new device interface.
     """
 
-    def __init__(self, request, group, switch):
+    def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
         dprint("Dummy Connector __init__")
         super().__init__(request, group, switch)
