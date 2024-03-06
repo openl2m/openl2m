@@ -26,10 +26,13 @@ ifAdminStatus (ie interface up/down), and pethPsePortAdminEnable (ie. PoE enable
 """
 # from pysnmp.proto.rfc1902 import OctetString, Gauge32
 # import traceback
+from django.http.request import HttpRequest
 
 # from switches.connect.classes import PortList
+from switches.connect.classes import Interface
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.connect.snmp.constants import dot1qPvid
+from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 
 from switches.connect.snmp.aruba_cx.constants import (
@@ -50,7 +53,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
     for now a derivative of the default SNMP connector.
     """
 
-    def __init__(self, request, group, switch):
+    def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
         dprint("Aruba SnmpConnector __init__")
         super().__init__(request, group, switch)
@@ -74,7 +77,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         self.can_change_vlan = True
         self.can_set_vlan_name = False  # vlan create/delete allowed over snmp, but cannot set name!
 
-    def _parse_mibs_aruba_poe(self, oid, val):
+    def _parse_mibs_aruba_poe(self, oid: str, val: str) -> bool:
         """
         Parse Aruba's ARUBAWIRED-POE Mibs
         """
@@ -89,7 +92,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         return False
 
-    def _parse_mibs_aruba_vsf2(self, oid, val):
+    def _parse_mibs_aruba_vsf2(self, oid: str, val: str) -> bool:
         """
         Parse ARUBAWIRED-VSFv2 mibs.
         """
@@ -110,7 +113,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         return False
 
-    def _get_poe_data(self):
+    def _get_poe_data(self) -> int:
         """
         Aruba(HP) used both the standard PoE MIB, and their own ARUBAWIRED-POE mib.
         """
@@ -124,7 +127,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         return 1
 
-    def _get_vlan_data(self):
+    def _get_vlan_data(self) -> int:
         """
         Implement an override of vlan parsing to read Cisco specific MIB
         Get all neccesary vlan info (names, id, ports on vlans, etc.) from the switch.
@@ -161,7 +164,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         return self.vlan_count
 
-    def get_my_hardware_details(self):
+    def get_my_hardware_details(self) -> bool:
         """
         Load hardware details from the VSF v2 mib (Virtual Switch Fabric)
         then call the generic SNMP hardware details.
@@ -175,7 +178,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             return False
         return True
 
-    def set_interface_untagged_vlan(self, interface, new_vlan_id):
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
         return True on success, False on error and set self.error variables
@@ -245,7 +248,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
                 return False
         return True
 
-    def save_running_config(self):
+    def save_running_config(self) -> bool:
         """
         Aruba Aos-Cx interface to save the current config to startup via SNMP
         For details on how this works, see firmware v10.10 and above,
