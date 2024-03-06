@@ -19,7 +19,7 @@ This file contains general utility functions
 """
 
 
-def interface_name_to_long(name):
+def interface_name_to_long(name: str) -> str:
     # convert a short interface name, Gi0/1, Te1/0/1, etc.
     # to their equivalent long names GigabitEthernet0/1, TenGigabitEthernet1/0/1, etc.
     dprint(f"interface_name_to_long() for {name}")

@@ -2027,7 +2027,7 @@ class SnmpConnector(Connector):
             dprint("  port_id NOT FOUND, returning port_id as if_index")
             return str(port_id)  # if_index is the interface key as string!
 
-    def _get_port_id_from_if_index(self, if_index: str) -> str:
+    def _get_port_id_from_if_index(self, if_index: str) -> int:
         """
         Return the bridge PortId for the given interface index. This assumes we have walked
         the Q-Bridge mib that maps bridge port id to interfaceId.
@@ -2604,7 +2604,7 @@ class SnmpConnector(Connector):
             return True
         return False
 
-    def set_interface_poe_status(self, interface: Interface = False, status: int = -1) -> bool:
+    def set_interface_poe_status(self, interface: Interface, status: int) -> bool:
         """
         Set the PoE status to up or down.
         interface = Interface() object for the port/interface.
@@ -2629,7 +2629,7 @@ class SnmpConnector(Connector):
             return True
         return False
 
-    def set_interface_description(self, interface=False, description: str = "") -> bool:
+    def set_interface_description(self, interface: Interface, description: str) -> bool:
         """
         Set a description on an interface.
         return True on success, False on error and set self.error variables
@@ -2644,7 +2644,7 @@ class SnmpConnector(Connector):
             return True
         return False
 
-    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id) -> bool:
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
         return True on success, False on error and set self.error variables

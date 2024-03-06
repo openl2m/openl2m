@@ -17,6 +17,7 @@ but could end up using something else (e.g. Netmiko(ssh))
 if we cannot do it all using snmp.
 """
 
+from django.http.request import HttpRequest
 from django.utils import timezone
 
 from rest_framework.request import Request as RESTRequest
@@ -30,6 +31,8 @@ from switches.constants import (
     CONNECTOR_TYPE_NAPALM,
     CONNECTOR_TYPE_TESTDUMMY,
 )
+
+from switches.connect.connector import Connector
 
 # here are the device specific classes.
 # this should be made dynamic at some point!
@@ -59,8 +62,10 @@ from switches.connect.napalm.connector import NapalmConnector
 # a dummy 'test connector'
 from switches.connect.dummy.connector import DummyConnector
 
+from switches.models import Switch, SwitchGroup
 
-def get_connection_object(request, group, switch):
+
+def get_connection_object(request: HttpRequest, group: SwitchGroup, switch: Switch) -> Connector:
     """
     Function to get the proper type of Connector() object, based on device connector_type settings.
     For SNMP devices, we probe the 'system' mib, and then a vendor-specific Connector() object will be returned.

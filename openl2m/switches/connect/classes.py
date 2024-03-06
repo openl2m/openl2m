@@ -66,7 +66,7 @@ class Error:
 
     def __init__(
         self,
-        status=True,
+        status: bool = True,
         code: int = http_status.HTTP_400_BAD_REQUEST,
         description: str = "An Unknown Error Occured!",
         details: str = "",
@@ -322,7 +322,7 @@ class PortList:
             else:
                 self.portlist[block] = block_value ^ (128 >> shift)
 
-    def __getitem__(self, position: int):
+    def __getitem__(self, position: int) -> int:
         """
         Get the value of the bit in position.  NOTE: The most
         significant bit is regarded as bit 0 in this context.
