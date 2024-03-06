@@ -16,7 +16,11 @@ Dell specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
 with Dell specific ways of doing things...
 """
+from django.http.request import HttpRequest
+
+from switches.connect.classes import Interface
 from switches.connect.snmp.connector import SnmpConnector
+from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 
 from .constants import agentPortNativeVlanID, agentPortAccessVlanID, agentSaveConfig, DELL_SAVE_ENABLE
@@ -34,7 +38,7 @@ class SnmpConnectorDell(SnmpConnector):
     TDB
     """
 
-    def __init__(self, request, group, switch):
+    def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
         dprint("Dell SnmpConnector __init__")
         super().__init__(request, group, switch)
@@ -45,7 +49,7 @@ class SnmpConnectorDell(SnmpConnector):
         self.vendor_name = "Dell Computing"
         self.description = "Dell Computing SNMP driver"
 
-    def set_interface_untagged_vlan(self, interface, new_vlan_id):
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
         return True on success, False on error and set self.error variables
@@ -68,7 +72,7 @@ class SnmpConnectorDell(SnmpConnector):
             interface.untagged_vlan = int(new_vlan_id)
         return True
 
-    def save_running_config(self):
+    def save_running_config(self) -> bool:
         """
         Dell interface to save the current config to startup via SNMP
         Returns True is this succeeds, False on failure. self.error() will be set in that case
