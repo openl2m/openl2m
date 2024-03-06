@@ -13,9 +13,11 @@
 #
 import traceback
 
+from django.http.request import HttpRequest
+
 from napalm import get_network_driver
 
-from switches.models import Log
+from switches.models import Log, Switch, SwitchGroup
 from switches.utils import dprint, get_remote_ip, uptime_to_string
 from switches.constants import (
     LOG_TYPE_ERROR,
@@ -55,7 +57,7 @@ class NapalmConnector(Connector):
     This class implements a "Napalm" connector to get switch information.
     """
 
-    def __init__(self, request=False, group=False, switch=False):
+    def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         """
         Initialize the object
         """
@@ -71,7 +73,7 @@ class NapalmConnector(Connector):
         # and we dont want to cache this:
         self.set_do_not_cache_attribute('napalm_device')
 
-    def get_my_basic_info(self):
+    def get_my_basic_info(self) -> bool:
         '''
         load 'basic' list of interfaces with status.
         return True on success, False on error and set self.error variables
@@ -249,7 +251,7 @@ class NapalmConnector(Connector):
 
         return True
 
-    def get_my_client_data(self):
+    def get_my_client_data(self) -> bool:
         '''
         return list of interfaces with static_egress_portlist
         return True on success, False on error and set self.error variables
@@ -360,26 +362,26 @@ class NapalmConnector(Connector):
                 # and the enabled capabilities:
                 for cap in device['remote_system_enable_capab']:
                     if cap == 'bridge':
-                        neighbor.caps += LLDP_CAPABILITIES_BRIDGE
+                        neighbor.capabilities += LLDP_CAPABILITIES_BRIDGE
                     elif cap == 'repeater':
-                        neighbor.caps += LLDP_CAPABILITIES_REPEATER
+                        neighbor.capabilities += LLDP_CAPABILITIES_REPEATER
                     elif cap == 'wlan-access-point':
-                        neighbor.caps += LLDP_CAPABILITIES_WLAN
+                        neighbor.capabilities += LLDP_CAPABILITIES_WLAN
                     elif cap == 'router':
-                        neighbor.caps += LLDP_CAPABILITIES_ROUTER
+                        neighbor.capabilities += LLDP_CAPABILITIES_ROUTER
                     elif cap == 'telephone':
-                        neighbor.caps += LLDP_CAPABILITIES_PHONE
+                        neighbor.capabilities += LLDP_CAPABILITIES_PHONE
                     elif cap == 'docsis-cable-device':
-                        neighbor.caps += LLDP_CAPABILITIES_DOCSIS
+                        neighbor.capabilities += LLDP_CAPABILITIES_DOCSIS
                     elif cap == 'station':
-                        neighbor.caps += LLDP_CAPABILITIES_STATION
+                        neighbor.capabilities += LLDP_CAPABILITIES_STATION
                     elif cap == 'other':
-                        neighbor.caps += LLDP_CAPABILITIES_OTHER
+                        neighbor.capabilities += LLDP_CAPABILITIES_OTHER
                 self.add_neighbor_object(if_name, neighbor)
 
         return True
 
-    def _open_device(self):
+    def _open_device(self) -> bool:
         '''
         get a Napalm 'driver' and open connection to the device
         return True on success, False on failure, and will set self.error
