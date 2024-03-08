@@ -377,7 +377,7 @@ class SnmpConnector(Connector):
         Initialize the object
         """
         dprint("SnmpConnector() __init__")
-        super().__init__(request, group, switch)
+        super().__init__(request=request, group=group, switch=switch)
 
         self.vendor_name = "Generic SNMP device"
         self.description = "Standard SNMP connector"  # what type of class is running!
@@ -2583,30 +2583,39 @@ class SnmpConnector(Connector):
     #         return self.vlans[vlan_id]
     #     return False
 
-    def set_interface_admin_status(self, interface: Interface, status: bool) -> bool:
+    def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
         """
-        Set the admin status to up or down.
-        interface = Interface() object for the port/interface.
-        status = True / False for Enabled/Disabled
-        return True on success, False on error and set self.error variables
+        Set the interface to the requested state (up or down)
+
+        Args:
+            interface = Interface() object for the requested port
+            new_state = True / False  (enabled/disabled)
+
+        Returns:
+            return True on success, False on error and set self.error variables
+
         """
         if not interface:
             self.error = Error(status=True, description="set_interface_admin_status(): Invalid interface (not set)!")
             return False
 
         # make sure we cast the proper type here! Ie this needs an Integer()
-        status_int = IF_OPER_STATUS_UP if status else IF_OPER_STATUS_DOWN
+        status_int = IF_OPER_STATUS_UP if new_state else IF_OPER_STATUS_DOWN
         if self.set(f"{ifAdminStatus}.{interface.index}", status_int, 'i'):
-            Connector().set_interface_admin_status(interface, status)
+            super().set_interface_admin_status(interface=interface, new_state=new_state)
             return True
         return False
 
-    def set_interface_poe_status(self, interface: Interface, status: int) -> bool:
+    def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
         """
-        Set the PoE status to up or down.
-        interface = Interface() object for the port/interface.
-        status = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
-        return True on success, False on error and set self.error variables
+        Set the interface Power-over-Ethernet state as given
+
+        Args:
+            interface = Interface() object for the requested port
+            new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
+
+        Returns:
+            return True on success, False on error and set self.error variables
         """
         if not interface:
             self.error = Error(status=True, description="set_interface_poe_status(): Invalid interface (not set)!")
@@ -2616,13 +2625,13 @@ class SnmpConnector(Connector):
             self.error = Error(status=True, description="set_interface_poe_status(): interface has no poe_entry!")
             return False
         # proper status value?
-        if status != POE_PORT_ADMIN_ENABLED and status != POE_PORT_ADMIN_DISABLED:
-            self.error = Error(status=True, description=f"set_interface_poe_status(): Invalid status: {status}")
+        if new_state != POE_PORT_ADMIN_ENABLED and new_state != POE_PORT_ADMIN_DISABLED:
+            self.error = Error(status=True, description=f"set_interface_poe_status(): Invalid status: {new_state}")
             return False
 
         # make sure we cast the proper type here! Ie this needs an Integer()
-        if self.set(f"{pethPsePortAdminEnable}.{interface.poe_entry.index}", status, 'i'):
-            Connector().set_interface_poe_status(interface, status)
+        if self.set(f"{pethPsePortAdminEnable}.{interface.poe_entry.index}", new_state, 'i'):
+            super().set_interface_poe_status(interface=interface, new_state=new_state)
             return True
         return False
 
@@ -2637,7 +2646,7 @@ class SnmpConnector(Connector):
 
         # make sure we cast the proper type here! I.e. this needs an string
         if self.set(f"{ifAlias}.{interface.index}", description, 'OCTETSTRING'):
-            Connector().set_interface_description(interface, description)
+            super().set_interface_description(interface=interface, description=description)
             return True
         return False
 
@@ -2729,7 +2738,7 @@ class SnmpConnector(Connector):
             # we leave self.error.details as is!
             return False
         # all OK, now do the book keeping
-        super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+        Connector.vlan_create(self=self, vlan_id=vlan_id, vlan_name=vlan_name)
         return True
 
     def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
@@ -2750,7 +2759,7 @@ class SnmpConnector(Connector):
             # we leave self.error.details as is!
             return False
         # all OK, now do the book keeping
-        super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
+        Connector.vlan_edit(self=self, vlan_id=vlan_id, vlan_name=vlan_name)
         return True
 
     def vlan_delete(self, vlan_id: int) -> bool:
@@ -2770,7 +2779,7 @@ class SnmpConnector(Connector):
             # we leave self.error.details as is!
             return False
         # all OK, now do the book keeping
-        super().vlan_delete(vlan_id=vlan_id)
+        Connector.vlan_delete(self=self, vlan_id=vlan_id)
         return True
 
 
