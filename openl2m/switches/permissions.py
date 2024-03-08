@@ -15,7 +15,6 @@
 #
 # Functions that perform actions on interfaces, called by both the WEB UI and REST API
 #
-
 from django.http.request import HttpRequest
 
 from rest_framework import status as http_status
@@ -59,6 +58,9 @@ def get_my_device_groups(request: HttpRequest) -> dict:
     Returns:
         groups: dict of pk's of SwitchGroup() objects this user is member of,
                 each is a dict of active devices(switches).
+
+    Note: all dict keys are "str" type, needed for caching in Django 5 sessions,
+        using the JSON Session Serializer (ie JSONSerializer)
     """
     dprint("get_my_device_groups()")
     if request.user.is_superuser or request.user.is_staff:
@@ -87,7 +89,7 @@ def get_my_device_groups(request: HttpRequest) -> dict:
             for switch in group.switches.all():
                 if switch.status == SWITCH_STATUS_ACTIVE:
                     # we save the names as well, so we can search them!
-                    members[int(switch.id)] = {
+                    members[str(switch.id)] = {
                         "name": switch.name,
                         "hostname": switch.hostname,
                         "description": switch.description,
@@ -106,11 +108,11 @@ def get_my_device_groups(request: HttpRequest) -> dict:
                         "indent_level": switch.indent_level,
                     }
                     if switch.nms_id:
-                        members[int(switch.id)]["nms_id"] = switch.nms_id
+                        members[str(switch.id)]["nms_id"] = switch.nms_id
                     else:
-                        members[int(switch.id)]["nms_id"] = ""
+                        members[str(switch.id)]["nms_id"] = ""
             group_info['members'] = members
-            permissions[int(group.id)] = group_info
+            permissions[str(group.id)] = group_info
     return permissions
 
 
@@ -131,7 +133,7 @@ def get_group_and_switch(request: HttpRequest, group_id: int, switch_id: int) ->
     dprint("get_group_and_switch()")
     # api using token, or session based ?
     if isinstance(request, RESTRequest) and request.auth is not None:
-        # API user with Token, need to read groups every time:
+        # API user with Token, no session so need to read groups every time:
         dprint("  API Token - calling get_my_device_groups()")
         groups = get_my_device_groups(request=request)
     else:
@@ -290,10 +292,12 @@ def _get_group_and_switch_from_permissions(
     Returns:
         group, switch:  SwitchGroup() or None, Switch() or None.
     """
-    # with JSONSerializer, all Dict() keys are strings!
+    # with Django 5 session JSONSerializer, all Dict() keys are strings!
     group_id = str(group_id)
     switch_id = str(switch_id)
-    dprint(f"_get_group_and_switch_from_permissions(group={group_id}, switch={switch_id})")
+    dprint(
+        f"_get_group_and_switch_from_permissions(group={group_id} {type(group_id)}, switch={switch_id} {type(switch_id)})"
+    )
     group = None
     switch = None
     if permissions and isinstance(permissions, dict) and group_id in permissions.keys():
