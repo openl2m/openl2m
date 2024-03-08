@@ -54,11 +54,12 @@ package on your Linux server.
 
 We also use the `pysnmplib library <https://github.com/pysnmp/pysnmp>`_
 for a few backend functions where "easysnmp" does not shine. Specifically,
-we use pysnmplib to manipulate mib entries that are octetstring values representing bitmaps.
+we use *pysnmplib* to manipulate mib entries that are octetstring values representing bitmaps.
+
 This is extensively used in vlan settings. EasySNMP "struggles" with this, as it uses
 unicode strings for all internal data representations. Pysnmplib is a pure python implementation
 that does not have these problems. However, it is significantly slower, so we only use
-it only where absolutely needed. (Note: pysnmplib is a continuation of the original pysnmp; that
+it only where absolutely needed. (Note: *pysnmplib* is a continuation of the original *pysnmp*; that
 library is no longer developed.)
 
 

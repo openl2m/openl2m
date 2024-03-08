@@ -20,7 +20,12 @@ header of either *application/x-www-form-urlencoded* or *application/json*
 
 **A simple Python example API client is provided at** https://github.com/openl2m/api_client
 
-.. list-table:: API endpoints
+.. note::
+
+   The REST API is truly RESTful! So NO data is being cached between calls,
+   and each call will need to relearn the device. This can be slow!
+
+.. list-table:: REST API endpoints
     :widths: 25 15 15 100 100
     :header-rows: 1
 

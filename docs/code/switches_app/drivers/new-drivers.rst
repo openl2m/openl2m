@@ -4,6 +4,20 @@
 Implementing New Drivers
 ========================
 
+Book Keeping
+============
+
+All drivers need to implement various interfaces, as described below and in the `Connector() class. <connector>`
+
+Additionally, in order for the web interface to show these changes (if succesful),
+drivers need to call "bookkeeping" calls in the base Connector() class.
+
+If you inherit directly from Connector(), you can call these with super().set_xyz()
+
+If you have multiple inheritance in in your driver (DriverB, inherits from DriversA which inherits from Connector()),
+you should use the notation *Connector.set_xyz(self=self, <other params>)*
+
+
 Supporting a new vendor device - SNMP
 =====================================
 
