@@ -10,13 +10,33 @@ Version 3.1
 
 *Note: we are developing and testing on Ubuntu 22.04 LTS, using Python v3.11 and PostgreSql 14!*
 
+
+Version 3.1.2
+-------------
+
+Release Date: 2024-03-08
+
+* updated API, new driver and code style docs.
+* added type hinting to many functions for readability and type checking with mypy.
+* mark voice vlan on Cisco switches.
+* add documentation for testing with Docker.
+
+Bugfixes:
+
+* fix API permissions.
+* fix SNMP driver calling super-class for bookkeeping.
+* fix building documentation on readthedocs.io.
+* handle exception in ethernet oui lookup.
+* better formatting of lldp neighbors.
+
+
 Version 3.1.1
 -------------
 
 Release Date: 2024-02-27
 
-* add docker compose for testing
-* add credits for contributors
+* add docker compose for testing.
+* add credits for contributors.
 
 Bugfixes:
 
