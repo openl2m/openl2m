@@ -212,7 +212,6 @@ INSTALLED_APPS = [
     "switches.apps.SwitchesConfig",
     "counters.apps.CountersConfig",
     "notices.apps.NoticesConfig",
-    "django_minify_html",
     "rest_framework",
     "rest_framework.authtoken",
 ]
@@ -225,8 +224,14 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_minify_html.middleware.MinifyHtmlMiddleware",
 ]
+if not DEBUG:
+    INSTALLED_APPS += [
+        "django_minify_html",
+    ]
+    MIDDLEWARE += [
+        "django_minify_html.middleware.MinifyHtmlMiddleware",
+    ]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
