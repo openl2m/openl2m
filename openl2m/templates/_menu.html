@@ -1,66 +1,60 @@
 {% load static %}
-<nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container-fluid">
-        <div class="navbar-header">
-            <a class="navbar-brand"
-                href="{% url 'switches:groups' %}"
-            {% if connection.save_needed %}
-                onclick="return confirm_change('There are UNSAVED changes, are you sure?')"
+<nav class="navbar navbar-expand-xl navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand"
+       href="{% url 'switches:groups' %}"
+    {% if connection.save_needed %}
+       onclick="return confirm_change('There are UNSAVED changes, are you sure?')"
+    {% endif %}
+    >
+      <img src="{% static 'img/openl2m-logo.png' %}"
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Go back to Switch Group Menu"
+           alt="OpenL2M logo"
+      />
+    </a>
+    {% if request.user.is_authenticated %}
+    <div class="position-absolute end-0" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown"
+             aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" title="Your menu options!">
+            {{ request.user|truncatechars:"30" }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarUserDropdown">
+            <li><a class="dropdown-item" href="{% url 'switches:groups' %}"><i class="fas fa-ethernet"></i> Home</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% static 'docs/html/what_is_new.html' %}" target="_docs"><i class="fas fa-star" aria-hidden="true"></i> What&apos;s New!</a></li>
+            <li><a class="dropdown-item" href="{% static 'docs/html/using/index.html' %}" target="_docs"><i class="fas fa-book" aria-hidden="true"></i> Documentation</a></li>
+            {% if request.user.is_superuser %}
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-pen"></i> Administration</a></li>
+              {% if switch %}
+              <li><a class="dropdown-item" href="{% url 'admin:switches_switch_change' switch.id %}">&nbsp;&nbsp;&nbsp;<i class="fas fa-pencil-alt"></i> This Device</a></li>
+              {% endif %}
+              {% if group %}
+              <li><a class="dropdown-item" href="{% url 'admin:switches_switchgroup_change' group.id %}">&nbsp;&nbsp;&nbsp;<i class="fas fa-pencil-alt"></i> This Group</a></li>
+              {% endif %}
+              <li><a class="dropdown-item" href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true"></i> Activity Logs</a></li>
+            {% elif request.user.is_staff %}
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true"></i> Activity Logs</a></li>
             {% endif %}
-            >
-                <img src="{% static 'img/openl2m-logo.png' %}"
-                     data-toggle="tooltip"
-                     data-placement="bottom"
-                     title="Go back to Switch Group Menu"
-                     alt="OpenL2M logo"
-                 />
-            </a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-
-          {% if request.user.is_authenticated %}
-            <ul class="nav navbar-nav navbar-right">
-              <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="{{ request.user }}" role="button" aria-haspopup="true" aria-expanded="false">
-                      <span data-toggle="tooltip" data-placement="bottom" title="Your menu options!">
-                        <i class="fas fa-user"></i>
-                        <span id="navbar_user">{{ request.user|truncatechars:"30" }}</span>
-                        <span class="caret"></span>
-                      </span>
-                  </a>
-                  <ul class="dropdown-menu">
-                    <li><a href="{% url 'switches:groups' %}"><i class="fas fa-ethernet"></i> Home</a></li>
-                    <li class="divider"></li>
-                    <li><a href="{% static 'docs/html/what_is_new.html' %}" target="_docs"><i class="fas fa-star" aria-hidden="true"></i> What&apos;s New!</a></li>
-                    <li><a href="{% static 'docs/html/using/index.html' %}" target="_docs"><i class="fas fa-book" aria-hidden="true"></i> Documentation</a></li>
-                    {% if request.user.is_superuser %}
-                      <li class="divider"></li>
-                      <li><a href="{% url 'admin:index' %}"><i class="fas fa-pen"></i> Administration</a></li>
-                      {% if switch %}
-                      <li><a href="{% url 'admin:switches_switch_change' switch.id %}">&nbsp;&nbsp;&nbsp;<i class="fas fa-pencil-alt"></i> This Device</a></li>
-                      {% endif %}
-                      {% if group %}
-                      <li><a href="{% url 'admin:switches_switchgroup_change' group.id %}">&nbsp;&nbsp;&nbsp;<i class="fas fa-pencil-alt"></i> This Group</a></li>
-                      {% endif %}
-                      <li><a href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true"></i> Activity Logs</a></li>
-                    {% elif request.user.is_staff %}
-                      <li class="divider"></li>
-                      <li><a href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true"></i> Activity Logs</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'switches:show_stats' %}"><i class="fas fa-chart-pie" aria-hidden="true"></i> Usage Statistics</a></li>
-                    <li><a href="https://github.com/openl2m/openl2m/" target="_sources"><i class="fas fa-code" aria-hidden="true"></i> Code</a></li>
-                    <li class="divider"></li>
-                    {% if not request.user.ldap_user %}
-                    <li><a href="{% url 'password_change' %}"><i class="fas fa-key"></i> Change Password</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'users:profile' %}"><i class="fas fa-user-circle"></i> Profile</a></li>
-                    <li><a href="{% url 'users:token_list' %}"><i class="fas fa-user-secret"></i> API Tokens</a></li>
-                    <li class="divider"></li>
-                    <li><a><i class="fas fa-info" aria-hidden="true"></i> OpenL2M v{{ settings.VERSION }}</a></li>
-                    <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Log out</a></li>
-                  </ul>
-              </li>
-            </ul>
+            <li><a class="dropdown-item" href="{% url 'switches:show_stats' %}"><i class="fas fa-chart-pie" aria-hidden="true"></i> Usage Statistics</a></li>
+            <li><a class="dropdown-item" href="https://github.com/openl2m/openl2m/" target="_sources"><i class="fas fa-code" aria-hidden="true"></i> Code</a></li>
+            <li><hr class="dropdown-divider"></li>
+            {% if not request.user.ldap_user %}
+            <li><a class="dropdown-item" href="{% url 'password_change' %}"><i class="fas fa-key"></i> Change Password</a></li>
+            {% endif %}
+            <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="fas fa-user-circle"></i> Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'users:token_list' %}"><i class="fas fa-user-secret"></i> API Tokens</a></li>
+            <li> <hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" ><i class="fas fa-info" aria-hidden="true"></i> OpenL2M v{{ settings.VERSION }}</a></li>
+            <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Log out</a></li>
+          </ul>
+        </li>
+      </ul>
             {% if settings.MENU_INFO_URLS %}
               {% for headername,menus in settings.MENU_INFO_URLS.items %}
                 <ul class="nav navbar-nav
@@ -104,8 +98,7 @@
               {% endfor %}
             {% endif %}
 
-          {% endif %}{# authenticated #}
-
-        </div>
-    </div>
+    {% endif %}{# authenticated #}
+    </div>{# navbarContent #}
+  </div>{# container-fluid #}
 </nav>
