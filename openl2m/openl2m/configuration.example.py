@@ -414,7 +414,7 @@ BGCOLOR_IF_ADMIN_UP_UP = "#ADFF2F"  # brighter green
 BGCOLOR_IF_ADMIN_DOWN = "#EB5B5B"  # red
 
 # login view organization. Number of colums in the "matrix" groups display
-# Can be no more then 12!
+# Can be no more then 6!
 TOPMENU_MAX_COLUMNS = 4
 
 # show the switch search form on home page
