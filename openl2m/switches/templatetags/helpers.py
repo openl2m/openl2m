@@ -13,7 +13,7 @@
 #
 import json
 
-# import pprint
+import pprint
 
 from django.conf import settings
 from django import template
@@ -39,7 +39,7 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_OTHER,
 )
 
-# from switches.utils import dprint
+from switches.utils import dprint
 
 # see https://docs.djangoproject.com/en/2.2/ref/templates/api/
 # and https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/
@@ -58,7 +58,7 @@ def build_url_string(values):
         s = "<a "
     s = s + f"href=\"{values['url']}\""
     if 'hint' in values.keys():
-        s = s + f"data-toggle=\"tooltip\" title=\"{values['hint']}\""
+        s = s + f"data-bs-toggle=\"tooltip\" data-bs-title=\"{values['hint']}\""
     s = s + ">"
     if 'fa_icon' in values.keys():
         s = s + f"<i class=\"fas {values['fa_icon']}\" aria-hidden=\"true\"></i>"
@@ -74,7 +74,10 @@ def get_switch_link(group_id, switch_id, switch):
     """
     s = "<li class=\"list-group-item\">"
     if switch['description']:
-        s = s + f"<span data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"{switch['description']}\">"
+        s = (
+            s
+            + f"<span data-bs-toggle=\"tooltip\" data-bs-placement=\"auto bottom\" data-bs-title=\"{switch['description']}\">"
+        )
     # do proper indenting:
     indent = ''
     for i in range(switch['indent_level']):
@@ -176,7 +179,9 @@ def get_my_results(results, group_count):
     found = ""
     for group_id, switch_id, name, description, default_view, group_name in results:
         if description:
-            tooltip = f"<abbr data-toggle=\"tooltip\" data-placement=\"auto bottom\" title=\"{description}\">"
+            tooltip = (
+                f"<abbr data-bs-toggle=\"tooltip\" data-bs-placement=\"auto bottom\" data-bs-title=\"{description}\">"
+            )
             tt_end = "</abbr>"
         else:
             tooltip = tt_end = ""
@@ -191,90 +196,109 @@ def get_my_results(results, group_count):
     return mark_safe(f"<ul class=\"list-group\">{found}</ul>\n")
 
 
+def get_group_menu(group, group_id, open=False):
+    """Show the menu for just a single group
+
+    Args:
+        group (dict()): the group to display.
+        group_id (int): the group ID.
+        open (bool, optional): If True, show the group "opened up", ie. not collapsed. Defaults to False.
+
+    Returns:
+        str: the str() with the proper html for this group.
+    """
+    # header for collapsible items, i.e. the switchgroup name
+    s = f"\n<!-- Group {group_id} -->\n<p>"
+    if group["description"]:
+        s = s + f"\n<span data-bs-toggle=\"tooltip\" data-bs-title=\"{group['description']}\">"
+    # start the collapsible menu:
+    if open:
+        expanded = "true"
+        show = "show"
+    else:
+        expanded = "false"
+        show = ""
+    s += f'<button class="btn btn-light btn-outline-secondary w-100 text-primary text-bg-light" data-bs-toggle="collapse" data-bs-target="#group{group_id}" aria-expanded="{expanded}" aria-controls="group{group_id}">'
+    # use display name if set, else just group name"
+    if group["display_name"]:
+        s = s + group["display_name"]
+    else:
+        s = s + group["name"]
+    if group["read_only"]:
+        s = s + " (r/o)"
+    # end menu:
+    s = s + "</button>"
+    # end description wrapper span:
+    if group["description"]:
+        s = s + "\n</span>"
+
+    # the devices, ie collapsible items:
+
+    s = s + f'<div class="collapse {show}" id="group{group_id}" style="height: 100px;"><ul class="list-group">'
+    for switch_id, switch in group['members'].items():
+        s = s + f"\n{get_switch_link(group_id, switch_id, switch)}"
+    # end devices div, list and group menu
+    s = s + "\n</ul>\n</div></p>\n<!-- END Group {group_id} -->\n\n"
+    # done:
+    return s
+
+
 @register.filter
 def get_my_group_menu(groups):
     """
     Build custom html menu of all the switchgroups and their switches
     """
-    # dprint('get_my_group_menu()')
-    # dprint(pprint.pformat(groups))
+    dprint('get_my_group_menu()')
+    dprint(pprint.pformat(groups))
 
     num_groups = len(groups)
     if not num_groups:
-        s = "<strong>You are not a member of any switch groups!</strong><br>Please contact the OpenL2M administrator."
+        s = '<div class="row justify-content-md-center"><strong>You are not a member of any switch groups! Please contact the OpenL2M administrator.</strong></div>'
         return mark_safe(s)
-    # at least one group:
-    s = '<div class="row"><div class="col-sm-6 col-md-4">'
+
+    # the Group Title:
     if num_groups == 1:
-        # one group only
-        s = s + "\n<h4>My Switch Group:</h4>"
+        # one group only:
+        text = 'Group'
+        open = True  # open menu dropdown
     else:
-        s = s + "\n<h4>My Switch Groups:</h4>"
+        # multiple groups:
+        text = 'Groups'
+        open = False  # start with all closed
+    s = f'<div class="row"><div class="col-2"><h5>My Device {text}:</h5></div></div>'
 
     # start groups wrapper:
-    s = s + "\n</div></div>"  # end header row
+    s = s + "\n"  # end header row (for html readability)
 
-    # calculate column width, if set. Bootstrap uses 12 grid columns per page, max we use is 3 grids
-    col_width = 3
-    if settings.TOPMENU_MAX_COLUMNS > 4:
+    # calculate column width, if set. Bootstrap uses 12 grid columns per page, max width we use is 2 grids
+    if settings.TOPMENU_MAX_COLUMNS > 6:
+        col_width = 2
+        max_columns = 6
+    else:
         col_width = int(12 / settings.TOPMENU_MAX_COLUMNS)
+        max_columns = settings.TOPMENU_MAX_COLUMNS
 
     # now list the groups:
     group_num = 0
     for group_id, group in groups.items():
         group_num += 1
-        if settings.TOPMENU_MAX_COLUMNS > 1:
-            if not ((group_num - 1) % settings.TOPMENU_MAX_COLUMNS):
-                # end previous row, if needed
-                if group_num > 1:
-                    s = s + "\n</div>"
-                # and start a new row!
-                s = s + "\n\n<div class=\"row\">"
-            # add column div:
-            s = s + f"\n <div class=\"col-md-{col_width}\">"
-        else:
-            s = s + f"\n <div class=\"row\">\n  <div class=\"col-md-{col_width}\">"
-        # header for collapsible items, i.e. the switchgroup name
-        s = (
-            s
-            + "\n  <div class=\"panel-group\">\n   <div class=\"panel panel-default\">\n   <div class=\"panel-heading\">"
-        )
-        s = s + f"<a data-toggle=\"collapse\" href=\"#group{group_id}\">"
-        if group["description"]:
-            s = s + f"\n  <span data-toggle=\"tooltip\" title=\"{group['description']}\">"
-        if group["display_name"]:
-            s = s + group["display_name"]
-        else:
-            s = s + group["name"]
-        if group["description"]:
-            s = s + "</span>"
-        s = s + "</a>"
-        if group["read_only"]:
-            s = s + " (r/o)"
-        s = s + "</div>"  # this /div ends panel-heading
+        if not ((group_num - 1) % max_columns):
+            # end previous row, if needed
+            if group_num > 1:
+                s = s + "\n</div>"
+            # and start a new row!
+            s = s + "\n\n<div class=\"row\">"
+        # add new column:
+        s = s + f"\n <div class=\"col-{col_width}\">"
 
-        # the collapsible items:
-        s = s + f"\n   <div id=\"group{group_id}\" class=\"panel-collapse"
-        # if only 1 group, show all items
-        if num_groups > 1:
-            s = s + " collapse"
-        s = s + "\">\n    <ul class=\"list-group\">"
-        for switch_id, switch in group['members'].items():
-            s = s + f"\n    {get_switch_link(group_id, switch_id, switch)}"
-        s = s + "\n    </ul>\n   </div>"  # /div ends panel-collapse
+        # represent the group menu:
+        s = s + get_group_menu(group=group, group_id=group_id, open=open)
 
-        # and end this group header and group:
-        s = s + "\n  </div>\n  </div>"  # end panel-default and panel-group
-
-        if settings.TOPMENU_MAX_COLUMNS > 1:
-            # end the column div:
-            s = s + "\n </div>"
-        else:
-            # end row
-            s = s + "\n </div>\n</div>"  # end panel-default and panel-group
+        # and end this group column:
+        s = s + "\n  </div>\n"
 
     # end the last row, and container, if needed:
-    if settings.TOPMENU_MAX_COLUMNS > 1:
+    if max_columns > 1:
         s = s + "\n</div>"
 
     return mark_safe(s)
@@ -457,14 +481,14 @@ def get_interface_link(switch, iface):
                 info
                 + f"<a onclick=\"return confirm_change('Are you sure you want to DISABLE {iface.name} ?')\" \
                      href=\"/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/0/\" \
-                     data-toggle=\"tooltip\" title=\"Click here to Disable {iface.name}\">{iface.name}</a>"
+                     data-bs-toggle=\"tooltip\" data-bs-title=\"Click here to Disable {iface.name}\">{iface.name}</a>"
             )
         else:
             info = (
                 info
                 + f"<a onclick=\"return confirm_change('Are you sure you want to ENABLE {iface.name} ?')\" \
                      href=\"/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/1/\" \
-                     data-toggle=\"tooltip\" title=\"Click here to Enable {iface.name}\">{iface.name}</a>"
+                     data-bs-toggle=\"tooltip\" data-bs-title=\"Click here to Enable {iface.name}\">{iface.name}</a>"
             )
 
     else:
@@ -475,13 +499,13 @@ def get_interface_link(switch, iface):
         info = (
             info
             + "&nbsp;&nbsp;<img src=\"/static/img/enabled.png\" \
-                 alt=\"Interface Enabled\" data-toggle=\"tooltip\" title=\"Interface is Enabled\">"
+                 alt=\"Interface Enabled\" data-bs-toggle=\"tooltip\" data-bs-title=\"Interface is Enabled\">"
         )
     else:
         info = (
             info
             + "&nbsp;&nbsp;<img src=\"/static/img/disabled.png\" \
-                 alt=\"Interface Disabled\" data-toggle=\"tooltip\" title=\"Interface is Disabled\">"
+                 alt=\"Interface Disabled\" data-bs-toggle=\"tooltip\" data-bs-title=\"Interface is Disabled\">"
         )
 
     # finally, add icons representing interface 'features'
@@ -489,13 +513,13 @@ def get_interface_link(switch, iface):
         info = (
             info
             + "&nbsp;&nbsp;<i class=\"fas fa-ellipsis-v\" aria-hidden=\"true\" \
-                 alt=\"Tagged/Trunked Interface\" data-toggle=\"tooltip\" title=\"Tagged/Trunked Interface\"></i>"
+                 alt=\"Tagged/Trunked Interface\" data-bs-toggle=\"tooltip\" data-bs-title=\"Tagged/Trunked Interface\"></i>"
         )
     if iface.voice_vlan:
         info = (
             info
             + f"&nbsp;&nbsp;<i class=\"fas fa-phone\" aria-hidden=\"true\" \
-                 alt=\"Voice VLAN\" data-toggle=\"tooltip\" title=\"Voice VLAN {iface.voice_vlan}>\""
+                 alt=\"Voice VLAN\" data-bs-toggle=\"tooltip\" data-bs-title=\"Voice VLAN {iface.voice_vlan}>\""
         )
 
     return mark_safe(info)
@@ -510,7 +534,7 @@ def get_lldp_info(neighbor):
 
     icon = ''
     # add an image for the capabilities
-    icon_format = "<i class=\"fas %s\" data-toggle=\"tooltip\" title=\"%s\"></i>&nbsp;"
+    icon_format = "<i class=\"fas %s\" data-bs-toggle=\"tooltip\" data-bs-title=\"%s\"></i>&nbsp;"
     capabilities = neighbor.capabilities
     if capabilities == LLDP_CAPABILITIES_NONE:
         icon = icon_format % ('fa-question', 'Capabilities NOT Advertized')
@@ -562,7 +586,7 @@ def get_lldp_info(neighbor):
             mgmt = f"Mgmt IP: {neighbor.management_address}&#10;&#13;"  # lf/cr may not be supported by all browsers.
         else:
             mgmt = ""
-        info = f"{icon}<abbr data-toggle=\"tooltip\" title=\"{mgmt}{neighbor.sys_descr}\">{name}{port}{chassis}</abbr>"
+        info = f"{icon}<abbr data-bs-toggle=\"tooltip\" data-bs-title=\"{mgmt}{neighbor.sys_descr}\">{name}{port}{chassis}</abbr>"
     else:
         info = f"{icon}{name}{port}{chassis}"
 

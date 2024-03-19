@@ -8,18 +8,54 @@
     {% endif %}
     >
       <img src="{% static 'img/openl2m-logo.png' %}"
-           data-toggle="tooltip"
-           data-placement="bottom"
-           title="Go back to Switch Group Menu"
+           data-bs-toggle="tooltip"
+           data-bs-title="Go back to Devices Menu"
            alt="OpenL2M logo"
       />
     </a>
     {% if request.user.is_authenticated %}
-    <div class="position-absolute end-0" id="navbarSupportedContent">
+    <div class="position-absolute end-0" id="navbarContent">
       <ul class="navbar-nav me-auto">
+      {% if settings.MENU_INFO_URLS %}
+        {% for headername,menus in settings.MENU_INFO_URLS.items %}
+        <li class="nav-item dropdown">
+<!--          <ul class="nav navbar-nav
+          {% if settings.MENU_ON_RIGHT %}
+            navbar-right
+          {% endif %}
+          "> -->
+          <a class="nav-link dropdown-toggle" href="#" id="navbarMenu{{ forloop.counter }}" role="button" data-bs-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false" data-bs-toggle="tooltip" data-bs-title="Your menu options!">{{ headername }}</a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarMenu{{ forloop.counter }}">
+          {% for menu in menus %}
+            <li><a class="dropdown-item" href="{{ menu.url }}"
+            {% if menu.target %}
+                target="{{ menu.target }}"
+            {% endif %}
+            {% if menu.hint %}
+                data-bs-toggle="tooltip" data-bs-title="{{ menu.hint }}"
+            {% endif %}
+            >
+            {% if menu.fa_icon %}
+              <i class="fas {{ menu.fa_icon }} aria-hidden="true"></i>
+            {% elif menu.icon %}
+              <img src="{{ menu.icon }}"
+              {% if menu.alt %}
+                alt="{{ menu.alt }}"
+              {% endif %}
+              >
+            {% endif %}
+            {{ menu.name }}</a></li>
+          {% endfor %}
+          </ul>
+      {% endfor %}
+        </li>
+      {% endif %}{# end MENU_INFO_URLS #}
+
+        {# user menu #}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown"
-             aria-haspopup="true" aria-expanded="false" data-toggle="tooltip" title="Your menu options!">
+             aria-haspopup="true" aria-expanded="false" data-bs-toggle="tooltip" data-bs-title="Your menu options!">
             {{ request.user|truncatechars:"30" }}
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarUserDropdown">
@@ -54,51 +90,8 @@
             <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Log out</a></li>
           </ul>
         </li>
-      </ul>
-            {% if settings.MENU_INFO_URLS %}
-              {% for headername,menus in settings.MENU_INFO_URLS.items %}
-                <ul class="nav navbar-nav
-                {% if settings.MENU_ON_RIGHT %}
-                  navbar-right
-                {% endif %}
-                ">
-                  <li class="dropdown active">
-                    <ul class="nav navbar-nav">
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ headername }}<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                        {% for menu in menus %}
-                          <li>
-                            <a href="{{ menu.url }}"
-                            {% if menu.target %}
-                              target="{{ menu.target }}"
-                            {% endif %}
-                            {% if menu.hint %}
-                              data-toggle="tooltip"
-                              title="{{ menu.hint }}"
-                            {% endif %}
-                            >
-                            {% if menu.fa_icon %}
-                              <i class="fas {{ menu.fa_icon }} aria-hidden="true"></i>
-                            {% elif menu.icon %}
-                              <img src="{{ menu.icon }}"
-                              {% if menu.alt %}
-                                alt="{{ menu.alt }}"
-                              {% endif %}
-                              >
-                            {% endif %}
-                            {{ menu.name }}</a>
-                          </li>
-                        {% endfor %}
-                        </ul>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              {% endfor %}
-            {% endif %}
-
-    {% endif %}{# authenticated #}
+      </ul>{# navbar-nav #}
     </div>{# navbarContent #}
+    {% endif %}{# authenticated #}
   </div>{# container-fluid #}
 </nav>
