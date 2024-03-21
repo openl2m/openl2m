@@ -2010,3 +2010,19 @@ class SwitchDownloadInterfaces(LoginRequiredMixin, View):
         log.description = f"Downloading '{filename}'"
         log.save()
         return FileResponse(stream, as_attachment=True, filename=filename)
+
+
+class TestPage(LoginRequiredMixin, View):
+    '''create a page to test html templates'''
+
+    def get(
+        self,
+        request,
+    ):
+        dprint("TestPage() - GET called")
+        # render the template
+        return render(
+            request,
+            "test_page.html",
+            {},
+        )

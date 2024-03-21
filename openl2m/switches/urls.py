@@ -13,6 +13,8 @@
 #
 from django.urls import path, register_converter
 
+from django.conf import settings
+
 # from django.conf.urls import url
 
 from switches import views
@@ -149,3 +151,13 @@ urlpatterns = [
         name='interface_cmd_output',
     ),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        # HTML test page:
+        path(
+            'testpage',
+            views.TestPage.as_view(),
+            name='test_page',
+        )
+    ]
