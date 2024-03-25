@@ -15,10 +15,10 @@
           <th>Link</th>
           <th>Vlan</th>
           {% if connection.eth_addr_count > 0 %}
-          <th><a data-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fas fa-download" aria-hidden="true"></i> Ethernet Addresses ({{ connection.eth_addr_count }})</a></th>
+          <th><a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fas fa-download" aria-hidden="true"></i> Ethernet Addresses ({{ connection.eth_addr_count }})</a></th>
           {% endif %}
           {% if connection.neighbor_count > 0 %}
-          <th><a data-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fas fa-download" aria-hidden="true"></i> Neighbors ({{ connection.neighbor_count }})</a></th>
+          <th><a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fas fa-download" aria-hidden="true"></i> Neighbors ({{ connection.neighbor_count }})</a></th>
           {% endif %}
         </tr>
       </thead>
@@ -38,7 +38,7 @@
             {% endif %}
             {{ switch|get_interface_info_links:iface }}
             {% if iface.description %}
-              <abbr data-toggle="tooltip" title="{{ iface.description }}">{{ iface.name }}</abbr>
+              <abbr data-bs-toggle="tooltip" title="{{ iface.description }}">{{ iface.name }}</abbr>
             {% else %}
               {{ iface.name }}
             {% endif %}
@@ -50,11 +50,11 @@
 
             <td>
               {% if iface.untagged_vlan > 0 %}
-                <abbr data-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
+                <abbr data-bs-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
                   {{ iface.untagged_vlan }}
                 </abbr>
               {% else %}
-                <span data-toggle="tooltip" title="Not applicable for this interface">n/a</span>
+                <span data-bs-toggle="tooltip" title="Not applicable for this interface">n/a</span>
               {% endif %}
             </td>
 
@@ -70,7 +70,7 @@
                   {% if eth.address_ip4 %}
                      / {{ eth.address_ip4|get_ip4_info_links }}
                        {% if eth.hostname %}
-                       <abbr data-toggle="tooltip" title="{{ eth.hostname }}">{{ eth.address_ip4 }}</abbr>
+                       <abbr data-bs-toggle="tooltip" title="{{ eth.hostname }}">{{ eth.address_ip4 }}</abbr>
                        {% else %}
                        {{ eth.address_ip4 }}
                        {% endif %}

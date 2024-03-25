@@ -18,7 +18,7 @@
                     <tr>
                         <td align="right"><label for="id_vlan_id">VLAN:</label></td>
                         <td align="left">
-                            <span data-toggle="tooltip" title="Enter the new vlan ID.">
+                            <span data-bs-toggle="tooltip" title="Enter the new vlan ID.">
                                 <input type="number" size="5" class="form-control" name="vlan_id" id="id_vlan_id" value="" placeholder="new vlan id" min="2" max="4094">
                             </span>
                         </td>
@@ -27,7 +27,7 @@
                     <tr>
                         <td align="right"><label for="id_vlan_id">Name:</label></td>
                         <td align="left">
-                            <span data-toggle="tooltip" title="Enter the name of the new vlan.">
+                            <span data-bs-toggle="tooltip" title="Enter the name of the new vlan.">
                                 <input type="text" class="form-control" name="vlan_name" maxlength="32" id="id_vlan_name" value="" placeholder="new vlan name">
                             </span>
                         </td>
@@ -70,7 +70,7 @@
                     <tr>
                         <td align="right"><label for="id_vlan_id">VLAN:</label></td>
                         <td align="left">
-                            <span data-toggle="tooltip" title="Select the vlan to edit.">
+                            <span data-bs-toggle="tooltip" title="Select the vlan to edit.">
                                 <select name="vlan_id" id="id_vlan_id">
                                 {% for vlan_id, vlan in connection.allowed_vlans.items %}
                                 <option value="{{ vlan_id }}">{{ vlan_id }}
@@ -85,7 +85,7 @@
                     <tr>
                         <td align="right"><label for="id_vlan_name">Name:</label></td>
                         <td align="left">
-                            <span data-toggle="tooltip" title="Enter new name for selected vlan.">
+                            <span data-bs-toggle="tooltip" title="Enter new name for selected vlan.">
                                 <input type="text" class="form-control" name="vlan_name" maxlength="32" id="id_vlan_name" value="" placeholder="new vlan name">
                             </span>
                         </td>

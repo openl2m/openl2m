@@ -8,7 +8,7 @@
         {% if page.number > 1 %}
         <li>
           <a href="{% querystring request page=1 %}"
-             data-toggle="tooltip"
+             data-bs-toggle="tooltip"
              title="Go to First page">
             Pg.1
           </a>
@@ -17,7 +17,7 @@
         {% if page.number > 2 %}
         <li>
           <a href="{% querystring request page=page.previous_page_number %}"
-             data-toggle="tooltip"
+             data-bs-toggle="tooltip"
              title="Go to Previous page">
             <i class="fas fa-angle-double-left"></i>
           </a>
@@ -25,7 +25,7 @@
         {% endif %}
       {% endif %}
         <li class="active">
-          <a data-toggle="tooltip"
+          <a data-bs-toggle="tooltip"
              title="Current page">
           Page {{ page.number }}
           </a>
@@ -34,7 +34,7 @@
         {% if page.number < page.paginator.num_pages|add:-1 %}
         <li>
           <a href="{% querystring request page=page.next_page_number %}"
-             data-toggle="tooltip"
+             data-bs-toggle="tooltip"
              title="Go to Next page">
             <i class="fas fa-angle-double-right"></i>
           </a>
@@ -43,7 +43,7 @@
         {% if page.number < page.paginator.num_pages %}
         <li>
           <a href="{% querystring request page=page.paginator.num_pages %}"
-             data-toggle="tooltip"
+             data-bs-toggle="tooltip"
              title="Go to Last page">
             Pg.{{ page.paginator.num_pages }}
           </a>

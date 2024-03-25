@@ -11,7 +11,7 @@
     {{ switch|get_interface_info_links:iface }}
     {% if connection.can_change_admin_status %}
       <a href="{% url 'switches:admin_change' group.id switch.id iface.key 0 %}"
-        data-toggle="tooltip"
+        data-bs-toggle="tooltip"
         title="Click here to Disable {{ iface.name }}"
       {% if request.user.profile.are_you_sure %}
         onclick="return confirm_change('Are you sure you want to DISABLE {{ iface.name }}?')"
@@ -23,7 +23,7 @@
     {{ switch|get_interface_info_links:iface }}
     {% if connection.can_change_admin_status %}
     <a href="{% url 'switches:admin_change' group.id switch.id iface.key 1 %}"
-       data-toggle="tooltip"
+       data-bs-toggle="tooltip"
        title="Click here to Enable {{ iface.name }}"
     {% if request.user.profile.are_you_sure %}
        onclick="return confirm_change('Are you sure you want to ENABLE {{ iface.name }}?')"

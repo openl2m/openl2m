@@ -13,7 +13,7 @@
             <td>
             <div>
               <a data-toggle="collapse" href="#details{{ t.id }}" aria-expanded="false" aria-controls="details">
-                <span data-toggle="tooltip" title="{{ t.description }}">{{ t.name }}</span>
+                <span data-bs-toggle="tooltip" title="{{ t.description }}">{{ t.name }}</span>
               </a>
             </div>
             <div id="details{{ t.id }}" class="collapse">
@@ -28,63 +28,63 @@
                         <tr>
                           <td>{{ t.field1_name }}</td>
                           <td><input type="text" size=40 name="field1" value=""
-                                   data-toggle="tooltip" title="{{ t.field1_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field1_description }}"></td>
                          </tr>
                         {% endif %}
                         {% if t.field2_name %}
                         <tr>
                           <td>{{ t.field2_name }}</td>
                           <td><input type="text" size=40 name="field2" value=""
-                                   data-toggle="tooltip" title="{{ t.field2_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field2_description }}"></td>
                         </tr>
                         {% endif %}
                         {% if t.field3_name %}
                         <tr>
                           <td>{{ t.field3_name }}</td>
                           <td><input type="text" size=40 name="field3" value=""
-                                   data-toggle="tooltip" title="{{ t.field3_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field3_description }}"></td>
                         </tr>
                         {% endif %}
                         {% if t.field4_name %}
                         <tr>
                           <td>{{ t.field4_name }}</td>
                           <td><input type="text" size=40 name="field4" value=""
-                                   data-toggle="tooltip" title="{{ t.field4_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field4_description }}"></td>
                         </tr>
                         {% endif %}
                         {% if t.field5_name %}
                         <tr>
                           <td>{{ t.field5_name }}</td>
                           <td><input type="text" size=40 name="field5" value=""
-                                   data-toggle="tooltip" title="{{ t.field5_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field5_description }}"></td>
                         </tr>
                         {% endif %}
                         {% if t.field6_name %}
                         <tr>
                           <td>{{ t.field6_name }}</td>
                           <td><input type="text" size=40 name="field6" value=""
-                                   data-toggle="tooltip" title="{{ t.field6_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field6_description }}"></td>
                         </tr>
                         {% endif %}
                         {% if t.field7_name %}
                         <tr>
                           <td>{{ t.field7_name }}</td>
                           <td><input type="text" size=40 name="field7" value=""
-                                   data-toggle="tooltip" title="{{ t.field7_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field7_description }}"></td>
                         </tr>
                         {% endif %}
                         {% if t.field8_name %}
                         <tr>
                           <td>{{ t.field8_name }}</td>
                           <td><input type="text" size=40 name="field8" value=""
-                                   data-toggle="tooltip" title="{{ t.field8_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field8_description }}"></td>
                         </tr>
                         {% endif %}
                         {% if t.list1_name %}
                         <tr>
                           <td>{{ t.list1_name }}</td>
                           <td>
-                            <select name="list1" data-toggle="tooltip" title="{{ t.list1_description }}">
+                            <select name="list1" data-bs-toggle="tooltip" title="{{ t.list1_description }}">
                               {{ t.list1_values | get_options_from_comma_string }}
                             </select>
                           </td>
@@ -94,7 +94,7 @@
                         <tr>
                           <td>{{ t.list2_name }}</td>
                           <td>
-                            <select name="list2" data-toggle="tooltip" title="{{ t.list2_description }}">
+                            <select name="list2" data-bs-toggle="tooltip" title="{{ t.list2_description }}">
                               {{ t.list2_values | get_options_from_comma_string }}
                             </select>
                           </td>
@@ -104,7 +104,7 @@
                         <tr>
                           <td>{{ t.list3_name }}</td>
                           <td>
-                            <select name="list3" data-toggle="tooltip" title="{{ t.list3_description }}">
+                            <select name="list3" data-bs-toggle="tooltip" title="{{ t.list3_description }}">
                               {{ t.list3_values | get_options_from_comma_string }}
                             </select>
                           </td>
@@ -114,7 +114,7 @@
                         <tr>
                           <td>{{ t.list4_name }}</td>
                           <td>
-                            <select name="list4" data-toggle="tooltip" title="{{ t.list4_description }}">
+                            <select name="list4" data-bs-toggle="tooltip" title="{{ t.list4_description }}">
                               {{ t.list4_values | get_options_from_comma_string }}
                             </select>
                           </td>
@@ -124,7 +124,7 @@
                         <tr>
                           <td>{{ t.list5_name }}</td>
                           <td>
-                            <select name="list5" data-toggle="tooltip" title="{{ t.list5_description }}">
+                            <select name="list5" data-bs-toggle="tooltip" title="{{ t.list5_description }}">
                               {{ t.list5_values | get_options_from_comma_string }}
                             </select>
                           </td>
@@ -133,7 +133,7 @@
                       </tbody>
                     </table>
                     <input type="hidden" id="id" name="template_id" value="{{ t.id }}">
-                  &nbsp;<input type="submit" value="Run" class="btn btn-primary" data-toggle="tooltip" title="Click to run command template">
+                  &nbsp;<input type="submit" value="Run" class="btn btn-primary" data-bs-toggle="tooltip" title="Click to run command template">
               </form>
             </div>
             </td>

@@ -9,7 +9,7 @@
       {% csrf_token %}
       <input type="text" size=40 name="switchname" id="switchname"
              placeholder="device name or reg-ex here..."
-             data-toggle="tooltip"
+             data-bs-toggle="tooltip"
              title="Type the name or regular expression of the device(s) you are looking for here!"
              data-original-title="Type the name or regular expression of the device(s) you are looking for here!"
       >
@@ -17,7 +17,7 @@
       <input type="submit"
              value="Search"
              class="btn btn-primary"
-             data-toggle="tooltip" title="Click here to search for a device!"
+             data-bs-toggle="tooltip" title="Click here to search for a device!"
       >
     </form>
   {% endif %}

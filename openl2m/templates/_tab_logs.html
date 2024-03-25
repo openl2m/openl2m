@@ -5,7 +5,7 @@
     {% if logs_link %}
       &nbsp;&nbsp;
       <a href="{% url 'switches:switch_activity' group.id switch.id %}"
-        data-toggle="tooltip"
+        data-bs-toggle="tooltip"
         title="Click here to see all switch activity logs">
       <i class="fas fa-list-ul" aria-hidden="true"></i> All Actity Logs
       </a>
@@ -24,13 +24,13 @@
             {% if l.user %}
               {% if request.user.is_superuser or request.user.is_staff %}
               <a href="{% url 'switches:admin_activity'%}?user={{ l.user.id }}"
-                data-toggle="tooltip"
+                data-bs-toggle="tooltip"
                 title="Click here to see all logs for '{{ l.user }}'">
               <i class="fas fa-list-ul" aria-hidden="true"></i>
               </a>
               &nbsp;
               <a href="{% url 'users:info' l.user.id %}"
-                  data-toggle="tooltip"
+                  data-bs-toggle="tooltip"
                   title="Click here to see info on '{{ l.user }}'">
                 {{ l.user }}
                 </a>
@@ -43,13 +43,13 @@
             {% if l.switch and l.group %}
               {% if request.user.is_superuser or request.user.is_staff %}
               <a href="{% url 'switches:admin_activity'%}?switch={{ l.switch.id }}"
-                data-toggle="tooltip"
+                data-bs-toggle="tooltip"
                 title="Click here to see all logs for '{{ l.switch }}'">
               <i class="fas fa-list-ul" aria-hidden="true"></i>
               </a>
               &nbsp;
               <a href="{% url 'switches:switch_basics' l.group.id l.switch.id %}"
-                  data-toggle="tooltip"
+                  data-bs-toggle="tooltip"
                   title="Click here to connect to '{{ l.switch }}'">
                   {{ l.switch }}
                 </a>
