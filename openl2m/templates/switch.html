@@ -9,9 +9,8 @@
 {% load helpers %}
 {% load static %}
 
-<div class="container">
-
-  {# this is the header "menu" bar #}
+{# this is the header "menu" bar #}
+<div class="container-fluid">
   <div class="table-responsive">
     <table class="table">
       <thead>
@@ -19,12 +18,12 @@
           <td>
             {{ switch|get_switch_info_url_links:request.user }}
             {% if switch.description %}
-              <span data-toggle="tooltip" title="{{ switch.description }}"><strong>{{ switch.name }}</strong></span>
+              <span data-bs-toggle="tooltip" data-bs-title="{{ switch.description }}"><strong>{{ switch.name }}</strong></span>
             {% else %}
               <strong>{{ switch.name }}</strong>
             {% endif %}
             {% if switch.read_only or group.read_only or user.profile.read_only %}
-              <span data-toggle="tooltip" title="This switch is set as Read-Only by the administrator. You can not make any changes!">
+              <span data-bs-toggle="tooltip" data-bs-title="This switch is set as Read-Only by the administrator. You can not make any changes!">
                 <i class="far fa-hand-point-right" aria-hidden="true"></i>&nbsp;<small>Read-Only</small>&nbsp;<i class="far fa-hand-point-left" aria-hidden="true"></i>
               </span>
             {% endif %}
@@ -35,8 +34,8 @@
           {% if request.user.is_superuser and connection.can_get_hardware_details and connection.hardware_details_needed %}
           <td>
             <a href="{% url 'switches:switch_hw_info' group.id switch.id %}"
-              data-toggle="tooltip"
-              title="Read additional hardware details for this switch! This may take some time..."
+              data-bs-toggle="tooltip"
+              data-bs-title="Read additional hardware details for this switch! This may take some time..."
               class="btn btn-primary">
               <i class="fas fa-info-circle" aria-hidden="true"></i>
               More Hardware Details
@@ -47,9 +46,9 @@
           {% if connection.can_get_client_data %}
           <td>
             <a href="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
-               data-toggle="tooltip"
-               title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time..."
-               class="btn btn-primary">
+               class="btn btn-primary" data-bs-toggle="tooltip"
+               data-bs-title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time..."
+               >
               {% if view == 'arp_lldp' %}
                 <i class="fas fa-sync" aria-hidden="true"></i>
                 Refresh
@@ -64,8 +63,8 @@
           {% if connection.save_needed %}
           <td>
             <a href="{% url 'switches:switch_save_config' group.id switch.id %}"
-               data-toggle="tooltip"
-               title="Click here to save changes to the startup config of the switch!"
+               data-bs-toggle="tooltip"
+               data-bs-title="Click here to save changes to the startup config of the switch!"
                class="btn btn-warning">
               <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
                 Save Changes
@@ -77,8 +76,8 @@
           {% if connection.can_reload_all %}
           <td>
             <a href="{% url 'switches:switch_reload' group.id switch.id view %}"
-               data-toggle="tooltip"
-               title="Click here to fully reload all data for this switch! This may take some time..."
+               data-bs-toggle="tooltip"
+               data-bs-title="Click here to fully reload all data for this switch! This may take some time..."
                class="btn btn-primary">
               <i class="fas fa-sync" aria-hidden="true"></i>
               Reload All
@@ -90,170 +89,256 @@
         </tr>
       </thead>
     </table>
-  </div>
+  </div> {# table-responsive #}
+</div> {# container-fluid #}
 
 
-  {# here are the tabs of this page, depending on "view", see https://codepen.io/sinairv/pen/XjZyWP #}
+{# here are the tabs of this page, depending on "view", see https://fastbootstrap.com/components/tabs/ #}
+<!-- the tabs -->
+<div class="container-fluid">
 
 {% if  connection.show_interfaces %}
-
-  <ul class="nav nav-tabs">
+  {# the tabs #}
+  <ul class="nav nav-tabs" role="tablist">
     {% if cmd and cmd.state == 'run' %}
 
-      <li>{% include "_menu_interfaces.html" %}</li>
+      <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+      data-bs-title="Interfaces information">
+        {% include "_menu_interfaces.html" with state="" %}
+      </li>
       {% if bulk_edit %}
-        <li>{% include "_menu_bulk_edit.html" %}</li>
+        <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+        data-bs-title="The interfaces Bulk Edit form">
+          {% include "_menu_bulk_edit.html" %}
+        </li>
       {% endif %}
       {% if edit_vlans %}
-        <li>{% include "_menu_edit_vlans.html" %}</li>
+        <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+        data-bs-title="The Edit VLANs form">
+          {% include "_menu_edit_vlans.html" %}
+        </li>
       {% endif %}
-      <li>{% include "_menu_switch_info.html" %}</li>
-      <li class="active">{% include "_menu_command_output.html" %}</li>
+      <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+      data-bs-title="General device information, such as OS, etc.">
+        {% include "_menu_switch_info.html" with state="" %}
+      </li>
+      <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+      data-bs-title="Command output">
+        {% include "_menu_command_output.html" with state="active" %}
+      </li>
 
     {% else %}
 
       {% if view == 'basic' %}
-        <li class="active">{% include "_menu_interfaces.html" %}</li>
+      <!-- BASIC INTERFACE TABS -->
+      <!--
+      Comments: the tooltip works in the LI element, but NOT on a span around the A element for the tab.!
+      Problem: the active tab is set in the A element class="nav-link active"
+      So we pass this into the included templates as a separate variable!
+      -->
+        <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+        data-bs-title="Interfaces information">
+          {% include "_menu_interfaces.html" with state="active" %}
+        </li>
         {% if bulk_edit %}
-          <li>{% include "_menu_bulk_edit.html" %}</li>
+          <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+          data-bs-title="The interfaces Bulk Edit form">
+            {% include "_menu_bulk_edit.html" %}
+          </li>
         {% endif %}
         {% if edit_vlans %}
-          <li>{% include "_menu_edit_vlans.html" %}</li>
+          <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+          data-bs-title="The Edit VLANs form">
+            {% include "_menu_edit_vlans.html" %}
+          </li>
         {% endif %}
-        <li>{% include "_menu_switch_info.html" %}</li>
+        <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+        data-bs-title="General device information, such as OS, etc.">
+          {% include "_menu_switch_info.html" with state="" %}
+        </li>
       {% endif %}
 
       {% if view == 'arp_lldp' %}
-        <li>{% include "_menu_interfaces.html" %}</li>
+      <!-- ARP-LLDP TABS -->
+      <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+      data-bs-title="Interfaces information">
+          {% include "_menu_interfaces.html" with state="" %}
+        </li>
         {% if bulk_edit %}
-          <li>{% include "_menu_bulk_edit.html" %}</li>
+          <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+          data-bs-title="The interfaces Bulk Edit form">
+            {% include "_menu_bulk_edit.html" %}
+          </li>
         {% endif %}
         {% if edit_vlans %}
-          <li>{% include "_menu_edit_vlans.html" %}</li>
+          <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+          data-bs-title="The Edit VLANs forms">
+            {% include "_menu_edit_vlans.html" %}
+          </li>
         {% endif %}
-        <li class="active">{% include "_menu_arp_lldp.html" %}</li>
-        <li>{% include "_menu_switch_info.html" %}</li>
+        <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+        data-bs-title="Interface details such as ethernet address, ARP, LLDP, etc.">
+          {% include "_menu_arp_lldp.html" with state="active" %}
+        </li>
+        <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+        data-bs-title="General device information, such as OS, etc.">
+          {% include "_menu_switch_info.html" with state="" %}
+        </li>
       {% endif %}
 
       {% if view == 'hw_info' %}
-        <li>{% include "_menu_interfaces.html" %}</li>
+      <!-- HW-INFO TABS -->
+        <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+        data-bs-title="Interfaces information">
+          {% include "_menu_interfaces.html" with state="" %}
+        </li>
         {% if bulk_edit %}
-          <li>{% include "_menu_bulk_edit.html" %}</li>
+          <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+          data-bs-title="The interfaces Bulk Edit form">
+            {% include "_menu_bulk_edit.html" %}
+          </li>
         {% endif %}
         {% if create_vlans %}
-          <li>{% include "_menu_create_vlans.html" %}</li>
+          <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+          data-bs-title="The Edit VLANs forms">
+            {% include "_menu_create_vlans.html" %}
+          </li>
         {% endif %}
-        <li class="active">{% include "_menu_switch_info.html" %}</li>
+        <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+        data-bs-title="General device information, such as OS, etc.">
+          {% include "_menu_switch_info.html" with state="active" %}
+        </li>
       {% endif %}
 
     {% endif %}
 
-    {% if connection.can_run_commands %}
-      {% if switch.command_list.global_commands.count %}
-        <li>{% include "_menu_switch_commands.html" %}</li>
-      {% elif request.user.is_staff or request.user.is_superuser %}
-        {% if switch.command_list.interface_commands_staff.count or switch.command_list.global_commands_staff.count %}
-          <li>{% include "_menu_switch_commands.html" %}</li>
-        {% endif %}
-      {% endif %}
-      {% if switch.command_templates.count %}
-        <li>{% include "_menu_command_templates.html" %}</li>
+  {% if connection.can_run_commands %}
+    {% if switch.command_list.global_commands.count %}
+    <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+    data-bs-title="Possible show commands for this device">
+      {% include "_menu_switch_commands.html" %}
+    </li>
+    {% elif request.user.is_staff or request.user.is_superuser %}
+      {% if switch.command_list.interface_commands_staff.count or switch.command_list.global_commands_staff.count %}
+      <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+      data-bs-title="Possible show commands for this device">
+        {% include "_menu_switch_commands.html" %}
+      </li>
       {% endif %}
     {% endif %}
+    {% if switch.command_templates.count %}
+    <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+    data-bs-title="Command templates for this device">
+      {% include "_menu_command_templates.html" %}
+    </li>
+    {% endif %}
+  {% endif %}
 
-    <li>{% include "_menu_logs.html" %}</li>
+
+<!-- Every menu gets logs and warning -->
+    <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+    data-bs-title="{ settings.RECENT_SWITCH_LOG_COUNT }} most recent OpenL2M activity logs for this device">
+      {% include "_menu_logs.html" %}
+    </li>
 
     {% if connection.warnings %}
-      <li>{% include "_menu_warnings.html" %}</li>
+      <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+      data-bs-title="Warnings for this device">
+        {% include "_menu_warnings.html" %}
+      </li>
     {% endif %}
 
   </ul>
 
-  {# and tab content, obviously! #}
-  <div class="tab-content">
+<!-- TAB CONTENT STARTS HERE -->
+
+  {# and tab content #}
+  {# see https://fastbootstrap.com/components/tabs/ #}
+  <div class="tab-content" id="tab-content">
 
     {% if cmd and cmd.state == 'run' %}
-      <div class="tab-pane" id="tab_interfaces">
+      <!-- CMD RUN OUTPUT -->
+      <div class="tab-pane" id="tab_interfaces" role="tabpanel" aria-labelledby="tab_interfaces">
         {% include "_tab_if_basics.html" %}
       </div>
       {% if bulk_edit %}
-        <div class="tab-pane" id="tab_bulkedit">
+        <div class="tab-pane" id="tab_bulkedit" role="tabpanel" aria-labelledby="tab_bulkedit">
           {% include "_tab_if_bulkedit.html" %}
         </div>
       {% endif %}
       {% if edit_vlans %}
-        <div class="tab-pane" id="tab_edit_vlans">
+        <div class="tab-pane" id="tab_edit_vlans" role="tabpanel" aria-labelledby="tab_edit_vlans">
           {% include "_tab_edit_vlans.html" %}
         </div>
       {% endif %}
-      <div class="tab-pane" id="tab_info">
+      <div class="tab-pane" id="tab_info" role="tabpanel" aria-labelledby="tab_info">
         {% include "_tab_info.html" %}
       </div>
-      <div class="tab-pane active" id="tab_cmd_output">
+      <div class="tab-pane active" id="tab_cmd_output" role="tabpanel" aria-labelledby="tab_cmd_output">
         {% include "_tab_cmd_output.html" %}
       </div>
 
     {% else %}
 
       {% if view == 'basic' %}
-        <div class="tab-pane active" id="tab_interfaces">
+      <!-- BASIC CONTENT -->
+        <div class="tab-pane active" id="tab_interfaces" role="tabpanel" aria-labelledby="tab_interfaces">
           {% include "_tab_if_basics.html" %}
         </div>
         {% if bulk_edit %}
-          <div class="tab-pane" id="tab_bulkedit">
+          <div class="tab-pane" id="tab_bulkedit" role="tabpanel" aria-labelledby="tab_bulkedit">
             {% include "_tab_if_bulkedit.html" %}
           </div>
         {% endif %}
         {% if edit_vlans %}
-          <div class="tab-pane" id="tab_edit_vlans">
+          <div class="tab-pane" id="tab_edit_vlans" role="tabpanel" aria-labelledby="tab_edit_vlans">
             {% include "_tab_edit_vlans.html" %}
           </div>
         {% endif %}
-        <div class="tab-pane" id="tab_info">
+        <div class="tab-pane" id="tab_info" role="tabpanel" aria-labelledby="tab_info">
           {% include "_tab_info.html" %}
-        </div>
-        <div class="tab-pane" id="tab_logs">
-            {% include "_tab_logs.html" %}
         </div>
       {% endif %}
 
       {% if view == 'arp_lldp' %}
-        <div class="tab-pane" id="tab_interfaces">
+      <!-- ARP-LLDP CONTENT -->
+      <div class="tab-pane" id="tab_interfaces" role="tabpanel" aria-labelledby="tab_interfaces">
           {% include "_tab_if_basics.html" %}
         </div>
         {% if bulk_edit %}
-          <div class="tab-pane" id="tab_bulkedit">
+          <div class="tab-pane" id="tab_bulkedit" role="tabpanel" aria-labelledby="tab_bulkedit">
             {% include "_tab_if_bulkedit.html" %}
           </div>
         {% endif %}
         {% if edit_vlans %}
-          <div class="tab-pane" id="tab_edit_vlans">
+          <div class="tab-pane" id="tab_edit_vlans" role="tabpanel" aria-labelledby="tab_edit_vlans">
             {% include "_tab_edit_vlans.html" %}
           </div>
         {% endif %}
-        <div class="tab-pane active" id="tab_arp_lldp">
+        <div class="tab-pane active" id="tab_arp_lldp" role="tabpanel" aria-labelledby="tab_arp_lldp">
           {% include "_tab_if_arp_lldp.html" %}
         </div>
-        <div class="tab-pane" id="tab_info">
+        <div class="tab-pane" id="tab_info" role="tabpanel" aria-labelledby="tab_info">
           {% include "_tab_info.html" %}
         </div>
       {% endif %}
 
       {% if view == 'hw_info' %}
-        <div class="tab-pane" id="tab_interfaces">
+      <!-- HW-INFO CONTENT -->
+      <div class="tab-pane" id="tab_interfaces" role="tabpanel" aria-labelledby="tab_interfaces">
           {% include "_tab_if_basics.html" %}
         </div>
         {% if bulk_edit %}
-          <div class="tab-pane" id="tab_bulkedit">
+          <div class="tab-pane" id="tab_bulkedit" role="tabpanel" aria-labelledby="tab_bulkedit">
             {% include "_tab_if_bulkedit.html" %}
           </div>
         {% endif %}
         {% if edit_vlans %}
-          <div class="tab-pane" id="tab_edit_vlans">
+          <div class="tab-pane" id="tab_edit_vlans" role="tabpanel" aria-labelledby="tab_edit_vlans">
             {% include "_tab_edit_vlans.html" %}
           </div>
         {% endif %}
-        <div class="tab-pane active" id="tab_info">
+        <div class="tab-pane active" id="tab_info" role="tabpanel" aria-labelledby="tab_info">
           {% include "_tab_info.html" %}
         </div>
       {% endif %}
@@ -262,29 +347,30 @@
 
     {% if connection.can_run_commands %}
       {% if switch.command_list.global_commands.count %}
-        <div class="tab-pane" id="tab_cmd_list">
+        <div class="tab-pane" id="tab_cmd_list" id="tab_cmd_list" role="tabpanel" aria-labelledby="tab_cmd_list">
           {% include "_tab_cmd_list.html" %}
         </div>
       {% elif request.user.is_staff or request.user.is_superuser %}
         {% if switch.command_list.interface_commands_staff.count or switch.command_list.global_commands_staff.count %}
-          <div class="tab-pane" id="tab_cmd_list">
+          <div class="tab-pane" id="tab_cmd_list" id="tab_cmd_list" role="tabpanel" aria-labelledby="tab_cmd_list">
             {% include "_tab_cmd_list.html" %}
           </div>
         {% endif %}
       {% endif %}
       {% if switch.command_templates.count %}
-        <div class="tab-pane" id="tab_cmd_templates">
+        <div class="tab-pane" id="tab_cmd_templates" id="tab_cmd_templates" role="tabpanel" aria-labelledby="tab_cmd_templates">
           {% include "_tab_cmd_templates.html" %}
         </div>
       {% endif %}
     {% endif %}
 
-    <div class="tab-pane" id="tab_logs">
+    <!-- everything gets logs and warnings -->
+    <div class="tab-pane" id="tab_logs" role="tabpanel" aria-labelledby="tab_logs">
       {% include "_tab_logs.html" %}
     </div>
 
     {% if connection.warnings %}
-      <div class="tab-pane" id="tab_warnings">
+      <div class="tab-pane" id="tab_warnings" role="tabpanel" aria-labelledby="tab_warnings">
         {% include "_tab_warnings.html" %}
       </div>
     {% endif %}
@@ -293,57 +379,82 @@
 
 {% else %} {# not connecton.show_interfaces #}
 
+<!-- NO INTERFACES MENU TABS -->
   <ul class="nav nav-tabs">
     {% if cmd and cmd.state == 'run' %}
 
-      <li>{% include "_menu_switch_info.html" %}</li>
-      <li class="active">{% include "_menu_command_output.html" %}</li>
+      <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+      data-bs-title="General device information, such as OS, etc.">
+        {% include "_menu_switch_info.html" %}
+      </li>
+      <li  class="nav-item" role="presentation" data-bs-toggle="tooltip"
+      data-bs-title="Command output">
+        {% include "_menu_command_output.html" %}
+      </li>
 
     {% else %}
 
-      <li class="active">{% include "_menu_switch_info.html" %}</li>
+      <li  class="nav-item" role="presentation" data-bs-toggle="tooltip"
+      data-bs-title="General device information, such as OS, etc.">
+        {% include "_menu_switch_info.html" %}
+      </li>
 
     {% endif %}
 
     {% if connection.can_run_commands %}
       {% if switch.command_list.global_commands.count %}
-        <li>{% include "_menu_switch_commands.html" %}</li>
+        <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+        data-bs-title="Commands to run on this device">
+          {% include "_menu_switch_commands.html" %}
+        </li>
       {% elif request.user.is_staff or request.user.is_superuser %}
         {% if switch.command_list.interface_commands_staff.count or switch.command_list.global_commands_staff.count %}
-          <li>{% include "_menu_switch_commands.html" %}</li>
+          <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+          data-bs-title="Commands to run on this device">
+            {% include "_menu_switch_commands.html" %}
+          </li>
         {% endif %}
       {% endif %}
       {% if switch.command_templates.count %}
-        <li>{% include "_menu_command_templates.html" %}</li>
+        <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+        data-bs-title="Command Templates for this device">
+          {% include "_menu_command_templates.html" %}
+        </li>
       {% endif %}
     {% endif %}
 
-    <li>{% include "_menu_logs.html" %}</li>
+    <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+    data-bs-title="{ settings.RECENT_SWITCH_LOG_COUNT }} most recent OpenL2M activity logs for this device">
+      {% include "_menu_logs.html" %}
+    </li>
 
     {% if connection.warnings %}
-      <li>{% include "_menu_warnings.html" %}</li>
+      <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+      data-bs-title="Warnings for this device">
+        {% include "_menu_warnings.html" %}
+      </li>
     {% endif %}
 
   </ul>
 
-  {# and tab content, obviously! #}
+  {# and tab content #}
   <div class="tab-content">
 
     {% if cmd and cmd.state == 'run' %}
 
-      <div class="tab-pane" id="tab_info">
+      <div class="tab-pane" id="tab_info" role="tabpanel" aria-labelledby="tab_info">
         {% include "_tab_info.html" %}
       </div>
-      <div class="tab-pane active" id="tab_cmd_output">
+      <div class="tab-pane active" id="tab_cmd_output" role="tabpanel" aria-labelledby="tab_cmd_output">
         {% include "_tab_cmd_output.html" %}
       </div>
 
     {% else %}
 
-      <div class="tab-pane active" id="tab_info">
+      <div class="tab-pane active" id="tab_info" role="tabpanel" aria-labelledby="tab_info">
         {% include "_tab_info.html" %}
       </div>
-      <div class="tab-pane" id="tab_logs">
+      <div class="tab-pane" id="tab_logs" role="tabpanel" aria-labelledby="tab_logs">
           {% include "_tab_logs.html" %}
       </div>
 
@@ -351,37 +462,36 @@
 
     {% if connection.can_run_commands %}
       {% if switch.command_list.global_commands.count %}
-        <div class="tab-pane" id="tab_cmd_list">
+        <div class="tab-pane" id="tab_cmd_list" role="tabpanel" aria-labelledby="tab_cmd_list">
           {% include "_tab_cmd_list.html" %}
         </div>
       {% elif request.user.is_staff or request.user.is_superuser %}
         {% if switch.command_list.interface_commands_staff.count or switch.command_list.global_commands_staff.count %}
-          <div class="tab-pane" id="tab_cmd_list">
+          <div class="tab-pane" id="tab_cmd_list" role="tabpanel" aria-labelledby="tab_cmd_list">
             {% include "_tab_cmd_list.html" %}
           </div>
         {% endif %}
       {% endif %}
       {% if switch.command_templates.count %}
-        <div class="tab-pane" id="tab_cmd_templates">
+        <div class="tab-pane" id="tab_cmd_templates" role="tabpanel" aria-labelledby="tab_cmd_templates">
           {% include "_tab_cmd_templates.html" %}
         </div>
       {% endif %}
     {% endif %}
 
-    <div class="tab-pane" id="tab_logs">
+    <div class="tab-pane" id="tab_logs" role="tabpanel" aria-labelledby="tab_logs">
       {% include "_tab_logs.html" %}
     </div>
 
     {% if connection.warnings %}
-      <div class="tab-pane" id="tab_warnings">
+      <div class="tab-pane" id="tab_warnings" role="tabpanel" aria-labelledby="tab_warnings">
         {% include "_tab_warnings.html" %}
       </div>
     {% endif %}
 
   </div> {# class tab-content #}
 
+</div> {# container-fluid #}
 {% endif %} {# if connection.show_interfaces #}
-
-</div> {# class container #}
 
 {% endblock %}

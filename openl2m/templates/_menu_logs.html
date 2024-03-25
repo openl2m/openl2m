@@ -1,6 +1,13 @@
-<a href="#tab_logs" data-toggle="tab">
-  <strong data-toggle="tooltip" title="{{ settings.RECENT_SWITCH_LOG_COUNT }} most recent OpenL2M activity logs for this switch">
+<a
+  href="#tab_logs"
+  data-bs-toggle="tab"
+  class="nav-link"
+  id="logs_menu"
+  data-bs-title="{{ settings.RECENT_SWITCH_LOG_COUNT }} most recent OpenL2M activity logs for this switch"
+  role="tab"
+  aria-controls="tab_logs"
+  aria-selected="false"
+  >
     <i class="fas fa-list-ul" aria-hidden="true"></i>
     Activity Logs
-  </strong>
 </a>

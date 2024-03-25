@@ -16,49 +16,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
+  <!-- menu -->
   <div class="container-fluid position-absolute top-0 start-0">
-    <!-- menu -->
     {% include '_menu.html' %}
-    <!-- end menu -->
-    <div class="container-fluid">
+  </div>
+  <!-- end menu -->
+
+  <!-- various banners -->
+  <div class="container-fluid">
+
     {% if settings.BANNER_TOP %}
       <!-- top banner -->
       <div class="alert alert-info text-center" role="alert">
       {{ settings.BANNER_TOP|safe }}
       </div>
       <!-- end top banner -->
-      {% endif %}
+    {% endif %}
+
     {% if settings.MAINTENANCE_MODE %}
-    <!-- maintenance -->
+    <!-- maintenance banner -->
       <div class="alert alert-warning text-center" role="alert">
         <h4><i class="fas fa-exclamation-triangle"></i> Maintenance Mode</h4>
         <p>OpenL2M is currently in maintenance mode. Functionality may be limited.</p>
       </div>
     <!-- end maintenance -->
     {% endif %}
-      <!-- messages -->
+
+    <!-- messages banners -->
     {% for message in messages %}
       <div class="alert alert-{{ message.tags }} text-center" role="alert">
         <i class="fas fa-exclamation-triangle"></i>&nbsp;<bold>{{ message }}</bold>&nbsp;<i class="fas fa-exclamation-triangle"></i>
       </div>
     {% endfor %}
-      <!-- end messages -->
-      <!-- header block -->
-      <div class="container-fluid">{% block header %}{% endblock %}</div>
-      <!-- end header block -->
-      <!-- content block -->
-      <div class="container-fluid">{% block content %}{% endblock %}</div>
-      <!-- end content block -->
-    {% if settings.BANNER_BOTTOM %}
-      <!-- bottom banner -->
-      <div class="push"></div>
-        <div class="alert alert-info text-center banner-bottom" role="alert">
-          {{ settings.BANNER_BOTTOM|safe }}
-        </div>
-      </div>
-      <!-- end bottom banner -->
-    {% endif %}
+    <!-- end messages -->
   </div>
+  <!-- end banners -->
+
+  <!-- header block -->
+  <div class="container-fluid">{% block header %}{% endblock %}</div>
+  <!-- end header block -->
+
+  <!-- content block -->
+  <div class="container-fluid">{% block content %}{% endblock %}</div>
+  <!-- end content block -->
+
+  {% if settings.BANNER_BOTTOM %}
+  <!-- bottom banner -->
+  <div class="contianer-fluid">
+    <div class="alert alert-info text-center banner-bottom" role="alert">
+      {{ settings.BANNER_BOTTOM|safe }}
+    </div>
+  </div>
+  <!-- end bottom banner -->
+  {% endif %}
 
   <!-- <script type="text/javascript" src="{% static 'js/jquery-3.6.4.min.js' %}"></script>
   <script type="text/javascript" src="{% static 'jquery-ui-1.13.2/jquery-ui.min.js' %}"></script> -->
@@ -71,16 +81,14 @@
   -->
   {% block javascript %}{% endblock %}
   <script>
+    // New Bootstrap 5 tooltip activation:
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
     function confirm_change(s) {
        return confirm(s);
     }
-    $(document).ready(function(){
-      # OLD tooltip format:
-      $('[data-toggle="tooltip"]').tooltip();
-      # New Bootstrap 5 tooltip activation:
-      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-    });
   </script>
 </body>
 </html>
