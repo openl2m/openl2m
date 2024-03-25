@@ -36,6 +36,13 @@ from django.core.exceptions import ImproperlyConfigured
 if sys.version_info < (3, 10):
     raise RuntimeError("OpenL2M requires Python 3.10 or higher (current: Python {})".format(sys.version.split()[0]))
 
+if sys.version_info >= (3, 12):
+    raise RuntimeError(
+        "Due to SNMP library dependencies OpenL2M requires Python 3.10 or 3.11 (current: Python {})".format(
+            sys.version.split()[0]
+        )
+    )
+
 # Check for configuration file
 try:
     from openl2m import configuration
