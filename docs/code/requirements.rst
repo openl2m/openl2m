@@ -8,8 +8,11 @@ how the OpenL2M project works "under the hood".
 
 **Python 3**
 
-As of v2.4, all the code is written and tested in Python v3.11. Note that Django 5 require v3.10 or above.
-There are numerous places to learn this.
+As of OpenL2M v2.4, all the code is written and tested in Python v3.11.
+We do NOT at this time support Python v3.12 and above, due to SNMP library incompatibilities.
+
+Note that Django 5 require v3.10 or above. There are numerous places to learn this.
+Due to a SNMP library depency, we cannot support Python 3.12 or higher at this time!
 
 The project is by default located in **/opt/openl2m**. To use these scripts, or work on things,
 you should first activate the Python virtual environment:
@@ -40,8 +43,14 @@ E.g. to start the development built-in web server, active the virtual environmen
 
 **HTML Layout**
 
-We use `Bootstrap v3.4 for all our HTML layout.
-<https://getbootstrap.com/docs/3.4/>`_
+We use `Bootstrap v5.3 for all our HTML layout.
+<https://getbootstrap.com/docs/5.3/>`_
+
+Any changes to HMTL layout should use Bootstrap, and should adhere to modern
+`Web Content Accesibility Guidelines (WCAG). <https://www.w3.org/WAI/standards-guidelines/wcag/:>`_
+
+A useful tool during development is the *"WAVE Web Accesibility Evaluation Tool" browser extension.*
+
 A good place to start learning is
 `W3Schools. <https://www.w3schools.com/bootstrap/default.asp>`_
 

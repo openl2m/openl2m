@@ -26,6 +26,7 @@ We also add Python type hints in many places. (Note: work in progress!)
    notices_app/index.rst
    counters_app/index.rst
    templating.rst
+   html-layout.rst
    api/index.rst
    data_model.rst
    documentation.rst
