@@ -1,4 +1,3 @@
-version: '3.9'
 #
 # docker compose file for testing OpenL2M.
 # Note: this is NOT meant to become a production setup!!!
