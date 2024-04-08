@@ -19,6 +19,7 @@ WORKDIR /opt/openl2m
 RUN pip3 install -r requirements.txt
 
 ADD --chown=openl2m docker/test/entrypoint.sh /opt/openl2m
+RUN chmod +x /opt/openl2m/entrypoint.sh
 
 USER openl2m
 

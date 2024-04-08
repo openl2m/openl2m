@@ -27,17 +27,17 @@ Note: the following steps assume installation in the default directory, /opt/ope
 If not, you will need to modify several of the docker files...
 
 3 - Run docker:
-    docker compose up
+    sudo docker compose up
 
 If you get something like this, things are running:
     openl2m-1   |   Applying ...
     openl2m-1   | Updating Wireshark Ethernet database...
     openl2m-1   | Initialization done!
 
-Test from a browser, to "http://<your-host>:8080/". If you get the login screen, things are running!
+Test from a browser, to "http://<your-host>:8000/". If you get the login screen, things are running!
 Now hit Control-C, and run as a daemon:
 
-    docker compose up -d
+    sudo docker compose up -d
 
 4 - Open a shell to the "openl2m" container, to create the superuser account:
 
@@ -52,17 +52,18 @@ Now hit Control-C, and run as a daemon:
 
 5 - go back to the web site, login and test as needed!
 
-NOTE: this does NOT include the documenation on the web site...
+NOTE: this does NOT include the documentation on the web site...
 
 6 - stop when done. Run:
 
-    docker compose down
+    sudo docker compose down
 
 
 Other Things:
 ------------
 * To clean up and rebuild the OpenL2M container to test new code (and leave the database intact):
 
+    git pull
     sudo docker compose build openl2m
 
 Be patient, this copies files again, and reinstalls the python dependencies...
@@ -71,6 +72,10 @@ Next run this to restart the containers:
     sudo docker compose up -d
 
 
-* To clean up *everything*, run:
+* To clean up most *everything*, run:
+
+    sudo docker compose down
+    sudo docker image rm openl2m:localbuild
+    sudo docker volume rm test_postgres_data
 
 
