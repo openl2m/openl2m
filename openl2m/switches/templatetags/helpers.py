@@ -53,17 +53,17 @@ def build_url_string(values):
     Used to build custom links from "settings" variables
     """
     if 'target' in values.keys():
-        s = f"<a target=\"{values['target']}\" "
+        s = f"<a target=\"{values['target']}\""
     else:
-        s = "<a "
-    s = s + f"href=\"{values['url']}\""
+        s = "<a"
+    s = s + f" href=\"{values['url']}\""
     if 'hint' in values.keys():
-        s = s + f"data-bs-toggle=\"tooltip\" data-bs-title=\"{values['hint']}\""
+        s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{values['hint']}\""
     s = s + ">"
     if 'fa_icon' in values.keys():
-        s = s + f"<i class=\"fas {values['fa_icon']}\" aria-hidden=\"true\"></i>"
+        s = s + f" <i class=\"fas {values['fa_icon']}\" aria-hidden=\"true\"></i>"
     elif 'icon' in values.keys():
-        s = s + f"<img src=\"{values['icon']}\" alt=\"{values['alt']}\" height=\"24\" width=\"24\">"
+        s = s + f" <img src=\"{values['icon']}\" alt=\"{values['alt']}\" height=\"24\" width=\"24\">"
     s = s + "</a> "
     return s
 

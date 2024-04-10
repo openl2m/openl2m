@@ -1,7 +1,7 @@
 {% load helpers %}
 {% load static %}
 
-<div class="panel panel-default">
+<div class="panel panel-default container-fluid">
 <!--
   <div class="panel-heading">
     <strong>Interface Info</strong>
@@ -13,7 +13,7 @@
       <tr>
         <th>
           <a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_interfaces' group.id switch.id  %}"
-             title="Click here to download interfaces info to Excel">
+             data-bs-title="Click here to download interfaces info to Excel">
              Interface Name <i class="fas fa-download" aria-hidden="true"></i>
           </a>
         </th>
@@ -168,7 +168,7 @@
                       <input type="submit"
                              value="Change"
                              class="btn btn-primary"
-                             data-bs-toggle="tooltip" title="Click here to submit change!"
+                             data-bs-toggle="tooltip" title="Click here to change description!"
                           {% if request.user.profile.are_you_sure %}
                              onclick="return confirm_change('Are you sure you want change the description on interface {{ iface.name }}?')"
                           {% endif %}
@@ -204,7 +204,7 @@
                         </select>
                         <input type="hidden" name="if_name" value="{{ iface.name }}">
                         &nbsp;<input type="submit" value="Run" class="btn btn-primary"
-                                     data-bs-toggle="tooltip" title="Click here run command!">
+                                     data-bs-toggle="tooltip" title="Click here to run command!">
                       </form>
                     </td>
                   {% endif %} {# can_run_commands #}
@@ -327,7 +327,7 @@
                         {% endif %}
                       </select>
                       <input type="hidden" name="if_name" value="{{ iface.name }}">
-                      &nbsp;<input type="submit" value="Run" class="btn btn-primary" data-bs-toggle="tooltip" title="Click to run command">
+                      &nbsp;<input type="submit" value="Run" class="btn btn-primary" data-bs-toggle="tooltip" title="Click here to run command!">
                     </form>
                   </td>
                 {% endif %}

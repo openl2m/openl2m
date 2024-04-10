@@ -4,27 +4,27 @@
 <td
   {% if iface.admin_status %}
     {% if iface.oper_status %}
-      bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
+      class="color_if_up">
     {% else %}
-      bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
+      class="color_if_down">
     {% endif %}
     {{ switch|get_interface_info_links:iface }}
     {% if connection.can_change_admin_status %}
       <a href="{% url 'switches:admin_change' group.id switch.id iface.key 0 %}"
         data-bs-toggle="tooltip"
-        title="Click here to Disable {{ iface.name }}"
+        data-bs-title="Click here to Disable {{ iface.name }}"
       {% if request.user.profile.are_you_sure %}
         onclick="return confirm_change('Are you sure you want to DISABLE {{ iface.name }}?')"
       {% endif %}
       >
     {% endif %}
   {% else %}
-    bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
+    class="color_if_shutdown">
     {{ switch|get_interface_info_links:iface }}
     {% if connection.can_change_admin_status %}
     <a href="{% url 'switches:admin_change' group.id switch.id iface.key 1 %}"
        data-bs-toggle="tooltip"
-       title="Click here to Enable {{ iface.name }}"
+       data-bs-title="Click here to Enable {{ iface.name }}"
     {% if request.user.profile.are_you_sure %}
        onclick="return confirm_change('Are you sure you want to ENABLE {{ iface.name }}?')"
     {% endif %}

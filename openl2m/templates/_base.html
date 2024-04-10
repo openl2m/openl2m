@@ -14,6 +14,17 @@
     <link rel="icon" type="image/png" href="{% static 'img/openl2m.ico' %}" title="OpenL2M icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      td.color_if_up {
+        background: {{ settings.BGCOLOR_IF_ADMIN_UP_UP }} !important;
+      }
+      td.color_if_down {
+        background: {{ settings.BGCOLOR_IF_ADMIN_UP }} !important;
+      }
+      td.color_if_shutdown {
+        background: {{ settings.BGCOLOR_IF_ADMIN_DOWN }} !important;
+      }
+    </style>
 </head>
 <body>
   <!-- menu -->
