@@ -1,14 +1,14 @@
-<div class="panel-group">
+<div class="card-group">
   {% if cmd.error_descr %}
-  <div class="panel panel-danger">
-    <div class="panel-heading">
+  <div class="card border-danger">
+    <div class="card-header bg-danger">
       <strong>An Error Has Occured</strong>
     </div>
-    <div class="panel-body">
-      <div>{{ cmd.error_descr }}</div>
+    <div class="card-body">
+      <p>{{ cmd.error_descr }}</p>
       {% if cmd.error_details %}
         <div>
-          <a data-toggle="collapse" href="#details" aria-expanded="false" aria-controls="details">Click to see details</a>
+          <a data-bs-toggle="collapse" href="#details" aria-expanded="false" aria-controls="details">Click to see details</a>
         </div>
         <div id="details" class="collapse">
           <pre>
@@ -20,11 +20,11 @@
   </div>
   {% endif %}
 
-  <div class="panel panel-default">
-    <div class="panel-heading"><strong>Command: </strong>{{ cmd.command }}</div>
+  <div class="card border-default">
+    <div class="card-header bg-default"><strong>Command: </strong>{{ cmd.command }}</div>
     {% if cmd.output %}
-      <div class="panel-body">
-        <div><pre>{{ cmd.output }}</pre></div>
+      <div class="card-body">
+        <p><pre>{{ cmd.output }}</pre></p>
       </div>
     {% endif %}
   </div>

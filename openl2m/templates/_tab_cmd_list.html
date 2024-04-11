@@ -1,8 +1,8 @@
-<div class="panel panel-default">
-  <div class="panel-heading">
-    <strong>Switch Show Commands</strong>
+<div class="card border-default">
+  <div class="card-header bg-default">
+    <strong>Show Commands</strong>
   </div>
-  <div class="panel-body">
+  <div class="card-body">
     <form name="command_form"
           action="{% url 'switches:switch_cmd_output' group.id switch.id %}"
           method="post">
