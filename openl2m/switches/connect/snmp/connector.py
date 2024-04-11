@@ -2734,7 +2734,7 @@ class SnmpConnector(Connector):
         # this is atomic multi-set action. Full tuples with (OID, value, type) calling EasySNMP:
         oid1 = (f"{dot1qVlanStaticRowStatus}.{vlan_id}", vlan_createAndGo, 'i')
         oid2 = (f"{dot1qVlanStaticName}.{vlan_id}", vlan_name, 's')
-        if not self._snmp_session.set_multiple(oid_values=[oid1, oid2]):
+        if not self.set_multiple(oid_values=[oid1, oid2]):
             # we leave self.error.details as is!
             return False
         # all OK, now do the book keeping
@@ -2755,7 +2755,7 @@ class SnmpConnector(Connector):
 
         # this is atomic multi-set action. Full tuples with (OID, value, type) calling EasySNMP:
         oid1 = (f"{dot1qVlanStaticName}.{vlan_id}", vlan_name, 's')
-        if not self._snmp_session.set_multiple(oid_values=[oid1]):
+        if not self.set_multiple(oid_values=[oid1]):
             # we leave self.error.details as is!
             return False
         # all OK, now do the book keeping
@@ -2775,7 +2775,7 @@ class SnmpConnector(Connector):
 
         # this is atomic multi-set action. Full tuples with (OID, value, type) calling EasySNMP:
         oid1 = (f"{dot1qVlanStaticRowStatus}.{vlan_id}", vlan_destroy, 'i')
-        if not self._snmp_session.set_multiple(oid_values=[oid1]):
+        if not self.set_multiple(oid_values=[oid1]):
             # we leave self.error.details as is!
             return False
         # all OK, now do the book keeping
