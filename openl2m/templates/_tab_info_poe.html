@@ -1,11 +1,11 @@
 {% load helpers %}
 {% load static %}
 
-    <div class="panel panel-default">
-      <div class="panel-heading">
+    <div class="card border-default">
+      <div class="card-header bg-default">
         <strong>Power over Ethernet Info</strong>
       </div>
-      <div class="panel-body">
+      <div class="card-body">
         {% if 1 or connection.poe_capable %}
           <div><strong>Total:</strong> {{ connection.poe_max_power }} Watts Available, {{ connection.poe_power_consumed }} W ({{ connection.poe_power_consumed|as_percentage_of:connection.poe_max_power }}) Used</div>
           {% for pse_index, pse in connection.poe_pse_devices.items %}

@@ -1,11 +1,11 @@
 {% load helpers %}
 {% load static %}
 
-  <div class="panel panel-default">
-    <div class="panel-heading">
+  <div class="card border-default">
+    <div class="card-header bg-default">
       <strong>General Information</strong>
     </div>
-    <div class="panel-body">
+    <div class="card-body">
       {% for category,values in connection.more_info.items %}
         <table class="table table-striped w-auto">
           <thead>
@@ -26,11 +26,11 @@
 
 
   {% if connection.syslog_msgs.items %}
-  <div class="panel panel-default">
-    <div class="panel-heading">
+  <div class="card border-default">
+    <div class="card-header bg-default">
       <strong>Recent Syslog Entries ({{ connection.syslog_max_msgs }} max)</strong>
     </div>
-    <div class="panel-body">
+    <div class="card-body">
         <table class="table table-striped w-auto">
           <thead>
             <tr><th>Approx. Time</th><th>Message</th></tr>
@@ -50,11 +50,11 @@
 
 
   {% if connection.stack_members.items %}
-  <div class="panel panel-default">
-    <div class="panel-heading">
+  <div class="card border-default">
+    <div class="card-header bg-default">
       <strong>Device/Stacking Info</strong>
     </div>
-    <div class="panel-body">
+    <div class="card-body">
       <table class="table table-striped w-auto">
         <tbody>
       {% for dev_id,dev in connection.stack_members.items %}

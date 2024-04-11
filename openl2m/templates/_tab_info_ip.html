@@ -1,11 +1,11 @@
 {% load helpers %}
 {% load static %}
 
-    <div class="panel panel-default">
-      <div class="panel-heading">
+    <div class="card border-default">
+      <div class="card-header bg-default">
         <strong>Device IPv4 Addresses</strong>
       </div>
-      <div class="panel-body">
+      <div class="card-body">
       {% for if_index,iface in connection.interfaces.items %}
         {% if iface.addresses_ip4 %}
           {% for ip,addr in iface.addresses_ip4.items %}
