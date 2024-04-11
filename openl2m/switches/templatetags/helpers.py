@@ -61,7 +61,7 @@ def build_url_string(values):
         s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{values['hint']}\""
     s = s + ">"
     if 'fa_icon' in values.keys():
-        s = s + f" <i class=\"fas {values['fa_icon']}\" aria-hidden=\"true\"></i>"
+        s = s + f" <i class=\"fas {values['fa_icon']}\" aria-hidden=\"true\" alt=\"{values['alt']}\"></i>"
     elif 'icon' in values.keys():
         s = s + f" <img src=\"{values['icon']}\" alt=\"{values['alt']}\" height=\"24\" width=\"24\">"
     s = s + "</a> "
