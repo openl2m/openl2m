@@ -21,6 +21,6 @@ Finally, you can use the Django admin shell to do "inline scripting":
 
 Some additional reference are:
 
-* https://docs.djangoproject.com/en/2.2/howto/custom-management-commands/
-* https://docs.djangoproject.com/en/2.2/ref/django-admin/#shell
+* https://docs.djangoproject.com/en/5.0/howto/custom-management-commands/
+* https://docs.djangoproject.com/en/5.0/ref/django-admin/#shell
 * https://simpleisbetterthancomplex.com/tutorial/2018/08/27/how-to-create-custom-django-management-commands.html

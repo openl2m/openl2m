@@ -13,7 +13,7 @@ Postgresql types_
 .. _types: https://www.postgresql.org/docs/current/static/datatype-net-types.html
 
 The installation instructions provided here have been tested to work on Ubuntu 22.04 and 20.04.
-Installation should still work on CentOS 7.x & 8.x, but those distributions are no longer tested or supported.
+*Installation should still work on CentOS/Rocky/AlmaLinux, but those distributions are no longer tested.*
 
 The particular commands needed to install dependencies on other distributions may vary significantly.
 Unfortunately, this is outside the control of the OpenL2M maintainers.

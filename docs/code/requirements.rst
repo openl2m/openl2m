@@ -8,13 +8,12 @@ how the OpenL2M project works "under the hood".
 
 **Python 3**
 
+Django 5 requires v3.10 or above. Due to SNMP library incompatibilities,
+we cannot support Python 3.12 or higher at this time! Ie. we require Python 3.10 or 3.11
+
 As of OpenL2M v2.4, all the code is written and tested in Python v3.11.
-We do NOT at this time support Python v3.12 and above, due to SNMP library incompatibilities.
 
-Note that Django 5 require v3.10 or above. There are numerous places to learn this.
-Due to a SNMP library depency, we cannot support Python 3.12 or higher at this time!
-
-The project is by default located in **/opt/openl2m**. To use these scripts, or work on things,
+The project by default is located in **/opt/openl2m**. To use these scripts, or work on things,
 you should first activate the Python virtual environment:
 
 .. code-block:: bash
@@ -51,7 +50,7 @@ Any changes to HMTL layout should use Bootstrap, and should adhere to modern
 
 A useful tool during development is the *"WAVE Web Accesibility Evaluation Tool" browser extension.*
 
-A good place to start learning is
+A good place to start learning Bootstrap is
 `W3Schools. <https://www.w3schools.com/bootstrap/default.asp>`_
 
 
@@ -77,6 +76,11 @@ library is no longer developed.)
 We use the *pyaoscx* library `from the github repo <https://github.com/aruba/pyaoscx>`_,
 as that frequently provides bugfixes ahead of what is available in the released version available via pip.
 See *requirements.txt* for more.
+
+
+**Juniper Devices**
+
+Juniper devices are managed with the Junos PyEZ library.
 
 
 **Netmiko**

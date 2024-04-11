@@ -12,7 +12,8 @@ The following steps are for a full, production install of OpenL2M. No containers
 
 OpenL2M has some requirements:
 
-* Python 3.10 or greater (OpenL2M is developed and tested on Python 3.11)
+* Python 3.10 or 3.11 (OpenL2M is developed and tested on Python 3.11.
+  Note: Python 3.12 or greater are not supported at present!)
 * net-snmp v5.7 or greater, including net-snmp-devel
 * the Python "easysnmp" package v0.2.5 or greater.
 * a web server, with the WSGI capability. We use Nginx in all our documentation.
@@ -36,7 +37,7 @@ At the end of this page is an image showing the application stack.
 OpenL2M is developed and tested in a Ubuntu 22.04 LTS environment.
 All instructions are related to that. However, this should work just fine on other
 distributions as long as the requirements are met.
-(*We no longer support CentOS Linux v7 and v8 environments, as we no longer developed and tested on them.*)
+(*We no longer develop and test on CentOS/Rocky/AlmaLinux environments.*)
 
 .. toctree::
    :maxdepth: 1

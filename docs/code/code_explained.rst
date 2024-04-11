@@ -36,7 +36,7 @@ Here we create a custom admin site variable, named "admin_site".
 This allows use to make changes to the admin functionality and views,
 and is referenced also in the "users" app. We customize the admin site
 `using the techniques described here.
-<https://docs.djangoproject.com/en/2.2/ref/contrib/admin/#hooking-adminsite-to-urlconf>`_
+<https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#hooking-adminsite-to-urlconf>`_
 
 **Authentication**
 

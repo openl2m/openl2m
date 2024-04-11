@@ -35,7 +35,7 @@ the content in individual pages.
 **Static files**
 
 We store static images, javascript, etc in */project-static/*.
-`See Django docs on static files here. <https://docs.djangoproject.com/en/2.2/howto/static-files/>`_
+`See Django docs on static files here. <https://docs.djangoproject.com/en/5.0/howto/static-files/>`_
 
 The upgrade.sh script moves these to the */static/* location as needed.
 
@@ -62,7 +62,7 @@ can be called from the template engine. Template tags are stored in
 Note that *each* template needs to load the helper!
 
 `See more about template tags here.
-<https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/>`_
+<https://docs.djangoproject.com/en/5.0/howto/custom-template-tags/>`_
 
 We use several important functions to get strings rendered in the helpers files.
 Notably are the get_*_nms_link() functions, where we have to render based on objects
@@ -71,3 +71,15 @@ using render().
 
 Additionally, get_lldp_capabilities_icon() produces html code, and we pass that back
 via mark_safe() to make sure it does not get marked up, i.e. gets interpreted as html.
+
+
+**Icons**
+
+We primarily use the free icons from the FontAwesome icon library, currently v5.15.4.
+You can see them at https://fontawesome.com/v5/search?o=r&m=free
+
+You can include icons normally, such as shown here:
+
+.. code-block:: html
+
+  <i class="fas fa-ethernet" aria-hidden="true"></i>

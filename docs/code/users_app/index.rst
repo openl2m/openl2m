@@ -32,10 +32,10 @@ use the custom "admin_site" from the project defined in openl2m/
 
 See these additional documents to learn about we add fields to the User and Group models:
 
-* https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#extending-the-existing-user-model
+* https://docs.djangoproject.com/en/5.0/topics/auth/customizing/#extending-the-existing-user-model
 
 * https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
 
-* https://docs.djangoproject.com/en/2.2/topics/signals/
+* https://docs.djangoproject.com/en/5.0/topics/signals/
 
-* https://docs.djangoproject.com/en/2.2/ref/signals/#django.db.models.signals.pre_save
+* https://docs.djangoproject.com/en/5.0/ref/signals/#django.db.models.signals.pre_save
