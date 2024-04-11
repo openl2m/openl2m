@@ -9,8 +9,8 @@
   {% else %}
     <div class="col-md-4">
   {% endif %}
-      <div class="panel panel-danger">
-          <div class="panel-heading">
+      <div class="card border-danger">
+          <div class="card-header bg-danger">
               <strong>An Error Has Occured
                 {% if switch %}
                   with &quot;{{ switch.name }}&quot;
@@ -18,18 +18,18 @@
               </strong>
           </div>
 
-          <div class="panel-body">
-            <div>{{ error.description }}</div>
+          <div class="card-body">
+            <p class="card-text">{{ error.description }}</p>
             {% if error.details %}
-              <div>
-                <a data-toggle="collapse" href="#details" aria-expanded="false" aria-controls="details">Click to see details</a>
-              </div>
+              <p>
+                <a data-bs-toggle="collapse" href="#details" aria-expanded="false" aria-controls="details">Click to see details</a>
+              </p>
               <div id="details" class="collapse">
                 <pre>{{ error.details }}</pre>
               </div>
             {% endif %}
             {% if switch %}
-              <div><a href="{% url 'switches:groups' %}">Go back to the Menu</a>, or <a href="{% url 'switches:switch_basics' group.id switch.id %}">retry  &quot;{{ switch.name }}&quot;</a></div>
+              <p><a href="{% url 'switches:groups' %}">Go back to the Menu</a>, or <a href="{% url 'switches:switch_basics' group.id switch.id %}">Retry  &quot;{{ switch.name }}&quot;</a></p>
             {% endif %}
           </div>
       </div>

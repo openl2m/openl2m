@@ -5,15 +5,14 @@
 {% block content %}
 <div class="row">
     <div class="col-md-4">
-      <div class="panel panel-success">
-          <div class="panel-heading">
+      <div class="card border-success">
+          <div class="card-header bg-success">
               <strong>Success!</strong>
           </div>
-          <div class="panel-body">
-            <div>{{ description }}</div>
+          <div class="card-body">
+            <p class="card-text">{{ description }}</p>
             {% if switch %}
-            <div>&nbsp;</div>
-            <div><a href="{% url 'switches:switch_basics' group.id switch.id %}">Go back to switch &quot;{{ switch.name }}&quot;</a></div>
+            <p><a href="{% url 'switches:switch_basics' group.id switch.id %}">Go back to &quot;{{ switch.name }}&quot;</a></p>
             {% endif %}
           </div>
       </div>
