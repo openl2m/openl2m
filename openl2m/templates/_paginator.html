@@ -2,12 +2,13 @@
 
 <div class="paginator pull-left text-right">
   {% if paginator.num_pages > 1 %}
-    <nav>
+    <nav aria-label="Log entries page navigation">
       <ul class="pagination pull-left">
       {% if page.has_previous %}
         {% if page.number > 1 %}
-        <li>
+        <li class="page-item">
           <a href="{% querystring request page=1 %}"
+             class="page-link"
              data-bs-toggle="tooltip"
              title="Go to First page">
             Pg.1
@@ -15,34 +16,40 @@
         </li>
         {% endif %}
         {% if page.number > 2 %}
-        <li>
+        <li class="page-item">
           <a href="{% querystring request page=page.previous_page_number %}"
+             class="page-link"
              data-bs-toggle="tooltip"
-             title="Go to Previous page">
-            <i class="fas fa-angle-double-left"></i>
+             title="Go to Previous page"
+             aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
           </a>
         </li>
         {% endif %}
       {% endif %}
-        <li class="active">
+        <li  class="page-item active">
           <a data-bs-toggle="tooltip"
+             class="page-link"
              title="Current page">
           Page {{ page.number }}
           </a>
         </li>
       {% if page.has_next %}
         {% if page.number < page.paginator.num_pages|add:-1 %}
-        <li>
+        <li class="page-item">
           <a href="{% querystring request page=page.next_page_number %}"
+             class="page-link"
              data-bs-toggle="tooltip"
-             title="Go to Next page">
-            <i class="fas fa-angle-double-right"></i>
+             title="Go to Next page"
+             aria-label="Next">
+             <span aria-hidden="true">&raquo;</span>
           </a>
         </li>
         {% endif %}
         {% if page.number < page.paginator.num_pages %}
-        <li>
+        <li class="page-item">
           <a href="{% querystring request page=page.paginator.num_pages %}"
+             class="page-link"
              data-bs-toggle="tooltip"
              title="Go to Last page">
             Pg.{{ page.paginator.num_pages }}
