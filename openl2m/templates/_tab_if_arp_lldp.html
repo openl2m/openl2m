@@ -1,9 +1,9 @@
 {% load helpers %}
 {% load static %}
 
-<div class="panel panel-default">
+<div class="card border-default container-fluid">
 {% if connection.eth_addr_count == 0 and connection.neighbor_count == 0 %}
-  <div class="panel-heading">
+  <div class="card-header bg-default">
     <strong>No Ethernet addresses and no neighbors found!</strong>
   </div>
 {% else %}
@@ -29,12 +29,12 @@
             <td
             {% if iface.admin_status %}
               {% if iface.oper_status %}
-                bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
+                class="color_if_up"">
               {% else %}
-                bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
+                class="color_if_down">
               {% endif %}
             {% else %}
-                bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
+                class="color_if_shutdown">
             {% endif %}
             {{ switch|get_interface_info_links:iface }}
             {% if iface.description %}
@@ -101,4 +101,4 @@
 
   </div> {# class table-responsive #}
 {% endif %}
-</div> {# class panel #}
+</div> {# card #}

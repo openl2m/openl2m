@@ -1,10 +1,10 @@
 {% load helpers %}
 {% load static %}
-<div class="panel-group">
+<div class="container">
 
 {% if connection.show_interfaces %}
   <div class="row">
-    <div class="col-md-4">
+    <div class="col">
 
       {% include "_tab_info_vlans.html" %}
       {% include "_tab_info_ip.html" %}
@@ -15,7 +15,7 @@
 
     </div> {# column 1 #}
 
-    <div class="col-md-8"> {# column 2 #}
+    <div class="col"> {# column 2 #}
 
       {% include "_tab_info_general.html" %}
 
@@ -24,8 +24,8 @@
 
 {% else %}  {# if show_interfaces #}
 
-  <div class="row form-group">
-    <div class="col-md-8"> {# column 1 #}
+  <div class="row">
+    <div class="col"> {# column 1 #}
 
       {% include "_tab_info_general.html" %}
 
@@ -34,7 +34,7 @@
 
   {% if request.user.is_superuser %}
     <div class="row">
-      <div class="col-md-4">
+      <div class="col">
 
         {% include "_tab_info_timing.html" %}
 
@@ -44,4 +44,4 @@
 
 {% endif %} {# if show_interfaces #}
 
-</div>{# class panel-group #}
+</div>{# container #}

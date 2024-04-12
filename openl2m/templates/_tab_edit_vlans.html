@@ -1,14 +1,14 @@
 {% load helpers %}
 {% load static %}
-<div class="panel-group">
+<div class="container">
 
     <div class="row">
-        <div class="col-md-3">
-            <div class="panel panel-default">
-                <div class="panel-heading">
+        <div class="col">
+            <div class="card border-default">
+                <div class="card-header bg-default">
                     <strong>Add a VLAN</strong>
                 </div>
-                <div class="panel-body">
+                <div class="card-body">
                     <form name="vlan_add_form"
                     action="{% url 'switches:switch_vlan_manage' group.id switch.id %}"
                     method="post">
@@ -50,17 +50,17 @@
                     </table>
                     </form>
                 </div>
-            </div>{# panel #}
+            </div>{# card #}
         </div>{# col #}
 
 {% if request.user.is_superuser or connection.can_set_vlan_name %}
     {% if connection.allowed_vlans|length %}{# are we allowed access to any vlan ? #}
-        <div class="col-md-4">
-            <div class="panel panel-default">
-                <div class="panel-heading">
+        <div class="col">
+            <div class="card border-default">
+                <div class="card-header bg-default">
                     <strong>Edit a VLAN</strong>
                 </div>
-                <div class="panel-body">
+                <div class="card-body">
                     <form name="vlan_edit_form"
                     action="{% url 'switches:switch_vlan_manage' group.id switch.id %}"
                     method="post">
@@ -119,9 +119,9 @@
                     </table>
                     </form>
                 </div>
-            </div>{# panel #}
+            </div>{# card #}
         </div>{# col #}
     {% endif %}{# vlan length #}
 {% endif %}{# superuser or can_set_vlan_name #}
     </div>{# row #}
-</div>{# class panel-group #}
+</div>{# container #}
