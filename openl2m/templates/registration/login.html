@@ -13,13 +13,13 @@
 <div class="row justify-content-md-center">
   <div class="col col-4">
     <form method="post" class="form form-horizontal">
-      <div class="panel panel-default">
+      <div class="card border-default">
         {% csrf_token %}
-        <div class="panel-body">
+        <div class="card-body">
           {{ form.as_p }}
         </div>
-        <div class="panel-footer text-right">
-            <button type="submit" class="btn btn-primary">Login</button>
+        <div class="card-footer text-right">
+            <button type="submit" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-title="Click here to login!">Login</button>
         </div>
       </div>
     </form>

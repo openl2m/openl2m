@@ -4,56 +4,58 @@
 {% block title %}User Profile{% endblock %}
 
 {% block content %}
-<div class="row">
-  <div class="col-md-8">
-    <div class="panel panel-success">
-      <div class="panel-heading">
-      {% if request.user.id == user.id %}
-        <strong>Your User Profile</strong>
-      {% else %}
-        <strong>User Profile for '{{ user.username }}'</strong>
-      {% endif %}
-      </div>
-      <div class="panel-body">
-        <table class="table table-hover table-headings w-auto">
-          <tbody>
-          <tr><td class="text-muted">Login Name</td><td>{{ user.username }}</td></tr>
-          <tr><td class="text-muted">Full Name</td>
-            {% if user.first_name and user.last_name %}
-            <td>{{ user.first_name }} {{ user.last_name }}</td>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <div class="card border-default">
+        <div class="card-header bg-default">
+        {% if request.user.id == user.id %}
+          <strong>Your User Profile</strong>
+        {% else %}
+          <strong>User Profile for '{{ user.username }}'</strong>
+        {% endif %}
+        </div>
+        <div class="card-body">
+          <table class="table table-hover table-headings w-auto">
+            <tbody>
+            <tr><td>Login Name</td><td>{{ user.username }}</td></tr>
+            <tr><td>Full Name</td>
+              {% if user.first_name and user.last_name %}
+              <td>{{ user.first_name }} {{ user.last_name }}</td>
+              {% else %}
+              <td>(not set)</td>
+              {% endif %}
+            </tr>
+            <tr><td>Email</td><td>{{ user.email }}</td></tr>
+            <tr><td>Last Login</td><td>{{ user.last_login }}</td></tr>
+            {% if user.ldap_user %}
+            <tr><td>LDAP DN</td><td>{{ user.ldap_user.dn }}</td></tr>
+            {% elif user.profile.last_ldap_dn %}
+            <tr><td>Last LDAP DN</td><td>{{ user.profile.last_ldap_dn }}</td></tr>
             {% else %}
-            <td>(not set)</td>
+            <tr><td>Local Login</td><td>Yes</td></tr>
             {% endif %}
-          </tr>
-          <tr><td class="text-muted">Email</td><td>{{ user.email }}</td></tr>
-          <tr><td class="text-muted">Last Login</td><td>{{ user.last_login }}</td></tr>
-          {% if user.ldap_user %}
-          <tr><td class="text-muted">LDAP DN</td><td>{{ user.ldap_user.dn }}</td></tr>
-          {% elif user.profile.last_ldap_dn %}
-          <tr><td class="text-muted">Last LDAP DN</td><td>{{ user.profile.last_ldap_dn }}</td></tr>
-          {% else %}
-          <tr><td class="text-muted">Local Login</td><td>Yes</td></tr>
-          {% endif %}
-          <tr><td class="text-muted">Registered</td><td>{{ user.date_joined }}</td></tr>
-          <tr><td><strong>Settings:</strong></td><td></td></tr>
-          <tr><td class="text-muted">Switch Groups</td><td>{{ user.switchgroups.all|join:', ' }}</td></tr>
-          <tr><td class="text-muted">Staff Access</td><td>{{ user.is_staff|yesno|capfirst }}</td></tr>
-          <tr><td class="text-muted">Admin Access</td><td>{{ user.is_superuser|yesno|capfirst }}</td></tr>
-          <tr><td class="text-muted">Read-Only Access</td><td>{{ user.profile.read_only|yesno|capfirst }}</td></tr>
-          <tr><td class="text-muted">Bulk-Edit Access</td><td>{{ user.profile.bulk_edit|yesno|capfirst }}</td></tr>
-          <tr><td class="text-muted">PoE Toggle</td><td>{{ user.profile.allow_poe_toggle|yesno|capfirst }}</td></tr>
-          <tr><td class="text-muted">Edit Description</td><td>{{ user.profile.edit_if_descr|yesno|capfirst }}</td></tr>
-          <tr><td class="text-muted">Ask Are You Sure?</td><td>{{ user.profile.are_you_sure|yesno|capfirst }}</td></tr>
-          {% if tokens %}
-          <tr><td><strong>API Tokens:</strong></td><td></td></tr>
-            {% for token in tokens %}
-          <tr><td class="text-muted">#{{ forloop.counter }}</td><td>{{ token.partial }}{% if token.description %} - {{ token.description }} {% endif %}</td></tr>
-            {% endfor %}
-          {% endif %}
-        </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+            <tr><td>Registered</td><td>{{ user.date_joined }}</td></tr>
+            <tr><td><strong>Settings:</strong></td><td></td></tr>
+            <tr><td>Switch Groups</td><td>{{ user.switchgroups.all|join:', ' }}</td></tr>
+            <tr><td>Staff Access</td><td>{{ user.is_staff|yesno|capfirst }}</td></tr>
+            <tr><td>Admin Access</td><td>{{ user.is_superuser|yesno|capfirst }}</td></tr>
+            <tr><td>Read-Only Access</td><td>{{ user.profile.read_only|yesno|capfirst }}</td></tr>
+            <tr><td>Bulk-Edit Access</td><td>{{ user.profile.bulk_edit|yesno|capfirst }}</td></tr>
+            <tr><td>PoE Toggle</td><td>{{ user.profile.allow_poe_toggle|yesno|capfirst }}</td></tr>
+            <tr><td>Edit Description</td><td>{{ user.profile.edit_if_descr|yesno|capfirst }}</td></tr>
+            <tr><td>Ask Are You Sure?</td><td>{{ user.profile.are_you_sure|yesno|capfirst }}</td></tr>
+            {% if tokens %}
+            <tr><td><strong>API Tokens:</strong></td><td></td></tr>
+              {% for token in tokens %}
+            <tr><td>#{{ forloop.counter }}</td><td>{{ token.partial }}{% if token.description %} - {{ token.description }} {% endif %}</td></tr>
+              {% endfor %}
+            {% endif %}
+          </tbody>
+          </table>
+        </div>{# card-body #}
+      </div>{# card #}
+    </div>{# col #}
+  </div>{# row #}
+</div>{# container #}
 {% endblock %}

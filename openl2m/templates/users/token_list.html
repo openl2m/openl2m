@@ -5,16 +5,16 @@
 
 {% block content %}
 <div class="row">
-  <div class="col-md-8">
-    <div class="panel panel-success">
-      <div class="panel-heading">
+  <div class="col">
+    <div class="card border-default">
+      <div class="card-header bg-default">
       {% if request.user.id == user.id %}
         <strong>Your API Tokens</strong>
       {% else %}
         <strong>API Tokens for '{{ user.username }}'</strong>
       {% endif %}
       </div>
-      <div class="panel-body">
+      <div class="card-body">
         <table class="table table-hover table-headings">
           <tbody>
           <tr>

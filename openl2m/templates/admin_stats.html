@@ -8,90 +8,76 @@
 <div class="container">
   <div class="row">
 
-    <div class="col-md-2">
-      <div class="panel panel-default">
-          <div class="panel-heading">
-              <strong>OpenL2M Statistics</strong>
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover table-headings">
-            {% for label,value in db_items.items %}
-              <tr><td>
-                <span class="pull-right">{{ value }}</span>
-                <p class="list-group-item-heading">{{ label }}</p>
-              </td></tr>
-            {% endfor %}
-            </table>
-          </div>
+    <div class="col">
+      <div class="card border-default">
+        <div class="card-header bg-default">
+            <strong>OpenL2M Statistics</strong>
+        </div>
+        <ul class="list-group list-group-flush">
+        {% for label,value in db_items.items %}
+          <li class="list-group-item">{{ value }} {{ label }}</li>
+        {% endfor %}
+        </ul>
       </div>
     </div>
 
-    <div class="col-md-2">
-      <div class="panel panel-default">
-        <div class="panel-heading">
+    <div class="col">
+      <div class="card border-default">
+        <div class="card-header bg-default">
           <strong>Usage</strong>
         </div>
-        <div class="table-responsive">
-          <table class="table table-hover table-headings">
-          {% for label,value in usage.items %}
-            <tr><td>{{ label }}:
-              <span class="pull-right">{{ value }}</span>
-            </td></tr>
-          {% endfor %}
-          </table>
-        </div>
+        <ul class="list-group list-group-flush">
+        {% for label,value in usage.items %}
+          <li class="list-group-item">{{ label }}:{{ value }}</li>
+        {% endfor %}
+        </ul>
       </div>
     </div>
 
-    <div class="col-md-3">
-      <div class="panel panel-default">
-        <div class="panel-heading">
+    <div class="col">
+      <div class="card border-default">
+        <div class="card-header bg-default">
           <strong>Environment</strong>
         </div>
-        <div class="table-responsive">
-          <table class="table table-hover table-headings">
-          {% for label,value in environment.items %}
-            <tr><td>{{ label }}:<span class="pull-right">{{ value }}</span></td>
-            </tr>
-          {% endfor %}
-          </table>
-        </div>
+        <ul class="list-group list-group-flush">
+        {% for label,value in environment.items %}
+          <li class="list-group-item">{{ label }}: {{ value }}</li>
+        {% endfor %}
+        </ul>
       </div>
     </div>
 
-    <div class="col-md-3">
-      <div class="panel panel-default">
-        <div class="panel-heading">
+    <div class="col">
+      <div class="card border-default">
+        <div class="card-header bg-default">
           <strong>Active Users</strong>
         </div>
-        <div class="table-responsive">
-          <table class="table table-hover table-headings">
-          {% for u in user_list %}
-            <tr><td>
-              {% if request.user.is_superuser or request.user.is_staff %}
+        <ul class="list-group list-group-flush">
+        {% for u in user_list %}
+          <li class="list-group-item">
+          {% if request.user.is_superuser or request.user.is_staff %}
               <a href="{% url 'users:info' u.id %}"
                data-bs-toggle="tooltip"
                title="Click here to see info on this user...">{{ u.username }}</a>
-              {% else %}
+          {% else %}
               {{ u.username }}
-              {% endif %}
-              {% if u.hostname %}
+          {% endif %}
+          {% if u.hostname %}
                 (<abbr data-bs-toggle="tooltip" title="{{ u.hostname }}">{{ u.remote_ip }}</abbr>)
-              {% else %}
+          {% else %}
                ({{ u.remote_ip }})
-              {% endif %}
-              {% if request.user.is_superuser %}
+          {% endif %}
+          {% if request.user.is_superuser %}
               <a href="{% url 'switches:admin_activity' %}?user={{ u.id }}"
                data-bs-toggle="tooltip" title="Click here to see user activity logs...">Activity logs</a>
-              {% endif %}
-             </td></tr>
+          {% endif %}
+          </li>
           {% endfor %}
-          </table>
-        </div>
+        </ul>
       </div>
     </div>
 
-  </div>
-</div>
+  </div>{# row #}
+</div>{# container #}
 
 {% endblock %}

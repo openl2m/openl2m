@@ -5,16 +5,16 @@
 
 {% block content %}
 <div class="row">
-  <div class="col-md-8">
-    <div class="panel panel-success">
-      <div class="panel-heading">
+  <div class="col">
+    <div class="card border-default">
+      <div class="card-header bg-default">
         {% if action == "edit" %}
             <strong>Edit your API Token</strong>
         {% else %}
             <strong>Add an API Token</strong>
         {% endif %}
       </div>
-      <div class="panel-body">
+      <div class="card-body">
         {% if action == "edit" %}
         <form name="token_edit"
           action="{% url 'users:token_edit' token.id %}"
@@ -33,7 +33,7 @@
             <th>Token</th>
             {% if action == "add" %}
                 <th><input type="text" size=80 name="key" value="{{ token.key }}"
-                    data-toggle="tooltip" title="This is your new token!" readonly /></th>
+                    data-bs-toggle="tooltip" title="This is your new token!" readonly /></th>
             {% else %}
               {% if settings.ALLOW_TOKEN_RETRIEVAL %}
                 <th>{{token.key }}</th>
@@ -45,12 +45,12 @@
           <tr>
             <td>Description</td>
             <td><input type="text" size=80 name="description" value="{{ token.description }}"
-            data-toggle="tooltip" title="Type a token description here!" /></td>
+            data-bs-toggle="tooltip" title="Type a token description here!" /></td>
           </tr>
           <tr>
             <td>Writable</td>
             <td><input type="checkbox" name="write_enabled"
-                data-toggle="tooltip" title="Un-check for Read-Only token, or leave checked for Write-Capable!"
+                data-bs-toggle="tooltip" title="Un-check for Read-Only token, or leave checked for Write-Capable!"
                 {% if token.write_enabled %}checked{% endif %} /></td>
           </tr>
           <tr>
@@ -59,7 +59,7 @@
                 id="party"
                 type="datetime-local"
                 name="expires"
-                data-toggle="tooltip" title="Select token expiration, or leave blank for none."
+                data-bs-toggle="tooltip" title="Select token expiration, or leave blank for none."
                 value="{{ token.expires|date:"Y-m-d\TH:i:s" }}" />{# date:"<format>" outputs ISO format for datetime-local element #}
                   {% if settings.API_MAX_TOKEN_DURATION %}<strong>&nbsp;Token cannot expire more the {{ settings.API_MAX_TOKEN_DURATION }} days into the future!<strong>{% endif %}
             </td>
@@ -67,7 +67,7 @@
           <tr>
             <td>Allowed IPs</td>
             <td><input type="text" size=80 name="allowed_ips" value="{{ token.allowed_ips }}"
-                data-toggle="tooltip" title="Comma-separated list of allowed IPv4/IPv6 networks in CIDR notation. Leave blank to allow all! E.g. 192.168.1.0/24,2001:db8:1::/64" /></td>
+                data-bs-toggle="tooltip" title="Comma-separated list of allowed IPv4/IPv6 networks in CIDR notation. Leave blank to allow all! E.g. 192.168.1.0/24,2001:db8:1::/64" /></td>
           </tr>
           <tr>
             {% if action == "add" %}
@@ -75,15 +75,15 @@
                 <input type="submit"
                 value="Add Token"
                 class="btn btn-primary"
-                data-toggle="tooltip" title="Click here to add a token!"
+                data-bs-toggle="tooltip" title="Click here to add a token!"
                 {% if request.user.profile.are_you_sure %}
-                onclick="return confirm_change('Are you sure you want add a new token ?')"
+                onclick="return confirm_change('Are you sure you want add a new token ? If so, make sure you have copied down the token string!')"
                 {% endif %}
                 >
               </td>
               <td>
                 {% if not settings.ALLOW_TOKEN_RETRIEVAL %}
-                <strong>Make sure you save this new key!!! This is the only time you will see the full key string!</strong>
+                <strong>Make sure you save this new token!!! This is the only time you will see the full token string!</strong>
                 {% endif %}
               </td>
             {% else %}{# edit #}
@@ -91,7 +91,7 @@
                 <input type="submit"
                 value="Update Token"
                 class="btn btn-primary"
-                data-toggle="tooltip" title="Click here to update this token!"
+                data-bs-toggle="tooltip" title="Click here to update this token!"
                 {% if request.user.profile.are_you_sure %}
                 onclick="return confirm_change('Are you sure you want update this token ?')"
                 {% endif %}
