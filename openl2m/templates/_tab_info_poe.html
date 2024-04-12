@@ -1,20 +1,24 @@
 {% load helpers %}
 {% load static %}
 
-    <div class="card border-default">
-      <div class="card-header bg-default">
-        <strong>Power over Ethernet Info</strong>
-      </div>
-      <div class="card-body">
-        {% if 1 or connection.poe_capable %}
-          <div><strong>Total:</strong> {{ connection.poe_max_power }} Watts Available, {{ connection.poe_power_consumed }} W ({{ connection.poe_power_consumed|as_percentage_of:connection.poe_max_power }}) Used</div>
-          {% for pse_index, pse in connection.poe_pse_devices.items %}
-            <div><strong>PSE #{{ pse_index }}:</strong> {{ pse.status|get_poe_pse_status }},
-              Max {{ pse.max_power }} Watts, Using {{ pse.power_consumed }} W ({{ pse.power_consumed|as_percentage_of:pse.max_power }}), Threshold = {{ pse.threshold }}%.
-            </div>
-          {% endfor %}
-        {% else %}
-          <div>Not found.</div>
-        {% endif %}
-      </div>
-    </div>
+<div class="card border-default">
+  <div class="card-header bg-default">
+    <strong>Power over Ethernet Info</strong>
+  </div>
+  <div class="card-body">
+  {% if connection.poe_capable %}
+    <table class="table table-striped table-hover table-headings w-auto">
+      <tbody>
+        <tr><td><strong>Total:</strong></td><td>{{ connection.poe_max_power }} Watts Available, {{ connection.poe_power_consumed }} W ({{ connection.poe_power_consumed|as_percentage_of:connection.poe_max_power }}) Used</td></tr>
+      {% for pse_index, pse in connection.poe_pse_devices.items %}
+        <tr><td><strong>PSE #{{ pse_index }}:</strong></td><td>{{ pse.status|get_poe_pse_status }},
+          Max {{ pse.max_power }} Watts, Using {{ pse.power_consumed }} W ({{ pse.power_consumed|as_percentage_of:pse.max_power }}), Threshold = {{ pse.threshold }}%.
+        </td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div>Not found.</div>
+  {% endif %}
+  </div>
+</div>

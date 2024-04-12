@@ -13,14 +13,20 @@
 {% endif %}
 
 <div class="row">
-  <div class="col-md-4">
-    <h4>Search for &quot;{{ search }}&quot;
+  <div class="col-4">
+    <div class="card border-default">
+      <div class="card-header bg-default">Search for &quot;{{ search }}&quot;
     {% if results_count > 0 %}
-      found {{ results_count }} results:</h4>
+      found {{ results_count }} results:</div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
       {{ results|get_my_results:group_count }}
+        </ul>
+      </div>
     {% else %}
-      found no matches!</h4>
+      found no matches!</div>
     {% endif %}
+    </div>
  </div>
 </div>
 

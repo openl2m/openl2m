@@ -1762,7 +1762,7 @@ class SwitchActivity(LoginRequiredMixin, View):
         switch_url = reverse("switches:switch_basics", kwargs={"group_id": group.id, "switch_id": switch.id})
         # formulate the title and link
         title = mark_safe(
-            f'All Activity for <a href="{switch_url}" data-toggle="tooltip" title="Go back to switch">{switch.name}</a>'
+            f'All Activity for <a href="{switch_url}" data-bs-toggle="tooltip" title="Go back to switch">{switch.name}</a>'
         )
         # render the template
         return render(
