@@ -107,7 +107,7 @@ We use several free icon packages:
 
 Font Awesome, with previews https://fontawesome.com/v5/search
 
-Material Design Icons, from https://materialdesignicons.com/ and a preview at https://pictogrammers.github.io/@mdi/font/6.5.95/
+Material Design Icons, from https://pictogrammers.com/library/mdi/ and a preview at https://pictogrammers.github.io/@mdi/font/6.7.96/
 
 
 **Python**
