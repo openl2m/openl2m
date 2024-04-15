@@ -1,14 +1,18 @@
-<div class="panel panel-warning">
-  <div class="panel-heading">
-    <strong>Warnings & Errors</strong>
-  </div>
-  <div class="table-responsive">
-    <table class="table table-striped w-auto">
-      <tbody>
-        {% for w in connection.warnings %}
-          <tr><td>{{ w }}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="container-fluid">
+  <div class="card border-warning">
+    <div class="card-header bg-warning">
+      <strong>Warnings & Errors</strong>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped w-auto">
+          <tbody>
+            {% for w in connection.warnings %}
+              <tr><td>{{ w }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
