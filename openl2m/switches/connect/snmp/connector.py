@@ -380,7 +380,12 @@ class SnmpConnector(Connector):
         super().__init__(request=request, group=group, switch=switch)
 
         self.vendor_name = "Generic SNMP device"
-        self.description = "Standard SNMP connector"  # what type of class is running!
+        self.description = "Generic SNMP connector"  # what type of class is running!
+
+        if self.__class__.__name__ == "SnmpConnector":
+            self.add_warning(
+                f"Device is using the Generic SNMP driver! This means it is not tested, and will likely have unexpected behaviour. Please proceed with caution!"
+            )
 
         # SNMP specific attributes:
         self.object_id = ""  # SNMP system OID value, used to find type of switch

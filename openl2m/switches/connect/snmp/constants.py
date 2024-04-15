@@ -16,16 +16,43 @@
 # specific entries for supported vendors are in their implementation
 # directories, eg. vendors/procurve/constants.py, vendors/cisco/constants.py...
 #
+ENTERPRISE_ID_D_LINK = 171
+ENTERPRISE_ID_ALLIED_TELESIS = 207
+ENTERPRISE_ID_INTEL = 343
+ENTERPRISE_ID_EXTREME = 1916
+ENTERPRISE_ID_ASUSTEK = 2623
+ENTERPRISE_ID_LINKSYS = 3955
+ENTERPRISE_ID_BROADCOM = 4413
+ENTERPRISE_ID_NETGEAR = 4526
+ENTERPRISE_ID_EXTREME2 = 6307
+ENTERPRISE_ID_UBIQUITY = 7377
 # generic Net-SNMP installed snmpd
 ENTERPRISE_ID_NETSNMP = 8072
+ENTERPRISE_ID_TP_LINK = 11863
+ENTERPRISE_ID_FORTINET = 12356
+ENTERPRISE_ID_MIKROTIK = 14988
 # a test cheap test switch used
 ENTERPRISE_ID_PLANET = 10456
-
+ENTERPRISE_ID_TRENDNET = 28866
 ENTERPRISE_ID_ARISTA = 30065
 
 enterprise_id_info = {}
+enterprise_id_info[ENTERPRISE_ID_D_LINK] = 'D-Link'
+enterprise_id_info[ENTERPRISE_ID_ALLIED_TELESIS] = 'Allied Telesis'
+enterprise_id_info[ENTERPRISE_ID_INTEL] = 'Intel Corp.'
+enterprise_id_info[ENTERPRISE_ID_EXTREME] = 'Extreme'
+enterprise_id_info[ENTERPRISE_ID_ASUSTEK] = 'ASUSTek'
+enterprise_id_info[ENTERPRISE_ID_LINKSYS] = 'Linksys'
+enterprise_id_info[ENTERPRISE_ID_BROADCOM] = 'Broadcom'
+enterprise_id_info[ENTERPRISE_ID_NETGEAR] = 'Netgear'
+enterprise_id_info[ENTERPRISE_ID_EXTREME2] = 'Extreme(Ipanema)'
+enterprise_id_info[ENTERPRISE_ID_UBIQUITY] = 'Ubiquity'
 enterprise_id_info[ENTERPRISE_ID_NETSNMP] = 'Generic Net-SNMP'
+enterprise_id_info[ENTERPRISE_ID_TP_LINK] = 'TP-Link'
+enterprise_id_info[ENTERPRISE_ID_FORTINET] = 'Fortinet'
+enterprise_id_info[ENTERPRISE_ID_MIKROTIK] = 'Mikrotik'
 enterprise_id_info[ENTERPRISE_ID_PLANET] = 'PLANET Technology Corp.'
+enterprise_id_info[ENTERPRISE_ID_TRENDNET] = 'TRENDnet'
 enterprise_id_info[ENTERPRISE_ID_ARISTA] = 'Arista Networks'
 
 """
