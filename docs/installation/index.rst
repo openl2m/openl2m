@@ -39,6 +39,12 @@ All instructions are related to that. However, this should work just fine on oth
 distributions as long as the requirements are met.
 (*We no longer develop and test on CentOS/Rocky/AlmaLinux environments.*)
 
+.. note::
+
+  Ubuntu 24.04 LTS comes with Python v3.12 by default. This is NOT supported,
+  due to SNMP library dependencies on functionality that was removed in v3.12.
+  Please use the Alternate Python installation steps to mitigate this by backing down to v3.11.
+
 .. toctree::
    :maxdepth: 1
    :caption: These are the steps to install OpenL2M:

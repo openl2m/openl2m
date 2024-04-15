@@ -7,18 +7,26 @@ Using Alternate Python Versions
 On Ubuntu 20.04 the stock python version are 3.8. This is the oldest version currently supported.
 OpenL2M is now developed and tested on Python 3.11
 
+Python 3.12 is NOT supported. The SNMP library used has a dependency on some functionality that was removed in v3.12
+Note that in Ubuntu 24.04, the default Python is v3.12 !
+Ie. you will need to use the information below to install down to v3.11
+
 Alternate Python Installation
 -----------------------------
 
-The details of installing an alternate version of Python are left to the user. We recommend
-you use Python 3.11 from the "Deadsnakes" PPA. The excercise of installing from source is left to the reader.
+The details of installing an alternate version of Python are left to the user. On Ubuntu, we recommend
+you use Python 3.11 from the "Deadsnakes" PPA. Using this repository is well documented on many web pages.
 
-To install an alternative python version from package repositories,
+To install an alternative Python version from package repositories,
 you will need the following parts:
 
-python3.11
-python3.11-dev
-python3.11-venv
+.. code-block:: bash
+
+  python3.11
+  python3.11-dev
+  python3.11-venv
+
+*The excercise of installing from source is left to the reader!*
 
 
 OpenL2M Configuration

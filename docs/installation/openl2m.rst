@@ -24,8 +24,13 @@ Begin by installing all system packages required by OpenL2M and its dependencies
 
   Make sure this installs either Python v3.10 or v3.11! Versions 3.12 or up are NOT supported at present!
 
-*For best performance, we recommend using Python 3.11, as it has major improvements over 3.10
-:doc:`See the Alternate Python Installation section for more. <alt-python>`*
+  Ubuntu 24.04 LTS comes with Python v3.12 by default. This is NOT supported,
+  due to SNMP library dependencies on functionality that was removed in v3.12.
+  Please use the Alternate Python installation steps to mitigate this by backing down to v3.11.
+
+
+*For best performance, we recommend using Python 3.11, as it has major improvements over 3.10*
+:doc:`See the Alternate Python Installation section for more. <alt-python>`
 
 OpenL2M Install
 ---------------
