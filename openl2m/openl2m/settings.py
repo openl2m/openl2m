@@ -232,13 +232,15 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-if not DEBUG:
-    INSTALLED_APPS += [
-        "django_minify_html",
-    ]
-    MIDDLEWARE += [
-        "django_minify_html.middleware.MinifyHtmlMiddleware",
-    ]
+
+# Minify causes problems with Bootstrap 5.3, so for now do not use it:
+# if not DEBUG:
+#     INSTALLED_APPS += [
+#         "django_minify_html",
+#     ]
+#     MIDDLEWARE += [
+#         "django_minify_html.middleware.MinifyHtmlMiddleware",
+#     ]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
