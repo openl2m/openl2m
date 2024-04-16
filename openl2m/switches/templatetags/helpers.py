@@ -73,11 +73,6 @@ def get_switch_link(group_id, switch_id, switch):
     Build custom html link to switch, based on switch attributes
     """
     s = "<li class=\"list-group-item\">"
-    if switch['description']:
-        s = (
-            s
-            + f"<span data-bs-toggle=\"tooltip\" data-bs-placement=\"auto bottom\" data-bs-title=\"{switch['description']}\">"
-        )
     # do proper indenting:
     indent = ''
     for i in range(switch['indent_level']):
@@ -85,16 +80,16 @@ def get_switch_link(group_id, switch_id, switch):
     if switch['default_view'] == SWITCH_VIEW_BASIC:
         s = (
             s
-            + f'{indent}<a href="{reverse("switches:switch_basics", kwargs={"group_id": group_id, "switch_id": switch_id})}">'
+            + f'{indent}<a href="{reverse("switches:switch_basics", kwargs={"group_id": group_id, "switch_id": switch_id})}"'
         )
     else:
         s = (
             s
-            + f'<a href="{reverse("switches:switch_arp_lldp", kwargs={"group_id": group_id, "switch_id": switch_id})}">'
+            + f'<a href="{reverse("switches:switch_arp_lldp", kwargs={"group_id": group_id, "switch_id": switch_id})}"'
         )
-    s = s + f"{switch['name']}</a>"
     if switch['description']:
-        s = s + "</span>"
+        s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{switch['description']}\""
+    s = s + f">{switch['name']}</a>"
     s = s + "</li>"
     return s
 
