@@ -1,17 +1,17 @@
 {% extends '_base.html' %}
 
 {% block content %}
-<div class="row" style="margin-top: 150px;">
-  <div class="col-sm-4 col-sm-offset-4">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <strong><i class="glyphicon glyphicon-warning-sign"></i> Page Not Found</strong>
+<div class="row">
+  <div class="col-3">
+    <div class="card border-warning">
+      <div class="card-header bg-warning">
+        <strong><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Page Not Found</strong>
       </div>
-      <div class="panel-body">
+      <div class="card-body">
         The requested page does not exist.
       </div>
-      <div class="panel-footer text-right">
-        <a href="{% url 'home' %}" class="btn btn-xs btn-primary">Home Page</a>
+      <div class="card-footer text-right">
+        <a href="{% url 'home' %}" class="btn btn-primary" data-bs-toggle="tooltip" title="Click here to go back to the Devices Menu!">To Menu Page</a>
       </div>
     </div>
   </div>
