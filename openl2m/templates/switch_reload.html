@@ -5,9 +5,9 @@
 <!-- This show the list of switches a user has access to -->
 {% block content %}
 <div class="row">
-    <div class="col-sm-6 col-md-4">
-        <div class="panel panel-default">
-            <div class="panel-heading">
+    <div class="col-6">
+        <div class="card border-default">
+            <div class="card-header bg-default">
                 <strong>Ready to reload switch &quot;{{ switch.name }}&quot;</strong>
             </div>
             <div>&nbsp;<a href="{% url 'switches:switch_basics' group.id switch.id %}">Click to go back to switch &quot;{{ switch.name }}&quot;. Please be patient ...</a></div>
