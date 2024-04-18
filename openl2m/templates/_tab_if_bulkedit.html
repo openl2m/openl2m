@@ -1,199 +1,184 @@
 {% load helpers %}
 {% load static %}
 
-<div class="card border-default container-fluid">
-<!--
-    <div class="card-header">
-    <strong>Interface Bulk Edit</strong>
-  </div>
--->
-  <form name="bulkedit_form"
-        action="{% url 'switches:switch_bulkedit' group.id switch.id %}"
-        method="post">
-    {% csrf_token %}
+<div class=""container-fluid">
+<form name="bulkedit_form"
+      action="{% url 'switches:switch_bulkedit' group.id switch.id %}"
+      method="post">
+{% csrf_token %}
 
-    <div class="table-responsive">
-      <table class="table table-hover table-headings w-auto">
-        <tbody>
-          <tr>
-            <td align="left">
-              <span data-bs-toggle="tooltip" title="Click to submit changes to the selected interfaces now!">
-                <input type="submit"
-                       class="btn btn-primary"
-                       value="Change Selected Interfaces NOW"
-                       onclick="return confirm_change('Are you sure you want change the selected interfaces?')">
-              </span>
-            </td>
-            <td></td>
-          </tr>
-        <tbody>
-      </table>
+  <div class="card border-default">
+
+    <div class="card-header bg-default">
+      <input type="submit"
+            class="btn btn-primary"
+            value="Change Selected Interfaces NOW"
+            onclick="return confirm_change('Are you sure you want change the selected interfaces?')"
+            data-bs-toggle="tooltip"
+            title="Click to submit changes to the selected interfaces now!">
     </div>
 
-    <div class="table-responsive">
-
-      <table class="table table-hover table-headings w-auto">
-        <thead>
-          <tr>
-            <th>Select</th>
-            <th>Interface Name</th>
-            <th>Link</th>
-            <th>Vlan</th>
-            {% if connection.poe_capable %}
-            <th>PoE</th>
-            {% endif %}
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          {# the form row with the editable fields #}
-          <tr>
-            <td></td> {# select column #}
-
-            <td colspan="2">
-              {% if connection.can_change_admin_status %}
-              <span data-bs-toggle="tooltip" title="Change state of all selected interfaces.">
-                Status:
-                <select name="interface_change">
-                  {% for choice,name in BULKEDIT_INTERFACE_CHOICES %}
-                    <option value="{{ choice }}">{{ name }}</option>
-                  {% endfor %}
-                </select>
-              </span>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover table-headings w-auto">
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Interface Name</th>
+              <th>Link</th>
+              <th>Vlan</th>
+              {% if connection.poe_capable %}
+              <th>PoE</th>
               {% endif %}
-            </td>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {# the form row with the editable fields #}
+            <tr>
+              <td></td> {# select column #}
 
-            <td>
-              {% if connection.can_change_vlan %}
-              <span data-bs-toggle="tooltip" title="Select the new untagged vlan for all selected interfaces.">
-                <select name="new_pvid">
-                  <option value="-1" selected>No Change</option>
-                  {% for vlan_id,vlan in connection.allowed_vlans.items %}
-                    <option value="{{ vlan_id }}">{{ vlan_id }}
-                      {% if vlan.name %} - {{ vlan.name }} {% endif %}
-                    </option>
-                  {% endfor %}
-                </select>
-              </span>
-              {% endif %}
-            </td>
+              <td colspan="2">
+                {% if connection.can_change_admin_status %}
+                  Status:
+                  <select name="interface_change" data-bs-toggle="tooltip" title="Change state of all selected interfaces.">
+                    {% for choice,name in BULKEDIT_INTERFACE_CHOICES %}
+                      <option value="{{ choice }}">{{ name }}</option>
+                    {% endfor %}
+                  </select>
+                {% endif %}
+              </td>
 
-            {% if connection.poe_capable %}
-            <td>
-              {% if connection.can_change_poe_status %}
-              <span data-bs-toggle="tooltip" title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Down/Up' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE.">
-                <select name="poe_choice">
+              <td>
+                {% if connection.can_change_vlan %}
+                  <select name="new_pvid" data-bs-toggle="tooltip" title="Select the new untagged vlan for all selected interfaces.">
+                    <option value="-1" selected>No Change</option>
+                    {% for vlan_id,vlan in connection.allowed_vlans.items %}
+                      <option value="{{ vlan_id }}">{{ vlan_id }}
+                        {% if vlan.name %} - {{ vlan.name }} {% endif %}
+                      </option>
+                    {% endfor %}
+                  </select>
+                {% endif %}
+              </td>
+
+              {% if connection.poe_capable %}
+              <td>
+                {% if connection.can_change_poe_status %}
+                <select name="poe_choice" data-bs-toggle="tooltip" title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Down/Up' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE.">
                   {% for choice,name in BULKEDIT_POE_CHOICES %}
                     <option value="{{ choice }}">{{ name }}</option>
                   {% endfor %}
                 </select>
-              </span>
-              {% endif %}
-            </td>
-            {% endif %}
-
-            <td>
-              {% if connection.can_change_description and switch.edit_if_descr and group.edit_if_descr and user.profile.edit_if_descr %}
-              <label data-bs-toggle="tooltip" title="Enter a new description for all selected interfaces.">
-                <input type="text" class="form-control" name="new_description" value="" placeholder="new description here...">
-              </label>
-              <span data-bs-toggle="tooltip" title="Just edit, or append to end">
-                <br />
-                <select name="new_description_type">
-                  {% for choice,name in BULKEDIT_ALIAS_TYPE_CHOICES %}
-                    <option value="{{ choice }}">{{ name }}</option>
-                  {% endfor %}
-                </select>
-              </span>
-              {% endif %}
-            </td>
-          </tr>
-
-          {# the rows with the actual interfaces to bulk-edit #}
-          {% for if_index,iface in connection.interfaces.items %}
-            {% if iface.manageable and iface.visible %}
-
-            <tr class="{% cycle 'odd' 'even' %}" >
-
-              <td><input type="checkbox" value="{{if_index}}" name="interface_list"
-                         data-bs-toggle="tooltip"
-                         title="Check to add interface {{ iface.name }} to list">
-              </td>
-              <td
-                {% if iface.admin_status %}
-                  {% if iface.oper_status %}
-                    class="color_if_up">
-                  {% else %}
-                    class="color_if_down">
-                  {% endif %}
-                {% else %}
-                  class="color_if_shutdown">
                 {% endif %}
-                {{ iface.name }}
-                {% include "_tpl_if_type_icons.html" %}
               </td>
+              {% endif %}
 
-              {% include "_tpl_if_linkspeed_td.html" %}
+              <td>
+                {% if connection.can_change_description and switch.edit_if_descr and group.edit_if_descr and user.profile.edit_if_descr %}
+                <label data-bs-toggle="tooltip" title="Enter a new description for all selected interfaces.">
+                  <input type="text" class="form-control" name="new_description" size=40 value="" placeholder="new description here...">
+                </label>
+                  <br />
+                  <select class="mt-1" name="new_description_type" data-bs-toggle="tooltip" title="Just edit, or append to end">
+                    {% for choice,name in BULKEDIT_ALIAS_TYPE_CHOICES %}
+                      <option value="{{ choice }}">{{ name }}</option>
+                    {% endfor %}
+                  </select>
+                {% endif %}
+              </td>
+            </tr>
 
-              {# only show vlan, poe, description and command capabilities for Ethernet interfaces #}
-              {% if iface.type == IF_TYPE_ETHERNET %}
-                <td>
-                  {% if iface.untagged_vlan > 0 %}
-                    <span data-bs-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
-                      {{ iface.untagged_vlan }}
-                    </span>
-                  {% else %} {# untagged_vlan = 0 #}
-                    <span data-bs-toggle="tooltip" title="Configured vlan is not defined on this switch. See warnings tab!">Not defined!</span>
-                  {% endif %}
+            {# the rows with the actual interfaces to bulk-edit #}
+            {% for if_index,iface in connection.interfaces.items %}
+              {% if iface.manageable and iface.visible %}
+
+              <tr class="{% cycle 'odd' 'even' %}" >
+
+                <td><input type="checkbox"
+                           value="{{if_index}}"
+                           name="interface_list"
+                           data-bs-toggle="tooltip"
+                           title="Check to add interface {{ iface.name }} to list">
                 </td>
-
-                {% if connection.poe_capable %}
-                <td>
-                  {% if iface.poe_entry %}
-                    {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
-                      {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
-                  {# fault or something like that #}
-                  <img src="{% static 'img/poe-fault.png' %}"
-                       alt="PoE Fault!"
-                       data-bs-toggle="tooltip"
-                       title="PoE Fault state">
-                       {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
-                  <img src="{% static 'img/poe-serving.png' %}"
-                       alt="PoE Delivering!"
-                       data-bs-toggle="tooltip"
-                       title="PoE Delivering">
-                       {% if iface.poe_entry.power_consumption_supported %}
-                         {{ iface.poe_entry.power_consumed|humanize_power }}
-                       {% endif %}
-                       {% else %}
-                  <img src="{% static 'img/poe-enabled.png' %}"
-                       alt="PoE Enabled"
-                       data-bs-toggle="tooltip"
-                       title="PoE Enabled, not delivering"></a>
-                     {% endif %}
+                <td
+                  {% if iface.admin_status %}
+                    {% if iface.oper_status %}
+                      class="color_if_up">
                     {% else %}
-                  <img src="{% static 'img/disabled.png' %}"
-                       alt="PoE Disabled"
-                       data-bs-toggle="tooltip"
-                       title="PoE Disabled">
+                      class="color_if_down">
                     {% endif %}
                   {% else %}
-                  <span data-bs-toggle="tooltip" title="PoE not supported on this interface">n/s</span>
+                    class="color_if_shutdown">
                   {% endif %}
+                  {{ iface.name }}
+                  {% include "_tpl_if_type_icons.html" %}
                 </td>
-                {% endif %}
-              {% else %}{# not ethernet #}
-                <td></td>{# vlan #}
-                <td></td>{# poe #}
-              {% endif %}{# if ethernet #}
-                <td>
-                  {{ iface.description }}
-                </td>
-              </tr>
-            {% endif %} {# manageable/visible #}
-          {% endfor %} {# interfaces #}
-        </tbody>
-      </table>
-    </div>  {# class table-responsive #}
-  </form>
-</div> {# card #}
+
+                {% include "_tpl_if_linkspeed_td.html" %}
+
+                {# only show vlan, poe, description and command capabilities for Ethernet interfaces #}
+                {% if iface.type == IF_TYPE_ETHERNET %}
+                  <td>
+                    {% if iface.untagged_vlan > 0 %}
+                      <span data-bs-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
+                        {{ iface.untagged_vlan }}
+                      </span>
+                    {% else %} {# untagged_vlan = 0 #}
+                      <span data-bs-toggle="tooltip" title="Configured vlan is not defined on this switch. See warnings tab!">Not defined!</span>
+                    {% endif %}
+                  </td>
+
+                  {% if connection.poe_capable %}
+                  <td>
+                    {% if iface.poe_entry %}
+                      {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
+                        {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
+                    {# fault or something like that #}
+                    <img src="{% static 'img/poe-fault.png' %}"
+                        alt="PoE Fault!"
+                        data-bs-toggle="tooltip"
+                        title="PoE Fault state">
+                        {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
+                    <img src="{% static 'img/poe-serving.png' %}"
+                        alt="PoE Delivering!"
+                        data-bs-toggle="tooltip"
+                        title="PoE Delivering">
+                        {% if iface.poe_entry.power_consumption_supported %}
+                          {{ iface.poe_entry.power_consumed|humanize_power }}
+                        {% endif %}
+                        {% else %}
+                    <img src="{% static 'img/poe-enabled.png' %}"
+                        alt="PoE Enabled"
+                        data-bs-toggle="tooltip"
+                        title="PoE Enabled, not delivering"></a>
+                      {% endif %}
+                      {% else %}
+                    <img src="{% static 'img/disabled.png' %}"
+                        alt="PoE Disabled"
+                        data-bs-toggle="tooltip"
+                        title="PoE Disabled">
+                      {% endif %}
+                    {% else %}
+                      <span data-bs-toggle="tooltip" title="PoE not supported on this interface">n/s</span>
+                    {% endif %}
+                  </td>
+                  {% endif %}
+                {% else %}{# not ethernet #}
+                  <td></td>{# vlan #}
+                  <td></td>{# poe #}
+                {% endif %}{# if ethernet #}
+                  <td>
+                    {{ iface.description }}
+                  </td>
+                </tr>
+              {% endif %} {# manageable/visible #}
+            {% endfor %} {# interfaces #}
+          </tbody>
+        </table>
+      </div>  {# class table-responsive #}
+    </div>{# card-body#}
+
+  </div> {# card #}
+</form>
+</div>
