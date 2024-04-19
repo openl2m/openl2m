@@ -1,64 +1,64 @@
 {% load helpers %}
 {% load static %}
 
-    <div class="card border-default">
-      <div class="card-header bg-default">
-        <strong>Vlans defined (GVRP
-          {% if connection.gvrp_enabled %}
-            Enabled
-          {% else %}
-            disabled
+<div class="card border-default mb-2">
+  <div class="card-header bg-default">
+    <strong>Vlans defined (GVRP
+      {% if connection.gvrp_enabled %}
+        Enabled
+      {% else %}
+        disabled
+      {% endif %}
+      )</strong>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped table-hover table-headings w-auto">
+      <thead>
+        <tr><th>Vlan ID</th><th>Name</th><th>Etc.</th></tr>
+      </thead>
+      <tbody>
+    {% for vlanid,vlan in connection.vlans.items %}
+      {% if vlan.type == VLAN_TYPE_NORMAL %}
+        <tr>
+          <td>{{ vlanid }}</td>
+          <td>{% if vlan.name %}{{ vlan.name }}{% else %}<p class="fw-lighter fst-italic">(no name set){% endif %}</td>
+          <td>{{ vlan|get_vlan_info_links }}
+          {% if vlan.status == VLAN_STATUS_DYNAMIC %}
+            <i class="fas cloud-download-alt" aria-hidden="true"
+                alt="MVRP/GVRP Image"
+                data-bs-toggle="tooltip"
+                title="Vlan learned via MVRP or GVRP">
+            </i>
           {% endif %}
-          )</strong>
-      </div>
-      <div class="card-body">
-        <table class="table table-striped table-hover table-headings w-auto">
-          <thead>
-            <tr><th>Vlan ID</th><th>Name</th><th>Etc.</th></tr>
-          </thead>
-          <tbody>
-        {% for vlanid,vlan in connection.vlans.items %}
-          {% if vlan.type == VLAN_TYPE_NORMAL %}
-            <tr>
-              <td>{{ vlanid }}</td>
-              <td>{% if vlan.name %}{{ vlan.name }}{% else %}<p class="fw-lighter fst-italic">(no name set){% endif %}</td>
-              <td>{{ vlan|get_vlan_info_links }}
-              {% if vlan.status == VLAN_STATUS_DYNAMIC %}
-                <i class="fas cloud-download-alt" aria-hidden="true"
-                    alt="MVRP/GVRP Image"
-                    data-bs-toggle="tooltip"
-                    title="Vlan learned via MVRP or GVRP">
-                </i>
-              {% endif %}
-              {% if vlan.admin_status == VLAN_ADMIN_DISABLED %}
-                &nbsp;
-                <i class="fas fa-ban" aria-hidden="true"
-                    alt="Vlan is Admin Shutdown"
-                    data-bs-toggle="tooltip"
-                    title="Shutdown Vlan">
-                </i>
-              {% endif %}
-              {% if vlan.voice %}
-                &nbsp;
-                <i class="fas fa-phone" aria-hidden="true"
-                    alt="Voice Vlan"
-                    data-bs-toggle="tooltip"
-                    title="Voice Vlan">
-                </i>
-              {% endif %}
-              {% if vlan.igmp_snooping %}
-                &nbsp;
-                <i class="fas fa-project-diagram" aria-hidden="true"
-                    alt="IGMP Snooping Enabled"
-                    data-bs-toggle="tooltip"
-                    title="IGMP Snooping Enabled">
-                </i>
-              {% endif %}
-              </td>
-            </tr>
+          {% if vlan.admin_status == VLAN_ADMIN_DISABLED %}
+            &nbsp;
+            <i class="fas fa-ban" aria-hidden="true"
+                alt="Vlan is Admin Shutdown"
+                data-bs-toggle="tooltip"
+                title="Shutdown Vlan">
+            </i>
           {% endif %}
-        {% endfor%}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          {% if vlan.voice %}
+            &nbsp;
+            <i class="fas fa-phone" aria-hidden="true"
+                alt="Voice Vlan"
+                data-bs-toggle="tooltip"
+                title="Voice Vlan">
+            </i>
+          {% endif %}
+          {% if vlan.igmp_snooping %}
+            &nbsp;
+            <i class="fas fa-project-diagram" aria-hidden="true"
+                alt="IGMP Snooping Enabled"
+                data-bs-toggle="tooltip"
+                title="IGMP Snooping Enabled">
+            </i>
+          {% endif %}
+          </td>
+        </tr>
+      {% endif %}
+    {% endfor%}
+      </tbody>
+    </table>
+  </div>
+</div>

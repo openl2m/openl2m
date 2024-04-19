@@ -1,85 +1,85 @@
 {% load helpers %}
 {% load static %}
 
-  <div class="card border-default">
-    <div class="card-header bg-default">
-      <strong>General Information</strong>
-    </div>
-    <div class="card-body">
-      {% for category,values in connection.more_info.items %}
-        <table class="table table-striped table-hover table-headings w-auto">
-          <thead>
-            <tr><th colspan="2">{{ category }}</th></tr>
-          </thead>
-          <tbody>
-          {% for name,value in values.items %}
-            <tr>
-              <td>{{ name }}</td>
-              <td>{{ value }}</td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      {% endfor%}
-    </div>
+<div class="card border-default mb-2">
+  <div class="card-header bg-default">
+    <strong>General Information</strong>
   </div>
-
-
-  {% if connection.syslog_msgs.items %}
-  <div class="card border-default">
-    <div class="card-header bg-default">
-      <strong>Recent Syslog Entries ({{ connection.syslog_max_msgs }} max)</strong>
-    </div>
-    <div class="card-body">
-        <table class="table table-striped w-auto">
-          <thead>
-            <tr><th>Approx. Time</th><th>Message</th></tr>
-          </thead>
-          <tbody>
-          {% for index,msg in connection.syslog_msgs.items %}
-            <tr>
-              <td>{{ msg.datetime|date:"SHORT_DATETIME_FORMAT" }}</td>
-              <td>{{ msg.message }}</td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-    </div>
-  </div>
-  {% endif %}
-
-
-  {% if connection.stack_members.items %}
-  <div class="card border-default">
-    <div class="card-header bg-default">
-      <strong>Device/Stacking Info</strong>
-    </div>
-    <div class="card-body">
-      <table class="table table-striped w-auto">
+  <div class="card-body">
+    {% for category,values in connection.more_info.items %}
+      <table class="table table-striped table-hover table-headings w-auto">
+        <thead>
+          <tr><th colspan="2">{{ category }}</th></tr>
+        </thead>
         <tbody>
-      {% for dev_id,dev in connection.stack_members.items %}
+        {% for name,value in values.items %}
           <tr>
-            <td>ID {{ dev_id }} - {{ dev|get_device_class }}
-            {% if dev.description %}
-              , &quot;{{ dev.description }}&quot;
-            {% endif %}
-            {% if dev.model %}
-              , model no. {{ dev.model }}
-            {% endif %}
-            {% if dev.serial %}
-              , serial no. {{ dev.serial }}
-            {% endif %}
-            {% if dev.version %}
-              , software rev. {{ dev.version }}
-            {% endif %}
-            {% if dev.info %}
-              , {{ dev.info }}
-            {% endif %}
-            </td>
+            <td>{{ name }}</td>
+            <td>{{ value }}</td>
           </tr>
-          {% endfor%}
+        {% endfor %}
         </tbody>
       </table>
-    </div>
+    {% endfor%}
   </div>
-  {% endif %}
+</div>
+
+
+{% if connection.syslog_msgs.items %}
+<div class="card border-default mb-2">
+  <div class="card-header bg-default">
+    <strong>Recent Syslog Entries ({{ connection.syslog_max_msgs }} max)</strong>
+  </div>
+  <div class="card-body">
+      <table class="table table-striped w-auto">
+        <thead>
+          <tr><th>Approx. Time</th><th>Message</th></tr>
+        </thead>
+        <tbody>
+        {% for index,msg in connection.syslog_msgs.items %}
+          <tr>
+            <td>{{ msg.datetime|date:"SHORT_DATETIME_FORMAT" }}</td>
+            <td>{{ msg.message }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+  </div>
+</div>
+{% endif %}
+
+
+{% if connection.stack_members.items %}
+<div class="card border-default mb-2">
+  <div class="card-header bg-default">
+    <strong>Device/Stacking Info</strong>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped w-auto">
+      <tbody>
+    {% for dev_id,dev in connection.stack_members.items %}
+        <tr>
+          <td>ID {{ dev_id }} - {{ dev|get_device_class }}
+          {% if dev.description %}
+            , &quot;{{ dev.description }}&quot;
+          {% endif %}
+          {% if dev.model %}
+            , model no. {{ dev.model }}
+          {% endif %}
+          {% if dev.serial %}
+            , serial no. {{ dev.serial }}
+          {% endif %}
+          {% if dev.version %}
+            , software rev. {{ dev.version }}
+          {% endif %}
+          {% if dev.info %}
+            , {{ dev.info }}
+          {% endif %}
+          </td>
+        </tr>
+        {% endfor%}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
