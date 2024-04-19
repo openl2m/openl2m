@@ -653,6 +653,21 @@ lldpObjects = '.1.0.8802.1.1.2.1'  # start of lldpObjects
 snmp_mib_variables['lldpObjects'] = lldpObjects
 
 # local system data at  .1.0.8802.1.1.2.1.3
+lldpLocalSystemData = '.1.0.8802.1.1.2.1.3'
+snmp_mib_variables['lldpLocalSystemData'] = lldpLocalSystemData
+
+lldpLocChassisIdSubtype = '.1.0.8802.1.1.2.1.3.1.0'
+snmp_mib_variables['lldpLocChassisIdSubtype'] = lldpLocChassisIdSubtype
+
+lldpLocChassisId = '.1.0.8802.1.1.2.1.3.2.0'
+snmp_mib_variables['lldpLocChassisId'] = lldpLocChassisId
+
+lldpLocSysName = '.1.0.8802.1.1.2.1.3.3.0'
+snmp_mib_variables['lldpLocSysName'] = lldpLocSysName
+
+lldpLocSysDesc = '.1.0.8802.1.1.2.1.3.4.0'
+snmp_mib_variables['lldpLocSysDesc'] = lldpLocSysDesc
+
 # lldpLocSysCapSupported, local capabilities supported, see bitmap below
 lldpLocSysCapSupported = '.1.0.8802.1.1.2.1.3.5.0'
 snmp_mib_variables['lldpLocSysCapSupported'] = lldpLocSysCapSupported
