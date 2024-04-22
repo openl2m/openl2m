@@ -25,7 +25,7 @@
           {% endif %}
           "> -->
           <a class="nav-link dropdown-toggle" href="#" id="navbarMenu{{ forloop.counter }}" role="button" data-bs-toggle="dropdown"
-            aria-haspopup="true" aria-expanded="false" data-bs-toggle="tooltip" data-bs-title="Your menu options!">{{ headername }}</a>
+            aria-haspopup="true" aria-expanded="false">{{ headername }}</a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarMenu{{ forloop.counter }}">
           {% for menu in menus %}
             <li><a class="dropdown-item" href="{{ menu.url }}"
@@ -83,8 +83,17 @@
             {% if not request.user.ldap_user %}
             <li><a class="dropdown-item" href="{% url 'password_change' %}"><i class="fas fa-key"></i> Change Password</a></li>
             {% endif %}
-            <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="fas fa-user-circle"></i> Profile</a></li>
+            <!-- Choose theme menu, only on top level menu page -->
+            {% if request.path == '/switches/' %}
+              {% if request.user.profile.theme == 'light' %}
+                <li><a class="dropdown-item" href="{% url 'users:theme' 'dark' %}"><i class="fas fa-clone"></i> Set Dark Mode</a></li>
+              {% else %}
+                <li><a class="dropdown-item" href="{% url 'users:theme' 'light' %}"><i class="far fa-clone"></i> Set Light Mode</a></li>
+              {% endif %}
+            {% endif %}
+            <!-- End Theme menu -->
             <li><a class="dropdown-item" href="{% url 'users:token_list' %}"><i class="fas fa-user-secret"></i> API Tokens</a></li>
+            <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="fas fa-user-circle"></i> Profile</a></li>
             <li> <hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" ><i class="fas fa-info" aria-hidden="true"></i> OpenL2M v{{ settings.VERSION }}</a></li>
             <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Log out</a></li>

@@ -87,6 +87,7 @@ class ProfileView(LoginRequiredMixin, View):
     template_name = 'users/profile.html'
 
     def get(self, request):
+        # set the new theme in
         return render(
             request,
             self.template_name,
@@ -94,6 +95,33 @@ class ProfileView(LoginRequiredMixin, View):
                 'user': request.user,
             },
         )
+
+
+#
+# Class to support switching Themes
+#
+
+valid_themes = [
+    'light',
+    'dark',
+]
+
+
+class ThemeView(LoginRequiredMixin, View):
+    template_name = 'users/profile.html'
+
+    def get(self, request, name):
+        if name not in valid_themes:
+            dprint(f"INVALID THEME: '{name}'")
+            error = Error()
+            error.description = f"Invalid theme selected: '{name}'"
+            return error_page(request=request, group=None, switch=None, error=error)
+        # set selected theme in profile
+        dprint(f"THEME set to '{name}'")
+        request.user.profile.theme = name
+        request.user.save()
+        # and redirect to the "menu" page
+        return HttpResponseRedirect(reverse('home'))
 
 
 #

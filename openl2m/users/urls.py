@@ -18,6 +18,7 @@ from . import views
 app_name = 'users'
 urlpatterns = [
     path('profile/', views.ProfileView.as_view(), name='profile'),
+    path('theme/<str:name>/', views.ThemeView.as_view(), name='theme'),
     path('info/<int:user_id>/', views.InfoView.as_view(), name='info'),
     path('tokens/', views.TokenListView.as_view(), name='token_list'),
     path('tokens/add/', views.TokenAdd.as_view(), name='token_add'),

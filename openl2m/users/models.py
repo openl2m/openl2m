@@ -88,6 +88,14 @@ class Profile(models.Model):
         verbose_name="Last LDAP login",
         help_text="The time of the most recent LDAP login (if any)",
     )
+    theme = models.CharField(
+        max_length=40,
+        blank=False,
+        null=False,
+        default="light",
+        verbose_name="The Theme selected",
+        help_text="Set to a valid theme name",
+    )
 
     class Meta:
         pass
