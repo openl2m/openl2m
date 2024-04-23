@@ -408,31 +408,16 @@ class Connector:
         Returns:
             return True on success, False on error and set self.error variables
         '''
-
-        # call the vendor-specific data first, if implemented
-        if hasattr(self, 'get_my_hardware_details'):
-            self.get_my_hardware_details()
-            # set the flag to indicate we read this already, and store in session
-            # if flag is set, the button will not be shown in menu bar!
+        if self.hardware_details_needed:
+            # this only will be called once!
             self.hardware_details_needed = False
-            # and cache it:
-            # self.save_cache()
-            return True
-        self.add_warning("WARNING: device driver does not support 'get_my_hardware_details()' !")
-        return False
-
-    '''
-    placeholder for class-specific implementation to read things like:
-        stacking info, serial #, and whatever you want to add:
-        Attributes:
-        self.stack_members
-        self.syslog_max_msgs
-        self.syslog_msgs
-    return True on success, False on error and set self.error variables
-
-    def get_my_hardware_details(self):
+            # call the vendor-specific data first, if implemented
+            if hasattr(self, 'get_my_hardware_details'):
+                return self.get_my_hardware_details()
+            self.add_warning("WARNING: device driver does not support 'get_my_hardware_details()' !")
+            return False
+        # already loaded.
         return True
-    '''
 
     '''
     These are the "set" functions that implement changes on the device.
