@@ -9,6 +9,10 @@ FAQs
 Frequenty Asked Questions
 =========================
 
+* **Can I quickly test OpenL2M?**
+
+Yes, you can do a fairly quick Docker compose install to test. Look at "docker/test/README.txt"
+
 * **Why does it take a while to show the switch page?**
 
 This is a design decision. **Everything is read in real-time from the switch as

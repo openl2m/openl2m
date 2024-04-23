@@ -13,6 +13,10 @@ While primarily intended to manage network switches, OpenL2M can handle any devi
 sort of network API (e.g. SSH, Netconf, REST, etc.)
 
 __Features:__
+* Light or Dark theme.
+* for testing, a Docker Compose file is available.
+* pluggable backend to support new vendor devices, allowing easy development
+* vendor-agnostic REST API. Automate changes from scripts, etc.
 * enable/disable interface
 * change vlan on interface
 * enable/disable PoE
@@ -21,8 +25,6 @@ __Features:__
 * add, edit or delete vlans on devices
 * run configurable pre-defined 'static' commands on the device
 * run configurable pre-defined 'form input' commands on the device
-* pluggable backend to support other vendors' devices, allowing easy development
-* vendor-agnostic REST API. Automate changes from scripts, etc.
 * and more...
 
 __Devices Supported:__
@@ -37,6 +39,8 @@ __Devices Supported:__
 See the documentation for more information.
 
 __What's New:__
+
+v3.2 adds a Dark Theme, and significantly improves web accessibility through the use of Bootstrap 5.3 This also provides more consistent layout of pages.
 
 v3.1 upgrades to Django 5.0, and adds a docker-compose config for quickly testing OpenL2M in a container.
 

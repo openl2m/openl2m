@@ -6,7 +6,7 @@
 .. image:: _static/openl2m_logo.png
 
 =======================
-Welcome to OpenL2M v3.1
+Welcome to OpenL2M v3.2
 =======================
 
 Welcome to the documentation for the "Open Layer 2 Management" project.

@@ -6,6 +6,8 @@ What's New...
 
 :doc:`Please read the release notes for more details on each release. <releases/index>`
 
+* v3.2 adds a Dark theme, and uses the Bootstrap 5.3 framework for much improved web accesibility.
+
 * v3.1 upgrades the Django framework to v5.0 It also adds bug fixes and improved code readability.
   Also adds a docker-compose config for quickly testing OpenL2M in a container.
 
