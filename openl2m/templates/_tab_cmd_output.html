@@ -1,31 +1,29 @@
-<div class="card-group">
-  {% if cmd.error_descr %}
-  <div class="card border-danger">
-    <div class="card-header bg-danger">
-      <strong>An Error Has Occured</strong>
-    </div>
-    <div class="card-body">
-      <p>{{ cmd.error_descr }}</p>
-      {% if cmd.error_details %}
-        <div>
-          <a data-bs-toggle="collapse" href="#details" aria-expanded="false" aria-controls="details">Click to see details</a>
-        </div>
-        <div id="details" class="collapse">
-          <pre>
-          {{ cmd.error_details }}
-          </pre>
-        </div>
-      {% endif %}
-    </div>
+{% if cmd.error_descr %}
+<div class="card border-danger">
+  <div class="card-header bg-danger">
+    <strong>Error in Command: {{ cmd.command }}</strong>
   </div>
-  {% endif %}
-
-  <div class="card border-default">
-    <div class="card-header bg-default"><strong>Command: </strong>{{ cmd.command }}</div>
-    {% if cmd.output %}
-      <div class="card-body">
-        <p><pre>{{ cmd.output }}</pre></p>
+  <div class="card-body">
+    <p>{{ cmd.error_descr }}</p>
+    {% if cmd.error_details %}
+      <div>
+        <a data-bs-toggle="collapse" href="#details" aria-expanded="false" aria-controls="details">Click to see details</a>
+      </div>
+      <div id="details" class="collapse">
+        <pre>
+        {{ cmd.error_details }}
+        </pre>
       </div>
     {% endif %}
   </div>
 </div>
+{% else %}{# output OK #}
+<div class="card border-default">
+  <div class="card-header bg-default"><strong>Command: </strong>{{ cmd.command }}</div>
+  {% if cmd.output %}
+    <div class="card-body">
+      <p><pre>{{ cmd.output }}</pre></p>
+    </div>
+  {% endif %}
+</div>
+{% endif %}
