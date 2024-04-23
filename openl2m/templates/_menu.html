@@ -67,10 +67,10 @@
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-pen"></i> Administration</a></li>
               {% if switch %}
-              <li><a class="dropdown-item" href="{% url 'admin:switches_switch_change' switch.id %}">&nbsp;&nbsp;&nbsp;<i class="fas fa-pencil-alt"></i> This Device</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin:switches_switch_change' switch.id %}">&nbsp;&nbsp;&nbsp;<i class="fas fa-ethernet"></i> This Device</a></li>
               {% endif %}
               {% if group %}
-              <li><a class="dropdown-item" href="{% url 'admin:switches_switchgroup_change' group.id %}">&nbsp;&nbsp;&nbsp;<i class="fas fa-pencil-alt"></i> This Group</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin:switches_switchgroup_change' group.id %}">&nbsp;&nbsp;&nbsp;<i class="fas fa-user-friends"></i> This Group</a></li>
               {% endif %}
               <li><a class="dropdown-item" href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true"></i> Activity Logs</a></li>
             {% elif request.user.is_staff %}
