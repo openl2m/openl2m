@@ -6,8 +6,8 @@ Version 3.2
 
 **Version 3.2 adds a Dark Theme, and uses the Bootstrap 5.3 Web UI framework.**
 
-The use of Bootstrap 5.3 changes all pages to be significantly more "Web Accessible",
-and updates them with the new Boostrap 5 look!
+The use of Bootstrap 5.3 significantly improves web accessibility
+and updates pages with the new Boostrap 5 look!
 
 Dark Theme can be chosen from the user menu while on the Home page.
 
@@ -17,14 +17,15 @@ Version 3.2
 
 Release Date: 2024-TBD
 
-* Update to Bootstrap v5.3.3
+* update to Bootstrap v5.3.3
 * various layout changes.
 * require Python 3.10 or 3.11. Will not run on v3.12 (e.g on Ubuntu 24.04).
 * add warning for unknown/unsupported vendors in snmp driver.
+* device hardware details are always read, see Device Information tab.
 
 Bug fixes:
 
-* various unneed web packages are removed.
-* remove django-minify, as it appears to wreak havoc with Bootstrap 5.
-* fix incorrect set call in snmp driver that caused exception.
+* removed various unneeded web packages.
+* removed django-minify, as it appears to wreak havoc with Bootstrap 5.
+* fix exception in snmp driver caused by incorrect set call.
 * fixed missing Docker compose test entrypoint config.

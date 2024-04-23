@@ -96,11 +96,6 @@ urlpatterns = [
         name='switch_arp_lldp',
     ),
     path(
-        '<int:group_id>/<int:switch_id>/hwinfo/',
-        views.SwitchHardwareInfo.as_view(),
-        name='switch_hw_info',
-    ),
-    path(
         '<int:group_id>/<int:switch_id>/reload/<str:view>/',
         views.SwitchReload.as_view(),
         name='switch_reload',

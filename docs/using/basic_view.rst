@@ -28,12 +28,6 @@ On the right, |switch-reload-header|, does exactly that! This forces a complete 
 
 .. |switch-reload-header| image:: ../_static/switch-reload-header.png
 
-The |hardware-details-header| option adds a few more bits of information to the Information tab below (depending on vendor).
-On most devices, device and stacking information will be read, include serial numbers.
-On Cisco devices, if properly configured, this will add recent log entries (see below).
-
-.. |hardware-details-header| image:: ../_static/hardware-details-header.png
-
 |save_warning|  If you have made changes that require saving the config, an additional option to save the config
 will appear on the right with a warning icon in front! Click it to save the running config to the switch startup config.
 (I.e. this is a 'write mem'!) When completed, that option will disappear.
@@ -216,13 +210,13 @@ Fill in the form, then select the interfaces you want to apply this to.
 and your changes will be applied. Please be patient!
 
 
-Switch Information Tab
+Device Information Tab
 ----------------------
 
 |switch_information_tab|
 
-This shows a series of information about the switch. Depending on the device and what is supported via SNMP,
-this can include items such as model, firmware, vlans defined on switch, PoE power supply info, stacking info,
+This shows a series of information about the switch. Depending on the device and what is supported in the driver,
+this can include items such as model, firmware,serial numbers, vlans defined on switch, PoE power supply info, stacking info,
 IP(v4) addresses of the switch, and more.
 
 E.g.:
@@ -231,9 +225,8 @@ E.g.:
 
 |device_stacking_info|
 
-On properly configured Cisco switches (:doc:`see Faq <../faq>`), we can show recent log entries,
-after you have selected the "More Hardware Details" button.
-
+ On properly configured Cisco switches (:doc:`see Faq <../faq>`), we can show recent log entries: 
+ 
 |cisco_log_entries|
 
 .. |switch_information_tab| image:: ../_static/switch-information-tab.png
@@ -253,8 +246,8 @@ by user and time.
 .. |activity_logs_tab| image:: ../_static/activity-logs-tab.png
 
 
-Switch Commands Tab
--------------------
+Commands Tab
+------------
 
 |switch_commands_tab|
 

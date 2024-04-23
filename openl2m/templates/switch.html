@@ -31,18 +31,6 @@
 
         {% if connection.show_interfaces %}
 
-          {% if request.user.is_superuser and connection.can_get_hardware_details and connection.hardware_details_needed %}
-          <td>
-            <a href="{% url 'switches:switch_hw_info' group.id switch.id %}"
-              data-bs-toggle="tooltip"
-              data-bs-title="Read additional hardware details for this switch! This may take some time..."
-              class="btn btn-primary">
-              <i class="fas fa-info-circle" aria-hidden="true"></i>
-              More Hardware Details
-            </a>
-          </td>
-          {% endif %}
-
           {% if connection.can_get_client_data %}
           <td>
             <a href="{% url 'switches:switch_arp_lldp' group.id switch.id %}"

@@ -325,21 +325,21 @@ class SwitchDetails(LoginRequiredMixin, View):
         return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="arp_lldp")
 
 
-class SwitchHardwareInfo(LoginRequiredMixin, View):
-    """
-    "hardware info" switch view, i.e. read detailed system hardware ("entity") data.
-    Simply call switch_view() with proper parameter
-    """
+# class SwitchHardwareInfo(LoginRequiredMixin, View):
+#     """
+#     "hardware info" switch view, i.e. read detailed system hardware ("entity") data.
+#     Simply call switch_view() with proper parameter
+#     """
 
-    def get(
-        self,
-        request,
-        group_id,
-        switch_id,
-    ):
-        dprint("SwitchHardwareInfo() - GET called")
-        counter_increment(COUNTER_HWINFO)
-        return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="hw_info")
+#     def get(
+#         self,
+#         request,
+#         group_id,
+#         switch_id,
+#     ):
+#         dprint("SwitchHardwareInfo() - GET called")
+#         counter_increment(COUNTER_HWINFO)
+#         return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="hw_info")
 
 
 def switch_view(
@@ -404,6 +404,7 @@ def switch_view(
             log.description = "ERROR in get_basic_switch_info()"
             log.save()
             return error_page(request=request, group=group, switch=switch, error=conn.error)
+
     except Exception as e:
         log.type = LOG_TYPE_ERROR
         log.description = (
@@ -415,24 +416,30 @@ def switch_view(
 
     dprint("Basic Info OK")
 
-    if view == "hw_info":
-        # catch errors in case not trapped in drivers
-        try:
-            if not conn.get_hardware_details():
-                # errors
-                log.type = LOG_TYPE_ERROR
-                log.description = "ERROR in get_hardware_details()"
-                log.save()
-                # don't render error, since we have already read the basic interface data
-                # Note that SNMP errors are already added to warnings!
-                # return error_page(request=request, group=group, switch=switch, error=conn.error)
-            dprint("Details Info OK")
-        except Exception as e:
+    # get hardware info as well.
+    try:
+        if not conn.get_hardware_details():
+            # errors
             log.type = LOG_TYPE_ERROR
-            log.description = f"CAUGHT UNTRAPPED ERROR in get_hardware_details(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            dprint(log.description)
+            log.description = "ERROR in get_hardware_details()"
             log.save()
-            return error_page(request=request, group=group, switch=switch, error=conn.error)
+            dprint("ERROR in conn.get_hardware_details()!")
+            # don't render error, since we have already read the basic interface data
+            # Note that SNMP errors are already added to warnings!
+            # return error_page(request=request, group=group, switch=switch, error=conn.error)
+        else:
+            dprint("get_hardware_details() OK!")
+    except Exception as e:
+        # some untrapped error, not likely to happen...
+        log.type = LOG_TYPE_ERROR
+        log.description = (
+            f"CAUGHT UNTRAPPED ERROR in get_hardware_details(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+        )
+        dprint(log.description)
+        log.save()
+        # add a warning message only, since we alread have basic info!
+        conn.add_warning(request=request, group=group, switch=switch, error=conn.error)
+        dprint("ERROR Caught in Details Info!")
 
     if view == "arp_lldp":
         # catch errors in case not trapped in drivers
