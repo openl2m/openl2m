@@ -245,22 +245,23 @@ def get_my_group_menu(groups):
 
     num_groups = len(groups)
     if not num_groups:
-        s = '<div class="row justify-content-md-center"><strong>You are not a member of any switch groups! Please contact the OpenL2M administrator.</strong></div>'
+        s = '<div class="card border-warning"><div class="card-header bg-warning"><i class="fas fa-exclamation-triangle"></i>&nbsp;<strong>No groups assigned!</strong></div><div class="card-body row justify-content-md-center">You are not a member of any switch groups! Please contact the OpenL2M administrator.</div></div>'
         return mark_safe(s)
 
     # the Group Title:
     if num_groups == 1:
         # one group only:
         text = 'Group'
-        open = True  # open menu dropdown
+        open = False  # open menu dropdown
     else:
         # multiple groups:
         text = 'Groups'
         open = False  # start with all closed
-    s = f'<div class="row"><div class="col-2"><h5>My Device {text}:</h5></div></div>'
+
+    s = f'<div class="container-fluid"><div class="card border-default"><div class="card-header bg-default"><strong>My Device {text}:</strong></div>'
 
     # start groups wrapper:
-    s = s + "\n"  # end header row (for html readability)
+    s = s + '\n<div class="card-body">\n'  # end header row (for html human readability)
 
     # calculate column width, if set. Bootstrap uses 12 grid columns per page, max width we use is 2 grids
     if settings.TOPMENU_MAX_COLUMNS > 6:
@@ -293,6 +294,8 @@ def get_my_group_menu(groups):
     if max_columns > 1:
         s = s + "\n</div>"
 
+    # close "card-body" and "card"
+    s += "\n</div></div></div>"
     return mark_safe(s)
 
 

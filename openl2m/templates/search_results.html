@@ -6,28 +6,30 @@
 
 {% block content %}
 
-{% include "_switch_search.html" %}
-
 {% if warning %}
   <h5>Warning: {{ warning }} </h5>
 {% endif %}
 
 <div class="row">
   <div class="col-4">
-    <div class="card border-default">
-      <div class="card-header bg-default">Search for &quot;{{ search }}&quot;
+    <div class="card border-default mb-2">
+      <div class="card-header bg-default">Search for &quot;<strong>{{ search }}</strong>&quot;
     {% if results_count > 0 %}
-      found {{ results_count }} results:</div>
+      found <strong>{{ results_count }}</strong> results:
+      </div>
       <div class="card-body">
         <ul class="list-group list-group-flush">
       {{ results|get_my_results:group_count }}
         </ul>
       </div>
     {% else %}
-      found no matches!</div>
+      found no matches!
+      </div>
     {% endif %}
     </div>
- </div>
+  </div>
 </div>
+
+{% include "_switch_search.html" %}
 
 {% endblock %}

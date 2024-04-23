@@ -4,8 +4,12 @@
 
 {% block content %}
 
-{% include "_switch_search.html" %}
-
+{% if settings.SWITCH_SEARCH_FORM %}
+  {% if groups_count > 0 %}
+    {% include "_switch_search.html" %}
+  {% endif %}
+{% endif %}
+    
 {% load helpers %}
 {{ groups|get_my_group_menu }}
 
