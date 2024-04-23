@@ -98,7 +98,7 @@
 <div class="container-fluid">
 
 {% if  connection.show_interfaces %}
-  {# the tabs #}
+  {# the tabs for devices with interfaces #}
   <ul class="nav nav-tabs" role="tablist">
     {% if cmd and cmd.state == 'run' %}
 
@@ -127,7 +127,7 @@
         {% include "_menu_command_output.html" with state="active" %}
       </li>
 
-    {% else %}
+    {% else %}{# device with interfaces, no run-output #}
 
       {% if view == 'basic' %}
       <!-- BASIC INTERFACE TABS -->
@@ -210,19 +210,20 @@
         </li>
       {% endif %}
 
-    {% endif %}
+    {% endif %}{# device with interfaces, no run-output #}
 
+  {# devices with interfaces, run-commands and templates #}
   {% if connection.can_run_commands %}
     {% if switch.command_list.global_commands.count %}
     <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
     data-bs-title="Possible show commands for this device">
-      {% include "_menu_switch_commands.html" %}
+      {% include "_menu_switch_commands.html" with state="" %}
     </li>
     {% elif request.user.is_staff or request.user.is_superuser %}
       {% if switch.command_list.interface_commands_staff.count or switch.command_list.global_commands_staff.count %}
       <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
       data-bs-title="Possible show commands for this device">
-        {% include "_menu_switch_commands.html" %}
+        {% include "_menu_switch_commands.html" with state="" %}
       </li>
       {% endif %}
     {% endif %}
@@ -235,22 +236,22 @@
   {% endif %}
 
 
-<!-- Every menu gets logs and warning -->
+  <!-- Every menu gets logs and warning -->
+  <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
+  data-bs-title="{{ settings.RECENT_SWITCH_LOG_COUNT }} most recent OpenL2M activity logs for this device">
+    {% include "_menu_logs.html" %}
+  </li>
+
+  {% if connection.warnings %}
     <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
-    data-bs-title="{{ settings.RECENT_SWITCH_LOG_COUNT }} most recent OpenL2M activity logs for this device">
-      {% include "_menu_logs.html" %}
+    data-bs-title="Warnings for this device">
+      {% include "_menu_warnings.html" %}
     </li>
+  {% endif %}
 
-    {% if connection.warnings %}
-      <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
-      data-bs-title="Warnings for this device">
-        {% include "_menu_warnings.html" %}
-      </li>
-    {% endif %}
+  </ul>{# nav nav-tabs #}
 
-  </ul>
-
-<!-- TAB CONTENT STARTS HERE -->
+  <!-- TAB CONTENT STARTS HERE -->
 
   {# and tab content #}
   {# see https://fastbootstrap.com/components/tabs/ #}
@@ -377,26 +378,26 @@
 
   </div> {# class tab-content #}
 
-{% else %} {# not connecton.show_interfaces #}
+{% else %} {# devices without interfaces! #}
 
 <!-- NO INTERFACES MENU TABS -->
   <ul class="nav nav-tabs">
-    {% if cmd and cmd.state == 'run' %}
+    {% if cmd and cmd.state == 'run' %}{# command or template has run! #}
 
       <li class="nav-item" role="presentation" data-bs-toggle="tooltip"
       data-bs-title="General device information, such as OS, etc.">
-        {% include "_menu_switch_info.html" %}
+        {% include "_menu_switch_info.html" with state="" %}
       </li>
       <li  class="nav-item" role="presentation" data-bs-toggle="tooltip"
       data-bs-title="Command output">
-        {% include "_menu_command_output.html" %}
+        {% include "_menu_command_output.html" with state="active" %}
       </li>
 
-    {% else %}
+    {% else %}{# just general info, no command or template has run! #}
 
       <li  class="nav-item" role="presentation" data-bs-toggle="tooltip"
       data-bs-title="General device information, such as OS, etc.">
-        {% include "_menu_switch_info.html" %}
+        {% include "_menu_switch_info.html" with state="active"  %}
       </li>
 
     {% endif %}
