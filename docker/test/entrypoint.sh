@@ -31,5 +31,5 @@ python3 lib/manuf/manuf/manuf.py --update
 
 echo "Initialization done!"
 
-echo "OpenL2M will now start FOR TESTING PURPOSES:"
+echo "OpenL2M will now start FOR TESTING PURPOSES ONLY!"
 python3 manage.py runserver 0:8000 --insecure

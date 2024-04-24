@@ -2,6 +2,9 @@
 # docker compose file for testing OpenL2M.
 # Note: this is NOT meant to become a production setup!!!
 #
+# set name for deterministic container names:
+name: openl2m-test
+
 services:
   postgres:
     image: postgres:16.2-alpine3.19
@@ -35,7 +38,7 @@ services:
       - DB_USER=openl2m
       - DB_NAME=openl2m
       - DB_HOST=postgres
-      # - DEBUG=True #Note the capital T
+      - DEBUG=$DEBUG
       # - SECRET_KEY=ABCD
     depends_on:
       postgres:
