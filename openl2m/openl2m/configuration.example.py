@@ -510,3 +510,31 @@ API_MAX_TOKEN_DURATION = 0
 # if you want to disallow downloading of ethernet-arp-lldp information
 # into Excel spreadsheets, set this to False.
 ALLOW_ARP_LLDP_DOWNLOAD = True
+
+
+# this is a basic logging configuration for the Django settings.LOGGING
+# this is only used in the dprint() function when DEBUG=True. This prints to the console.
+# I.e. use this when in "developer mode" while running "django runserver".
+# See the documentation for more logging configuration details.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'console': {
+            # very minimal format:
+            'format': '[OpenL2M] %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'console',
+        },
+    },
+    'loggers': {
+        'openl2m.console': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
