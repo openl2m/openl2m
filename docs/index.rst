@@ -25,7 +25,7 @@ sort of network API (e.g. SNMP, SSH, Netconf, REST, etc.) through an extendable 
 
 See a list of features per device class supported :doc:`here.<feature_support>`
 
-For quick testing of OpenL2M, we provide `Docker Compose configuration files. <https://github.com/openl2m/openl2m/tree/main/docker/test>`_
+For quick testing of OpenL2M, we provide `Docker Compose configuration files. <https://github.com/openl2m/docker-test>`_
 
 OpenL2M is written in Python 3 using the Django framework.
 Documentation is written in ReStructured Text format, which is rendered with the Sphinx documentation generator.

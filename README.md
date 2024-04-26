@@ -12,9 +12,10 @@ of a shared distributed layer 2 ("switching") network.
 While primarily intended to manage network switches, OpenL2M can handle any device that has some
 sort of network API (e.g. SSH, Netconf, REST, etc.)
 
+__For Quick Testing:__ download the __Docker Compose__ test config at https://github.com/openl2m/docker-test
+
 __Features:__
 * Light or Dark theme.
-* for testing, a Docker Compose file is available.
 * pluggable backend to support new vendor devices, allowing easy development
 * vendor-agnostic REST API. Automate changes from scripts, etc.
 * enable/disable interface
