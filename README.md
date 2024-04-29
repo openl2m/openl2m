@@ -41,7 +41,7 @@ See the documentation for more information.
 
 __What's New:__
 
-v3.2 adds a Dark Theme, and significantly improves web accessibility through the use of Bootstrap 5.3 This also provides more consistent layout of pages.
+v3.2 adds a Dark Theme, and improves web accessibility through the use of Bootstrap 5.3 This also provides more consistent layout of pages.
 
 v3.1 upgrades to Django 5.0, and adds a docker-compose config for quickly testing OpenL2M in a container.
 

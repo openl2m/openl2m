@@ -16,20 +16,25 @@ Begin by installing all system packages required by OpenL2M and its dependencies
 
 .. code-block:: bash
 
-  sudo apt install -y python3 python3-pip python3-venv python3-dev build-essential
   sudo apt install -y libxml2-dev libxslt1-dev libffi-dev libpq-dev libssl-dev zlib1g-dev
   sudo apt install -y libldap2-dev libsasl2-dev libssl-dev snmpd snmp libsnmp-dev git curl
+
+Next, **on Ubuntu 22.04**, you can install the 'system' Python (v3.10).
+
+.. code-block:: bash
+
+  # On Ubuntu 22.04:
+  sudo apt install -y python3 python3-pip python3-venv python3-dev build-essential
 
 .. note::
 
   Make sure this installs either Python v3.10 or v3.11! Versions 3.12 or up are NOT supported at present!
 
-  Ubuntu 24.04 LTS comes with Python v3.12 by default. This is NOT supported,
-  due to SNMP library dependencies on functionality that was removed in v3.12.
+  **Ubuntu 24.04 LTS comes with Python v3.12 by default. This is NOT supported!**
+  The SNMP library we use has dependencies on functionality that was removed in v3.12.
   Please use the Alternate Python installation steps to mitigate this by backing down to v3.11.
 
-
-*For best performance, we recommend using Python 3.11, as it has major improvements over 3.10*
+*For best performance, we recommend using Python 3.11, as it has significant improvements over v3.10*
 :doc:`See the Alternate Python Installation section for more. <alt-python>`
 
 OpenL2M Install
