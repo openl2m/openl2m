@@ -2,7 +2,7 @@ black
 distro
 Django>=5.0,<5.1
 django-ipware
-django-minify-html
+# django-minify-html
 django-ordered-model>=3.7,<4.0
 # versions post 0.2.5 appear unstable:
 easysnmp==0.2.5
