@@ -61,6 +61,8 @@ def get_environment_info() -> dict:
     environment["Hostname"] = uname.nodename
     environment["Django"] = django.get_version()
     environment["OpenL2M version"] = f"{settings.VERSION} ({settings.VERSION_DATE})"
+    if os.environ.get('IN_CONTAINER', False):
+        environment["Dockerized"] = "Yes"
 
     if settings.DEBUG:
         environment['Debug'] = "Enabled"
