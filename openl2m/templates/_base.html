@@ -52,7 +52,20 @@
     <!-- messages banners -->
     {% for message in messages %}
       <div class="alert alert-{{ message.tags }} text-center" role="alert">
-        <i class="fas fa-exclamation-triangle"></i>&nbsp;<bold>{{ message }}</bold>&nbsp;<i class="fas fa-exclamation-triangle"></i>
+        {% if "info" in message.tags %}
+          <i class="fas fa-info"></i>
+        {% elif "success" in message.tags %}
+          <i class="fas fa-check"></i>
+        {% elif "warning" in message.tags %}
+          <i class="fas fa-exclamation"></i>
+        {% elif "error" in message.tags %}
+          <i class="fas fa-times"></i>
+        {% elif "debug" in message.tags %}
+          <i class="fas fa-bug"></i>
+        {% else %}{# should not happen #}
+          <i class="fas fa-question"></i>
+        {% endif %}
+        &nbsp;<bold>{{ message }}</bold>
       </div>
     {% endfor %}
     <!-- end messages -->
