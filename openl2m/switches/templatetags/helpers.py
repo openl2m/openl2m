@@ -210,7 +210,7 @@ def get_group_menu(group, group_id, open=False):
     else:
         expanded = "false"
         show = ""
-    s += f'<button class="btn btn-light btn-outline-secondary w-100 text-primary text-bg-light" data-bs-toggle="collapse" data-bs-target="#group{group_id}" aria-expanded="{expanded}" aria-controls="group{group_id}">'
+    s += f'<button class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#group{group_id}" aria-expanded="{expanded}" aria-controls="group{group_id}">'
     # use display name if set, else just group name"
     if group["display_name"]:
         s = s + group["display_name"]
