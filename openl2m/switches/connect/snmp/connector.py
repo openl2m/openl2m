@@ -374,7 +374,12 @@ class SnmpConnector(Connector):
 
     def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         """
-        Initialize the object
+        Initialize the SNMP object
+
+        params:
+            request: the HttpRequest object from Django
+            group: the SwitchGroup the deviec is a member of.
+            switch: the Switch() object for this device.
         """
         dprint("SnmpConnector() __init__")
         super().__init__(request=request, group=group, switch=switch)
@@ -2548,22 +2553,6 @@ class SnmpConnector(Connector):
         if retval < 0:
             self.add_warning("Error getting Log Size Info (syslogMsgTableMaxSize)")
 
-    def get_system_oid(self) -> str:
-        """Read the SNMP System OID object. Return as string.
-
-        Return:
-            (str): string representing the SNMP system OID
-
-        Exceptions:
-            If we cannot read the OID, throw generic exception.
-        """
-        dprint("get_system_oid()")
-        (error_status, retval) = self.get(oid=sysObjectID)
-        if error_status:
-            raise Exception("Error getting System OID")
-        dprint(f"  System OID={retval.value}")
-        return retval.value
-
     #
     # "Public" interface methods
     #
@@ -2789,6 +2778,32 @@ class SnmpConnector(Connector):
 
 
 # --- End of SnmpConnector() ---
+
+
+class SnmpProbeConnector(SnmpConnector):
+    """
+    This class implements a SNMP Probing connector.
+    Here we can implement whatever specifics we need to probe devices to find out what vendor/type they are.
+    """
+
+    def get_system_oid(self) -> str:
+        """Read the SNMP System OID object. Return as string.
+
+        Return:
+            (str): string representing the SNMP system OID
+
+        Exceptions:
+            If we cannot read the OID, throw generic exception.
+        """
+        dprint("get_system_oid()")
+        (error_status, retval) = self.get(oid=sysObjectID)
+        if error_status:
+            raise Exception("Error getting System OID")
+        dprint(f"  System OID={retval.value}")
+        return retval.value
+
+
+# --- End of SnmpProbeConnector() --
 
 
 def oid_in_branch(mib_branch: str, oid: str) -> bool | str:

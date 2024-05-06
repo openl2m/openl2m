@@ -36,7 +36,7 @@ from switches.connect.connector import Connector
 
 # here are the device specific classes.
 # this should be made dynamic at some point!
-from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
+from switches.connect.snmp.connector import SnmpConnector, SnmpProbeConnector, oid_in_branch
 from switches.connect.snmp.constants import enterprises
 from switches.connect.snmp.cisco.constants import ENTERPRISE_ID_CISCO
 from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
@@ -77,7 +77,7 @@ def get_connection_object(request: HttpRequest, group: SwitchGroup, switch: Swit
     # What type of connector are we using?
     if switch.connector_type == CONNECTOR_TYPE_SNMP:
         # go probe to find vendor type
-        conn = SnmpConnector(request, group, switch)
+        conn = SnmpProbeConnector(request, group, switch)
         snmp_oid = conn.get_system_oid()
         if snmp_oid:
             # we have the ObjectID, what kind of vendor is it:
