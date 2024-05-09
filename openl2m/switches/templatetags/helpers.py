@@ -210,7 +210,7 @@ def get_group_menu(group, group_id, open=False):
     else:
         expanded = "false"
         show = ""
-    s += f'<button class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#group{group_id}" aria-expanded="{expanded}" aria-controls="group{group_id}">'
+    s += f'<div class="d-grid"><button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#group{group_id}" aria-expanded="{expanded}" aria-controls="group{group_id}">'
     # use display name if set, else just group name"
     if group["display_name"]:
         s = s + group["display_name"]
@@ -219,7 +219,7 @@ def get_group_menu(group, group_id, open=False):
     if group["read_only"]:
         s = s + " (r/o)"
     # end menu:
-    s = s + "</button>"
+    s = s + "</button></div>"
     # end description wrapper span:
     if group["description"]:
         s = s + "\n</span>"
