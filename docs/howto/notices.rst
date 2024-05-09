@@ -11,8 +11,13 @@ To add a system notice, go to the Administration option in the top right menu. T
 Click *Add Notice* in top right, and fill in the appropriate fields.
 
 You can have a system notice start and end at a given date and time.
+Start is mandatory, end date can be left blank for a perpetual notice!
 
 Set the priority of the Notice, default is Warning. Priority sest the color of the notice
 (defined by the theme, but defaults are Yellow for Warning, Green for Success, and Blue for Information)
 
 Give the notice a name (not displayed), and the content (which is displayed) Finally click save.
+
+Here are examples of all three types of notices:
+
+.. image:: ../_static/notices-example.png

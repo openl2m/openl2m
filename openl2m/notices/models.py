@@ -34,14 +34,21 @@ class NoticeManager(models.Manager):
     def active_notices(self):
         dtnow = now()
         return (
-            super(NoticeManager, self).get_queryset().filter(enabled=True, start_time__lte=dtnow, end_time__gte=dtnow)
+            super(NoticeManager, self).get_queryset().filter(enabled=True).filter(start_time__lte=dtnow).filter(models.Q(end_time__gte=dtnow) | models.Q(end_time__isnull=True))
         )
 
 
 class Notice(models.Model):
     enabled = models.BooleanField(default=True)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = models.DateTimeField(
+        null=True,  # for the database
+        blank=True, # for the admin form
+        default=now,   # note NOT now(); we are passing in the function name to be called on object creation!
+    )
+    end_time = models.DateTimeField(
+        null=True,  # for the database
+        blank=True, # for the admin form
+    )
     title = models.CharField(_('name'), unique=True, max_length=100)
     priority = models.PositiveSmallIntegerField(
         choices=NOTICE_PRIORITY_CHOICES,
