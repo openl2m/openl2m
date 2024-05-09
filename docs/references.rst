@@ -4,9 +4,12 @@
 References
 ==========
 
-Various projects that have played a role in the development of OpenL2M
+Below are links to various projects that have played a role in the development of OpenL2M.
+These are mostly provided to make it easy to get started with understanding,
+and potentially developing, OpenL2M.
 
-**Documentation**
+Documentation
+-------------
 
 Sphinx is used to handle the ReStructuredText this documentation is written in.
 Get started here:  https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html
@@ -25,7 +28,8 @@ Using Sphinx: https://www.sphinx-doc.org/en/master/contents.html
 Sphinx-specific Directives: https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html
 
 
-**Web frameworks and projects**
+Frameworks and projects
+---------------------------
 
 Django, the web framework used. See https://docs.djangoproject.com/
 
@@ -43,12 +47,52 @@ HP/Aruba vlan management tool. https://sourceforge.net/projects/procurve-admin/
 Uninett NAV (Network Adminstration Visualized), at https://nav.uninett.no/
 and specifically the SNMP portadmin code at https://github.com/Uninett/nav/tree/master/python/nav/portadmin/snmp
 
+Icons
+-----
 
-**SNMP related**
+We use the Font Aweson free icon package: https://fontawesome.com/v5/search
+
+
+Python
+------
+
+Virtual Environments:  https://docs.python.org/3/library/venv.html
+
+Google Python Style Guide:  http://google.github.io/styleguide/pyguide.html
+
+Google Docstrings: https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings
+
+Google Doc Style examples:  https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
+
+pycodestyle documentation: https://pycodestyle.pycqa.org/en/latest/
+
+Flake8 code style checker: https://flake8.pycqa.org/en/latest/user/index.html
+
+
+Nginx
+-----
+
+Documenation: https://nginx.org/en/docs/
+
+
+Docker
+------
+
+Dockerfile: https://docs.docker.com/reference/dockerfile/
+
+Compose: https://docs.docker.com/compose/
+
+Nginx in docker: https://hub.docker.com/_/nginx
+
+
+SNMP related
+------------
 
 Python easysnmp, using native Net-Snmp:
 See https://easysnmp.readthedocs.io/en/latest/ and
 https://github.com/kamakazikamikaze/easysnmp
+
+PySNMP, a native Python SNMP stack: https://www.pysnmp.com/
 
 MIB browser at
 http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.3.6.1.2.1
@@ -63,14 +107,16 @@ Using SNMP to discover MAC, IP and Vlan information from switches:
 https://www.akips.com/resources?mode=blog;doc=mac_ip_vlan_switch
 
 
-**Aruba AOS-CX**
+Aruba AOS-CX
+------------
 
 AOS-CX REST API v10.08 Guide: https://www.arubanetworks.com/techdocs/AOS-CX/10.08/PDF/rest_v10-0x.pdf
 
 The pyasocx library is at https://github.com/aruba/pyaoscx/
 
 
-**Junos PyEZ**
+Junos PyEZ
+----------
 
 Juniper documentation is at https://www.juniper.net/documentation/us/en/software/junos-pyez/junos-pyez-developer/index.html
 and at https://junos-pyez.readthedocs.io/
@@ -85,7 +131,8 @@ Example code at https://saidvandeklundert.net/2019-07-04-using-junos-pyez-for-in
 and https://alexwilkins.dev/index.php/python-pyez/
 
 
-**Napalm Automation**
+Napalm
+------
 
 The Napalm documentation is at https://napalm.readthedocs.io/
 
@@ -99,27 +146,3 @@ For Dell OS10 support, we use this: https://dellos10-napalm.readthedocs.io/en/la
 For HP Procurve support, we use this: https://github.com/ixs/napalm-procurve
 
 A possible Comware Napalm driver is at https://github.com/firefly-serenity/napalm-flexfabric
-
-
-**Icons**
-
-We use several free icon packages:
-
-Font Awesome, with previews https://fontawesome.com/v5/search
-
-Material Design Icons, from https://pictogrammers.com/library/mdi/ and a preview at https://pictogrammers.github.io/@mdi/font/6.7.96/
-
-
-**Python**
-
-Virtual Environments:  https://docs.python.org/3/library/venv.html
-
-Google Python Style Guide:  http://google.github.io/styleguide/pyguide.html
-
-Google Docstrings: https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings
-
-Google Doc Style examples:  https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
-
-pycodestyle documentation: https://pycodestyle.pycqa.org/en/latest/
-
-Flake8 code style checker: https://flake8.pycqa.org/en/latest/user/index.html
