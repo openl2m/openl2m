@@ -1,32 +1,31 @@
-<div class="row">
+
+<div class="container-fluid mb-2">
   <div class="col-4">
-    <div class="card border-defaul mb-2">
-        <div class="card-header bg-default">
-          <label for="switchname">Search for device:</label>
-        </div>
-        <div class="card-body">
-          <div class=""row">
-            <form name="switch_search_form"
-                  action="{% url 'switches:switch_search' %}"
-                  method="post"
-                  >
-              {% csrf_token %}
-              <input type="text" size=40 name="switchname" id="switchname"
-                    placeholder="device name or reg-ex here..."
-                    data-bs-toggle="tooltip"
-                    title="Type the name or regular expression of the device(s) you are looking for here!"
-              >
-              </label>
-              <input type="submit"
-                    value="Search"
-                    class="btn btn-primary"
-                    data-bs-toggle="tooltip"
-                    title="Click here to search for a device!"
-              >
-            </form>
-          </div>
-        </div>
+    <div class="card border-default">
+      <div class="card-header bg-default">
+        <label for="switchname" class="form-label">Search for device:</label>
       </div>
-    </div>
-  </div>
-</div>
+      <div class="card-body">
+        <form name="switch_search_form"
+              action="{% url 'switches:switch_search' %}"
+              method="post"
+        >
+          {% csrf_token %}
+          <input type="text" name="switchname" id="switchname"
+                class="form-control mb-2 mr-2"
+                placeholder="Device name or reg-ex here..."
+                data-bs-toggle="tooltip"
+                title="Type the name or regular expression of the device(s) you are looking for here!"
+          >
+          </label>
+          <input type="submit"
+                value="Search"
+                class="btn btn-primary"
+                data-bs-toggle="tooltip"
+                title="Click here to search for a device!"
+          >
+        </form>
+      </div>{# card-body #}
+    </div>{# card #}
+  </div>{# col #}
+</div>{# container #}
