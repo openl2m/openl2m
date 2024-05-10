@@ -625,7 +625,18 @@ snmp_mib_variables['ieee8021QBridgeVlanCurrentUntaggedPorts'] = ieee8021QBridgeV
 # all existing vlans, static and dynamic:
 ieee8021QBridgeVlanStatus = '.1.3.111.2.802.1.1.4.1.4.2.1.7'
 
+#
+# information about statically defined vlans:
+#
+ieee8021QBridgeVlanStaticTable = '.1.3.111.2.802.1.1.4.1.4.3'
+snmp_mib_variables['ieee8021QBridgeVlanStaticTable'] = ieee8021QBridgeVlanStaticTable
 
+# a vlan entry is below this:
+ieee8021QBridgeVlanStaticEntry = '.1.3.111.2.802.1.1.4.1.4.3.1'
+snmp_mib_variables['ieee8021QBridgeVlanStaticEntry'] = ieee8021QBridgeVlanStaticEntry
+
+# various vlan attributes:
+#
 # vlan names:
 ieee8021QBridgeVlanStaticName = '.1.3.111.2.802.1.1.4.1.4.3.1.3.1'
 snmp_mib_variables['ieee8021QBridgeVlanStaticName'] = ieee8021QBridgeVlanStaticName
@@ -637,6 +648,10 @@ snmp_mib_variables['ieee8021QBridgeVlanStaticEgressPorts'] = ieee8021QBridgeVlan
 # this is the ports on staticly defined vlans only! (not dynamic vlans)
 ieee8021QBridgeVlanStaticUntaggedPorts = '.1.3.111.2.802.1.1.4.1.4.3.1.6'
 snmp_mib_variables['ieee8021QBridgeVlanStaticUntaggedPorts'] = ieee8021QBridgeVlanStaticUntaggedPorts
+
+# the statically defined vlans on a device
+ieee8021QBridgeVlanStaticRowStatus = '.1.3.111.2.802.1.1.4.1.4.3.1.7'
+snmp_mib_variables['ieee8021QBridgeVlanStaticRowStatus'] = ieee8021QBridgeVlanStaticRowStatus
 
 # the PVID of a port is here.
 # see also https://oidref.com/1.3.111.2.802.1.1.4.1.4.5.1.1
