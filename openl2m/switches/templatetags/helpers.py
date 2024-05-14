@@ -72,24 +72,19 @@ def get_switch_link(group_id, switch_id, switch):
     """
     Build custom html link to switch, based on switch attributes
     """
-    s = "<li class=\"list-group-item\">"
+    s = '<a class="list-group-item list-group-item-action" '
+    if switch['default_view'] == SWITCH_VIEW_BASIC:
+        s = s + f'href="{reverse("switches:switch_basics", kwargs={"group_id": group_id, "switch_id": switch_id})}"'
+    else:
+        s = s + f'href="{reverse("switches:switch_arp_lldp", kwargs={"group_id": group_id, "switch_id": switch_id})}"'
+    if switch['description']:
+        s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{switch['description']}\""
     # do proper indenting:
     indent = ''
     for i in range(switch['indent_level']):
         indent = indent + "&nbsp;&nbsp;&nbsp;"
-    if switch['default_view'] == SWITCH_VIEW_BASIC:
-        s = (
-            s
-            + f'{indent}<a href="{reverse("switches:switch_basics", kwargs={"group_id": group_id, "switch_id": switch_id})}"'
-        )
-    else:
-        s = (
-            s
-            + f'<a href="{reverse("switches:switch_arp_lldp", kwargs={"group_id": group_id, "switch_id": switch_id})}"'
-        )
-    if switch['description']:
-        s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{switch['description']}\""
-    return s + f'>{switch["name"]}</a></li>'
+    # and return full device menu item link:
+    return s + f'>{indent}{switch["name"]}</a>'
 
 
 def get_switch_url(group_id, switch_id, indent_level=0, view=""):
@@ -226,12 +221,12 @@ def get_group_menu(group, group_id, open=False):
 
     s = (
         s
-        + f'<div class="collapse {show} overflow-scroll" id="group{group_id}" style="max-height: 200px;"><ul class="list-group">'
+        + f'<div class="collapse {show} overflow-scroll" id="group{group_id}" style="max-height: 200px;"><div class="list-group">'
     )
     for switch_id, switch in group['members'].items():
         s = s + f"\n{get_switch_link(group_id, switch_id, switch)}"
     # end devices div, list and group menu
-    s = s + "\n</ul>\n</div></p>\n<!-- END Group {group_id} -->\n\n"
+    s = s + "\n</div>\n</div></p>\n<!-- END Group {group_id} -->\n\n"
     # done:
     return s
 
