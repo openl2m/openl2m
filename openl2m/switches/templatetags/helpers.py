@@ -89,9 +89,7 @@ def get_switch_link(group_id, switch_id, switch):
         )
     if switch['description']:
         s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{switch['description']}\""
-    s = s + f">{switch['name']}</a>"
-    s = s + "</li>"
-    return s
+    return s + f'>{switch["name"]}</a></li>'
 
 
 def get_switch_url(group_id, switch_id, indent_level=0, view=""):
@@ -210,7 +208,7 @@ def get_group_menu(group, group_id, open=False):
     else:
         expanded = "false"
         show = ""
-    s += f'<div class="d-grid"><button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#group{group_id}" aria-expanded="{expanded}" aria-controls="group{group_id}">'
+    s += f'<div class="d-grid"><button class="btn btn-outline-secondary mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#group{group_id}" aria-expanded="{expanded}" aria-controls="group{group_id}">'
     # use display name if set, else just group name"
     if group["display_name"]:
         s = s + group["display_name"]
@@ -226,7 +224,10 @@ def get_group_menu(group, group_id, open=False):
 
     # the devices, ie collapsible items:
 
-    s = s + f'<div class="collapse {show}" id="group{group_id}" style="height: 100px;"><ul class="list-group">'
+    s = (
+        s
+        + f'<div class="collapse {show} overflow-scroll" id="group{group_id}" style="max-height: 200px;"><ul class="list-group">'
+    )
     for switch_id, switch in group['members'].items():
         s = s + f"\n{get_switch_link(group_id, switch_id, switch)}"
     # end devices div, list and group menu
@@ -252,7 +253,7 @@ def get_my_group_menu(groups):
     if num_groups == 1:
         # one group only:
         text = 'Group'
-        open = False  # open menu dropdown
+        open = True  # open menu dropdown
     else:
         # multiple groups:
         text = 'Groups'
@@ -260,7 +261,7 @@ def get_my_group_menu(groups):
 
     s = f'<div class="container-fluid"><div class="card border-default"><div class="card-header bg-default"><strong>My Device {text}:</strong></div>'
 
-    # start groups wrapper:
+    # start groups wrapper
     s = s + '\n<div class="card-body">\n'  # end header row (for html human readability)
 
     # calculate column width, if set. Bootstrap uses 12 grid columns per page, max width we use is 2 grids
