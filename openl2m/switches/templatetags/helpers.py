@@ -166,7 +166,7 @@ def get_my_results(results, group_count):
         return "We did not find any matching switches!"
     found = ""
     for group_id, switch_id, name, description, default_view, group_name in results:
-        link = f"\n<li class=\"list-group-item\"><a href=\"/switches/{group_id}/{switch_id}/"
+        link = f"\n<a class=\"list-group-item list-group-item-action\" href=\"/switches/{group_id}/{switch_id}/"
         if default_view == SWITCH_VIEW_DETAILS:
             link += "details/\""
         else:
@@ -174,9 +174,9 @@ def get_my_results(results, group_count):
         if description:
             link += f" data-bs-toggle=\"tooltip\" data-bs-title=\"{description}\""
         if group_count > 1:
-            found += f"{link}>{name}</a> ({group_name})</li>"
+            found += f"{link}>{name} ({group_name})</a>"
         else:
-            found += f"{link}>{name}</a></li>"
+            found += f"{link}>{name}</a>"
 
     return mark_safe(found)
 

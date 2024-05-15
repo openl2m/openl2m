@@ -10,20 +10,22 @@
   <h5>Warning: {{ warning }} </h5>
 {% endif %}
 
-<div class="row">
+<div class="container-fluid mb-2"></div>
   <div class="col-4">
     <div class="card border-default mb-2">
-      <div class="card-header bg-default">Search for &quot;<strong>{{ search }}</strong>&quot;
-    {% if results_count > 0 %}
-      found <strong>{{ results_count }}</strong> results:
-      </div>
-      <div class="card-body">
-        <ul class="list-group list-group-flush">
-      {{ results|get_my_results:group_count }}
-        </ul>
+    {% if results_count == 0 %}
+      <div class="card-header bg-warning-subtle">
+        Search for &quot;<strong>{{ search }}</strong>&quot; found no matches!
       </div>
     {% else %}
-      found no matches!
+      <div class="card-header bg-success-subtle">
+        Search for &quot;<strong>{{ search }}</strong>&quot; found <strong>{{ results_count }}</strong> results:
+      </div>
+      <div class="card-body overflow-scroll" style="max-height: 200px;">
+        <div class="list-group">
+      {{ results|get_my_results:group_count }}
+        </div>
+      </div>
       </div>
     {% endif %}
     </div>
