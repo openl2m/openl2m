@@ -193,17 +193,23 @@ def get_group_menu(group, group_id, open=False):
         str: the str() with the proper html for this group.
     """
     # header for collapsible items, i.e. the switchgroup name
-    s = f"\n<!-- Group {group_id} -->\n<p>"
-    if group["description"]:
-        s = s + f"\n<span data-bs-toggle=\"tooltip\" data-bs-title=\"{group['description']}\">"
-    # start the collapsible menu:
+    s = f"\n<!-- Group {group_id} -->\n<div class=\"d-grid\">\n"
+
+    # parse open/closed options:
     if open:
         expanded = "true"
         show = "show"
     else:
         expanded = "false"
         show = ""
-    s += f'<div class="d-grid"><button class="btn btn-outline-secondary mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#group{group_id}" aria-expanded="{expanded}" aria-controls="group{group_id}">'
+
+    # wrap description around the menu button, set full size...
+    if group["description"]:
+        s = s + f"\n<span class=\"d-grid\" data-bs-toggle=\"tooltip\" data-bs-title=\"{group['description']}\">"
+
+    # add the button
+    s = s + "\n"
+    s = s + f'<button class="btn btn-outline-secondary mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#group{group_id}" aria-expanded="{expanded}" aria-controls="group{group_id}">'
     # use display name if set, else just group name"
     if group["display_name"]:
         s = s + group["display_name"]
@@ -211,14 +217,17 @@ def get_group_menu(group, group_id, open=False):
         s = s + group["name"]
     if group["read_only"]:
         s = s + " (r/o)"
-    # end menu:
-    s = s + "</button></div>"
+    # end button:
+    s = s + "\n</button>"
+
     # end description wrapper span:
     if group["description"]:
         s = s + "\n</span>"
 
-    # the devices, ie collapsible items:
+    # end d-grip
+    s = s + "\n</div>"
 
+    # the list of devices in this menu, ie collapsible items:
     s = (
         s
         + f'<div class="collapse {show} overflow-scroll" id="group{group_id}" style="max-height: 200px;"><div class="list-group">'
@@ -226,7 +235,7 @@ def get_group_menu(group, group_id, open=False):
     for switch_id, switch in group['members'].items():
         s = s + f"\n{get_switch_link(group_id, switch_id, switch)}"
     # end devices div, list and group menu
-    s = s + "\n</div>\n</div></p>\n<!-- END Group {group_id} -->\n\n"
+    s = s + "\n</div>\n</div>\n<!-- END Group {group_id} -->\n\n"
     # done:
     return s
 

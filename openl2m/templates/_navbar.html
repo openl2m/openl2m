@@ -55,14 +55,14 @@
         {# user menu #}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown"
-             aria-haspopup="true" aria-expanded="false" data-bs-toggle="tooltip" data-bs-title="Your menu options!">
+            aria-haspopup="true" aria-expanded="false">
             {{ request.user|truncatechars:"30" }}
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarUserDropdown">
             <li><a class="dropdown-item" href="{% url 'switches:groups' %}"><i class="fas fa-ethernet"></i> Home</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{% static 'docs/html/what_is_new.html' %}" target="_docs"><i class="fas fa-star" aria-hidden="true"></i> What&apos;s New!</a></li>
-            <li><a class="dropdown-item" href="{% static 'docs/html/using/index.html' %}" target="_docs"><i class="fas fa-book" aria-hidden="true"></i> Documentation</a></li>
+            <li><a class="dropdown-item" href="{% static 'docs/html/what_is_new.html' %}" target="_blank"><i class="fas fa-star" aria-hidden="true"></i> What&apos;s New!</a></li>
+            <li><a class="dropdown-item" href="{% static 'docs/html/using/index.html' %}" target="_blank"><i class="fas fa-book" aria-hidden="true"></i> Documentation</a></li>
             {% if request.user.is_superuser %}
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-pen"></i> Administration</a></li>
@@ -78,7 +78,7 @@
               <li><a class="dropdown-item" href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true"></i> Activity Logs</a></li>
             {% endif %}
             <li><a class="dropdown-item" href="{% url 'switches:show_stats' %}"><i class="fas fa-chart-pie" aria-hidden="true"></i> Usage Statistics</a></li>
-            <li><a class="dropdown-item" href="https://github.com/openl2m/openl2m/" target="_sources"><i class="fas fa-code" aria-hidden="true"></i> Code</a></li>
+            <li><a class="dropdown-item" href="https://github.com/openl2m/openl2m/" target="_blank"><i class="fas fa-code" aria-hidden="true"></i> Code</a></li>
             <li><hr class="dropdown-divider"></li>
             {% if not request.user.ldap_user %}
             <li><a class="dropdown-item" href="{% url 'password_change' %}"><i class="fas fa-key"></i> Change Password</a></li>
