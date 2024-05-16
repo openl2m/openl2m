@@ -1,7 +1,7 @@
 {% load helpers %}
 {% load static %}
 
-<div class=""container-fluid">
+<div class="container-fluid">
 <form name="bulkedit_form"
       action="{% url 'switches:switch_bulkedit' group.id switch.id %}"
       method="post">
@@ -79,7 +79,7 @@
                 <label data-bs-toggle="tooltip" title="Enter a new description for all selected interfaces.">
                   <input type="text" class="form-control" name="new_description" size=40 value="" placeholder="new description here...">
                 </label>
-                  <br />
+                  <br>
                   <select class="mt-1" name="new_description_type" data-bs-toggle="tooltip" title="Just edit, or append to end">
                     {% for choice,name in BULKEDIT_ALIAS_TYPE_CHOICES %}
                       <option value="{{ choice }}">{{ name }}</option>

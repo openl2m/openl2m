@@ -234,12 +234,12 @@
               <td
               {% if iface.admin_status %}
                 {% if iface.oper_status %}
-                  bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP_UP }}">
+                  class="color_if_up">
                 {% else %}
-                  bgcolor="{{ settings.BGCOLOR_IF_ADMIN_UP }}">
+                  class="color_if_down">
                 {% endif %}
               {% else %}
-                  bgcolor="{{ settings.BGCOLOR_IF_ADMIN_DOWN }}">
+                  class="color_if_shutdown">
               {% endif %}
                 {{ switch|get_interface_info_links:iface }}
                 {% if iface.unmanage_reason %}

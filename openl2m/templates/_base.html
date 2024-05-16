@@ -3,7 +3,7 @@
 <html lang="en" data-bs-theme="{{ request.user.profile.theme }}">
 <head>
     <title>OpenL2M - {% block title %}Home{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'bootstrap-5.3.3-dist/css/bootstrap.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'bootstrap-5.3.3-dist/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'materialdesignicons-6.7.96/css/materialdesignicons.min.css' %}">
     <link rel="stylesheet" href="{% static 'fontawesome-5.15.4/css/all.css' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
@@ -90,7 +90,7 @@
   <!-- end bottom banner -->
   {% endif %}
 
-  <script type="text/javascript" src="{% static 'bootstrap-5.3.3-dist/js/bootstrap.bundle.js' %}"></script>
+  <script src="{% static 'bootstrap-5.3.3-dist/js/bootstrap.bundle.js' %}"></script>
   {% block javascript %}{% endblock %}
   <script>
     // New Bootstrap 5 tooltip activation:

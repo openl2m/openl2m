@@ -52,7 +52,7 @@ def build_url_string(values):
     Build a external url string from the url values dict() given
     Used to build custom links from "settings" variables
     """
-    if 'target' in values.keys():
+    if False and 'target' in values.keys():
         s = f"<a target=\"{values['target']}\""
     else:
         s = "<a"
@@ -61,9 +61,9 @@ def build_url_string(values):
         s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{values['hint']}\""
     s = s + ">"
     if 'fa_icon' in values.keys():
-        s = s + f" <i class=\"fas {values['fa_icon']}\" aria-hidden=\"true\" alt=\"{values['alt']}\"></i>"
+        s = s + f" <i class=\"fas {values['fa_icon']}\" aria-hidden=\"true\"></i>"
     elif 'icon' in values.keys():
-        s = s + f" <img src=\"{values['icon']}\" alt=\"{values['alt']}\" height=\"24\" width=\"24\">"
+        s = s + f" <img src=\"{values['icon']}\" aria-hidden=\"true\" alt=\"{values['alt']}\" height=\"24\" width=\"24\">"
     s = s + "</a> "
     return s
 
