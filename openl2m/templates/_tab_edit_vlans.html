@@ -1,9 +1,9 @@
 {% load helpers %}
 {% load static %}
-<div class="container">
+<div class="container-fluid">
 
     <div class="row">
-        <div class="col">
+        <div class="col-3">
             <div class="card border-default">
                 <div class="card-header bg-default">
                     <strong>Add a VLAN</strong>
@@ -16,26 +16,26 @@
                     <table class="table table-hover table-headings w-auto">
                     <tbody>
                     <tr>
-                        <td align="right"><label for="id_new_vlan_id">VLAN:</label></td>
-                        <td align="left">
-                            <input data-bs-toggle="tooltip" title="Enter the new vlan ID." type="number"
+                        <td class="text-end align-middle"><label for="id_new_vlan_id">VLAN:</label></td>
+                        <td class="text-start align-middle">
+                            <input data-bs-toggle="tooltip" title="Enter the new vlan ID" type="number"
                                    size="15" class="form-control" name="vlan_id" id="id_new_vlan_id" value=""
                                    placeholder="new vlan id" min="2" max="4094">
                         </td>
                     </tr>
 {% if connection.can_set_vlan_name %}
                     <tr>
-                        <td align="right"><label for="id_new_vlan_name">Name:</label></td>
-                        <td align="left">
-                            <input data-bs-toggle="tooltip" title="Enter the name of the new vlan." type="text"
-                                   class="form-control" name="vlan_name" maxlength="32" id="id_new_vlan_name" value=""
+                        <td class="text-end align-middle"><label for="id_new_vlan_name">Name:</label></td>
+                        <td class="text-start align-middle">
+                            <input data-bs-toggle="tooltip" title="Enter the name of the new vlan" type="text"
+                                   class="form-control" name="vlan_name" id="id_new_vlan_name" value=""
                                    placeholder="new vlan name">
                         </td>
                     </tr>
 {% endif %}
                     <tr>
                         <td></td>
-                        <td>
+                        <td class="text-start align-middle">
                             <input type="submit" name="vlan_create"
                                 data-bs-toggle="tooltip" title="Click here to create new vlan!"
                                 class="btn btn-primary"
@@ -55,7 +55,7 @@
 
 {% if request.user.is_superuser or connection.can_set_vlan_name %}
     {% if connection.allowed_vlans|length %}{# are we allowed access to any vlan ? #}
-        <div class="col">
+        <div class="col-3">
             <div class="card border-default">
                 <div class="card-header bg-default">
                     <strong>Edit a VLAN</strong>
@@ -69,10 +69,10 @@
                     <table class="table table-hover table-headings w-auto">
                     <tbody>
                     <tr>
-                        <td align="right"><label for="id_update_vlan_id">VLAN:</label></td>
-                        <td align="left">
-                            <select data-bs-toggle="tooltip" title="Select the vlan to edit."
-                            name="vlan_id" id="id_update_vlan_id">
+                        <td class="text-end align-middle"><label for="id_update_vlan_id">VLAN:</label></td>
+                        <td class="text-start align-middle">
+                            <select data-bs-toggle="tooltip" title="Select the vlan to edit"
+                            name="vlan_id" id="id_update_vlan_id" class="form-select" aria-label="Select VLAN to edit">
                             {% for vlan_id, vlan in connection.allowed_vlans.items %}
                             <option value="{{ vlan_id }}">{{ vlan_id }}
                                 {% if vlan.name %} - {{ vlan.name }}{% endif %}
@@ -83,16 +83,16 @@
                     </tr>
         {% if connection.can_set_vlan_name %}
                     <tr>
-                        <td align="right"><label for="id_update_vlan_name">Name:</label></td>
-                        <td align="left">
-                            <input type="text" data-bs-toggle="tooltip" title="Enter new name for selected vlan."
-                            class="form-control" name="vlan_name" maxlength="32" id="id_update_vlan_name" value=""
+                        <td class="text-end align-middle"><label for="id_update_vlan_name">Name:</label></td>
+                        <td class="text-start align-middle">
+                            <input type="text" data-bs-toggle="tooltip" title="Enter new name for selected vlan, or leave blank"
+                            class="form-control" name="vlan_name" id="id_update_vlan_name" value=""
                             placeholder="new vlan name">
                         </td>
                     </tr>
         {% endif %}
                     <tr>
-                        <td align="left">
+                        <td class="text-start align-middle">
         {% if connection.can_set_vlan_name %}
                             <input type="submit" name="vlan_edit"
                             data-bs-toggle="tooltip" title="Click here to update this vlan!"
@@ -104,11 +104,11 @@
                             {% endif %}
         {% endif %}
                         </td>
-                        <td align="right">
+                        <td class="text-end align-middle">
         {% if request.user.is_superuser %}
                             <input type="submit" name="vlan_delete"
                             data-bs-toggle="tooltip" title="Click here to delete this vlan!"
-                            class="btn btn-primary"
+                            class="btn btn-warning"
                             value="DELETE !!!"
                             id="delete"
                             onclick="return confirm_change('Are you sure you want DELETE this vlan?')">
