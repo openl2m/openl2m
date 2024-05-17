@@ -143,7 +143,7 @@ def close_device(request):
 
     # if we came here from a previous switch, call _close_device() to clear out old session as needed.
     if 'switch_id' in request.session.keys():
-        dprint(f"MAIN MENU: Closing out previous switch {request.session['switch_id']}")
+        dprint(f"CLOSING DEVICE: id={request.session['switch_id']}")
         # instantiate the previous device Connector() one more time to proper close sessions...
         try:
             switch = get_object_or_404(Switch, pk=request.session['switch_id'])
@@ -231,6 +231,9 @@ class SwitchSearch(LoginRequiredMixin, View):
         if not settings.SWITCH_SEARCH_FORM:
             # we should not be here!
             return redirect(reverse("switches:groups"))
+
+        # close any previous device
+        close_device(request=request)
 
         search = str(request.POST.get("switchname", ""))
         # remove leading and trailing white spaceA

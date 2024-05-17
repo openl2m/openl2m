@@ -1,15 +1,9 @@
 {% extends '_base.html' %}
 
-{# Home page! This shows the list of switches a user has access to #}
+{# Home page! This shows the list of devices a user has access to #}
 
 {% block content %}
 
-{% if settings.SWITCH_SEARCH_FORM %}
-  {% if groups_count > 0 %}
-    {% include "_switch_search.html" %}
-  {% endif %}
-{% endif %}
-    
 {% load helpers %}
 {{ groups|get_my_group_menu }}
 

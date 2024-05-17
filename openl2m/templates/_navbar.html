@@ -1,5 +1,5 @@
 {% load static %}
-<nav class="navbar navbar-expand-xl">
+<nav class="navbar navbar-expand-sm">
   <div class="container-fluid">
     <a class="navbar-brand"
        href="{% url 'switches:groups' %}"
@@ -13,6 +13,36 @@
            alt="OpenL2M logo"
       >
     </a>
+
+{% if settings.SWITCH_SEARCH_FORM %}
+    <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-between ms-4" id="navbarCollapse">
+      <form class="d-flex"
+            name="switch_search_form"
+            action="{% url 'switches:switch_search' %}"
+            method="post"
+      >
+        <div class="input-group">
+          {% csrf_token %}
+          <input type="text" name="switchname" id="switchname"
+                class="form-control"
+                placeholder="Device name or reg-ex here..."
+                data-bs-toggle="tooltip"
+                title="Type the name or regular expression of the device(s) you are looking for here!"
+          >
+          <button type="submit"
+                value="Search"
+                class="btn btn-primary"
+                data-bs-toggle="tooltip"
+                title="Click here to search for a device!"
+          ><i class="fas fa-search"></i></button>
+        </div>
+      </form>
+    </div>
+{% endif %}
+
     {% if request.user.is_authenticated %}
     <div class="position-absolute end-0" id="navbarContent">
       <ul class="navbar-nav me-auto">
