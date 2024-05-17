@@ -128,6 +128,8 @@ class SwitchGroupMembershipStackedInline(OrderedTabularInline):
 
 # Change the SwitchGroup admin page to show horizontal listing of selected items:
 class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
+    save_on_top = True
+    save_as = True
     # we just want all fields:
     # list_display = ('name', )
     search_fields = ['name']
@@ -193,6 +195,7 @@ class VlanSwitchInline(admin.TabularInline):
 # Change the VLAN() admin page to show horizontal listing of selected VLAN Groups:
 class VLANAdmin(admin.ModelAdmin):
     save_on_top = True
+    save_as = True
     search_fields = ['name', 'vid']
     # we just want all fields:
     # list_display = ('name', 'vid', 'description')
@@ -209,6 +212,7 @@ class VlanGroupInline(admin.TabularInline):
 # Change the VLAN admin page to show horizontal listing of selected VLAN Groups:
 class VlanGroupAdmin(admin.ModelAdmin):
     save_on_top = True
+    save_as = True
     search_fields = ['name']
     filter_horizontal = ('vlans',)
     # we just want all fields:
@@ -235,6 +239,7 @@ class VlanGroupAdmin(admin.ModelAdmin):
 
 class SnmpProfileAdmin(admin.ModelAdmin):
     save_on_top = True
+    save_as = True
     search_fields = ['name']
     fieldsets = (
         (
@@ -279,6 +284,7 @@ class SnmpProfileAdmin(admin.ModelAdmin):
 
 class NetmikoProfileAdmin(admin.ModelAdmin):
     save_on_top = True
+    save_as = True
     search_fields = ['name']
     fieldsets = (
         (
@@ -325,11 +331,13 @@ class NetmikoProfileAdmin(admin.ModelAdmin):
 
 class CommandAdmin(admin.ModelAdmin):
     save_on_top = True
+    save_as = True
     search_fields = ['name']
 
 
 class CommandListAdmin(admin.ModelAdmin):
     save_on_top = True
+    save_as = True
     search_fields = ['name']
     filter_horizontal = (
         'global_commands',
@@ -370,6 +378,7 @@ class CommandListAdmin(admin.ModelAdmin):
 
 class CommandTemplateAdmin(admin.ModelAdmin):
     save_on_top = True
+    save_as = True
     search_fields = ['name']
     fieldsets = (
         (None, {'fields': ('name', 'os', 'description', 'template')}),
