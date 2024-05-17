@@ -132,7 +132,13 @@ ALWAYS_ALLOW_POE_TOGGLE = False
 HIDE_NONE_ETHERNET_INTERFACES = False
 
 # Customizable URLs for Switch, Interface, Ethernet and IP addresses
-# 'url' is mandatory. 'hint' and 'target' are optional
+# 'url' is mandatory.
+#
+# 'hint' become a tooltip descriptions and is optional.
+#
+# 'target' is optional. Any value that evaluates to "True" will cause 'target="_blank"' to be added
+#  to the link, to open in new window or tab (per browser settings).
+#
 # You can also use 'icon' and 'alt', or 'fa_icon'
 # fa_icon refers to the Font Awesome v5 icon collection, and you reference it by name
 # see https://fontawesome.com/icons?d=gallery&m=free
@@ -149,7 +155,7 @@ SWITCH_INFO_URLS = [
     {
         'url': 'https://akips.yoursite.com/dashboard?mode=device;device_list={{ switch.hostname }};',
         'hint': 'Click here to see AKIPS data for this switch',
-        'target': '_blank',
+        'target': True,
         'icon': '/static/img/nms.png',
         # or use the icon from Akip:
         # 'icon': 'https://akips.yoursite/img/favicon-32.png',
@@ -162,7 +168,7 @@ SWITCH_INFO_URLS = [
     {
         'url': 'https://librenms.yoursite.com/device/device={{ switch.nms_id }}/',
         'hint': 'Click here to see LibreNMS data for this switch',
-        'target': '_blank',
+        'target': True,
         'icon': '/static/img/nms.png',
         # or use the icon from LibreNMS:
         # 'icon': 'http://librenms.yoursite.com/images/favicon-16x16.png',
@@ -182,7 +188,7 @@ SWITCH_INFO_URLS_STAFF = [
     {
         'url': 'ssh://{{ switch.primary_ip4 }}/',
         'hint': 'Click here to SSH to this switch',
-        'target': '_blank',
+        'target': True,
         # 'icon': '/static/img/nms.png',
         # or use the icon from a URL:
         # 'icon': 'https://some.site.com/favicon.png',
@@ -194,7 +200,7 @@ SWITCH_INFO_URLS_STAFF = [
     {
         'url': 'https://yourtool.yoursite.com/device/device={{ switch.hostname }}/',
         'hint': 'Click here to go to some tool!',
-        'target': '_blank',
+        'target': True,
         'icon': '/static/img/nms.png',
         'alt': 'Tool Icon',
         # or use any Font Awesome 5 icon:
@@ -209,7 +215,7 @@ SWITCH_INFO_URLS_ADMINS = [
     {
         'url': 'ssh://{{ switch.primary_ip4 }}/',
         'hint': 'Click here to SSH to this switch',
-        'target': '_blank',
+        'target': True,
         # 'icon': '/static/img/nms.png',
         # or use the icon from a URL:
         # 'icon': 'https://some.site.com/favicon.png',
@@ -221,7 +227,7 @@ SWITCH_INFO_URLS_ADMINS = [
     {
         'url': 'https://yourtool.yoursite.com/device/device={{ switch.hostname }}/',
         'hint': 'Click here to go to some tool!',
-        'target': '_blank',
+        'target': True,
         'icon': '/static/img/nms.png',
         'alt': 'Tool Icon',
         # or use any Font Awesome 5 icon:
@@ -240,7 +246,7 @@ INTERFACE_INFO_URLS = [
         'name': 'Akips',
         'url': 'https://akips.yoursite.com/dashboard?mode=interface;time=last3h;controls=interface;device={{ switch.hostname }};child={{ iface.name }}',
         'hint': 'Click here to see AKIPS data for this interface',
-        'target': '_akips',
+        'target': True,
         'icon': '/static/img/nms.png',
         'alt': 'NMS Icon',
         # or use any Font Awesome 5 icon:
@@ -258,7 +264,7 @@ VLAN_INFO_URLS = [
         'name': 'IPAM',
         'url': 'https://ipam.yoursite.com/something/search?vlan={{ vlan.id }}',
         'hint': 'Click here to see IPAM data about this VLAN',
-        'target': '_ipam',
+        'target': True,
         'icon': '/static/img/ipam.png',
         'alt': 'NMS Icon',
         # or use any Font Awesome 5 icon:
@@ -276,7 +282,7 @@ IP4_INFO_URLS = [
         'name': 'IPAM',
         'url': 'https://ipam.yoursite.com/something/search?ipv4={{ ip4 }}',
         'hint': 'Click here to see IPAM data about this IPv4 address',
-        'target': '_ipam',
+        'target': True,
         'icon': '/static/img/ipam.png',
         'alt': 'NMS Icon',
         # or use any Font Awesome 5 icon:
@@ -288,7 +294,7 @@ IP4_INFO_URLS = [
         'name': 'ELK Stack',
         'url': 'https://elkstack.yoursite.com/search?ipv4={{ ip4 }}',
         'hint': 'Click here to see ELK Stack log data about this IPv4 address',
-        'target': '_elk',
+        'target': True,
         'icon': '/static/img/general-info.png',
         'alt': 'ELK Stack Icon',
         # or use any Font Awesome 5 icon:
@@ -306,7 +312,7 @@ ETHERNET_INFO_URLS = [
         'name': 'IPAM',
         'url': 'https://ipam.yoursite.com/something/search?ethernet={{ ethernet }}',
         'hint': 'Click here to see IPAM data about this ethernet address',
-        'target': '_ipam',
+        'target': True,
         'icon': '/static/img/ipam.png',
         'alt': 'NMS Icon',
         # or use any Font Awesome 5 icon:
@@ -318,7 +324,7 @@ ETHERNET_INFO_URLS = [
         'name': 'ELK Stack',
         'url': 'https://elkstack.yoursite.com/search?ethernet={{ ethernet }}',
         'hint': 'Click here to see ELK Stack log data about this eithernet address',
-        'target': '_elk',
+        'target': True,
         'icon': '/static/img/general-info.png',
         'alt': 'ELK Stack Icon',
         # or use any Font Awesome 5 icon:
@@ -375,13 +381,13 @@ MENU_INFO_URLS['Menu 1'] = [
     {
         'name': 'Entry 1',
         'url': 'http://example.com',
-        'target': '_external',
+        'target': True,
         'fa_icon': 'fa-car'
     },
     {
         'name': 'Entry 2',
         'url': 'https://ssl.example.com',
-        'target': '_external',
+        'target': True,
         'icon': '/static/img/ipam.png',
         'alt': 'Cyder Icon',
     },
@@ -390,14 +396,14 @@ MENU_INFO_URLS['Menu 2'] = [
     {
         'name': 'Entry 3',
         'url': 'http://example.com/test.php=test',
-        'target': '_external',
+        'target': True,
         'icon': '/static/img/ipam.png',
         'alt': 'Cyder Icon',
     },
     {
         'name': 'Entry 4',
         'url': 'https://ssl.example.com',
-        'target': '_external',
+        'target': True,
         'fa_icon': 'fa-address-book'
     },
 ]

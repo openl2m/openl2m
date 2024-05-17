@@ -52,8 +52,8 @@ def build_url_string(values):
     Build a external url string from the url values dict() given
     Used to build custom links from "settings" variables
     """
-    if False and 'target' in values.keys():
-        s = f"<a target=\"{values['target']}\""
+    if 'target' in values.keys() and values['target']:
+        s = '<a target="_blank"'
     else:
         s = "<a"
     s = s + f" href=\"{values['url']}\""
