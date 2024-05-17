@@ -1,19 +1,17 @@
 {% extends '_base.html' %}
 
 {% block content %}
-<div class="row justify-content-md-center" style="margin-top: {% if settings.BANNER_LOGIN %}25{% else %}150{% endif %}px;">
-  <div class="col-6">
-    {% if settings.BANNER_LOGIN %}
-    <div style="margin-bottom: 25px">
-        {{ settings.BANNER_LOGIN|safe }}
-    </div>
-    {% endif %}
+{% if settings.BANNER_LOGIN %}
+<div class="row justify-content-md-center">
+  <div class="col-4 mt-3 mb-3">
+    {{ settings.BANNER_LOGIN|safe }}
   </div>
 </div>
+{% endif %}
 <div class="row justify-content-md-center">
-  <div class="col col-4">
+  <div class="col-4">
     <form method="post" class="form form-horizontal">
-      <div class="card border-default">
+      <div class="card border-default mb-3">
         {% csrf_token %}
         <div class="card-body">
           <table class="table table-hover">
