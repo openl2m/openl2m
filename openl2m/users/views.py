@@ -69,7 +69,7 @@ class LogoutView(View):
         close_device(request=request)
         # Log out the user
         auth_logout(request)
-        messages.info(request, "You have successfully logged out!")
+        messages.success(request, "You have successfully logged out!")
 
         # Delete session key cookie (if set) upon logout
         response = HttpResponseRedirect(reverse('home'))
