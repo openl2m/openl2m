@@ -11,8 +11,8 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+import csv
 import json
-
 import pprint
 
 from django.conf import settings
@@ -608,15 +608,27 @@ def get_poe_pse_status(status):
 
 
 @register.filter
-def get_options_from_comma_string(comma_string):
+def get_options_from_comma_string(csv_values):
     """
     Return an HTML string with select options for the defined CommandTemplate() pick list.
+    The 'csv_values' string can be simple comma-separated, or
+    full-blown CSV encoded values, eg. "some , value", "2", "3,4,5"
+    So we use the CSV reader to parse this.
     """
     choices = ""
-    options = comma_string.split(',')
-    for val in options:
-        v = val.strip()
-        choices += f"<option value=\"{v}\">{v}</option>\n"
+    # options = csv_values.split(',')
+    reader = csv.reader(csv_values,
+                        quotechar='"',
+                        delimiter=',',
+                        quoting=csv.QUOTE_ALL,
+                        skipinitialspace=True )
+    # dprint(f"CSV Values for |{csv_values}|")
+    for row in reader:
+        # dprint(type(row))
+        for item in row:
+            if item:
+                # dprint(item)
+               choices += f"<option value=\"{item}\">{item}</option>\n"
     return mark_safe(choices)
 
 
