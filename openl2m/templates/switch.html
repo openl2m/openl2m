@@ -319,18 +319,18 @@
 
     {% if connection.can_run_commands %}
       {% if switch.command_list.global_commands.count %}
-        <div class="tab-pane" id="tab_cmd_list" id="tab_cmd_list" role="tabpanel" aria-labelledby="tab_cmd_list">
+        <div class="tab-pane" id="tab_cmd_list" role="tabpanel" aria-labelledby="tab_cmd_list">
           {% include "_tab_cmd_list.html" %}
         </div>
       {% elif request.user.is_staff or request.user.is_superuser %}
         {% if switch.command_list.interface_commands_staff.count or switch.command_list.global_commands_staff.count %}
-          <div class="tab-pane" id="tab_cmd_list" id="tab_cmd_list" role="tabpanel" aria-labelledby="tab_cmd_list">
+          <div class="tab-pane" id="tab_cmd_list" role="tabpanel" aria-labelledby="tab_cmd_list">
             {% include "_tab_cmd_list.html" %}
           </div>
         {% endif %}
       {% endif %}
       {% if switch.command_templates.count %}
-        <div class="tab-pane" id="tab_cmd_templates" id="tab_cmd_templates" role="tabpanel" aria-labelledby="tab_cmd_templates">
+        <div class="tab-pane" id="tab_cmd_templates" role="tabpanel" aria-labelledby="tab_cmd_templates">
           {% include "_tab_cmd_templates.html" %}
         </div>
       {% endif %}
