@@ -25,7 +25,7 @@
 <body>
   <!-- top navigation bar -->
   <div class="container-fluid position-absolute top-0 start-0">
-    {% include '_navbar.html' %}
+  {% include '_navbar.html' %}
   </div>
   <!-- end navbar -->
 
@@ -73,11 +73,15 @@
   <!-- end banners -->
 
   <!-- header block -->
-  <div class="container-fluid">{% block header %}{% endblock %}</div>
+  <div class="container-fluid">
+  {% block header %}{% endblock %}
+  </div>
   <!-- end header block -->
 
   <!-- content block -->
-  <div class="container-fluid">{% block content %}{% endblock %}</div>
+  <div class="container-fluid">
+  {% block content %}{% endblock %}
+  </div>
   <!-- end content block -->
 
   {% if settings.BANNER_BOTTOM %}
@@ -90,8 +94,8 @@
   <!-- end bottom banner -->
   {% endif %}
 
-  <script src="{% static 'bootstrap-5.3.3-dist/js/bootstrap.bundle.js' %}"></script>
   {% block javascript %}{% endblock %}
+  <script src="{% static 'bootstrap-5.3.3-dist/js/bootstrap.bundle.js' %}"></script>
   <script>
     // New Bootstrap 5 tooltip activation:
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
