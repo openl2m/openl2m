@@ -10,6 +10,7 @@
 {% load static %}
 
 {# this is the header "menu" bar #}
+<!-- device menu bar -->
 <div class="container-fluid">
   <div class="table-responsive">
     <table class="table">
@@ -79,14 +80,15 @@
     </table>
   </div> {# table-responsive #}
 </div> {# container-fluid #}
-
+<!-- end device menu bar -->
 
 {# here are the tabs of this page, depending on "view", see https://fastbootstrap.com/components/tabs/ #}
-<!-- the tabs -->
+<!-- device tabs -->
 <div class="container-fluid">
 
 {% if  connection.show_interfaces %}
   {# the tabs for devices with interfaces #}
+  <!-- device menu tabs -->
   <ul class="nav nav-tabs" role="tablist">
     {% if cmd and cmd.state == 'run' %}
 
@@ -238,15 +240,13 @@
   {% endif %}
 
   </ul>{# nav nav-tabs #}
+  <!-- end device menu tabs -->
 
-  <!-- TAB CONTENT STARTS HERE -->
-
-  {# and tab content #}
-  {# see https://fastbootstrap.com/components/tabs/ #}
+  <!-- menu tabs contents -->
   <div class="tab-content" id="tab-content">
 
     {% if cmd and cmd.state == 'run' %}
-      <!-- CMD RUN OUTPUT -->
+      <!-- command output contents -->
       <div class="tab-pane" id="tab_interfaces" role="tabpanel" aria-labelledby="tab_interfaces">
         {% include "_tab_if_basics.html" %}
       </div>
@@ -266,11 +266,12 @@
       <div class="tab-pane active" id="tab_cmd_output" role="tabpanel" aria-labelledby="tab_cmd_output">
         {% include "_tab_cmd_output.html" %}
       </div>
+      <!-- end command output contents -->
 
-    {% else %}
+    {% else %}{# regular views #}
 
       {% if view == 'basic' %}
-      <!-- BASIC CONTENT -->
+      <!-- basic view contents -->
         <div class="tab-pane active" id="tab_interfaces" role="tabpanel" aria-labelledby="tab_interfaces">
           {% include "_tab_if_basics.html" %}
         </div>
@@ -287,10 +288,11 @@
         <div class="tab-pane" id="tab_info" role="tabpanel" aria-labelledby="tab_info">
           {% include "_tab_info.html" %}
         </div>
+      <!-- end basic view contents -->
       {% endif %}
 
       {% if view == 'arp_lldp' %}
-      <!-- ARP-LLDP CONTENT -->
+      <!-- arp-lldp contents -->
       <div class="tab-pane" id="tab_interfaces" role="tabpanel" aria-labelledby="tab_interfaces">
           {% include "_tab_if_basics.html" %}
         </div>
@@ -310,26 +312,7 @@
         <div class="tab-pane" id="tab_info" role="tabpanel" aria-labelledby="tab_info">
           {% include "_tab_info.html" %}
         </div>
-      {% endif %}
-
-      {% if view == 'hw_info' %}
-      <!-- HW-INFO CONTENT -->
-      <div class="tab-pane" id="tab_interfaces" role="tabpanel" aria-labelledby="tab_interfaces">
-          {% include "_tab_if_basics.html" %}
-        </div>
-        {% if bulk_edit %}
-          <div class="tab-pane" id="tab_bulkedit" role="tabpanel" aria-labelledby="tab_bulkedit">
-            {% include "_tab_if_bulkedit.html" %}
-          </div>
-        {% endif %}
-        {% if edit_vlans %}
-          <div class="tab-pane" id="tab_edit_vlans" role="tabpanel" aria-labelledby="tab_edit_vlans">
-            {% include "_tab_edit_vlans.html" %}
-          </div>
-        {% endif %}
-        <div class="tab-pane active" id="tab_info" role="tabpanel" aria-labelledby="tab_info">
-          {% include "_tab_info.html" %}
-        </div>
+      <!-- end arp-lldp contents -->
       {% endif %}
 
     {% endif %}
@@ -353,7 +336,7 @@
       {% endif %}
     {% endif %}
 
-    <!-- everything gets logs and warnings -->
+    <!-- logs and warnings for every view -->
     <div class="tab-pane" id="tab_logs" role="tabpanel" aria-labelledby="tab_logs">
       {% include "_tab_logs.html" %}
     </div>
@@ -363,12 +346,14 @@
         {% include "_tab_warnings.html" %}
       </div>
     {% endif %}
-
+    <!-- end logs and warnings -->
   </div> {# class tab-content #}
+  <!-- end tabs content -->
 
 {% else %} {# devices without interfaces! #}
+<!-- DEVICE WITHOUT INTERFACES -->
 
-<!-- NO INTERFACES MENU TABS -->
+  <!-- device menu tabs -->
   <ul class="nav nav-tabs">
     {% if cmd and cmd.state == 'run' %}{# command or template has run! #}
 
@@ -425,31 +410,33 @@
     {% endif %}
 
   </ul>
+  <!-- end device menu tabs -->
 
-  {# and tab content #}
+  <!-- tabs contents -->
   <div class="tab-content">
 
     {% if cmd and cmd.state == 'run' %}
-
+      <!-- command run tab contents -->
       <div class="tab-pane" id="tab_info" role="tabpanel" aria-labelledby="tab_info">
         {% include "_tab_info.html" %}
       </div>
       <div class="tab-pane active" id="tab_cmd_output" role="tabpanel" aria-labelledby="tab_cmd_output">
         {% include "_tab_cmd_output.html" %}
       </div>
-
+      <!-- end command run contents -->
     {% else %}
-
+      <!-- regular view tab contents -->
       <div class="tab-pane active" id="tab_info" role="tabpanel" aria-labelledby="tab_info">
         {% include "_tab_info.html" %}
       </div>
       <div class="tab-pane" id="tab_logs" role="tabpanel" aria-labelledby="tab_logs">
           {% include "_tab_logs.html" %}
       </div>
-
+      <!-- end regular view tab contents -->
     {% endif %}
 
     {% if connection.can_run_commands %}
+      <!-- run-command tab contents -->
       {% if switch.command_list.global_commands.count %}
         <div class="tab-pane" id="tab_cmd_list" role="tabpanel" aria-labelledby="tab_cmd_list">
           {% include "_tab_cmd_list.html" %}
@@ -466,8 +453,10 @@
           {% include "_tab_cmd_templates.html" %}
         </div>
       {% endif %}
+      <!-- end run-command tab contents -->
     {% endif %}
 
+    <!-- log and warnings tab contents for evey device -->
     <div class="tab-pane" id="tab_logs" role="tabpanel" aria-labelledby="tab_logs">
       {% include "_tab_logs.html" %}
     </div>
@@ -477,10 +466,15 @@
         {% include "_tab_warnings.html" %}
       </div>
     {% endif %}
+    <!-- end log and warnings tab contents -->
 
   </div> {# class tab-content #}
+  <!-- end device tabs content -->
+
+{% endif %} {# if connection.show_interfaces #}
 
 </div> {# container-fluid #}
-{% endif %} {# if connection.show_interfaces #}
+<!-- end device tabs -->
+
 
 {% endblock %}
