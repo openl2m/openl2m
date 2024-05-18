@@ -8,7 +8,7 @@
   </div>
 -->
   <div class="table-responsive">
-    <table class="table table-default table-hover table-headings w-auto">
+    <table class="table table-hover table-headings table-striped w-100 align-middle">
       <thead>
       <tr>
         <th>
@@ -38,7 +38,7 @@
       {% for if_index,iface in connection.interfaces.items %}
         {% if iface.visible %}
 
-          <tr class="{% cycle 'odd' 'even' %}" >
+          <tr>
 
             {% if iface.manageable %}
 
@@ -231,15 +231,15 @@
 
             {% else %} {# not manageable #}
               <!-- NOT MANAGEABLE -->
-              <td
+              <td class=" 
               {% if iface.admin_status %}
                 {% if iface.oper_status %}
-                  class="color_if_up">
+                  color_if_up">
                 {% else %}
-                  class="color_if_down">
+                  color_if_down">
                 {% endif %}
               {% else %}
-                  class="color_if_shutdown">
+                  color_if_shutdown">
               {% endif %}
                 {{ switch|get_interface_info_links:iface }}
                 {% if iface.unmanage_reason %}
