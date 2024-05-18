@@ -14,7 +14,9 @@
       >
     </a>
 
-{% if settings.SWITCH_SEARCH_FORM %}
+{% if request.user.is_authenticated %}
+
+  {% if settings.SWITCH_SEARCH_FORM %}
     <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -41,9 +43,8 @@
         </div>
       </form>
     </div>
-{% endif %}
+  {% endif %}
 
-    {% if request.user.is_authenticated %}
     <div class="position-absolute end-0" id="navbarContent">
       <ul class="navbar-nav me-auto">
       {% if settings.MENU_INFO_URLS %}
@@ -131,6 +132,6 @@
         </li>
       </ul>{# navbar-nav #}
     </div>{# navbarContent #}
-    {% endif %}{# authenticated #}
+{% endif %}{# authenticated #}
   </div>{# container-fluid #}
 </nav>
