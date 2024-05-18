@@ -63,7 +63,10 @@ def build_url_string(values):
     if 'fa_icon' in values.keys():
         s = s + f" <i class=\"fas {values['fa_icon']}\" aria-hidden=\"true\"></i>"
     elif 'icon' in values.keys():
-        s = s + f" <img src=\"{values['icon']}\" aria-hidden=\"true\" alt=\"{values['alt']}\" height=\"24\" width=\"24\">"
+        s = (
+            s
+            + f" <img src=\"{values['icon']}\" aria-hidden=\"true\" alt=\"{values['alt']}\" height=\"24\" width=\"24\">"
+        )
     s = s + "</a> "
     return s
 
@@ -209,7 +212,10 @@ def get_group_menu(group, group_id, open=False):
 
     # add the button
     s = s + "\n"
-    s = s + f'<button class="btn btn-outline-secondary mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#group{group_id}" aria-expanded="{expanded}" aria-controls="group{group_id}">'
+    s = (
+        s
+        + f'<button class="btn btn-outline-secondary mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#group{group_id}" aria-expanded="{expanded}" aria-controls="group{group_id}">'
+    )
     # use display name if set, else just group name"
     if group["display_name"]:
         s = s + group["display_name"]
@@ -617,18 +623,14 @@ def get_options_from_comma_string(csv_values):
     """
     choices = ""
     # options = csv_values.split(',')
-    reader = csv.reader(csv_values,
-                        quotechar='"',
-                        delimiter=',',
-                        quoting=csv.QUOTE_ALL,
-                        skipinitialspace=True )
+    reader = csv.reader(csv_values, quotechar='"', delimiter=',', quoting=csv.QUOTE_ALL, skipinitialspace=True)
     # dprint(f"CSV Values for |{csv_values}|")
     for row in reader:
         # dprint(type(row))
         for item in row:
             if item:
                 # dprint(item)
-               choices += f"<option value=\"{item}\">{item}</option>\n"
+                choices += f"<option value=\"{item}\">{item}</option>\n"
     return mark_safe(choices)
 
 
