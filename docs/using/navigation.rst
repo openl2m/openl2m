@@ -33,7 +33,7 @@ If you hover your mouse over a device, you see a description (if defined by your
 
 Click on a device to access it. Note that **all data** is read **live** from the device!
 After a little bit of patience, this will bring you to the
-:doc:`the Basic Device View <basic_view>`, showing all (visible) interfaces of the device.
+:doc:`Basic Device View <basic_view>`, showing all (visible) interfaces of the device.
 
 
 To return to the top menu at any time, click the image in the top left.
