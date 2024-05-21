@@ -17,26 +17,23 @@
 {% if request.user.is_authenticated %}
 
   {% if settings.SWITCH_SEARCH_FORM %}
-    <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse justify-content-between ms-4" id="navbarCollapse">
+    <div class="navbar-collapse ms-4">
       <form class="d-flex"
             name="switch_search_form"
             action="{% url 'switches:switch_search' %}"
             method="post"
       >
-        <div class="input-group">
+        <div class="input-group border border-light-subtle rounded">
           {% csrf_token %}
           <input type="text" name="switchname" id="switchname"
-                class="form-control"
+                class="form-control border border-light-subtle rounded"
                 placeholder="Device name or reg-ex..."
                 data-bs-toggle="tooltip"
                 title="Type the name or regular expression of the device(s) you are looking for here!"
           >
           <button type="submit"
                 value="Search"
-                class="btn border-default color-openl2m"
+                class="btn color-openl2m"
                 data-bs-toggle="tooltip"
                 title="Click here to search for a device!"
           ><i class="fas fa-search"></i></button>
