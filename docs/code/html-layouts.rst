@@ -3,13 +3,20 @@
 HTML Layout
 ===========
 
-We use Bootstrap for HMTL layout. Below are some quick notes about how we use Bootstrap 5 through the HTML layout of OpenL2M.
+We use Bootstrap for HMTL layout. Below are some quick notes about how we use Bootstrap 5
+through the HTML layout of OpenL2M.
 
-Any changes to HMTL layout should use Bootstrap, and should adhere to modern Web Content Accesibility Guidelines (WCAG).
+Any changes to HMTL layout should use Bootstrap, and should adhere to modern
+Web Content Accesibility Guidelines (WCAG).
 
 See more at https://www.w3.org/WAI/standards-guidelines/wcag/
 
 A useful tool during development is the "WAVE Web Accesibility Evaluation Tool" browser extension.
+
+HTML
+----
+
+All HTML should be validated by the W3 validator at https://validator.w3.org/#validate_by_input
 
 
 Positioning

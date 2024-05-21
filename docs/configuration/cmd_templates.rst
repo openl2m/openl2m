@@ -4,23 +4,23 @@
 Command Templates
 =================
 
-Command Templates allow you to administratively define commands with variables in them. These variables can be filled in
-by users using a form presented to them in the switch view. This gives tremendous flexibility in giving users in a
-controlled fashion more visibility into the device.
+Command Templates allow you to administratively define commands with variables in them.
+These variables can be filled in by users using a form presented in the device "Command Templates" tab.
+This provides tremendous flexibility in giving users in a controlled fashion more visibility into the device.
 
 
 Command Template Configuration
 ------------------------------
 
-The top series of fields are the template name, and OS. The latter field is only to allow easier displaying when selecting
-a template in the switch administration form; it is not shown to the user!
+The first two fields are the template name, and OS. The OS field is only to allow easier displaying when selecting
+a template in the device administration form; it is **not** shown to the user!
 
 .. image:: ../_static/command-template-admin.png
 
-The description will be shown as a hover-over text over the name.
+The description will be shown as a hover-over text over the template name.
 
-The Command Template is the special sauce. Here you can use up to 8 freely definable input fields, and up to 5 pick lists, i.e lists
-where you can pre-configure the selectable values.
+The Command Template is the special sauce. Here you can use up to 8 freely definable input fields,
+and up to 5 pick lists, i.e lists where you can pre-configure the selectable values.
 
 You can reference these fields by enclosing them in double curly brackets, i.e. between {{ and }}
 
@@ -28,13 +28,23 @@ You can reference these fields by enclosing them in double curly brackets, i.e. 
 
 .. image:: ../_static/command-template-admin-list.png
 
-This is best explain with some examples:
+Examples
+--------
+
+Configuration is best explained with some examples:
+
+**Show ANY ACL**
 
 A template where the user can display an Access Control List of their desire, the command template could be:
 
-display acl {{field1}}
+.. code-block:: bash
+
+  display acl {{field1}}
 
 .. image:: ../_static/command-template-admin-example.png
+
+
+**Choose specific ACL**
 
 A template where the user can choose the ACL number from a pre-configured list would be defined as follows:
 
@@ -44,7 +54,9 @@ First, define List 1 as eg. "1001, 1002, 1003"
 
 Then define the template as
 
-show acl {{list1}}
+.. code-block:: bash
+
+  show acl {{list1}}
 
 
 **Regular Expressions To Match Fields**
@@ -58,22 +70,55 @@ You likely want to explicitly match the start and end of the input, by using the
 
 Here are some matching pattern examples:
 
-any single word:   ^\\w*$
+**Any single word:**
 
-any number: ^\\d+$
+.. code-block:: bash
 
-IPv4 address or netmask:  ^\\d+\\.\\d+\\.\\d+\\.\\d+$
+    ^\\w*$
 
-IPv4 subnet in cider notation:  ^\\d+\\.\\d+\\.\\d+\\.\\d+\\/\\d+$
+**Any number:**
 
-Simple IPv6 network:  ^[\\w\\d\:]*\\/\\d+$
+.. code-block:: bash
 
-Ethernet address in colon notation: ^[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}$
+   ^\\d+$
 
-Ethernet address in hyphen notation: ^[0-9a-fA-F]{2}\\-[0-9a-fA-F]{2}\\-[0-9a-fA-F]{2}\\-[0-9a-fA-F]{2}-\\[0-9a-fA-F]{2}-\\[0-9a-fA-F]{2}$
+**IPv4 address or netmask:**
 
-Ethernet address in Cisco dot notation: ^[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4}$
+.. code-block:: bash
 
+  ^\\d+\\.\\d+\\.\\d+\\.\\d+$
+
+**IPv4 subnet in cider notation:**
+
+.. code-block:: bash
+
+  ^\\d+\\.\\d+\\.\\d+\\.\\d+\\/\\d+$
+
+**Simple IPv6 network:**
+
+.. code-block:: bash
+
+  ^[\\w\\d\:]*\\/\\d+$
+
+**Ethernet address in colon notation:**
+
+.. code-block:: bash
+
+  ^[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}$
+
+**Ethernet address in hyphen notation:**
+
+.. code-block:: bash
+
+  ^[0-9a-fA-F]{2}\\-[0-9a-fA-F]{2}\\-[0-9a-fA-F]{2}\\-[0-9a-fA-F]{2}-\\[0-9a-fA-F]{2}-\\[0-9a-fA-F]{2}$
+
+**Ethernet address in Cisco dot notation:**
+
+.. code-block:: bash
+
+  ^[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4}$
+
+Here is an example of a free form field that matches numbers only:
 
 .. image:: ../_static/command-template-admin-field-example.png
 
@@ -82,16 +127,17 @@ Ethernet address in Cisco dot notation: ^[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4}\\.[0-9a
 
 **Simplifying output**
 
-Sometime you want to show a 'status' to the user, depending on the output of the command. Eg. for a firewall rule, you may
-want to show 'Allowed' or 'Denied', instead of the full command output.
+Sometime you want to show a 'status' to the user, depending on the output of the command.
+E.g. for a firewall rule, you may want to show 'Allowed' or 'Denied', instead of the full command output.
 
 .. image:: ../_static/command-template-admin-output-matching.png
 
-If you set the Match RegEx field is set, the output will be searched for this regular expression. If it is found,
-instead of the command output, the value of the Match Text field is shown. If it is not found, the Fail Text is shown.
+If you set the Match RegEx field, the output will be searched for this regular expression. If it is found,
+instead of the command output, the value of the Match Text field is shown.
+If it is not found, the Fail Text is shown.
 
-If you set the Output Lines Filter regular expression, in addition to the above output, the command output lines that
-match this regular expression are added to the output.
+If you set the Output Lines Filter regular expression, in addition to the above output, the command output
+lines that match this regular expression are added to the output.
 
 
 Here is a table explaining what is shown depending on settings:
@@ -123,8 +169,9 @@ Here is a table explaining what is shown depending on settings:
      - Value of 'Match Text" shown, followed by output lines matching the filter
 
 
+
 Using Command Templates
 -----------------------
 
-Once a command template has been defined, you can assign it to any Switch object you like.
+Once a command template has been defined, you can assign it to any Switch (device) object you like.
 Go to the proper Switch admin page, and simple select the command template from the list.

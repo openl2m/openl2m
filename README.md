@@ -41,7 +41,7 @@ See the documentation for more information.
 
 __What's New:__
 
-v3.2 adds a Dark Theme, and improves web accessibility through the use of Bootstrap 5.3 This also provides more consistent layout of pages.
+v3.2 adds a Dark Theme. It improves web accessibility and provides a more modern look, and more consistent layout through the use of Bootstrap 5.3. A docker compose config for developing is provided.
 
 v3.1 upgrades to Django 5.0, and adds a docker-compose config for quickly testing OpenL2M in a container.
 
@@ -98,6 +98,10 @@ See the following OpenL2M documentation:
 
 __Screenshots__:
 
+Devices Menu:
+
+![DevicesMenu](docs/_static/devices-menu.png "Devices Menu")
+
 Interfaces Menu:
 
 ![InterfaceMenu](docs/_static/screenshot-1.png "Interface Menu")
@@ -108,7 +112,7 @@ Bulk-Edit Menu:
 
 VLAN Edit Menu:
 
-![VLANEditMenu](docs/_static/screenshot-vlan-edit.png "VLAN Edit Menu")
+![VLANEditMenu](docs/_static/vlan-edit.png "VLAN Edit Menu")
 
 __Download__:
 

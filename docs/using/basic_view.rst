@@ -4,8 +4,8 @@
 The Basic view
 ==============
 
-Initially when you click on a switch, the SNMP protocol will be used to read all sorts of data from the switch.
-This can take a while; on stacked switches we have seen this take 30-45 seconds for a 5 or 6 member stack.
+When you click on a device, we will read all sorts of data from the device (depending on the vendor driver!).
+This can take a while; on stacked devices we have seen this take 30-45 seconds for a 5 or 6 member stack.
 Please be patient!
 
 Once data has been retrieved, the basic view will open up, with the following elements.
@@ -13,41 +13,41 @@ Once data has been retrieved, the basic view will open up, with the following el
 Top Menu Banner
 ---------------
 
-.. image:: ../_static/top-banner.png
+.. image:: ../_static/device-menu-bar.png
 
-The banner bar shows the switch name on the left. This may be preceded by one or more icons (configurable by the admin),
+The banner bar shows the device name on the left. This may be preceded by one or more icons (configurable by the admin),
 which would be links to external systems with more information about the device. E.g. you may see a link to the
 Network Management System.
 
-The entry in the center, |switch-arp-lldp-header|, will get you a real-time read of the ethernet
-tables (MAC address) and LLPD neighbors of the switch. If the device is a router, ARP entries for IPv4 will also be shown.
+The entry in the center, |device-arp-lldp-button|, will get you a real-time read of the ethernet
+tables (MAC address) and LLPD neighbors of the device. If the device is a router, ARP entries for IPv4 will also be shown.
 
-.. |switch-arp-lldp-header| image:: ../_static/switch-arp-lldp-header.png
+.. |device-arp-lldp-button| image:: ../_static/device-arp-lldp-button.png
 
-On the right, |switch-reload-header|, does exactly that! This forces a complete refresh of all switch data via SNMP.
+On the right, |device-reload-button|, does exactly that! This forces a complete refresh of all device data.
 
-.. |switch-reload-header| image:: ../_static/switch-reload-header.png
+.. |device-reload-button| image:: ../_static/device-reload-button.png
 
 |save_warning|  If you have made changes that require saving the config, an additional option to save the config
-will appear on the right with a warning icon in front! Click it to save the running config to the switch startup config.
+will appear on the right with a warning icon in front! Click it to save the running config to the device startup config.
 (I.e. this is a 'write mem'!) When completed, that option will disappear.
 
-.. |save_warning| image:: ../_static/save-changes.png
+.. |save_warning| image:: ../_static/device-save-changes.png
 
 
 The Tabs
 --------
 
-.. image:: ../_static/tabs.png
+.. image:: ../_static/device-menu-tabs.png
 
 Below the bar are the tabs. The default tab is the **Interfaces** tab,
-containing the visible interfaces on the switch. If you have the ability to
+containing the visible interfaces on the device. If you have the ability to
 manage any of the interfaces, they will be listed with the proper forms
 to allow changing the configuration.
 
-Additionally, you will see tabs with switch **Information**, and OpenL2M
-**Activity** logs for this switch. If configured, there may even be a tab
-for **Switch Commands**.
+Additionally, you will see tabs with device **Information**, and OpenL2M
+**Activity** logs for this device. If configured, there may even be a tab
+for **Commands**.
 
 Interfaces Tab
 --------------
@@ -126,15 +126,15 @@ new untagged vlan. You will only see vlans you are allowed to change to.
 Click the 'Change' button to apply the new untagged vlan. Note this may take a
 little while, so please be patient.
 
-In some cases, the interface is on a VLAN that is not defined on the switch
-(due to backend configurations; this should not happen in properly configured switches!)
+In some cases, the interface is on a VLAN that is not defined on the device
+(due to backend configurations; this should not happen in properly configured devices!)
 In that case, this will show as "<vlan id> - Not Defined"
 
 * **PoE**
 
-If Power-over-Ethernet is enabled on capable switches,
+If Power-over-Ethernet is enabled on capable devices,
 the interface PoE status will be indicated in this field. The power drawn will also be listed,
-If we can read it from the switch. An example of the PoE display of enabled
+If we can read it from the device. An example of the PoE display of enabled
 port serving about 9 Watts of power is:
 
 .. image:: ../_static/poe-powered-port.png
@@ -190,8 +190,7 @@ Bulk Edit Tab
 .. |bulk_edit_tab| image:: ../_static/bulk-edit-tab.png
 
 If permissions allow, users will see the Bulk Edit tab. This shows the Bulk Edit form.
-This form allows you to apply or schedule (if permitted) a variety of changes at once
-to a number of switch interfaces.
+This form allows you to apply a variety of changes at once to several interfaces.
 
 .. image:: ../_static/bulk-edit-form.png
 
@@ -213,11 +212,11 @@ and your changes will be applied. Please be patient!
 Device Information Tab
 ----------------------
 
-|switch_information_tab|
+|device_information_tab|
 
-This shows a series of information about the switch. Depending on the device and what is supported in the driver,
-this can include items such as model, firmware,serial numbers, vlans defined on switch, PoE power supply info, stacking info,
-IP(v4) addresses of the switch, and more.
+This shows a series of information about the device. Depending on the device and what is supported in the driver,
+this can include items such as model, firmware,serial numbers, vlans defined on device, PoE power supply info, stacking info,
+IP(v4) addresses of the device, and more.
 
 E.g.:
 
@@ -225,11 +224,11 @@ E.g.:
 
 |device_stacking_info|
 
- On properly configured Cisco switches (:doc:`see Faq <../faq>`), we can show recent log entries: 
- 
+ On properly configured Cisco devicees (:doc:`see Faq <../faq>`), we can show recent log entries:
+
 |cisco_log_entries|
 
-.. |switch_information_tab| image:: ../_static/switch-information-tab.png
+.. |device_information_tab| image:: ../_static/device-information-tab.png
 .. |device_stacking_info| image:: ../_static/device-stacking-info.png
 .. |device_ip_poe_info| image:: ../_static/device-ip-and-poe-info.png
 .. |cisco_log_entries| image:: ../_static/cisco-log-entries.png
@@ -240,8 +239,13 @@ Activity Logs Tab
 
 |activity_logs_tab|
 
-This will show the last OpenL2M activity on this switch. I.e. anything changed will be listed here
-by user and time.
+This will show recent OpenL2M activity on this device. I.e. recent changes using OpenL2M will be
+listed here by user and time.
+
+This does *not* show configuration changes applied through other methods, not does this
+show device logs! (You could, however, create a command that shows the last N log entries.)
+
+Note that admins have full OpenL2M activity log access, as documented elsewhere.
 
 .. |activity_logs_tab| image:: ../_static/activity-logs-tab.png
 
@@ -251,14 +255,14 @@ Commands Tab
 
 |switch_commands_tab|
 
-This tab will only show if 'global' switch-level commands are configured by the admin.
+This tab will only show if 'global' device-level commands are configured by the admin.
 
-This tab will give a simple form with some 'global' show commands you can execute on the switch.
+This tab will give a simple form with some 'global' show commands you can execute on the device.
 Select a command, click on 'Run Command', and be patient!
 
 |command_output_tab|
 
-When complete, the page will refresh and a new 'Command Output' tab will show the output from the switch.
+When complete, the page will refresh and a new 'Command Output' tab will show the output from the device.
 
 
 .. |switch_commands_tab| image:: ../_static/switch-commands-tab.png
@@ -286,7 +290,7 @@ If all matches, the command will run on the device.
 
 |command_output_tab|
 
-When complete, the page will refresh and a new 'Command Output' tab will show the output from the switch.
+When complete, the page will refresh and a new 'Command Output' tab will show the output from the device.
 
 
 Warnings/Errors Tab

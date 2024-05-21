@@ -5,7 +5,7 @@ the Eth/ARP/LLDP view
 =====================
 
 When you click the 'Read Eth/Arl/Lldp' link in the menu bar in the Basic view,
-after being patient, the details of the switch connections will be shown in
+after being patient, the details of the connections to this device will be shown in
 the "Eth/ARP/LLDP" tab.
 
 |arp_details_tab|
@@ -20,14 +20,14 @@ data, click the 'Refresh Eth/Arl/LLDP' button!
 .. |arp_refresh_button| image:: ../_static/refresh-arp-lldp-button.png
 
 The details include the 'known ethernet address' table and the LLDP neighbor table. If the device is a router,
-it will also show known IPv4 ARP entries. If this is regular switch, the ARP entries will likely only be for the default gateway!
+it will also show known IPv4 ARP entries. If this is regular device, the ARP entries will likely only be for the default gateway!
 
 .. image:: ../_static/details-interface-info.png
 
 Note the three areas highlighted in the above image. The first is an admin configurable link to an
 IP Address Management (IPAM) system that would link you to the found ethernet address in your IPAM.
 
-The second arrow indicates the number of known ethernet addresses on this switch; here that is 10.
+The second arrow indicates the number of known ethernet addresses on this device; here that is 10.
 
 The third, right-most arrow indicates the number of LLDP neighbors heard,
 here that is 1. The neighbors are listed in the row of the interface where

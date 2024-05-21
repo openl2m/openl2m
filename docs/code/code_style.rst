@@ -17,3 +17,14 @@ New code should add Python type hinting. Specifically, we require type hints as 
 (We are working on retrofitting existing 3.x code!)
 
 Function calls with more then one parameter should use named parameters, instead of position-based calling.
+
+HTML
+----
+
+All HTML should be validated by the W3 validator at https://validator.w3.org/#validate_by_input
+
+
+Accessibility
+-------------
+
+Accessibility should be tested by using e.g. the WAVE Web Accessibility Evaluation Tool browser extension.

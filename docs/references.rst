@@ -103,9 +103,6 @@ While there are many, this one has a good basic explanation and includes a
 good example of the GetBulk non-repeaters and max-repetitions parameters:
 https://www.snmpsharpnet.com/?page_id=30
 
-Using SNMP to discover MAC, IP and Vlan information from switches:
-https://www.akips.com/resources?mode=blog;doc=mac_ip_vlan_switch
-
 
 Aruba AOS-CX
 ------------

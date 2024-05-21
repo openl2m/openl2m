@@ -13,11 +13,11 @@ Frequenty Asked Questions
 
 Yes, you can do a fairly quick Docker compose install to test. Look at "docker/test/README.txt"
 
-* **Why does it take a while to show the switch page?**
+* **Why does it take a while to show the device basic views page?**
 
-This is a design decision. **Everything is read in real-time from the switch as
+This is a design decision. **Everything is read in real-time from the device as
 you access it**. I.e. Every time you go (back) to a switch, it needs to
-re-learn the switch information from SNMP data. That makes it somewhat
+re-learn the device information. That makes it somewhat
 slower, but it also means **you always have the current information.**
 The Ethernet/LLDP tables are updated as you refresh, which should help
 with finding devices that were just connected (instead of some other tools,
@@ -45,7 +45,7 @@ on how to fix this.
 
 * **My HP switch does not ask to save changes?**
 
-HP Procurve/Aruba switches do an automatic save after every SNMP set() call. This is unlike CLI access,
+Some HP Procurve/Aruba switches do an automatic save after every SNMP set() call. This is unlike CLI access,
 where (some) switches require an explicit save (write mem).
 
 For more see http://www.circitor.fr/Mibs/Html/H/HP-SWITCH-BASIC-CONFIG-MIB.php#hpSwitchImplicitConfigSave
@@ -72,7 +72,7 @@ If this looks OK, you need to issue the following command to get your snmp v3 us
 
   snmp-server group <your_v3_group> v3 auth context vlan- match prefix
 
-* **How can I import my switches from <name your NMS here>?**
+* **How can I import devices from <name your NMS here>?**
 
 The Django python API is fully supported. You can write a custom stand-alone import script using whatever NMS API
 you have to read your device data and import into OpenL2M. See the ./scripts/example.py file for more details.
