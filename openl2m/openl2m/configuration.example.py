@@ -132,205 +132,243 @@ ALWAYS_ALLOW_POE_TOGGLE = False
 HIDE_NONE_ETHERNET_INTERFACES = False
 
 # Customizable URLs for Switch, Interface, Ethernet and IP addresses
-# 'url' is mandatory.
 #
-# 'hint' become a tooltip descriptions and is optional.
+# Each is a list of dictionary items. Each dictionary item have have the following keys:
+#
+# 'url':  the mandatory url for the link
+#
+# 'hint': the optional url hint (ie hover-over text)
 #
 # 'target' is optional. Any value that evaluates to "True" will cause 'target="_blank"' to be added
 #  to the link, to open in new window or tab (per browser settings).
 #
-# You can also use 'icon' and 'alt', or 'fa_icon'
-# fa_icon refers to the Font Awesome v5 icon collection, and you reference it by name
+# 'icon': a path or url to the image for the link
+#
+# 'alt': alternative text if icon is used.
+#
+# fa_icon': the name of the FontAwesome 5 icon to use; this overrides the "icon" field above.
+# Refer to Font Awesome v5 icon collection by name,
 # see https://fontawesome.com/icons?d=gallery&m=free
-# fa_icon takes precedence over icon/alt entries.
-
-# Switch Info Urls is a list dictionaries with one or more links to put in front of the switch name.
-# you can use the following template strings:
+#
+# You can use the following template strings in the url field:
 # {{ switch.name }} - name as configured by admin switch object
 # {{ switch.hostname }} - hostname as set on device (read via snmp, ssh, etc.)
 # {{ switch.primary_ip4 }}
 # {{ switch.nms_id }}
-SWITCH_INFO_URLS = [
-    # This example is for Akips, and provides a direct link to the switch page in Akips:
-    {
-        'url': 'https://akips.yoursite.com/dashboard?mode=device;device_list={{ switch.hostname }};',
-        'hint': 'Click here to see AKIPS data for this switch',
-        'target': True,
-        'icon': '/static/img/nms.png',
-        # or use the icon from Akip:
-        # 'icon': 'https://akips.yoursite/img/favicon-32.png',
-        'alt': 'Akips NMS Icon',
-        # or use any Font Awesome 5 icon:
-        # 'fa_icon': 'fa-chart-area',
-    },
-    # this would be a link to a LibreNMS or Observium page.
-    # Note you have to fill in the "nms_id" field for each switch for this to work!
-    {
-        'url': 'https://librenms.yoursite.com/device/device={{ switch.nms_id }}/',
-        'hint': 'Click here to see LibreNMS data for this switch',
-        'target': True,
-        'icon': '/static/img/nms.png',
-        # or use the icon from LibreNMS:
-        # 'icon': 'http://librenms.yoursite.com/images/favicon-16x16.png',
-        # or
-        # 'icon': 'http://librenms.yoursite.com/images/favicon-32x32.png',
-        # 'icon': 'http://librenms.yoursite.com/images/favicon.ico',
-        'alt': 'LibreNMS Icon',
-        # or use any Font Awesome 5 icon:
-        # 'fa_icon': 'fa-chart-area',
-    },
-]
+# 'url' is mandatory.
+#
 
-# This is identical to SWITCH_INFO_URLS, but only shows for Staff of SuperUsers (admins)
+#
+# SWITCH_INFO_URLS is a list of dictionaries with one or more links to put in front of the device name.
+#
+
+# uncomment this as needed:
+# SWITCH_INFO_URLS = [
+#     # This example is for Akips, and provides a direct link to the switch page in Akips:
+#     {
+#         'url': 'https://akips.yoursite.com/dashboard?mode=device;device_list={{ switch.hostname }};',
+#         'hint': 'Click here to see AKIPS data for this switch',
+#         'target': True,
+#         'icon': '/static/img/nms.png',
+#         # or use the icon from Akip:
+#         # 'icon': 'https://akips.yoursite/img/favicon-32.png',
+#         'alt': 'Akips NMS Icon',
+#         # or use any Font Awesome 5 icon:
+#         # 'fa_icon': 'fa-chart-area',
+#     },
+#     # this would be a link to a LibreNMS or Observium page.
+#     # Note you have to fill in the "nms_id" field for each switch for this to work!
+#     {
+#         'url': 'https://librenms.yoursite.com/device/device={{ switch.nms_id }}/',
+#         'hint': 'Click here to see LibreNMS data for this switch',
+#         'target': True,
+#         'icon': '/static/img/nms.png',
+#         # or use the icon from LibreNMS:
+#         # 'icon': 'http://librenms.yoursite.com/images/favicon-16x16.png',
+#         # or
+#         # 'icon': 'http://librenms.yoursite.com/images/favicon-32x32.png',
+#         # 'icon': 'http://librenms.yoursite.com/images/favicon.ico',
+#         'alt': 'LibreNMS Icon',
+#         # or use any Font Awesome 5 icon:
+#         # 'fa_icon': 'fa-chart-area',
+#     },
+# ]
+
+#
+# SWITCH_INFO_URLS_STAFF is identical to SWITCH_INFO_URLS, but only shows for Staff of SuperUsers (admins)
 # See explanation above.
-SWITCH_INFO_URLS_STAFF = [
-    # This example is for SSH. Note this require browsers to handle "ssh://" !
-    {
-        'url': 'ssh://{{ switch.primary_ip4 }}/',
-        'hint': 'Click here to SSH to this switch',
-        'target': True,
-        # 'icon': '/static/img/nms.png',
-        # or use the icon from a URL:
-        # 'icon': 'https://some.site.com/favicon.png',
-        'alt': 'SSH Icon',
-        # or use any Font Awesome 5 icon:
-        'fa_icon': 'fa-desktop',
-    },
-    # this would be a link to a another management tool for admins.
-    {
-        'url': 'https://yourtool.yoursite.com/device/device={{ switch.hostname }}/',
-        'hint': 'Click here to go to some tool!',
-        'target': True,
-        'icon': '/static/img/nms.png',
-        'alt': 'Tool Icon',
-        # or use any Font Awesome 5 icon:
-        # 'fa_icon': 'fa-chart-area',
-    },
-]
+#
 
-# This is identical to SWITCH_INFO_URLS, but only shows for SuperUsers (admins)
+# uncomment this as needed:
+# SWITCH_INFO_URLS_STAFF = [
+#     # This example is for SSH. Note this require browsers to handle "ssh://" !
+#     {
+#         'url': 'ssh://{{ switch.primary_ip4 }}/',
+#         'hint': 'Click here to SSH to this switch',
+#         'target': True,
+#         # 'icon': '/static/img/nms.png',
+#         # or use the icon from a URL:
+#         # 'icon': 'https://some.site.com/favicon.png',
+#         'alt': 'SSH Icon',
+#         # or use any Font Awesome 5 icon:
+#         'fa_icon': 'fa-desktop',
+#     },
+#     # this would be a link to a another management tool for admins.
+#     {
+#         'url': 'https://yourtool.yoursite.com/device/device={{ switch.hostname }}/',
+#         'hint': 'Click here to go to some tool!',
+#         'target': True,
+#         'icon': '/static/img/nms.png',
+#         'alt': 'Tool Icon',
+#         # or use any Font Awesome 5 icon:
+#         # 'fa_icon': 'fa-chart-area',
+#     },
+# ]
+
+#
+# SWITCH_INFO_URLS_ADMINS is identical to SWITCH_INFO_URLS, but only shows for SuperUsers (admins)
 # See explanation above.
-SWITCH_INFO_URLS_ADMINS = [
-    # This example is for SSH. Note this require browsers to handle "ssh://" !
-    {
-        'url': 'ssh://{{ switch.primary_ip4 }}/',
-        'hint': 'Click here to SSH to this switch',
-        'target': True,
-        # 'icon': '/static/img/nms.png',
-        # or use the icon from a URL:
-        # 'icon': 'https://some.site.com/favicon.png',
-        'alt': 'SSH Icon',
-        # or use any Font Awesome 5 icon:
-        'fa_icon': 'fa-desktop',
-    },
-    # this would be a link to a another management tool for admins.
-    {
-        'url': 'https://yourtool.yoursite.com/device/device={{ switch.hostname }}/',
-        'hint': 'Click here to go to some tool!',
-        'target': True,
-        'icon': '/static/img/nms.png',
-        'alt': 'Tool Icon',
-        # or use any Font Awesome 5 icon:
-        # 'fa_icon': 'fa-chart-area',
-    },
-]
+#
 
-# Interface Info Urls is a list of dictionaries with one or more links to put in front of interfaces.
-# you can use all the {{ switch }} templates above, as well as
+# uncomment this as needed:
+# SWITCH_INFO_URLS_ADMINS = [
+#     # This example is for SSH. Note this require browsers to handle "ssh://" !
+#     {
+#         'url': 'ssh://{{ switch.primary_ip4 }}/',
+#         'hint': 'Click here to SSH to this switch',
+#         'target': True,
+#         # 'icon': '/static/img/nms.png',
+#         # or use the icon from a URL:
+#         # 'icon': 'https://some.site.com/favicon.png',
+#         'alt': 'SSH Icon',
+#         # or use any Font Awesome 5 icon:
+#         'fa_icon': 'fa-desktop',
+#     },
+#     # this would be a link to a another management tool for admins.
+#     {
+#         'url': 'https://yourtool.yoursite.com/device/device={{ switch.hostname }}/',
+#         'hint': 'Click here to go to some tool!',
+#         'target': True,
+#         'icon': '/static/img/nms.png',
+#         'alt': 'Tool Icon',
+#         # or use any Font Awesome 5 icon:
+#         # 'fa_icon': 'fa-chart-area',
+#     },
+# ]
+
+#
+# INTERFACE_INFO_URLS is a list of dictionaries with one or more links to put in front of interfaces.
+#
+# You can use all the {{ switch }} templates above, as well as
 # {{ iface.name }}
 # {{ iface.index }} - the SNMP interface index ifIndex
 # {{ iface.description }} - the interface description, for SNMP interface ifAlias, probably not useful.
 #
-INTERFACE_INFO_URLS = [
-    {
-        'name': 'Akips',
-        'url': 'https://akips.yoursite.com/dashboard?mode=interface;time=last3h;controls=interface;device={{ switch.hostname }};child={{ iface.name }}',
-        'hint': 'Click here to see AKIPS data for this interface',
-        'target': True,
-        'icon': '/static/img/nms.png',
-        'alt': 'NMS Icon',
-        # or use any Font Awesome 5 icon:
-        # 'fa_icon': 'fa-chart-area',
-    },
-]
 
-# VLAN Info Urls is a list of dictionaries with one or more links to put in front of vlans.
-# you can use the following templates:
+# uncomment this as needed:
+# INTERFACE_INFO_URLS = [
+#     {
+#         'name': 'Akips',
+#         'url': 'https://akips.yoursite.com/dashboard?mode=interface;time=last3h;controls=interface;device={{ switch.hostname }};child={{ iface.name }}',
+#         'hint': 'Click here to see AKIPS data for this interface',
+#         'target': True,
+#         'icon': '/static/img/nms.png',
+#         'alt': 'NMS Icon',
+#         # or use any Font Awesome 5 icon:
+#         # 'fa_icon': 'fa-chart-area',
+#     },
+# ]
+
+#
+# VLAN_INFO_URLS is a list of dictionaries with one or more links to put in front of vlans.
+#
+# You can use the following templates:
 # {{ vlan.name }}   - the name :-)
 # {{ vlan.id }}     - the vlan id :-)
 #
-VLAN_INFO_URLS = [
-    {
-        'name': 'IPAM',
-        'url': 'https://ipam.yoursite.com/something/search?vlan={{ vlan.id }}',
-        'hint': 'Click here to see IPAM data about this VLAN',
-        'target': True,
-        'icon': '/static/img/ipam.png',
-        'alt': 'NMS Icon',
-        # or use any Font Awesome 5 icon:
-        # 'fa_icon': 'fa-chart-area',
-    },
-]
 
+# uncomment this as needed:
+# VLAN_INFO_URLS = [
+#     {
+#         'name': 'IPAM',
+#         'url': 'https://ipam.yoursite.com/something/search?vlan={{ vlan.id }}',
+#         'hint': 'Click here to see IPAM data about this VLAN',
+#         'target': True,
+#         'icon': '/static/img/ipam.png',
+#         'alt': 'NMS Icon',
+#         # or use any Font Awesome 5 icon:
+#         # 'fa_icon': 'fa-chart-area',
+#     },
+# ]
 
-# IPv4 Address Info Urls is a list of dictionaries that will be links shown on found IP addresses.
+#
+# IP4_INFO_URLS is a list of dictionaries that will be links shown on found IP addresses.
 # The idea is that you may want to provide a link to your device registration site, as well as your logging (eg Splunk)
-# you can use the following templates:
+#
+# You can use the following templates:
 # {{ ip4 }} - the ip v4 address x.x.x.x
-IP4_INFO_URLS = [
-    {
-        'name': 'IPAM',
-        'url': 'https://ipam.yoursite.com/something/search?ipv4={{ ip4 }}',
-        'hint': 'Click here to see IPAM data about this IPv4 address',
-        'target': True,
-        'icon': '/static/img/ipam.png',
-        'alt': 'NMS Icon',
-        # or use any Font Awesome 5 icon:
-        # 'fa_icon': 'fa-chart-area',
-    },
-    # another example, a direct link to an ELK stack log parser for the ipv4 addresses
-    # note this is completely fictitious!
-    {
-        'name': 'ELK Stack',
-        'url': 'https://elkstack.yoursite.com/search?ipv4={{ ip4 }}',
-        'hint': 'Click here to see ELK Stack log data about this IPv4 address',
-        'target': True,
-        'icon': '/static/img/general-info.png',
-        'alt': 'ELK Stack Icon',
-        # or use any Font Awesome 5 icon:
-        # 'fa_icon': 'fa-chart-area',
-    },
-]
+#
 
+# uncomment this as needed:
+# IP4_INFO_URLS = [
+#     {
+#         'name': 'IPAM',
+#         'url': 'https://ipam.yoursite.com/something/search?ipv4={{ ip4 }}',
+#         'hint': 'Click here to see IPAM data about this IPv4 address',
+#         'target': True,
+#         'icon': '/static/img/ipam.png',
+#         'alt': 'NMS Icon',
+#         # or use any Font Awesome 5 icon:
+#         # 'fa_icon': 'fa-chart-area',
+#     },
+#     # another example, a direct link to an ELK stack log parser for the ipv4 addresses
+#     # note this is completely fictitious!
+#     {
+#         'name': 'ELK Stack',
+#         'url': 'https://elkstack.yoursite.com/search?ipv4={{ ip4 }}',
+#         'hint': 'Click here to see ELK Stack log data about this IPv4 address',
+#         'target': True,
+#         'icon': '/static/img/general-info.png',
+#         'alt': 'ELK Stack Icon',
+#         # or use any Font Awesome 5 icon:
+#         # 'fa_icon': 'fa-chart-area',
+#     },
+# ]
 
-# Ethernet Info Urls is a list of dictionaries that will be links shown on found ethernet addresses.
+#
+# ETHERNET_INFO_URLS is a list of dictionaries that will be links shown on found ethernet addresses.
 # The idea is that you may want to provide a link to your device registration site, as well as your logging (eg Splunk)
-# you can use the following templates:
+#
+# You can use the following templates:
 # {{ ethernet }} - the formatted ethernet string
-ETHERNET_INFO_URLS = [
-    {
-        'name': 'IPAM',
-        'url': 'https://ipam.yoursite.com/something/search?ethernet={{ ethernet }}',
-        'hint': 'Click here to see IPAM data about this ethernet address',
-        'target': True,
-        'icon': '/static/img/ipam.png',
-        'alt': 'NMS Icon',
-        # or use any Font Awesome 5 icon:
-        # 'fa_icon': 'fa-chart-area',
-    },
-    # another example, a direct link to an ELK stack log parser for the ethernet addresses
-    # note this is completely fictitious!
-    {
-        'name': 'ELK Stack',
-        'url': 'https://elkstack.yoursite.com/search?ethernet={{ ethernet }}',
-        'hint': 'Click here to see ELK Stack log data about this eithernet address',
-        'target': True,
-        'icon': '/static/img/general-info.png',
-        'alt': 'ELK Stack Icon',
-        # or use any Font Awesome 5 icon:
-        # 'fa_icon': 'fa-chart-area',
-    },
-]
+#
+
+# uncomment this as needed:
+# ETHERNET_INFO_URLS = [
+#     {
+#         'name': 'IPAM',
+#         'url': 'https://ipam.yoursite.com/something/search?ethernet={{ ethernet }}',
+#         'hint': 'Click here to see IPAM data about this ethernet address',
+#         'target': True,
+#         'icon': '/static/img/ipam.png',
+#         'alt': 'NMS Icon',
+#         # or use any Font Awesome 5 icon:
+#         # 'fa_icon': 'fa-chart-area',
+#     },
+#     # another example, a direct link to an ELK stack log parser for the ethernet addresses
+#     # note this is completely fictitious!
+#     {
+#         'name': 'ELK Stack',
+#         'url': 'https://elkstack.yoursite.com/search?ethernet={{ ethernet }}',
+#         'hint': 'Click here to see ELK Stack log data about this eithernet address',
+#         'target': True,
+#         'icon': '/static/img/general-info.png',
+#         'alt': 'ELK Stack Icon',
+#         # or use any Font Awesome 5 icon:
+#         # 'fa_icon': 'fa-chart-area',
+#     },
+# ]
+
 
 # Ethernet display format, either
 # COLON = 0  e.g. 00:11:22:33:44:55
@@ -338,76 +376,93 @@ ETHERNET_INFO_URLS = [
 # CISCO = 2  e.g.  0011.2233.4455
 ETH_FORMAT = 0
 
+#
 # various regular expression to remove interfaces from the user
 # this uses the Python 're' module.
 #
+# IF MATCHED, INTERFACES WILL NOT BE SHOWN TO REGULAR USERS!
+#
 
 # this regex matches the interface name, GigabitEthernetx/x/x
+# matched interface are hidden:
 IFACE_HIDE_REGEX_IFNAME = "^TenGig"
 
 # this regex matches the interface 'ifAlias' aka. the interface description
+# use e.g. to hide "Trunk" interfaces based on description.
+# matched interface are hidden:
 IFACE_HIDE_REGEX_IFDESCR = "BLUE"
 
 # hide interfaces with speeds above this value in Mbps.
 # e.g. hide 10G and above, set to 9500. 0 disables this filter.
+# matched interface are hidden:
 IFACE_HIDE_SPEED_ABOVE = 9500
 
+#
+# a settings to dis-allow new interface description formats.
+# again uses Python 're' module to match.
+#
 # if the new description matches this reg ex, do not allow it
+# matched descriptions are not allowed:
 IFACE_ALIAS_NOT_ALLOW_REGEX = "^Po|NOT ALLOWED"
 
+#
+# a setting to force a persistant part of a description.
 # if the existing description start with this match,
 # keep that part of the description when a user edits it.
-# E.g. the below regex for port-patch descriptions of forma "D.nnn" to be kept
+# E.g. the below regex for port-patch descriptions of format "D.nnn" to be kept
 # while allowing 'real' descriptions to be added after it
+# matched descriptions are not allowed:
 IFACE_ALIAS_KEEP_BEGINNING_REGEX = "D.\d+"
 
 # if true, routed interface IPv4 addresses will show prefixlen. Default is subnet mask.
 IFACE_IP4_SHOW_PREFIXLEN = False
 
+#
 # Custom Menu items, consisting of MENU_INFO_URLS and MENU_ON_RIGHT.
+#
 
 # MENU_ON_RIGHT = True, indicates the custom menu will be on the right side of the top bar
 MENU_ON_RIGHT = True
-# Menu Info URLs is a dictionary of dictionaries to form a menu structure of links in the top bar
+
+# MENU_INFO_URLS is a dictionary of dictionaries to form a menu structure of links in the top bar
 # the initial dict() is the menu header name, and the containing dict() are the url links under it
 #
-# You can also use the Font Awesome v4.7.0 icons, from https://fontawesome.com/v4.7.0/icons/
+# You can also use the Font Awesome 5 icons.
 # To use add an entry 'fa_icon': 'font-awesome-icon-name'
 # This will take the place of the 'icon' entry (i.e. it will not be used if fa-icon is defined!)
 #
-"""
-MENU_INFO_URLS = {}
-MENU_INFO_URLS['Menu 1'] = [
-    {
-        'name': 'Entry 1',
-        'url': 'http://example.com',
-        'target': True,
-        'fa_icon': 'fa-car'
-    },
-    {
-        'name': 'Entry 2',
-        'url': 'https://ssl.example.com',
-        'target': True,
-        'icon': '/static/img/ipam.png',
-        'alt': 'Cyder Icon',
-    },
-]
-MENU_INFO_URLS['Menu 2'] = [
-    {
-        'name': 'Entry 3',
-        'url': 'http://example.com/test.php=test',
-        'target': True,
-        'icon': '/static/img/ipam.png',
-        'alt': 'Cyder Icon',
-    },
-    {
-        'name': 'Entry 4',
-        'url': 'https://ssl.example.com',
-        'target': True,
-        'fa_icon': 'fa-address-book'
-    },
-]
-"""
+
+# uncomment this as needed:
+# MENU_INFO_URLS['Menu 1'] = [
+#     {
+#         'name': 'Entry 1',
+#         'url': 'http://example.com',
+#         'target': True,
+#         'fa_icon': 'fa-car'
+#     },
+#     {
+#         'name': 'Entry 2',
+#         'url': 'https://ssl.example.com',
+#         'target': True,
+#         'icon': '/static/img/ipam.png',
+#         'alt': 'Cyder Icon',
+#     },
+# ]
+# MENU_INFO_URLS['Menu 2'] = [
+#     {
+#         'name': 'Entry 3',
+#         'url': 'http://example.com/test.php=test',
+#         'target': True,
+#         'icon': '/static/img/ipam.png',
+#         'alt': 'Cyder Icon',
+#     },
+#     {
+#         'name': 'Entry 4',
+#         'url': 'https://ssl.example.com',
+#         'target': True,
+#         'fa_icon': 'fa-address-book'
+#     },
+# ]
 
 # Some html colors to choose interface admin status.
 # Colors used behind the interface name (ie background):
@@ -420,10 +475,10 @@ BGCOLOR_IF_ADMIN_UP_UP = "#ADFF2F"  # brighter green
 BGCOLOR_IF_ADMIN_DOWN = "#EB5B5B"  # red
 
 # login view organization. Number of colums in the "matrix" groups display
-# Can be no more then 6!
+# Can be no more then 6! Best if 12 is divisible this number (e.g. 2, 3, 4, or 6)
 TOPMENU_MAX_COLUMNS = 4
 
-# show the switch search form on home page
+# show the switch search form in nav bar
 SWITCH_SEARCH_FORM = True
 
 # SNMP related settings, normally not needed to change.
