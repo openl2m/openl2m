@@ -102,15 +102,23 @@ Devices Menu:
 
 ![DevicesMenu](docs/_static/devices-menu.png "Devices Menu")
 
-Interfaces Menu:
+Interfaces Menu: Edit a single interface at a time
 
-![InterfaceMenu](docs/_static/screenshot-1.png "Interface Menu")
+![InterfaceMenu](docs/_static/interfaces-menu.png "Interface Menu")
 
-Bulk-Edit Menu:
+Bulk-Edit Menu: Edit multiple interfaces at once
 
-![BulkEditMenu](docs/_static/screenshot-2.png "Bulk Edit Menu")
+![BulkEditMenu](docs/_static/bulkedit-menu.png "Bulk Edit Menu")
 
-VLAN Edit Menu:
+Commands Menu: Run pre-defined commands on the device
+
+![CommandsMenu](docs/_static/commands-menu.png "Commands Menu")
+
+Command Templates Menu: Run pre-defined commands with user-input on the device
+
+![CommandsMenu](docs/_static/commands-menu.png "Commands Menu")
+
+VLAN Edit Menu: Add, Rename, or Delete vlans
 
 ![VLANEditMenu](docs/_static/vlan-edit.png "VLAN Edit Menu")
 
