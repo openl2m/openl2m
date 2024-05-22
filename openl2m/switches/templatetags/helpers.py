@@ -621,16 +621,25 @@ def get_options_from_comma_string(csv_values):
     full-blown CSV encoded values, eg. "some , value", "2", "3,4,5"
     So we use the CSV reader to parse this.
     """
+    # dprint(f"get_options_from_comma_string({csv_values})")
     choices = ""
-    # options = csv_values.split(',')
-    reader = csv.reader(csv_values, quotechar='"', delimiter=',', quoting=csv.QUOTE_ALL, skipinitialspace=True)
-    # dprint(f"CSV Values for |{csv_values}|")
-    for row in reader:
-        # dprint(type(row))
-        for item in row:
-            if item:
-                # dprint(item)
-                choices += f"<option value=\"{item}\">{item}</option>\n"
+    if '"' not in csv_values:
+        # dprint("Regular comma-separated...")
+        # regular comma-separated
+        options = csv_values.split(',')
+        for item in options:
+            # dprint(f"ITEM={item}")
+            choices += f"<option value=\"{item}\">{item}</option>\n"
+    else:
+        # parse with CSV reader:
+        # dprint("Quoted string")
+        reader = csv.reader(csv_values, skipinitialspace=True)
+        for row in reader:
+            # dprint(f"ROW={type(row)}: {row}")
+            for item in row:
+                if item:
+                    # dprint(f"ITEM={item}")
+                    choices += f"<option value=\"{item}\">{item}</option>\n"
     return mark_safe(choices)
 
 
