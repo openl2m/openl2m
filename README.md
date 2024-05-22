@@ -104,8 +104,6 @@ __Screenshots__:
 
 __Devices Menu:__ Shows the groups and devices you can access
 
-![DevicesMenu](docs/_static/devices-menu.png "Devices Menu")
-
 <kbd><img src= "docs/_static/devices-menu.png" alt="Devices Menu"></kbd>
 
 
