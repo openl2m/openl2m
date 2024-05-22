@@ -15,6 +15,7 @@ sort of network API (e.g. SSH, Netconf, REST, etc.)
 __For Quick Testing:__ download the __Docker Compose__ test config at https://github.com/openl2m/docker-test
 
 __Features:__
+
 * Light or Dark theme.
 * pluggable backend to support new vendor devices, allowing easy development
 * vendor-agnostic REST API. Automate changes from scripts, etc.
@@ -29,14 +30,16 @@ __Features:__
 * and more...
 
 __Devices Supported:__
+
 * Aruba AOS-CX switches (via SNMP or REST API)
 * HP/Aruba Procurve switches (via SNMP)
 * HPE Comware switches (via SNMP)
 * Juniper devices (via Junos PyEz API)
 * Cisco switches (some, via SNMP)
 * Generic SNMP devices
-* Any device support by Netmiko library (see SSH devices)
+* Any device supported by the Netmiko library (see SSH devices)
 * Most devices supported by Napalm (read-only)
+
 See the documentation for more information.
 
 __What's New:__
@@ -98,31 +101,39 @@ See the following OpenL2M documentation:
 
 __Screenshots__:
 
-Devices Menu:
+__Devices Menu:__ Shows the groups and devices you can access
 
 ![DevicesMenu](docs/_static/devices-menu.png "Devices Menu")
 
-Interfaces Menu: Edit a single interface at a time
+<img src= "docs/_static/devices-menu.png" alt="Devices Menu" style="border: 1px solid light-grey;">
+
+
+__Interfaces Menu:__ Edit a single interface at a time
 
 ![InterfaceMenu](docs/_static/interfaces-menu.png "Interface Menu")
 
-Bulk-Edit Menu: Edit multiple interfaces at once
+
+__Bulk-Edit Menu:__ Edit multiple interfaces at once
 
 ![BulkEditMenu](docs/_static/bulkedit-menu.png "Bulk Edit Menu")
 
-Commands Menu: Run pre-defined commands on the device
+
+__Commands Menu:__ Run pre-defined commands on the device
 
 ![CommandsMenu](docs/_static/commands-menu.png "Commands Menu")
 
-Command Templates Menu: Run pre-defined commands with user-input on the device
+
+__Command Templates Menu:__ Run pre-defined commands with user-input on the device
 
 ![CommandsMenu](docs/_static/commands-menu.png "Commands Menu")
 
-VLAN Edit Menu: Add, Rename, or Delete vlans
+
+__VLAN Edit Menu:__ Add, Rename, or Delete vlans
 
 ![VLANEditMenu](docs/_static/vlan-edit.png "VLAN Edit Menu")
 
-__Download__:
+
+__Downloads__:
 
 OpenL2M sources can be found at
 <https://github.com/openl2m/openl2m>
