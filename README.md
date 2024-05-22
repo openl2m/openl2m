@@ -99,38 +99,39 @@ See the following OpenL2M documentation:
 * after install, from the menu, or at <your-website-url>/static/docs/html/
 * at https://openl2m.readthedocs.io/
 
+
 __Screenshots__:
 
 __Devices Menu:__ Shows the groups and devices you can access
 
 ![DevicesMenu](docs/_static/devices-menu.png "Devices Menu")
 
-<kbd><img src= "docs/_static/devices-menu.png" alt="Devices Menu" style="border: 1px solid grey;"></kbd>
+<kbd><img src= "docs/_static/devices-menu.png" alt="Devices Menu"></kbd>
 
 
 __Interfaces Menu:__ Edit a single interface at a time
 
-![InterfaceMenu](docs/_static/interfaces-menu.png "Interface Menu")
+<kbd><img src= "docs/_static/interfaces-menu.png" alt="Interface Menu"></kbd>
 
 
 __Bulk-Edit Menu:__ Edit multiple interfaces at once
 
-![BulkEditMenu](docs/_static/bulkedit-menu.png "Bulk Edit Menu")
+<kbd><img src= "docs/_static/bulkedit-menu.png" alt="Bulk Edit Menu"></kbd>
 
 
 __Commands Menu:__ Run pre-defined commands on the device
 
-![CommandsMenu](docs/_static/commands-menu.png "Commands Menu")
+<kbd><img src= "docs/_static/commands-menu.png" alt="Commands Menu"></kbd>
 
 
 __Command Templates Menu:__ Run pre-defined commands with user-input on the device
 
-![CommandsMenu](docs/_static/commands-menu.png "Commands Menu")
+<kbd><img src= "docs/_static/commands-menu.png" alt="Commands Menu"></kbd>
 
 
 __VLAN Edit Menu:__ Add, Rename, or Delete vlans
 
-![VLANEditMenu](docs/_static/vlan-edit.png "VLAN Edit Menu")
+<kbd><img src= "docs/_static/vlan-edit.png" alt="VLAN Edit Menu"></kbd>
 
 
 __Downloads__:
