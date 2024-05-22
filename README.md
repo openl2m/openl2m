@@ -124,7 +124,7 @@ __Commands Menu:__ Run pre-defined commands on the device
 
 __Command Templates Menu:__ Run pre-defined commands with user-input on the device
 
-<kbd><img src= "docs/_static/commands-menu.png" alt="Commands Menu"></kbd>
+<kbd><img src= "docs/_static/command-templates-menu.png" alt="Commands Menu"></kbd>
 
 
 __VLAN Edit Menu:__ Add, Rename, or Delete vlans
