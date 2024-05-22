@@ -105,7 +105,7 @@ __Devices Menu:__ Shows the groups and devices you can access
 
 ![DevicesMenu](docs/_static/devices-menu.png "Devices Menu")
 
-<img src= "docs/_static/devices-menu.png" alt="Devices Menu" style="border: 1px solid grey;">
+<kbd><img src= "docs/_static/devices-menu.png" alt="Devices Menu" style="border: 1px solid grey;"></kbd>
 
 
 __Interfaces Menu:__ Edit a single interface at a time
