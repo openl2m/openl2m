@@ -6,7 +6,7 @@ Supported Devices
 
 **Switches Tested**
 
-The following devices are supported by OpenL2M. While an attempt has been made to verify all functionality,
+The following devices (in alphabetical order), are supported by OpenL2M. While an attempt has been made to verify all functionality,
 we strongly encourage you to test your devices before using them "in production" with OpenL2M.
 
 For SNMP supported device, an attempt has been made to make OpenL2M adhere to 'standard' SNMP.
@@ -56,6 +56,7 @@ Full with Junos PyEZ, R/O support with SNMP.
 
 * *EX2300* series switch, running JUNOS 18.2R3-S2.9; single unit.
 * *QFX5120* series switch, running JUNOS 20.4R3-S3.4; single unit.
+* *SRX* series firewalls, with "Commands-Only" configurations to run command-templates.
 
 **Generic**
 

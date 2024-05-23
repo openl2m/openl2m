@@ -4,14 +4,31 @@
 OpenL2M Screenshots
 ===================
 
-* **The main interface management page:**
+* **Devices Menu:** Shows the groups and devices you can access
 
-.. image:: _static/screenshot-1.png
+.. image:: _static/devices-menu.png
 
-* **The Bulk-Edit interface page:**
 
-.. image:: _static/screenshot-2.png
+* **Interfaces Menu:** Edit a single interface at a time
 
-* **The Programming API:**
+.. image:: _static/interfaces-menu.png
 
-.. image:: _static/openl2m-architecture.png
+
+* **Bulk-Edit Menu:** Edit multiple interfaces at once
+
+.. image:: _static/bulkedit-menu.png
+
+
+* **Commands Menu:** Run pre-defined commands on the device
+
+.. image:: _static/commands-menu.png
+
+
+* **Command Templates Menu:** Run pre-defined commands with user-input on the device
+
+.. image:: _static/command-templates-menu.png
+
+
+* **VLAN Edit Menu:** Add, Rename, or Delete vlans
+
+.. image:: _static/vlan-edit.png

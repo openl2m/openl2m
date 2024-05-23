@@ -41,9 +41,9 @@ Click here to :doc:`See What Is New <what_is_new>`!
    using/index.rst
    installation/index.rst
    configuration/index.rst
-   switch_requirements.rst
+   device_requirements.rst
    feature_support.rst
-   switches.rst
+   devices.rst
    screenshots.rst
    faq.rst
    howto/index.rst

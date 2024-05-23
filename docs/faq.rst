@@ -35,7 +35,7 @@ Not at this time, as we have no real test environment.
 
 * **What devices are supported and tested?**
 
-Please see :doc:`this document <switches>`
+Please see :doc:`this document <devices>`
 
 * **I get an error "502 Bad Gateway", how do I fix this?**
 

@@ -94,3 +94,8 @@ If you need to upgrade to another major.minor Django version, e.g. from 4.2 to 5
 at minimum you need to follow the steps in the Django upgrade version documentation
 
 E.g. for v5.0, this can be found at https://docs.djangoproject.com/en/5.0/howto/upgrade-version/
+
+**High-Level overview of Elements:**
+
+.. image:: ../_static/openl2m-architecture.png
+

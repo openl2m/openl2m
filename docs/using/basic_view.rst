@@ -265,7 +265,7 @@ Select a command, click on 'Run Command', and be patient!
 When complete, the page will refresh and a new 'Command Output' tab will show the output from the device.
 
 
-.. |switch_commands_tab| image:: ../_static/switch-commands-tab.png
+.. |switch_commands_tab| image:: ../_static/commands-tab.png
 .. |command_output_tab| image:: ../_static/command-output-tab.png
 
 
@@ -283,7 +283,7 @@ hover-over text, should explain what the command can be used for.
 
 Once you click on the name, the form with the associated input fields will be showing.
 
-.. image:: ../_static/command-template-form.png
+.. image:: ../_static/command-templates-menu.png
 
 Once the user fills in the form, and clicks Run, the data will be validated according the any regular expression set.
 If all matches, the command will run on the device.

@@ -1,7 +1,7 @@
 .. image:: _static/openl2m_logo.png
 
 ===================
-Switch Requirements
+Device Requirements
 ===================
 
 Juniper PyEZ
