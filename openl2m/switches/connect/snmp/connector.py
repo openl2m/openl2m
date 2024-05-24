@@ -17,7 +17,7 @@ Some of the code here is inspired by the NAV (Network Administration Visualized)
 Various vendor specific implementations that augment this class exist.
 """
 import datetime
-import easysnmp
+import ezsnmp
 import pprint
 import time
 from typing import Dict, Any
@@ -178,7 +178,7 @@ class pysnmpHelper:
     """
     Implement functionality we need to do a few simple things.
     We use the "pysnmp" library primarily for help with OctetString / BitMap values.
-    EasySNMP cannot handle this cleanly, especially for uneven byte counts, due to
+    ezsnmp cannot handle this cleanly, especially for uneven byte counts, due to
     how it maps everything to a unicode string internally!
     Based on the pysnmp HPAPI at http://snmplabs.com/pysnmp/examples/contents.html#high-level-snmp
     """
@@ -430,9 +430,9 @@ class SnmpConnector(Connector):
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
 
         """
-        attributes to track EasySnmp library
+        attributes to track ezsnmp library
         """
-        self._snmp_session = False  # EasySNMP session object
+        self._snmp_session = False  # ezsnmp session object
         # initialize the snmp "connection/session"
         if not self._set_snmp_session():
             dprint("   ERROR: cannot get SNMP session!")
@@ -444,7 +444,7 @@ class SnmpConnector(Connector):
 
     def _set_snmp_session(self, com_or_ctx: str = '') -> bool:
         """
-        Get a EasySnmp Session() object for this snmp connection
+        Get a ezsnmp Session() object for this snmp connection
         com_or_ctx - the community to override the snmp profile settings if v2,
                       or the snmp v3 context to use.
         """
@@ -459,7 +459,7 @@ class SnmpConnector(Connector):
                 else:
                     # use profile setting
                     community = snmp_profile.community
-                self._snmp_session = easysnmp.Session(
+                self._snmp_session = ezsnmp.Session(
                     hostname=self.switch.primary_ip4,
                     version=snmp_profile.version,
                     community=community,
@@ -476,7 +476,7 @@ class SnmpConnector(Connector):
                 # NoAuthNoPriv
                 if snmp_profile.sec_level == SNMP_V3_SECURITY_NOAUTH_NOPRIV:
                     dprint("version 3 NoAuth-NoPriv")
-                    self._snmp_session = easysnmp.Session(
+                    self._snmp_session = ezsnmp.Session(
                         hostname=self.switch.primary_ip4,
                         version=snmp_profile.version,
                         remote_port=snmp_profile.udp_port,
@@ -492,7 +492,7 @@ class SnmpConnector(Connector):
                 elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
                     dprint("version 3 Auth-NoPriv")
                     if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                        self._snmp_session = easysnmp.Session(
+                        self._snmp_session = ezsnmp.Session(
                             hostname=self.switch.primary_ip4,
                             version=snmp_profile.version,
                             remote_port=snmp_profile.udp_port,
@@ -507,7 +507,7 @@ class SnmpConnector(Connector):
                         return True
 
                     elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                        self._snmp_session = easysnmp.Session(
+                        self._snmp_session = ezsnmp.Session(
                             hostname=self.switch.primary_ip4,
                             version=snmp_profile.version,
                             remote_port=snmp_profile.udp_port,
@@ -526,7 +526,7 @@ class SnmpConnector(Connector):
                     dprint("version 3 Auth-Priv")
                     if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
                         if snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
-                            self._snmp_session = easysnmp.Session(
+                            self._snmp_session = ezsnmp.Session(
                                 hostname=self.switch.primary_ip4,
                                 version=snmp_profile.version,
                                 remote_port=snmp_profile.udp_port,
@@ -543,7 +543,7 @@ class SnmpConnector(Connector):
                             return True
 
                         if snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
-                            self._snmp_session = easysnmp.Session(
+                            self._snmp_session = ezsnmp.Session(
                                 hostname=self.switch.primary_ip4,
                                 version=snmp_profile.version,
                                 remote_port=snmp_profile.udp_port,
@@ -561,7 +561,7 @@ class SnmpConnector(Connector):
 
                     if snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
                         if snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
-                            self._snmp_session = easysnmp.Session(
+                            self._snmp_session = ezsnmp.Session(
                                 hostname=self.switch.primary_ip4,
                                 version=snmp_profile.version,
                                 remote_port=snmp_profile.udp_port,
@@ -578,7 +578,7 @@ class SnmpConnector(Connector):
                             return True
 
                         if snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
-                            self._snmp_session = easysnmp.Session(
+                            self._snmp_session = ezsnmp.Session(
                                 hostname=self.switch.primary_ip4,
                                 version=snmp_profile.version,
                                 remote_port=snmp_profile.udp_port,
@@ -602,7 +602,7 @@ class SnmpConnector(Connector):
         return False
 
     """
-    The following methods implement basic snmp functionality based on the EasySnmp library (for speed reasons).
+    The following methods implement basic snmp functionality based on the ezsnmp library (for speed reasons).
     If you want to use some other snmp library, inherit from SnmpConnector()
     and override the basic snmp interfaces get(), get_snmp_branch() set(), set_multiple() and _set_snmp_session()
     This would allow you to implement using pysnmp, netsnmp-python, etc.
@@ -680,7 +680,7 @@ class SnmpConnector(Connector):
             for item in items:
                 count = count + 1
                 oid_found = f"{item.oid}.{item.oid_index}"
-                # Note: with easysnmp, the returned "item.value" is ALWAYS of type str!
+                # Note: with ezsnmp, the returned "item.value" is ALWAYS of type str!
                 # the real SNMP type is indicated in item.snmp_type !!!
                 if item.snmp_type == 'OCTETSTR':
                     if item.value.isprintable():
@@ -775,7 +775,7 @@ class SnmpConnector(Connector):
         return True
 
     """
-    end of the EasySNMP interfaces
+    end of the ezsnmp interfaces
     """
 
     """
@@ -840,7 +840,7 @@ class SnmpConnector(Connector):
     def _parse_oid_with_fixup(self, oid: str, value: Any, snmp_type: str, parser):
         """
         Parse OID data from the pysnmp library. We need to map data types, as
-        EasySNMP returns everything as a Python str() object!
+        ezsnmp returns everything as a Python str() object!
         Function does not return anything.
         """
         dprint("\n_parse_oid_with_fixup()")
@@ -854,7 +854,7 @@ class SnmpConnector(Connector):
             newvalue = str(value)
         elif 'OctetString' in snmp_type:
             newvalue = str(value)
-        # EasySNMP types, already str() !
+        # ezsnmp types, already str() !
         # elif ('OCTETSTR' in snmp_type):
         #    dprint("   OCTETSTRING already as str()")
         #    #see https://github.com/kamakazikamikaze/easysnmp/issues/91
@@ -890,7 +890,7 @@ class SnmpConnector(Connector):
         THIS NEEDS WORK TO IMPROVE PERFORMANCE !!!
         Returns True if we parse the OID!
         oid = OID string to parse
-        val = OID value to parse, as a string (since in EasySNMP all returned data is a string!)
+        val = OID value to parse, as a string (since in ezsnmp all returned data is a string!)
         """
         dprint(f"Base _parse_oid() {str(oid)}")
 
@@ -2725,7 +2725,7 @@ class SnmpConnector(Connector):
             True on success, False on error and set self.error variables.
         '''
 
-        # this is atomic multi-set action. Full tuples with (OID, value, type) calling EasySNMP:
+        # this is atomic multi-set action. Full tuples with (OID, value, type) calling ezsnmp:
         oid1 = (f"{dot1qVlanStaticRowStatus}.{vlan_id}", vlan_createAndGo, 'i')
         oid2 = (f"{dot1qVlanStaticName}.{vlan_id}", vlan_name, 's')
         if not self.set_multiple(oid_values=[oid1, oid2]):
@@ -2747,7 +2747,7 @@ class SnmpConnector(Connector):
             True on success, False on error and set self.error variables.
         '''
 
-        # this is atomic multi-set action. Full tuples with (OID, value, type) calling EasySNMP:
+        # this is atomic multi-set action. Full tuples with (OID, value, type) calling ezsnmp:
         oid1 = (f"{dot1qVlanStaticName}.{vlan_id}", vlan_name, 's')
         if not self.set_multiple(oid_values=[oid1]):
             # we leave self.error.details as is!
@@ -2767,7 +2767,7 @@ class SnmpConnector(Connector):
             True on success, False on error and set self.error variables.
         '''
 
-        # this is atomic multi-set action. Full tuples with (OID, value, type) calling EasySNMP:
+        # this is atomic multi-set action. Full tuples with (OID, value, type) calling ezsnmp:
         oid1 = (f"{dot1qVlanStaticRowStatus}.{vlan_id}", vlan_destroy, 'i')
         if not self.set_multiple(oid_values=[oid1]):
             # we leave self.error.details as is!
@@ -2810,7 +2810,7 @@ def oid_in_branch(mib_branch: str, oid: str) -> bool | str:
     """
     Check if a given OID is in the branch, if so, return the 'ending' portion after the mib_branch
     E.g. in many cases, the oid end is the 'ifIndex' or vlan_id, or such.
-    mib_branch should contain starting DOT (easysnmp returns the OID with starting dot), but NOT trailing dot !!!
+    mib_branch should contain starting DOT (ezsnmp returns the OID with starting dot), but NOT trailing dot !!!
     """
     # dprint(f"oid_in_branch() checking branch {mib_branch}, oid = {oid}")
     if not isinstance(oid, str):
