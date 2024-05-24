@@ -7,11 +7,7 @@ Roadmap / To Do
 Planned Improvements:
 ---------------------
 
-**Code Improvements:**
-
-* change all function calls to use parameter names.
-
-* add typing hints to improve readability and catch problems.
+* move to Caddy as the WSGI/Web server.
 
 
 Features Being Considered
@@ -19,12 +15,12 @@ Features Being Considered
 
 Here are some other features we are considering implementing (*in no particular order!*)
 
+* Single-Sign-On (SSO) via SAML, and possibly OAUTH for authorization (switch group membership)
+  We plan to provide this via "overlaying" with Caddy.
+
 * change user model, from standard user mode with separate profile table, to a new user class that has it all :-)
 
 * support for Arista device via the eApi.
-
-* Single-Sign-On (SSO) via SAML, and possibly OAUTH for authorization (switch group membership)
-  with as primary SSO compatibility target Shiboleth SAML SSO. We plan to use the Python Social Auth library.
 
 * IP v6 support, both for switch snmp access, and other informational tables.
 
@@ -36,4 +32,4 @@ Here are some other features we are considering implementing (*in no particular 
 
 * test support for AES-192 and up. This will require Net-SNMP v5.8 (which is available on CentOS 8, Unbuntu 2020-LTS, and later)
 
-* support running production in a Docker container.
+* support running production in a Docker container (work in progress!)
