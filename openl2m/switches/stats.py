@@ -137,6 +137,22 @@ def get_usage_info() -> dict:
     # the total change count since install from Counter()'changes') object:
     usage["Total Changes"] = Counter.objects.get(name="changes").value
 
+    # Unique Logins
+    filter = {}
+    filter['type'] = int(LOG_TYPE_LOGIN_OUT)
+    filter['timestamp__date'] = datetime.date.today()
+    usage['Users today'] = Log.objects.filter(**filter).values_list('user_id', flat=True).distinct().count()
+
+    filter = {}
+    filter['type'] = int(LOG_TYPE_LOGIN_OUT)
+    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=7)
+    usage['Users last 7 days'] = Log.objects.filter(**filter).values_list('user_id', flat=True).distinct().count()
+
+    filter = {}
+    filter['type'] = int(LOG_TYPE_LOGIN_OUT)
+    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
+    usage['Users last 31 days'] = Log.objects.filter(**filter).values_list('user_id', flat=True).distinct().count()
+
     # API requests:
     filter = {}
     filter['type'] = int(LOG_TYPE_LOGIN_OUT)
