@@ -353,13 +353,13 @@ def perform_interface_pvid_change(
 
     # make sure we cast the proper type here! Ie this needs an Integer()
     if not connection.set_interface_untagged_vlan(interface, new_pvid):
-        log.description = f"ERROR: {connection.error.description}"
+        log.description = f"ERROR: {connection.error.description} - {connection.error.details}"
         log.type = LOG_TYPE_ERROR
         log.save()
         counter_increment(COUNTER_ERRORS)
         error = Error()
         error.description = f"Error setting untagged vlan on interface {interface.name}"
-        error.details = connection.error.description
+        error.details = f"{connection.error.description}: {connection.error.details}"
         return False, error
 
     log.type = LOG_TYPE_CHANGE
@@ -459,9 +459,8 @@ def perform_interface_poe_change(
         poe_state = POE_PORT_ADMIN_DISABLED
 
     # do the work:
-    retval = connection.set_interface_poe_status(interface, poe_state)
-    if retval < 0:
-        log.description = f"ERROR: {connection.error.description}"
+    if not connection.set_interface_poe_status(interface, poe_state):
+        log.description = f"ERROR: {connection.error.description} - {connection.error.details}"
         log.type = LOG_TYPE_ERROR
         log.save()
         counter_increment(COUNTER_ERRORS)
@@ -545,7 +544,7 @@ def perform_switch_save_config(request: HttpRequest, group_id: int, switch_id: i
     #     return True, error
 
     # we can save
-    if connection.save_running_config() < 0:
+    if not connection.save_running_config():
         # an error happened!
         log.type = LOG_TYPE_ERROR
         log.description = f"Error saving config: {connection.error.description}"
@@ -620,8 +619,7 @@ def perform_switch_vlan_add(request: HttpRequest, group_id: int, switch_id: int,
 
     # all OK, go create
     counter_increment(COUNTER_VLAN_MANAGE)
-    status = connection.vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
-    if status:
+    if connection.vlan_create(vlan_id=vlan_id, vlan_name=vlan_name):
         log = Log(
             user=request.user,
             ip_address=get_remote_ip(request),
@@ -701,8 +699,7 @@ def perform_switch_vlan_delete(request: HttpRequest, group_id: int, switch_id: i
         return False, error
 
     # go delete:
-    status = connection.vlan_delete(vlan_id=vlan_id)
-    if status:
+    if connection.vlan_delete(vlan_id=vlan_id):
         log = Log(
             user=request.user,
             ip_address=get_remote_ip(request),
@@ -779,8 +776,7 @@ def perform_switch_vlan_edit(request: HttpRequest, group_id: int, switch_id: int
         error.description = "Vlan name can not be empty!"
         return False, error
 
-    status = connection.vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
-    if status:
+    if connection.vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name):
         log = Log(
             user=request.user,
             ip_address=get_remote_ip(request),
