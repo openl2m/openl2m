@@ -179,7 +179,7 @@ class SnmpConnectorComware(SnmpConnector):
         new_vlan = self.get_vlan_by_id(new_vlan_id)
         if not new_vlan:
             self.error.status = True
-            self.error.description = f"Cannot find Vlan object for vlan {new_vlan_id}"
+            self.error.description = f"Cannot find Vlan object for vlan {new_vlan_id} for port '{interface.name}'"
             self.error.details = ""
             return False
         if interface:
@@ -232,13 +232,15 @@ class SnmpConnectorComware(SnmpConnector):
                     pysnmp = pysnmpHelper(self.switch)
                 except Exception as err:
                     self.error.status = True
-                    self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+                    self.error.description = (
+                        f"Error getting snmp connection object (pysnmpHelper()) for '{interface.name}'"
+                    )
                     self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
                     return False
 
                 if not pysnmp.set_multiple([low_oid, high_oid, pvid_oid]):
                     self.error.status = True
-                    self.error.description = f"Error setting vlan '{new_vlan_id}' on tagged port!"
+                    self.error.description = f"Error setting vlan '{new_vlan_id}' on tagged port '{interface.name}'!"
                     # copy over the error details from the call:
                     self.error.details = pysnmp.error.details
                     # we leave self.error.details as is!
@@ -318,14 +320,14 @@ class SnmpConnectorComware(SnmpConnector):
                     pysnmp = pysnmpHelper(self.switch)
                 except Exception as err:
                     self.error.status = True
-                    self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+                    self.error.description = "Error getting snmp connection object (pysnmpHelper()) for set_access_mode_vlan on '{interface.name}'"
                     self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
                     return False
 
                 dprint("Setting via pysnmpHelper()")
                 if not pysnmp.set(f"{hh3cdot1qVlanPorts}.{new_vlan_id}", octet_string):
                     self.error.status = True
-                    self.error.description = f"Error setting vlan '{new_vlan_id}' on access port!"
+                    self.error.description = f"Error setting vlan '{new_vlan_id}' on access port '{interface.name}'!"
                     # copy over the error details from the call:
                     self.error.details = pysnmp.error.details
                     return False
