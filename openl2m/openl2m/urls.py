@@ -71,6 +71,8 @@ urlpatterns = [
     path("api/stats/", APIStatsView.as_view(), name='api-stats'),
     path("api/environment/", APIEnvironmentView.as_view(), name='api-environment'),
     path("api/users/", include("users.api.urls"), name="users-api"),
+    # admin paths:
+    path("api/admin/users/", include("users.api.admin.urls"), name="api-admin-users"),
     # to be implemented:
     # path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='api_docs'),
