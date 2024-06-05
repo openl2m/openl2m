@@ -15,6 +15,7 @@
 #
 # Here we implement all user admin API views as classes
 #
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 
 from rest_framework import permissions, viewsets
@@ -24,9 +25,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateAPIView
 
 from openl2m.api.authentication import IsSuperUser
-
 from users.serializers import UserSerializer
-
 from switches.utils import dprint
 
 
@@ -65,15 +64,16 @@ class APIAdminUsers(APIView):
         return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
-class APIAdminUserDetail(RetrieveUpdateAPIView):
+class APIAdminUserDetail(APIView):
     '''
-    API class to GET or update (PUT, PATCH) the details of a user.
+    API class to read (GET) or update (PATCH) the details of a user.
     '''
 
     permission_classes = [IsSuperUser]
 
     def get(self, request, pk):
-        dprint(f"APIAdminUserDetail.get(): pk={pk}, user={request.user.username}, auth={request.auth}")
+        '''GET return the user object for a primary key 'pk' '''
+        dprint(f"APIAdminUserDetail.get(): pk={pk}, user={request.user.username}")
         try:
             u = User.objects.get(pk=pk)
         except Exception as err:
@@ -85,9 +85,33 @@ class APIAdminUserDetail(RetrieveUpdateAPIView):
             )
 
         serializer = UserSerializer(u, context={'request': request})
+        return Response(
+            data=serializer.data,
+            status=http_status.HTTP_200_OK,
+        )
+
+    def patch(self, request, pk):
+        dprint("APIAdminUserDetail.patch() passing to post")
+        return self.post(request, pk)
+
+    def post(self, request, pk):
+        '''Handle POST to update attributes of the User object for private key 'pk' '''
+        dprint(f"APIAdminUserDetail.post(): pk={pk}, user={request.user.username}")
+        try:
+            u = User.objects.get(pk=pk)
+        except Exception as err:
+            return Response(
+                data={
+                    "reason": "Invalid user id!",
+                },
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = UserSerializer(u, data=request.data, partial=True)
         if serializer.is_valid():
+            serializer.save()
             return Response(
                 data=serializer.data,
+                # data={'result': f"User id {pk} has been updated!"},
                 status=http_status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)

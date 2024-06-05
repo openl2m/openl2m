@@ -11,12 +11,10 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from users.models import Profile
-
 from switches.utils import dprint
 
 
@@ -36,7 +34,7 @@ class UserSerializer(serializers.ModelSerializer):
         We override the create() function so we can properly set the password.
         Obviously also need to set the other attributes!
         '''
-        dprint("UserSerializer.Create() called!")
+        dprint("UserSerializer.create() called!")
 
         # optional fields:
         if 'email' in validated_data:
@@ -51,6 +49,7 @@ class UserSerializer(serializers.ModelSerializer):
             last_name = validated_data['last_name']
         else:
             last_name = ""
+
         # create the new user object:
         user = User.objects.create(
             username=validated_data['username'],
@@ -61,3 +60,18 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+    def update(self, instance, validated_data):
+        '''Update User() attributes, including password'''
+        dprint("UserSerializer.update() called!")
+
+        # update the given attributes
+        for name, value in validated_data.items():
+            # note that validated_data[] only has existing, valid attributes,
+            # so no need to check!
+            if name == 'password':
+                instance.set_password(value)
+            else:
+                setattr(instance, name, value)
+        instance.save()
+        return instance
