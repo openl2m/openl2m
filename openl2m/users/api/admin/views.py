@@ -21,6 +21,7 @@ from rest_framework import permissions, viewsets
 from rest_framework import status as http_status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.generics import RetrieveUpdateAPIView
 
 from openl2m.api.authentication import IsSuperUser
 
@@ -40,23 +41,39 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class APIAdminUsers(APIView):
+    '''
+    API Class to return all users (GET), or create a new user (POST)
+    '''
 
     permission_classes = [IsSuperUser]
 
+    # get all users
     def get(self, request):
-        dprint(f"APIAdminUsers(): user={request.user.username}, auth={request.auth}")
+        dprint(f"APIAdminUsers(GET)- get all by '{request.user.username}'")
         # return all users.
         users = User.objects.all()
         serializer = UserSerializer(users, many=True, context={'request': request})
         return Response(data=serializer.data, status=http_status.HTTP_200_OK)
 
+    # create a new user
+    def post(self, request):
+        dprint("APIAdminUsers(POST) - create new user")
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=http_status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
-class APIAdminUserDetail(APIView):
+
+class APIAdminUserDetail(RetrieveUpdateAPIView):
+    '''
+    API class to GET or update (PUT, PATCH) the details of a user.
+    '''
 
     permission_classes = [IsSuperUser]
 
     def get(self, request, pk):
-        dprint(f"APIAdminUserDetail(): pk={pk}, user={request.user.username}, auth={request.auth}")
+        dprint(f"APIAdminUserDetail.get(): pk={pk}, user={request.user.username}, auth={request.auth}")
         try:
             u = User.objects.get(pk=pk)
         except Exception as err:
@@ -67,22 +84,10 @@ class APIAdminUserDetail(APIView):
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
-            serializer = UserSerializer(u, context={'request': request})
+        serializer = UserSerializer(u, context={'request': request})
+        if serializer.is_valid():
             return Response(
                 data=serializer.data,
                 status=http_status.HTTP_200_OK,
             )
-        except Exception as err:
-            return Response(
-                data={
-                    "reason": "Error in serializing return data!",
-                },
-                status=http_status.HTTP_400_BAD_REQUEST,
-            )
-
-    # def post(
-    #     self,
-    #     request,
-    # ):
-    #     dprint("APIAdminUserDetail(POST)")
+        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
