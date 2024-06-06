@@ -16,3 +16,7 @@ This is a work in progress...
 
    endpoints.rst
    api_users.rst
+   api_switches.rst
+   api_switchgroups.rst
+   api_snmp.rst
+   api_credentials.rst

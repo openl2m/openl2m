@@ -15,10 +15,10 @@ Here is an example call:
 
 .. code-block:: python
 
-    http http://localhost:8000/api/users/ 'Authorization: Token ***34b'
+    http http://localhost:8000/api/admin/users/ 'Authorization: Token ***34b'
 
-Create User
------------
+Add User
+--------
 
 The "/api/users/" POST endpoint allows you to create a new user account.
 The new account object will be returned if the call succeeds.
@@ -67,7 +67,7 @@ Example:
 
 .. code-block:: python
 
-    http http://localhost:8000/api/users/25/ 'Authorization: Token ***34b'
+    http http://localhost:8000/api/admin/users/25/ 'Authorization: Token ***34b'
 
 
 Set User Attributes
@@ -81,4 +81,4 @@ Example:
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/users/25/ 'Authorization: Token ***34b' password="new_password"
+    http --form POST http://localhost:8000/api/admin/users/25/ 'Authorization: Token ***34b' password="new_password"
