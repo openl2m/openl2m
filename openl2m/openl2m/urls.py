@@ -73,6 +73,7 @@ urlpatterns = [
     path("api/users/", include("users.api.urls"), name="users-api"),
     # admin paths:
     path("api/admin/users/", include("users.api.admin.urls"), name="api-admin-users"),
+    path("api/admin/switches/", include("switches.api.admin.urls"), name="api-admin-switches"),
     # to be implemented:
     # path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='api_docs'),
