@@ -26,11 +26,14 @@ The returned data will look similar to this:
     [
         {
             "auth_protocol": 2,
+            "community": "public",
             "context_engine_id": null,
             "context_name": null,
             "description": "",
             "id": 1,
             "name": "v2-read-only",
+            "passphrase": null,
+            "priv_passphrase": null,
             "priv_protocol": 3,
             "sec_level": 2,
             "udp_port": 161,
@@ -42,20 +45,21 @@ The returned data will look similar to this:
         ...
     ]
 
-Note this is a V2 snmp profile, so *priv_protocol* and *sec_level* are don't cares.
-Community and V3 pass phrases are not shown for obvious reasons!
+Note this is a V2 snmp profile, so *passphrases*, *priv_protocol* and *sec_level* are don't cares.
+
 
 Add SNMP Profile
 ----------------
 
 The "/api/switches/snmpprofiles/" POST endpoint allows you to create a new SNMP Profile.
-The new object will be returned if the call succeeds.
+The new object will be returned if the call succeeds. Valid field names are as shown in the above output example.
 
-Here is an example call.
+Here is an example call to create a new SNMP v2 profile:
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/admin/switches/snmpprofiles/ 'Authorization: Token ***34b' args-to-be-added
+    http --form POST http://localhost:8000/api/admin/switches/snmpprofiles/ 'Authorization: Token ***34b' name="New SNMP v2" community="private" version="2"
+
 
 and the example output:
 
@@ -64,12 +68,45 @@ and the example output:
     HTTP/1.1 201 Created
     ...
     {
-    TBD
+        "auth_protocol": 2,
+        "community": "private",
+        "context_engine_id": null,
+        "context_name": null,
+        "description": "",
+        "id": 5,
+        "name": "New SNMP v2",
+        "priv_protocol": 3,
+        "sec_level": 2,
+        "udp_port": 161,
+        "username": null,
+        "version": 2
     }
 
 .. note::
 
     You will need the returned SNMP Profile *id* for future update calls.
+
+For SNMP v3, you will need to set the following values.
+
+For *auth_protocol*:
+
+MD5 = 1
+SHA = 2
+
+For *priv_protocol*:
+
+DES = 1
+AES = 3
+
+and for *sec_level*:
+
+NOAUTH_NOPRIV = 0
+AUTH_NOPRIV = 1
+AUTH_PRIV = 2
+
+
+Other values may be supported in the future, please see the source code for more details at
+https://github.com/openl2m/openl2m/blob/main/openl2m/switches/constants.py
 
 
 Get SNMP Details

@@ -17,11 +17,39 @@ Here is an example call:
 
     http http://localhost:8000/api/admin/users/ 'Authorization: Token ***34b'
 
+This returns the list of users:
+
+.. code-block:: python
+
+    HTTP/1.1 200 OK
+    ...
+
+    [
+        {
+            "date_joined": "2024-06-04T22:25:58.747427Z",
+            "email": "admin@localhost",
+            "first_name": "Jane",
+            "groups": [],
+            "id": 1,
+            "is_active": true,
+            "is_staff": false,
+            "is_superuser": true,
+            "last_login": "2024-06-04T22:26:38.834121Z",
+            "last_name": "Doe",
+            "password": "",
+            "user_permissions": [],
+            "username": "admin"
+        },
+        ...
+        more users
+        ...
+    ]
+
 Add User
 --------
 
 The "/api/users/" POST endpoint allows you to create a new user account.
-The new account object will be returned if the call succeeds.
+The new account object will be returned if the call succeeds. Valid field names are as shown in the above output example.
 
 Here is an example call. Note that *username* and *password* are required fields!
 
@@ -73,7 +101,7 @@ Example:
 Set User Attributes
 -------------------
 
-The "/api/users/<id>/" POST (or PATCH) endpoint allows you to change attributes of a specific user object. You can change one or more at the same time.
+The "/api/users/<id>/" POST (or PATCH) endpoint allows you to change attributes of a specific user object. You can change one or more fields at the same time.
 
 The returned data is identical to the "create user" data in the above example.
 

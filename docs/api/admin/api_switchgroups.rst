@@ -61,13 +61,14 @@ Add Switch Group
 ----------------
 
 The "/api/switches/switchgroups/" POST endpoint allows you to create a new Switch Group.
-The new object will be returned if the call succeeds.
+The new object will be returned if the call succeeds. Valid field names are as shown in the above output example.
 
-Here is an example call.
+Here is an example call. The minimum required field is *name*:
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/admin/switches/switchgroups/ 'Authorization: Token ***34b' args-to-be-added
+    http --form POST http://localhost:8000/api/admin/switches/switchgroups/ 'Authorization: Token ***34b' name="New Group"
+
 
 and the example output:
 
@@ -76,13 +77,34 @@ and the example output:
     HTTP/1.1 201 Created
     ...
     {
-        TBD
+        "allow_all_vlans": false,
+        "allow_poe_toggle": false,
+        "bulk_edit": false,
+        "comments": "",
+        "description": "",
+        "display_name": "",
+        "edit_if_descr": false,
+        "id": 4,
+        "name": "New Group",
+        "read_only": false,
+        "switches": [],
+        "users": [],
+        "vlan_groups": [],
+        "vlans": []
     }
 
 
 .. note::
 
     You will need the returned Switch Group *id* for future update calls.
+
+Add Switch Group with switches
+------------------------------
+
+ßTo add some switches (devices) to the new group as it is being created, add the switch IDs as shown here.
+Set (add) additional fields as required. Field values are as shown in the above output example.
+
+.. code-block:: python
 
 
 Get Switch Group Details

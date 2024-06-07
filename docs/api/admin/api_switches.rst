@@ -70,7 +70,7 @@ Add Switch
 ----------
 
 The "/api/users/" POST endpoint allows you to create a new user account.
-The new switch object will be returned if the call succeeds.
+The new switch object will be returned if the call succeeds. Valid field names are as shown in the above output example.
 
 Here is an example call.
 
