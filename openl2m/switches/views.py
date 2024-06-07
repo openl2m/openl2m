@@ -871,12 +871,8 @@ def bulkedit_processor(
                     # Down / Up on interfaces with PoE Enabled:
                     if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
                         log.action = LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP
-                        # the PoE index is kept in the iface.poe_entry
-                        # First disable PoE. Make sure we cast the proper type here! Ie this needs an Integer()
-                        # retval = conn.set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_DISABLED, 'i')
                         # First disable PoE
-                        retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_DISABLED)
-                        if retval < 0:
+                        if not conn.set_interface_poe_status(iface, POE_PORT_ADMIN_DISABLED):
                             log.description = (
                                 f"ERROR: Toggle-Disable PoE on interface {iface.name} - {conn.error.description}"
                             )
@@ -890,9 +886,7 @@ def bulkedit_processor(
                             # now delay
                             time.sleep(settings.POE_TOGGLE_DELAY)
                             # Now enable PoE again...
-                            # retval = conn.set(f"{pethPsePortAdminEnable}.{iface.poe_entry.index}", POE_PORT_ADMIN_ENABLED, 'i')
-                            retval = conn.set_interface_poe_status(iface, POE_PORT_ADMIN_ENABLED)
-                            if retval < 0:
+                            if not conn.set_interface_poe_status(iface, POE_PORT_ADMIN_ENABLED):
                                 log.description = (
                                     f"ERROR: Toggle-Enable PoE on interface {iface.name} - {conn.error.description}"
                                 )
@@ -937,8 +931,7 @@ def bulkedit_processor(
                     # are we actually making a change?
                     if new_state != current_state:
                         # yes, go do it:
-                        retval = conn.set_interface_poe_status(iface, new_state)
-                        if retval < 0:
+                        if not conn.set_interface_poe_status(iface, new_state):
                             error_count += 1
                             log.type = LOG_TYPE_ERROR
                             log.description = (
@@ -986,17 +979,17 @@ def bulkedit_processor(
                 )
                 if new_pvid != iface.untagged_vlan:
                     # new vlan, go set it:
-                    retval = conn.set_interface_untagged_vlan(iface, new_pvid)
-                    if retval < 0:
+                    if not conn.set_interface_untagged_vlan(iface, new_pvid):
                         error_count += 1
                         log.type = LOG_TYPE_ERROR
-                        log.description = f"Interface {iface.name}: Vlan change ERROR: {conn.error.description}"
+                        log.description = f"Interface {iface.name}: Vlan change ERROR: {conn.error.description} - {conn.error.details}"
+                        outputs.append(f"Interface {iface.name}: Vlan change ERROR: {conn.error.description}")
                         counter_increment(COUNTER_ERRORS)
                     else:
                         success_count += 1
                         log.type = LOG_TYPE_CHANGE
                         log.description = f"Interface {iface.name}: Vlan set to {new_pvid}"
-                    outputs.append(log.description)
+                        outputs.append(log.description)
                     log.save()
                     counter_increment(COUNTER_CHANGES)
                 else:
@@ -1042,20 +1035,21 @@ def bulkedit_processor(
                 group=group,
                 action=LOG_CHANGE_INTERFACE_ALIAS,
             )
-            retval = conn.set_interface_description(iface, iface_new_description)
-            if retval < 0:
+            if not conn.set_interface_description(iface, iface_new_description):
                 error_count += 1
                 log.type = LOG_TYPE_ERROR
-                log.description = f"Interface {iface.name}: Descr ERROR: {conn.error.description}"
+                log.description = (
+                    f"Interface {iface.name}: Descr ERROR: {conn.error.description} - {conn.error.details}"
+                )
                 log.save()
                 counter_increment(COUNTER_ERRORS)
-                return error_page(request, group, switch, conn.error)
+                outputs.append(f"Interface {iface.name}: Descr ERROR: {conn.error.description}")
             else:
                 success_count += 1
                 log.type = LOG_TYPE_CHANGE
                 log.description = f"Interface {iface.name}: Descr set OK"
                 counter_increment(COUNTER_CHANGES)
-            outputs.append(log.description)
+                outputs.append(log.description)
             log.save()
 
     # log final results

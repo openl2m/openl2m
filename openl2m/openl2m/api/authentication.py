@@ -19,6 +19,7 @@ import logging
 from django.conf import settings
 from django.utils import timezone
 from rest_framework import authentication, exceptions
+from rest_framework.permissions import BasePermission
 
 from users.models import Token
 from switches.utils import get_remote_ip, dprint
@@ -191,3 +192,13 @@ class TokenAuthentication(authentication.TokenAuthentication):
             raise exceptions.AuthenticationFailed("User inactive")
 
         return user, token
+
+
+class IsSuperUser(BasePermission):
+    '''
+    A class to test if user is SuperUser (instead of is_staff)
+    For some reason, this is not part of the regular Django Rest Framework classes ?
+    '''
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_superuser)
