@@ -113,6 +113,11 @@ class APIAdminNetmikoProfiles(APIView):
     def post(self, request):
         '''Add a new Credential Profile ()'''
         dprint("APIAdminNetmikoProfiles.post()")
+        serializer = NetmikoProfileSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=http_status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
 class APIAdminNetmikoProfileDetail(APIView):
@@ -168,6 +173,12 @@ class APIAdminSnmpProfiles(APIView):
     def post(self, request):
         '''Add a new SnmpProfile object'''
         dprint("APIAdminSnmpProfiles.post()")
+        serializer = SnmpProfileSerializer(data=request.data)
+        # dprint(repr(serializer))
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=http_status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
 class APIAdminSnmpProfileDetail(APIView):
@@ -223,6 +234,11 @@ class APIAdminSwitchGroups(APIView):
     def post(self, request):
         '''Add a new SwitchGroup object'''
         dprint("APIAdminSwitchGroups.post()")
+        serializer = SwitchGroupSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=http_status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
 class APIAdminSwitchGroupDetail(APIView):
