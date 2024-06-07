@@ -56,15 +56,17 @@ A good place to start learning Bootstrap is
 
 **SNMP**
 
-We primarily use the "easysnmp" library, because is it fast. It requires the Net-SNMP
-package on your Linux server.
-`See these installation docs <https://easysnmp.readthedocs.io/en/latest/>`_
+We primarily use the "ezsnmp" library, because is it fast.
+(This is a maintained clone of the original "easysnmp" library, which now appear to be stale.) It requires the Net-SNMP
+package on your Linux server. For more, 
+`see these EzSNMP installation docs<https://carlkidcrypto.github.io/ezsnmp/html/index.html>`_
+and the original `EasySNMP docs <https://easysnmp.readthedocs.io/en/latest/>`_
 
 We also use the `pysnmplib library <https://github.com/pysnmp/pysnmp>`_
-for a few backend functions where "easysnmp" does not shine. Specifically,
+for a few backend functions where "ezsnmp" does not shine. Specifically,
 we use *pysnmplib* to manipulate mib entries that are octetstring values representing bitmaps.
 
-This is extensively used in vlan settings. EasySNMP "struggles" with this, as it uses
+This is extensively used in vlan settings. EzSNMP "struggles" with this, as it uses
 unicode strings for all internal data representations. Pysnmplib is a pure python implementation
 that does not have these problems. However, it is significantly slower, so we only use
 it only where absolutely needed. (Note: *pysnmplib* is a continuation of the original *pysnmp*; that

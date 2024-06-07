@@ -88,11 +88,15 @@ Nginx in docker: https://hub.docker.com/_/nginx
 SNMP related
 ------------
 
-Python easysnmp, using native Net-Snmp:
+Python EzSNMP, using native Net-Snmp:
+See https://github.com/carlkidcrypto/ezsnmp
+and the docs at https://carlkidcrypto.github.io/ezsnmp/html/index.html
+
+This is derived from easysnmp:
 See https://easysnmp.readthedocs.io/en/latest/ and
 https://github.com/kamakazikamikaze/easysnmp
 
-PySNMP, a native Python SNMP stack: https://www.pysnmp.com/
+PySNMPLib, a native Python SNMP stack: https://github.com/pysnmp/pysnmp
 
 MIB browser at
 http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.3.6.1.2.1
