@@ -15,14 +15,12 @@
 #
 # Here we implement all user admin API views as classes
 #
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 
 from rest_framework import permissions, viewsets
 from rest_framework import status as http_status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import RetrieveUpdateAPIView
 
 from openl2m.api.authentication import IsSuperUser
 from users.serializers import UserSerializer
