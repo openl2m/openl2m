@@ -23,7 +23,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from openl2m.api.authentication import IsSuperUser
-from users.serializers import UserSerializer
+from users.serializers import UserSerializer, ProfileSerializer
 from switches.utils import dprint
 
 
@@ -71,7 +71,7 @@ class APIAdminUserDetail(APIView):
 
     def get(self, request, pk):
         '''GET return the user object for a primary key 'pk' '''
-        dprint(f"APIAdminUserDetail.get(): pk={pk}, user={request.user.username}")
+        dprint(f"APIAdminUserDetail.get(): pk={pk}, user={request.user.username}, profile={request.user.profile}")
         try:
             u = User.objects.get(pk=pk)
         except Exception as err:
@@ -81,10 +81,15 @@ class APIAdminUserDetail(APIView):
                 },
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
-
         serializer = UserSerializer(u, context={'request': request})
+        # get the profile
+        profile_serializer = ProfileSerializer(u.profile, context={'request': request})
+        # collect user and profile data
+        data = serializer.data
+        data['profile'] = profile_serializer.data
+        # and return it:
         return Response(
-            data=serializer.data,
+            data=data,
             status=http_status.HTTP_200_OK,
         )
 
