@@ -9,7 +9,7 @@ There are two parts of the Switch Group admin api:
 Get Switch Groups
 -----------------
 
-The "/api/switches/switchgroups/" GET endpoint returns a list of all Switch Groups.
+The "/api/admin/switches/switchgroups/" GET endpoint returns a list of all Switch Groups.
 
 Here is an example call:
 
@@ -60,7 +60,7 @@ The returned data will look similar to this:
 Add Switch Group
 ----------------
 
-The "/api/switches/switchgroups/" POST endpoint allows you to create a new Switch Group.
+The "/api/admin/switches/switchgroups/" POST endpoint allows you to create a new Switch Group.
 The new object will be returned if the call succeeds. Valid field names are as shown in the above output example.
 
 Here is an example call. The minimum required field is *name*:
@@ -110,7 +110,7 @@ Set (add) additional fields as required. Field values are as shown in the above 
 Get Switch Group Details
 ------------------------
 
-The "/api/switches/switchgroups/<id>/" GET endpoint returns the details about a specific Switch Group object.
+The "/api/admin/switches/switchgroups/<id>/" GET endpoint returns the details about a specific Switch Group object.
 
 The returned data is identical to the "create" data in the above example.
 
@@ -124,7 +124,7 @@ Example:
 Set Switch Group Attributes
 ---------------------------
 
-The "/api/switches/switchgroups/<id>/" POST (or PATCH) endpoint allows you to change attributes of a
+The "/api/admin/switches/switchgroups/<id>/" POST (or PATCH) endpoint allows you to change attributes of a
 specific Switch Group object. You can change one or more at the same time.
 
 The returned data is identical to the "create" data in the above example.

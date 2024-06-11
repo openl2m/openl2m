@@ -9,7 +9,7 @@ There are two parts of the users admin api:
 Get Users
 ---------
 
-The "/api/users/" GET endpoint returns a list of users in OpenL2M.
+The "/api/admin/users/" GET endpoint returns a list of users in OpenL2M.
 
 Here is an example call:
 
@@ -48,7 +48,7 @@ This returns the list of users:
 Add User
 --------
 
-The "/api/users/" POST endpoint allows you to create a new user account.
+The "/api/admin/users/" POST endpoint allows you to create a new user account.
 The new account object will be returned if the call succeeds. Valid field names are as shown in the above output example.
 
 Here is an example call. Note that *username* and *password* are required fields!
@@ -87,7 +87,7 @@ and the example output:
 Get Users Detail
 ----------------
 
-The "/api/users/<id>/" GET endpoint returns the details about a specific user object.
+The "/api/admin/users/<id>/" GET endpoint returns the details about a specific user object.
 
 The returned data is identical to the "create user" data in the above example.
 
@@ -101,7 +101,7 @@ Example:
 Set User Attributes
 -------------------
 
-The "/api/users/<id>/" POST (or PATCH) endpoint allows you to change attributes of a specific user object. You can change one or more fields at the same time.
+The "/api/admin/users/<id>/" POST (or PATCH) endpoint allows you to change attributes of a specific user object. You can change one or more fields at the same time.
 
 The returned data is identical to the "create user" data in the above example.
 

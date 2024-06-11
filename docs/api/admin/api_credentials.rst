@@ -11,7 +11,7 @@ There are two parts of the Credentials admin api:
 Get Credential Profiles
 -----------------------
 
-The "/api/switches/netmikoprofiles/" GET endpoint returns a list of all Netmiko/Credientials Profiles.
+The "/api/admin/switches/netmikoprofiles/" GET endpoint returns a list of all Netmiko/Credientials Profiles.
 
 Here is an example call:
 
@@ -47,7 +47,7 @@ The returned data will look similar to this:
 Add Credentials Profile
 -----------------------
 
-The "/api/switches/netmikoprofiles/" POST endpoint allows you to create a new Credentials Profile.
+The "/api/admin/switches/netmikoprofiles/" POST endpoint allows you to create a new Credentials Profile.
 The new object will be returned if the call succeeds. Valid field names are as shown in the above output example.
 
 Here is an example call.
@@ -87,9 +87,9 @@ See the supported list at https://github.com/openl2m/openl2m/blob/main/openl2m/s
 Get Credentials Details
 -----------------------
 
-The "/api/switches/netmikoprofiles/<id>/" GET endpoint returns the details about a specific Credential Profile object.
+The "/api/admin/switches/netmikoprofiles/<id>/" GET endpoint returns the details about a specific Credential Profile object.
 
-The returned data is identical to the "create" data in the above example.
+Valid field names are as shown in the above output example.
 
 Example:
 
@@ -101,13 +101,32 @@ Example:
 Set Credential Profile Attributes
 ---------------------------------
 
-The "/api/switches/netmikoprofiles/<id>/" POST (or PATCH) endpoint allows you to change attributes of a
+The "/api/admin/switches/netmikoprofiles/<id>/" POST (or PATCH) endpoint allows you to change attributes of a
 specific profile object. You can change one or more fields at the same time.
 
-The returned data is identical to the "create" data in the above example.
+Valid field names are as shown in the above output example.
 
 Example:
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/admin/switches/netmikoprofiles/3/ 'Authorization: Token ***34b' arguments_to_be_added
+    http --form POST http://localhost:8000/api/admin/switches/netmikoprofiles/3/ 'Authorization: Token ***34b' password="new_password"
+
+
+and the returned data:
+
+.. code-block:: python
+
+    HTTP/1.1 200 OK
+    ...
+    {
+        "description": "Test SSH access",
+        "device_type": "hp_comware",
+        "enable_password": null,
+        "id": 2,
+        "name": "Dept. Y SSH",
+        "password": "password",
+        "tcp_port": 2022,
+        "username": "user",
+        "verify_hostkey": false
+    }

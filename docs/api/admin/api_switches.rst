@@ -9,7 +9,7 @@ There are two parts of the Switches (i.e. Devices) admin api:
 Get Switches
 ------------
 
-The "/api/switches/" GET endpoint returns a list of Switches (i.e. Devices) in OpenL2M.
+The "/api/admin/switches/" GET endpoint returns a list of Switches (i.e. Devices) in OpenL2M.
 
 Here is an example call:
 
@@ -65,18 +65,32 @@ and they are current not available via the API.
 Switches also belong to SwitchGroups, but membership can only be read (or added)
 from the SwitchGroup objects. See below for API access.
 
+Adding Devices
+--------------
 
-Add Switch
-----------
+The "/api/admin/switches/" POST endpoint allows you to add a new device (aka switch).
+As a minimum, you need to provide a *name* and *address_ip4* device address.
 
-The "/api/users/" POST endpoint allows you to create a new user account.
+Depending on the *'connector_type'*, some other fields are required:
+
+**connector_type = 0** (SNMP), requires *'snmp_profile'* This is the default, if *connector_type* is omitted.
+
+**connector_type = 1,2,98,99** (AosCX, PyEZ, Commands, Napalm), require a *netmiko_profile*.
+
+
+
+
+Add SNMP Device
+---------------
+
 The new switch object will be returned if the call succeeds. Valid field names are as shown in the above output example.
 
 Here is an example call.
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/admin/switches/ 'Authorization: Token ***34b' first_name="Jane" last_name="Doe" email="jane.doe@test.com" username="jane123" password="my_new_password"
+    http --form POST http://localhost:8000/api/admin/switches/ 'Authorization: Token ***34b' name="New Device Name" primary_ip4="10.2.3.4" snmp_profile=3
+
 
 and the example output:
 
@@ -85,7 +99,26 @@ and the example output:
     HTTP/1.1 201 Created
     ...
     {
-    TBD
+        "allow_poe_toggle": false,
+        "bulk_edit": false,
+        "command_list": null,
+        "command_templates": [],
+        "comments": "",
+        "connector_type": 0,
+        "default_view": 0,
+        "description": "",
+        "edit_if_descr": false,
+        "hostname": "",
+        "id": 16,
+        "indent_level": 0,
+        "name": "New Device Name",
+        "napalm_device_type": "",
+        "netmiko_profile": null,
+        "nms_id": null,
+        "primary_ip4": "10.2.3.4",
+        "read_only": false,
+        "snmp_profile": 3,
+        "status": 1
     }
 
 .. note::

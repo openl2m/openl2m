@@ -6,6 +6,14 @@ The API
 
 This describes the use of the REST API to read and change settings of devices.
 
+.. warning::
+
+   The admin API can be used to read and create several types of objects with passwords,
+   that due to the nature of their use, will be sent in plain text !
+
+   We urge you to make sure your site uses SSL encryption, per your organizations' policy.
+
+
 .. note::
 
    The REST API is truly RESTful! So NO data is being cached between calls,
