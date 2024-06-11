@@ -39,7 +39,7 @@ class APIAdminSwitches(APIView):
 
     permission_classes = [IsSuperUser]
 
-    # get all users
+    # get all devices (switches)
     def get(self, request):
         dprint(f"APIAdminSwitches.get(): user={request.user.username}")
         # return all devices.
@@ -47,7 +47,7 @@ class APIAdminSwitches(APIView):
         serializer = SwitchSerializer(users, many=True, context={'request': request})
         return Response(data=serializer.data, status=http_status.HTTP_200_OK)
 
-    # create a new user
+    # create a new switch
     def post(self, request):
         dprint("APIAdminSwitches.post(): user={request.user.username}")
         serializer = SwitchSerializer(data=request.data)
@@ -153,6 +153,28 @@ class APIAdminNetmikoProfileDetail(APIView):
     def post(self, request, pk):
         '''Update a Credential Profile (NetmikoProfile) object'''
         dprint(f"APIAdminNetmikoProfileDetail.post() for pk={pk}")
+        try:
+            profile = NetmikoProfile.objects.get(pk=pk)
+        except Exception as err:
+            return Response(
+                data={
+                    "reason": "Invalid profile id!",
+                },
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = NetmikoProfileSerializer(profile, data=request.data, context={'request': request}, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                data=serializer.data,
+                status=http_status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                data=serializer.errors,
+                status=http_status.HTTP_200_OK,
+            )
 
 
 class APIAdminSnmpProfiles(APIView):
@@ -214,6 +236,28 @@ class APIAdminSnmpProfileDetail(APIView):
     def post(self, request, pk):
         '''Update a specific SnmpProfile object'''
         dprint("APIAdminSnmpProfileDetail.post() for pk={pk}")
+        try:
+            profile = SnmpProfile.objects.get(pk=pk)
+        except Exception as err:
+            return Response(
+                data={
+                    "reason": "Invalid profile id!",
+                },
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = SnmpProfileSerializer(profile, data=request.data, context={'request': request}, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                data=serializer.data,
+                status=http_status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                data=serializer.errors,
+                status=http_status.HTTP_200_OK,
+            )
 
 
 class APIAdminSwitchGroups(APIView):
