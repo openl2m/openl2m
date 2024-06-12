@@ -31,7 +31,7 @@ from switches.api.admin.serializers import (
 )
 from switches.utils import dprint
 
-from switches.api.admin.utils import add_to_switchgroup
+from switches.api.admin.utils import add_switch_to_switchgroup
 
 
 class APIAdminSwitches(APIView):
@@ -65,7 +65,7 @@ class APIAdminSwitches(APIView):
             if 'switchgroups' in request.data:
                 dprint("Switch created, adding to SwitchGroups!")
                 # add switch groups.
-                add_to_switchgroup(request, switch)
+                add_switch_to_switchgroup(request, switch)
             return Response(serializer.data, status=http_status.HTTP_201_CREATED)
         return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
@@ -114,7 +114,7 @@ class APIAdminSwitchDetail(APIView):
         serializer = SwitchSerializer(switch, data=request.data, context={'request': request}, partial=True)
         if serializer.is_valid():
             serializer.save()
-            add_to_switchgroup(request, switch)
+            add_switch_to_switchgroup(request, switch)
             return Response(serializer.data, status=http_status.HTTP_200_OK)
         else:
             # invalid data

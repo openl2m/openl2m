@@ -15,7 +15,7 @@ from switches.models import SwitchGroup
 from switches.utils import dprint
 
 
-def add_to_switchgroup(request, switch):
+def add_switch_to_switchgroup(request, switch):
     '''
     Add a given switch to a list of switchgroups in the request data.
     The switchgroups parameter should contain *all* group memberships!!!
@@ -29,7 +29,7 @@ def add_to_switchgroup(request, switch):
     Returns:
         True
     '''
-    dprint(f"add_to_switchgroup() switch={switch.name}")
+    dprint(f"add_switch_to_switchgroup() switch={switch.name}")
     if 'switchgroups' not in request.data:
         dprint("  No switchgroups found!")
         return False
