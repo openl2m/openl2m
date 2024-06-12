@@ -31,7 +31,7 @@ from switches.api.admin.serializers import (
 )
 from switches.utils import dprint
 
-from .utils import add_to_switchgroup
+from switches.api.admin.utils import add_to_switchgroup
 
 
 class APIAdminSwitches(APIView):

@@ -13,7 +13,7 @@
 #
 from rest_framework import serializers
 
-from users.serializers import UserSerializer
+from users.api.admin.serializers import UserSerializer
 from switches.models import Switch, NetmikoProfile, SnmpProfile, SwitchGroup
 from switches.utils import dprint
 
