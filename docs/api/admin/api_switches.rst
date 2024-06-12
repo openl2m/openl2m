@@ -49,6 +49,11 @@ This returns something similar to:
             "read_only": false,
             "snmp_profile": 1,
             "status": 1
+            "switchgroups": [
+                1,
+                3,
+                12
+            ]
         },
         ...
         <more devices>
@@ -85,11 +90,11 @@ Add SNMP Device
 
 The new switch object will be returned if the call succeeds. Valid field names are as shown in the above output example.
 
-Here is an example call.
+Here is an example call. This creates a new devices, and adds it to switchgroups 1,2 and 3:
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/admin/switches/ 'Authorization: Token ***34b' name="New Device Name" primary_ip4="10.2.3.4" snmp_profile=3
+    http --form POST http://localhost:8000/api/admin/switches/ 'Authorization: Token ***34b' name="New Device Name" primary_ip4="10.2.3.4" snmp_profile=3 switchgroups="1,2,3"
 
 
 and the example output:
@@ -118,7 +123,12 @@ and the example output:
         "primary_ip4": "10.2.3.4",
         "read_only": false,
         "snmp_profile": 3,
-        "status": 1
+        "status": 1,
+        "switchgroups": [
+            1,
+            2,
+            3
+        ]
     }
 
 .. note::
@@ -140,11 +150,11 @@ Example:
     http http://localhost:8000/api/admin/switches/3/ 'Authorization: Token ***34b'
 
 
-Set User Attributes
--------------------
+Set Switch Attributes
+---------------------
 
 The "/api/admin/switches/<id>/" POST (or PATCH) endpoint allows you to change attributes of a specific switch object.
-You can change one or more attributes at the same time.
+You can change one or more attributes (fields) at the same time.
 
 The returned data is identical to the "create" data in the above example.
 
@@ -152,4 +162,4 @@ Example:
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/admin/switches/3/ 'Authorization: Token ***34b' arguments_to_be_added
+    http --form POST http://localhost:8000/api/admin/switches/3/ 'Authorization: Token ***34b' arguments-to-be-changed

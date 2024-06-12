@@ -4,7 +4,8 @@
 Version 3.2
 ===========
 
-**Version 3.2 adds a Dark Theme, and uses the Bootstrap 5.3 Web UI framework.**
+**Version 3.2 adds a Dark Theme, and uses the Bootstrap 5.3 Web UI framework.
+It also add a bacis Admin REST API.**
 
 The use of Bootstrap 5.3 significantly improves web accessibility
 and updates pages with the new Boostrap 5 look!
@@ -22,6 +23,8 @@ Release Date: 2024-TBD
 * require Python 3.10 or 3.11. Will not run on v3.12 (e.g on Ubuntu 24.04).
 * add warning for unknown/unsupported vendors in snmp driver.
 * device hardware details are always read, see Device Information tab.
+* add basic Admin REST API to create/edit users, switches, switch groups, snmp and netmiko profiles.
+  See documentation for more details.
 
 Bug fixes:
 
