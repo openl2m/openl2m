@@ -13,11 +13,14 @@
 #
 from rest_framework import serializers
 
+from users.serializers import UserSerializer
 from switches.models import Switch, NetmikoProfile, SnmpProfile, SwitchGroup
 from switches.utils import dprint
 
 
 class SwitchSerializer(serializers.ModelSerializer):
+    switchgroups = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
     class Meta:
         model = Switch
         fields = '__all__'
@@ -27,18 +30,6 @@ class SwitchSerializer(serializers.ModelSerializer):
         #     'description',
         #     'primary_ip4',
         # ]
-
-    def my_create(self, validated_data):
-        '''
-        We override the create() function
-        Obviously also need to set the other attributes!
-        '''
-        dprint("SwitchSerializer.Create() called!")
-        switch = Switch.objects.create(
-            name=validated_data['username'],
-        )
-        switch.save()
-        return switch
 
 
 class NetmikoProfileSerializer(serializers.ModelSerializer):
@@ -58,8 +49,9 @@ class SnmpProfileSerializer(serializers.ModelSerializer):
 
 
 class SwitchGroupSerializer(serializers.ModelSerializer):
+    switches = SwitchSerializer(many=True, read_only=True)
+    users = UserSerializer(many=True, read_only=True)
+
     class Meta:
         model = SwitchGroup
         fields = '__all__'
-        # we exclude all 'password' like fields:
-        # exclude = ['community', 'passphrase', 'priv_passphrase']

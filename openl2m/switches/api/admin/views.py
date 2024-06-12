@@ -31,6 +31,8 @@ from switches.api.admin.serializers import (
 )
 from switches.utils import dprint
 
+from .utils import add_to_switchgroup
+
 
 class APIAdminSwitches(APIView):
     '''
@@ -41,18 +43,29 @@ class APIAdminSwitches(APIView):
 
     # get all devices (switches)
     def get(self, request):
+        '''
+        Return all switches
+        '''
         dprint(f"APIAdminSwitches.get(): user={request.user.username}")
         # return all devices.
-        users = Switch.objects.all()
-        serializer = SwitchSerializer(users, many=True, context={'request': request})
+        switches = Switch.objects.all()
+        serializer = SwitchSerializer(switches, many=True, context={'request': request})
         return Response(data=serializer.data, status=http_status.HTTP_200_OK)
 
     # create a new switch
     def post(self, request):
-        dprint("APIAdminSwitches.post(): user={request.user.username}")
+        '''
+        Add a new switch, and set switch group membership
+        '''
+        dprint(f"APIAdminSwitches.post(): user={request.user.username}")
         serializer = SwitchSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            switch = serializer.save()
+            dprint(f"NEW switch pk={switch.pk}")
+            if 'switchgroups' in request.data:
+                dprint("Switch created, adding to SwitchGroups!")
+                # add switch groups.
+                add_to_switchgroup(request, switch)
             return Response(serializer.data, status=http_status.HTTP_201_CREATED)
         return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
@@ -67,7 +80,7 @@ class APIAdminSwitchDetail(APIView):
     def get(self, request, pk):
         dprint(f"APIAdminSwitchDetail(): pk={pk}, user={request.user.username}")
         try:
-            s = Switch.objects.get(pk=pk)
+            switch = Switch.objects.get(pk=pk)
         except Exception as err:
             return Response(
                 data={
@@ -76,7 +89,7 @@ class APIAdminSwitchDetail(APIView):
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = SwitchSerializer(s, context={'request': request})
+        serializer = SwitchSerializer(switch, context={'request': request})
         return Response(
             data=serializer.data,
             status=http_status.HTTP_200_OK,
@@ -88,11 +101,24 @@ class APIAdminSwitchDetail(APIView):
 
     def post(self, request, pk):
         dprint(f"APIAdminSwitchDetail.post() for pk={pk}, user={request.user.username}")
-        serializer = SwitchSerializer(data=request.data)
+        try:
+            switch = Switch.objects.get(pk=pk)
+        except Exception as err:
+            return Response(
+                data={
+                    "reason": "Invalid id!",
+                },
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = SwitchSerializer(switch, data=request.data, context={'request': request}, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=http_status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
+            add_to_switchgroup(request, switch)
+            return Response(serializer.data, status=http_status.HTTP_200_OK)
+        else:
+            # invalid data
+            return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
 class APIAdminNetmikoProfiles(APIView):
@@ -103,7 +129,9 @@ class APIAdminNetmikoProfiles(APIView):
     permission_classes = [IsSuperUser]
 
     def get(self, request):
-        '''Return all Credential Profiles'''
+        '''
+        Return all Credential Profiles
+        '''
         dprint("APIAdminNetmikoProfiles.get()")
         # return all credentials.
         profiles = NetmikoProfile.objects.all()
@@ -111,13 +139,16 @@ class APIAdminNetmikoProfiles(APIView):
         return Response(data=serializer.data, status=http_status.HTTP_200_OK)
 
     def post(self, request):
-        '''Add a new Credential Profile ()'''
+        '''
+        Add a new Credential Profile ()
+        '''
         dprint("APIAdminNetmikoProfiles.post()")
         serializer = NetmikoProfileSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=http_status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
 class APIAdminNetmikoProfileDetail(APIView):
@@ -128,7 +159,9 @@ class APIAdminNetmikoProfileDetail(APIView):
     permission_classes = [IsSuperUser]
 
     def get(self, request, pk):
-        '''Return a specific Credential Profile (NetmikoProfile) object'''
+        '''
+        Return a specific Credential Profile (NetmikoProfile) object
+        '''
         dprint(f"APIAdminNetmikoProfileDetail.get() for pk={pk}")
         try:
             profile = NetmikoProfile.objects.get(pk=pk)
@@ -151,7 +184,9 @@ class APIAdminNetmikoProfileDetail(APIView):
         return self.post(request, pk)
 
     def post(self, request, pk):
-        '''Update a Credential Profile (NetmikoProfile) object'''
+        '''
+        Update a Credential Profile (NetmikoProfile) object
+        '''
         dprint(f"APIAdminNetmikoProfileDetail.post() for pk={pk}")
         try:
             profile = NetmikoProfile.objects.get(pk=pk)
@@ -173,7 +208,7 @@ class APIAdminNetmikoProfileDetail(APIView):
         else:
             return Response(
                 data=serializer.errors,
-                status=http_status.HTTP_200_OK,
+                status=http_status.HTTP_400_BAD_REQUEST,
             )
 
 
@@ -185,7 +220,9 @@ class APIAdminSnmpProfiles(APIView):
     permission_classes = [IsSuperUser]
 
     def get(self, request):
-        '''Return all SnmpProfile objects'''
+        '''
+        Return all SnmpProfile objects
+        '''
         dprint("APIAdminSnmpProfiles.get()")
         # return all snmp profiles.
         profiles = SnmpProfile.objects.all()
@@ -193,14 +230,17 @@ class APIAdminSnmpProfiles(APIView):
         return Response(data=serializer.data, status=http_status.HTTP_200_OK)
 
     def post(self, request):
-        '''Add a new SnmpProfile object'''
+        '''
+        Add a new SnmpProfile object
+        '''
         dprint("APIAdminSnmpProfiles.post()")
         serializer = SnmpProfileSerializer(data=request.data)
         # dprint(repr(serializer))
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=http_status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
 class APIAdminSnmpProfileDetail(APIView):
@@ -211,7 +251,9 @@ class APIAdminSnmpProfileDetail(APIView):
     permission_classes = [IsSuperUser]
 
     def get(self, request, pk):
-        '''Return a specific SnmpProfile object'''
+        '''
+        Return a specific SnmpProfile object
+        '''
         dprint(f"APIAdminSnmpProfileDetail.get() for pk={pk}")
         try:
             profile = SnmpProfile.objects.get(pk=pk)
@@ -234,7 +276,9 @@ class APIAdminSnmpProfileDetail(APIView):
         return self.post(request, pk)
 
     def post(self, request, pk):
-        '''Update a specific SnmpProfile object'''
+        '''
+        Update a specific SnmpProfile object
+        '''
         dprint("APIAdminSnmpProfileDetail.post() for pk={pk}")
         try:
             profile = SnmpProfile.objects.get(pk=pk)
@@ -256,7 +300,7 @@ class APIAdminSnmpProfileDetail(APIView):
         else:
             return Response(
                 data=serializer.errors,
-                status=http_status.HTTP_200_OK,
+                status=http_status.HTTP_400_BAD_REQUEST,
             )
 
 
@@ -268,7 +312,9 @@ class APIAdminSwitchGroups(APIView):
     permission_classes = [IsSuperUser]
 
     def get(self, request):
-        '''Return all SwitchGroup objects'''
+        '''
+        Return all SwitchGroup objects
+        '''
         dprint("APIAdminSwitchGroups.get()")
         # return all switchgroups.
         groups = SwitchGroup.objects.all()
@@ -276,13 +322,16 @@ class APIAdminSwitchGroups(APIView):
         return Response(data=serializer.data, status=http_status.HTTP_200_OK)
 
     def post(self, request):
-        '''Add a new SwitchGroup object'''
+        '''
+        Add a new SwitchGroup object
+        '''
         dprint("APIAdminSwitchGroups.post()")
         serializer = SwitchGroupSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=http_status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
 class APIAdminSwitchGroupDetail(APIView):
@@ -293,7 +342,9 @@ class APIAdminSwitchGroupDetail(APIView):
     permission_classes = [IsSuperUser]
 
     def get(self, request, pk):
-        '''Return a specific SwitchGroup object'''
+        '''
+        Return a specific SwitchGroup object
+        '''
         dprint(f"APIAdminSwitchGroupDetail.get() for pk={pk}")
         try:
             switchgroup = SwitchGroup.objects.get(pk=pk)
@@ -316,5 +367,30 @@ class APIAdminSwitchGroupDetail(APIView):
         return self.post(request, pk)
 
     def post(self, request, pk):
-        '''Update a specific SwitchGroup object'''
+        '''
+        Update a specific SwitchGroup object
+        '''
         dprint("APIAdminSwitchGroupDetail.post() for pk={pk}")
+        try:
+            group = SwitchGroup.objects.get(pk=pk)
+        except Exception as err:
+            return Response(
+                data={
+                    "reason": "Invalid group id!",
+                },
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = SwitchGroupSerializer(group, data=request.data, context={'request': request}, partial=True)
+        if serializer.is_valid():
+            dprint(f"Valid data: {repr(serializer.validated_data)}")
+            serializer.save()
+            return Response(
+                data=serializer.data,
+                status=http_status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                data=serializer.errors,
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
