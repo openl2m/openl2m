@@ -25,6 +25,10 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+
+    switchgroups = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    profile = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+
     class Meta:
         model = User
         fields = "__all__"
@@ -35,6 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
         Obviously also need to set the other attributes!
         '''
         dprint("UserSerializer.create() called!")
+        dprint(f"Data={repr(validated_data)}")
 
         # optional fields:
         if 'email' in validated_data:

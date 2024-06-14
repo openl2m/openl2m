@@ -24,6 +24,7 @@ from rest_framework.views import APIView
 from openl2m.api.authentication import IsSuperUser
 from switches.utils import dprint
 from users.api.admin.serializers import UserSerializer, ProfileSerializer
+from users.api.admin.utils import add_user_to_switchgroups, update_user_profile
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -56,8 +57,15 @@ class APIAdminUsers(APIView):
         dprint("APIAdminUsers(POST) - create new user")
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=http_status.HTTP_201_CREATED)
+            user = serializer.save()
+            return_data = serializer.data
+            add_user_to_switchgroups(request, user)
+            profile = update_user_profile(request, user)
+            if profile:
+                # add profile data to return
+                profile_serializer = ProfileSerializer(profile)
+                return_data['profile'] = profile_serializer.data
+            return Response(data=return_data, status=http_status.HTTP_201_CREATED)
         return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
@@ -81,11 +89,12 @@ class APIAdminUserDetail(APIView):
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
         serializer = UserSerializer(u, context={'request': request})
-        # get the profile
+        # also get the profile
         profile_serializer = ProfileSerializer(u.profile, context={'request': request})
         # collect user and profile data
         data = serializer.data
         data['profile'] = profile_serializer.data
+
         # and return it:
         return Response(
             data=data,
@@ -100,7 +109,7 @@ class APIAdminUserDetail(APIView):
         '''Handle POST to update attributes of the User object for private key 'pk' '''
         dprint(f"APIAdminUserDetail.post(): pk={pk}, user={request.user.username}")
         try:
-            u = User.objects.get(pk=pk)
+            user = User.objects.get(pk=pk)
         except Exception as err:
             return Response(
                 data={
@@ -108,11 +117,18 @@ class APIAdminUserDetail(APIView):
                 },
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
-        serializer = UserSerializer(u, data=request.data, partial=True)
+        serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            return_data = serializer.data
+            add_user_to_switchgroups(request, user)
+            profile = update_user_profile(request, user)
+            if profile:
+                # add profile data to return
+                profile_serializer = ProfileSerializer(profile)
+                return_data['profile'] = profile_serializer.data
             return Response(
-                data=serializer.data,
+                data=return_data,
                 # data={'result': f"User id {pk} has been updated!"},
                 status=http_status.HTTP_200_OK,
             )
