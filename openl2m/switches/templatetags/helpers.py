@@ -57,15 +57,17 @@ def build_url_string(values):
     else:
         s = "<a"
     s = s + f" href=\"{values['url']}\""
+    if 'alt' in values.keys() and values['alt']:
+        s = s + f" alt=\"{values['alt']}\""
     if 'hint' in values.keys():
         s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{values['hint']}\""
     s = s + ">"
     if 'fa_icon' in values.keys():
-        s = s + f" <i class=\"fas {values['fa_icon']}\" aria-hidden=\"true\"></i>"
+        s = s + f" <i class=\"fas {values['fa_icon']}\" aria-hidden=\"false\"></i>"
     elif 'icon' in values.keys():
         s = (
             s
-            + f" <img src=\"{values['icon']}\" aria-hidden=\"true\" alt=\"{values['alt']}\" height=\"24\" width=\"24\">"
+            + f" <img src=\"{values['icon']}\" aria-hidden=\"false\" alt=\"{values['alt']}\" height=\"24\" width=\"24\">"
         )
     s = s + "</a> "
     return s
