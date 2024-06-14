@@ -136,8 +136,8 @@ and the example output:
     You will need the returned user *id* for future update calls.
 
 
-Get Switch Detail
------------------
+Get Switch Details
+------------------
 
 The "/api/admin/switches/<id>/" GET endpoint returns the details about a specific switch (device) object.
 

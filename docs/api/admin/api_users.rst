@@ -27,35 +27,43 @@ This returns the list of users:
     [
         {
             "date_joined": "2024-06-04T22:25:58.747427Z",
-            "email": "admin@localhost",
+            "email": "jdoe@localhost",
             "first_name": "Jane",
             "groups": [],
-            "id": 1,
+            "id": 12,
             "is_active": true,
             "is_staff": false,
             "is_superuser": true,
             "last_login": "2024-06-04T22:26:38.834121Z",
             "last_name": "Doe",
-            "password": "",
+            "password": "pbkdf2_sha256$720000$***=",
+            "profile": 12,
             "user_permissions": [],
-            "username": "admin"
+            "username": "jane.doe"
         },
         ...
         more users
         ...
     ]
 
-Add User
---------
+.. note::
+
+    The user profile details are not available from the 'all users' list.
+    To see profile details, see *Get User Details* below.
+
+
+Add a New User
+--------------
 
 The "/api/admin/users/" POST endpoint allows you to create a new user account.
 The new account object will be returned if the call succeeds. Valid field names are as shown in the above output example.
 
 Here is an example call. Note that *username* and *password* are required fields!
+This example also sets a few fields of the new user's profile.
 
 .. code-block:: python
 
-    http --form POST http://localhost:8000/api/admin/users/ 'Authorization: Token ***34b' first_name="Jane" last_name="Doe" email="jane.doe@test.com" username="jane123" password="my_new_password"
+    http --form POST http://localhost:8000/api/admin/users/ 'Authorization: Token ***34b' first_name="Jane" last_name="Doe" email="jane.doe@test.com" username="jane123" password="my_new_password" profile='{"allow_poe_toggle": false, "are_you_sure": false, "theme": "dark"}'
 
 and the example output:
 
@@ -75,6 +83,19 @@ and the example output:
         "last_login": null,
         "last_name": "Doe",
         "password": "pbkdf2_sha256$720000$NAq8rXDnTLT80a0OiWYtcB$F2wiyYH/yZkEi8ZFHr/kRyQvHg4GfdGsPkJoKlwfEWE=",
+        "profile": {
+            "allow_poe_toggle": false,
+            "are_you_sure": false,
+            "bulk_edit": true,
+            "edit_if_descr": true,
+            "id": 25,
+            "last_ldap_dn": "",
+            "last_ldap_login": null,
+            "read_only": false,
+            "theme": "dark",
+            "user": 25,
+            "vlan_edit": false
+        },
         "user_permissions": [],
         "username": "jane123"
     }
@@ -83,13 +104,17 @@ and the example output:
 
     You will need the returned user *id* for future update calls.
 
+.. warning::
 
-Get Users Detail
-----------------
+    Profile fields need to be properly encoded as a JSON dictionary when adding new users, as shown above.
+
+
+Get Users Details
+-----------------
 
 The "/api/admin/users/<id>/" GET endpoint returns the details about a specific user object.
 
-The returned data is identical to the "create user" data in the above example.
+The returned data is identical to the "add user" data in the above example. It includes the profile fields.
 
 Example:
 
@@ -105,8 +130,18 @@ The "/api/admin/users/<id>/" POST (or PATCH) endpoint allows you to change attri
 
 The returned data is identical to the "create user" data in the above example.
 
-Example:
+**Example: Change the password.**
 
 .. code-block:: python
 
     http --form POST http://localhost:8000/api/admin/users/25/ 'Authorization: Token ***34b' password="new_password"
+
+
+**Example: Set a single field in the user profile.**
+
+.. code-block:: python
+
+    http --form POST http://192.168.1.41:8000/api/admin/users/25/ 'Authorization: Token ***34b' profile='{"theme": "light"}'
+
+
+As stated above, Profile fields need to be properly encoded as a JSON dictionary when updating a user, as shown above.
