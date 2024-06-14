@@ -147,3 +147,10 @@ For Dell OS10 support, we use this: https://dellos10-napalm.readthedocs.io/en/la
 For HP Procurve support, we use this: https://github.com/ixs/napalm-procurve
 
 A possible Comware Napalm driver is at https://github.com/firefly-serenity/napalm-flexfabric
+
+Accessibility & Validation
+--------------------------
+
+W3 Markup Validator: https://validator.w3.org/
+
+WAVE Browser Extensions: https://wave.webaim.org/extension
