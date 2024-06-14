@@ -10,8 +10,10 @@ It also add a bacis Admin REST API.**
 The use of Bootstrap 5.3 significantly improves web accessibility
 and updates pages with the new Boostrap 5 look!
 
-Dark Theme can be chosen from the user menu while on the Home page.
+A Dark Theme can be chosen from the user menu while on the Home page.
 
+The REST API adds administrative calls to create and edit users, switches,
+switch groups, and snmp and credential profiles.
 
 Version 3.2
 -----------
@@ -32,3 +34,4 @@ Bug fixes:
 * removed django-minify, as it appears to wreak havoc with Bootstrap 5.
 * fix exception in snmp driver caused by incorrect set call.
 * fixed missing Docker compose test entrypoint config.
+* use ezsnmp, instead of easysnmp, for bugfixes and better support for more recent Python versions.
