@@ -933,7 +933,7 @@ class Switch(models.Model):
             if not self.napalm_device_type:
                 raise ValidationError('Napalm Connector needs a Napalm device type!')
             if not self.netmiko_profile:
-                raise ValidationError('Napalm Connector needs a Netmiko/SSH Profile!')
+                raise ValidationError('Napalm Connector needs a Credentials Profile!')
 
     # this needs to be accessed from templates:
     @property
