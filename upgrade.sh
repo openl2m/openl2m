@@ -131,17 +131,6 @@ eval $COMMAND || exit 1
 # All done!
 echo
 echo "OpenL2M upgrade complete! Don't forget to restart the OpenL2M service:"
+echo
 echo "    sudo systemctl restart openl2m"
 echo
-echo "If you are using scheduled tasks, don't forget to restart the Celery service:"
-echo "    sudo systemctl restart celery"
-echo
-
-# Restart the python service
-#COMMAND="($SYSTEMCTL) restart openl2m"
-#echo "Starting OpenL2M Python service ($COMMAND)..."
-#eval $COMMAND
-# Restart the celery service
-#COMMAND="($SYSTEMCTL) restart celery"
-#echo "Starting OpenL2M Celery service ($COMMAND)..."
-#eval $COMMAND
