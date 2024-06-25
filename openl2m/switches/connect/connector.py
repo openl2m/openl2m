@@ -1152,7 +1152,6 @@ class Connector:
                     count += 1
                 else:
                     dprint(f"  NOT caching attrib = {attr_name}")
-            dprint("  End of for-loop)")
             # now notify we changed the session data:
             self.request.session.modified = True
 
