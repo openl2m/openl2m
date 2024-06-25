@@ -32,8 +32,8 @@ Add the IP v4 address or resolvable DNS name used to connect to the device.
 
 .. note::
   HPE Comware switches are fully Read-Write supported via SNMP, as are older Cisco switches.
-  Most Aruba AOS-CX devices have minimal write capability via SNMP (use REST API for control).
-  Juniper switches are Read-Only via SNMP.
+  Most Aruba AOS-CX devices have minimal write capability via SNMP (use REST API for full control).
+  Juniper switches are Read-Only via SNMP (use the PyEZ driver for full control).
 
 **In the Connection Configuration section, set:**
 
