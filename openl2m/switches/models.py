@@ -865,9 +865,9 @@ class Switch(models.Model):
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'Switches'
-        unique_together = [
-            ['primary_ip4', 'snmp_profile'],
-        ]
+        # unique_together = [
+        #     ['primary_ip4', 'snmp_profile'],
+        # ]
 
     def display_name(self):
         """
