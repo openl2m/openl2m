@@ -50,6 +50,7 @@ For clarity, and to avoid namespace collisions with our own internal classes,
 we import all AOS-CX classes as AosCx<original-name>
 """
 from pyaoscx.session import Session as AosCxSession
+from pyaoscx.configuration import Configuration as AosCxConfiguration
 from pyaoscx.device import Device as AosCxDevice
 from pyaoscx.vlan import Vlan as AosCxVlan
 from pyaoscx.mac import Mac as AosCxMac
@@ -123,11 +124,14 @@ class AosCxConnector(Connector):
 
         # dobject(aoscx_device, "AosCxDevice:")
 
-        self.hostname = aoscx_device.hostname
-        # if first time for this device (or changed), update hostname
-        if self.switch.hostname != aoscx_device.hostname:
-            self.switch.hostname = aoscx_device.hostname
-            self.switch.save()
+        # aoscx_config = AosCxConfiguration(session=self.aoscx_session)
+        # dobject(aoscx_config, "AosCxConfiguration:")
+
+        # self.hostname = aoscx_device.hostname
+        # # if first time for this device (or changed), update hostname
+        # if self.switch.hostname != aoscx_device.hostname:
+        #     self.switch.hostname = aoscx_device.hostname
+        #     self.switch.save()
 
         self.add_more_info('System', 'Firmware Version', aoscx_device.software_version)
         # this is typically the same as software_version:
@@ -135,14 +139,17 @@ class AosCxConnector(Connector):
         if 'build_date' in aoscx_device.software_info:
             self.add_more_info('System', 'Firmware Info', f"Build date: {aoscx_device.software_info['build_date']}")
         self.add_more_info('System', 'Platform', aoscx_device.platform_name)
-        if aoscx_device.hostname:  # this is None when not set!
-            self.add_more_info('System', 'Hostname', self.hostname)
-        else:
-            self.add_more_info('System', 'Hostname', '')
-        if aoscx_device.domain_name:  # this is None when not set!
-            self.add_more_info('System', 'Domain Name', aoscx_device.domain_name)
-        else:
-            self.add_more_info('System', 'Domain Name', '')
+
+        # if aoscx_device.hostname:  # this is None when not set!
+        #     self.add_more_info('System', 'Hostname', self.hostname)
+        # else:
+        #     self.add_more_info('System', 'Hostname', '')
+
+        # if aoscx_device.domain_name:  # this is None when not set!
+        #     self.add_more_info('System', 'Domain Name', aoscx_device.domain_name)
+        # else:
+        #     self.add_more_info('System', 'Domain Name', '')
+
         # dprint(f"\nCapabilities = {aoscx_device.capabilities}")
         # dprint(f"\nCapacities = {aoscx_device.capacities}")
         # dprint(f"\nBoot time = {aoscx_device.boot_time}")
@@ -152,12 +159,12 @@ class AosCxConnector(Connector):
         # dprint(f"\nOther Config = {aoscx_device.other_config}")
         # dprint(f"\nMgmt Intf Status = {aoscx_device.mgmt_intf_status}")
 
-        if 'system_contact' in aoscx_device.other_config and aoscx_device.other_config['system_contact']:
-            self.add_more_info('System', 'Contact', aoscx_device.other_config['system_contact'])
-        if 'system_location' in aoscx_device.other_config and aoscx_device.other_config['system_location']:
-            self.add_more_info('System', 'Location', aoscx_device.other_config['system_location'])
-        if 'system_contact' in aoscx_device.other_config and aoscx_device.other_config['system_description']:
-            self.add_more_info('System', 'Description', aoscx_device.other_config['system_description'])
+        # if 'system_contact' in aoscx_device.other_config and aoscx_device.other_config['system_contact']:
+        #     self.add_more_info('System', 'Contact', aoscx_device.other_config['system_contact'])
+        # if 'system_location' in aoscx_device.other_config and aoscx_device.other_config['system_location']:
+        #     self.add_more_info('System', 'Location', aoscx_device.other_config['system_location'])
+        # if 'system_contact' in aoscx_device.other_config and aoscx_device.other_config['system_description']:
+        #     self.add_more_info('System', 'Description', aoscx_device.other_config['system_description'])
 
         # not sure what to get here yet:
         # aoscx_device.get_subsystems()
@@ -339,6 +346,12 @@ class AosCxConnector(Connector):
         # such as LACP master interfaces:
         self._map_lacp_members_to_logical()
 
+        return True
+
+    def get_my_hardware_details(self) -> bool:
+        '''
+        TBD: Placeholder to read more hardware details of the AOS-CX device.
+        '''
         return True
 
     def get_my_client_data(self) -> bool:
