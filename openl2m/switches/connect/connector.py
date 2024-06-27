@@ -365,7 +365,7 @@ class Connector:
             self.add_more_info('System', 'Ethernet Vendor Search', f"{oui_duration} seconds")
 
             return True
-        self.add_warning("WARNING: device driver does not support 'get_my_basic_info()'' !")
+        self.add_warning("WARNING: device driver does not support 'get_my_client_data()' !")
         return False
 
     '''
