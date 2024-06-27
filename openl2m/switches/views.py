@@ -436,12 +436,12 @@ def switch_view(
         # some untrapped error, not likely to happen...
         log.type = LOG_TYPE_ERROR
         log.description = (
-            f"CAUGHT UNTRAPPED ERROR in get_hardware_details(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            f"ERROR caught in get_hardware_details(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
         )
         dprint(log.description)
         log.save()
         # add a warning message only, since we alread have basic info!
-        conn.add_warning(request=request, group=group, switch=switch, error=conn.error)
+        conn.add_warning(f"Error caught in get_hardware_details(): {e}")
         dprint("ERROR Caught in Details Info!")
 
     if view == "arp_lldp":
