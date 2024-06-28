@@ -43,8 +43,10 @@ psycopg2-binary
 # We are using a clone of the Aruba pyaoscx library from github.com,
 # as there always seems to be some fix in there that we need that has
 # not been released yet to PyPi! :-(
-git+https://github.com/aruba/pyaoscx
-#pyaoscx==2.5.1 -> current release (2/2024)
+# git+https://github.com/aruba/pyaoscx
+#
+# Note: pyaoscx on PyPi appears stable now, so use the tested version:
+pyaoscx==2.6.0
 #
 # work around compatibility bug with pysnmp=4.4.12 in pyasn1==0.5.0, see
 # https://github.com/pyasn1/pyasn1/issues/28
@@ -55,7 +57,7 @@ pycodestyle
 # see https://lists.openstack.org/pipermail/openstack-discuss/2022-August/030062.html
 # we are now using the maintained clone "pysnmplib"
 # see https://github.com/pysnmp/pysnmp
-pysnmplib
+pysnmplib==5.0.24
 #PyTZ and the type library:
 pytz>=2024.1
 types-pytz
