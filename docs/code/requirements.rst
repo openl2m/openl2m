@@ -58,8 +58,8 @@ A good place to start learning Bootstrap is
 
 We primarily use the "ezsnmp" library, because is it fast.
 (This is a maintained clone of the original "easysnmp" library, which now appear to be stale.) It requires the Net-SNMP
-package on your Linux server. For more, 
-`see these EzSNMP installation docs<https://carlkidcrypto.github.io/ezsnmp/html/index.html>`_
+package on your Linux server. For more,
+`see these EzSNMP installation docs <https://carlkidcrypto.github.io/ezsnmp/html/index.html>`_
 and the original `EasySNMP docs <https://easysnmp.readthedocs.io/en/latest/>`_
 
 We also use the `pysnmplib library <https://github.com/pysnmp/pysnmp>`_
@@ -71,6 +71,10 @@ unicode strings for all internal data representations. Pysnmplib is a pure pytho
 that does not have these problems. However, it is significantly slower, so we only use
 it only where absolutely needed. (Note: *pysnmplib* is a continuation of the original *pysnmp*; that
 library is no longer developed.)
+
+Note that *pysnmplib* does NOT support Python 3.12, due to some synchronous library support being removed
+in that version. This will require a move to the *pysnmp-lextudio* library, and some re-writing of the way
+we use pysnmp.
 
 
 **Aruba AOS-CX**
