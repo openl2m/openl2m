@@ -22,6 +22,18 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from openl2m.api.authentication import IsSuperUser
+
+from switches.constants import (
+    LOG_TYPE_CHANGE,
+    LOG_TYPE_ERROR,
+    LOG_TYPE_VIEW,
+    LOG_REST_API_ADMIN_USER_GET_ALL,
+    LOG_REST_API_ADMIN_USER_CREATE,
+    LOG_REST_API_ADMIN_USER_GET,
+    LOG_REST_API_ADMIN_USER_MODIFY,
+)
+
+from switches.models import Log
 from switches.utils import dprint
 from users.api.admin.serializers import UserSerializer, ProfileSerializer
 from users.api.admin.utils import add_user_to_switchgroups, update_user_profile
@@ -50,6 +62,14 @@ class APIAdminUsers(APIView):
         # return all users.
         users = User.objects.all()
         serializer = UserSerializer(users, many=True, context={'request': request})
+        log = Log(
+            type=LOG_TYPE_VIEW,
+            action=LOG_REST_API_ADMIN_USER_GET_ALL,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            description="API Admin get all users",
+        )
+        log.save()
         return Response(data=serializer.data, status=http_status.HTTP_200_OK)
 
     # create a new user
@@ -65,7 +85,24 @@ class APIAdminUsers(APIView):
                 # add profile data to return
                 profile_serializer = ProfileSerializer(profile)
                 return_data['profile'] = profile_serializer.data
+            log = Log(
+                type=LOG_TYPE_CHANGE,
+                action=LOG_REST_API_ADMIN_USER_CREATE,
+                user=request.user,
+                ip_address=get_remote_ip(request),
+                description=f"API Admin create user, parameters: {request.data}",
+            )
+            log.save()
             return Response(data=return_data, status=http_status.HTTP_201_CREATED)
+        # invalid data:
+        log = Log(
+            type=LOG_TYPE_ERROR,
+            action=LOG_REST_API_ADMIN_USER_CREATE,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            description=f"API Admin create user error: '{serializer.errors}', parameters: {request.data}",
+        )
+        log.save()
         return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
@@ -80,21 +117,39 @@ class APIAdminUserDetail(APIView):
         '''GET return the user object for a primary key 'pk' '''
         dprint(f"APIAdminUserDetail.get(): pk={pk}, user={request.user.username}, profile={request.user.profile}")
         try:
-            u = User.objects.get(pk=pk)
+            user = User.objects.get(pk=pk)
         except Exception as err:
+            # log the error
+            log = Log(
+                type=LOG_TYPE_ERROR,
+                action=LOG_REST_API_ADMIN_USER_GET,
+                user=request.user,
+                ip_address=get_remote_ip(request),
+                description=f"API Admin get user error: unknown id={pk}",
+            )
+            log.save()
+            # return error
             return Response(
                 data={
                     "reason": "Invalid user id!",
                 },
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
-        serializer = UserSerializer(u, context={'request': request})
+        serializer = UserSerializer(user, context={'request': request})
         # also get the profile
-        profile_serializer = ProfileSerializer(u.profile, context={'request': request})
+        profile_serializer = ProfileSerializer(user.profile, context={'request': request})
         # collect user and profile data
         data = serializer.data
         data['profile'] = profile_serializer.data
-
+        # log the request
+        log = Log(
+            type=LOG_TYPE_VIEW,
+            action=LOG_REST_API_ADMIN_USER_GET,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            description=f"API Admin get user for pk={pk}, user={user.name}",
+        )
+        log.save()
         # and return it:
         return Response(
             data=data,
@@ -111,6 +166,16 @@ class APIAdminUserDetail(APIView):
         try:
             user = User.objects.get(pk=pk)
         except Exception as err:
+            # log the error
+            log = Log(
+                type=LOG_TYPE_ERROR,
+                action=LOG_REST_API_ADMIN_USER_MODIFY,
+                user=request.user,
+                ip_address=get_remote_ip(request),
+                description=f"API Admin modify user error: unknown id={pk}",
+            )
+            log.save()
+            # send the error
             return Response(
                 data={
                     "reason": "Invalid user id!",
@@ -127,9 +192,29 @@ class APIAdminUserDetail(APIView):
                 # add profile data to return
                 profile_serializer = ProfileSerializer(profile)
                 return_data['profile'] = profile_serializer.data
+                # log the change
+                log = Log(
+                    type=LOG_TYPE_CHANGE,
+                    action=LOG_REST_API_ADMIN_USER_MODIFY,
+                    user=request.user,
+                    ip_address=get_remote_ip(request),
+                    description=f"API Admin modify user for id={pk}, user={user.name}, parameters={request.data}",
+                )
+                log.save()
+
             return Response(
                 data=return_data,
                 # data={'result': f"User id {pk} has been updated!"},
                 status=http_status.HTTP_200_OK,
             )
+        # log the error:
+        log = Log(
+            type=LOG_TYPE_ERROR,
+            action=LOG_REST_API_ADMIN_USER_MODIFY,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            description=f"API Admin modify user error for id={pk}, user={u.name}: {serializer.errors}",
+        )
+        log.save()
+
         return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
