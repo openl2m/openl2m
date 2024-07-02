@@ -15,18 +15,24 @@ A Dark Theme can be chosen from the user menu while on the Home page.
 The REST API adds administrative calls to create and edit users, switches,
 switch groups, and snmp and credential profiles.
 
+Version 3.2.1
+-------------
+
+Release Date: 2024-TBD
+
+* add basic Admin REST API to create/edit users, switches, switch groups, snmp and netmiko profiles.
+  See documentation for more details.
+
 Version 3.2
 -----------
 
-Release Date: 2024-TBD
+Release Date: (not released)
 
 * update to Bootstrap v5.3.3
 * various layout changes.
 * require Python 3.10 or 3.11. Will not run on v3.12 (e.g on Ubuntu 24.04).
 * add warning for unknown/unsupported vendors in snmp driver.
 * device hardware details are always read, see Device Information tab.
-* add basic Admin REST API to create/edit users, switches, switch groups, snmp and netmiko profiles.
-  See documentation for more details.
 
 Bug fixes:
 
