@@ -56,7 +56,7 @@ class APIRootView(APIView):
 class APIAdminRootView(APIView):
     """
     This is the root of OpenL2M's REST Admin API.
-    API endpoints are arranged by app; e.g. `/api/admin/switches/`.
+    API endpoints are arranged by app; e.g. `/api/admin/switches/***/, /api/admin/users/, etc.`.
     """
 
     permission_classes = [IsAuthenticated, IsSuperUser]
@@ -73,6 +73,7 @@ class APIAdminRootView(APIView):
                 'credentials': reverse('api-admin-switches:api-admin-credentials', request=request, format=format),
                 'snmpprofiles': reverse('api-admin-switches:api-admin-snmp-profiles', request=request, format=format),
                 'switchgroups': reverse('api-admin-switches:api-admin-switchgroups', request=request, format=format),
+                'users': reverse('api-admin-users:api-admin-users', request=request, format=format),
             }
         )
 
