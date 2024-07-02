@@ -22,6 +22,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from openl2m.api.authentication import IsSuperUser
+from switches.utils import get_remote_ip
 
 from switches.constants import (
     LOG_TYPE_CHANGE,
