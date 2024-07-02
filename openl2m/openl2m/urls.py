@@ -28,7 +28,7 @@ from django.urls import include, path
 # from django.conf.urls import include
 from django.http import HttpResponseRedirect
 
-from openl2m.api.views import APIRootView, APIStatsView, APIEnvironmentView
+from openl2m.api.views import APIRootView, APIAdminRootView, APIStatsView, APIEnvironmentView
 
 from users.views import MyLoginView, LogoutView
 
@@ -72,6 +72,7 @@ urlpatterns = [
     path("api/environment/", APIEnvironmentView.as_view(), name='api-environment'),
     path("api/users/", include("users.api.urls"), name="users-api"),
     # admin paths:
+    path("api/admin/", APIAdminRootView.as_view(), name="api-admin-root"),
     path("api/admin/users/", include("users.api.admin.urls"), name="api-admin-users"),
     path("api/admin/switches/", include("switches.api.admin.urls"), name="api-admin-switches"),
     # to be implemented:

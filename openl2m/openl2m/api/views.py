@@ -15,13 +15,14 @@
 # restframework related:
 from drf_spectacular.utils import extend_schema
 from drf_spectacular.types import OpenApiTypes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
+from openl2m.api.authentication import IsSuperUser
 from switches.stats import get_environment_info, get_database_info, get_usage_info
 from switches.utils import dprint
-
 
 API_VERSION = 1
 
@@ -41,11 +42,37 @@ class APIRootView(APIView):
     @extend_schema(exclude=True)
     def get(self, request, format=None):
         dprint("APIRootView(GET)")
+        return_dict = {
+            'switches': reverse('switches-api:api_switch_menu_view', request=request, format=format),
+            #                'switches/description': reverse('switches-api:api_interface_set_description', request=request, format=format),
+            'stats': reverse('api-stats', request=request, format=format),
+        }
+        if request.user.is_superuser:
+            return_dict['admin'] = reverse('api-admin-root', request=request, format=format)
+
+        return Response(return_dict)
+
+
+class APIAdminRootView(APIView):
+    """
+    This is the root of OpenL2M's REST Admin API.
+    API endpoints are arranged by app; e.g. `/api/admin/switches/`.
+    """
+
+    permission_classes = [IsAuthenticated, IsSuperUser]
+
+    def get_view_name(self):
+        return "API Admin Root"
+
+    @extend_schema(exclude=True)
+    def get(self, request, format=None):
+        dprint("APIAdminRootView(GET)")
         return Response(
             {
-                'switches': reverse('switches-api:api_switch_menu_view', request=request, format=format),
-                #                'switches/description': reverse('switches-api:api_interface_set_description', request=request, format=format),
-                'stats': reverse('api-stats', request=request, format=format),
+                'switches': reverse('api-admin-switches:api-admin-switches', request=request, format=format),
+                'credentials': reverse('api-admin-switches:api-admin-credentials', request=request, format=format),
+                'snmpprofiles': reverse('api-admin-switches:api-admin-snmp-profiles', request=request, format=format),
+                'switchgroups': reverse('api-admin-switches:api-admin-switchgroups', request=request, format=format),
             }
         )
 
