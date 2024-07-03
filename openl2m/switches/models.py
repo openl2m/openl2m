@@ -11,6 +11,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+import datetime
 import logging.handlers
 import json
 
@@ -19,6 +20,7 @@ from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 # local copy of django-ordered-model, with some fixes:
 # from libraries.django_ordered_model.ordered_model.models import OrderedModelManager, OrderedModel
@@ -862,12 +864,47 @@ class Switch(models.Model):
     #    help_text='If checked, do not ever show interfaces of this device! Mostly useful for command-only devices!'
     # )
 
+    # some attributes to track access and use:
+    created = models.DateTimeField(
+        default=datetime.datetime(
+            2000, 1, 1, 0, 0, 0, 0, datetime.timezone.utc
+        ),  # default to January 1, 2000; long before birth of OpenL2M :-)
+        help_text="Time this device was created.",
+    )
+    modified = models.DateTimeField(
+        default=datetime.datetime(
+            2000, 1, 1, 0, 0, 0, 0, datetime.timezone.utc
+        ),  # default to January 1, 2000; long before birth of OpenL2M :-)
+        help_text="Time this device config was last modified.",
+    )
+    last_accessed = models.DateTimeField(
+        default=datetime.datetime(
+            2000, 1, 1, 0, 0, 0, 0, datetime.timezone.utc
+        ),  # default to January 1, 2000; long before birth of OpenL2M :-)
+        help_text="Most recent time this device was accessed over the network.",
+    )
+    access_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of times this device was accessed over the network.",
+    )
+    change_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of configuration changes applied to this device over the network.",
+    )
+
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'Switches'
         # unique_together = [
         #     ['primary_ip4', 'snmp_profile'],
         # ]
+
+    def save(self, *args, **kwargs):
+        '''On save, update timestamps'''
+        if not self.id:
+            self.created = timezone.now()
+        self.modified = timezone.now()
+        return super(Switch, self).save(*args, **kwargs)
 
     def display_name(self):
         """
