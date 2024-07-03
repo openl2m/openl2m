@@ -864,7 +864,9 @@ class Switch(models.Model):
     #    help_text='If checked, do not ever show interfaces of this device! Mostly useful for command-only devices!'
     # )
 
+    #
     # some attributes to track access and use:
+    #
     created = models.DateTimeField(
         default=datetime.datetime(
             2000, 1, 1, 0, 0, 0, 0, datetime.timezone.utc
@@ -905,6 +907,13 @@ class Switch(models.Model):
             self.created = timezone.now()
         self.modified = timezone.now()
         return super(Switch, self).save(*args, **kwargs)
+
+    def update_access(self):
+        '''Update the last accessed timestamp, and increment access counter'''
+        self.last_accessed = timezone.now()
+        self.access_count += 1
+        # call super.save(), instead of calling our own save (which sets modified as well!)
+        super(Switch, self).save()
 
     def display_name(self):
         """

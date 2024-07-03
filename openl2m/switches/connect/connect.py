@@ -140,6 +140,9 @@ def get_connection_object(request: HttpRequest, group: SwitchGroup, switch: Swit
         # should not happen!
         raise Exception("Invalid connector type configured on switch!")
 
+    # update the device access timestamp, and access count:
+    switch.update_access()
+
     # load caches (http session, memory cache (future), whatever else for performance)
     if not connection.load_cache() and isinstance(request, RESTRequest):
         # API call with token, there is no cache so always load the basic switch config:
