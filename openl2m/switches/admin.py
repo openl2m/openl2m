@@ -64,6 +64,8 @@ class SwitchAdmin(admin.ModelAdmin):
         'access_count',
         'last_changed',
         'change_count',
+        'last_command_time',
+        'command_count',
     )
     filter_horizontal = ('command_templates',)
     search_fields = ['name']
@@ -123,6 +125,8 @@ class SwitchAdmin(admin.ModelAdmin):
                     'access_count',
                     'last_changed',
                     'change_count',
+                    'last_command_time',
+                    'command_count',
                 )
             },
         ),
