@@ -310,8 +310,6 @@ class Connector:
 
             # and save the switch cache:
             # self.save_cache()
-            # update counters
-            # self.switch.save()
         else:
             dprint("  ==> Already loaded from cache!")
         return True

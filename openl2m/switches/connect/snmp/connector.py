@@ -2126,6 +2126,13 @@ class SnmpConnector(Connector):
         self.add_more_info('System', 'IP/Hostname', self.switch.primary_ip4)
         self.add_more_info('System', 'Snmp Profile', self.switch.snmp_profile.name)
         self.add_more_info('System', 'Vendor ID', get_switch_enterprise_info(self.object_id))
+        # info about access times, etc.
+        self.add_more_info("System", "Last Changed", self.switch.last_changed)
+        self.add_more_info("System", "Change Count", self.switch.change_count)
+        # by the time we get here, the access timestamp for our instance has already
+        # been written, so no use to show this:
+        # self.add_more_info("System", "Last Accessed", self.switch.last_accessed)
+        self.add_more_info("System", "Access Count", self.switch.access_count)
         # first time when data was read:
         self.add_more_info(
             'System', 'Read Time', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(self.sys_uptime_timestamp))
