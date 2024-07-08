@@ -941,6 +941,14 @@ class Switch(models.Model):
         self.last_changed = timezone.now()
         self.save()
 
+    def update_command(self):
+        '''
+        Increment the command counter and update last_command_time timestamp
+        '''
+        self.command_count += 1
+        self.last_command_time = timezone.now()
+        self.save()
+
     def display_name(self):
         """
         This is used in templates, so we can 'annotate' as needed

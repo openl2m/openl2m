@@ -482,6 +482,7 @@ def switch_view(
             log.description = f"{cmd['error_descr']}: {cmd['error_details']}"
         else:
             # success !
+            switch.update_command()
             log.type = LOG_TYPE_COMMAND
             log.action = LOG_EXECUTE_COMMAND
             log.description = cmd["command"]
@@ -499,6 +500,7 @@ def switch_view(
             log.save()
         else:
             # success !
+            switch.update_command()
             log.type = LOG_TYPE_COMMAND
             log.action = LOG_EXECUTE_COMMAND
             log.description = cmd["command"]
