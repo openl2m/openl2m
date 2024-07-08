@@ -899,6 +899,16 @@ class Switch(models.Model):
         default=0,
         help_text="Number of configuration changes applied to this device over the network.",
     )
+    last_command_time = models.DateTimeField(
+        default=datetime.datetime(
+            2000, 1, 1, 0, 0, 0, 0, datetime.timezone.utc
+        ),  # default to January 1, 2000; long before birth of OpenL2M :-)
+        help_text="Most recent time a command was run on this device.",
+    )
+    command_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of times a command was run on this device.",
+    )
 
     class Meta:
         ordering = ['name']
