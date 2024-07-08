@@ -59,9 +59,10 @@ class SwitchAdmin(admin.ModelAdmin):
     readonly_fields = (
         'hostname',
         'created',
-        'modified',
+        #        'modified',
         'last_accessed',
         'access_count',
+        'last_changed',
         'change_count',
     )
     filter_horizontal = ('command_templates',)
@@ -117,9 +118,10 @@ class SwitchAdmin(admin.ModelAdmin):
             {
                 'fields': (
                     'created',
-                    'modified',
+                    #                    'modified',
                     'last_accessed',
                     'access_count',
+                    'last_changed',
                     'change_count',
                 )
             },

@@ -889,6 +889,12 @@ class Switch(models.Model):
         default=0,
         help_text="Number of times this device was accessed over the network.",
     )
+    last_changed = models.DateTimeField(
+        default=datetime.datetime(
+            2000, 1, 1, 0, 0, 0, 0, datetime.timezone.utc
+        ),  # default to January 1, 2000; long before birth of OpenL2M :-)
+        help_text="Most recent time this device configuration was changed over the network.",
+    )
     change_count = models.PositiveIntegerField(
         default=0,
         help_text="Number of configuration changes applied to this device over the network.",
@@ -909,11 +915,21 @@ class Switch(models.Model):
         return super(Switch, self).save(*args, **kwargs)
 
     def update_access(self):
-        '''Update the last accessed timestamp, and increment access counter'''
+        '''
+        Update the last accessed timestamp, and increment access counter
+        '''
         self.last_accessed = timezone.now()
         self.access_count += 1
         # call super.save(), instead of calling our own save (which sets modified as well!)
         super(Switch, self).save()
+
+    def update_change(self):
+        '''
+        Increment the change counter and update last_changed timestamp
+        '''
+        self.change_count += 1
+        self.last_changed = timezone.now()
+        self.save()
 
     def display_name(self):
         """
