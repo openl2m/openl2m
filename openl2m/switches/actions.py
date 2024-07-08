@@ -145,6 +145,7 @@ def perform_interface_admin_change(
     log.description = f"Interface {interface.name}: {state}"
     log.save()
     counter_increment(COUNTER_CHANGES)
+    switch.update_change()
 
     success = Error()
     success.status = False  # no error!
@@ -266,6 +267,7 @@ def perform_interface_description_change(
 
     log.save()
     counter_increment(COUNTER_CHANGES)
+    switch.update_change()
 
     success = Error()
     success.status = False  # no error
@@ -374,6 +376,7 @@ def perform_interface_pvid_change(
     # all OK, save log
     log.save()
     counter_increment(COUNTER_CHANGES)
+    switch.update_change()
 
     success = Error()
     success.status = False  # not an error
@@ -477,6 +480,8 @@ def perform_interface_poe_change(
 
     log.save()
     counter_increment(COUNTER_CHANGES)
+    switch.update_change()
+
     success = Error()
     success.status = False  # no error
     success.description = f"Interface {interface.name} PoE is now {state}"
@@ -560,8 +565,8 @@ def perform_switch_save_config(request: HttpRequest, group_id: int, switch_id: i
 
     # save cachable/session data
     connection.save_cache()
-
     # all OK
+    switch.update_change()
     log.save()
     success = Error()
     success.status = False  # no error
@@ -634,6 +639,7 @@ def perform_switch_vlan_add(request: HttpRequest, group_id: int, switch_id: int,
         connection.set_save_needed(True)
         # and save data in session
         connection.save_cache()
+        switch.update_change()
         info = Error()
         info.status = False  # no error
         info.description = log.description
@@ -715,6 +721,7 @@ def perform_switch_vlan_delete(request: HttpRequest, group_id: int, switch_id: i
         # and save data in session
         connection.save_cache()
         counter_increment(COUNTER_VLAN_MANAGE)
+        switch.update_change()
         info = Error()
         info.status = False  # no error
         info.description = f"Vlan {vlan_id} was deleted!"
@@ -792,6 +799,7 @@ def perform_switch_vlan_edit(request: HttpRequest, group_id: int, switch_id: int
         # and save data in session
         connection.save_cache()
         counter_increment(COUNTER_VLAN_MANAGE)
+        switch.update_change()
         info = Error()
         info.status = False  # no error
         info.description = f"Updated name for vlan {vlan_id} to '{vlan_name}'"
