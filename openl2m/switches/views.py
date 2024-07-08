@@ -745,6 +745,11 @@ class SwitchBulkEdit(LoginRequiredMixin, View):
             return success_page(request, group, switch, mark_safe(description))
 
 
+"""Note: there is duplicate code here!
+   This needs to be updated to use the actions.* functions.
+"""
+
+
 def bulkedit_processor(
     request,
     group,
@@ -798,7 +803,7 @@ def bulkedit_processor(
         iface = conn.get_interface_by_key(if_key)
         if not iface:
             error_count += 1
-            outputs.append(f"ERROR: interface for index '{if_key}' not found!")
+            outputs.append(f"ERROR: (BulkEdit) interface for index '{if_key}' not found!")
             continue
         iface_count += 1
 
@@ -842,6 +847,7 @@ def bulkedit_processor(
                     log.type = LOG_TYPE_CHANGE
                     log.description = f"Interface {iface.name}: Admin set to {new_state_name}"
                     counter_increment(COUNTER_CHANGES)
+                    conn.switch.update_change()
                 else:
                     error_count += 1
                     log.type = LOG_TYPE_ERROR
@@ -883,6 +889,7 @@ def bulkedit_processor(
                         else:
                             # successful power down
                             counter_increment(COUNTER_CHANGES)
+                            conn.switch.update_change()
                             # now delay
                             time.sleep(settings.POE_TOGGLE_DELAY)
                             # Now enable PoE again...
@@ -902,6 +909,7 @@ def bulkedit_processor(
                                 outputs.append(log.description)
                                 log.save()
                                 counter_increment(COUNTER_CHANGES)
+                                conn.switch.update_change()
                     else:
                         outputs.append(f"Interface {iface.name}: PoE Down/Up IGNORED, PoE NOT enabled")
 
@@ -947,6 +955,7 @@ def bulkedit_processor(
                             outputs.append(log.description)
                             log.save()
                             counter_increment(COUNTER_CHANGES)
+                            conn.switch.update_change()
                     else:
                         # already in wanted power state:
                         outputs.append(f"Interface {iface.name}: Ignored, PoE already {new_state_name}")
@@ -992,6 +1001,7 @@ def bulkedit_processor(
                         outputs.append(log.description)
                     log.save()
                     counter_increment(COUNTER_CHANGES)
+                    conn.switch.update_change()
                 else:
                     # already on desired vlan:
                     outputs.append(f"Interface {iface.name}: Ignored, vlan already {new_pvid}")
@@ -1049,6 +1059,7 @@ def bulkedit_processor(
                 log.type = LOG_TYPE_CHANGE
                 log.description = f"Interface {iface.name}: Descr set OK"
                 counter_increment(COUNTER_CHANGES)
+                conn.switch.update_change()
                 outputs.append(log.description)
             log.save()
 
