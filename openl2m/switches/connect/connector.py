@@ -12,6 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 from collections import OrderedDict
+import datetime
 import lib.manuf.manuf as manuf
 import natsort
 import jsonpickle
@@ -307,6 +308,26 @@ class Connector:
 
             else:
                 self.add_warning("WARNING: device driver does not support 'get_my_basic_info()' !")
+
+            # info about access times, etc.
+            default_time = datetime.datetime(2000, 1, 1, 0, 0, 0, 0, datetime.timezone.utc)
+
+            # by the time we get here, the access timestamp for this switch instance has already
+            # been written, so no use to show this:
+            # self.add_more_info("System", "Last Accessed", self.switch.last_accessed)
+            self.add_more_info("System", "Access Count", self.switch.access_count)
+
+            if self.switch.last_changed == default_time:
+                self.add_more_info("System", "Last Changed", "never")
+            else:
+                self.add_more_info("System", "Last Changed", last_changed)
+                self.add_more_info("System", "Change Count", self.switch.change_count)
+
+            if self.switch.last_command_time == default_time:
+                self.add_more_info("System", "Last Command", "never")
+            else:
+                self.add_more_info("System", "Last Command", last_command_time)
+                self.add_more_info("System", "Command Count", self.switch.command_count)
 
             # and save the switch cache:
             # self.save_cache()
