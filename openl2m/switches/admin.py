@@ -11,6 +11,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+from django.db.models import Count
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry, DELETION
 from django.urls import reverse
@@ -55,7 +56,7 @@ class SwitchInline(admin.TabularInline):
 class SwitchAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    list_display = ('name', 'access_count', 'last_accessed', 'change_count', 'last_changed', 'get_switchgroups')
+    list_display = ['name', 'access_count', 'last_accessed', 'change_count', 'last_changed', 'get_switchgroups']
     readonly_fields = (
         'hostname',
         'created',
@@ -155,11 +156,9 @@ class SwitchGroupMembershipStackedInline(OrderedTabularInline):
 class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    # we just want all fields:
-    # list_display = ('name', )
     search_fields = ['name']
     filter_horizontal = ('users', 'vlan_groups', 'vlans')
-    list_display = ('name', 'get_switchgroup_users')
+    list_display = ['name', 'get_switchgroup_users']
     # inlines = (SwitchGroupSwitchesThroughModelTabularInline, )
     inlines = (SwitchGroupMembershipStackedInline,)
     fieldsets = (
@@ -223,7 +222,7 @@ class VLANAdmin(admin.ModelAdmin):
     save_as = True
     search_fields = ['name', 'vid']
     # we just want all fields:
-    # list_display = ('name', 'vid', 'description')
+    # list_display = ['name', 'vid', 'description']
     inlines = (VlanInline, VlanSwitchInline)
 
 
@@ -241,7 +240,7 @@ class VlanGroupAdmin(admin.ModelAdmin):
     search_fields = ['name']
     filter_horizontal = ('vlans',)
     # we just want all fields:
-    # list_display = ('name', 'vid', 'description')
+    # list_display = ['name', 'vid', 'description']
     inlines = (VlanGroupInline,)
     fieldsets = (
         (
@@ -266,6 +265,7 @@ class SnmpProfileAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
     search_fields = ['name']
+    list_display = ['name', 'switch_count']
     fieldsets = (
         (
             None,
@@ -306,11 +306,16 @@ class SnmpProfileAdmin(admin.ModelAdmin):
         ),
     )
 
+    # return the number of switch() objects that reference a given snmp profile (obj)
+    def switch_count(self, obj):
+        return obj.snmp_profile.count()
+
 
 class NetmikoProfileAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
     search_fields = ['name']
+    list_display = ['name', 'switch_count']
     fieldsets = (
         (
             None,
@@ -353,17 +358,33 @@ class NetmikoProfileAdmin(admin.ModelAdmin):
         ),
     )
 
+    # return the number of switch() objects that reference a given netmiko profile (obj)
+    def switch_count(self, obj):
+        return obj.netmiko_profile.count()
+
 
 class CommandAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
     search_fields = ['name']
+    list_display = ['name', 'os', 'command_list_count']
+
+    # return the number of commandlist() objects that reference a given command (obj)
+    # this can be in 4 difference ManyToManyField relationships:
+    def command_list_count(self, obj):
+        return (
+            obj.global_commands.count()
+            + obj.interface_commands.count()
+            + obj.global_commands_staff.count()
+            + obj.interface_commands_staff.count()
+        )
 
 
 class CommandListAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
     search_fields = ['name']
+    list_display = ['name', 'switch_count']
     filter_horizontal = (
         'global_commands',
         'interface_commands',
@@ -400,11 +421,16 @@ class CommandListAdmin(admin.ModelAdmin):
         ),
     )
 
+    # return the number of switch() objects that reference a given command list (obj)
+    def switch_count(self, obj):
+        return obj.command_list.count()
+
 
 class CommandTemplateAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
     search_fields = ['name']
+    list_display = ['name', 'switch_count']
     fieldsets = (
         (None, {'fields': ('name', 'os', 'description', 'template')}),
         (
@@ -486,6 +512,10 @@ class CommandTemplateAdmin(admin.ModelAdmin):
             },
         ),
     )
+
+    # return the number of switch() objects that reference a given command template (obj)
+    def switch_count(self, obj):
+        return obj.command_templates.count()
 
 
 # add a class to show the built-in admin pages LogEntry objects:
