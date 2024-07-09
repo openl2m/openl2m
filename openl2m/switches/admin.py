@@ -55,7 +55,7 @@ class SwitchInline(admin.TabularInline):
 class SwitchAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    list_display = ('name', 'get_switchgroups')
+    list_display = ('name', 'access_count', 'last_accessed', 'change_count', 'last_changed', 'get_switchgroups')
     readonly_fields = (
         'hostname',
         'created',
