@@ -246,6 +246,7 @@ class VlanGroupAdmin(admin.ModelAdmin):
     filter_horizontal = ('vlans',)
     # we just want all fields:
     # list_display = ['name', 'vid', 'description']
+    list_display = ['name', 'use_count']
     inlines = (VlanGroupInline,)
     fieldsets = (
         (
@@ -264,6 +265,10 @@ class VlanGroupAdmin(admin.ModelAdmin):
             },
         ),
     )
+
+    # return the number of SwitchGroups() objects that reference a given VlanGroup (obj)
+    def use_count(self, obj):
+        return obj.vlangroups.count()
 
 
 class SnmpProfileAdmin(admin.ModelAdmin):
