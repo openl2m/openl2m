@@ -158,7 +158,7 @@ class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
     save_as = True
     search_fields = ['name']
     filter_horizontal = ('users', 'vlan_groups', 'vlans')
-    list_display = ['name', 'get_switchgroup_users']
+    list_display = ['name', 'switch_count', 'get_switchgroup_users']
     # inlines = (SwitchGroupSwitchesThroughModelTabularInline, )
     inlines = (SwitchGroupMembershipStackedInline,)
     fieldsets = (
@@ -201,6 +201,10 @@ class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
             },
         ),
     )
+
+    # return the number of Switch() objects that are used by a given SwitchGroup (obj)
+    def switch_count(self, obj):
+        return obj.switches.count()
 
 
 # Change the VLAN() admin display to add the list of groups where this is used:
