@@ -31,7 +31,7 @@ __Features:__
 
 __Devices Supported:__
 
-* Aruba AOS-CX switches (via SNMP or REST API)
+* Aruba AOS-CX switches (REST API(preferred), or SNMP)
 * HP/Aruba Procurve switches (via SNMP)
 * HPE Comware switches (via SNMP)
 * Juniper devices (via Junos PyEz API)
@@ -43,6 +43,8 @@ __Devices Supported:__
 See the documentation for more information.
 
 __What's New:__
+
+Highlights:
 
 v3.2 adds a Dark Theme. It improves web accessibility and provides a more modern look, and more consistent layout through the use of Bootstrap 5.3. A docker compose config for developing is provided.
 
@@ -94,13 +96,18 @@ __Documentation__:
 
 See the following OpenL2M documentation:
 
-* in the ./docs/ folder (in RST format, buildable with Sphinx, e.g. run 'make html'.
-  This will build in ./django/project-static/docs/html/
-* after install, from the menu, or at <your-website-url>/static/docs/html/
 * at https://openl2m.readthedocs.io/
+* after install, from the application menu, or at <your-website-url>/static/docs/html/
+* in the ./docs/ source folder (in RST format, buildable with Sphinx, e.g. run 'make html'.
+  This will build in ./django/project-static/docs/html/
 
 
 __Screenshots__:
+
+__Login Window:__ Shows configurable login, top and bottom banners.
+
+<kbd><img src= "docs/_static/login-window.png" alt="Login Window"></kbd>
+
 
 __Devices Menu:__ Shows the groups and devices you can access
 

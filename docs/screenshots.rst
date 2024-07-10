@@ -4,6 +4,11 @@
 OpenL2M Screenshots
 ===================
 
+* **Login Window:** Can show configurable login, top, and bottom banners.
+
+.. image:: _static/login-window.png
+
+
 * **Devices Menu:** Shows the groups and devices you can access
 
 .. image:: _static/devices-menu.png
