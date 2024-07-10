@@ -223,7 +223,12 @@ class VLANAdmin(admin.ModelAdmin):
     search_fields = ['name', 'vid']
     # we just want all fields:
     # list_display = ['name', 'vid', 'description']
+    list_display = ['name', 'use_count']
     inlines = (VlanInline, VlanSwitchInline)
+
+    # return the number of VlanGroup() and SwitchGroups() objects that reference a given vlan (obj)
+    def use_count(self, obj):
+        return obj.vlangroups.count() + obj.vlans.count()
 
 
 # Change the VlanGroup() admin display to add the list of groups where this is used:
