@@ -157,6 +157,9 @@ class Connector:
             {}
         )  # dict of categories string, each a list of tuples (name, value), to extend sytem info about this switch!
 
+        # save switch previous (last) access, since this will be overwritten by this access!
+        self.last_accessed = self.switch.last_accessed
+
         # capabilities of the vendor or tech-specific driver, we assume No for all changing:
         self.can_change_admin_status = False
         self.can_change_vlan = False
@@ -313,20 +316,23 @@ class Connector:
             default_time = datetime.datetime(2000, 1, 1, 0, 0, 0, 0, datetime.timezone.utc)
 
             # by the time we get here, the access timestamp for this switch instance has already
-            # been written, so no use to show this:
-            # self.add_more_info("System", "Last Accessed", self.switch.last_accessed)
-            self.add_more_info("System", "Access Count", self.switch.access_count)
+            # been written. This previous data was stored in the Connection() object during init:
+            if self.last_accessed == default_time:
+                self.add_more_info("System", "Last Accessed", "never")
+            else:
+                self.add_more_info("System", "Last Accessed", self.last_accessed)
+                self.add_more_info("System", "Access Count", self.switch.access_count)
 
             if self.switch.last_changed == default_time:
                 self.add_more_info("System", "Last Changed", "never")
             else:
-                self.add_more_info("System", "Last Changed", last_changed)
+                self.add_more_info("System", "Last Changed", self.switch.last_changed)
                 self.add_more_info("System", "Change Count", self.switch.change_count)
 
             if self.switch.last_command_time == default_time:
                 self.add_more_info("System", "Last Command", "never")
             else:
-                self.add_more_info("System", "Last Command", last_command_time)
+                self.add_more_info("System", "Last Command", self.switch.last_command_time)
                 self.add_more_info("System", "Command Count", self.switch.command_count)
 
             # and save the switch cache:
