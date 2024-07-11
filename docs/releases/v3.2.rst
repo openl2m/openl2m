@@ -18,15 +18,18 @@ switch groups, and snmp and credential profiles.
 Version 3.2.1
 -------------
 
-Release Date: 2024-TBD
+Release Date: 2024-07-11
 
 * add basic Admin REST API to create/edit users, switches, switch groups, snmp and netmiko profiles.
   See documentation for more details.
+* added last access, last change and last command timestamp to devices, and counters to track access, changes and commands.
+  This will help in finding 'unused' devices, etc. Data shows on device information tab, and in admin interface.
+* admin pages for all objects (SNMP profiles, VlanGroups, etc.) show use counts.
 
 Version 3.2
 -----------
 
-Release Date: (not released)
+Release Date: (no public release)
 
 * update to Bootstrap v5.3.3
 * various layout changes.
