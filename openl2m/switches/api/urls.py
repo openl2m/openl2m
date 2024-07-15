@@ -17,6 +17,7 @@ from switches.urls import InterfaceNameConvertor
 
 from switches.api.views import (
     APISwitchMenuView,
+    APISwitchSearch,
     APISwitchBasicView,
     APISwitchDetailsView,
     APISwitchSaveConfig,
@@ -42,6 +43,11 @@ urlpatterns = [
         "",
         APISwitchMenuView.as_view(),
         name="api_switch_menu_view",
+    ),
+    path(
+        "search/<str:name>/",
+        APISwitchSearch.as_view(),
+        name="api_switch_search",
     ),
     path(
         "<int:group_id>/<int:switch_id>/",

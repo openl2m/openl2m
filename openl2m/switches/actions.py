@@ -360,7 +360,7 @@ def perform_interface_pvid_change(
         log.save()
         counter_increment(COUNTER_ERRORS)
         error = Error()
-        error.description = f"Error setting untagged vlan on interface {interface.name}"
+        error.description = f"Error setting untagged vlan {new_pvid} on interface {interface.name}"
         error.details = f"{connection.error.description}: {connection.error.details}"
         return False, error
 

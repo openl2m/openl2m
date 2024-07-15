@@ -70,6 +70,58 @@ class APISwitchMenuView(
         )
 
 
+class APISwitchSearch(
+    APIView,
+):
+    """
+    Search for the device name given, and return the groups and device id.
+    """
+
+    def get(
+        self,
+        request,
+        name,
+    ):
+        dprint(f"APISwitchSearch(): user={request.user.username}, auth={request.auth}")
+
+        groups = get_my_device_groups(request=request)
+        device_groups = {}
+        device_id = -1
+        for group_id, group in groups.items():
+            dprint(f"Group ID={group_id}, group={group}")
+            # find the requested device name
+            for switch_id, switch in group['members'].items():
+                if switch['name'].lower() == name.lower():
+                    # found one, add to return
+                    # add info for this group:
+                    dprint(f"\n\nFOUND SWITCH: {switch}\n\n")
+                    group_info = {
+                        'name': group['name'],
+                        'description': group['description'],
+                        'id': group_id,
+                        'read_only': group['read_only'],
+                        'switch_url': group['members'][switch_id]['url'],
+                    }
+                    device_groups[group_id] = group_info
+                    # and set this device info:
+                    if device_id == -1:
+                        device_id = switch_id
+                        device_info = switch.copy()  # copy so we can remove field!
+                        # clear device url, since it is switchgroup based.
+                        # if was added to group above
+                        del device_info['url']
+                        # and add switch id
+                        device_info['id'] = switch_id
+
+        data = {'switch': device_info, 'groups': device_groups}
+        if device_id == -1:
+            return respond_error(reason=f"Device '{name}' not found!")
+        return Response(
+            data=data,
+            status=http_status.HTTP_200_OK,
+        )
+
+
 def switch_info(request, group_id, switch_id, details):
     connection, response_error = get_connection_to_switch(
         request=request, group_id=group_id, switch_id=switch_id, details=details

@@ -26,6 +26,7 @@ This describes the use of the REST API to read and change settings of devices.
    setup.rst
    endpoints.rst
    api_menu.rst
+   api_search.rst
    api_basic_details.rst
    api_interface_state.rst
    api_interface_vlan.rst

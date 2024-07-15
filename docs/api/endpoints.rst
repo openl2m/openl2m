@@ -54,6 +54,11 @@ header of either *application/x-www-form-urlencoded* or *application/json*
       - No
       -
       - Get list of allowed devices (ie. the 'menu')
+    * - api/switches/search/<name>/
+      - Yes
+      - No
+      -
+      - Search for a device of a certain 'name'.
     * - api/switches/<group>/<switch>/
       - Yes
       - No
