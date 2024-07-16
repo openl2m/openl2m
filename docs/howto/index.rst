@@ -11,4 +11,5 @@ How To's
    Managing logs <logs.rst>
    System Notices <notices.rst>
    Updating Ethernet OUI's <oui.rst>
+   Submitting Tickets <tickets.rst>
 

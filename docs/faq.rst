@@ -92,3 +92,6 @@ of the device. Please refer to your particular device documentation for more spe
   logging history size 50
   logging history informational
 
+* **How do I request support for an unsupported device?**
+
+Please read :doc:`Submitting tickets <submit_tickets>`.

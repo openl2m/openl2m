@@ -12,7 +12,6 @@ we strongly encourage you to test your devices before using them "in production"
 For SNMP supported device, an attempt has been made to make OpenL2M adhere to 'standard' SNMP.
 However, we recognize there is no such thing as completely 'standard' SNMP.
 
-
 We have tested OpenL2M on the following hardware, with the listed limitations.
 
 **Cisco**
@@ -40,10 +39,11 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 
 * *HPE 1950* series switches, running Comware 7; single and IRF-stacked units.
 * HPE J3400CL-24G (J4905A)
-* *HPE 5130* series switches, running Comware 7; single and IRF-Stacked units.
-* *HPE 5140* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5130EI* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5140EI* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5500* series switches, running Comware 5; single units.
-* *HPE 5510* series switches, running Comware 7; single units.
+* *HPE 5510HI* series switches, running Comware 7; single units.
+* *HPE 5600HI* series switches, running Comware 7; single units.
 * *HPE 5900AF* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5930* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5940* series switches, running Comware 7; single and IRF-Stacked units.
@@ -72,3 +72,4 @@ an example of the Connector() API. See source code for more.
 
 Any device supported by the python Netmiko library. Devices configured as such do NOT poll interfaces, but only allow
 for commands to be executed on the device.
+
