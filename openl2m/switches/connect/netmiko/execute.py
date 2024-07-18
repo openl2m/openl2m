@@ -56,7 +56,9 @@ class NetmikoExecute:
         return True on success, False on error,
         with self.error.status and self.error.description set accordingly
         """
+        dprint("Netmiko->connect()")
         if not self.switch.netmiko_profile:
+            dprint("Netmiko->connect() - No netmiko profile")
             self.error.status = True
             self.error.description = 'Switch does not have a Netmiko profile! Please ask the admin to correct this.'
             return False
@@ -73,19 +75,30 @@ class NetmikoExecute:
         try:
             handle = netmiko.ConnectHandler(**device)
         except netmiko.NetMikoTimeoutException:
+            dprint("Netmiko->connect() Error NetMikoTimeoutException")
             self.error.status = True
             self.error.description = "Connection time-out! Please ask the admin to verify the switch hostname or IP, or change the SSH_COMMAND_TIMEOUT configuration."
             return False
         except netmiko.NetMikoAuthenticationException:
+            dprint("Netmiko->connect() Error NetMikoAuthenticationException")
             self.error.status = True
             self.error.description = "Access denied! Please ask the admin to correct the switch credentials."
             return False
+        except netmiko.exceptions.ReadTimeout as err:
+            dprint(f"  Netmiko.connection ReadTimeout: {repr(err)}")
+            self.output = "Error: the connection attempt timed out!"
+            self.error.status = True
+            self.error.description = "Error: the connection attempt timed out!"
+            self.error.details = f"Netmiko Error: {repr(err)}"
+            return False
         except Exception as err:
+            dprint(f"Netmiko->connect() Generic Error: {str(type(err))}")
             self.error.status = True
             self.error.description = "SSH Connection denied! Please inform your admin."
             self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
             return False
 
+        dprint("  connection OK!")
         self.connection = handle
         return True
 
@@ -98,7 +111,9 @@ class NetmikoExecute:
             (boolean): True on success, False on error.
         """
         if not self.connection:
-            self.connect()
+            dprint("  netmiko.disable_paging(): No connection yet, calling self.connect() (Huh?)")
+            if not self.connect():
+                return False
         if self.connection:
             if self.switch.netmiko_profile.device_type == 'hp_comware':
                 command = 'screen-length disable'
@@ -128,18 +143,22 @@ class NetmikoExecute:
         dprint(f"NetmikoConnector execute_command() '{command}'")
         self.output = ''
         if not self.connection:
-            self.connect()
+            dprint("  netmiko.execute_command(): No connection yet, calling self.connect()")
+            if not self.connect():
+                return False
         if self.connection:
             self.disable_paging()
             try:
                 self.output = self.connection.send_command(command, read_timeout=settings.SSH_COMMAND_TIMEOUT)
             except netmiko.exceptions.ReadTimeout as err:
+                dprint(f"  Netmiko.connection ReadTimeout: {repr(err)}")
                 self.output = "Error: the command timed out!"
                 self.error.status = True
                 self.error.description = "Error: the command timed out!"
                 self.error.details = f"Netmiko Error: {repr(err)}"
                 return False
             except Exception as err:
+                dprint(f"  Netmiko.connection error: {str(type(err))} - {repr(err)}")
                 self.output = "Error sending command!"
                 self.error.status = True
                 self.error.description = "Error sending command!"
@@ -147,6 +166,7 @@ class NetmikoExecute:
                 return False
             return True
         else:
+            dprint("  Netmiko.connection not found! (Huh?)")
             self.output = "No connection found!"
             self.error.status = True
             self.error.description = "Error sending command!"
