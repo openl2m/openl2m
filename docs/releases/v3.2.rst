@@ -15,6 +15,19 @@ A Dark Theme can be chosen from the user menu while on the Home page.
 The REST API adds administrative calls to create and edit users, switches,
 switch groups, and snmp and credential profiles.
 
+
+Version 3.2.2
+-------------
+
+Release Date: TBD
+
+* allow device hostname in API device search call.
+
+Bug fixes:
+
+* improved error handling in Netmiko (SSH) driver.
+
+
 Version 3.2.1
 -------------
 
@@ -25,6 +38,7 @@ Release Date: 2024-07-11
 * added last access, last change and last command timestamp to devices, and counters to track access, changes and commands.
   This will help in finding 'unused' devices, etc. Data shows on device information tab, and in admin interface.
 * admin pages for all objects (SNMP profiles, VlanGroups, etc.) show use counts.
+
 
 Version 3.2
 -----------

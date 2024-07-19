@@ -58,7 +58,7 @@ header of either *application/x-www-form-urlencoded* or *application/json*
       - Yes
       - No
       -
-      - Search for a device of a certain 'name'.
+      - Search for a device of a certain name or hostname.
     * - api/switches/<group>/<switch>/
       - Yes
       - No

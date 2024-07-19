@@ -5,9 +5,9 @@ API Search Device
 =================
 
 This endpoint can be used to find a device and it's group membership.
-You will need to know the OpenL2M device name for this call.
+You will need to know the OpenL2M device name or hostname for this call.
 Note this same info can be found in the 'menu' API call,
-only then you receive all devices your token is allowed to access.
+only then you receive all devices your token allows to access.
 
 Here is an example of calls to the "*search*" endpoint. This returns switch and group information:
 

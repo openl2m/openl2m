@@ -91,7 +91,7 @@ class APISwitchSearch(
             dprint(f"Group ID={group_id}, group={group}")
             # find the requested device name
             for switch_id, switch in group['members'].items():
-                if switch['name'].lower() == name.lower():
+                if switch['name'].lower() == name.lower() or switch['hostname'].lower() == name.lower():
                     # found one, add to return
                     # add info for this group:
                     dprint(f"\n\nFOUND SWITCH: {switch}\n\n")
@@ -112,10 +112,11 @@ class APISwitchSearch(
                         del device_info['url']
                         # and add switch id
                         device_info['id'] = switch_id
-
-        data = {'switch': device_info, 'groups': device_groups}
+        # nothing found ?
         if device_id == -1:
             return respond_error(reason=f"Device '{name}' not found!")
+        # return device found
+        data = {'switch': device_info, 'groups': device_groups}
         return Response(
             data=data,
             status=http_status.HTTP_200_OK,
