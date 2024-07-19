@@ -52,13 +52,14 @@ def create_eth_neighbor_xls_file(connection: Connector):
 
         COL_INTERFACE_NAME = 0
         COL_INTERFACE_VLAN = 1
-        COL_INTERFACE_DESCRIPTION = 2
-        COL_ETHERNET = 3
-        COL_IPV4 = 4
-        COL_VENDOR = 5
-        COL_NEIGHBOR_NAME = 6
-        COL_NEIGHBOR_TYPE = 7
-        COL_NEIGHBOR_DESCRIPTION = 8
+        COL_INTERFACE_POE_DRAW = 2
+        COL_INTERFACE_DESCRIPTION = 3
+        COL_ETHERNET = 4
+        COL_IPV4 = 5
+        COL_VENDOR = 6
+        COL_NEIGHBOR_NAME = 7
+        COL_NEIGHBOR_TYPE = 8
+        COL_NEIGHBOR_DESCRIPTION = 9
 
         # start with a date message:
         row = 0
@@ -76,6 +77,9 @@ def create_eth_neighbor_xls_file(connection: Connector):
 
         worksheet.write(row, COL_INTERFACE_VLAN, 'Untagged VLAN', format_bold)
         worksheet.set_column(COL_INTERFACE_VLAN, COL_INTERFACE_VLAN, 20)
+
+        worksheet.write(row, COL_INTERFACE_POE_DRAW, 'Power (mW)', format_bold)
+        worksheet.set_column(COL_INTERFACE_POE_DRAW, COL_INTERFACE_POE_DRAW, 15)
 
         worksheet.write(row, COL_INTERFACE_DESCRIPTION, 'Description', format_bold)
         worksheet.set_column(COL_INTERFACE_DESCRIPTION, COL_INTERFACE_DESCRIPTION, 50)
@@ -106,6 +110,10 @@ def create_eth_neighbor_xls_file(connection: Connector):
                 # vendor = eth.vendor
                 worksheet.write(row, COL_INTERFACE_NAME, interface.name, format_regular)
                 worksheet.write(row, COL_INTERFACE_VLAN, interface.untagged_vlan, format_regular)
+
+                if interface.poe_entry and interface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING:
+                    worksheet.write(row, COL_INTERFACE_POE_DRAW, interface.poe_entry.power_consumed, format_regular)
+
                 worksheet.write(row, COL_INTERFACE_DESCRIPTION, interface.description, format_regular)
                 worksheet.write(row, COL_ETHERNET, str(eth), format_regular)
                 worksheet.write(row, COL_VENDOR, eth.vendor, format_regular)
