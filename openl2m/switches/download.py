@@ -102,6 +102,9 @@ def create_eth_neighbor_xls_file(connection: Connector):
         worksheet.write(row, COL_NEIGHBOR_DESCRIPTION, 'Neighbor Description', format_bold)
         worksheet.set_column(COL_NEIGHBOR_DESCRIPTION, COL_NEIGHBOR_DESCRIPTION, 50)
 
+        # freeze top 2 rows to easy scrolling
+        worksheet.freeze_panes(2, 0)
+
         # now loop through all interfaces on the connection:
         for interface in connection.interfaces.values():
             for eth in interface.eth.values():
@@ -222,6 +225,9 @@ def create_interfaces_xls_file(connection: Connector):
 
         worksheet.write(row, COL_INTERFACE_DESCRIPTION, 'Description', format_bold)
         worksheet.set_column(COL_INTERFACE_DESCRIPTION, COL_INTERFACE_DESCRIPTION, 50)
+
+        # freeze top 2 rows to easy scrolling
+        worksheet.freeze_panes(2, 0)
 
         # now loop through all interfaces on the connection:
         for interface in connection.interfaces.values():
