@@ -14,6 +14,9 @@
           <th>Interface Name</th>
           <th>Link</th>
           <th>Vlan</th>
+          {% if connection.poe_capable %}
+          <th>PoE</th>
+          {% endif %}
           {% if connection.eth_addr_count > 0 %}
           <th><a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fas fa-download" aria-hidden="true"></i> Ethernet Addresses ({{ connection.eth_addr_count }})</a></th>
           {% endif %}
@@ -57,6 +60,16 @@
                 <span data-bs-toggle="tooltip" title="Not applicable for this interface">n/a</span>
               {% endif %}
             </td>
+
+            {% if connection.poe_capable %}
+            <td>
+              {% if iface.poe_entry and iface.poe_entry.power_consumption_supported %}
+                {{ iface.poe_entry.power_consumed|humanize_power }}
+              {% else %}
+              -
+              {% endif %}
+            </td>
+            {% endif %}
 
             {% if connection.eth_addr_count > 0 %}
             <td>{# known ethernet addresses #}
