@@ -94,4 +94,4 @@ of the device. Please refer to your particular device documentation for more spe
 
 * **How do I request support for an unsupported device?**
 
-Please read :doc:`Submitting tickets <submit_tickets>`.
+Please read :doc:`Submitting tickets <howto/tickets>`.

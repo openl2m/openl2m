@@ -6,10 +6,12 @@ Supported Devices
 
 **Switches Tested**
 
-The following devices (in alphabetical order), are supported by OpenL2M. While an attempt has been made to verify all functionality,
-we strongly encourage you to test your devices before using them "in production" with OpenL2M.
+The following devices (in alphabetical order), are *likely* supported by OpenL2M.
 
-For SNMP supported device, an attempt has been made to make OpenL2M adhere to 'standard' SNMP.
+**While an attempt has been made to verify all functionality, we strongly encourage you to test your
+devices before using them "in production" with OpenL2M.** Also see the terms of the GPL v3 license!
+
+For SNMP device, an attempt has been made to make OpenL2M adhere to 'standard' SNMP.
 However, we recognize there is no such thing as completely 'standard' SNMP.
 
 We have tested OpenL2M on the following hardware, with the listed limitations.
