@@ -2269,7 +2269,7 @@ class SnmpConnector(Connector):
                 "Error getting 'Q-Bridge-PortId-Map' (dot1dBasePortIfIndex), NOT reading VLAN mibs dot1qVlanStaticRowStatus, dot1qVlanStaticName, dot1qVlanStatus, dot1qVlanStaticRowStatus"
             )
             return retval
-        # read existing vlan id's
+        # read existing vlan id's from "dot1qVlanStaticTable"
         retval = self.get_snmp_branch('dot1qVlanStaticRowStatus')
         if retval < 0:
             self.add_warning("Error getting 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
@@ -2568,11 +2568,11 @@ class SnmpConnector(Connector):
     #     """
     #     return self.vlans
     #
-    # def get_vlan_by_id(self, vlan_id: str) -> Vlan:
+    # def get_vlan_by_id(self, vlan_id: int) -> Vlan:
     #     """
     #     Return the Vlan() object for the given id
     #     """
-    #     vlan_id = str(vlan_id)
+    #     vlan_id = int(vlan_id)
     #     if vlan_id in self.vlans.keys():
     #         return self.vlans[vlan_id]
     #     return False

@@ -279,7 +279,11 @@ FDB_STATUS_MGMT = 5
 qBridgeMIB = '.1.3.6.1.2.1.17.7'  # Expanded 802.1Q MIB, includes VLAN info, etc.
 snmp_mib_variables['qBridgeMIB'] = qBridgeMIB
 
+qBridgeMIBObjects = '.1.3.6.1.2.1.17.7.1'
+
+#
 # base settings about the 802.1q config:
+#
 dot1qBase = '.1.3.6.1.2.1.17.7.1.1'
 snmp_mib_variables['dot1qBase'] = dot1qBase
 
@@ -298,9 +302,17 @@ snmp_mib_variables['dot1qNumVlans'] = dot1qNumVlans
 dot1qGvrpStatus = '.1.3.6.1.2.1.17.7.1.1.5'
 snmp_mib_variables['dot1qGvrpStatus'] = dot1qGvrpStatus
 
+#
 # Transparant bridge (switch) forward tables
-# 1.3.6.1.2.1.17.7.1.2.2.1.2
-dot1qTp = '.1.3.6.1.2.1.17.7.1.2.2.1.2'
+#
+dot1qTp = '.1.3.6.1.2.1.17.7.1.2'
+
+dot1qFdbTable = '.1.3.6.1.2.1.17.7.1.2.1'
+
+dot1qTpFdbTable = '.1.3.6.1.2.1.17.7.1.2.2'
+dot1qTpFdbEntry = '.1.3.6.1.2.1.17.7.1.2.2.1'
+
+dot1qTpFdbAddress = '.1.3.6.1.2.1.17.7.1.2.2.1.1'  # A unicast MAC address for which the device has forwarding and/or filtering information.
 
 # forwarding database information with mac address mapping to switch port id:
 # dot1qTpFdbPort.<fdb-id>.<6 byte mac address> = port-id
@@ -312,8 +324,24 @@ dot1qTpFdbStatus = '.1.3.6.1.2.1.17.7.1.2.2.1.3'
 snmp_mib_variables['dot1qTpFdbStatus'] = dot1qTpFdbStatus
 # see above at dot1dTpFdbStatus
 
+##############################
+# Current VLAN table entries #
+##############################
+
+dot1qVlanCurrentTable = '.1.3.6.1.2.1.17.7.1.4.2'
+snmp_mib_variables['dot1qVlanCurrentTable'] = dot1qVlanCurrentTable
+
 dot1qVlanCurrentEntry = '.1.3.6.1.2.1.17.7.1.4.2.1'
 snmp_mib_variables['dot1qVlanCurrentEntry'] = dot1qVlanCurrentEntry
+
+dot1qVlanTimeMark = '.1.3.6.1.2.1.17.7.1.4.2.1.1'  # A TimeFilter for this entry. See the TimeFilter textual convention to see how this works.
+snmp_mib_variables['dot1qVlanTimeMark'] = dot1qVlanTimeMark
+
+dot1qVlanIndex = '.1.3.6.1.2.1.17.7.1.4.2.1.2'  # The VLAN-ID or other identifier refering to this VLAN.
+snmp_mib_variables['dot1qVlanIndex'] = dot1qVlanIndex
+
+dot1qVlanFdbId = '.1.3.6.1.2.1.17.7.1.4.2.1.3'  # The Filtering Database used by this VLAN. This is one of the dot1qFdbId values in the dot1qFdbTable.
+snmp_mib_variables['dot1qVlanFdbId'] = dot1qVlanFdbId
 
 """
 PortList ::= TEXTUAL-CONVENTION
@@ -366,17 +394,17 @@ dot1qVlanCreationTime = '.1.3.6.1.2.1.17.7.1.4.2.1.7'  # followed by <someIndex>
 snmp_mib_variables['dot1qVlanCreationTime'] = dot1qVlanCreationTime
 
 
-###################################################################
-#
-# dot1qVlanStaticTable = 1.3.6.1.2.1.17.7.1.4.3
-#
-dot1qVlanStaticTable = '.1.3.6.1.2.1.17.7.1.4.3.1'
-snmp_mib_variables['dot1qVlanStaticTable'] = dot1qVlanStaticTable
+#############################
+# Static VLAN table entries #
+#############################
 
-# Entries under dot1qVlanStaticTable.dot1qVlanStaticEntry  1.3.6.1.2.1.17.7.1.4.3.1
-# This is dot1qVlanStaticName
-# To get vlan names
-# dot1qVlanStaticName = 1.3.6.1.2.1.17.7.1.4.3.1.1
+dot1qVlanStaticTable = '.1.3.6.1.2.1.17.7.1.4.3'
+
+dot1qVlanStaticTableEntry = '.1.3.6.1.2.1.17.7.1.4.3.1'
+snmp_mib_variables['dot1qVlanStaticTableEntry'] = dot1qVlanStaticTableEntry
+
+# Entries under dot1qVlanStaticTable.dot1qVlanStaticEntry
+# This is dot1qVlanStaticName, used to get vlan names
 dot1qVlanStaticName = '.1.3.6.1.2.1.17.7.1.4.3.1.1'
 snmp_mib_variables['dot1qVlanStaticName'] = dot1qVlanStaticName
 VLAN_NAME_MAX_LEN = 32  # per Q-Bridge MIB object definition
