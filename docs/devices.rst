@@ -4,6 +4,25 @@
 Supported Devices
 =================
 
+OpenL2M supports a number of different drivers. Each drivers support a different method to communicate
+with the network device (typically a switch). Below are a list of devices the various drivers have been
+tested against.
+
+**Notes on Drivers**
+
+* **SNMP** - OpenL2M supports network devices that implement the relevant, standard IETF MIBs. Many vendors
+stray away from these standards to either implement their own vendor-proprietary MIBs, or not support the
+standard MIBs as intended.
+
+* **AOS-CX** - this uses the 'pyaoscx' library provided by HPE. Any AOS-CX device properly configured, and running
+current firmware, should be supported.
+
+* **Juniper JunOS** - this uses the 'PyEZ' library provided by Juniper. Most Juniper devices properly configured, and running
+current firmware, should be supported, barring device-specific interface names, etc.
+
+* **Napalm** - the Napalm driver is read-only, and should support any device supported by the Napalm library.
+
+
 **Switches Tested**
 
 The following devices (in alphabetical order), are *likely* supported by OpenL2M.
@@ -11,17 +30,21 @@ The following devices (in alphabetical order), are *likely* supported by OpenL2M
 **While an attempt has been made to verify all functionality, we strongly encourage you to test your
 devices before using them "in production" with OpenL2M.** Also see the terms of the GPL v3 license!
 
-For SNMP device, an attempt has been made to make OpenL2M adhere to 'standard' SNMP.
+For SNMP devices, an attempt has been made to make OpenL2M adhere to 'IETF standard' SNMP.
 However, we recognize there is no such thing as completely 'standard' SNMP.
 
 We have tested OpenL2M on the following hardware, with the listed limitations.
 
 **Cisco**
 
+Via SNMP.
+
 * *Catalyst 2960* series; single and stacked units.
 * *Catalyst 4500-E* series, with Sup6L-E and Sup7L-E.
 
 **HP/Aruba (ProCurve/ArubaOS)**
+
+Via SNMP.
 
 * *HP 2520* series; single units.
 * *HP 2530* series; single units.
@@ -33,11 +56,15 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 
 **Aruba AOS-CX**
 
+Via AOS-CX driver, and nearly full via SNMP.
+
 * *Aruba CX 6000* series; single units. (R/W support via the REST API v10.08)
 * *Aruba CX 6100* series; single units. (R/W support via the REST API v10.08)
 * *Aruba CX 6300* series; single units. (R/W support via the REST API v10.08)
 
 **HP Enterprise (HPE)**
+
+Via SNMP.
 
 * *HPE 1950* series switches, running Comware 7; single and IRF-stacked units.
 * HPE J3400CL-24G (J4905A)
