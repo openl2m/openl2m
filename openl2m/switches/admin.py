@@ -302,10 +302,10 @@ class SnmpProfileAdmin(admin.ModelAdmin):
             {
                 'fields': (
                     'username',
-                    'passphrase',
-                    'priv_passphrase',
                     'auth_protocol',
+                    'passphrase',
                     'priv_protocol',
+                    'priv_passphrase',
                     'sec_level',
                     'context_name',
                     'context_engine_id',
