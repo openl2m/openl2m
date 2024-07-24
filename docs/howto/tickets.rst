@@ -6,6 +6,12 @@ Submitting Tickets
 
 To contact the developers, kindly submit a ticket at https://github.com/openl2m/openl2m/issues
 
+.. note::
+
+    We will not entertain support requests for devices that are no longer
+    supported by the manufacturer!
+
+
 **For Unsupported Devices**
 
 If the device is an SNMP manageable device, please provide the following:
@@ -22,6 +28,7 @@ If the device is an SNMP manageable device, please provide the following:
 If your device uses SNMP v3, please adjust your snmpwalk command accordingly.
 
 Once you have these screenshots and file, please upload this as part of the github.com ticket or "issue".
+
 
 **For Bugs or Feature Requests**
 
