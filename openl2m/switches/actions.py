@@ -467,10 +467,7 @@ def perform_interface_poe_change(
         log.type = LOG_TYPE_ERROR
         log.save()
         counter_increment(COUNTER_ERRORS)
-        error = Error()
-        error.description = log.description
-        error.details = connection.error.details
-        return False, error
+        return False, connection.error
 
     # indicate we need to save config!
     connection.set_save_needed(True)
