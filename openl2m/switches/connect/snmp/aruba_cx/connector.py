@@ -77,6 +77,11 @@ class SnmpConnectorArubaCx(SnmpConnector):
         self.can_change_vlan = True
         self.can_set_vlan_name = False  # vlan create/delete allowed over snmp, but cannot set name!
 
+        # we recommend using the AOS-CX API driver, tell the user so:
+        self.add_warning(
+            "We recommend using the AOS-CX API driver for this device. Please contact your OpenL2M administrator!"
+        )
+
     def _parse_mibs_aruba_poe(self, oid: str, val: str) -> bool:
         """
         Parse Aruba's ARUBAWIRED-POE Mibs
