@@ -11,14 +11,14 @@ tested against.
 **Notes on Drivers**
 
 * **SNMP** - OpenL2M supports network devices that implement the relevant, standard IETF MIBs. Many vendors
-stray away from these standards to either implement their own vendor-proprietary MIBs, or not support the
-standard MIBs as intended.
+  stray away from these standards to either implement their own vendor-proprietary MIBs, or not support the
+  standard MIBs as intended.
 
 * **AOS-CX** - this uses the 'pyaoscx' library provided by HPE. Any AOS-CX device properly configured, and running
-current firmware, should be supported.
+  current firmware, should be supported.
 
 * **Juniper JunOS** - this uses the 'PyEZ' library provided by Juniper. Most Juniper devices properly configured, and running
-current firmware, should be supported, barring device-specific interface names, etc.
+  current firmware, should be supported, barring device-specific interface names, etc.
 
 * **Napalm** - the Napalm driver is read-only, and should support any device supported by the Napalm library.
 
