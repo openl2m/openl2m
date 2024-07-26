@@ -19,11 +19,14 @@ switch groups, and snmp and credential profiles.
 Version 3.2.2
 -------------
 
-Release Date: TBD
+Release Date: 2024-07-26
 
-* allow device hostname in API device search call.
+* add API call to search device by name or hostname.
 * add PoE info to the LLDP tab, and to the downloadable spreadsheet.
 * add interface tab to neighbor/lldp downloadable spreadsheet.
+* add frozen header rows to downloadable interface and neighbor spreadsheets.
+* minor improvements to snmp error reporting.
+* added documentation about submitting github tickets (aka issues).
 
 Bug fixes:
 
