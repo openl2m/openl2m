@@ -13,6 +13,9 @@ OpenL2M Screenshots
 
 .. image:: _static/devices-menu.png
 
+* **Dark Mode Devices Menu:** Dark Mode view of the groups and devices you can access
+
+.. image:: _static/devices-menu-dark-mode.png
 
 * **Interfaces Menu:** Edit a single interface at a time
 

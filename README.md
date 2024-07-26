@@ -104,6 +104,7 @@ See the following OpenL2M documentation:
 
 __Screenshots__:
 
+
 __Login Window:__ Shows configurable login, top and bottom banners.
 
 <kbd><img src= "docs/_static/login-window.png" alt="Login Window"></kbd>
@@ -112,6 +113,11 @@ __Login Window:__ Shows configurable login, top and bottom banners.
 __Devices Menu:__ Shows the groups and devices you can access
 
 <kbd><img src= "docs/_static/devices-menu.png" alt="Devices Menu"></kbd>
+
+
+__Dark Mode Devices Menu:__ Dark Mode view of the groups and devices you can access
+
+<kbd><img src= "docs/_static/devices-menu-dark-mode.png" alt="Dark Mode Devices Menu"></kbd>
 
 
 __Interfaces Menu:__ Edit a single interface at a time
