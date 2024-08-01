@@ -837,51 +837,51 @@ class SnmpConnector(Connector):
     internal class-specific functions
     """
 
-    def _parse_oid_with_fixup(self, oid: str, value: Any, snmp_type: str, parser):
-        """
-        Parse OID data from the pysnmp library. We need to map data types, as
-        ezsnmp returns everything as a Python str() object!
-        Function does not return anything.
-        """
-        dprint("\n_parse_oid_with_fixup()")
-        dprint(f"HANDLING OID: {str(oid)}")
-        dprint(f" value type = {str(type(value))}")
-        dprint(f"  snmp_type = {snmp_type}")
-        dprint(f"     length = {len(value)}")
-        # change some types, and pass
-        # pysnmp types:
-        if 'DisplayString' in snmp_type:
-            newvalue = str(value)
-        elif 'OctetString' in snmp_type:
-            newvalue = str(value)
-        # ezsnmp types, already str() !
-        # elif ('OCTETSTR' in snmp_type):
-        #    dprint("   OCTETSTRING already as str()")
-        #    #see https://github.com/kamakazikamikaze/easysnmp/issues/91
-        #    newvalue = value
-        # elif ('INTEGER' in snmp_type):
-        #    dprint("   INTEGER to int()")
-        #    newvalue = int(value)
-        # elif ('GAUGE' in snmp_type):
-        #    dprint("   GAUGE to int()")
-        #    newvalue = int(value)
-        # elif ('TICKS' in snmp_type):
-        #    dprint("   TICKS to int()")
-        #    newvalue = int(value)
-        # elif ('OBJECTID' in snmp_type):
-        #    dprint("   OBJECTID already as str()")
-        #    newvalue = value
-        else:
-            # default is already string
-            newvalue = value
+    # def _parse_oid_with_fixup(self, oid: str, value: Any, snmp_type: str, parser):
+    #     """
+    #     Parse OID data from the pysnmp library. We need to map data types, as
+    #     ezsnmp returns everything as a Python str() object!
+    #     Function does not return anything.
+    #     """
+    #     dprint("\n_parse_oid_with_fixup()")
+    #     dprint(f"HANDLING OID: {str(oid)}")
+    #     dprint(f" value type = {str(type(value))}")
+    #     dprint(f"  snmp_type = {snmp_type}")
+    #     dprint(f"     length = {len(value)}")
+    #     # change some types, and pass
+    #     # pysnmp types:
+    #     if 'DisplayString' in snmp_type:
+    #         newvalue = str(value)
+    #     elif 'OctetString' in snmp_type:
+    #         newvalue = str(value)
+    #     # ezsnmp types, already str() !
+    #     # elif ('OCTETSTR' in snmp_type):
+    #     #    dprint("   OCTETSTRING already as str()")
+    #     #    #see https://github.com/kamakazikamikaze/easysnmp/issues/91
+    #     #    newvalue = value
+    #     # elif ('INTEGER' in snmp_type):
+    #     #    dprint("   INTEGER to int()")
+    #     #    newvalue = int(value)
+    #     # elif ('GAUGE' in snmp_type):
+    #     #    dprint("   GAUGE to int()")
+    #     #    newvalue = int(value)
+    #     # elif ('TICKS' in snmp_type):
+    #     #    dprint("   TICKS to int()")
+    #     #    newvalue = int(value)
+    #     # elif ('OBJECTID' in snmp_type):
+    #     #    dprint("   OBJECTID already as str()")
+    #     #    newvalue = value
+    #     else:
+    #         # default is already string
+    #         newvalue = value
 
-        # go parse the oid data
-        if parser:
-            # specific data parser
-            parser(oid, newvalue)
-        else:
-            # default parser
-            self._parse_oid(oid, newvalue)
+    #     # go parse the oid data
+    #     if parser:
+    #         # specific data parser
+    #         parser(oid, newvalue)
+    #     else:
+    #         # default parser
+    #         self._parse_oid(oid, newvalue)
 
     def _parse_oid(self, oid: str, val: str) -> bool:
         """
@@ -984,22 +984,6 @@ class SnmpConnector(Connector):
         # ifStackHigherLayer = '.1.3.6.1.2.1.31.1.2.1.1'
         # ifStackLowerLayer =  '.1.3.6.1.2.1.31.1.2.1.2'
         # ifStackStatus =      '.1.3.6.1.2.1.31.1.2.1.3'
-
-        #
-        # 802.1Q / VLAN related
-        #
-
-        # these are part of "dot1qBase":
-        sub_oid = oid_in_branch(dot1qNumVlans, oid)
-        if sub_oid:
-            self.vlan_count = int(val)
-            return True
-
-        sub_oid = oid_in_branch(dot1qGvrpStatus, oid)
-        if sub_oid:
-            if int(val) == GVRP_ENABLED:
-                self.gvrp_enabled = True
-            return True
 
         sub_oid = oid_in_branch(ieee8021QBridgeMvrpEnabledStatus, oid)
         if sub_oid:
@@ -1476,6 +1460,33 @@ class SnmpConnector(Connector):
                 port_id = (offset * 8) + 8
                 self._add_untagged_vlan_to_interface_by_port_id(port_id, vlan_id)
             offset += 1
+
+        #
+        # 802.1Q / VLAN related MIB parsers
+        #
+
+    def _parse_mib_dot1q_base(self, oid: str, val: str) -> bool:
+        """Parse entries in the 'dot1qBase' part of the Q-Bridge mib.
+        This contains various 'counters' about numbers of vlans, etc.
+        """
+        # these are part of "dot1qBase":
+        sub_oid = oid_in_branch(dot1qNumVlans, oid)
+        if sub_oid:
+            self.vlan_count = int(val)
+            return True
+
+        sub_oid = oid_in_branch(dot1qNumVlans, oid)
+        if sub_oid:
+            self.vlan_count = int(val)
+            return True
+
+        sub_oid = oid_in_branch(dot1qGvrpStatus, oid)
+        if sub_oid:
+            if int(val) == GVRP_ENABLED:
+                self.gvrp_enabled = True
+            return True
+        # we did not parse the OID.
+        return False
 
     def _parse_mibs_ieee_qbridge(self, oid: str, val: str) -> bool:
         """
@@ -2334,8 +2345,9 @@ class SnmpConnector(Connector):
         Get all neccesary vlan info (names, id, ports on vlans, etc.) from the switch.
         Returns -1 on error, or a number to indicate vlans found.
         """
+        dprint("#####\n_get_vlan_data()\n#####")
         # get the base 802.1q settings:
-        retval = self.get_snmp_branch('dot1qBase')
+        retval = self.get_snmp_branch(branch_name='dot1qBase', parser=self._parse_mib_dot1q_base)
         if self.vlan_count > 0:
             # first get vlan id and names
             self._get_vlans()
@@ -2349,6 +2361,8 @@ class SnmpConnector(Connector):
 
         # check MVRP status:
         retval = self.get_snmp_branch('ieee8021QBridgeMvrpEnabledStatus')
+
+        dprint("#####\nEND _get_vlan_data()\n#####")
 
         return self.vlan_count
 
