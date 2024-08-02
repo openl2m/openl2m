@@ -301,12 +301,12 @@ class SnmpProfileAdmin(admin.ModelAdmin):
             'Version 3 options',
             {
                 'fields': (
-                    'username',
+                    'sec_level',
                     'auth_protocol',
+                    'username',
                     'passphrase',
                     'priv_protocol',
                     'priv_passphrase',
-                    'sec_level',
                     'context_name',
                     'context_engine_id',
                 ),

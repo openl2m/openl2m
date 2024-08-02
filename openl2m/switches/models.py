@@ -110,8 +110,61 @@ class SnmpProfile(models.Model):
     )
     udp_port = models.PositiveIntegerField(
         default=161,
+        validators=[MinValueValidator(0), MaxValueValidator(65535)],
         verbose_name='SNMP Udp port',
     )
+
+    # basic validation
+    # see also https://docs.djangoproject.com/en/2.2/ref/models/instances/#validating-objects
+    def clean(self):
+        # validate v2 settings:
+        if self.version == constants.SNMP_VERSION_2C:
+            # clear v3 settings:
+            self.sec_level = constants.SNMP_V3_SECURITY_NOAUTH_NOPRIV
+            self.username = ""
+            self.passphrase = ""
+            self.auth_protocol = constants.SNMP_V3_AUTH_NONE
+            self.priv_protocol = constants.SNMP_V3_PRIV_NONE
+            self.priv_passphrase = ""
+            self.context_name = ""
+            self.context_engine_id = ""
+            # make sure there is a community set:
+            if not self.community:
+                raise ValidationError('SNMP v2c requires a community string!')
+
+        # validate v3 settings:
+        if self.version == constants.SNMP_VERSION_3:
+            # NoAuth-NoPriv still requires Username, Passphase
+            # (it means no auth encryption, no data privacy!)
+            if self.sec_level == constants.SNMP_V3_SECURITY_NOAUTH_NOPRIV:
+                # clear auth protocol
+                self.auth_protocol = constants.SNMP_V3_AUTH_NONE
+                # clear priv settings
+                self.priv_protocol = constants.SNMP_V3_PRIV_NONE
+                self.priv_passphrase = ""
+                # verify settings:
+                if not self.username or not self.passphrase:
+                    raise ValidationError("SNMP v3 NoAuth-NoPriv requires Username and Passphrase!")
+            # AuthNoPriv requires username, passphrase and auth protocol:
+            if self.sec_level == constants.SNMP_V3_SECURITY_AUTH_NOPRIV:
+                # clear priv settings
+                self.priv_protocol = constants.SNMP_V3_PRIV_NONE
+                self.priv_passphrase = ""
+                # verify settings:
+                if not self.username or not self.passphrase or not self.auth_protocol:
+                    raise ValidationError("SNMP v3 Auth-NoPriv requires Username, Passphrase and Auth-Protocol!")
+            if self.sec_level == constants.SNMP_V3_SECURITY_AUTH_PRIV:
+                # verify auth proto and priv proto are set:
+                if (
+                    not self.username
+                    or not self.passphrase
+                    or not self.auth_protocol
+                    or not self.priv_protocol
+                    or not self.priv_passphrase
+                ):
+                    raise ValidationError(
+                        "SNMP v3 Auth-Priv requires Username, Passphrase, Auth-Protocol, Priv-Protocol and Priv-Passphase!"
+                    )
 
     class Meta:
         ordering = ['name']
