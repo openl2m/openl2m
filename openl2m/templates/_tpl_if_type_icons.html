@@ -53,6 +53,12 @@
        data-bs-toggle="tooltip"
        title="Tunnel Interface">
   </i>
+  {% elif iface.type == IF_TYPE_L3IPVLAN %}
+  &nbsp;
+  <i class="far fa-smile" aria-hidden="true"
+       data-bs-toggle="tooltip"
+       title="Virtual L3 Interface">
+  </i>
   {% elif iface.type == IF_TYPE_MPLS_TUNNEL %}
   &nbsp;
   <i class="fas fa-archway" aria-hidden="true"
