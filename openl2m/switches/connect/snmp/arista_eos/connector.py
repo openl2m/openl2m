@@ -20,10 +20,8 @@ General Arista SNMP config information is at:
 """
 from django.http.request import HttpRequest
 
-# from switches.connect.classes import PortList
-from switches.connect.classes import Interface
-from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.connect.snmp.constants import dot1qPvid
+from switches.connect.constants import IF_TYPE_ETHERNET
+from switches.connect.snmp.connector import SnmpConnector
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 
@@ -53,3 +51,19 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         # vlan create/edit not supported:
         self.can_edit_vlans = False
         self.can_set_vlan_name = False  # vlan create/delete allowed over snmp, but cannot set name!
+
+    def get_my_basic_info(self) -> bool:
+        """
+        We override "Get the basic info" to parse the vlans on interfaces.
+        Default Arista interface is "switchport" on vlan 1.
+        Arista 'routed' interfaces to no have a valid vlan.
+        """
+        dprint("SnmpConnectorAristaEOS.get_my_basic_info()")
+        # first get all normal SNMP info, implemented in the super class:
+        if not super().get_my_basic_info():
+            return False
+        # now run all interfaces and set routed if no valid vlan.
+        for key, iface in self.interfaces.items():
+            if iface.type == IF_TYPE_ETHERNET and iface.untagged_vlan == -1:
+                iface.is_routed = True
+        return True
