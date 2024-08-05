@@ -232,12 +232,17 @@ class NetmikoProfile(models.Model):
     tcp_port = models.PositiveIntegerField(
         default=22,
         verbose_name='Tcp port',
+        validators=[MinValueValidator(0), MaxValueValidator(65535)],
     )
     # security/encryption options
     verify_hostkey = models.BooleanField(
         default=False,
         verbose_name='Verify the host key',
     )
+
+    # validate choices
+    # def clean(self):
+    # NOT needed, as username and password cannot be blank!
 
     class Meta:
         ordering = ['name']
