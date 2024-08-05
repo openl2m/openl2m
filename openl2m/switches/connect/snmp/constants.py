@@ -34,7 +34,6 @@ ENTERPRISE_ID_MIKROTIK = 14988
 # a test cheap test switch used
 ENTERPRISE_ID_PLANET = 10456
 ENTERPRISE_ID_TRENDNET = 28866
-ENTERPRISE_ID_ARISTA = 30065
 
 enterprise_id_info = {}
 enterprise_id_info[ENTERPRISE_ID_D_LINK] = 'D-Link'
@@ -53,7 +52,6 @@ enterprise_id_info[ENTERPRISE_ID_FORTINET] = 'Fortinet'
 enterprise_id_info[ENTERPRISE_ID_MIKROTIK] = 'Mikrotik'
 enterprise_id_info[ENTERPRISE_ID_PLANET] = 'PLANET Technology Corp.'
 enterprise_id_info[ENTERPRISE_ID_TRENDNET] = 'TRENDnet'
-enterprise_id_info[ENTERPRISE_ID_ARISTA] = 'Arista Networks'
 
 """
 SNMP related constants.
@@ -463,6 +461,10 @@ snmp_mib_variables['dot1qPortGvrpStatus'] = dot1qPortGvrpStatus
 ifMIB = '.1.3.6.1.2.1.31'
 snmp_mib_variables['ifMIB'] = ifMIB
 
+# ifXTable, the more modern interface information
+# .1.3.6.1.2.1.31.1.1 (ifXTable)
+# contains entries of
+# 1.3.6.1.2.1.31.1.1.1 (ifXEntry)
 #
 # interface name
 ifName = '.1.3.6.1.2.1.31.1.1.1.1'
@@ -478,6 +480,10 @@ snmp_mib_variables['ifConnectorPresent'] = ifConnectorPresent
 # description, i.e. interface Descriptions
 ifAlias = '.1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
 snmp_mib_variables['ifAlias'] = ifAlias
+
+# ifStackTable, containing 'sub-interface' information
+# .1.3.6.1.2.1.31.1.2 (ifStackTable)
+# contains entries of ifStackEntry:
 
 # interface stack, ie brdige aggregation, etc.
 ifStackEntry = '.1.3.6.1.2.1.31.1.2.1'
