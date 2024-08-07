@@ -22,6 +22,7 @@ from django.utils.html import mark_safe
 from django.urls import reverse
 
 from switches.constants import SWITCH_VIEW_BASIC, SWITCH_VIEW_DETAILS
+from switches.connect.classes import Interface
 from switches.connect.constants import (
     ENTITY_CLASS_NAME,
     POE_PSE_STATUS_ON,
@@ -643,6 +644,30 @@ def get_options_from_comma_string(csv_values):
                     # dprint(f"ITEM={item}")
                     choices += f"<option value=\"{item}\">{item}</option>\n"
     return mark_safe(choices)
+
+
+@register.filter
+def list_ip_addresses(iface: Interface) -> str:
+    """List all IP address associated with an Interface()
+    iface (Interface)
+    """
+    s = ''
+    if iface.addresses_ip4:
+        for ip, addr in iface.addresses_ip4.items():
+            s += f"{ addr.ip }/"
+            if settings.IFACE_IP4_SHOW_PREFIXLEN:
+                s += f"{ addr.prefixlen }"
+            else:
+                s += f"{ addr.netmask }"
+    # ipv6 tbd
+    # if iface.addresses_ip6:
+    #     for ip,addr in iface.addresses_ip4.items():
+    #         s += f"{ addr.ip }/"
+    #         if settings.IFACE_IP4_SHOW_PREFIXLEN:
+    #             s += f"{ addr.prefixlen }"
+    #         else:
+    #             s += f"{ addr.netmask }"
+    return s
 
 
 @register.simple_tag()
