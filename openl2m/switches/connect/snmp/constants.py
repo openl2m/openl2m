@@ -485,7 +485,7 @@ snmp_mib_variables['ifAlias'] = ifAlias
 # .1.3.6.1.2.1.31.1.2 (ifStackTable)
 # contains entries of ifStackEntry:
 
-# interface stack, ie brdige aggregation, etc.
+# interface stack, ie bridge aggregation, etc.
 ifStackEntry = '.1.3.6.1.2.1.31.1.2.1'
 snmp_mib_variables['ifStackEntry'] = ifStackEntry
 
