@@ -21,7 +21,9 @@ General Arista SNMP config information is at:
 from django.http.request import HttpRequest
 
 from switches.connect.constants import IF_TYPE_ETHERNET
+from switches.connect.classes import Interface
 from switches.connect.snmp.connector import SnmpConnector
+from switches.connect.snmp.constants import dot1qPvid
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 
@@ -66,4 +68,29 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         for key, iface in self.interfaces.items():
             if iface.type == IF_TYPE_ETHERNET and iface.untagged_vlan == -1:
                 iface.is_routed = True
+        return True
+
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
+        """
+        Change the VLAN via the Q-BRIDGE MIB
+        According to Arista, you only need to write the new vlan id to "dot1qPvid"
+        return True on success, False on error and set self.error variables
+        """
+        dprint(f"arista_eos.set_interface_untagged_vlan(i={interface}, vlan={new_vlan_id})")
+        if not interface:
+            dprint("  Invalid interface!, returning False")
+            return False
+        # now check the Q-Bridge PortID
+        if interface.port_id < 0:
+            dprint(f"  Invalid interface.port_id ({interface.port_id}), returning False")
+            return False
+        dprint("   valid interface and port_id")
+        # old_vlan_id = interface.untagged_vlan
+        # set this switch port on the new vlan:
+        # Q-BIRDGE mib: VlanIndex = Unsigned32
+        dprint("Setting NEW VLAN on port")
+        if not self.set(f"{dot1qPvid}.{interface.port_id}", int(new_vlan_id), 'u'):
+            return False
+
+        interface.untagged_vlan = new_vlan_id
         return True
