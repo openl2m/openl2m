@@ -905,97 +905,6 @@ class SnmpConnector(Connector):
         """
         dprint(f"Base _parse_oid() {str(oid)}")
 
-        oid_end = oid_in_branch(ifIndex, oid)
-        if oid_end:
-            # ifIndex branch is special, the snmp return "val" is the index, not the oid ending!
-            # create new interface object and store, with index as string key!
-            return self.add_interface(Interface(val))
-
-        # this is the old ifDescr, superceded by the IF-MIB name
-        if_index = oid_in_branch(ifDescr, oid)
-        if if_index:
-            # set new 'name'. Latter will later be overwritten with ifName bulkwalk
-            return self.set_interface_attribute_by_key(if_index, "name", str(val))
-
-        if_index = oid_in_branch(ifType, oid)
-        if if_index:
-            if_type = int(val)
-            if self.set_interface_attribute_by_key(if_index, "type", if_type):
-                if if_type != IF_TYPE_ETHERNET:
-                    # non-Ethernet interfaces are NOT manageable, no matter who
-                    self.set_interface_attribute_by_key(if_index, "manageable", False)
-                    self.set_interface_attribute_by_key(
-                        if_index, "unmanage_reason", "Access denied: not an Ethernet interface!"
-                    )
-            return True
-
-        if_index = oid_in_branch(ifMtu, oid)
-        if if_index:
-            return self.set_interface_attribute_by_key(if_index, "mtu", int(val))
-
-        # the old speed, but really we want HCSpeed from IF-MIB, see below
-        if_index = oid_in_branch(ifSpeed, oid)
-        if if_index:
-            # save this in 1Mbps, as per IF-MIB hcspeed
-            return self.set_interface_attribute_by_key(if_index, "speed", int(val) / 1000000)
-
-        # do we care about this one?
-        if_index = oid_in_branch(ifPhysAddress, oid)
-        if if_index:
-            return self.set_interface_attribute_by_key(if_index, "phys_addr", val)
-
-        if_index = oid_in_branch(ifAdminStatus, oid)
-        if if_index:
-            status = True if int(val) == IF_ADMIN_STATUS_UP else False
-            return self.set_interface_attribute_by_key(if_index, "admin_status", status)
-
-        if_index = oid_in_branch(ifOperStatus, oid)
-        if if_index:
-            status = True if int(val) == IF_OPER_STATUS_UP else False
-            return self.set_interface_attribute_by_key(if_index, "oper_status", status)
-
-        """
-        if_index = int(oid_in_branch(IF_LAST_CHANGE, oid))
-        if if_index:
-            return self.set_interface_attribute_by_key(if_index, "last_change", int(val))
-        """
-
-        if_index = oid_in_branch(ifName, oid)
-        if if_index:
-            return self.set_interface_attribute_by_key(if_index, "name", str(val))
-
-        if_index = oid_in_branch(ifAlias, oid)
-        if if_index:
-            return self.set_interface_attribute_by_key(if_index, "description", str(val))
-
-        # ifMIB high speed counter:
-        if_index = oid_in_branch(ifHighSpeed, oid)
-        if if_index:
-            return self.set_interface_attribute_by_key(if_index, "speed", int(val))
-
-        # dot3 interface duplex status information:
-        if_index = oid_in_branch(dot3StatsDuplexStatus, oid)
-        if if_index:
-            return self.set_interface_attribute_by_key(if_index, "duplex", int(val))
-
-        """
-        if_index = int(oid_in_branch(ifConnectorPresent, oid))
-        if if_index:
-            val = int(val)
-            if if_index in self.interfaces.keys():
-                if val == SNMP_TRUE:
-                    self.set_interface_attribute_by_key(if_index, "has_connector", True)
-                else:
-                    self.set_interface_attribute_by_key(if_index, "has_connector", False)
-                    self.set_interface_attribute_by_key(if_index, "manageable", False)
-            return True
-        """
-
-        # TO ADD:
-        # ifStackHigherLayer = '.1.3.6.1.2.1.31.1.2.1.1'
-        # ifStackLowerLayer =  '.1.3.6.1.2.1.31.1.2.1.2'
-        # ifStackStatus =      '.1.3.6.1.2.1.31.1.2.1.3'
-
         sub_oid = oid_in_branch(ieee8021QBridgeMvrpEnabledStatus, oid)
         if sub_oid:
             if int(val) == GVRP_ENABLED:
@@ -1498,6 +1407,123 @@ class SnmpConnector(Connector):
             return True
         # we did not parse the OID.
         return False
+
+    def _parse_mibs_if_table(self, oid: str, val: str) -> bool:
+        """Function to parse the original(old) MIB-II ifTable entries
+        This contains the interface index, and a number of other attributes
+        The newer IF-MIB (see below) also contains interface attributes.
+        """
+        oid_end = oid_in_branch(ifIndex, oid)
+        if oid_end:
+            # ifIndex branch is special, the snmp return "val" is the index, not the oid ending!
+            # create new interface object and store, with index as string key!
+            return self.add_interface(Interface(val))
+
+        # this is the old ifDescr, superceded by the IF-MIB name
+        if_index = oid_in_branch(ifDescr, oid)
+        if if_index:
+            # set new 'name'. Latter will later be overwritten with ifName bulkwalk
+            return self.set_interface_attribute_by_key(if_index, "name", str(val))
+
+        if_index = oid_in_branch(ifType, oid)
+        if if_index:
+            if_type = int(val)
+            if self.set_interface_attribute_by_key(if_index, "type", if_type):
+                if if_type != IF_TYPE_ETHERNET:
+                    # non-Ethernet interfaces are NOT manageable, no matter who
+                    self.set_interface_attribute_by_key(if_index, "manageable", False)
+                    self.set_interface_attribute_by_key(
+                        if_index, "unmanage_reason", "Access denied: not an Ethernet interface!"
+                    )
+            return True
+
+        if_index = oid_in_branch(ifMtu, oid)
+        if if_index:
+            return self.set_interface_attribute_by_key(if_index, "mtu", int(val))
+
+        # the old speed, but really we want HCSpeed from IF-MIB, see below
+        if_index = oid_in_branch(ifSpeed, oid)
+        if if_index:
+            # save this in 1Mbps, as per IF-MIB hcspeed
+            return self.set_interface_attribute_by_key(if_index, "speed", int(val) / 1000000)
+
+        # do we care about this one?
+        if_index = oid_in_branch(ifPhysAddress, oid)
+        if if_index:
+            return self.set_interface_attribute_by_key(if_index, "phys_addr", val)
+
+        if_index = oid_in_branch(ifAdminStatus, oid)
+        if if_index:
+            status = True if int(val) == IF_ADMIN_STATUS_UP else False
+            return self.set_interface_attribute_by_key(if_index, "admin_status", status)
+
+        if_index = oid_in_branch(ifOperStatus, oid)
+        if if_index:
+            status = True if int(val) == IF_OPER_STATUS_UP else False
+            return self.set_interface_attribute_by_key(if_index, "oper_status", status)
+
+        """
+        if_index = int(oid_in_branch(ifLastChange, oid))
+        if if_index:
+            return self.set_interface_attribute_by_key(if_index, "last_change", int(val))
+        """
+
+        # we did not parse the OID.
+        return False
+
+    def _parse_mibs_if_x_table(self, oid: str, val: str) -> bool:
+        """Function to parse the more modern IF-MIB "ifXTable" entries
+        that contains additional interface information.
+        """
+
+        if_index = oid_in_branch(ifName, oid)
+        if if_index:
+            return self.set_interface_attribute_by_key(if_index, "name", str(val))
+
+        if_index = oid_in_branch(ifAlias, oid)
+        if if_index:
+            return self.set_interface_attribute_by_key(if_index, "description", str(val))
+
+        # ifMIB high speed counter:
+        if_index = oid_in_branch(ifHighSpeed, oid)
+        if if_index:
+            return self.set_interface_attribute_by_key(if_index, "speed", int(val))
+
+        """
+        if_index = int(oid_in_branch(ifConnectorPresent, oid))
+        if if_index:
+            val = int(val)
+            if if_index in self.interfaces.keys():
+                if val == SNMP_TRUE:
+                    self.set_interface_attribute_by_key(if_index, "has_connector", True)
+                else:
+                    self.set_interface_attribute_by_key(if_index, "has_connector", False)
+                    self.set_interface_attribute_by_key(if_index, "manageable", False)
+            return True
+        """
+
+        # we did not parse the OID.
+        return False
+
+    def _parse_mibs_ether_like(self, oid: str, val: str) -> bool:
+        """Parse a few entries in the ETHER-LIKE MIB."""
+        # dot3 interface duplex status information:
+        if_index = oid_in_branch(dot3StatsDuplexStatus, oid)
+        if if_index:
+            return self.set_interface_attribute_by_key(if_index, "duplex", int(val))
+
+        # we did not parse the OID.
+        return False
+
+    # def _parse_mibs_if_stack(self, oid: str, val: str) -> bool:
+    #     """Parse a few entries in the IF-MIB ifStack entries."""
+    #     # TO ADD:
+    #     # ifStackHigherLayer = '.1.3.6.1.2.1.31.1.2.1.1'
+    #     # ifStackLowerLayer =  '.1.3.6.1.2.1.31.1.2.1.2'
+    #     # ifStackStatus =      '.1.3.6.1.2.1.31.1.2.1.3'
+
+    #     # we did not parse the OID.
+    #     return False
 
     def _parse_mibs_ieee_qbridge(self, oid: str, val: str) -> bool:
         """
@@ -2215,67 +2241,67 @@ class SnmpConnector(Connector):
         Returns 1 on succes, -1 on failure
         """
         # it all starts with the interface indexes
-        retval = self.get_snmp_branch('ifIndex')
+        retval = self.get_snmp_branch(branch_name='ifIndex', parser=self._parse_mibs_if_table)
         if retval < 0:
             self.add_warning(f"Error getting 'Interfaces' ({ifIndex})")
             return retval
         # and the types
-        retval = self.get_snmp_branch('ifType')
+        retval = self.get_snmp_branch(branch_name='ifType', parser=self._parse_mibs_if_table)
         if retval < 0:
             self.add_warning(f"Error getting 'Interface-Type' ({ifType})")
             return retval
 
         # the status of the interface, admin up/down, link up/down
-        retval = self.get_snmp_branch('ifAdminStatus')
+        retval = self.get_snmp_branch(branch_name='ifAdminStatus', parser=self._parse_mibs_if_table)
         if retval < 0:
             self.add_warning(f"Error getting 'Interface-AdminStatus' ({ifAdminStatus})")
             return retval
-        retval = self.get_snmp_branch('ifOperStatus')
+        retval = self.get_snmp_branch(branch_name='ifOperStatus', parser=self._parse_mibs_if_table)
         if retval < 0:
             self.add_warning(f"Error getting 'Interface-OperStatus' ({ifOperStatus})")
             return retval
 
         # find the interface name, start with the newer IF-MIB
-        retval = self.get_snmp_branch('ifName')
+        retval = self.get_snmp_branch(branch_name='ifName', parser=self._parse_mibs_if_x_table)
         if retval < 0:
             self.add_warning(f"Error getting 'Interface-Names' ({ifName})")
             return retval
         if retval == 0:  # newer IF-MIB entries no found, try the old
-            retval = self.get_snmp_branch('ifDescr')
+            retval = self.get_snmp_branch(branch_name='ifDescr', parser=self._parse_mibs_if_table)
             if retval < 0:
                 self.add_warning(f"Error getting 'Interface-Descriptions' ({ifDescr})")
                 return retval
 
         # this is the interface description
-        retval = self.get_snmp_branch('ifAlias')
+        retval = self.get_snmp_branch(branch_name='ifAlias', parser=self._parse_mibs_if_x_table)
         if retval < 0:
             self.add_warning(f"Error getting 'Interface-Alias' ({ifAlias})")
             return retval
 
         # speed is in new IF-MIB
-        retval = self.get_snmp_branch('ifHighSpeed')
+        retval = self.get_snmp_branch(branch_name='ifHighSpeed', parser=self._parse_mibs_if_x_table)
         if retval < 0:
             self.add_warning(f"Error getting 'Interface-HiSpeed' ({ifHighSpeed})")
             return retval
         if retval == 0:  # new IF-MIB hcspeed entry not found, try old speed
-            retval = self.get_snmp_branch('ifSpeed')
+            retval = self.get_snmp_branch(branch_name='ifSpeed', parser=self._parse_mibs_if_table)
             if retval < 0:
                 self.add_warning(f"Error getting 'Interface-Speed' ({ifSpeed})")
                 return retval
 
         # try to read duplex status
-        retval = self.get_snmp_branch('dot3StatsDuplexStatus')
+        retval = self.get_snmp_branch(branch_name='dot3StatsDuplexStatus', parser=self._parse_mibs_ether_like)
         if retval < 0:
             self.add_warning(f"Error getting 'Interface-Duplex' ({dot3StatsDuplexStatus})")
             return retval
 
         # check the connector, if not, cannot be managed, another safety feature
-        # retval = self.get_snmp_branch('ifConnectorPresent')
+        # retval = self.get_snmp_branch(branch_name='ifConnectorPresent', parser=self._parse_mibs_if_x_table)
         # if retval < 0:
         #    self.add_warning(f"Error getting 'Interface-Connector' ({ifConnectorPresent})")
         #    return retval
 
-        # if not self.get_snmp_branch('ifStackEntry'):   # LACP / Aggregate / Port-Channel interfaces
+        # if not self.get_snmp_branch(branch_name='ifStackEntry', parser=self._parse_mibs_if_stack):
         #    return False
         return 1
 
