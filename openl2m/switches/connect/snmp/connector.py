@@ -634,7 +634,7 @@ class SnmpConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Timeout or Access denied"
-            self.error.details = f"SNMP Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"SNMP Error: get {oid}: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   get({oid}): Exception: {e.__class__.__name__}\n{self.error.details}\n")
             return (True, None)
 
@@ -718,7 +718,7 @@ class SnmpConnector(Connector):
             self.error.status = True
             self.error.description = "A timeout or network error occured!"
             self.error.details = (
-                f"SNMP Error: branch {branch_name}, {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+                f"SNMP Error: get_snmp_branch {branch_name}, {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             )
             dprint(f"   get_snmp_branch({branch_name}): Exception: {e.__class__.__name__}\n{self.error.details}\n")
             # log this as well
@@ -2849,6 +2849,7 @@ class SnmpProbeConnector(SnmpConnector):
         dprint("get_system_oid()")
         (error_status, retval) = self.get(oid=sysObjectID)
         if error_status:
+            self.add_log(description=self.error.details, type=LOG_TYPE_ERROR, action=LOG_SNMP_ERROR)
             raise Exception("Error getting System OID")
         dprint(f"  System OID={retval.value}")
         return retval.value
