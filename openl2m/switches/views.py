@@ -1899,11 +1899,11 @@ class SwitchAdminActivity(LoginRequiredMixin, View):
         if len(filter) > 0:
             logs = Log.objects.all().filter(**filter).order_by("-timestamp")
             log.description = f"Viewing filtered logs: {filter} (page {page_number})"
-            title = "Filtered Activities"
+            title = "Filtered Logs"
         else:
             logs = Log.objects.all().order_by("-timestamp")
             log.description = f"Viewing all logs (page {page_number})"
-            title = "All Activities"
+            title = "All Logs"
         log.save()
 
         # setup pagination of the resulting activity logs
