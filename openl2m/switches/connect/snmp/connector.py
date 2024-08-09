@@ -436,6 +436,7 @@ class SnmpConnector(Connector):
         # initialize the snmp "connection/session"
         if not self._set_snmp_session():
             dprint("   ERROR: cannot get SNMP session!")
+            self.log_error()
             raise Exception("Cannot get SNMP session, did you configure a profile?")
 
         # caching related. Add attributes that do not get cached:
@@ -449,16 +450,21 @@ class SnmpConnector(Connector):
                       or the snmp v3 context to use.
         """
         dprint("_set_snmp_session()")
+        if not self.switch.snmp_profile:
+            # should never happen!
+            dprint("  ERROR: switch.snmp_profile NOT set!")
+            return False
+
         snmp_profile = self.switch.snmp_profile
-        if snmp_profile:
-            if snmp_profile.version == SNMP_VERSION_2C:
-                dprint("version 2c")
-                # use specific given community, if set:
-                if com_or_ctx:
-                    community = com_or_ctx
-                else:
-                    # use profile setting
-                    community = snmp_profile.community
+        if snmp_profile.version == SNMP_VERSION_2C:
+            dprint("version 2c")
+            # use specific given community, if set:
+            if com_or_ctx:
+                community = com_or_ctx
+            else:
+                # use profile setting
+                community = snmp_profile.community
+            try:
                 self._snmp_session = ezsnmp.Session(
                     hostname=self.switch.primary_ip4,
                     version=snmp_profile.version,
@@ -469,10 +475,18 @@ class SnmpConnector(Connector):
                     timeout=settings.SNMP_TIMEOUT,
                     retries=settings.SNMP_RETRIES,
                 )
-                return True
+            except Exception as err:
+                dprint(f"ERROR with snmp v2 session: {repr(err)}")
+                self.add_log(
+                    description=f"ERROR with snmp v2 session: {err}", type=LOG_TYPE_ERROR, action=LOG_SNMP_ERROR
+                )
+                return False
 
-            # everything else is version 3
-            if snmp_profile.version == SNMP_VERSION_3:
+            return True
+
+        # everything else is version 3
+        if snmp_profile.version == SNMP_VERSION_3:
+            try:
                 # NoAuthNoPriv
                 if snmp_profile.sec_level == SNMP_V3_SECURITY_NOAUTH_NOPRIV:
                     dprint("version 3 NoAuth-NoPriv")
@@ -606,9 +620,20 @@ class SnmpConnector(Connector):
                         dprint("  Unknown PRIV setting!")
                 else:
                     dprint("  Unknown auth-priv")
+            except Exception as err:
+                dprint(f"ERROR with snmp v2 session: {repr(err)}")
+                self.add_log(
+                    description=f"ERROR with snmp v2 session: {err}", type=LOG_TYPE_ERROR, action=LOG_SNMP_ERROR
+                )
+                return False
 
-        # snmp profile not set, or we cannot get session
+        # unknown SNMP version - this *should* never happen:
         self._snmp_session = False
+        self.add_log(
+            description=f"ERROR: UNKNOWN snmp version '{snmp_profile.version}'",
+            type=LOG_TYPE_ERROR,
+            action=LOG_SNMP_ERROR,
+        )
         dprint("UNKNOWN snmp version!")
         return False
 
