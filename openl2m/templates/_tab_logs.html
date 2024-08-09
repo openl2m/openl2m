@@ -1,4 +1,5 @@
 {% load helpers %}
+{% load static %}
 <div class="container-fluid">
   <div class="card border-default">
     <div class="card-header bg-default">
@@ -55,6 +56,14 @@
                       title="Click here to connect to '{{ l.switch }}'">
                       {{ l.switch }}
                     </a>
+                    {% if request.user.is_superuser %}
+                      &nbsp;
+                      <a href="{% url 'admin:switches_switch_change' l.switch.id %}"
+                        data-bs-toggle="tooltip"
+                        title="Go to '{{ l.switch }}' admin page">
+                        <i class="fas fa-cog" aria-hidden="true"></i>
+                      </a>
+                    {% endif %}
                   {% else %}
                     {{ l.switch }}
                   {% endif %}
