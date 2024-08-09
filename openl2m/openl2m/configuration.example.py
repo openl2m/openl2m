@@ -103,7 +103,7 @@ CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 
 # override the maximum GET/POST item count.
-# with large numbers of switches in a group, we may exceeed the default (1000):
+# with large numbers of switches in a group, we may exceed the default (1000):
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 # Time zone (default: UTC)
@@ -385,17 +385,17 @@ ETH_FORMAT = 0
 
 # this regex matches the interface name, GigabitEthernetx/x/x
 # matched interface are hidden:
-IFACE_HIDE_REGEX_IFNAME = "^TenGig"
+# IFACE_HIDE_REGEX_IFNAME = "^TenGig"
 
 # this regex matches the interface 'ifAlias' aka. the interface description
 # use e.g. to hide "Trunk" interfaces based on description.
 # matched interface are hidden:
-IFACE_HIDE_REGEX_IFDESCR = "BLUE"
+# IFACE_HIDE_REGEX_IFDESCR = "BLUE"
 
 # hide interfaces with speeds above this value in Mbps.
 # e.g. hide 10G and above, set to 9500. 0 disables this filter.
 # matched interface are hidden:
-IFACE_HIDE_SPEED_ABOVE = 9500
+# IFACE_HIDE_SPEED_ABOVE = 9500
 
 #
 # a settings to dis-allow new interface description formats.
@@ -403,7 +403,7 @@ IFACE_HIDE_SPEED_ABOVE = 9500
 #
 # if the new description matches this reg ex, do not allow it
 # matched descriptions are not allowed:
-IFACE_ALIAS_NOT_ALLOW_REGEX = "^Po|NOT ALLOWED"
+# IFACE_ALIAS_NOT_ALLOW_REGEX = "^Po|NOT ALLOWED"
 
 #
 # a setting to force a persistant part of a description.
@@ -412,7 +412,7 @@ IFACE_ALIAS_NOT_ALLOW_REGEX = "^Po|NOT ALLOWED"
 # E.g. the below regex for port-patch descriptions of format "D.nnn" to be kept
 # while allowing 'real' descriptions to be added after it
 # matched descriptions are not allowed:
-IFACE_ALIAS_KEEP_BEGINNING_REGEX = "D.\d+"
+# IFACE_ALIAS_KEEP_BEGINNING_REGEX = "D.\d+"
 
 # if true, routed interface IPv4 addresses will show prefixlen. Default is subnet mask.
 IFACE_IP4_SHOW_PREFIXLEN = False
@@ -554,11 +554,13 @@ ALLOW_TOKEN_RETRIEVAL = False
 MAX_API_TOKENS = 3
 # If the API client IP is in this denied list, access is globally denied.
 # This is a comma-separated list of IPv4/IPv6 networks in CIDR notation.
+# e.g. "192.168.1.0/24, 10.1.0.0/16"
 # Leave blank for no restrictions.
 API_CLIENT_IP_DENIED = ""
 # If the API client IP is in this allowed list, access is globally allowed.
 # Each Token can further restricted by setting the 'allowed_ips' attribute.
-# This is a comma-separated list of IPv4/IPv6 networks in CIDR notation
+# This is a comma-separated list of IPv4/IPv6 networks in CIDR notation,
+# e.g. "192.168.0.0/16, 10.0.0.0/8, 127.0.0.1"
 # Leave blank for no restrictions.
 API_CLIENT_IP_ALLOWED = ""
 # Max token duration, in days. If user sets token expiration beyond this number
@@ -577,25 +579,26 @@ ALLOW_ARP_LLDP_DOWNLOAD = True
 # this is only used in the dprint() function when DEBUG=True. This prints to the console.
 # I.e. use this when in "developer mode" while running "django runserver".
 # See the documentation for more logging configuration details.
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'console': {
-            # very minimal format:
-            'format': '[OpenL2M] %(message)s',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'console',
-        },
-    },
-    'loggers': {
-        'openl2m.console': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    },
-}
+# Example:
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'console': {
+#             # very minimal format:
+#             'format': '[OpenL2M] %(message)s',
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'console',
+#         },
+#     },
+#     'loggers': {
+#         'openl2m.console': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#         },
+#     },
+# }
