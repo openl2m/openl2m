@@ -66,7 +66,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         super()._get_interface_data()
 
         # now add HP data, and cache it:
-        if self.get_snmp_branch('hpnicfIfLinkMode', self._parse_mibs_hp_if_linkmode) < 0:
+        if self.get_snmp_branch(branch_name='hpnicfIfLinkMode', parser=self._parse_mibs_hp_if_linkmode) < 0:
             dprint("Comware hpnicfIfLinkMode returned error!")
             return False
 
@@ -79,7 +79,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         super().get_my_hardware_details()
 
         # now read Procurve specific data:
-        retval = self.get_snmp_branch('hpnicfCfgLog', self._parse_mibs_procurve_config)
+        retval = self.get_snmp_branch(branch_name='hpnicfCfgLog', parser=self._parse_mibs_procurve_config)
         if retval < 0:
             self.add_warning("Error getting Procurve config details ('hpnicfCfgLog')")
             return False
@@ -162,12 +162,12 @@ class SnmpConnectorProcurve(SnmpConnector):
         super()._get_poe_data()
         # if we found power supplies, get HP specific info about power usage from HP-IFC-POE-MIB first
         if self.poe_capable:
-            retval = self.get_snmp_branch('hpicfPoePethPsePortPower', self._parse_mibs_hp_poe)
+            retval = self.get_snmp_branch(branch_name='hpicfPoePethPsePortPower', parser=self._parse_mibs_hp_poe)
             if retval < 0:
                 self.add_warning("Error getting 'PoE-Port-Actual-Power' (hpicfPoePethPsePortActualPower)")
             if retval == 0:
                 # maybe this device supports HP-ENTITY-POWER-MIB
-                retval = self.get_snmp_branch('hpEntPowerCurrentPowerUsage', self._parse_mibs_hp_poe)
+                retval = self.get_snmp_branch(branch_name='hpEntPowerCurrentPowerUsage', parser=self._parse_mibs_hp_poe)
 
         return 1
 

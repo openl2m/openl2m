@@ -126,7 +126,9 @@ class SnmpConnectorArubaCx(SnmpConnector):
         super()._get_poe_data()
         # if we found power supplies, get Aruba specific info about power usage from ARUBAWIRED-POE mib
         if self.poe_capable:
-            retval = self.get_snmp_branch('arubaWiredPoePethPsePortPowerDrawn', self._parse_mibs_aruba_poe)
+            retval = self.get_snmp_branch(
+                branch_name='arubaWiredPoePethPsePortPowerDrawn', parser=self._parse_mibs_aruba_poe
+            )
             if retval < 0:
                 self.add_warning("Error getting 'PoE-Port-Actual-Power' (arubaWiredPoePethPsePortPowerDrawn)")
 
@@ -144,7 +146,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         if retval < 0:
             return retval
         # port PVID untagged vlan
-        retval = self.get_snmp_branch('ieee8021QBridgePortVlanEntry', self._parse_mibs_ieee_qbridge)
+        retval = self.get_snmp_branch(branch_name='ieee8021QBridgePortVlanEntry', parser=self._parse_mibs_ieee_qbridge)
         if retval < 0:
             return retval
         # set vlan count
@@ -159,11 +161,15 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         # AOS-CX uses the ieee802.1 Q-Bridge mibs for interface vlan info on trunked ports:
         # read ports in vlans
-        retval = self.get_snmp_branch('ieee8021QBridgeVlanCurrentEgressPorts', self._parse_mibs_ieee_qbridge)
+        retval = self.get_snmp_branch(
+            branch_name='ieee8021QBridgeVlanCurrentEgressPorts', parser=self._parse_mibs_ieee_qbridge
+        )
         if retval < 0:
             return retval
         # and get untagged ports in those vlans:
-        retval = self.get_snmp_branch('ieee8021QBridgeVlanCurrentUntaggedPorts', self._parse_mibs_ieee_qbridge)
+        retval = self.get_snmp_branch(
+            branch_name='ieee8021QBridgeVlanCurrentUntaggedPorts', parser=self._parse_mibs_ieee_qbridge
+        )
         if retval < 0:
             return retval
 
@@ -177,7 +183,9 @@ class SnmpConnectorArubaCx(SnmpConnector):
         super().get_my_hardware_details()
 
         # now read AOS-CX specific data:
-        retval = self.get_snmp_branch('arubaWiredVsfv2MemberProductName', self._parse_mibs_aruba_vsf2)
+        retval = self.get_snmp_branch(
+            branch_name='arubaWiredVsfv2MemberProductName', parser=self._parse_mibs_aruba_vsf2
+        )
         if retval < 0:
             self.add_warning("Error getting 'Aruba Vsf Product name' ('arubaWiredVsfv2MemberProductName')")
             return False
@@ -201,7 +209,12 @@ class SnmpConnectorArubaCx(SnmpConnector):
             # if the vlan is allowed in the trunk, then we simply set the PVID.
             if new_vlan_id in interface.vlans:
                 dprint("  New vlan allowed in TRUNK, setting PVID")
-                if not self.set(f"{dot1qPvid}.{interface.index}", int(new_vlan_id), 'u'):
+                if not self.set(
+                    oid=f"{dot1qPvid}.{interface.index}",
+                    value=int(new_vlan_id),
+                    snmp_type='u',
+                    parser=self._parse_mibs_vlan_related,
+                ):
                     dprint("   ERROR!")
                     return False
                 return True
@@ -216,7 +229,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
                 # # need to add this vlan to the trunk vlans, by setting bit to 1.
                 # # get the current list of static ports on this vlan:
                 # egress_oid = f"{ieee8021QBridgeVlanStaticEgressPorts}.1.{new_vlan_id}"
-                # (error_status, retval) = self.get(oid=egress_oid)
+                # (error_status, retval) = self.get(oid=egress_oid, parser=self._parse_mibs_vlan_related)
                 # if error_status:
                 #     dprint(f"Error getting SNMP value for 'ieee8021QBridgeVlanStaticEgressPorts': {self.error.details}")
                 #     return False
@@ -248,7 +261,12 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         else:
             dprint("Setting NEW VLAN on ACCESS port")
-            if not self.set(f"{dot1qPvid}.{interface.index}", int(new_vlan_id), 'u'):
+            if not self.set(
+                oid=f"{dot1qPvid}.{interface.index}",
+                value=int(new_vlan_id),
+                snmp_type='u',
+                parser=self._parse_mibs_vlan_related,
+            ):
                 dprint("   ERROR!")
                 return False
         return True

@@ -93,7 +93,7 @@ class SnmpConnectorComware(SnmpConnector):
         super()._get_interface_data()
 
         # now add Comware data, and cache it:
-        if self.get_snmp_branch('hh3cIfLinkMode', self._parse_mibs_comware_if_linkmode) < 0:
+        if self.get_snmp_branch(branch_name='hh3cIfLinkMode', parser=self._parse_mibs_comware_if_linkmode) < 0:
             dprint("Comware hh3cIfLinkMode returned error!")
             return False
 
@@ -121,7 +121,7 @@ class SnmpConnectorComware(SnmpConnector):
         # read some Comware specific items.
         # some Comware switches do not report vlan names in Q-Bridge mib
         # so read HH3C version
-        if self.get_snmp_branch('hh3cdot1qVlanName', self._parse_mibs_comware_vlan) < 0:
+        if self.get_snmp_branch(branch_name='hh3cdot1qVlanName', parser=self._parse_mibs_comware_vlan) < 0:
             dprint("Comware hh3cdot1qVlanName returned error!")
             self.add_warning("Error getting 'HH3C-Vlan-Names' (hh3cdot1qVlanName)")
 
@@ -129,27 +129,30 @@ class SnmpConnectorComware(SnmpConnector):
         super()._get_vlan_data()
 
         # read the Comware port type:
-        if self.get_snmp_branch('hh3cifVLANType', self._parse_mibs_comware_if_type) < 0:
+        if self.get_snmp_branch(branch_name='hh3cifVLANType', parser=self._parse_mibs_comware_if_type) < 0:
             dprint("Comware hh3cifVLANType returned error!")
             self.add_warning("Error getting 'HH3C-Vlan-Types' (hh3cifVLANType)")
 
         # for each vlan, PortList bitmap of untagged ports
         """  NOT PARSED YET:
-        if self.get_snmp_branch('hh3cdot1qVlanPorts') < 0:
+        if self.get_snmp_branch(branch_name='hh3cdot1qVlanPorts', parser=self._parse_mibs_comware_vlan) < 0:
             dprint("Comware hh3cdot1qVlanPorts returned error!")
         """
 
         # tagged vlan types are next
-        # if not self.get_snmp_branch('hh3cifVLANTrunkAllowListLow'):
+        # if not self.get_snmp_branch(branch_name='hh3cifVLANTrunkAllowListLow'):
         #    dprint("Comware Low VLAN PortList FALSE")
         #    return False
         # next, read vlan names
-        # if not self.get_snmp_branch('hh3cifVLANTrunkAllowListHigh'):
+        # if not self.get_snmp_branch(branch_name='hh3cifVLANTrunkAllowListHigh'):
         #    dprint("Comware High VLAN PortList FALSE")
         #    return False
 
         # read IGMP-snooping for vlans:
-        if self.get_snmp_branch('hh3cIgmpSnoopingVlanEnabled', self._parse_mibs_comware_vlan_igmp) < 0:
+        if (
+            self.get_snmp_branch(branch_name='hh3cIgmpSnoopingVlanEnabled', parser=self._parse_mibs_comware_vlan_igmp)
+            < 0
+        ):
             dprint("hh3cIgmpSnoopingVlanEnabled returned error!")
             self.add_warning("Error getting 'HH3C-Vlan-IGMP-Info' (hh3cIgmpSnoopingVlanEnabled)")
 
@@ -164,7 +167,7 @@ class SnmpConnectorComware(SnmpConnector):
         super().get_my_hardware_details()
 
         # now read Comware specific data:
-        retval = self.get_snmp_branch('hh3cCfgLog', self._parse_mibs_comware_config)
+        retval = self.get_snmp_branch(branch_name='hh3cCfgLog', parser=self._parse_mibs_comware_config)
         if retval < 0:
             self.add_warning("Error getting Comware log details ('hh3cCfgLog')")
             return False
@@ -264,7 +267,7 @@ class SnmpConnectorComware(SnmpConnector):
                 """
                 # next, read current Egress PortList bitmap first:
                 # note the 0 to hopefull deactivate time filter!
-                (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}")
+                (error_status, snmpval) = self.get(oid=f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_related)
                 if error_status:
                     # Hmm, not sure what to do
                     self.error.status = True
@@ -488,7 +491,7 @@ class SnmpConnectorComware(SnmpConnector):
         """
         super()._get_poe_data()
         # now get HP specific info from HP-IFC-POE-MIB first
-        retval = self.get_snmp_branch('hh3cPsePortCurrentPower', self._parse_mibs_comware_poe)
+        retval = self.get_snmp_branch(branch_name='hh3cPsePortCurrentPower', parser=self._parse_mibs_comware_poe)
         if retval < 0:
             self.add_warning("Error getting 'PoE-Port-Current-Power' (hh3cPsePortCurrentPower)")
         return 1
@@ -549,7 +552,7 @@ class SnmpConnectorComware(SnmpConnector):
 
         # According to the
         # run the Operations row status to find free slot to write to:
-        retval = self.get_snmp_branch('hh3cCfgOperateRowStatus', self._parse_mibs_comware_configfile)
+        retval = self.get_snmp_branch(branch_name='hh3cCfgOperateRowStatus', parser=self._parse_mibs_comware_configfile)
         if retval < 0:
             self.add_warning("Error reading 'Config File MIB' (hh3cCfgOperateRowStatus)")
             return False

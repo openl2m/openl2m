@@ -107,17 +107,17 @@ class SnmpConnectorJuniper(SnmpConnector):
         super()._get_vlan_data()
 
         # try the Juniper L2 entries. FIrst the "tag" or index to vlan_id mapping:
-        retval = self.get_snmp_branch('jnxL2aldVlanTag', self._parse_mibs_juniper_l2ald_vlans)
+        retval = self.get_snmp_branch(branch_name='jnxL2aldVlanTag', parser=self._parse_mibs_juniper_l2ald_vlans)
         if retval < 0:  # error
             return retval
         if retval > 0:  # we found something, read the rest
-            retval = self.get_snmp_branch('jnxL2aldVlanName', self._parse_mibs_juniper_l2ald_vlans)
+            retval = self.get_snmp_branch(branch_name='jnxL2aldVlanName', parser=self._parse_mibs_juniper_l2ald_vlans)
             if retval < 0:  # error
                 return retval
-            retval = self.get_snmp_branch('jnxL2aldVlanType', self._parse_mibs_juniper_l2ald_vlans)
+            retval = self.get_snmp_branch(branch_name='jnxL2aldVlanType', parser=self._parse_mibs_juniper_l2ald_vlans)
             if retval < 0:  # error
                 return retval
-            retval = self.get_snmp_branch('jnxL2aldVlanFdbId', self._parse_mibs_juniper_l2ald_vlans)
+            retval = self.get_snmp_branch(branch_name='jnxL2aldVlanFdbId', parser=self._parse_mibs_juniper_l2ald_vlans)
             if retval < 0:  # error
                 return retval
             return 1

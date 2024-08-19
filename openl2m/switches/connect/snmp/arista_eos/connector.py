@@ -89,7 +89,12 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         # set this switch port on the new vlan:
         # Q-BIRDGE mib: VlanIndex = Unsigned32
         dprint("Setting NEW VLAN on port")
-        if not self.set(f"{dot1qPvid}.{interface.port_id}", int(new_vlan_id), 'u'):
+        if not self.set(
+            oid=f"{dot1qPvid}.{interface.port_id}",
+            value=int(new_vlan_id),
+            snmp_type='u',
+            parser=self._parse_mibs_vlan_related,
+        ):
             return False
 
         interface.untagged_vlan = new_vlan_id

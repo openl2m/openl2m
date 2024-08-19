@@ -62,11 +62,21 @@ class SnmpConnectorDell(SnmpConnector):
             # Q-BIRDGE mib: VlanIndex = Unsigned32
             if interface.is_tagged:
                 dprint("  Tagged port")
-                if not self.set(f"{agentPortNativeVlanID}.{interface.port_id}", int(new_vlan_id), 'i'):
+                if not self.set(
+                    oid=f"{agentPortNativeVlanID}.{interface.port_id}",
+                    value=int(new_vlan_id),
+                    snmp_type='i',
+                    parser=False,
+                ):
                     return False
             else:
                 dprint("  Untagged port")
-                if not self.set(f"{agentPortAccessVlanID}.{interface.port_id}", int(new_vlan_id), 'i'):
+                if not self.set(
+                    oid=f"{agentPortAccessVlanID}.{interface.port_id}",
+                    value=int(new_vlan_id),
+                    snmp_type='i',
+                    parser=False,
+                ):
                     return False
             # update interface() for view and caching
             interface.untagged_vlan = int(new_vlan_id)
@@ -79,7 +89,7 @@ class SnmpConnectorDell(SnmpConnector):
         """
         dprint("save_running_config(Dell)")
 
-        retval = self.set(f"{agentSaveConfig}.0", DELL_SAVE_ENABLE, 'i')
+        retval = self.set(oid=f"{agentSaveConfig}.0", value=DELL_SAVE_ENABLE, snmp_type='i', parser=False)
         if retval < 0:
             dprint(f"return = {retval}")
             self.add_warning("Error saving via SNMP (agentSaveConfig)")
