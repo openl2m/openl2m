@@ -79,6 +79,7 @@ def get_connection_object(request: HttpRequest, group: SwitchGroup, switch: Swit
     # What type of connector are we using?
     if switch.connector_type == CONNECTOR_TYPE_SNMP:
         # go probe to find vendor type
+        dprint("SNMP: Probing device...")
         conn = SnmpProbeConnector(request, group, switch)
         snmp_oid = conn.get_system_oid()
         if snmp_oid:
