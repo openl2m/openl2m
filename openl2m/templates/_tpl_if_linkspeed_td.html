@@ -2,13 +2,17 @@
 {% load static %}
 
 <td>
-  {% if iface.oper_status %}
+  {% if iface.oper_status %}{# up interface #}
     {% if iface.speed > 0 %}
       {{ iface|humanize_speed }}
     {% else %}
       <small>(Unknown)</small>
     {% endif %}
-  {% else %}
-    <abbr data-bs-toggle="tooltip" title="{{ iface|humanize_speed }}">-</abbr>
+  {% else %}{# down interface #}
+    {% if iface.speed > 0 %}{# show max possible link speed as hover-over #}
+      <abbr data-bs-toggle="tooltip" title="{{ iface|humanize_speed }}">-</abbr>
+    {% else %}{# unknown max link speed #}
+      -
+    {% endif %}
   {% endif %}
 </td>
