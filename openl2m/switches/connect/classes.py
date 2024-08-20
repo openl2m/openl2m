@@ -736,6 +736,23 @@ class SyslogMsg:
         return self.message  # for now.
 
 
+class Vrf:
+    """
+    Class to represent a VRF (Virtual Routing and Forwarding instance) that exists on the device.
+    """
+
+    def __init__(self):
+        """
+        Initialize the VRF object
+        """
+        self.name = ""
+        self.rd = ""  # vrf route distinguisher
+        self.description = ""
+        # self.state      # enable or disabled, VRF_ACTIVE or VRF_INACTIVE
+        self.ipv4 = False  # True if VRF is enabled for IPv4
+        self.ipv6 = False  # True if VRF is enabled for IPv6
+
+
 class Interface:
     """
     Class to represent all the attributes of a single device (switch) interface.
