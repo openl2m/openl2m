@@ -37,6 +37,7 @@ from switches.connect.classes import (
     Interface,
     EthernetAddress,
     NeighborDevice,
+    Vrf,
 )
 from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
@@ -112,6 +113,7 @@ class Connector:
         )  # Interface() objects representing the ports on this switch, key is if_name *as string!*
         self.vlans: Dict[int, Vlan] = {}  # Vlan() objects on this switch, key is vlan id *as integer!* (not index!)
         self.vlan_count = 0  # number of vlans defined on device
+        self.vrfs: Dict[str, Vrf] = {}  # VRFs available on this device.
         self.ip4_to_if_index: Dict[str, int] = (
             {}
         )  # the IPv4 addresses as keys, with stored value if_index; needed to map netmask to interface
@@ -423,9 +425,27 @@ class Connector:
             interface.eth = {}
             interface.lldp = {}
 
+    def get_routing_details(self) -> bool:
+        """
+        Get information about vrf's, routing tables, etc.
+        Currently only reads vrfs
+
+        Args:
+            none
+
+        Returns:
+            return True on success, False on error and set self.error variables
+        """
+        dprint("Connector.get_routing_details()")
+
+        if hasattr(self, 'get_my_vrfs'):
+            return self.get_my_vrfs()
+        return True
+
     def get_hardware_details(self) -> bool:
         '''
         Get all (possible) hardware info, stacking details, etc.
+        Also attempts to get VRFs tables.
 
         Args:
             none
@@ -438,8 +458,12 @@ class Connector:
             self.hardware_details_needed = False
             # call the vendor-specific data first, if implemented
             if hasattr(self, 'get_my_hardware_details'):
-                return self.get_my_hardware_details()
-            self.add_warning("WARNING: device driver does not support 'get_my_hardware_details()' !")
+                self.get_my_hardware_details()
+            else:
+                self.add_warning("WARNING: device driver does not support 'get_my_hardware_details()' !")
+            # see if the driver has VRF support:
+            if hasattr(self, 'get_my_vrfs'):
+                self.get_my_vrfs()
             return False
         # already loaded.
         return True
@@ -920,6 +944,24 @@ class Connector:
             dprint(f"conn.add_neighbor_object(): Interface {if_name} does NOT exist!")
             return False
 
+    def get_vrf_by_name(self, name: str) -> Vrf:
+        """Get a Vrf() object by name. If not exists, create it
+
+        Args:
+            name(str): the name of the VRF to find, or create.
+
+        Returns:
+            (Vrf() or False): a valid Vrf() object, or False
+        """
+        dprint(f"Connector.get_vrf_by_name(name='{name}')")
+        if name in self.vrfs:
+            return self.vrfs[name]
+        # go create a new Vrf()
+        vrf = Vrf()
+        vrf.name = name
+        self.vrfs[name] = vrf
+        return vrf
+
     def save_running_config(self) -> bool:
         '''
         Execute a 'save config' command. This is switch dependent.
@@ -931,6 +973,7 @@ class Connector:
         Returns:
             True if this succeeds, False on failure. self.error() will be set in that case
         '''
+        dprint("Connector.save_running_config() - NOT IMPLEMENTED!")
         self.error.status = True
         self.error.description = "Save is NOT implemented!"
         return False
