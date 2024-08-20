@@ -22,10 +22,19 @@ from django.http.request import HttpRequest
 
 from switches.connect.constants import IF_TYPE_ETHERNET
 from switches.connect.classes import Interface
-from switches.connect.snmp.connector import SnmpConnector
+from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.connect.snmp.constants import dot1qPvid
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
+
+from .constants import (
+    aristaVrfRoutingStatus,
+    aristaVrfRouteDistinguisher,
+    aristaVrfState,
+    ARISTA_VRF_ACTIVE,
+    ARISTA_VRF_ROUTING_IPV4_BIT,
+    ARISTA_VRF_ROUTING_IPV6_BIT,
+)
 
 
 class SnmpConnectorAristaEOS(SnmpConnector):
@@ -99,3 +108,66 @@ class SnmpConnectorAristaEOS(SnmpConnector):
 
         interface.untagged_vlan = new_vlan_id
         return True
+
+    def get_my_vrfs(self):
+        """Read the VRFs defined on this device."""
+        dprint("arista_eos.get_my_vrfs()")
+
+        val = self.get_snmp_branch(branch_name='aristaVrfEntry', parser=self._parse_vrf_entries)
+
+    def _parse_vrf_entries(self, oid: str, val: str) -> bool:
+        """
+        Parse Arista VRF mib entries. This gets added to self.vrfs
+
+                Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnectorAristaEOS._parse_vrf_entries() {str(oid)}")
+
+        # routing status has bit for IPv4 and IPv6
+        sub_oid = oid_in_branch(aristaVrfRoutingStatus, oid)
+        if sub_oid:
+            vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
+            dprint(f"  VRF NAME = '{vrf_name}'")
+            dprint("   VRF ipv4/6 routing")
+            vrf = self.get_vrf_by_name(name=vrf_name)
+            # parse IPv4 and IPv6 bits here:
+            # TBD
+            # if int(val) & ARISTA_VRF_ROUTING_IPV4_BIT:
+            #     vrf.ipv4 = True
+            # if int(val) & ARISTA_VRF_ROUTING_IPV6_BIT:
+            #     vrf.ipv6 = True
+            vrf.ipv4 = True
+            vrf.ipv6 = True
+            return True
+
+        # the VRF RD:
+        sub_oid = oid_in_branch(aristaVrfRouteDistinguisher, oid)
+        if sub_oid:
+            vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
+            dprint(f"  VRF NAME = '{vrf_name}'")
+            dprint("   VRF RD")
+            vrf = self.get_vrf_by_name(name=vrf_name)
+            vrf.rd = val
+            return True
+
+        # state is enabled or disabled
+        sub_oid = oid_in_branch(aristaVrfState, oid)
+        if sub_oid:
+            vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
+            dprint(f"  VRF NAME = '{vrf_name}'")
+            dprint("   VRF State")
+            vrf = self.get_vrf_by_name(name=vrf_name)
+            # set the state, active=True
+            if int(val) == ARISTA_VRF_ACTIVE:
+                vrf.state = True
+            else:
+                vrf.state = False
+            return True
+
+        # we did parse:
+        return False
