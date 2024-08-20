@@ -1,0 +1,30 @@
+{% load helpers %}
+{% load static %}
+
+{% if connection.vrfs %}
+<div class="card border-default mb-2">
+  <div class="card-header bg-default">
+    <strong>VRFs</strong>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped table-hover table-headings w-auto">
+      <thead>
+        <tr><th>Name</th><th>RD</th><th>Proto</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+    {% for name,vrf in connection.vrfs.items %}
+        <tr>
+          <td>{{ name }}</td>
+          <td>{{ vrf.rd }}</td>
+          <td>
+            {% if vrf.ipv4 %}IPv4{% endif %}
+            {% if vrf.ipv6 %}IPv6{% endif %}
+          </td>
+          <td>{{ vrf.description }}</td>
+        </tr>
+    {% endfor%}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}{# connection.vrfs #}
