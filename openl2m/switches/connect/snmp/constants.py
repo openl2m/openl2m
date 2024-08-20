@@ -612,11 +612,11 @@ snmp_mib_variables['pethPsePortType'] = pethPsePortType
 syslogMsgMib = '.1.3.6.1.2.1.192'
 
 syslogMsgObjects = '.1.3.6.1.2.1.192.1'
-
 snmp_mib_variables['syslogMsgObjects'] = syslogMsgObjects
-syslogMsgTableMaxSize = '.1.3.6.1.2.1.192.1.1.1'
 
+syslogMsgTableMaxSize = '.1.3.6.1.2.1.192.1.1.1'
 snmp_mib_variables['syslogMsgTableMaxSize'] = syslogMsgTableMaxSize
+
 syslogMsgTable = '.1.3.6.1.2.1.192.1.2'
 
 """
@@ -890,8 +890,37 @@ dot3adAggPortActorOperState = '.1.2.840.10006.300.43.1.2.1.1.21'
 dot3adAggPortAggregateOrIndividual = '.1.2.840.10006.300.43.1.2.1.1.24'
 snmp_mib_variables['dot3adAggPortAggregateOrIndividual'] = dot3adAggPortAggregateOrIndividual
 
+
 #
-# VENDOR SPECIFIC Entries, see also vendors/vendors.py
+# MPLS L3VPN related, aka "VRF" data
+# in the MPLS-L3VPN-STD-MIB
+# good reference is https://mibs.observium.org/mib/MPLS-L3VPN-STD-MIB/
+#
+
+# the start of the "VRF table":
+# mplsL3VpnVrfTable = ".1.3.6.1.2.1.10.166.11.1.2.2"
+
+# and all the "VRF" entries:
+mplsL3VpnVrfEntry = ".1.3.6.1.2.1.10.166.11.1.2.2.1"
+mplsL3VpnVrfName = ".1.3.6.1.2.1.10.166.11.1.2.2.1.1"
+# mplsL3VpnVrfVpnId 		.1.3.6.1.2.1.10.166.11.1.2.2.1.2
+mplsL3VpnVrfDescription = ".1.3.6.1.2.1.10.166.11.1.2.2.1.3"
+mplsL3VpnVrfRD = ".1.3.6.1.2.1.10.166.11.1.2.2.1.4"
+# mplsL3VpnVrfCreationTime 		.1.3.6.1.2.1.10.166.11.1.2.2.1.5
+mplsL3VpnVrfOperStatus = ".1.3.6.1.2.1.10.166.11.1.2.2.1.6"
+# mplsL3VpnVrfActiveInterfaces 		.1.3.6.1.2.1.10.166.11.1.2.2.1.7
+# mplsL3VpnVrfAssociatedInterfaces 		.1.3.6.1.2.1.10.166.11.1.2.2.1.8
+# mplsL3VpnVrfConfMidRteThresh 		.1.3.6.1.2.1.10.166.11.1.2.2.1.9
+# mplsL3VpnVrfConfHighRteThresh 		.1.3.6.1.2.1.10.166.11.1.2.2.1.10
+# mplsL3VpnVrfConfMaxRoutes 		.1.3.6.1.2.1.10.166.11.1.2.2.1.11
+# mplsL3VpnVrfConfLastChanged 		.1.3.6.1.2.1.10.166.11.1.2.2.1.12
+# mplsL3VpnVrfConfRowStatus 		.1.3.6.1.2.1.10.166.11.1.2.2.1.13
+mplsL3VpnVrfConfAdminStatus = ".1.3.6.1.2.1.10.166.11.1.2.2.1.14"
+# mplsL3VpnVrfConfStorageType 		.1.3.6.1.2.1.10.166.11.1.2.2.1.15
+
+
+#
+# VENDOR SPECIFIC Entries, see vendor driver folder "constants.py"
 #
 
 # System Object ID: Vendor ID is the first number after this:
