@@ -2821,6 +2821,34 @@ class SnmpConnector(Connector):
         if retval < 0:
             self.add_warning("Error getting Log Size Info (syslogMsgTableMaxSize)")
 
+    def _get_string_from_oid_index(self, oid_index: str) -> str:
+        """Get the "string name as index" from a MIB table element.
+        This is used as 'index' for a number of MIB table entries.
+        First digit is length, the rest the ascii representation of the name.
+        eg. "4.78.97.109.101", is the 4-character string "Name" (N=78, a=97, m=109, e=101)
+
+        Args:
+            oid_index (str): represents the "oid index" to decode.
+
+        Returns:
+            (str): value of the decoded string, or ""
+        """
+        dprint(f"_get_string_from_oid_index('{oid_index}')")
+        value = ""
+        try:
+            chars = oid_index.split(".")
+            chars.pop(0)  # remove length entry
+            for char in chars:
+                value += chr(int(char))  # add the character represented by the ascii number.
+        except Exception as err:
+            self.add_log(
+                description=f"Error decoding string for oid index '{oid_index}': {err}",
+                action=LOG_SNMP_ERROR,
+                type=LOG_TYPE_ERROR,
+            )
+            value = ""  # reset to default, just in case
+        return value
+
     #
     # "Public" interface methods
     #
