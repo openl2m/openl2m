@@ -110,12 +110,24 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         return True
 
     def get_my_vrfs(self):
-        """Read the VRFs defined on this device."""
-        dprint("arista_eos.get_my_vrfs()")
+        """Read the VRFs defined on this device.
+            This reads 'aristaVrfEntry' items from the 'aristaVrfTable'
+            defined in the vendor-specific ARISTA-VRF-MIB
 
-        val = self.get_snmp_branch(branch_name='aristaVrfEntry', parser=self._parse_vrf_entries)
+        Args:
+            none
 
-    def _parse_vrf_entries(self, oid: str, val: str) -> bool:
+        Returns:
+            (bool): True on success, False on failure
+        """
+        dprint("SnmpConnectorAristaEOS.get_my_vrfs()")
+
+        retval = self.get_snmp_branch(branch_name='aristaVrfEntry', parser=self._parse_mib_arista_vrf_entries)
+        if retval < 0:
+            self.add_warning("Error getting VRF info from the Arista MPLS tables (aristaVrfEntry)")
+        return True
+
+    def _parse_mib_arista_vrf_entries(self, oid: str, val: str) -> bool:
         """
         Parse Arista VRF mib entries. This gets added to self.vrfs
 
@@ -169,5 +181,5 @@ class SnmpConnectorAristaEOS(SnmpConnector):
                 vrf.state = False
             return True
 
-        # we did parse:
+        # we did not parse:
         return False
