@@ -171,6 +171,12 @@ from switches.connect.snmp.constants import (
     IF_OPER_STATUS_DOWN,
     vlan_createAndGo,
     vlan_destroy,
+    mplsL3VpnVrfName,
+    mplsL3VpnVrfDescription,
+    mplsL3VpnVrfRD,
+    mplsL3VpnVrfOperStatus,
+    mplsL3VpnVrfActiveInterfaces,
+    MPLS_VRF_STATE_ENABLED,
 )
 
 
@@ -2820,6 +2826,87 @@ class SnmpConnector(Connector):
         retval = self.get_snmp_branch(branch_name='syslogMsgTableMaxSize', parser=self._parse_mibs_syslog_msg)
         if retval < 0:
             self.add_warning("Error getting Log Size Info (syslogMsgTableMaxSize)")
+
+    def get_my_vrfs(self):
+        """Read the VRFs defined on this device.
+            This reads 'mplsL3VpnVrfEntry' items from the 'mplsL3VpnVrfTable'
+            defined in the standard MPLS-L3VPN-STD-MIB
+
+        Args:
+            none
+
+        Returns:
+            (bool): True on success, False on failure
+        """
+        dprint("SnmpConnector.get_my_vrfs()")
+        retval = self.get_snmp_branch(branch_name='mplsL3VpnVrfEntry', parser=self._parse_mib_mpls_l3vpn)
+        if retval < 0:
+            self.add_warning("Error getting VRF info from the MPLS-L2VPN tables (mplsL3VpnVrfEntry)")
+        return True
+
+    def _parse_mib_mpls_l3vpn(self, oid: str, val: str) -> bool:
+        """
+        Parse standard VRF mib entries from MPLS-L3VPN-STD-MIB. This gets added to self.vrfs
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnector._parse_vrf_entries() {str(oid)}")
+
+        # VRF name
+        sub_oid = oid_in_branch(mplsL3VpnVrfName, oid)
+        if sub_oid:
+            vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
+            dprint(f"  VRF NAME = '{vrf_name}'")
+            vrf = self.get_vrf_by_name(name=vrf_name)
+            return True
+
+        # VRF description
+        sub_oid = oid_in_branch(mplsL3VpnVrfDescription, oid)
+        if sub_oid:
+            vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
+            dprint(f"  VRF DESCR for '{vrf_name}'")
+            vrf = self.get_vrf_by_name(name=vrf_name)
+            vrf.description = val
+            return True
+
+        # the VRF RD:
+        sub_oid = oid_in_branch(mplsL3VpnVrfRD, oid)
+        if sub_oid:
+            vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
+            dprint(f"  VRF RD for '{vrf_name}'")
+            vrf = self.get_vrf_by_name(name=vrf_name)
+            vrf.rd = val
+            return True
+
+        # state is enabled or disabled
+        sub_oid = oid_in_branch(mplsL3VpnVrfOperStatus, oid)
+        if sub_oid:
+            vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
+            dprint(f"  VRF State for'{vrf_name}'")
+            vrf = self.get_vrf_by_name(name=vrf_name)
+            # set the state, active=True
+            if int(val) == MPLS_VRF_STATE_ENABLED:
+                vrf.state = True
+            else:
+                vrf.state = False
+            return True
+
+        # number of active interfaces in this VRF
+        sub_oid = oid_in_branch(mplsL3VpnVrfActiveInterfaces, oid)
+        if sub_oid:
+            vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
+            dprint(f"  VRF Active count for'{vrf_name}'")
+            vrf = self.get_vrf_by_name(name=vrf_name)
+            vrf.active_interfaces = int(val)
+            return True
+
+        # we did not parse:
+        return False
 
     def _get_string_from_oid_index(self, oid_index: str) -> str:
         """Get the "string name as index" from a MIB table element.

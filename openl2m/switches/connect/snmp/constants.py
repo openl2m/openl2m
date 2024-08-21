@@ -902,13 +902,15 @@ snmp_mib_variables['dot3adAggPortAggregateOrIndividual'] = dot3adAggPortAggregat
 
 # and all the "VRF" entries:
 mplsL3VpnVrfEntry = ".1.3.6.1.2.1.10.166.11.1.2.2.1"
+snmp_mib_variables['mplsL3VpnVrfEntry'] = mplsL3VpnVrfEntry
+# the entries in each "row" of the table:
 mplsL3VpnVrfName = ".1.3.6.1.2.1.10.166.11.1.2.2.1.1"
 # mplsL3VpnVrfVpnId 		.1.3.6.1.2.1.10.166.11.1.2.2.1.2
 mplsL3VpnVrfDescription = ".1.3.6.1.2.1.10.166.11.1.2.2.1.3"
 mplsL3VpnVrfRD = ".1.3.6.1.2.1.10.166.11.1.2.2.1.4"
 # mplsL3VpnVrfCreationTime 		.1.3.6.1.2.1.10.166.11.1.2.2.1.5
 mplsL3VpnVrfOperStatus = ".1.3.6.1.2.1.10.166.11.1.2.2.1.6"
-# mplsL3VpnVrfActiveInterfaces 		.1.3.6.1.2.1.10.166.11.1.2.2.1.7
+mplsL3VpnVrfActiveInterfaces = '.1.3.6.1.2.1.10.166.11.1.2.2.1.7'
 # mplsL3VpnVrfAssociatedInterfaces 		.1.3.6.1.2.1.10.166.11.1.2.2.1.8
 # mplsL3VpnVrfConfMidRteThresh 		.1.3.6.1.2.1.10.166.11.1.2.2.1.9
 # mplsL3VpnVrfConfHighRteThresh 		.1.3.6.1.2.1.10.166.11.1.2.2.1.10
@@ -918,6 +920,8 @@ mplsL3VpnVrfOperStatus = ".1.3.6.1.2.1.10.166.11.1.2.2.1.6"
 mplsL3VpnVrfConfAdminStatus = ".1.3.6.1.2.1.10.166.11.1.2.2.1.14"
 # mplsL3VpnVrfConfStorageType 		.1.3.6.1.2.1.10.166.11.1.2.2.1.15
 
+MPLS_VRF_STATE_ENABLED = 1
+MPLS_VRF_STATE_DISABLED = 2
 
 #
 # VENDOR SPECIFIC Entries, see vendor driver folder "constants.py"
