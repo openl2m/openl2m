@@ -172,9 +172,6 @@ class Connector:
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = False  # if true, we can reload all our data (and show a button on screen for this)
         self.can_get_client_data = hasattr(self, 'get_my_client_data')  # do we implement reading arp/lldp/etc?
-        self.can_get_hardware_details = hasattr(
-            self, 'get_my_hardware_details'
-        )  # can we get more then basic device info?
 
     def as_dict(self) -> dict:
         '''
@@ -451,20 +448,25 @@ class Connector:
             none
 
         Returns:
-            return True on success, False on error and set self.error variables
+            return True on success, False on any failure.
         '''
         if self.hardware_details_needed:
             # this only will be called once!
             self.hardware_details_needed = False
             # call the vendor-specific data first, if implemented
             if hasattr(self, 'get_my_hardware_details'):
-                self.get_my_hardware_details()
+                hw_return = self.get_my_hardware_details()
             else:
-                self.add_warning("WARNING: device driver does not support 'get_my_hardware_details()' !")
+                hw_return = True
             # see if the driver has VRF support:
             if hasattr(self, 'get_my_vrfs'):
-                self.get_my_vrfs()
-            return False
+                vrf_return = self.get_my_vrfs()
+            else:
+                vrf_return = True
+            # if any fails, return failed:
+            if not hw_return or not vrf_return:
+                return False
+            return True
         # already loaded.
         return True
 

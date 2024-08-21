@@ -422,14 +422,9 @@ def switch_view(
     # get hardware info as well.
     try:
         if not conn.get_hardware_details():
-            # errors
-            log.type = LOG_TYPE_ERROR
-            log.description = "ERROR in get_hardware_details()"
-            log.save()
-            dprint("ERROR in conn.get_hardware_details()!")
             # don't render error, since we have already read the basic interface data
-            # Note that SNMP errors are already added to warnings!
-            # return error_page(request=request, group=group, switch=switch, error=conn.error)
+            # Note that driver errors should are already be logged and added to warnings!
+            dprint("ERROR in conn.get_hardware_details()!")
         else:
             dprint("get_hardware_details() OK!")
     except Exception as e:
