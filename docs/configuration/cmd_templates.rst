@@ -48,7 +48,7 @@ A template where the user can display an Access Control List of their desire, th
 
 A template where the user can choose the ACL number from a pre-configured list would be defined as follows:
 
-First, define List 1 as eg. "1001, 1002, 1003"
+First, define List 1 as eg. "1001,1002,1003"
 
 .. image:: ../_static/command-template-admin-list1-example.png
 
@@ -57,6 +57,11 @@ Then define the template as
 .. code-block:: bash
 
   show acl {{list1}}
+
+.. note::
+
+    Parsing of list strings is very simple. "1,2,3" is NOT the same as "1, 2, 3".
+    The first are 3 single character strings, the second are 3 dual-character strings!
 
 
 **Regular Expressions To Match Fields**
