@@ -117,3 +117,10 @@
        title="Voice VLAN {{ iface.voice_vlan }}">
   </i>
 {% endif %}
+{% if iface.vrf_name %}
+  &nbsp;
+  <i class="fas fa-cloud" aria-hidden="true"
+      data-bs-toggle="tooltip"
+      title="Member of VRF '{{ iface.vrf_name }}'">
+  </i>
+{% endif %}
