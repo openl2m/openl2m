@@ -752,17 +752,11 @@ class SnmpConnector(Connector):
             dprint(f"+++> INVALID BRANCH NAME: {branch_name}")
             self.add_warning(f"Invalid snmp branch '{branch_name}'")
             # log this as well
-            log = Log(
-                user=self.request.user,
-                group=self.group,
-                switch=self.switch,
-                ip_address=get_remote_ip(self.request),
+            self.add_log(
                 type=LOG_TYPE_ERROR,
                 action=LOG_SNMP_ERROR,
                 description=f"ERROR getting '{branch_name}': invalid branch name",
             )
-            log.save()
-
             return -1
 
         start_oid = snmp_mib_variables[branch_name]
@@ -806,16 +800,11 @@ class SnmpConnector(Connector):
             )
             dprint(f"   get_snmp_branch({branch_name}): Exception: {e.__class__.__name__}\n{self.error.details}\n")
             # log this as well
-            log = Log(
-                user=self.request.user,
-                group=self.group,
-                switch=self.switch,
-                ip_address=get_remote_ip(self.request),
+            self.add_log(
                 type=LOG_TYPE_ERROR,
                 action=LOG_SNMP_ERROR,
                 description=f"ERROR getting '{branch_name}': {self.error.details}",
             )
-            log.save()
             return -1
 
         dprint(f"get_snmp_branch() returns {count}")
@@ -2405,18 +2394,9 @@ class SnmpConnector(Connector):
             if self.switch.hostname != self.hostname:
                 self.switch.hostname = self.hostname
                 self.switch.save()
-                log = Log(
-                    action=LOG_NEW_HOSTNAME_FOUND,
-                    description="New System Hostname found",
-                    switch=self.switch,
-                    user=self.request.user,
-                    group=self.group,
-                    ip_address=get_remote_ip(self.request),
-                    type=LOG_TYPE_WARNING,
+                self.add_log(
+                    type=LOG_TYPE_WARNING, action=LOG_NEW_HOSTNAME_FOUND, description="New System Hostname found"
                 )
-                if self.request:
-                    log.user = self.request.user
-                log.save()
 
         return 1
 
