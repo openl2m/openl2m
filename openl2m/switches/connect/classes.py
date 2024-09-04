@@ -822,6 +822,8 @@ class Interface:
             {}
         )  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
         self.lldp: Dict[str, NeighborDevice] = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
+        # the Vrf() this interface belongs to, if any
+        self.vrf_name = ''
 
     def add_ip4_network(self, address: str, prefix_len: int = 0) -> None:
         '''

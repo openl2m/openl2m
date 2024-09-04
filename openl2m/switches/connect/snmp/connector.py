@@ -2845,13 +2845,13 @@ class SnmpConnector(Connector):
         if retval < 0:
             self.add_warning("Error getting VRF info from the MPLS-L2VPN tables (mplsL3VpnVrfEntry)")
 
-        # if we have found VRF's, let's see if we can find Inteerface membership:
+        # if we have found VRF's, let's see if we can find Interface membership:
         if self.vrfs:
             retval = self.get_snmp_branch(
                 branch_name='mplsL3VpnIfVpnClassification', parser=self._parse_mib_mpls_vrf_members
             )
             if retval < 0:
-                # try another entry:
+                # try another entry in case the device does not implement mplsL3VpnIfVpnClassification:
                 retval = self.get_snmp_branch(
                     branch_name='mplsL3VpnIfVpnRouteDistProtocol', parser=self._parse_mib_mpls_vrf_members
                 )
@@ -2951,6 +2951,8 @@ class SnmpConnector(Connector):
                 # add to the list of interfaces for this vrf
                 if iface.name not in self.vrfs[vrf_name].interfaces:
                     self.vrfs[vrf_name].interfaces.append(iface.name)
+                # assing this vrf name to the interface:
+                iface.vrf_name = vrf_name
             return True
 
         sub_oid = oid_in_branch(mplsL3VpnIfVpnRouteDistProtocol, oid)
@@ -2967,6 +2969,8 @@ class SnmpConnector(Connector):
                 # add to the list of interfaces for this vrf
                 if iface.name not in self.vrfs[vrf_name].interfaces:
                     self.vrfs[vrf_name].interfaces[iface.name] = True
+                # assing this vrf name to the interface:
+                iface.vrf_name = vrf_name
             return True
 
         # we did not parse:
