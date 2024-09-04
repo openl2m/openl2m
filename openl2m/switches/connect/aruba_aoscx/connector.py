@@ -14,8 +14,7 @@
 import datetime
 import traceback
 
-from switches.models import Log
-from switches.utils import dprint, dobject, dvar, get_remote_ip
+from switches.utils import dprint, dvar
 from switches.constants import LOG_TYPE_ERROR, LOG_AOSCX_ERROR_GENERIC
 from switches.connect.classes import Interface, PoePort, NeighborDevice
 from switches.connect.connector import Connector
@@ -50,7 +49,8 @@ For clarity, and to avoid namespace collisions with our own internal classes,
 we import all AOS-CX classes as AosCx<original-name>
 """
 from pyaoscx.session import Session as AosCxSession
-from pyaoscx.configuration import Configuration as AosCxConfiguration
+
+# from pyaoscx.configuration import Configuration as AosCxConfiguration
 from pyaoscx.device import Device as AosCxDevice
 from pyaoscx.vlan import Vlan as AosCxVlan
 from pyaoscx.mac import Mac as AosCxMac

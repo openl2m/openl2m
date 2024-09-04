@@ -24,11 +24,11 @@ import datetime
 
 from django.http.request import HttpRequest
 
-from switches.models import Log, Switch, SwitchGroup
+from switches.models import Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
 from switches.connect.constants import POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.utils import dprint, get_remote_ip
+from switches.utils import dprint
 
 from .constants import (
     hpicfPoePethPsePortPower,

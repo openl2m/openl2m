@@ -17,8 +17,8 @@ from django.http.request import HttpRequest
 
 from napalm import get_network_driver
 
-from switches.models import Log, Switch, SwitchGroup
-from switches.utils import dprint, get_remote_ip, uptime_to_string
+from switches.models import Switch, SwitchGroup
+from switches.utils import dprint, uptime_to_string
 from switches.constants import (
     LOG_TYPE_ERROR,
     LOG_NAPALM_ERROR_FACTS,

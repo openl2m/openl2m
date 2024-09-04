@@ -23,12 +23,12 @@ from django.conf import settings
 from django.http.request import HttpRequest
 from typing import Dict
 
-from switches.models import Log, Switch, SwitchGroup
+from switches.models import Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_SAVE_SWITCH, LOG_PORT_POE_FAULT, SNMP_VERSION_2C
 from switches.connect.classes import Interface, SyslogMsg
 from switches.connect.constants import poe_status_name, POE_PORT_DETECT_FAULT, VLAN_TYPE_NORMAL
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.utils import dprint, get_remote_ip
+from switches.utils import dprint
 
 from .constants import (
     portIfIndex,

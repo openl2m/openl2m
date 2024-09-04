@@ -24,7 +24,6 @@ from django.conf import settings
 from django.http.request import HttpRequest
 
 from switches.models import Switch, SwitchGroup, Command, Log
-from switches.connect.classes import StackMember, SyslogMsg, PoePSE
 from switches.connect.constants import LLDP_CHASSIC_TYPE_ETH_ADDR
 from switches.constants import LOG_TYPE_WARNING, LOG_CONNECTION_ERROR, LOG_TYPE_ERROR, CMD_TYPE_INTERFACE
 from switches.utils import dprint, get_remote_ip, get_ip_dns_name
@@ -38,6 +37,8 @@ from switches.connect.classes import (
     EthernetAddress,
     NeighborDevice,
     Vrf,
+    StackMember,
+    SyslogMsg,
 )
 from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
@@ -52,7 +53,8 @@ from switches.connect.constants import (
     visible_interfaces,
 )
 from switches.connect.netmiko.execute import NetmikoExecute
-from django.contrib.auth.models import User
+
+# from django.contrib.auth.models import User
 
 from rest_framework.reverse import reverse as rest_reverse
 

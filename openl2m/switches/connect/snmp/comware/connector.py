@@ -24,13 +24,13 @@ from django.http.request import HttpRequest
 
 from pysnmp.proto.rfc1902 import OctetString, Gauge32
 
-from switches.models import Log, Switch, SwitchGroup
+from switches.models import Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
 from switches.connect.classes import Interface, PortList
 from switches.connect.constants import IF_TYPE_ETHERNET, POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_branch
 from switches.connect.snmp.constants import SNMP_TRUE, dot1qPvid
-from switches.utils import dprint, get_remote_ip
+from switches.utils import dprint
 
 from .constants import (
     BYTES_FOR_2048_VLANS,
