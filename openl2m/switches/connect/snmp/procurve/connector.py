@@ -196,17 +196,7 @@ class SnmpConnectorProcurve(SnmpConnector):
                         f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
                     )
                     self.add_warning(warning)
-                    # log my activity
-                    log = Log(
-                        user=self.request.user,
-                        group=self.group,
-                        switch=self.switch,
-                        type=LOG_TYPE_ERROR,
-                        ip_address=get_remote_ip(self.request),
-                        action=LOG_PORT_POE_FAULT,
-                        description=warning,
-                    )
-                    log.save()
+                    self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
             else:
                 # should not happen!
                 dprint(f"ERROR: PoE entry NOT FOUND for pe_index={pe_index}")
