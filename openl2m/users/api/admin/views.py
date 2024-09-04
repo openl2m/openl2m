@@ -214,7 +214,7 @@ class APIAdminUserDetail(APIView):
             action=LOG_REST_API_ADMIN_USER_MODIFY,
             user=request.user,
             ip_address=get_remote_ip(request),
-            description=f"API Admin modify user error for id={pk}, user={u.name}: {serializer.errors}",
+            description=f"API Admin modify user error for id={pk}, user={user.name}: {serializer.errors}",
         )
         log.save()
 
