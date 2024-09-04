@@ -271,17 +271,7 @@ class SnmpConnectorCisco(SnmpConnector):
                                 f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
                             )
                             self.add_warning(warning)
-                            # log my activity
-                            log = Log(
-                                user=self.request.user,
-                                group=self.group,
-                                switch=self.switch,
-                                type=LOG_TYPE_ERROR,
-                                ip_address=get_remote_ip(self.request),
-                                action=LOG_PORT_POE_FAULT,
-                                description=warning,
-                            )
-                            log.save()
+                            self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
 
             else:
                 # map "mod.port" to "mod/port"
@@ -297,17 +287,7 @@ class SnmpConnectorCisco(SnmpConnector):
                                 f"on interface {iface.name}"
                             )
                             self.add_warning(warning)
-                            # log my activity
-                            log = Log(
-                                user=self.request.user,
-                                group=self.group,
-                                switch=self.switch,
-                                type=LOG_TYPE_ERROR,
-                                ip_address=get_remote_ip(self.request),
-                                action=LOG_PORT_POE_FAULT,
-                                description=warning,
-                            )
-                            log.save()
+                            self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
                         break
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
@@ -783,14 +763,6 @@ class SnmpConnectorCisco(SnmpConnector):
             self.error.description = "Copy running to startup not completed yet! (huh?)"
         elif snmp_ret.value == copyStateWaiting:
             self.error.description = "Copy running to startup still waiting! (for what?)"
-        # log error
-        log = Log(
-            user=self.request.user,
-            type=LOG_TYPE_ERROR,
-            ip_address=get_remote_ip(self.request),
-            action=LOG_SAVE_SWITCH,
-            description=self.error.description,
-        )
-        log.save()
+        self.add_log(type=LOG_TYPE_ERROR, action=LOG_SAVE_SWITCH, description=self.error.description)
         # return error status
         return False
