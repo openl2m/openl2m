@@ -379,15 +379,7 @@ class AosCxConnector(Connector):
                 description = f"Cannot get ethernet table for vlan {vlan_id}"
                 details = f"pyaoscx Vlan() Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
                 self.add_warning(description)
-                log = Log(
-                    group=self.group,
-                    switch=self.switch,
-                    ip_address=get_remote_ip(self.request),
-                    type=LOG_TYPE_ERROR,
-                    action=LOG_AOSCX_ERROR_GENERIC,
-                    description=details,
-                )
-                log.save()
+                self.add_log(type=LOG_TYPE_ERROR, action=LOG_AOSCX_ERROR_GENERIC, description=details)
                 continue
             try:
                 # this gets ethernet addresses by vlan:
@@ -462,15 +454,7 @@ class AosCxConnector(Connector):
                 description = f"Cannot get LLDP table for interface '{if_name}'"
                 details = f"pyaoscx LLDPNeighbor() Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
                 self.add_warning(description)
-                log = Log(
-                    group=self.group,
-                    switch=self.switch,
-                    ip_address=get_remote_ip(self.request),
-                    type=LOG_TYPE_ERROR,
-                    action=LOG_AOSCX_ERROR_GENERIC,
-                    description=details,
-                )
-                log.save()
+                self.add_log(type=LOG_TYPE_ERROR, action=LOG_AOSCX_ERROR_GENERIC, description=details)
                 continue
 
         # done...
