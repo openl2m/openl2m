@@ -752,6 +752,7 @@ class Vrf:
         self.ipv4 = False  # True if VRF is enabled for IPv4
         self.ipv6 = False  # True if VRF is enabled for IPv6
         self.active_interfaces = 0  # number of interfaces active on this VRF
+        self.interfaces = []  # list of interface names in this VRF
 
 
 class Interface:

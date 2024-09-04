@@ -177,6 +177,8 @@ from switches.connect.snmp.constants import (
     mplsL3VpnVrfOperStatus,
     mplsL3VpnVrfActiveInterfaces,
     MPLS_VRF_STATE_ENABLED,
+    mplsL3VpnIfVpnClassification,
+    mplsL3VpnIfVpnRouteDistProtocol,
 )
 
 
@@ -2842,6 +2844,18 @@ class SnmpConnector(Connector):
         retval = self.get_snmp_branch(branch_name='mplsL3VpnVrfEntry', parser=self._parse_mib_mpls_l3vpn)
         if retval < 0:
             self.add_warning("Error getting VRF info from the MPLS-L2VPN tables (mplsL3VpnVrfEntry)")
+
+        # if we have found VRF's, let's see if we can find Inteerface membership:
+        if self.vrfs:
+            retval = self.get_snmp_branch(
+                branch_name='mplsL3VpnIfVpnClassification', parser=self._parse_mib_mpls_vrf_members
+            )
+            if retval < 0:
+                # try another entry:
+                retval = self.get_snmp_branch(
+                    branch_name='mplsL3VpnIfVpnRouteDistProtocol', parser=self._parse_mib_mpls_vrf_members
+                )
+
         return True
 
     def _parse_mib_mpls_l3vpn(self, oid: str, val: str) -> bool:
@@ -2908,11 +2922,65 @@ class SnmpConnector(Connector):
         # we did not parse:
         return False
 
+    def _parse_mib_mpls_vrf_members(self, oid: str, val: str) -> bool:
+        """
+        Parse standard VRF interface membership entries from MPLS-L3VPN-STD-MIB.
+        This gets added to Interface().vrfs
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnector._parse_mib_mpls_vrf_members() {str(oid)}")
+
+        # find ifIndex entries that are part of a VRF.
+        sub_oid = oid_in_branch(mplsL3VpnIfVpnClassification, oid)
+        if sub_oid:
+            # sub-oid is <vrf-name-as-oid-encoded>.<if_index>
+            # for now we dont care about "val"
+            # we cheat, we know last number is ifIndex:
+            ifIndex = sub_oid.split('.')[-1]
+            vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
+            dprint(f"  mplsL3VpnIfVpnClassification: vrf '{vrf_name}' interface index {ifIndex} = {val}")
+            iface = self.get_interface_by_key(key=str(ifIndex))
+            if iface:
+                dprint(f"    interface '{iface.name}'")
+                # add to the list of interfaces for this vrf
+                if iface.name not in self.vrfs[vrf_name].interfaces:
+                    self.vrfs[vrf_name].interfaces.append(iface.name)
+            return True
+
+        sub_oid = oid_in_branch(mplsL3VpnIfVpnRouteDistProtocol, oid)
+        if sub_oid:
+            # sub-oid is <vrf-name-as-oid-encoded>.<if_index>
+            # for now we dont care about "val"
+            # we cheat, we know last number is ifIndex:
+            ifIndex = sub_oid.split('.')[-1]
+            vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
+            dprint(f"  mplsL3VpnIfVpnRouteDistProtocol: vrf '{vrf_name}' interface index {ifIndex} = {val}")
+            iface = self.get_interface_by_key(key=str(ifIndex))
+            if iface:
+                dprint(f"    interface '{iface.name}'")
+                # add to the list of interfaces for this vrf
+                if iface.name not in self.vrfs[vrf_name].interfaces:
+                    self.vrfs[vrf_name].interfaces[iface.name] = True
+            return True
+
+        # we did not parse:
+        return False
+
     def _get_string_from_oid_index(self, oid_index: str) -> str:
         """Get the "string name as index" from a MIB table element.
         This is used as 'index' for a number of MIB table entries.
         First digit is length, the rest the ascii representation of the name.
         eg. "4.78.97.109.101", is the 4-character string "Name" (N=78, a=97, m=109, e=101)
+
+        Note: there are instances where this 'oid string' is followed by more oid numbers
+        (e.g. in Vrf Interface membership) so we check the length,
+        and break out when that number of chracters is found!
 
         Args:
             oid_index (str): represents the "oid index" to decode.
@@ -2924,9 +2992,13 @@ class SnmpConnector(Connector):
         value = ""
         try:
             chars = oid_index.split(".")
-            chars.pop(0)  # remove length entry
+            length = int(chars.pop(0))  # remove length entry
+            dprint(f"  String size: {length}")
             for char in chars:
                 value += chr(int(char))  # add the character represented by the ascii number.
+                if len(value) == length:
+                    dprint(f"  Max size found, string = '{value}'")
+                    break
         except Exception as err:
             self.add_log(
                 description=f"Error decoding string for oid index '{oid_index}': {err}",

@@ -923,6 +923,35 @@ mplsL3VpnVrfConfAdminStatus = ".1.3.6.1.2.1.10.166.11.1.2.2.1.14"
 MPLS_VRF_STATE_ENABLED = 1
 MPLS_VRF_STATE_DISABLED = 2
 
+
+# the VRF IF Conf Table entries have the lists of interfaces that are part of a VRF
+# indexed by VRF name (as oid string) with interface id, value is dependent on variable.
+# mplsL3VpnIfConfTable = .1.3.6.1.2.1.10.166.11.1.2.1
+mplsL3VpnIfConfEntry = ".1.3.6.1.2.1.10.166.11.1.2.1.1"
+mplsL3VpnIfConfIndex = ".1.3.6.1.2.1.10.166.11.1.2.1.1.1"  # appears NOT used!
+
+mplsL3VpnIfVpnClassification = ".1.3.6.1.2.1.10.166.11.1.2.1.1.2"
+snmp_mib_variables['mplsL3VpnIfVpnClassification'] = mplsL3VpnIfVpnClassification
+VPN_CLASSIFICATION_CARRIER = 1
+VPN_CLASSIFICATION_ENTERPRISE = 2
+VPN_CLASSIFICATION_INTERPROVIDER = 2
+# E.g.:  .1.3.6.1.2.1.10.166.11.1.2.1.1.2.6.86.79.73.80.95.72.2156 = INTEGER: 2
+# The VRF name of length 6, OID chars 86.79.73.80.95.72 is active on ifIndex 2156 with Vpn Classificaciton 2
+# ie. VRF "VOIP_H" on ifIndex 2156
+
+mplsL3VpnIfVpnRouteDistProtocol = ".1.3.6.1.2.1.10.166.11.1.2.1.1.3"
+# Note: the value is a Bit Mask indicating the protocols in use:
+L3VPN_ROUTE_DIST_PROTOCOL_NONE = 0
+L3VPN_ROUTE_DIST_PROTOCOL_BGP_BIT = 1
+L3VPN_ROUTE_DIST_PROTOCOL_OSPF_BIT = 2
+L3VPN_ROUTE_DIST_PROTOCOL_RIP_BIT = 3
+L3VPN_ROUTE_DIST_PROTOCOL_ISIS_BIT = 4
+L3VPN_ROUTE_DIST_PROTOCOL_STATIC_BIT = 5
+L3VPN_ROUTE_DIST_PROTOCOL_OTHER_BIT = 6
+
+mplsL3VpnIfConfStorageType = ".1.3.6.1.2.1.10.166.11.1.2.1.1.4"
+mplsL3VpnIfConfRowStatus = ".1.3.6.1.2.1.10.166.11.1.2.1.1.5"
+
 #
 # VENDOR SPECIFIC Entries, see vendor driver folder "constants.py"
 #
