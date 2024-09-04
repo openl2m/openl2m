@@ -29,7 +29,15 @@
                 {{ addr.netmask }}
               {% endif %}
             </td>
-            <td>{{ connection.switch|get_interface_info_links:iface }} {{ addr.ip|get_ip4_info_links }}</td>
+            <td>{{ connection.switch|get_interface_info_links:iface }} {{ addr.ip|get_ip4_info_links }}
+              {% if iface.vrf_name %}
+                &nbsp;
+                <i class="fas fa-cloud" aria-hidden="true"
+                    data-bs-toggle="tooltip"
+                    title="Member of VRF '{{ iface.vrf_name }}'">
+                </i>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         {% endif %}
