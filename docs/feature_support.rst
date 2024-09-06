@@ -11,16 +11,18 @@ Features Supported
 
    * - Features
      - SNMP (Generic)
+     - Arista (Snmp)
      - Aruba AOS-CX (Snmp)
      - Comware (Snmp)
      - Procurve (Snmp)
-     - Juniper (Snmp)
+     - Juniper (Snmp) *
      - Aruba AOS-CX (API)
      - Junos (PyEZ)
      - Napalm
      - SSH
 
    * - Port Up/Down
+     - Yes
      - Yes
      - Yes
      - Yes
@@ -33,6 +35,7 @@ Features Supported
 
    * - Port VLAN Change
      - Yes
+     - Yes
      - Yes (>= v10.12, access ports)
      - Yes
      - Yes
@@ -44,6 +47,7 @@ Features Supported
 
    * - PoE Up/Down
      - Yes
+     - 
      - Yes
      - Yes
      - Yes
@@ -54,6 +58,7 @@ Features Supported
      -
 
    * - Description Edit
+     - Yes
      - Yes
      - Yes (>= v10.09)
      - Yes
@@ -69,7 +74,8 @@ Features Supported
      - Yes
      - Yes
      - Yes
-     -
+     - Yes
+     - Yes
      - Yes
      - Yes
      - Yes
@@ -77,6 +83,7 @@ Features Supported
 
    * - VLAN Edit/Create
      - Yes
+     - 
      - Yes (>= v10.12, no name)
      - Yes
      - Yes
@@ -96,7 +103,25 @@ Features Supported
      - Yes
      - Yes
      - Yes
+     - Yes
+
+   * - VRF Info
+     - Yes
+     - Partial
+     - (untested)
+     - Yes
+     - (untested)
+     - Yes
+     - No
+     - No
+     - No
+     - n/a
 
 .. note::
 
   All driver features are automatically supported by the REST API! (except for SSH commands)
+
+
+.. note::
+
+  Juniper's SNMP implementation is Read-Only!

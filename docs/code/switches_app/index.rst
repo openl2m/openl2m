@@ -116,7 +116,7 @@ With the SNMP driver, this reads a number of entityPhysical MIB entries. Other d
 
 We use the Netmiko framework to establish SSH CLI sessions, and execute CLI commands.
 
-See :doc:`Netmiko Connector <drivers/netmiko>` for more.
+See :doc:`Netmiko Connector <drivers/netmiko/index>` for more.
 
 
 **Connections**

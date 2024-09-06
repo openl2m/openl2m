@@ -1,4 +1,4 @@
-.. image:: ../../../_static/openl2m_logo.png
+.. image:: ../../../../_static/openl2m_logo.png
 
 ====================
 SNMP Driver Overview
@@ -64,27 +64,11 @@ Vendor-specific SNMP implementations
 Most switches supported use inherit the base SnmpConnector() class and override the vendor-specific functions.
 The vendor-specific derived classes are:
 
+* **SnmpConnectorArista()** - switches/connect/snmp/arista_eos/connector.py - supports all Arista devices.
+* **SnmpConnectorArubaCx()** - switches/connect/snmp/aruba_cx/connector.py - supports the HP/Aruba AOS-CX switches,
+  which implement partial SNMP support.(They prefer the AOS-CX API)
 * **SnmpConnectorCisco()** - switches/connect/snmp/cisco/connector.py - most Cisco switches
 * **SnmpConnectorComware()** - switches/connect/snmp/comware/connector.py - HPE Comware OS switches (ie. the FlexFabric line)
 * **SnmpConnectorDell()** - switches/connect/snmp/dell/connector.py - Dell switches (untested at this time)
 * **SnmpConnectorJuniper()** - switches/connect/snmp/juniper/connector.py - Juniper switches in 'read-only' mode
 * **SnmpConnectorProcurve()** - switches/connect/snmp/procurve/connector.py - supports the HP/Procurve 'Provision' switches
-* **SnmpConnectorArubaCx()** - switches/connect/snmp/aruba_cx/connector.py - supports the HP/Aruba AOS-CX switches,
-  which implement partial SNMP support.(They prefer the AOS-CX API)
-
-:doc:`See here how to implement new vendor-specific drivers to support new devices.<new-drivers>`
-
-
-VLAN Add/Edit/Delete
---------------------
-
-In SnmpConnector() in switches/connect/snmp/connector.py, we implement Vlan Adding and Editing for SNMP-managed devices.
-See *def vlan_create(), vlan_edit() and vlan_delete()*
-
-This functionality implements the most common way of doing this on SNMP devices, using atomic (set-multiple) writes to two OIDs.
-
-In *def vlan_create(self, vlan_id, vlan_name)* , we write to *dot1qVlanStaticRowStatus.<vlan id>* and set it to *createAndGo(4)*.
-This should work on most devices that implement the Q-Bridge MIB. However, some devices may need to set *createAndWait(5)*.
-If your device needs a different sequency, please override this function in your device driver!
-
-*def vlan_delete()* calls on *dot1qVlanStaticRowStatus.<vlan id>* and sets it to *destroy(6)*, to remove a vlan.

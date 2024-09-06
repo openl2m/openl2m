@@ -5,7 +5,7 @@ The Connector() Object
 ======================
 
 Switch connections are made via the **Connector() class**. The Django "views" in
-*switches/views.py* instantiate an object derived from the Connector() class.
+*switches/views.py* instantiate an object derived from this Connector() class.
 
 .. image:: ../../../_static/openl2m-architecture.png
 
@@ -15,7 +15,8 @@ The Connector() API
 **connect.py**
 
 **get_connection_object()** figures out what specific Connector() class to get
-for the device. It returns the proper object. It is called by all 'views.py' functions
+for the device. This is based on the Switch() configuration in the admin pages.
+It returns the proper object. It is called by all 'views.py' functions
 to get an object for the current device/switch.
 
 It should be called as:
@@ -45,26 +46,29 @@ This function should load the necessary information about interfaces
 to produce the basic switch view.
 
 More especially, this should load:
--the conn.vlans{} dictionary with Vlan() objects
--the conn.interfaces{} dictionary with Interface() objects, each one representing an
-interface on the device.
 
-Note that these support classes/objects are defined in *switches/connect/classes.py*
+* the connector.vlans{} dictionary with Vlan() objects.
+* the connector.interfaces{} dictionary with Interface() objects, each one representing an
+  interface on the device.
+
+Note that these supporting classes (objects) are defined in *switches/connect/classes.py*
 
 A good example is in *switches/connect/snmp/connector.py*, where *get_my_basic_info()*
 uses snmp to get information on interfaces, vlans, lacp info, PoE, and more.
 
 **IMPORTANT DATA TYPES:**
 
-There are several Python dictionaries used to store data. Several of these have specific key data typem requirements. They are:
+There are several Python dictionaries used to store data. Several of these have specific key data type requirements.
+They are:
 
-* self.vlans: the key (index) is an *integer (int)* representing the numeric vlan ID. Items are Vlan() class instances.
+* *self.vlans*: the key (index) is an *integer (int)* representing the numeric vlan ID. Items are Vlan() class instances.
 
-* self.interfaces: this key (index) is a *string (str)*, representing a driver-specific key (frequently the name or snmp interface index)
+* *self.interfaces*: this key (index) is a *string (str)*, representing a driver-specific key (frequently the name or snmp interface index, aka ifIndex)
   Items are Interface() class instances.
 
-* interface.port_id: this is an *integer (int)* representing the switch port ID. This comes into play with SNMP drivers,
-  as the interface index and the switchport ID can be different.
+* *interface.port_id*: this is an *integer (int)* representing the switch port ID. This comes into play with SNMP drivers,
+  as only physical interfaces have port id's, and the interface index and the switchport ID can be different.
+  For more details, read the SNMP driver explanations.
 
 
 
@@ -92,47 +96,3 @@ This defaults to storing in the database, but can be configured via the standard
 Finally, view pages can go on with their work.
 
 
-The SNMP driver
----------------
-
-Several vendors allow a pure Snmp connector. The base SnmpConnector() and related code is in the
-*switches/connect/snmp/* directory. There are several vendor-specific snmp drivers derired from the
-base snmp class.
-
-See :doc:`SNMP Connector <snmp>`
-
-
-The Aruba AOS-CX API driver
----------------------------
-
-We implement an AOS-CX driver. The AosCxConnector() class and related code is in
-*switches/connect/aruba_aoscx/connect.py*.
-
-This class uses the *pyaoscx* library provided by Aruba, and available at https://github.com/aruba/pyaoscx/
-See also https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
-
-We implement *get_my_basic_info()* and *get_my_client_data()* by reading various switch REST API classes.
-
-**Update:** as of November 2023, this library supports all functionality that OpenL2M needs.
-I.e. This driver is now fully functional!**
-
-(**Note**: that at the time of this writing (May 2022), Power-over-Ethernet and LLDP functions are not implemented
-in the library, so that data is not available in OpenL2M.)
-
-
-The JunOS PyEZ driver
----------------------
-
-We implemented a driver based on the Juniper PyEZ module. The PyEZConnector() class and related code is in
-*switches.connect/junos_pyez/connector.py*.
-
-This class uses the *junos-eznc* library from PyPI, and also available at https://github.com/Juniper/py-junos-eznc
-
-
-The Napalm driver
------------------
-
-We implement the needed functionality of the Connector() class in a NapalmConnector() class,
-implemented in *switches/connect/napalm/connector.py*
-
-See :doc:`Napalm Connector <napalm>`

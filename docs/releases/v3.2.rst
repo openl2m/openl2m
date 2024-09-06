@@ -21,8 +21,9 @@ Version 3.2.3
 
 Release Date: TBD
 
-* add reading of 'MPLS VRF' info on devices that suport it.
-  Info is shown on Device Info tab. (This reads the standars mib 'MPLS-L3VPN-STD'.)
+* add reading of 'MPLS VRF' info on devices that may support it (ie. routers).
+  VRF details are shown on Device Info tab. Interfaces that are VRF members have a new icon.
+  This reads the standars mib 'MPLS-L3VPN-STD'.
 * add Arista Networks support to SNMP driver (including VRF info)
 * show max possible speed on down interface.
 * show IP address(es) on routed interface in icon "hover-over".
@@ -30,6 +31,8 @@ Release Date: TBD
 * improved/optimized snmp mib parsing (code readability).
 * improve configuration.py documentation.
 * for admins, log entries have links to device admin page.
+* several drivers have simplified logging.
+* updates to the developer documentation.
 
 Bug fixes:
 
