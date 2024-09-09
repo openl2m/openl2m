@@ -84,6 +84,9 @@ class PyEZConnector(Connector):
         self.can_save_config = False  # save not needed after commit in Junos!
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
 
+        # Junos driver-specific entries:
+        self.is_els = False  # set to True is this a ELS switch
+
         # this will be the Junos PyEZ driver session object
         self.device = False
         # and we dont want to cache this:
@@ -118,12 +121,24 @@ class PyEZConnector(Connector):
         self.add_more_info('System', 'Hostname', self.hostname)
         self.add_more_info('System', 'Model', self.device.facts['model'])
         self.add_more_info('System', 'Version', self.device.facts['version'])
+        self.add_more_info('System', 'Serial #', self.device.facts['serialnumber'])
         if self.device.facts['domain']:  # this is None when not set!
             self.add_more_info('System', 'Domain Name', self.device.facts['domain'])
         else:
             self.add_more_info('System', 'Domain Name', '')
         self.add_more_info('System', 'Uptime', self.device.facts['RE0']['up_time'])
         self.add_more_info('System', 'Personality', self.device.facts['personality'])
+        if 'switch_style' in self.device.facts:
+            self.add_more_info('System', 'Switch Style', self.device.facts['switch_style'])
+            # see if this an ELS switch (ie unified Layer 2 commands)
+            # see https://community.juniper.net/discussion/els-juniper
+            if self.device.facts['switch_style'] == 'VLAN_L2NG':
+                self.is_els = True
+
+        # is the an ELS (Enhanced Layer2 Software) device?
+        if not self.is_els:
+            # likely an MX device, not tested!
+            self.add_warning(warning="This is NOT an Junos ELS device, this has NOT BEEN TESTED!")
 
         # now we use rpc calls for interfaces, PoE, etc.
 
