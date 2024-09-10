@@ -22,7 +22,9 @@ from switches import views
 
 class InterfaceNameConvertor:
     # convertor class to make sure interface names follow url-safe formats
-    regex = "[a-zA-Z0-9\/_\-]*"  # regex entry is required, but not used here!
+
+    # regex entry is required, and used for reverse to validate allowed characters in "ifname"
+    regex = "[a-zA-Z0-9\/_\-:]*"
 
     def to_python(self, value):
         # replace _ with /
