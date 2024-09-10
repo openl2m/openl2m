@@ -126,7 +126,6 @@ from counters.constants import (
     COUNTER_COMMANDS,
     COUNTER_VIEWS,
     COUNTER_DETAILVIEWS,
-    COUNTER_HWINFO,
 )
 from notices.models import Notice
 
@@ -326,23 +325,6 @@ class SwitchDetails(LoginRequiredMixin, View):
         dprint("SwitchDetails() - GET called")
         counter_increment(COUNTER_DETAILVIEWS)
         return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="arp_lldp")
-
-
-# class SwitchHardwareInfo(LoginRequiredMixin, View):
-#     """
-#     "hardware info" switch view, i.e. read detailed system hardware ("entity") data.
-#     Simply call switch_view() with proper parameter
-#     """
-
-#     def get(
-#         self,
-#         request,
-#         group_id,
-#         switch_id,
-#     ):
-#         dprint("SwitchHardwareInfo() - GET called")
-#         counter_increment(COUNTER_HWINFO)
-#         return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="hw_info")
 
 
 def switch_view(

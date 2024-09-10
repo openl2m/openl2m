@@ -7,12 +7,10 @@
 # admin LogEntry() model is here:
 # https://github.com/django/django/blob/main/django/contrib/admin/models.py
 
-from django.conf import settings
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand, CommandParser
 from django.utils import timezone
-from django.db import DEFAULT_DB_ALIAS
 
 from switches.constants import (
     LOG_TYPE_VIEW,
@@ -58,7 +56,6 @@ class Command(BaseCommand):
         switch_content_type = ContentType.objects.get(app_label="switches", model="switch")
         create_found = 0
         create_added = 0
-        log_count_total = 0
         log_count_used = 0
         for log in admin_logs:
             if log.is_addition():

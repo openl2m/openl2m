@@ -15,7 +15,6 @@ from rest_framework import serializers
 
 from users.api.admin.serializers import UserSerializer
 from switches.models import Switch, NetmikoProfile, SnmpProfile, SwitchGroup
-from switches.utils import dprint
 
 
 class SwitchSerializer(serializers.ModelSerializer):

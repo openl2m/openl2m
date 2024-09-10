@@ -15,7 +15,6 @@
 #
 # Here we implement all user admin API views as classes
 #
-from rest_framework import permissions, viewsets
 from rest_framework import status as http_status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -135,7 +134,7 @@ class APIAdminSwitchDetail(APIView):
         dprint(f"APIAdminSwitchDetail(): pk={pk}, user={request.user.username}")
         try:
             switch = Switch.objects.get(pk=pk)
-        except Exception as err:
+        except Exception:
             # log the error
             log = Log(
                 type=LOG_TYPE_ERROR,
@@ -184,7 +183,7 @@ class APIAdminSwitchDetail(APIView):
         dprint(f"APIAdminSwitchDetail.post() for pk={pk}, user={request.user.username}")
         try:
             switch = Switch.objects.get(pk=pk)
-        except Exception as err:
+        except Exception:
             # log the error:
             log = Log(
                 type=LOG_TYPE_ERROR,
@@ -301,7 +300,7 @@ class APIAdminNetmikoProfileDetail(APIView):
         dprint(f"APIAdminNetmikoProfileDetail.get() for pk={pk}")
         try:
             profile = NetmikoProfile.objects.get(pk=pk)
-        except Exception as err:
+        except Exception:
             # log the error
             log = Log(
                 type=LOG_TYPE_ERROR,
@@ -348,7 +347,7 @@ class APIAdminNetmikoProfileDetail(APIView):
         dprint(f"APIAdminNetmikoProfileDetail.post() for pk={pk}")
         try:
             profile = NetmikoProfile.objects.get(pk=pk)
-        except Exception as err:
+        except Exception:
             # log the error:
             log = Log(
                 type=LOG_TYPE_ERROR,
@@ -469,7 +468,7 @@ class APIAdminSnmpProfileDetail(APIView):
         dprint(f"APIAdminSnmpProfileDetail.get() for pk={pk}")
         try:
             profile = SnmpProfile.objects.get(pk=pk)
-        except Exception as err:
+        except Exception:
             # log the error
             log = Log(
                 type=LOG_TYPE_ERROR,
@@ -515,7 +514,7 @@ class APIAdminSnmpProfileDetail(APIView):
         dprint("APIAdminSnmpProfileDetail.post() for pk={pk}")
         try:
             profile = SnmpProfile.objects.get(pk=pk)
-        except Exception as err:
+        except Exception:
             # log the error:
             log = Log(
                 type=LOG_TYPE_ERROR,
@@ -633,7 +632,7 @@ class APIAdminSwitchGroupDetail(APIView):
         dprint(f"APIAdminSwitchGroupDetail.get() for pk={pk}")
         try:
             switchgroup = SwitchGroup.objects.get(pk=pk)
-        except Exception as err:
+        except Exception:
             # log the error
             log = Log(
                 type=LOG_TYPE_ERROR,
@@ -682,7 +681,7 @@ class APIAdminSwitchGroupDetail(APIView):
         dprint("APIAdminSwitchGroupDetail.post() for pk={pk}")
         try:
             switchgroup = SwitchGroup.objects.get(pk=pk)
-        except Exception as err:
+        except Exception:
             # log the error:
             log = Log(
                 type=LOG_TYPE_ERROR,

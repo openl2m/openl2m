@@ -19,7 +19,6 @@
 # Use the Django Rest Framework:
 from rest_framework import status as http_status
 from rest_framework.response import Response
-from rest_framework.reverse import reverse as rest_reverse
 from rest_framework.views import APIView
 
 from switches.actions import (

@@ -11,7 +11,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-from django.db.models import Count
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry, DELETION
 from django.urls import reverse

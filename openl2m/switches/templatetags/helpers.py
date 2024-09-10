@@ -13,7 +13,6 @@
 #
 import csv
 import json
-import pprint
 
 from django.conf import settings
 from django import template

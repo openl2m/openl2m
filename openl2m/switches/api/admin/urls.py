@@ -13,8 +13,6 @@
 #
 from django.urls import path
 
-from rest_framework import routers
-
 from switches.api.admin.views import (
     APIAdminSwitches,
     APIAdminSwitchDetail,
