@@ -19,7 +19,6 @@ https://docs.djangoproject.com/en/2.2/topics/http/urls/
 """
 from django.conf import settings
 from django.contrib.auth.views import (
-    LoginView,
     PasswordChangeDoneView,
     PasswordChangeView,
 )
@@ -43,7 +42,6 @@ urlpatterns = [
     # note that we capture login/logout signals in "users/models.py", so we can add log entries
     path("logout/", LogoutView.as_view(), name="logout"),
     path("admin/logout/", LogoutView.as_view(), name="logout"),
-    # path("accounts/login/", LoginView.as_view(), name="login"),
     path("accounts/login/", MyLoginView.as_view(), name="login"),
     # override some of the password templates, so we can disabled that for ldap
     path(
