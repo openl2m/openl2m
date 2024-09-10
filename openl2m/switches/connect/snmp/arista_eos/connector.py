@@ -32,8 +32,9 @@ from .constants import (
     aristaVrfRouteDistinguisher,
     aristaVrfState,
     ARISTA_VRF_ACTIVE,
-    ARISTA_VRF_ROUTING_IPV4_BIT,
-    ARISTA_VRF_ROUTING_IPV6_BIT,
+    #    ARISTA_VRF_ROUTING_IPV4_BIT,
+    #    ARISTA_VRF_ROUTING_IPV6_BIT,
+    aristaVrfIfMembership,
 )
 
 
@@ -125,20 +126,24 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         retval = self.get_snmp_branch(branch_name='aristaVrfEntry', parser=self._parse_mib_arista_vrf_entries)
         if retval < 0:
             self.add_warning("Error getting VRF info from the Arista MPLS tables (aristaVrfEntry)")
+        if self.vrfs:
+            retval = self.get_snmp_branch(
+                branch_name='aristaVrfIfMembership', parser=self._parse_mib_arista_vrf_members
+            )
         return True
 
     def _parse_mib_arista_vrf_entries(self, oid: str, val: str) -> bool:
         """
         Parse Arista VRF mib entries. This gets added to self.vrfs
 
-                Params:
+        Params:
             oid (str): the SNMP OID to parse
             val (str): the value of the SNMP OID we are parsing
 
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnectorAristaEOS._parse_vrf_entries() {str(oid)}")
+        dprint(f"SnmpConnectorAristaEOS._parse_mib_arista_vrf_entries() {str(oid)}")
 
         # routing status has bit for IPv4 and IPv6
         sub_oid = oid_in_branch(aristaVrfRoutingStatus, oid)
@@ -179,6 +184,39 @@ class SnmpConnectorAristaEOS(SnmpConnector):
                 vrf.state = True
             else:
                 vrf.state = False
+            return True
+
+        # we did not parse:
+        return False
+
+    def _parse_mib_arista_vrf_members(self, oid: str, val: str) -> bool:
+        """
+        Parse Arista VRF interface membership entries.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnectorAristaEOS._parse_mib_arista_vrf_members() {str(oid)}")
+
+        # aristaVrfIfMembership.<ifIndex> = "VRF-Name"
+        sub_oid = oid_in_branch(aristaVrfIfMembership, oid)
+        if sub_oid:
+            dprint(f"    aristaVrfIfMembership ifIndex={sub_oid}, vrf='{val}'")
+            # sub_oid is string representing the ifIndex integer. To get Interface(), we use it as string.
+            iface = self.get_interface_by_key(key=sub_oid)
+            # validate VRF name, and ifIndex
+            if iface and val in self.vrfs:
+                # get the interface:
+                dprint(f"    interface '{iface.name}'")
+                # add to the list of interfaces for this vrf
+                if iface.name not in self.vrfs[val].interfaces:
+                    self.vrfs[val].interfaces.append(iface.name)
+                # assing this vrf name to the interface:
+                iface.vrf_name = val
             return True
 
         # we did not parse:
