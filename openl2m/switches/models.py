@@ -1068,10 +1068,16 @@ class Switch(models.Model):
                 raise ValidationError('SNMP Connector needs an SNMP Profile!')
 
         elif self.connector_type == constants.CONNECTOR_TYPE_NAPALM:
-            if not self.napalm_device_type:
-                raise ValidationError('Napalm Connector needs a Napalm device type!')
+            if not self.napalm_device_type or not self.netmiko_profile:
+                raise ValidationError('Napalm Connector needs a Credentials Profile and a Napalm device type!')
+
+        elif self.connector_type in (
+            constants.CONNECTOR_TYPE_PYEZ,
+            constants.CONNECTOR_TYPE_AOSCX,
+            constants.CONNECTOR_TYPE_COMMANDS_ONLY,
+        ):
             if not self.netmiko_profile:
-                raise ValidationError('Napalm Connector needs a Credentials Profile!')
+                raise ValidationError('This Connector needs a Credentials Profile!')
 
     # this needs to be accessed from templates:
     @property
