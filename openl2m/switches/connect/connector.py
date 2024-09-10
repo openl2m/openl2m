@@ -1837,7 +1837,7 @@ class Connector:
         except Exception as err:
             dprint(f"ERROR: cannot get Ethernet vendor for '{ethernet_address}")
             # this will also add log entry:
-            self.add_warning(f"Error retrieving Ethernet vendor for '{ethernet_address}'")
+            self.add_warning(f"Error retrieving Ethernet vendor for '{ethernet_address}' (error: {err})")
             return ''
 
         return ''
