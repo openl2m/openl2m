@@ -1,0 +1,35 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 3.3
+===========
+
+**Version 3.3 adds support for Arista device via SNMP, and can read MPLS VRF info from SNMP
+on devices that support it.**
+
+Version 3.3
+-----------
+
+Release Date: 2024-09-10
+
+* add reading of 'MPLS VRF' info on devices that may support it (ie. routers).
+  VRF details are shown on Device Info tab. Interfaces that are VRF members have a new icon.
+  This reads the standars mib 'MPLS-L3VPN-STD'.
+* add Arista Networks support to SNMP driver (including VRF info)
+* show max possible speed on down interface.
+* show IP address(es) on routed interface in icon "hover-over".
+* add Switch profile validation (admin interface).
+* improved/optimized snmp mib parsing (performance & code readability).
+* improve configuration.py documentation.
+* for admins, log entries have links to device admin page.
+* for Junos PyEZ device, detect "ELS" feature and warn if not found.
+* several drivers have simplified logging.
+* updates to the developer documentation.
+
+Bug fixes:
+
+* properly log snmp probing errors.
+* improve snmp mib parsing.
+* improve snmp session error handling.
+* improved handling of device hardware details.
+* fix crash and allow ":" in interface names.

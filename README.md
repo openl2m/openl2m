@@ -25,6 +25,7 @@ __Features:__
 * change description
 * see ethernet addresses, lldp neighbors, and download to spreadsheet
 * add, edit or delete vlans on devices
+* show interface MPLS VRF membership on supported devices
 * run configurable pre-defined 'static' commands on the device
 * run configurable pre-defined 'form input' commands on the device
 * and more...
@@ -34,6 +35,7 @@ __Devices Supported:__
 * Aruba AOS-CX switches (REST API(preferred), or SNMP)
 * HP/Aruba Procurve switches (via SNMP)
 * HPE Comware switches (via SNMP)
+* Arista devices (via SNMP)
 * Juniper devices (via Junos PyEz API)
 * Cisco switches (some, via SNMP)
 * Generic SNMP devices
@@ -45,6 +47,8 @@ See the documentation for more information.
 __What's New:__
 
 Highlights:
+
+v3.3 add support Arista Network devices via SNMP. Also shows info in MPLS VRFs and member interfaces on supported devices, read from the standard MPLS SNMP Mib.
 
 v3.2 adds a Dark Theme. It improves web accessibility and provides a more modern look, and more consistent layout through the use of Bootstrap 5.3. A docker compose config for developing is provided.
 
