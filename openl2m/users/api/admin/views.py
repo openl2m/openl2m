@@ -119,7 +119,7 @@ class APIAdminUserDetail(APIView):
         dprint(f"APIAdminUserDetail.get(): pk={pk}, user={request.user.username}, profile={request.user.profile}")
         try:
             user = User.objects.get(pk=pk)
-        except Exception as err:
+        except Exception:
             # log the error
             log = Log(
                 type=LOG_TYPE_ERROR,
@@ -166,7 +166,7 @@ class APIAdminUserDetail(APIView):
         dprint(f"APIAdminUserDetail.post(): pk={pk}, user={request.user.username}")
         try:
             user = User.objects.get(pk=pk)
-        except Exception as err:
+        except Exception:
             # log the error
             log = Log(
                 type=LOG_TYPE_ERROR,

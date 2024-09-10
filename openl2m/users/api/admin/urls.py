@@ -12,7 +12,6 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 from django.urls import path
-from rest_framework import routers
 
 from users.api.admin.views import APIAdminUsers, APIAdminUserDetail
 
