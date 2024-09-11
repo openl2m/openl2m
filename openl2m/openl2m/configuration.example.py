@@ -574,6 +574,11 @@ API_MAX_TOKEN_DURATION = 0
 # into Excel spreadsheets, set this to False.
 ALLOW_ARP_LLDP_DOWNLOAD = True
 
+# Show Top-N active users, devices, etc.
+# if set to 0, this view is disabled! If > 0, will show in menu for all users:
+TOP_ACTIVITY = 10
+# number of days for the "Top N" activity:
+TOP_ACTIVITY_DAYS = 7
 
 # this is a basic logging configuration for the Django settings.LOGGING
 # this is only used in the dprint() function when DEBUG=True. This prints to the console.

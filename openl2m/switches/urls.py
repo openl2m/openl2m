@@ -63,6 +63,11 @@ urlpatterns = [
         name='show_stats',
     ),
     path(
+        'top',
+        views.ShowTop.as_view(),
+        name='show_top',
+    ),
+    path(
         '<int:group_id>/<int:switch_id>/',
         views.SwitchBasics.as_view(),
         name='switch_basics',

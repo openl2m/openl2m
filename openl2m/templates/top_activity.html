@@ -1,0 +1,81 @@
+{% extends '_base.html' %}
+
+{% block title %}Top Activity{% endblock %}
+
+{% block content %}
+
+{% if not settings.TOP_ACTIVITY %}
+  <h1>The Top Activity Page is not activated!</h1>
+{% else %}
+
+<div class="container">
+  <div class="row">
+    {# 1st column - devices #}
+    <div class="col">
+      <div class="card border-default">
+        <div class="card-header bg-default">
+          <strong>Top {{ settings.TOP_ACTIVITY }} Changed Devices</strong>
+        </div>
+        <div class="card-body">
+          <table class="table table-striped table-hover table-headings w-auto">
+            <thead>
+              <tr><th>Device</th><th>Changes</th></tr>
+            </thead>
+            <tbody>
+              {% for device_id, device in changed.items %}
+              <tr><td>{{ device.name }}</td><td>{{ device.count }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <small>Most active over last {{ settings.TOP_ACTIVITY_DAYS }} days.</small>
+    </div>
+
+    {# 2nd column - users #}
+    <div class="col">
+      <div class="card border-default">
+        <div class="card-header bg-default">
+          <strong>Top {{ settings.TOP_ACTIVITY}} Active Users</strong>
+        </div>
+        <div class="card-body">
+          <table class="table table-striped table-hover table-headings w-auto">
+            <thead>
+              <tr><th>User</th><th>Views & Changes</th></tr>
+            </thead>
+            <tbody>
+              {% for user_id, user in users.items %}
+              <tr><td>{{ user.name }}</td><td>{{ user.count }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    {# 3rd column - viewed devices #}
+    <div class="col">
+      <div class="card border-default">
+        <div class="card-header bg-default">
+          <strong>Top {{ settings.TOP_ACTIVITY }} Viewed Devices</strong>
+        </div>
+        <div class="card-body">
+          <table class="table table-striped table-hover table-headings w-auto">
+            <thead>
+              <tr><th>Device</th><th>Views</th></tr>
+            </thead>
+            <tbody>
+              {% for device_id, device in viewed.items %}
+              <tr><td>{{ device.name }}</td><td>{{ device.count }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>{# row #}
+</div>
+{% endif %}
+
+{% endblock %}

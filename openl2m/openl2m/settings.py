@@ -457,3 +457,9 @@ API_MAX_TOKEN_DURATION = getattr(configuration, 'API_MAX_TOKEN_DURATION', 0)
 
 # WEB-UI Data Export Settings
 ALLOW_ARP_LLDP_DOWNLOAD = getattr(configuration, 'ALLOW_ARP_LLDP_DOWNLOAD', True)
+
+# Show Top-N active users, devices, etc.
+# if set to 0, this view is disabled! If > 0, will show in menu for all users:
+TOP_ACTIVITY = getattr(configuration, 'TOP_ACTIVITY', 10)
+# number of days for the "Top N" activity:
+TOP_ACTIVITY_DAYS = getattr(configuration, 'TOP_ACTIVITY_DAYS', 7)

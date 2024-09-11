@@ -106,6 +106,9 @@
               <li><a class="dropdown-item" href="{% url 'switches:admin_activity' %}"><i class="fas fa-list-ul" aria-hidden="true"></i> Activity Logs</a></li>
             {% endif %}
             <li><a class="dropdown-item" href="{% url 'switches:show_stats' %}"><i class="fas fa-chart-pie" aria-hidden="true"></i> Usage Statistics</a></li>
+            {% if settings.TOP_ACTIVITY %}
+            <li><a class="dropdown-item" href="{% url 'switches:show_top' %}"><i class="fas fa-mountain" aria-hidden="true"></i> Top Usage</a></li>
+            {% endif %}
             <li><a class="dropdown-item" href="https://github.com/openl2m/openl2m/" target="_blank"><i class="fas fa-code" aria-hidden="true"></i> Code</a></li>
             <li><hr class="dropdown-divider"></li>
             {% if not request.user.ldap_user %}

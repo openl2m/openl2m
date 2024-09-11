@@ -32,6 +32,7 @@ from switches.constants import (
     LOG_TYPE_CHANGE,
     LOG_TYPE_COMMAND,
     LOG_TYPE_LOGIN_OUT,
+    LOG_TYPE_VIEW,
     LOG_LOGIN_REST_API,
 )
 
@@ -194,3 +195,94 @@ def get_usage_info() -> dict:
     usage["Total Commands"] = Counter.objects.get(name="commands").value
 
     return usage
+
+
+def get_top_n_from_dict_on_count(data: dict) -> dict:
+    """Return the TOP_N from the dcitionary with value, based on the 'count' attribute.
+
+    Args:
+    data (dict): a dictionary of dictionaries containing at least the 'count' attrbute.
+
+    Returns:
+        (dict): the TOP-N (ie sorted) entries of the data (input) argument.
+
+    """
+    # sort by descending order:
+    data_sorted = dict(sorted(data.items(), key=lambda x: x[1]['count'], reverse=True))
+    # # and limit to TOP-N:
+    top_data = {}
+    num = 0
+    for key, val in data_sorted.items():
+        top_data[key] = val
+        num += 1
+        if num == settings.TOP_ACTIVITY:
+            break
+    return top_data
+
+
+def get_top_changed_devices() -> dict:
+    """Return a dict with the most active (changed) devices over the last TOP_ACTIVITY_DAYS"""
+    devices = {}
+    filter = {
+        "type": int(LOG_TYPE_CHANGE),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=settings.TOP_ACTIVITY_DAYS),
+    }
+    # records = Log.objects.filter(**filter).values_list('switch_id', flat=True)
+    logs = Log.objects.filter(**filter)
+    # there is probably a better way to do this with a filter above, but this works also:
+    for log in logs:
+        if log.switch is not None:
+            if log.switch.id not in devices:
+                devices[log.switch.id] = {
+                    'name': log.switch.name,
+                    'count': 1,
+                }
+            else:
+                devices[log.switch.id]['count'] += 1
+
+    return get_top_n_from_dict_on_count(devices)
+
+
+def get_top_viewed_devices() -> dict:
+    """Return a dict with the most viewed devices over the last TOP_ACTIVITY_DAYS"""
+    devices = {}
+    filter = {
+        "type": int(LOG_TYPE_VIEW),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=settings.TOP_ACTIVITY_DAYS),
+    }
+    # records = Log.objects.filter(**filter).values_list('switch_id', flat=True)
+    logs = Log.objects.filter(**filter)
+    # there is probably a better way to do this with a filter above, but this works also:
+    for log in logs:
+        if log.switch is not None:
+            if log.switch.id not in devices:
+                devices[log.switch.id] = {
+                    'name': log.switch.name,
+                    'count': 1,
+                }
+            else:
+                devices[log.switch.id]['count'] += 1
+
+    return get_top_n_from_dict_on_count(devices)
+
+
+def get_top_active_users() -> dict:
+    """Return a dict with the most active users, based on views or changes, over the last TOP_ACTIVITY_DAYS"""
+    users = {}
+    filter = {
+        "type__in": [LOG_TYPE_VIEW, LOG_TYPE_CHANGE],
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=settings.TOP_ACTIVITY_DAYS),
+    }
+    logs = Log.objects.filter(**filter)
+    # there is probably a better way to do this with a filter above, but this works also:
+    for log in logs:
+        if log.user is not None:
+            if log.user.id not in users:
+                users[log.user.id] = {
+                    'name': log.user.username,
+                    'count': 1,
+                }
+            else:
+                users[log.user.id]['count'] += 1
+
+    return get_top_n_from_dict_on_count(users)

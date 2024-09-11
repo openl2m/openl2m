@@ -71,6 +71,7 @@ from switches.constants import (
     LOG_VIEW_SWITCH_SEARCH,
     LOG_VIEW_DOWNLOAD_ARP_LLDP,
     LOG_VIEW_DOWNLOAD_INTERFACES,
+    LOG_VIEW_TOP_ACTIVITY,
     LOG_EXECUTE_COMMAND,
     LOG_RELOAD_SWITCH,
     INTERFACE_STATUS_NONE,
@@ -98,7 +99,14 @@ from switches.connect.constants import (
 from switches.download import create_eth_neighbor_xls_file, create_interfaces_xls_file
 from switches.permissions import get_group_and_switch, get_connection_if_permitted, get_my_device_groups
 
-from switches.stats import get_environment_info, get_database_info, get_usage_info
+from switches.stats import (
+    get_environment_info,
+    get_database_info,
+    get_usage_info,
+    get_top_changed_devices,
+    get_top_viewed_devices,
+    get_top_active_users,
+)
 
 from switches.utils import (
     success_page,
@@ -1810,6 +1818,45 @@ class ShowStats(LoginRequiredMixin, View):
                 "usage": usage,
                 "environment": environment,
                 "user_list": user_list,
+            },
+        )
+
+
+class ShowTop(LoginRequiredMixin, View):
+    """
+    This shows various Top-N activity usage statistics
+    """
+
+    def get(
+        self,
+        request,
+    ):
+        dprint("ShowTop() - GET called")
+
+        template_name = "top_activity.html"
+
+        # log my activity
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            type=LOG_TYPE_VIEW,
+            action=LOG_VIEW_TOP_ACTIVITY,
+            description="Viewing Top Activity",
+        )
+        log.save()
+
+        changed = get_top_changed_devices()
+        viewed = get_top_viewed_devices()
+        users = get_top_active_users()
+
+        # render the template
+        return render(
+            request,
+            template_name,
+            {
+                "changed": changed,
+                "viewed": viewed,
+                "users": users,
             },
         )
 
