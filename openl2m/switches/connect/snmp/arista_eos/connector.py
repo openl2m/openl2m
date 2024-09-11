@@ -172,19 +172,20 @@ class SnmpConnectorAristaEOS(SnmpConnector):
             vrf.rd = val
             return True
 
-        # state is enabled or disabled
-        sub_oid = oid_in_branch(aristaVrfState, oid)
-        if sub_oid:
-            vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
-            dprint(f"  VRF NAME = '{vrf_name}'")
-            dprint("   VRF State")
-            vrf = self.get_vrf_by_name(name=vrf_name)
-            # set the state, active=True
-            if int(val) == ARISTA_VRF_ACTIVE:
-                vrf.state = True
-            else:
-                vrf.state = False
-            return True
+        # currently NOT used:
+        # # state is enabled or disabled
+        # sub_oid = oid_in_branch(aristaVrfState, oid)
+        # if sub_oid:
+        #     vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
+        #     dprint(f"  VRF NAME = '{vrf_name}'")
+        #     dprint("   VRF State")
+        #     vrf = self.get_vrf_by_name(name=vrf_name)
+        #     # set the state, active=True
+        #     if int(val) == ARISTA_VRF_ACTIVE:
+        #         vrf.state = True
+        #     else:
+        #         vrf.state = False
+        #     return True
 
         # we did not parse:
         return False
