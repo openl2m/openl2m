@@ -222,11 +222,11 @@ class pysnmpHelper:
         )
 
         if errorIndication:
-            details = f"ERROR with pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+            details = f"ERROR 'errorIndication' in pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             return (True, details)
 
         elif errorStatus:
-            details = f"ERROR in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+            details = f"ERROR 'errorStatus' in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             return (True, details)
 
         else:
@@ -262,14 +262,14 @@ class pysnmpHelper:
         if errorIndication:
             self.error.status = True
             self.error.description = "An SNMP error occurred!"
-            self.error.details = f"ERROR with pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+            self.error.details = f"ERROR 'errorIndication' pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             dprint("pysnmp.set_vars() SNMP engine error!")
             return False
 
         elif errorStatus:
             self.error.status = True
             self.error.description = "An SNMP error occurred!"
-            self.error.details = f"ERROR in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+            self.error.details = f"ERROR 'errorStatus' in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             dprint("pysnmp.set_vars() SNMP PDU error!")
             return False
 
@@ -3100,7 +3100,7 @@ class SnmpConnector(Connector):
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
         return True on success, False on error and set self.error variables
         """
-        dprint(f"connection.set_interface_untagged_vlan(i={interface}, vlan={new_vlan_id})")
+        dprint(f"connection.set_interface_untagged_vlan(interface={interface}, vlan={new_vlan_id})")
         if not interface:
             dprint("  Invalid interface!, returning False")
             return False
@@ -3124,6 +3124,14 @@ class SnmpConnector(Connector):
         # some switches need a little "settling time" here (value is in seconds)
         time.sleep(0.5)
 
+        # should this be using "dot1qVlanCurrentEgressPorts" ?
+        #        old_vlan_portlist = PortList()
+        #        old_vlan_portlist.from_unicode(snmpval.value)
+        #        dprint(f"OLD VLAN Static Egress Ports = {old_vlan_portlist.to_hex_string()}")
+        #
+        #        # dot1qVlanCurrentEgressPorts Read-Only field! .0. is timestamp.
+        #        (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{old_vlan_id}")
+
         # Remove port from list of ports on old vlan,
         # i.e. read current Egress PortList bitmap first:
         (error_status, snmpval) = self.get(
@@ -3137,8 +3145,13 @@ class SnmpConnector(Connector):
         old_vlan_portlist = PortList()
         old_vlan_portlist.from_unicode(snmpval.value)
         dprint(f"OLD VLAN Current Egress Ports = {old_vlan_portlist.to_hex_string()}")
+
         # unset bit for port, i.e. remove from active portlist on vlan:
         old_vlan_portlist[interface.port_id] = 0
+
+        dprint(
+            f"Updated OLD VLAN Current Egress Ports with removed port {interface.port_id}, now  = {old_vlan_portlist.to_hex_string()}"
+        )
 
         # now send update to switch:
         # use PySNMP to do this work:
