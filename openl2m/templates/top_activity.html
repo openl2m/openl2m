@@ -17,17 +17,21 @@
           <strong>Top {{ settings.TOP_ACTIVITY }} Changed Devices</strong>
         </div>
         <div class="card-body">
-          <table class="table table-striped table-hover table-headings w-auto">
-            <thead>
-              <tr><th>Device</th><th>Changes</th></tr>
-            </thead>
-            <tbody>
-              {% for device_id, device in changed.items %}
-              <tr><td>{{ device.name }}</td><td>{{ device.count }}</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+          {% if not changed %}
+            No activity found!
+          {% else %}
+            <table class="table table-striped table-hover table-headings w-auto">
+              <thead>
+                <tr><th>Device</th><th>Changes</th></tr>
+              </thead>
+              <tbody>
+                  {% for device_id, device in changed.items %}
+                  <tr><td>{{ device.name }}</td><td>{{ device.count }}</td></tr>
+                  {% endfor %}
+              </tbody>
+            </table>
+          {% endif %}
+          </div>
       </div>
       <small>Most active over last {{ settings.TOP_ACTIVITY_DAYS }} days.</small>
     </div>
@@ -39,16 +43,20 @@
           <strong>Top {{ settings.TOP_ACTIVITY}} Active Users</strong>
         </div>
         <div class="card-body">
-          <table class="table table-striped table-hover table-headings w-auto">
-            <thead>
-              <tr><th>User</th><th>Views & Changes</th></tr>
-            </thead>
-            <tbody>
-              {% for user_id, user in users.items %}
-              <tr><td>{{ user.name }}</td><td>{{ user.count }}</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          {% if not users %}
+            No activity found!
+          {% else %}
+            <table class="table table-striped table-hover table-headings w-auto">
+              <thead>
+                <tr><th>User</th><th>Views & Changes</th></tr>
+              </thead>
+              <tbody>
+                {% for user_id, user in users.items %}
+                <tr><td>{{ user.name }}</td><td>{{ user.count }}</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -60,16 +68,20 @@
           <strong>Top {{ settings.TOP_ACTIVITY }} Viewed Devices</strong>
         </div>
         <div class="card-body">
-          <table class="table table-striped table-hover table-headings w-auto">
-            <thead>
-              <tr><th>Device</th><th>Views</th></tr>
-            </thead>
-            <tbody>
-              {% for device_id, device in viewed.items %}
-              <tr><td>{{ device.name }}</td><td>{{ device.count }}</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          {% if not changed %}
+            No activity found!
+          {% else %}
+            <table class="table table-striped table-hover table-headings w-auto">
+              <thead>
+                <tr><th>Device</th><th>Views</th></tr>
+              </thead>
+              <tbody>
+                {% for device_id, device in viewed.items %}
+                <tr><td>{{ device.name }}</td><td>{{ device.count }}</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% endif %}
         </div>
       </div>
     </div>
