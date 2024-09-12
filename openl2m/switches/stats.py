@@ -105,16 +105,23 @@ def get_usage_info() -> dict:
     usage = {}  # usage statistics
 
     # Devices accessed:
-    filter = {}
-    filter['timestamp__date'] = datetime.date.today()
+    filter = {
+        "type__in": [LOG_TYPE_VIEW, LOG_TYPE_CHANGE],
+        "switch_id__isnull": False,
+        "timestamp__date": datetime.date.today(),
+    }
     usage['Devices today'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
 
-    filter = {}
-    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=7)
+    filter = {
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
+        "switch_id__isnull": False,
+    }
     usage['Devices last 7 days'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
 
-    filter = {}
-    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
+    filter = {
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
+        "switch_id__isnull": False,
+    }
     usage['Devices last 31 days'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
 
     # Changes made
