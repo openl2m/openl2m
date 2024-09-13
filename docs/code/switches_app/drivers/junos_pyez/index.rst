@@ -9,6 +9,11 @@ class in *switches.connect/junos_pyez/connector.py*.
 
 The *junos-eznc* library from PyPI is available at https://github.com/Juniper/py-junos-eznc
 
+.. note::
+
+   The current drivers support Junos "ELS" device, ie. devices with Enhanced Layer2 Software.
+   This unifies commands. We have not tested against non-ELS device, such as some MX product line.
+
 
 .. toctree::
    :maxdepth: 1

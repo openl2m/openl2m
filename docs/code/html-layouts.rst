@@ -72,9 +72,9 @@ Tab Menus
 
 Tab Menus are implemented as documented here: https://fastbootstrap.com/components/tabs/
 
-They are implemented in *openl2m/templates/switch.html* which includes calls various *_menu_<name>.html*
+They are implemented in *openl2m/templates/switch.html* which includes various *_menu_<name>.html* files.
 
-Since we use templates for the various tab menu, and some need to be active or not, we include
+Since we use templates for the various tab menus, and some need to be active or not, we include
 these templates as such in *switch.html*:
 
 .. code-block:: jinja

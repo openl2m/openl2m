@@ -13,8 +13,8 @@ Planned Improvements:
 * add MPLS L3VPN info and interface members on Juniper routers in the Junos PyEZ driver
 * add reading of VSF interfaces (from ArubaWired-VSFv3 mib) to the Aruba AOS-CX SNMP driver.
 * add reading of VSF interfaces to the Aruba AOS-CX API driver.
-* add VRF interface membership to Arista SNMP driver (uses private Mib)
-* add Top-N reports for user and device activities.
+* :strike:`add VRF interface membership to Arista SNMP driver (uses private Mib)`
+* :strike:`add Top-N reports for user and device activities.`
 * move to Caddy as the WSGI/Web server.
 * improve developer documentation on the various drivers.
 

@@ -26,4 +26,11 @@ This is stored in the *Interface().vrf* attribute, as a string with the name of 
 
 Note this can be used as an index into the *Connector().vrfs{}* dictionary for more information.
 
-If found, this is shown as an icon behind the interface name on the Interfaces and Bulk-Edit tabs.
+
+Where it shows
+--------------
+
+The list of Vrf() objects is shown on the *Device Info* tab, from the file *templates/tab_info_vrfs.html*
+
+For interfaces with a VRF memmber (Interface.vrf is set), this is shown as an icon behind the interface name 
+on the Interfaces and Bulk-Edit tabs. This comes from the file *templates/_tpl_if_type_icons.html*

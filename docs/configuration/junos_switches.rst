@@ -24,6 +24,12 @@ and then enable NetConf service using something similar to this:
 
 Please refer to your Junos documentation for more details.
 
+.. note::
+
+    The Junos PyEZ driver expects a **device with "ELS" software**, ie running Enhanced Layer2 Software,
+    that unifies the configuration of Ethernet interfaces access the product line. **Many MX routers do
+    not support this, and have not been tested!**
+
 
 OpenL2M Configuration
 ---------------------

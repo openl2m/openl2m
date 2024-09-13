@@ -4,3 +4,6 @@
 img {
     border: 1px solid #d2d3d3;
 }
+.strike {
+  text-decoration: line-through;
+}

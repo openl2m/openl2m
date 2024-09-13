@@ -45,6 +45,11 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+# this gets added to all RST files:
+rst_prolog = """
+.. role:: strike
+    :class: strike
+"""
 
 # -- Options for HTML output -------------------------------------------------
 

@@ -70,11 +70,15 @@ They are:
   as only physical interfaces have port id's, and the interface index and the switchport ID can be different.
   For more details, read the SNMP driver explanations.
 
+Optionally, **get_my_hardware_details()** may be implemented by a driver to fill on more details
+about the device, such as serial number, model,etc. Most drivers do implemented this.
+If this function exists, it is also called from the 'view' function, like 'get_my_basic_info()'.
 
 
 **get_my_client_data()** is called when the user clicks the related button when the device is shown.
 Is it called to load information about the known ethernet addresses, arp tables, lldp neighbors,
-and more. It should load additional data structures of the Connection() object.
+and more. It should load additional data structures of the Connection() object. See the specific pages
+describing these data structures in more detail.
 
 A good example is in *switches/connect/snmp/connector.py*, where *get_my_client_data()* uses snmp
 to get information on switch tables (ethernet addresses), arp tables and neighbor devices via lldp.

@@ -68,6 +68,8 @@ pycodestyle documentation: https://pycodestyle.pycqa.org/en/latest/
 
 Flake8 code style checker: https://flake8.pycqa.org/en/latest/user/index.html
 
+Type Hints: https://realpython.com/python-type-checking/
+
 
 Nginx
 -----

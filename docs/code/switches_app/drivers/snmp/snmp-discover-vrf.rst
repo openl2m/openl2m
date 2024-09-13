@@ -7,7 +7,7 @@ Discover VRFs with SNMP
 VRF info
 ========
 
-This section describes how we discover L3VPN aka. VRF info.
+This section describes how we discover L3VPN aka. "VRF" info.
 
 This is implemented in the *switches.connect.snmp.connector.SnmpConnector().get_my_vrfs()* function, 
 which is called from *switches.connect.connector.Connector().get_hardware_details()*

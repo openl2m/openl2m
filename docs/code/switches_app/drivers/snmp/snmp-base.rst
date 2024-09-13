@@ -10,11 +10,12 @@ This file defines the base SnmpConnector() class that implements all generic snm
 according to the Connector() class API.
 
 If device connections are made via SNMP, get_connection_object() in **connect.py** figures out what
-specific SnmpConnector() sub-class to get for the device.
+specific SnmpConnector() sub-class to get for the device. We do this by reading the *enterprises* MIB entry,
+which returns the OID string representing the device. This string include a vendor indentifier.
 
 Since we mostly want lots of data at once (ie all interfaces, all vlans, etc.) we use the SNMP GetBulk operation
 for most data collection. This is implemented in the **SnmpConnector.get_snmp_branch()** function. This needs the mandatory
-snmp branch you want to walk (eg. interfaces branch).
+snmp branch you want to walk (eg. interfaces branch), and the function that will parse the returned data (see below).
 
 Optionally, you can pass in *non_repeaters* and *max_repetitions*. *non_repeaters* is the number of
 'single' OIDs you want to 'get'. This is normally a list of single OIDs passed to GetBulk, such as sysUptime,
@@ -26,26 +27,30 @@ We set this to a default of 25, which can be handled by most devices. This means
 (with some stacking and loopback interfaces). The underlying library will take care of multiple calls if there are more ports in eg. a stack.
 
 
-**get_snmp_branch()** calls  easy_snmp.bulkwalk() to get the mib data.
+**get_snmp_branch()** calls used the *ezsnmp* library to do the work, and calls *ezsnmp.bulkwalk()* to read the mib data.
 
-In the parsing loop, the return data is parsed via the default **SnmpConnector._parse_oid()** or a specific parser function requested in the call.
+In the parsing loop, the return data is passed to the parser function specified in the *get_snmp_branch()* call.
 
 
-EasySnmp Library use
+EzSnmp Library use
 --------------------
 
-We use the Session() interface from the Python "Easy SNMP" library. This calls the net-snmp package of the OS.
+We use the Session() interface from the Python "EzSnmp" library. This calls the net-snmp package of the OS.
 Use of the native library gives significant performance improvements over the pure Python *pysnmp* library.
-The EasySNMP documentation has helpful examples. This session is stored in *SnmpConnector()._snmp_session*
+The EzSNMP documentation has helpful examples. This session is stored in *SnmpConnector()._snmp_session*
 
 Vlan manipulation via snmp requires dealing with bitmap field that are represented in OctetString snmp data types.
-EasySNMP has a hard time dealing with this due to how it internally translates everything to/from Unicode strings.
+EzSNMP has a hard time dealing with this due to how it internally translates everything to/from Unicode strings.
 So we use the *pysnmp* library to handle these special cases only.
+
+*Note: EzSNMP is the maintained successor of the original "Easy SNMP" library, which now is stale. (Summer 2024)*
 
 
 **IMPORTANT DATA TYPES:**
 
-There are several Python dictionaries used to store data. Several of these have specific key data typem requirements. They are:
+There are several Python dictionaries used to store data. Several of these have specific key data typem requirements.
+
+They are:
 
 * self.vlans: the key (index) is an *integer (int)* representing the numeric vlan ID. Items are Vlan() class instances.
 

@@ -1,20 +1,8 @@
 .. image:: ../../../../_static/openl2m_logo.png
 
-========================
-SNMP Discovery Explained
-========================
-
-Most of this is 'standard' SNMP. *A full discussion of SNMP Mibs is outside the scope of this document*,
-but here is a small amount of details about OpenL2M uses the SNMP capabilities of devices to get
-information about interfaces, vlans and the device.
-
-The functions mentioned below are implemented in *switches/connect/snmp/connector.py*,
-and most of the MIB entries are defined in *connect/constants.py* or *connect/snmp/constants.py*
-
-All these functions are part of *get_my_basic_info()*.
-
+==========================
 How we discover Interfaces
---------------------------
+==========================
 
 *This is implemented in _get_interface-data()*
 
@@ -47,41 +35,10 @@ about half- or full-duplex status of an interface.
 We now have the interface-id, aka ifIndex, and most information about the interfaces.
 
 
-How we discover VLANs and Interfaces using them
------------------------------------------------
+Get VLAN Membership
+-------------------
 
-*This is executed by calling _get_vlan_data()*
-
-Switching capabilities are described by what is called the Q-Bridge MIB. The Q-Bridge defines the ports and vlans
-on a device. Note that in this context, a port is NOT the same as an interface as described above. A port is
-typically a physical port on the device, and as such has a port-id. Interfaces can be virtual
-(eg. "interface Vlan 100"), and have interface-id's.
-
-The often confusing part is that on many (but not all) devices, the interface-id and port-id are be the same number.
-However, this is not a given, so we need to discover the mapping of port-id to interface-id,
-and then can discover vlan(s) on those ports.
-
-This mapping is done with the "dot1D-Bridge" entry "dot1dBasePortIfIndex",
-which maps a physical port-id to an ifIndex.
-
-    self.get_snmp_branch('dot1dBasePortIfIndex')
-
-*Note: if we cannot read this, we cannot continue, and will error out! (These MIB entries are required!)*
-
-
-Next we read existing vlan id's from "dot1qVlanStaticTable"
-
-    self.get_snmp_branch('dot1qVlanStaticRowStatus')
-
-
-and if found, we try to get the names and status from  "dot1qVlanStaticName" and "dot1qVlanStatus"
-
-    self.get_snmp_branch('dot1qVlanStaticName')
-    self.get_snmp_branch('dot1qVlanStatus')
-
-**Get VLAN Membership**
-
-Once we have the VLAN data, we call _get_port_vlan_membership()
+We already should have vlan information at this time. We now call *SNmpConnector()._get_port_vlan_membership()*
 
 The Q-Bridge "dot1qPvid" entry maps every switch port (ie port-id) to the untagged vlan on that port.
 

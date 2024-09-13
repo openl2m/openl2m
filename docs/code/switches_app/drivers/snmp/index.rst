@@ -20,6 +20,7 @@ for additional data.
    :caption: The various parts of the SNMP driver:
 
    snmp-base.rst
-   snmp-interface-vlan.rst
+   snmp-discover-vlan.rst
+   snmp-discover-interface.rst
+   snmp-discover-vrf.rst
    snmp-vlan-add-del.rst
-   snmp-vrf-discovery.rst

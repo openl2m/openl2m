@@ -23,6 +23,7 @@ Release Date: 2024-09-10
 * improve configuration.py documentation.
 * for admins, log entries have links to device admin page.
 * for Junos PyEZ device, detect "ELS" feature and warn if not found.
+* show top-N activity from menu.
 * several drivers have simplified logging.
 * updates to the developer documentation.
 
@@ -33,3 +34,4 @@ Bug fixes:
 * improve snmp session error handling.
 * improved handling of device hardware details.
 * fix crash and allow ":" in interface names.
+* more details in SNMP errors.

@@ -17,7 +17,7 @@ Features Supported
      - Procurve (Snmp)
      - Juniper (Snmp) *
      - Aruba AOS-CX (API)
-     - Junos (PyEZ)
+     - Junos (PyEZ) *
      - Napalm
      - SSH
 
@@ -47,7 +47,7 @@ Features Supported
 
    * - PoE Up/Down
      - Yes
-     - 
+     -
      - Yes
      - Yes
      - Yes
@@ -83,7 +83,7 @@ Features Supported
 
    * - VLAN Edit/Create
      - Yes
-     - 
+     -
      - Yes (>= v10.12, no name)
      - Yes
      - Yes
@@ -125,3 +125,9 @@ Features Supported
 .. note::
 
   Juniper's SNMP implementation is Read-Only!
+
+.. note::
+
+  The Junos PyEZ driver expects a **device with "ELS" software**, ie running Enhanced Layer2 Software,
+  that unifies the configuration of Ethernet interfaces access the product line. **Many MX routers do
+  not support this, and have not been tested!**
