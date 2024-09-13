@@ -11,7 +11,10 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-# the various device types supported by the current Netmiko library (July 2019)
+# the various device types supported by the current Netmiko library (September 2024)
+# see the netmiko source code "CLASS_MAPPER_BASE" variable in
+# https://github.com/ktbyers/netmiko/blob/develop/netmiko/ssh_dispatcher.py
+
 NETMIKO_DEVICE_TYPES = (
     ('a10', 'a10'),
     ('accedian', 'accedian'),
@@ -19,6 +22,7 @@ NETMIKO_DEVICE_TYPES = (
     ('alcatel_sros', 'alcatel_sros'),
     ('apresia_aeos', 'apresia_aeos'),
     ('arista_eos', 'arista_eos'),
+    ('aruba_aoscx', 'aruba_aoscx'),
     ('aruba_os', 'aruba_os'),
     ('avaya_ers', 'avaya_ers'),
     ('avaya_vsp', 'avaya_vsp'),
