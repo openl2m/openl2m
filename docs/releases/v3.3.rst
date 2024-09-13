@@ -7,6 +7,14 @@ Version 3.3
 **Version 3.3 adds support for Arista device via SNMP, and can read MPLS VRF info from SNMP
 on devices that support it.**
 
+Version 3.3.1
+-------------
+
+Release Date: TBD
+
+* support Aruba AOS-CX devices for SSH commands (from Netmiko v4.4 library)
+
+
 Version 3.3
 -----------
 
