@@ -284,6 +284,7 @@ ipAddressOrigin = '.1.3.6.1.2.1.4.34.1.6'
 ipNetToPhysicalEntry = '.1.3.6.1.2.1.4.35.1'
 snmp_mib_variables['ipNetToPhysicalEntry'] = ipNetToPhysicalEntry
 
+# many do not implement the folowing 3:
 ipNetToPhysicalIfIndex = '.1.3.6.1.2.1.4.35.1.1'
 snmp_mib_variables['ipNetToPhysicalIfIndex'] = ipNetToPhysicalIfIndex
 
@@ -293,8 +294,19 @@ snmp_mib_variables['ipNetToPhysicalNetAddressType'] = ipNetToPhysicalNetAddressT
 ipNetToPhysicalNetAddress = '.1.3.6.1.2.1.4.35.1.3'
 snmp_mib_variables['ipNetToPhysicalNetAddress'] = ipNetToPhysicalNetAddress
 
+# some start with this:
 ipNetToPhysicalPhysAddress = '.1.3.6.1.2.1.4.35.1.4'
 snmp_mib_variables['ipNetToPhysicalPhysAddress'] = ipNetToPhysicalPhysAddress
+# the returned OID is
+# ipNetToPhysicalPhysAddress.<if-index>.<address-type>.<length>."ip address in dotted format" = "mac address"
+
+ipNetToPhysicalLastUpdated = '.1.3.6.1.2.1.4.35.1.5'
+
+ipNetToPhysicalType = '.1.3.6.1.2.1.4.35.1.6'
+
+ipNetToPhysicalState = '.1.3.6.1.2.1.4.35.1.7'
+
+ipNetToPhysicalRowStatus = '.1.3.6.1.2.1.4.35.1.8'
 
 #
 
