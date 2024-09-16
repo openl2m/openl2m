@@ -98,7 +98,7 @@ from switches.connect.classes import (
 
 # from switches.connect.connect import *
 from switches.connect.connector import Connector
-from switches.connect.snmp.utils import decimal_to_hex_string_ethernet, bytes_ethernet_to_string
+from switches.connect.snmp.utils import decimal_to_hex_string_ethernet, bytes_ethernet_to_string, get_ip_from_oid_index
 from switches.connect.snmp.constants import (
     snmp_mib_variables,
     ifIndex,
@@ -153,6 +153,7 @@ from switches.connect.snmp.constants import (
     ieee8021QBridgeVlanCurrentUntaggedPorts,
     dot1dTpFdbPort,
     ipNetToMediaPhysAddress,
+    ipNetToPhysicalPhysAddress,
     lldpRemChassisId,
     lldpRemPortId,
     lldpRemPortIdSubType,
@@ -1641,6 +1642,59 @@ class SnmpConnector(Connector):
         """
         return False
 
+    def _parse_mibs_net_to_physical(self, oid: str, val: str) -> bool:
+        """
+        Parse a single OID with data returned from the (various) Net-To-Physical (ie new ARP) mibs
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint("_parse_mibs_net_to_physical()")
+
+        # Here is the new style ipNetToPhysicalPhysAddress entry
+        if_ip_string = oid_in_branch(ipNetToPhysicalPhysAddress, oid)
+
+        if if_ip_string:
+            # the returned OID format is:
+            # ipNetToPhysicalPhysAddress.<if-index>.<address-type>.<length>."ip address in dotted format" = "mac address"
+            # no if_ip_string = <if-index>.<address-type>.<length>."ip address in dotted format"
+            # address-type = IANA_TYPE_IPV4 (1) or IANA_TYPE_IPV6 (2)
+            parts = if_ip_string.split('.', 2)  # split in 3: if-index, address-type, and the rest
+
+            if_index = str(parts[0])
+            iface = self.get_interface_by_key(key=if_index)
+            if not iface:
+                # should not happen, not sure what to do here!
+                dprint(f"  OID '{oid}' = '{val}', parsed if_index='{if_index}' to unknown interface!")
+                return True  # we did parse this, with errors.
+
+            type = int(parts[1])
+            dprint(f"  Interface '{iface.name}', IP type={type}")
+            # the rest is IP, either v4 or v6
+            ip = get_ip_from_oid_index(index=parts[2], type=type)
+            # we currently only deal with IPv4:
+            if type == IANA_TYPE_IPV4:
+                dprint(f"    IPV4={ip}")
+                mac_addr = bytes_ethernet_to_string(val)
+                dprint(f"    MAC={mac_addr}")
+                if mac_addr in iface.eth.keys():
+                    # Found existing MAC addr, adding IP4
+                    iface.eth[mac_addr].address_ip4 = ip
+                else:
+                    iface.add_learned_ethernet_address(eth_address=mac_addr, ip4_address=ip)
+
+            return True
+
+        """
+        Next (eventually) the newer ipNetToPhysical tables
+        Note: we have not found any device yet that returns this!
+        """
+        return False
+
         #
         # LACP MIB parsing
         #
@@ -2698,6 +2752,11 @@ class SnmpConnector(Connector):
         retval = self.get_snmp_branch(branch_name='ipNetToMediaPhysAddress', parser=self._parse_mibs_net_to_media)
         if retval < 0:
             self.add_warning("Error getting 'ARP-Table' (ipNetToMediaPhysAddress)")
+            return False
+        # check the newer ipNetToPhysical tables as well:
+        retval = self.get_snmp_branch(branch_name='ipNetToPhysicalPhysAddress', parser=self._parse_mibs_net_to_physical)
+        if retval < 0:
+            self.add_warning("Error getting 'new ARP-Table' (ipNetToPhysicalPhysAddress)")
             return False
         return True
 

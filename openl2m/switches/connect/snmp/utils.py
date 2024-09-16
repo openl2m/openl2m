@@ -15,6 +15,7 @@ import netaddr
 
 from django.conf import settings
 from switches.utils import dprint
+from switches.connect.constants import IANA_TYPE_IPV4, IANA_TYPE_IPV6
 
 """
 This file contains SNMP utility functions
@@ -52,3 +53,33 @@ def bytes_ethernet_to_string(bytes: str) -> str:
         eth.dialect = settings.MAC_DIALECT
         return str(eth)
     return ''
+
+
+def get_ip_from_oid_index(index: str, type: int) -> str:
+    """Convert an OID sub-index to an IP address in string format.
+    Note: currently does NOT do IPV6 parsing yet!
+
+    Params:
+        index (str): the OID index contains length as first number, followed by the rest of the IP digits.
+        type (int): the either IANA_TYPE_IPV4 (1) or IANA_TYPE_IPV6 (2)
+                    this defines parsing to the index
+                    Note: currently does NOT do IPV6 parsing yet!
+    Returns:
+        (str): the parsed IP address in string format.
+    """
+    dprint("get_ip_from_oid_index()")
+    if type == IANA_TYPE_IPV4:
+        # for IPv4, encoding is simply the length (always 4) followed by IP:
+        parts = index.split('.', 1)  # only split in 2
+        if int(parts[0]) == 4:  # looks valid
+            ip = parts[1]
+        else:
+            # very unlikely to happen (only if bad snmp implementation on device):
+            dprint(f"  INVALID index for type {type}: '{index}")
+            ip = "0.0.0.0"
+        return ip
+    if type == IANA_TYPE_IPV6:
+        dprint("IPV6 NOT USUPPORTED YET!")
+        return ""
+    dprint(f"INVALID TYPE {type}")
+    return ""

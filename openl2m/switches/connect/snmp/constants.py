@@ -297,7 +297,11 @@ snmp_mib_variables['ipNetToPhysicalNetAddress'] = ipNetToPhysicalNetAddress
 # some start with this:
 ipNetToPhysicalPhysAddress = '.1.3.6.1.2.1.4.35.1.4'
 snmp_mib_variables['ipNetToPhysicalPhysAddress'] = ipNetToPhysicalPhysAddress
-# the returned OID is
+# from MIB:
+#     INDEX       { ipNetToPhysicalIfIndex,
+#                   ipNetToPhysicalNetAddressType,
+#                   ipNetToPhysicalNetAddress }
+# so the returned OID is
 # ipNetToPhysicalPhysAddress.<if-index>.<address-type>.<length>."ip address in dotted format" = "mac address"
 
 ipNetToPhysicalLastUpdated = '.1.3.6.1.2.1.4.35.1.5'
