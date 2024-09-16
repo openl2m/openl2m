@@ -1,6 +1,6 @@
 black
 distro
-Django>=5.0,<5.1
+Django>=5.1,<5.2
 django-ipware
 # django-minify-html
 django-ordered-model>=3.7,<4.0
