@@ -217,6 +217,69 @@ ipNetToMediaNetAddress = '.1.3.6.1.2.1.4.22.1.3'
 snmp_mib_variables['ipNetToMediaNetAddress'] = ipNetToMediaNetAddress
 
 #
+# the newer ipAddressTable
+ipAddressTable = '.1.3.6.1.2.1.4.34'
+ipAddressEntry = '.1.3.6.1.2.1.4.34.1'
+# and the entries is this table:
+#
+
+# The address type of ipAddressAddr.
+ipAddressType = '.1.3.6.1.2.1.4.34.1.1'
+# value is InetAddressType, defined in INET-ADDRESS-MIB
+# ipv4(1)     An IPv4 address as defined by the InetAddressIPv4 textual convention.
+# ipv6(2)     An IPv6 address as defined by the InetAddressIPv6 textual convention.
+# we define these as IANA_TYPE_IPV4 and IANA_TYPE_IPV6, see switches.connect.constants.py
+
+# The IP address to which this entry's addressing information pertains.
+ipAddressAddr = '.1.3.6.1.2.1.4.34.1.2'
+
+# The index value that uniquely identifies the interface to which this entry is applicable.
+ipAddressIfIndex = '.1.3.6.1.2.1.4.34.1.3'
+
+# The type of address. broadcast(3) is not a valid value for IPv6 addresses (RFC 3513).
+ipAddressType = '.1.3.6.1.2.1.4.34.1.4'
+# unicast(1),
+# anycast(2),
+# broadcast(3)
+IP_ADDRESS_TYPE_UNICAST = 1
+IP_ADDRESS_TYPE_ANYCAST = 2
+IP_ADDRESS_TYPE_BROADCAST = 3
+
+# A pointer to the row in the prefix table to which this address belongs. May be { 0 0 } if there is no such row.
+ipAddressPrefix = '.1.3.6.1.2.1.4.34.1.5'
+
+# The origin of the address.
+ipAddressOrigin = '.1.3.6.1.2.1.4.34.1.6'
+# value is "IpAddressOriginTC": in IP-MIB defined as :
+# SYNTAX     INTEGER {
+#     other(1),
+#     manual(2),
+#     dhcp(4),
+#     linklayer(5),
+#     random(6)
+# }
+
+# other entries not used:
+#
+# # The status of the address, describing if the address can be used for communication.
+# # In the absence of other information, an IPv4 …
+# ipAddressStatus = '.1.3.6.1.2.1.4.34.1.7'
+
+# # The value of sysUpTime at the time this entry was created.
+# ipAddressCreated = '.1.3.6.1.2.1.4.34.1.8'
+
+# # The value of sysUpTime at the time this entry was last updated.
+# ipAddressLastChanged = '.1.3.6.1.2.1.4.34.1.9'
+
+# # The status of this conceptual row.
+# # The RowStatus TC requires that this DESCRIPTION clause states under which circumstances other …
+# ipAddressRowStatus = '.1.3.6.1.2.1.4.34.1.10'
+
+# # The storage type for this conceptual row.
+# ipAddressStorageType = '.1.3.6.1.2.1.4.34.1.11'
+
+
+#
 # the newer ipNetToPhysical tables:
 ipNetToPhysicalEntry = '.1.3.6.1.2.1.4.35.1'
 snmp_mib_variables['ipNetToPhysicalEntry'] = ipNetToPhysicalEntry
