@@ -9,14 +9,17 @@ Planned Improvements:
 
 *In no particular order:*
 
-* simplify the Juniper PyEX driver by using pyez operation tables and views.
+* simplify the Juniper PyEX driver by using pyez operational tables and views.
 * add MPLS L3VPN info and interface members on Juniper routers in the Junos PyEZ driver
-* add reading of VSF interfaces (from ArubaWired-VSFv3 mib) to the Aruba AOS-CX SNMP driver.
+* add reading of VSF interfaces (from ArubaWired-VSFv2 mib) to the Aruba AOS-CX SNMP driver.
 * add reading of VSF interfaces to the Aruba AOS-CX API driver.
 * :strike:`add VRF interface membership to Arista SNMP driver (uses private Mib)`
 * :strike:`add Top-N reports for user and device activities.`
 * move to Caddy as the WSGI/Web server.
-* improve developer documentation on the various drivers.
+* improve developer documentation on the various drivers (ongoing :-) ).
+* :strike:`parse the newer SNMP 'ipAddressTable' mib entries for device interface address information.`
+* :strike:`parse the newer SNMP 'ipNetToPhysicalTable' mib entries for ARP info.`
+* automatically set SSH connection type for drivers that should know this.
 
 
 Features Being Considered
@@ -29,7 +32,7 @@ Here are some other features we are considering implementing (*in no particular 
 
 * change user model, from standard user mode with separate profile table, to a new user class that has it all :-)
 
-* support for Arista device via the eApi.
+* support for Arista devices via the eApi (low priority, as the SNMP driver provides all needed functionality)
 
 * IPv6 support, both for switch snmp access, and other informational tables.
 

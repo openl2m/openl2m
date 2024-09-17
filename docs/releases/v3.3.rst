@@ -13,7 +13,12 @@ Version 3.3.1
 Release Date: TBD
 
 * support Aruba AOS-CX devices for SSH commands (from Netmiko v4.4 library)
+* read the SNMP ipAddressIfIndex MIB entries to find interface (ipv4) addresses.
+* read the SNMP ipNetToPhysical MIB entries to find (ipv4) ARP data.
 
+Bug fixes:
+
+/opt/openl2m/openl2m/switches/api/urls.py:35: RemovedInDjango60Warning: Converter 'ifname' is already registered. Support for overriding registered converters is deprecated and will be removed in Django 6.0.
 
 Version 3.3
 -----------
