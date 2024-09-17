@@ -154,6 +154,7 @@ from switches.connect.snmp.constants import (
     dot1dTpFdbPort,
     ipNetToMediaPhysAddress,
     ipNetToPhysicalPhysAddress,
+    ipAddressIfIndex,
     lldpRemChassisId,
     lldpRemPortId,
     lldpRemPortIdSubType,
@@ -1657,7 +1658,6 @@ class SnmpConnector(Connector):
 
         # Here is the new style ipNetToPhysicalPhysAddress entry
         if_ip_string = oid_in_branch(ipNetToPhysicalPhysAddress, oid)
-
         if if_ip_string:
             # the returned OID format is:
             # ipNetToPhysicalPhysAddress.<if-index>.<address-type>.<length>."ip address in dotted format" = "mac address"
@@ -1672,12 +1672,12 @@ class SnmpConnector(Connector):
                 dprint(f"  OID '{oid}' = '{val}', parsed if_index='{if_index}' to unknown interface!")
                 return True  # we did parse this, with errors.
 
-            type = int(parts[1])
-            dprint(f"  Interface '{iface.name}', IP type={type}")
+            addr_type = int(parts[1])
+            dprint(f"  Interface '{iface.name}', IP address type={addr_type}")
             # the rest is IP, either v4 or v6
-            ip = get_ip_from_oid_index(index=parts[2], type=type)
+            ip = get_ip_from_oid_index(index=parts[2], addr_type=addr_type)
             # we currently only deal with IPv4:
-            if type == IANA_TYPE_IPV4:
+            if addr_type == IANA_TYPE_IPV4:
                 dprint(f"    IPV4={ip}")
                 mac_addr = bytes_ethernet_to_string(val)
                 dprint(f"    MAC={mac_addr}")
@@ -1816,6 +1816,54 @@ class SnmpConnector(Connector):
                 if if_key in self.interfaces.keys():
                     # now add this IP / Netmask combo to this interface:
                     self.interfaces[if_key].add_ip4_network(f"{ip}/{val}")
+            return True
+
+        # we did not parse the OID.
+        return False
+
+    #
+    # New IP-MIB - Interface IP Address MIB parsing
+    #
+    def _parse_mibs_ip_address_table(self, oid: str, val: str) -> bool:
+        """
+        Parse a single OID with data returned from the "ipAddressIfIndex" Interface IP address MIBs.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"_parse_mibs_ip_address_table() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+
+        """
+        Find a device IP addresses. Returned OID is ipAddressIfIndex.<address-type>.<length>.<ip-address> = <if-index>
+        """
+        oid_ip_string = oid_in_branch(ipAddressIfIndex, oid)
+        if oid_ip_string:
+            # sub_oid return value is the string "<ip-type>.<lenth>.<ip-address>"
+            # "val" is ifIndex, validate that first. Note 'val' is already a "str" object:
+            iface = self.get_interface_by_key(key=val)
+            if iface:
+                # go parse the IP address:
+                parts = oid_ip_string.split('.', 1)  # split in 2, address-type, and the address
+                addr_type = int(parts[0])
+                dprint(f"  Interface '{iface.name}', IP type={addr_type}")
+                # the rest is IP, either v4 or v6
+                ip = get_ip_from_oid_index(index=parts[1], addr_type=addr_type)
+                # we currently only deal with IPv4:
+                if addr_type == IANA_TYPE_IPV4:
+                    dprint(f"    IPV4={ip}")
+                    # add to the interface:
+                    iface.add_ip4_network(address=ip, prefix_len=32)
+                elif addr_type == IANA_TYPE_IPV6:
+                    dprint("   IPV6 NOT HANDLED YET! Ignored!")
+                else:  # should not happen...
+                    dprint(f"INVALID IP ADDRESS TYPE {addr_type}")
+            else:
+                # should not happen!
+                dprint(f"ERROR: Interface NOT found for key '{val}'")
             return True
 
         # we did not parse the OID.
@@ -2669,6 +2717,10 @@ class SnmpConnector(Connector):
         if retval < 0:
             self.add_warning("Error getting 'IP-Address-Entries' (ipAddrTable)")
             return retval
+        # also try the newer entry ipAddressIfIndex from IP-MIB ipAddressTable:
+        retval = self.get_snmp_branch(branch_name='ipAddressIfIndex', parser=self._parse_mibs_ip_address_table)
+        if retval < 0:
+            self.add_warning("Error getting 'IP-Address-ifIndex' (ipAddressIfIndex)")
 
         return 1
 

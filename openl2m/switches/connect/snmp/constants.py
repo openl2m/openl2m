@@ -248,6 +248,7 @@ ipAddressAddr = '.1.3.6.1.2.1.4.34.1.2'
 # this is what we want: the ip address for an interface:
 # The index value that uniquely identifies the interface to which this entry is applicable.
 ipAddressIfIndex = '.1.3.6.1.2.1.4.34.1.3'
+snmp_mib_variables['ipAddressIfIndex'] = ipAddressIfIndex
 # this is ipAddressIfIndex.<address-type>.<length>.<ip-address> = <if-index>
 # eg: .1.3.6.1.2.1.4.34.1.3.1.4.10.96.2.33 = INTEGER: 16777716
 # ipv4 (1) address, length 4, ip=10.96.2.33 is on if-index 16777716
