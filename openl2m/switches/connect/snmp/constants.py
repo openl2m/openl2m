@@ -217,11 +217,23 @@ ipNetToMediaNetAddress = '.1.3.6.1.2.1.4.22.1.3'
 snmp_mib_variables['ipNetToMediaNetAddress'] = ipNetToMediaNetAddress
 
 #
-# the newer ipAddressTable
+# the newer ipAddressTable, from the IP-MIB:
+# https://www.rfc-editor.org/rfc/rfc4293
+# https://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.3.6.1.2.1.4.34
+#
 ipAddressTable = '.1.3.6.1.2.1.4.34'
 ipAddressEntry = '.1.3.6.1.2.1.4.34.1'
-# and the entries is this table:
-#
+# and the entries is this table are index via <address-type>.<length>.<ip-address> = <field value>
+# see the INDEX definition, not that ipAddressAddr = <length>.<ip-address>
+# ipAddressEntry OBJECT-TYPE
+#     SYNTAX     IpAddressEntry
+#     MAX-ACCESS not-accessible
+#     STATUS     current
+#     DESCRIPTION
+#            "An address mapping for a particular interface."
+#     INDEX { ipAddressAddrType, ipAddressAddr }
+#     ::= { ipAddressTable 1 }
+
 
 # The address type of ipAddressAddr.
 ipAddressType = '.1.3.6.1.2.1.4.34.1.1'
@@ -233,8 +245,12 @@ ipAddressType = '.1.3.6.1.2.1.4.34.1.1'
 # The IP address to which this entry's addressing information pertains.
 ipAddressAddr = '.1.3.6.1.2.1.4.34.1.2'
 
+# this is what we want: the ip address for an interface:
 # The index value that uniquely identifies the interface to which this entry is applicable.
 ipAddressIfIndex = '.1.3.6.1.2.1.4.34.1.3'
+# this is ipAddressIfIndex.<address-type>.<length>.<ip-address> = <if-index>
+# eg: .1.3.6.1.2.1.4.34.1.3.1.4.10.96.2.33 = INTEGER: 16777716
+# ipv4 (1) address, length 4, ip=10.96.2.33 is on if-index 16777716
 
 # The type of address. broadcast(3) is not a valid value for IPv6 addresses (RFC 3513).
 ipAddressType = '.1.3.6.1.2.1.4.34.1.4'
