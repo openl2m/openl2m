@@ -11,9 +11,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-from django.urls import path, register_converter
-
-from switches.urls import InterfaceNameConvertor
+from django.urls import path
 
 from switches.api.views import (
     APISwitchMenuView,
@@ -31,11 +29,6 @@ from switches.api.views import (
 )
 
 app_name = 'switches-api'
-
-register_converter(
-    InterfaceNameConvertor,
-    "ifname",
-)
 
 # api switch views
 urlpatterns = [
