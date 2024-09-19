@@ -54,7 +54,6 @@ from switches.connect.constants import (
     LLDP_CHASSIC_TYPE_NET_ADDR,
     visible_interfaces,
 )
-from switches.connect.netmiko.execute import NetmikoExecute
 
 # from django.contrib.auth.models import User
 
@@ -1030,6 +1029,7 @@ class Connector:
         with self.error.status and self.error.description set accordingly
         """
         dprint("netmiko_connect()")
+        self.error.clear()
         if not self.switch.netmiko_profile:
             dprint("  ERROR: No netmiko profile")
             self.error.status = True
@@ -1041,6 +1041,7 @@ class Connector:
         # try to connect, figure out device type to use:
         if self.netmiko_device_type:
             # hardcoded in driver!
+            dprint("  Device type hardcoded!")
             device_type = self.netmiko_device_type
         else:
             if self.netmiko_valid_device_types:
@@ -1050,9 +1051,13 @@ class Connector:
                     self.error.status = True
                     self.error.description = f"The Credentials Profile used has an invalid device type '{self.switch.netmiko_profile.device_type}'. Valid choices are {self.netmiko_valid_device_types}' Please ask the admin to correct this."
                     return False
+                dprint("  Device type valid!")
+            else:
+                dprint("  Device type: anything goes :-)")
             # set to selected device type:
             device_type = self.switch.netmiko_profile.device_type
         # connection attributes:
+        dprint(f"  Netmiko device_type: '{device_type}'")
         device = {
             'device_type': device_type,
             'host': self.switch.primary_ip4,
@@ -1099,6 +1104,8 @@ class Connector:
         Return:
             (boolean): True on success, False on error.
         """
+        dprint("netmiko_disable_paging()")
+        self.error.clear()
         if not self.netmiko_connection:
             dprint("  netmiko.disable_paging(): No connection yet, calling self.connect() (Huh?)")
             if not self.netmiko_connect():
@@ -1107,9 +1114,11 @@ class Connector:
             try:
                 self.netmiko_connection.disable_paging(self.netmiko_disable_paging_command)
             except Exception as err:
+                dprint(f"  ERROR disabling paging: {err}")
                 self.error.status = True
                 self.error.description = f"Error disabling SSH paging! {err}"
                 return False
+        dprint("netmiko_disable_paging() OK!")
         return True
 
     def netmiko_execute_command(self, command: str) -> bool:
@@ -1124,37 +1133,35 @@ class Connector:
             (boolean): True if success, False on failure.
         """
         dprint(f"netmiko_execute_command() '{command}'")
+        self.error.clear()
         self.netmiko_output = ''
         if not self.netmiko_connection:
             dprint("  netmiko.execute_command(): No connection yet, calling self.connect()")
             if not self.netmiko_connect():
                 return False
-        if self.netmiko_connection:
-            self.netmiko_disable_paging()
-            try:
-                self.output = self.netmiko_connection.send_command(command, read_timeout=settings.SSH_COMMAND_TIMEOUT)
-            except netmiko.exceptions.ReadTimeout as err:
-                dprint(f"  Netmiko.connection ReadTimeout: {repr(err)}")
-                self.netmiko_output = "Error: the command timed out!"
-                self.error.status = True
-                self.error.description = "Error: the command timed out!"
-                self.error.details = f"Netmiko Error: {repr(err)}"
-                return False
-            except Exception as err:
-                dprint(f"  Netmiko.connection error: {str(type(err))} - {repr(err)}")
-                self.netmiko_output = "Error sending command!"
-                self.error.status = True
-                self.error.description = "Error sending command!"
-                self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})"
-                return False
-            return True
-        else:
-            dprint("  Netmiko.connection not found! (Huh?)")
-            self.netmiko_output = "No connection found!"
+        if not self.netmiko_disable_paging():
+            return False
+        dprint("  sending command string...")
+        try:
+            self.netmiko_output = self.netmiko_connection.send_command(
+                command, read_timeout=settings.SSH_COMMAND_TIMEOUT
+            )
+        except netmiko.exceptions.ReadTimeout as err:
+            dprint(f"  Netmiko.connection ReadTimeout: {repr(err)}")
+            self.netmiko_output = "Error: the command timed out!"
+            self.error.status = True
+            self.error.description = "Error: the command timed out!"
+            self.error.details = f"Netmiko Error: {repr(err)}"
+            return False
+        except Exception as err:
+            dprint(f"  Netmiko.connection error: {str(type(err))} - {repr(err)}")
+            self.netmiko_output = "Error sending command!"
             self.error.status = True
             self.error.description = "Error sending command!"
-            self.error.details = "Netmiko: No Connection found!"
+            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})"
             return False
+        dprint("  netmiko_execute_command() OK!")
+        return True
 
     def run_command(self, command_id: int, interface_name: str = '') -> dict:
         '''
@@ -1225,17 +1232,12 @@ class Connector:
         cmd['state'] = 'run'
         cmd['id'] = command_id
         # now go do it:
-        nm = NetmikoExecute(self.switch)
-        if nm.execute_command(cmd['command']):
-            cmd['output'] = nm.output
-            del nm
+        if self.netmiko_execute_command(cmd['command']):
+            cmd['output'] = self.netmiko_output
         else:
             # error occured, pass it on
-            cmd['error_descr'] = nm.error.description
-            cmd['error_details'] = nm.error.details
-            self.error.status = True
-            self.error.description = nm.error.description
-            self.error.details = nm.error.details
+            cmd['error_descr'] = self.error.description
+            cmd['error_details'] = self.error.details
         return cmd
 
     def run_command_string(self, command_string: str) -> dict:
@@ -1263,17 +1265,13 @@ class Connector:
         }
         self.error.clear()
         # now go do it:
-        nm = NetmikoExecute(self.switch)
-        if nm.execute_command(command_string):
+        if self.netmiko_execute_command(command_string):
             cmd['output'] = nm.output
-            del nm
+            del self.netmiko_connection
         else:
             # error occured, pass it on
-            cmd['error_descr'] = nm.error.description
-            cmd['error_details'] = nm.error.details
-            self.error.status = True
-            self.error.description = nm.error.description
-            self.error.details = nm.error.details
+            cmd['error_descr'] = self.error.description
+            cmd['error_details'] = self.error.details
         return cmd
 
     def set_do_not_cache_attribute(self, name: str):
