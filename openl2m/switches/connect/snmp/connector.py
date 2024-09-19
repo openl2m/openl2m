@@ -722,6 +722,7 @@ class SnmpConnector(Connector):
             (error, ret_val): tuple where error is True on error, and self.error() is set.
                             ret_val is the return value from ezsnmp.get() call.
         """
+        dprint(f"SnmpConnector.get(oid={oid})")
         self.error.clear()
 
         # Set a variable using an SNMP SET
@@ -730,8 +731,8 @@ class SnmpConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Timeout or Access denied"
-            self.error.details = f"SNMP Error: get {oid}: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            dprint(f"   get({oid}): Exception: {e.__class__.__name__}\n{self.error.details}\n")
+            self.error.details = f"SNMP Get Error in {e.__class__.__name__}: oid '{oid}': {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            dprint(f"   ERROR in get() - Details:\n{self.error.details}\n")
             return (True, None)
 
         # parse the data, just like returns from get_branch()
@@ -826,6 +827,7 @@ class SnmpConnector(Connector):
         Returns True if success.
         On failure, returns False, and self.error.X will be set
         """
+        dprint(f"SnmpConnector.set(oid={oid}, value={value}, snmp_type={snmp_type})")
         # Set a variable using an SNMP SET
         self.error.clear()
         try:
@@ -834,8 +836,8 @@ class SnmpConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Access denied"
-            self.error.details = f"SNMP Error: oid {oid}, {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            dprint(f"   set({oid}): Exception: {e.__class__.__name__}\n{self.error.details}\n")
+            self.error.details = f"SNMP Set Error in {e.__class__.__name__}: oid '{oid}', value '{value}', value type '{type(value)}' snmp_type '{snmp_type}', Details: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            dprint(f"   ERROR in set() - Details:\n{self.error.details}\n")
             return False
 
         # parse the data, just like returns from get_branch()
@@ -854,6 +856,7 @@ class SnmpConnector(Connector):
         local oid cache to track the change.
         On failure, returns False, and self.error.X will be set
         """
+        dprint(f"SnmpConnector.set_multiple(oid_values={oid_values})")
         # here we go:
         self.error.clear()
         try:
@@ -862,8 +865,8 @@ class SnmpConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Access denied"
-            self.error.details = f"SNMP Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            dprint(f"   set_multiple(): Exception: {e.__class__.__name__}\n{self.error.details}\n")
+            self.error.details = f"SNMP Set-Multiple Error in {e.__class__.__name__}: oid values '{oid_values}', error {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            dprint(f"   ERROR in set_multiple() - Details:\n{self.error.details}\n")
             return False
 
         return True
