@@ -64,6 +64,18 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         self.can_edit_vlans = False
         self.can_set_vlan_name = False  # vlan create/delete allowed over snmp, but cannot set name!
 
+        # Netmiko is used for SSH connections. Here are some defaults a class can set.
+        #
+        # device_type:
+        # if set, will be a value that will override (ie. hardcode) values from the
+        # "Credentials Profile" (aka the NetmikoProfile() object)
+        self.netmiko_device_type = "arista_eos"
+        # no need to override default of netmiko_valid_device_types[]
+        #
+        # the command that should be sent to disable screen paging
+        # (defaults in the netmiko library to "terminal length 0")
+        self.netmiko_disable_paging_command = "terminal length 0"  # by default EOS cli sessions have paging disabled!
+
     def get_my_basic_info(self) -> bool:
         """
         We override "Get the basic info" to parse the vlans on interfaces.

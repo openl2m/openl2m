@@ -147,6 +147,20 @@ class Connector:
         # set this flag is a save aka. 'write mem' is needed:
         self.save_needed = False
 
+        # Netmiko is used for SSH connections. Here are some defaults a class can set.
+        #
+        # device_type:
+        # if set, will be a value that will override (ie. hardcode) values from the
+        # "Credentials Profile" (aka the NetmikoProfile() object)
+        self.netmiko_device_type = ""
+        # if netmiko_device_type is not set, the netmiko_valid_device_types is a  list()
+        # with the valid device_type choices a driver should allow in the
+        # "Credentials Profile". Any other value will trigger an error, and fail the SSH connection.
+        self.netmiko_valid_device_types = []
+        # the command that should be sent to disable screen paging
+        # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
+        self.netmiko_disable_paging_command = "terminal length 0"
+
         # physical device related:
         self.vendor_data: Dict[str, Any] = {}  # dictionary to keep vendor-specific data
         self.hardware_details_needed = True  # True if we still need to read more hardware info (eg. the Entity tables)

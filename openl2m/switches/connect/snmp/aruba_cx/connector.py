@@ -77,6 +77,18 @@ class SnmpConnectorArubaCx(SnmpConnector):
         self.can_change_vlan = True
         self.can_set_vlan_name = False  # vlan create/delete allowed over snmp, but cannot set name!
 
+        # Netmiko is used for SSH connections. Here are some defaults a class can set.
+        #
+        # device_type:
+        #   if set, will be a value that will override (ie. hardcode) values from the
+        #   "Credentials Profile" (aka the NetmikoProfile() object)
+        self.netmiko_device_type = "aruba_aoscx"
+        # no need to override default of netmiko_valid_device_types[]
+        #
+        # the command that should be sent to disable screen paging
+        # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
+        self.netmiko_disable_paging_command = "no page"
+
         # we recommend using the AOS-CX API driver, tell the user so:
         self.add_warning(
             "We recommend using the AOS-CX API driver for this device. Please contact your OpenL2M administrator!"

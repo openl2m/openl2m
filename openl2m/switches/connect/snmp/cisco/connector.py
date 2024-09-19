@@ -98,6 +98,20 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         self.stack_port_to_if_index: Dict[int, int] = {}  # maps (Cisco) stacking port to ifIndex values
 
+        # Netmiko is used for SSH connections. Here are some defaults a class can set.
+        #
+        # device_type:
+        # if set, will be a value that will override (ie. hardcode) values from the
+        # "Credentials Profile" (aka the NetmikoProfile() object)
+        self.netmiko_device_type = ""
+        # if netmiko_device_type is not set, the netmiko_valid_device_types is a  list()
+        # with the valid device_type choices a driver should allow in the
+        # "Credentials Profile". Any other value will trigger an error, and fail the SSH connection.
+        self.netmiko_valid_device_types = ['cisco_asa', 'cisco_ios', 'cisco_nxos', 'cisco_xe', 'cisco_xr']
+        # the command that should be sent to disable screen paging
+        # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
+        self.netmiko_disable_paging_command = "terminal length 0"
+
     def _get_interface_data(self) -> bool:
         """
         Implement an override of the interface parsing routine,

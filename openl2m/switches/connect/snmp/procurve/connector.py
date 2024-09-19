@@ -54,6 +54,18 @@ class SnmpConnectorProcurve(SnmpConnector):
         self.description = 'Aruba Networks (HP/ProCurve) SNMP driver'
         self.vendor_name = "Aruba Networks (HP/Procurve)"
 
+        # Netmiko is used for SSH connections. Here are some defaults a class can set.
+        #
+        # device_type:
+        # if set, will be a value that will override (ie. hardcode) values from the
+        # "Credentials Profile" (aka the NetmikoProfile() object)
+        self.netmiko_device_type = "hp_procurve"
+        # no need to override default of netmiko_valid_device_types[]
+        #
+        # the command that should be sent to disable screen paging
+        # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
+        self.netmiko_disable_paging_command = "no page"
+
         # some capabilities we cannot do:
         self.can_save_config = False  # not needed on ProCurve, it has auto-save!
 

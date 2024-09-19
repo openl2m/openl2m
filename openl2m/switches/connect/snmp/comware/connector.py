@@ -74,6 +74,18 @@ class SnmpConnectorComware(SnmpConnector):
         # needed for saving config file:
         self.active_config_rows = 0
 
+        # Netmiko is used for SSH connections. Here are some defaults a class can set.
+        #
+        # device_type:
+        # if set, will be a value that will override (ie. hardcode) values from the
+        # "Credentials Profile" (aka the NetmikoProfile() object)
+        self.netmiko_device_type = "hp_comware"
+        # no need to override default of netmiko_valid_device_types[]
+        #
+        # the command that should be sent to disable screen paging
+        # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
+        self.netmiko_disable_paging_command = "screen-length disable"
+
         """
         # capabilities of the Comware snmp driver are identical to the snmp driver:
         self.can_change_admin_status = True

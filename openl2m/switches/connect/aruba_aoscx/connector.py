@@ -79,6 +79,18 @@ class AosCxConnector(Connector):
         self.description = "Aruba AOS-CX API driver"
         self.vendor_name = "Aruba Networks"
 
+        # Netmiko is used for SSH connections. Here are some defaults a class can set.
+        #
+        # device_type:
+        # if set, will be a value that will override (ie. hardcode) values from the
+        # "Credentials Profile" (aka the NetmikoProfile() object)
+        self.netmiko_device_type = "aruba_aoscx"
+        # no need to override default of netmiko_valid_device_types[]
+        #
+        # the command that should be sent to disable screen paging
+        # (defaults in the netmiko library to "terminal length 0")
+        self.netmiko_disable_paging_command = "no page"
+
         # this is a read-write driver:
         self.switch.read_only = False
         # this will be the pyaoscx driver session object
