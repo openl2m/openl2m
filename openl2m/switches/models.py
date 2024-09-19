@@ -27,7 +27,7 @@ from django.utils import timezone
 from ordered_model.models import OrderedModelManager, OrderedModel
 
 import switches.constants as constants
-from switches.connect.netmiko.constants import NETMIKO_DEVICE_TYPES, NAPALM_DEVICE_TYPES
+from switches.connect.constants import NETMIKO_DEVICE_TYPES, NAPALM_DEVICE_TYPES
 from switches.utils import is_valid_hostname_or_ip
 
 
