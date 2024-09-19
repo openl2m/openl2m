@@ -568,7 +568,7 @@ class PyEZConnector(Connector):
             commands.append(f"delete interfaces {interface.name} disable")
         else:
             commands.append(f"set interfaces {interface.name} disable")
-        if self.execute_commands(commands=commands):
+        if self.pyez_execute_commands(commands=commands):
             # now do the bookkeeping:
             super().set_interface_admin_status(interface=interface, new_state=new_state)
             self._close_device()
@@ -598,7 +598,7 @@ class PyEZConnector(Connector):
             commands.append(f"delete poe interface {interface.name} disable")
         else:  # "off"
             commands.append(f"set poe interface {interface.name} disable")
-        if self.execute_commands(commands=commands):
+        if self.pyez_execute_commands(commands=commands):
             # call the super class for bookkeeping.
             super().set_interface_poe_status(interface, new_state)
             self._close_device()
@@ -638,7 +638,7 @@ class PyEZConnector(Connector):
             commands.append(
                 f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {vlan.name}"
             )
-        if self.execute_commands(commands=commands):
+        if self.pyez_execute_commands(commands=commands):
             # call the super class for bookkeeping.
             super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
             self._close_device()
@@ -672,7 +672,7 @@ class PyEZConnector(Connector):
 
         commands = []
         commands.append(f"set vlans {vlan_name} vlan-id {vlan_id}")
-        if self.execute_commands(commands=commands):
+        if self.pyez_execute_commands(commands=commands):
             # all OK, now do the book keeping
             super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
             self._close_device()
@@ -714,7 +714,7 @@ class PyEZConnector(Connector):
 
         commands = []
         commands.append(f"rename vlans {vlan.name} to {vlan_name}")
-        if self.execute_commands(commands=commands):
+        if self.pyez_execute_commands(commands=commands):
             # all OK, now do the book keeping
             super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
             self._close_device()
@@ -750,7 +750,7 @@ class PyEZConnector(Connector):
 
         commands = []
         commands.append(f"delete vlans {vlan.name}")
-        if self.execute_commands(commands=commands):
+        if self.pyez_execute_commands(commands=commands):
             # all OK, now do the book keeping
             super().vlan_delete(vlan_id=vlan_id)
             self._close_device()
@@ -781,7 +781,7 @@ class PyEZConnector(Connector):
             commands.append(f'set interfaces {interface.name} description "{description}"')
         else:  # "off"
             commands.append(f"delete interfaces {interface.name} description")
-        if self.execute_commands(commands=commands):
+        if self.pyez_execute_commands(commands=commands):
             # call the super class for bookkeeping.
             super().set_interface_description(interface=interface, description=description)
             self._close_device()
@@ -791,7 +791,7 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
-    def execute_commands(self, commands: list, format: str = 'set') -> bool:
+    def pyez_execute_commands(self, commands: list, format: str = 'set') -> bool:
         '''
         Execute a list of command string(s) on the device. Defaults to 'set' format.
 
@@ -802,7 +802,7 @@ class PyEZConnector(Connector):
         Returns:
             (boolean) True on success, False on error and set self.error variables
         '''
-        dprint(f"PyEZ.execute_commands(): format={format}, '{commands}'")
+        dprint(f"PyEZ.pyez_execute_commands(): format={format}, '{commands}'")
         try:
             conf = Config(self.device)  # we assume this is open!
             conf.lock()
