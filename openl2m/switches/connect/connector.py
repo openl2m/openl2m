@@ -13,11 +13,13 @@
 #
 from collections import OrderedDict
 import datetime
+import jsonpickle
 import lib.manuf.manuf as manuf
 import natsort
-import jsonpickle
+import netmiko
 import re
 import time
+import traceback
 from typing import Any, Dict, List
 
 from django.conf import settings
@@ -147,7 +149,7 @@ class Connector:
         # set this flag is a save aka. 'write mem' is needed:
         self.save_needed = False
 
-        # Netmiko is used for SSH connections. Here are some defaults a class can set.
+        # Netmiko is used for SSH connections to run commands. Here are some defaults a class can set.
         #
         # device_type:
         # if set, will be a value that will override (ie. hardcode) values from the
@@ -160,6 +162,11 @@ class Connector:
         # the command that should be sent to disable screen paging
         # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
         self.netmiko_disable_paging_command = "terminal length 0"
+        # variable to deal with the SSH connection:
+        self.netmiko_connection = False  # return from Netmiko.ConnectHandler()
+        # self.netmiko_timeout = settings.SSH_TIMEOUT  # should be SSH timeout/retry values
+        # self.netmiko_retries = settings.SSH_RETRIES
+        self.netmiko_output = ""  # any output from a netmiko/ssh command executed.
 
         # physical device related:
         self.vendor_data: Dict[str, Any] = {}  # dictionary to keep vendor-specific data
@@ -1010,6 +1017,144 @@ class Connector:
             True or False
         '''
         return True
+
+    """
+    SSH connectivity uses the Netmiko library to connect to a device.
+    The varous ssh_* functions implement the netmiko/ssh connection.
+    """
+
+    def netmiko_connect(self) -> bool:
+        """
+        Establish the connection
+        return True on success, False on error,
+        with self.error.status and self.error.description set accordingly
+        """
+        dprint("netmiko_connect()")
+        if not self.switch.netmiko_profile:
+            dprint("  ERROR: No netmiko profile")
+            self.error.status = True
+            self.error.description = (
+                'Device configuration does not have a Credentials Profile! Please ask the admin to correct this.'
+            )
+            return False
+
+        # try to connect, figure out device type to use:
+        if self.netmiko_device_type:
+            # hardcoded in driver!
+            device_type = self.netmiko_device_type
+        else:
+            if self.netmiko_valid_device_types:
+                # we have device_type choices configured,
+                # make sure we have a netmiko_profile that matches a choice
+                if self.switch.netmiko_profile.device_type not in self.netmiko_valid_device_types:
+                    self.error.status = True
+                    self.error.description = f"The Credentials Profile used has an invalid device type '{self.switch.netmiko_profile.device_type}'. Valid choices are {self.netmiko_valid_device_types}' Please ask the admin to correct this."
+                    return False
+            # set to selected device type:
+            device_type = self.switch.netmiko_profile.device_type
+        # connection attributes:
+        device = {
+            'device_type': device_type,
+            'host': self.switch.primary_ip4,
+            'username': self.switch.netmiko_profile.username,
+            'password': self.switch.netmiko_profile.password,
+            'port': self.switch.netmiko_profile.tcp_port,
+        }
+
+        try:
+            handle = netmiko.ConnectHandler(**device)
+        except netmiko.NetMikoTimeoutException:
+            dprint("netmiko_connect(): ERROR NetMikoTimeoutException")
+            self.error.status = True
+            self.error.description = "Connection time-out! Please ask the admin to verify the switch hostname or IP, or change the SSH_COMMAND_TIMEOUT configuration."
+            return False
+        except netmiko.NetMikoAuthenticationException:
+            dprint("netmiko_connect(): ERROR NetMikoAuthenticationException")
+            self.error.status = True
+            self.error.description = "Access denied! Please ask the admin to correct the switch credentials."
+            return False
+        except netmiko.exceptions.ReadTimeout as err:
+            dprint(f"netmiko_connect(): ERROR ReadTimeout: {repr(err)}")
+            self.output = "Error: the connection attempt timed out!"
+            self.error.status = True
+            self.error.description = "Error: the connection attempt timed out!"
+            self.error.details = f"Netmiko Error: {repr(err)}"
+            return False
+        except Exception as err:
+            dprint(f"netmiko_connect(): ERROR Generic Error: {str(type(err))}")
+            self.error.status = True
+            self.error.description = "SSH Connection denied! Please inform your admin."
+            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            return False
+
+        dprint("  connection OK!")
+        self.netmiko_connection = handle
+        return True
+
+    def netmiko_disable_paging(self) -> bool:
+        """
+        Disable paging, ie the "hit a key" for more
+        We call the Netmiko built-in function
+
+        Return:
+            (boolean): True on success, False on error.
+        """
+        if not self.netmiko_connection:
+            dprint("  netmiko.disable_paging(): No connection yet, calling self.connect() (Huh?)")
+            if not self.netmiko_connect():
+                return False
+        if self.netmiko_connection:
+            try:
+                self.netmiko_connection.disable_paging(self.netmiko_disable_paging_command)
+            except Exception as err:
+                self.error.status = True
+                self.error.description = f"Error disabling SSH paging! {err}"
+                return False
+        return True
+
+    def netmiko_execute_command(self, command: str) -> bool:
+        """
+        Execute a single command on the device.
+        Save the command output to self.output
+
+        Args:
+            command: the string the execute as a command on the device
+
+        Returns:
+            (boolean): True if success, False on failure.
+        """
+        dprint(f"netmiko_execute_command() '{command}'")
+        self.netmiko_output = ''
+        if not self.netmiko_connection:
+            dprint("  netmiko.execute_command(): No connection yet, calling self.connect()")
+            if not self.netmiko_connect():
+                return False
+        if self.netmiko_connection:
+            self.netmiko_disable_paging()
+            try:
+                self.output = self.netmiko_connection.send_command(command, read_timeout=settings.SSH_COMMAND_TIMEOUT)
+            except netmiko.exceptions.ReadTimeout as err:
+                dprint(f"  Netmiko.connection ReadTimeout: {repr(err)}")
+                self.netmiko_output = "Error: the command timed out!"
+                self.error.status = True
+                self.error.description = "Error: the command timed out!"
+                self.error.details = f"Netmiko Error: {repr(err)}"
+                return False
+            except Exception as err:
+                dprint(f"  Netmiko.connection error: {str(type(err))} - {repr(err)}")
+                self.netmiko_output = "Error sending command!"
+                self.error.status = True
+                self.error.description = "Error sending command!"
+                self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})"
+                return False
+            return True
+        else:
+            dprint("  Netmiko.connection not found! (Huh?)")
+            self.netmiko_output = "No connection found!"
+            self.error.status = True
+            self.error.description = "Error sending command!"
+            self.error.details = "Netmiko: No Connection found!"
+            return False
 
     def run_command(self, command_id: int, interface_name: str = '') -> dict:
         '''
