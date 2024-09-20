@@ -13,6 +13,7 @@
       {% for pse_index, pse in connection.poe_pse_devices.items %}
         <tr><td><strong>PSE #{{ pse_index }}:</strong></td><td>{{ pse.status|get_poe_pse_status }},
           Max {{ pse.max_power }} Watts, Using {{ pse.power_consumed }} W ({{ pse.power_consumed|as_percentage_of:pse.max_power }}), Threshold = {{ pse.threshold }}%.
+          {% if pse.description %}<br />{{ pse.description}}{% endif %}
         </td></tr>
       {% endfor %}
       </tbody>
