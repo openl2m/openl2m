@@ -14,7 +14,7 @@
 import datetime
 import traceback
 
-from switches.utils import dprint, dvar
+from switches.utils import dprint, dvar, dobject
 from switches.constants import LOG_TYPE_ERROR, LOG_AOSCX_ERROR_GENERIC
 from switches.connect.classes import Interface, PoePort, NeighborDevice
 from switches.connect.connector import Connector
@@ -137,7 +137,43 @@ class AosCxConnector(Connector):
             )
             return False
 
-        # dobject(aoscx_device, "AosCxDevice:")
+        # dobject(aoscx_device, "\n\nAosCxDevice:\n\n")
+
+        # sub-systems has information about power supplies, etc.
+        aoscx_device.get_subsystems()
+        dobject(aoscx_device, "\n\nAosCxDevice-SubSystems:\n\n")
+
+        # this has info about each subsystem in the environment:
+        ps_id = 1  # power supply ID, starting at 1
+        for name, subsystem in aoscx_device.subsystems.items():
+            # format is 'subsys-name,unit-id'
+            (subsys_name, subsys_id) = name.split(",", 1)  # split once, we want just 2 components.
+            if subsys_name == 'chassis':
+                if subsystem['product_info']['part_number']:
+                    # this is an existing chassis, not an empty "data slot"
+                    dprint(f"  Found CHASSIS #{subsys_id}")
+                    # for the first chassis, add some info:
+                    if int(subsys_id) == 1:
+                        self.add_more_info(
+                            'System',
+                            'Type',
+                            f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})",
+                        )
+                        self.add_more_info('System', 'Serial', subsystem['product_info']['serial_number'])
+
+                    # we also want 'power_supplies' information for this chassis:
+                    if 'power_supplies' in subsystem:
+                        for ps_name, ps in subsystem['power_supplies'].items():
+                            dprint(f"\n  FOUND PS INFO for {ps_name}\n{ps}\n")
+                            if ps['status'] == 'ok':
+                                # get used and max power:
+                                used = int(ps['characteristics']['instantaneous_power'])
+                                max = int(ps['characteristics']['maximum_power'])
+                                dprint("  MAX: {max} W, used {used} W")
+                                new_ps = self.add_poe_powersupply(id=ps_id, power_available=max)
+                                new_ps.set_consumed_power(power=used)
+                                self.poe_power_consumed += used  # total value
+                                ps_id += 1
 
         # aoscx_config = AosCxConfiguration(session=self.aoscx_session)
         # dobject(aoscx_config, "AosCxConfiguration:")
@@ -153,7 +189,8 @@ class AosCxConnector(Connector):
         # self.add_more_info('System', 'Firmware Version', aoscx_device.firmware_version)
         if 'build_date' in aoscx_device.software_info:
             self.add_more_info('System', 'Firmware Info', f"Build date: {aoscx_device.software_info['build_date']}")
-        self.add_more_info('System', 'Platform', aoscx_device.platform_name)
+        # this same info is in 'Type' above:
+        # self.add_more_info('System', 'Platform', aoscx_device.platform_name)
 
         # if aoscx_device.hostname:  # this is None when not set!
         #     self.add_more_info('System', 'Hostname', self.hostname)

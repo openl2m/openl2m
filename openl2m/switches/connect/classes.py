@@ -643,6 +643,20 @@ class PoePSE:
         except Exception:
             self.consumed_power = 0
 
+    def add_consumed_power(self, power: int) -> None:
+        '''
+        Add to the consumed power consumed.
+        Args:
+            power (int): the consumed power, in WATTS!
+
+        Returns:
+            n/a
+        '''
+        try:
+            self.power_consumed += int(power)
+        except Exception:
+            dprint(f"add_consumed_power(): INVALID argument '{power}'")
+
     def display_name(self) -> str:
         return f"PS #{self.index}"
 
