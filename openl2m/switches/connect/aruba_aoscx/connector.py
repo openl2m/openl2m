@@ -90,6 +90,9 @@ class AosCxConnector(Connector):
         # the command that should be sent to disable screen paging
         # (defaults in the netmiko library to "terminal length 0")
         self.netmiko_disable_paging_command = "no page"
+        # even though there is now a Netmiko 'aruba_aoscx' driver, we still see prompt time-outs.
+        # setting this to True disables prompt checking, and uses send_command_timing() calls.
+        self.netmiko_ignore_prompt = True
 
         # this is a read-write driver:
         self.switch.read_only = False

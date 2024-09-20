@@ -161,6 +161,9 @@ class Connector:
         # the command that should be sent to disable screen paging
         # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
         self.netmiko_disable_paging_command = "terminal length 0"
+        # some netmiko devices  when executing commands with send_command() have problems with prompt parsing.
+        # setting this to True disables prompt checking, and uses send_command_timing() calls.
+        self.netmiko_ignore_prompt = False
         # variable to deal with the SSH connection:
         self.netmiko_connection = False  # return from Netmiko.ConnectHandler()
         # self.netmiko_timeout = settings.SSH_TIMEOUT  # should be SSH timeout/retry values
@@ -1145,9 +1148,18 @@ class Connector:
             return False
         dprint("  sending command string...")
         try:
-            self.netmiko_output = self.netmiko_connection.send_command(
-                command, read_timeout=settings.SSH_COMMAND_TIMEOUT
-            )
+            if self.netmiko_ignore_prompt:
+                dprint("  using send_command_timing()!")
+                self.netmiko_output = self.netmiko_connection.send_command_timing(
+                    command,
+                    read_timeout=settings.SSH_COMMAND_TIMEOUT,
+                )
+            else:
+                # regular with prompt parsing:
+                self.netmiko_output = self.netmiko_connection.send_command(
+                    command,
+                    read_timeout=settings.SSH_COMMAND_TIMEOUT,
+                )
         except netmiko.exceptions.ReadTimeout as err:
             dprint(f"  Netmiko.connection ReadTimeout: {repr(err)}")
             self.netmiko_output = "Error: the command timed out!"
