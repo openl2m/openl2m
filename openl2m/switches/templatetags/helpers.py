@@ -734,7 +734,10 @@ def humanize_power(power):
 # from https://stackoverflow.com/questions/2751319/is-there-a-django-template-filter-to-display-percentages
 @register.filter
 def as_percentage_of(part, whole):
+    if whole == 0:
+        return "0%"
     try:
         return "%d%%" % (float(part) / whole * 100)
     except (ValueError, ZeroDivisionError):
-        return ""
+        return "0%"
+    return "unknown %"
