@@ -174,6 +174,12 @@ class AosCxConnector(Connector):
                                 new_ps.set_consumed_power(power=used)
                                 self.poe_power_consumed += used  # total value
                                 ps_id += 1
+                                # set a few more attributes, currently not displayed yet (9/2024)
+                                new_ps.name = ps['name']
+                                new_ps.description = ps['identity']['description']
+                                new_ps.model = ps['identity']['model_number']
+                                new_ps.part_number = ps['identity']['product_name']
+                                new_ps.serial = ps['identity']['serial_number']
 
         # aoscx_config = AosCxConfiguration(session=self.aoscx_session)
         # dobject(aoscx_config, "AosCxConfiguration:")

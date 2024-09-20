@@ -594,6 +594,12 @@ class PoePSE:
         self.status: int = POE_PSE_STATUS_ON
         self.power_consumed: int = 0  # total power consumed on this power supply
         self.threshold: int = 0
+        # some drivers have this easily available:
+        self.name = ""
+        self.description = ""
+        self.model = ""
+        self.part_number = ""
+        self.serial = ""
 
     def as_dict(self) -> dict:
         '''
