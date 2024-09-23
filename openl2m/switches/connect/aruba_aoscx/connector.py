@@ -141,7 +141,7 @@ class AosCxConnector(Connector):
 
         # sub-systems has information about power supplies, etc.
         aoscx_device.get_subsystems()
-        dobject(aoscx_device, "\n\nAosCxDevice-SubSystems:\n\n")
+        # dobject(aoscx_device, "\n\nAosCxDevice-SubSystems:\n\n")
 
         # this has info about each subsystem in the environment:
         ps_id = 1  # power supply ID, starting at 1
