@@ -117,6 +117,9 @@ AOS-CX REST API v10.08 Guide: https://www.arubanetworks.com/techdocs/AOS-CX/10.0
 
 The pyasocx library is at https://github.com/aruba/pyaoscx/
 
+AOS-CX SNMP Capabilities are documented here (for v10.14, Sept 2024):
+https://www.arubanetworks.com/techdocs/AOS-CX/10.14/HTML/snmp_mib/Content/Chp_SNMP/snm.htm
+
 
 Junos PyEZ
 ----------

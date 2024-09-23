@@ -20,6 +20,8 @@ Planned Improvements:
 * :strike:`parse the newer SNMP 'ipAddressTable' mib entries for device interface address information.`
 * :strike:`parse the newer SNMP 'ipNetToPhysicalTable' mib entries for ARP info.`
 * automatically set SSH connection type for drivers that should know this.
+* :strike:`update to Django 5.1`
+* add Python 3.12 compability: requires reworking of 'pysnmp' code.
 
 
 Features Being Considered

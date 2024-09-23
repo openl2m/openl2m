@@ -24,3 +24,15 @@ for additional data.
    snmp-discover-interface.rst
    snmp-discover-vrf.rst
    snmp-vlan-add-del.rst
+
+Additional vendor-specific SNMP drivers information is here:
+
+.. toctree::
+   :maxdepth: 1
+
+   arista-eos-driver.rst
+   aos-cx-driver.rst
+   cisco-driver.rst
+   hpe-comware-driver.rst
+   hp-procurve-driver.rst
+   juniper-driver.rst

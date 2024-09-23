@@ -23,3 +23,4 @@ in the library, so that data is not available in OpenL2M.)
    :caption: Here is more information about the Aruba AOS-CX API driver:
 
    aos-cx-driver.rst
+   powersupplies.rst

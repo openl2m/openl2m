@@ -15,10 +15,14 @@ Release Date: TBD
 * support Aruba AOS-CX devices for SSH commands (from Netmiko v4.4 library)
 * read the SNMP ipAddressIfIndex MIB entries to find interface (ipv4) addresses.
 * read the SNMP ipNetToPhysical MIB entries to find (ipv4) ARP data.
+* add Top-N page to show recent active devices and users (in menu)
+* improvements to the developer documentation
 
 Bug fixes:
 
-/opt/openl2m/openl2m/switches/api/urls.py:35: RemovedInDjango60Warning: Converter 'ifname' is already registered. Support for overriding registered converters is deprecated and will be removed in Django 6.0.
+* remove duplicate 'ifname' url convertor (deprecated in Django 6)
+* update the Django framework to v5.1
+
 
 Version 3.3
 -----------
@@ -48,3 +52,4 @@ Bug fixes:
 * improved handling of device hardware details.
 * fix crash and allow ":" in interface names.
 * more details in SNMP errors.
+* simplify logging in the driver classes.

@@ -11,3 +11,4 @@ Using OpenL2M
    navigation.rst
    basic_view.rst
    details_view.rst
+   icons.rst

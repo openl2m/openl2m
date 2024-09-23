@@ -36,7 +36,7 @@ __Devices Supported:__
 * HP/Aruba Procurve switches (via SNMP)
 * HPE Comware switches (via SNMP)
 * Arista devices (via SNMP)
-* Juniper devices (via Junos PyEz API)
+* Juniper "ELS" devices (via Junos PyEz API)
 * Cisco switches (some, via SNMP)
 * Generic SNMP devices
 * Any device supported by the Netmiko library (see SSH devices)
