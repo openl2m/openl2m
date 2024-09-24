@@ -188,6 +188,13 @@ class SnmpConnectorArubaCx(SnmpConnector):
         if retval < 0:
             return retval
 
+        # this adds no new information:
+        # # and get dot1qVlanStaticUntaggedPorts, this could have some more untagged vlan info on tagged ports.
+        # retval = self.get_snmp_branch(branch_name='dot1qVlanStaticUntaggedPorts', parser=self._parse_mibs_vlan_related)
+        # if retval < 0:
+        #     self.add_warning("Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
+        #     return retval
+
         return self.vlan_count
 
     def get_my_hardware_details(self) -> bool:
