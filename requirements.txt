@@ -69,6 +69,7 @@ redis
 six
 Sphinx
 sphinx_rtd_theme
+sphinx-design
 textfsm
 PyYAML>=6.0
 pipenv

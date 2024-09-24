@@ -14,6 +14,8 @@ Documentation
 Sphinx is used to handle the ReStructuredText this documentation is written in.
 Get started here:  https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html
 
+We use SPhinx-Design to make life easier: https://sphinx-design.readthedocs.io/en/latest/get_started.html
+
 Python doc string options are nicely described here:
 https://stackoverflow.com/questions/3898572/what-is-the-standard-python-docstring-format
 
