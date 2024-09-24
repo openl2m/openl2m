@@ -127,6 +127,7 @@ from switches.connect.snmp.constants import (
     dot1qVlanStatus,
     dot1qVlanStaticEgressPorts,
     dot1qVlanStaticName,
+    dot1qVlanStaticUntaggedPorts,
     dot1qVlanStaticRowStatus,
     dot1qPvid,
     dot1dBasePortIfIndex,
@@ -988,6 +989,7 @@ class SnmpConnector(Connector):
         Returns:
             none
         """
+        dprint(f"_get_untagged_ports_from_vlan_bitmap() for vlan {vlan_id}")
         offset = 0
         for byte in byte_string:
             byte = ord(byte)
@@ -1306,17 +1308,18 @@ class SnmpConnector(Connector):
             return True
         """
 
-        """
         # this is the bitmap of static untagged ports in vlans (see also above dot1qVlanCurrentEgressPorts)
         vlan_id = int(oid_in_branch(dot1qVlanStaticUntaggedPorts, oid))
         if vlan_id:
+            dprint("FOUND: dot1qVlanStaticUntaggedPorts")
             if vlan_id not in self.vlans.keys():
                 # unlikely, we should know by now, but just in case
                 self.add_vlan_by_id(vlan_id=vlan_id)
             # store for later use:
-            # self.vlans[vlan_id].untagged_ports_bitmap = val
+            # self.vlans[vlan_id].untagged_ports_bitmap.from_unicode(val)
+            # now look at all the bits in this multi-byte value to find ports on this vlan:
+            self._get_untagged_ports_from_vlan_bitmap(vlan_id=int(vlan_id), byte_string=val)
             return True
-        """
 
         # List of all egress ports of a VLAN (tagged + untagged) as a hexstring
         # dot1qVlanCurrentEgressPorts
@@ -2325,7 +2328,7 @@ class SnmpConnector(Connector):
                 # interface already has this untagged vlan, not adding
                 return True
             else:
-                dprint("   PVID now set!")
+                dprint(f"   PVID was {self.interfaces[if_index].untagged_vlan}, now set!")  # should not happend
                 self.interfaces[if_index].untagged_vlan = vlan_id
                 return True
         dprint(f"if_index '{if_index}' not found!")
