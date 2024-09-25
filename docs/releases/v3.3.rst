@@ -10,13 +10,16 @@ on devices that support it.**
 Version 3.3.1
 -------------
 
-Release Date: TBD
+Release Date: 2024-09-25
 
 * support Aruba AOS-CX devices for SSH commands (from Netmiko v4.4 library)
 * read the SNMP ipAddressIfIndex MIB entries to find interface (ipv4) addresses.
 * read the SNMP ipNetToPhysical MIB entries to find (ipv4) ARP data.
+* add descriptions to power supplies where available.
 * add Top-N page to show recent active devices and users (in menu)
-* improvements to the developer documentation
+* add documentation showing icons used.
+* improvements to the developer documentation.
+* simplify SSH (Netmiko) implementation (into driver base code)
 
 Bug fixes:
 
