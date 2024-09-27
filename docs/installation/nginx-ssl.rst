@@ -30,9 +30,9 @@ First we create the directory to hold your SSL keys and certificate:
 
 .. code-block:: bash
 
-  mkdir /etc/nginx/ssl
+  sudo mkdir /etc/nginx/ssl
   cd /etc/nginx/ssl
-  chmod g-rwx,o-rws .
+  sudo chmod g-rwx,o-rws .
 
 **This assumes your private key is installed in /etc/nginx/ssl,
 and that this directory is only accessible by the 'root' account.
@@ -44,7 +44,7 @@ change this as appropriate.**
 Run the following command to generate a good base for the SSL encryption. This will take a while, be patient::
 
 
-  openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+  sudo openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
 
 **Create a new Certificate Signing Request**
 
@@ -53,7 +53,7 @@ As root, run the following commands to create a CSR:
 .. code-block:: bash
 
   cd /etc/nginx/ssl
-  openssl req -new -newkey rsa:2048 -nodes -keyout openl2m.key -out openl2m.csr
+  sudo openssl req -new -newkey rsa:2048 -nodes -keyout openl2m.key -out openl2m.csr
 
 On the last line, we generate the CSR. Fill in the questions as applicable to your organization.
 
@@ -74,8 +74,8 @@ Copy the "openl2m-ssl.conf" to nginx as a new site, and enable it:
 
 .. code-block:: bash
 
-  cp ./scripts/openl2m-ssl.conf /etc/nginx/sites-available/openl2m-ssl
-  ln -s /etc/nginx/sites-available/openl2m-ssl /etc/nginx/sites-enabled/openl2m-ssl
+  sudo cp ./scripts/openl2m-ssl.conf /etc/nginx/sites-available/openl2m-ssl
+  sudo ln -s /etc/nginx/sites-available/openl2m-ssl /etc/nginx/sites-enabled/openl2m-ssl
 
 Modify this files to set your proper domain name!
 
@@ -83,7 +83,7 @@ Next modify the regular port 80 default site to do a redirect to the SSL site:
 
 .. code-block:: bash
 
-  vi /etc/nginx/sites-available/openl2m
+  sudo vi /etc/nginx/sites-available/openl2m
 
 
 and replace the content with the following. Note this is available in the scripts directory as *openl2m-redirect.conf*:

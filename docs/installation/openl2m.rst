@@ -24,7 +24,8 @@ Next, **on Ubuntu 22.04**, you can install the 'system' Python (v3.10).
 .. code-block:: bash
 
   # On Ubuntu 22.04:
-  sudo apt install -y python3 python3-pip python3-venv python3-dev build-essential
+  sudo apt install -y python3 python3-pip python3-venv python3-dev build-essential software-properties-common
+
 
 .. note::
 
@@ -161,6 +162,11 @@ Set this to the appropriate time, to get logs, etc. in the local time.
 
 
 **Run Upgrade**
+
+.. note::
+
+  If you are using an alternate Python version (eg. v3.11), do not forget to create the altpython.sh
+  files are documented in the alt-python install steps!
 
 The upgrade.sh script will install all required packages in a Python Virtual Environment.
 (This means we do not interfere with the system-wide python packages.)

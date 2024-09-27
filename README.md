@@ -80,6 +80,14 @@ application for distributed "basic" network switch management.
 It is developed to address the needs of distributed IT groups managing parts
 of a distributed layer 2 ("switching") network.
 
+__Requirements__:
+
+This is minimal list of requirements. Read the documentation for more details.
+
+* a Linux OS environment able to run nginx.
+* Python 3.10 or 3.11 (3.12 is NOT supported)
+* Postgres version 13 or higher.
+
 __License__:
 
 OpenL2M is free software: you can redistribute it and/or modify it

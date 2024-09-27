@@ -31,7 +31,7 @@ Next, modify or create the file *local_requirements.txt* to allow this to be add
 Configuration
 -------------
 
-Create a file in the same directory as `configuration.py` (typically `OpenL2M/OpenL2M/`) named `ldap_config.py`.
+Create a file in the same directory as `configuration.py` (typically `openl2m/openl2m/`) named `ldap_config.py`.
 Define all of the parameters required below in `ldap_config.py`.
 Complete documentation of all `django-auth-ldap` configuration options is included in the project's
 official documentation at http://django-auth-ldap.readthedocs.io/.

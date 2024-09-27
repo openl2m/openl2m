@@ -4,6 +4,11 @@
 Version 3.3
 ===========
 
+.. note::
+
+  v3.3 requires Postgres version 13 or greater! (I.e. Ubuntu 20.04 will no longer work.)
+
+
 **Version 3.3 adds support for Arista device via SNMP, and can read MPLS VRF info from SNMP
 on devices that support it.**
 

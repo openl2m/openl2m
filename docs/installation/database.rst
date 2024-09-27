@@ -27,6 +27,15 @@ Please consult your distribution's documentation for assistance with any errors.
   sudo systemctl start postgresql
   sudo systemctl enable postgresql
 
+**Verify Version**
+
+Verify you are running at least version 13:
+
+.. code-block:: bash
+
+  psql -V
+
+
 **Database Creation**
 
 Now that we have the database server installed, at a minimum, we need to create a database
