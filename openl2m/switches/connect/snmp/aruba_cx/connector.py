@@ -244,7 +244,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
                 # this needs work!
                 self.error.status = True
                 self.error.description = f"Vlan {new_vlan_id} is not allowed on this trunk port."
-                self.error.details = "We cannot yet change the untagged vlan is this is not allowed on the trunk!"
+                self.error.details = "We cannot yet change the untagged vlan if this is not allowed on the trunk!"
                 dprint("  ERROR: New vlan NOT allowed on TRUNK!")
                 return False
 
