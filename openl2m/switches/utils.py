@@ -180,15 +180,6 @@ def dvar(var, header: str = ""):
         logger_console.debug(pprint.pformat(var, width=1))
 
 
-def dobject(obj, header: str = ""):
-    if settings.DEBUG:
-        if header:
-            logger_console.debug(header)
-        logger_console.debug(f"Object = {type(obj)}")
-        for attr, val in vars(obj).items():
-            logger_console.debug(f"  {attr} = {val} ({type(val)})")
-
-
 def time_duration(seconds: int) -> str:
     """
     show a nice string with the time duration from the seconds given
