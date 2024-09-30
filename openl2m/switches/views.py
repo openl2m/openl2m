@@ -243,6 +243,9 @@ class SwitchSearch(LoginRequiredMixin, View):
         # close any previous device
         close_device(request=request)
 
+        # clear session cache, so we re-read switches as needed
+        clear_switch_cache(request=request)
+
         search = str(request.POST.get("switchname", ""))
         # remove leading and trailing white spaceA
         search = search.strip()
