@@ -158,6 +158,7 @@ def close_device(request):
             conn._close_device()
             del conn
         except Exception as err:
+            dprint(f"ERROR CLOSING DEVICE: {err}\n{traceback.format_exc()}\n")
             # log it, but ignore otherwize...
             log = Log(
                 user=request.user,

@@ -1804,8 +1804,13 @@ class Connector:
         Returns:
             none
         '''
+        if self.group:
+            group = self.group
+        else:
+            # this happens when we close a device, we no longer have the group object!
+            group = None
         log = Log(
-            group=self.group,
+            group=group,
             switch=self.switch,
             ip_address=get_remote_ip(self.request),
             type=type,
