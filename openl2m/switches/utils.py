@@ -15,6 +15,7 @@
 Various utility functions
 """
 import datetime
+import inspect
 import ipaddress
 from ipware import get_client_ip
 import logging
@@ -177,7 +178,14 @@ def dvar(var, header: str = ""):
     if settings.DEBUG:
         if header:
             logger_console.debug(header)
-        logger_console.debug(pprint.pformat(var, width=1))
+        # use inspect.getmembers() to find attributes that are not functions:
+        attribs = inspect.getmembers(var, lambda a: not (inspect.isroutine(a)))
+        for attrib in attribs:
+            # props is a list of all the object’s attributes and their current values,
+            # wrapped in (name, value) tuples.
+            # skip dunder (__) objects:
+            if not attrib[0].startswith("__"):
+                logger_console.debug(pprint.pformat(attrib))
 
 
 def time_duration(seconds: int) -> str:
