@@ -14,7 +14,7 @@
 import datetime
 import traceback
 
-from switches.utils import dprint, dvar, dobject
+from switches.utils import dprint, dvar
 from switches.constants import LOG_TYPE_ERROR, LOG_AOSCX_ERROR_GENERIC
 from switches.connect.classes import Interface, PoePort, NeighborDevice
 from switches.connect.connector import Connector
@@ -137,11 +137,11 @@ class AosCxConnector(Connector):
             )
             return False
 
-        # dobject(aoscx_device, "\n\nAosCxDevice:\n\n")
+        # dvar(var=aoscx_device, header="\n\nAosCxDevice:\n\n")
 
         # sub-systems has information about power supplies, etc.
         aoscx_device.get_subsystems()
-        # dobject(aoscx_device, "\n\nAosCxDevice-SubSystems:\n\n")
+        # dvar(var=aoscx_device, header="\n\nAosCxDevice-SubSystems:\n\n")
 
         # this has info about each subsystem in the environment:
         ps_id = 1  # power supply ID, starting at 1
@@ -182,7 +182,7 @@ class AosCxConnector(Connector):
                                 new_ps.serial = ps['identity']['serial_number']
 
         # aoscx_config = AosCxConfiguration(session=self.aoscx_session)
-        # dobject(aoscx_config, "AosCxConfiguration:")
+        # dvar(var=aoscx_config, header="AosCxConfiguration:")
 
         # self.hostname = aoscx_device.hostname
         # # if first time for this device (or changed), update hostname
@@ -241,7 +241,7 @@ class AosCxConnector(Connector):
             return False
 
         for id, vlan in aoscx_vlans.items():
-            dvar(f"VLAN(): {vlan}")
+            dvar(var=vlan, header="VLAN():")
             # dprint(f"Vlan {id}: {vlan['name']}")
             vlan_id = int(id)
             self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan['name'])
@@ -272,7 +272,7 @@ class AosCxConnector(Connector):
         # for if_name, aoscx_interface in aoscx_interfaces2.items():
         #     try:
         #         aoscx_interface.get()
-        #         dobject(aoscx_interface, f"\n\n=== AosCxInterface() CLASS: {if_name} ===")
+        #         dvar(var=aoscx_interface, header=f"\n\n=== AosCxInterface() CLASS: {if_name} ===")
         #     except Exception as err:
         #         dprint(f"Error '{if_name}'.get(): {err}")
         # return True
@@ -280,7 +280,7 @@ class AosCxConnector(Connector):
         for if_name, aoscx_interface in aoscx_interfaces.items():
             dprint(f"AosCxInterface[]: {if_name}")
             # see the attributes available:
-            # dvar(aoscx_interface, f"AosCxInterface[]: {if_name}")
+            # dvar(var=aoscx_interface, header=f"AosCxInterface[]: {if_name}")
 
             # add an OpenL2M Interface() object
             iface = Interface(if_name)
@@ -824,6 +824,9 @@ class AosCxConnector(Connector):
         try:
             dprint(f"  Creating AosCxSession(ip_address={self.switch.primary_ip4}, api={API_VERSION})")
             self.aoscx_session = AosCxSession(ip_address=self.switch.primary_ip4, api=API_VERSION)
+            dprint(
+                f"Opening as '{self.switch.netmiko_profile.username}', password='{self.switch.netmiko_profile.password}'"
+            )
             self.aoscx_session.open(
                 username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password
             )
@@ -845,13 +848,16 @@ class AosCxConnector(Connector):
         make sure we properly close the AOS-CX REST Session
         '''
         dprint("AOS-CX _close_device()")
-        # do we want to check SSL certificates ?
-        if not self.switch.netmiko_profile.verify_hostkey:
-            dprint("  Cert warnings disabled in urllib3!")
-            # disable unknown cert warnings
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            # or all warnings:
-            # urllib3.disable_warnings()
-        self.aoscx_session.close()
-        self.aoscx_session = False
+        if self.aoscx_session:
+            # do we want to check SSL certificates ?
+            if not self.switch.netmiko_profile.verify_hostkey:
+                dprint("  Cert warnings disabled in urllib3!")
+                # disable unknown cert warnings
+                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                # or all warnings:
+                # urllib3.disable_warnings()
+            self.aoscx_session.close()
+            self.aoscx_session = False
+        else:
+            dprint("  NOT Needed (no session!)")
         return True
