@@ -62,7 +62,9 @@ from pyaoscx.lldp_neighbor import LLDPNeighbor as AosCxLLDPNeighbor
 # used to disable unknown SSL cert warnings:
 import urllib3
 
-API_VERSION = '10.08'  # '10.08' or '10.04'
+# devices support up to v10.12, but pyaoscx currently supports 10.09 as highest,
+# see https://github.com/aruba/pyaoscx/tree/master/pyaoscx/rest
+API_VERSION = "10.09"  # '10.08' or '10.04'
 
 
 class AosCxConnector(Connector):
