@@ -19,8 +19,9 @@ OpenL2M has some requirements:
 * a web server, with the WSGI capability. We use Nginx in all our documentation.
   Apache may work but is not tested.
 * the Django framework, v5.0 or greater.
-* a PostgreSQL database, running at least version 13. We use v14 in our testing.
-  (Note: Ubuntu 22.04 comes with v14. Ubuntu 20.04 install v12, and is no longer supported)
+* a PostgreSQL database, running at least version 13. We use v16 in our testing.
+  Note: Ubuntu 24.04 comes with PostgreSql v16. Ubuntu 22.04 with v14
+  **Ubuntu 20.04 installs v12, and is no longer supported**
 
 **Application Stack Overview**
 
@@ -35,14 +36,14 @@ At the end of this page is an image showing the application stack.
 
 **Installation**
 
-OpenL2M is developed and tested in a Ubuntu 24.04 and 22.04 LTS environment.
+OpenL2M is developed and tested in a Ubuntu 24.04 LTS environment.
 All instructions are related to that. However, this should work just fine on other
 distributions as long as the requirements are met.
 (*We no longer develop and test on CentOS/Rocky/AlmaLinux environments.*)
 
 .. note::
 
-  Ubuntu 24.04 LTS comes with Python v3.12 by default. This is NOT supported,
+  Ubuntu 24.04 LTS comes with Python v3.12 by default. This is NOT yet supported,
   due to SNMP library dependencies on functionality that was removed in v3.12.
   Please use the Alternate Python installation steps to mitigate this by backing down to v3.11.
 

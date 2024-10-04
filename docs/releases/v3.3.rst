@@ -7,16 +7,27 @@ Version 3.3
 .. note::
 
   v3.3 requires Postgres version 13 or greater! (I.e. Ubuntu 20.04 will no longer work.)
+  We now use Django v5.1 !
 
+**Version 3.3 adds support for Arista devices via SNMP, and can read MPLS VRF info from SNMP
+on devices that support the standard MIB.**
 
-**Version 3.3 adds support for Arista device via SNMP, and can read MPLS VRF info from SNMP
-on devices that support it.**
+Version 3.3.2
+-------------
+
+Release Date: TBD
+
+Bug fixes:
+
+* set untagged vlan on tagged ports with AOS-CX API driver.
+* fix close bug for some previous device sessions when going to menu or search.
 
 Version 3.3.1
 -------------
 
 Release Date: 2024-09-25
 
+* update the Django framework to v5.1
 * support Aruba AOS-CX devices for SSH commands (from Netmiko v4.4 library)
 * read the SNMP ipAddressIfIndex MIB entries to find interface (ipv4) addresses.
 * read the SNMP ipNetToPhysical MIB entries to find (ipv4) ARP data.
@@ -29,7 +40,6 @@ Release Date: 2024-09-25
 Bug fixes:
 
 * remove duplicate 'ifname' url convertor (deprecated in Django 6)
-* update the Django framework to v5.1
 
 
 Version 3.3
