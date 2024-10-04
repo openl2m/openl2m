@@ -100,8 +100,7 @@ class AosCxConnector(Connector):
         self.switch.read_only = False
         # this will be the pyaoscx driver session object
         self.aoscx_session = False
-        # this can now be cached!
-        # self.set_do_not_cache_attribute('aoscx_session')
+        self.set_do_not_cache_attribute('aoscx_session')
 
         # capabilities of current driver:
         self.can_change_admin_status = True
@@ -137,6 +136,7 @@ class AosCxConnector(Connector):
             self.add_warning(
                 f"Cannot read device information: {repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
             )
+            self._close_device()
             return False
 
         # dvar(var=aoscx_device, header="\n\nAosCxDevice:\n\n")
@@ -240,6 +240,7 @@ class AosCxConnector(Connector):
             self.error.description = "Error establishing connection!"
             self.error.details = f"Cannot read device vlans: {format(error)}"
             dprint("  get_my_basic_info(): AosCxVlan.get_facts() failed!")
+            self._close_device()
             return False
 
         for id, vlan in aoscx_vlans.items():
@@ -267,6 +268,7 @@ class AosCxConnector(Connector):
             self.error.description = "Error establishing connection!"
             self.error.details = f"Cannot read device interfaces: {format(error)}"
             dprint("  get_my_basic_info(): AosCxInterface.get_facts() failed!")
+            self._close_device()
             return False
 
         # if you use the class object, and want to get a fully materialized (ie. flushed-out) object,
@@ -406,6 +408,7 @@ class AosCxConnector(Connector):
         # such as LACP master interfaces:
         self._map_lacp_members_to_logical()
 
+        self._close_device()
         return True
 
     def get_my_hardware_details(self) -> bool:
@@ -518,7 +521,7 @@ class AosCxConnector(Connector):
                 continue
 
         # done...
-        # self._close_device()
+        self._close_device()
         return True
 
     def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
@@ -556,10 +559,12 @@ class AosCxConnector(Connector):
             dprint(f"  Interface change '{state}' OK!")
             # call the super class for bookkeeping.
             super().set_interface_admin_status(interface, new_state)
+            self._close_device()
             return True
         else:
             dprint(f"   Interface change '{state}' FAILED!")
             # we need to add error info here!!!
+            self._close_device()
             return False
 
     def set_interface_description(self, interface: Interface, description: str) -> bool:
@@ -591,10 +596,12 @@ class AosCxConnector(Connector):
             dprint("   Descr OK!")
             # call the super class for bookkeeping.
             super().set_interface_description(interface, description)
+            self._close_device()
             return True
         else:
             dprint("   Descr FAILED!")
             # we need to add error info here!!!
+            self._close_device()
             return False
 
     def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
@@ -639,10 +646,12 @@ class AosCxConnector(Connector):
                 dprint("   PoE change OK!")
                 # call the super class for bookkeeping.
                 super().set_interface_poe_status(interface, new_state)
+                self._close_device()
                 return True
             else:
                 dprint("   PoE change FAILED!")
                 # we need to add error info here!!!
+                self._close_device()
                 return False
         else:
             # this should never happen!
@@ -717,6 +726,7 @@ class AosCxConnector(Connector):
                 dprint("   Vlan Change OK!")
                 # call the super class for bookkeeping.
                 super().set_interface_untagged_vlan(interface, new_vlan_id)
+                self._close_device()
                 return True
             else:
                 dprint("   Vlan Change FAILED for Unknown Reasons!")
@@ -742,6 +752,7 @@ class AosCxConnector(Connector):
                 dprint("   Vlan Change OK!")
                 # call the super class for bookkeeping.
                 super().set_interface_untagged_vlan(interface, new_vlan_id)
+                self._close_device()
                 return True
             else:
                 dprint("   Vlan Change FAILED for Unknown Reasons!")
@@ -774,10 +785,12 @@ class AosCxConnector(Connector):
         except Exception as err:
             self.error.status = True
             self.error.details = f"Error creating new vlan {vlan_id}: {err}"
+            self._close_device()
             return False
 
         # all OK, now do the book keeping
         super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+        self._close_device()
         return True
 
     def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
@@ -803,14 +816,17 @@ class AosCxConnector(Connector):
         except Exception as err:
             self.error.status = True
             self.error.details = f"Error trapped while updating vlan {vlan_id} name to '{vlan_name}': {err}"
+            self._close_device()
             return False
 
         if not changed:
             self.error.status = True
             self.error.details = f"Error updating vlan {vlan_id} name to '{vlan_name}' (not sure what happened!)"
+            self._close_device()
             return False
         # all OK, now do the book keeping
         super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
+        self._close_device()
         return True
 
     def vlan_delete(self, vlan_id: int) -> bool:
@@ -846,24 +862,24 @@ class AosCxConnector(Connector):
         '''
         dprint("AOS-CX _open_device()")
 
-        # do we want to check SSL certificates ?
+        if self.aoscx_session:
+            dprint("  AOS-CX Session already OPEN!")
+            return True
+
+        # do we have creds set?
+        if not self.switch.netmiko_profile:
+            self.error.status = True
+            self.error.description = "Please configure a Credentials Profile to be able to connect to this device!"
+            dprint("  _open_device: No Credentials!")
+            return False
+
+        # do we want to check SSL certificates?
         if not self.switch.netmiko_profile.verify_hostkey:
             dprint("  Cert warnings disabled in urllib3!")
             # disable unknown cert warnings
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             # or all warnings:
             # urllib3.disable_warnings()
-
-        if self.aoscx_session:
-            dprint("  AOS-CX Session FOUND!")
-            return True
-
-        # first "connection", we need to authenticate:
-        if not self.switch.netmiko_profile:
-            self.error.status = True
-            self.error.description = "Please configure a Credentials Profile to be able to connect to this device!"
-            dprint("  _open_device: No Credentials!")
-            return False
 
         try:
             dprint(f"  Creating AosCxSession(ip_address={self.switch.primary_ip4}, api={API_VERSION})")
@@ -901,6 +917,7 @@ class AosCxConnector(Connector):
                 # or all warnings:
                 # urllib3.disable_warnings()
             self.aoscx_session.close()
+            del self.aoscx_session
             self.aoscx_session = False
             dprint(("  session close OK!"))
         else:
