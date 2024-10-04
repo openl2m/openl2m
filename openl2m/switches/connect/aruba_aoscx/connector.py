@@ -64,7 +64,7 @@ import urllib3
 
 # devices support up to v10.12, but pyaoscx currently supports 10.09 as highest,
 # see https://github.com/aruba/pyaoscx/tree/master/pyaoscx/rest
-API_VERSION = "10.09"  # '10.08' or '10.04'
+API_VERSION = "10.08"  # '10.09', '10.08' or '10.04'
 
 
 class AosCxConnector(Connector):
@@ -663,18 +663,21 @@ class AosCxConnector(Connector):
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+        # get AosCxInterface:
         try:
             aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
-            aoscx_interface.get()
+            aoscx_interface.get()  # we need a fully "populated" AosCxInterface() object
             dprint(f"  AosCxInterface.get() OK: {aoscx_interface.name}")
+            dvar(var=aoscx_interface, header="\n\nINTERFACE:")
+            dvar(var=aoscx_interface.vlan_trunks, header="\n\n  TRUNK VLANS")
         except Exception as err:
+            dprint(f"  set_interface_untagged_vlan(): AosCxInterface.get() failed!\n{traceback.format_exc()}")
             self.error.status = True
             self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot read device interface: {format(err)}"
-            dprint("  set_interface_untagged_vlan(): AosCxInterface.get() failed!")
+            self.error.details = f"Cannot read device interface: {format(err)}\n{traceback.format_exc()}"
             self._close_device()
             return False
-
+        # get new vlan object:
         dprint("  Get AosCxVlan()")
         try:
             aoscx_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=new_vlan_id)
@@ -685,30 +688,69 @@ class AosCxConnector(Connector):
             self.error.details = f"ERROR getting AosCxVlan() object: {format(err)}"
             self._close_device()
             return False
-        else:
-            # aoscx_vlan.get()
-            dprint("  set_untagged_vlan()")
+        # tagged or untagged?
+        if interface.is_tagged:
+            # this needs to set the native vlan!
+            dprint("  tagged port: calling aoscx.set_native_vlan()")
             try:
-                changed = aoscx_interface.set_untagged_vlan(aoscx_vlan)
+                # Note:
+                # here we work around a possible bug in the pyaoscx module,
+                # where 'trunk vlan allow all' translates into an empty aoscx_interface.vlans_trunks list
+                # this causes the new vlan to be the only one allowed on the trunk.
+                # Work around by explicityly setting the trunk allows vlans.
+                # also see https://github.com/aruba/pyaoscx/issues/36
+                vlan_trunks = []
+                for vlan_id in interface.vlans:
+                    v = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
+                    vlan_trunks.append(v)
+                aoscx_interface.vlan_trunks = vlan_trunks
+                # and now set the new native vlan
+                changed = aoscx_interface.set_native_vlan(vlan=int(new_vlan_id), tagged=False)
             except Exception as err:
                 dprint(f"ERROR in aoscx_interface.set_untagged_vlan() object: {err}")
                 self.error.status = True
-                self.error.description = "Error establishing connection!"
+                self.error.description = "Error setting untagged vlan on trunk port!"
+                self.error.details = f"ERROR in aoscx_interface.set_native_vlan(): {format(err)}"
+                self._close_device()
+                return False
+            if changed:
+                dprint("   Vlan Change OK!")
+                # call the super class for bookkeeping.
+                super().set_interface_untagged_vlan(interface, new_vlan_id)
+                return True
+            else:
+                dprint("   Vlan Change FAILED for Unknown Reasons!")
+                # we need to add error info here!!!
+                self.error.status = True
+                self.error.description = "Error setting untagged vlan!"
+                self.error.details = f"UNKNOWN ERROR in aoscx_interface.set_native_vlan()!"
+                self._close_device()
+                return False
+        else:
+            # untagged, ie set access mode vlan
+            dprint("  access mode port: calling aoscx.set_untagged_vlan()")
+            try:
+                changed = aoscx_interface.set_untagged_vlan(vlan=aoscx_vlan)
+            except Exception as err:
+                dprint(f"ERROR in aoscx_interface.set_untagged_vlan() object: {err}")
+                self.error.status = True
+                self.error.description = "Error setting access vlan!"
                 self.error.details = f"ERROR in aoscx_interface.set_untagged_vlan(): {format(err)}"
                 self._close_device()
                 return False
+            if changed:
+                dprint("   Vlan Change OK!")
+                # call the super class for bookkeeping.
+                super().set_interface_untagged_vlan(interface, new_vlan_id)
+                return True
             else:
-                # change = aoscs_vlan.apply()
-                # self._close_device()
-                if changed:
-                    dprint("   Vlan Change OK!")
-                    # call the super class for bookkeeping.
-                    super().set_interface_untagged_vlan(interface, new_vlan_id)
-                    return True
-                else:
-                    dprint("   Vlan Change FAILED!")
-                    # we need to add error info here!!!
-                    return False
+                dprint("   Vlan Change FAILED for Unknown Reasons!")
+                # we need to add error info here!!!
+                self.error.status = True
+                self.error.description = "Error setting access vlan!"
+                self.error.details = f"UNKNOWN ERROR in aoscx_interface.set_untagged_vlan()!"
+                self._close_device()
+                return False
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
         '''
@@ -860,6 +902,7 @@ class AosCxConnector(Connector):
                 # urllib3.disable_warnings()
             self.aoscx_session.close()
             self.aoscx_session = False
+            dprint(("  session close OK!"))
         else:
             dprint("  NOT Needed (no session!)")
         return True
