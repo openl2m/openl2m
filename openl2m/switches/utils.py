@@ -178,14 +178,19 @@ def dvar(var, header: str = ""):
     if settings.DEBUG:
         if header:
             logger_console.debug(header)
-        # use inspect.getmembers() to find attributes that are not functions:
-        attribs = inspect.getmembers(var, lambda a: not (inspect.isroutine(a)))
-        for attrib in attribs:
-            # props is a list of all the object’s attributes and their current values,
-            # wrapped in (name, value) tuples.
-            # skip dunder (__) objects:
-            if not attrib[0].startswith("__"):
-                logger_console.debug(pprint.pformat(attrib))
+        # built-in types:
+        if isinstance(var, (float, int, str, list, dict, tuple)):
+            logger_console.debug(pprint.pformat(var))
+        else:
+            logger_console.debug(f"Type: {type(var)}, Values:")
+            # use inspect.getmembers() to find attributes that are not functions:
+            attribs = inspect.getmembers(var, lambda a: not (inspect.isroutine(a)))
+            for attrib in attribs:
+                # props is a list of all the object’s attributes and their current values,
+                # wrapped in (name, value) tuples.
+                # skip dunder (__) objects:
+                if not attrib[0].startswith("__"):
+                    logger_console.debug(pprint.pformat(attrib))
 
 
 def time_duration(seconds: int) -> str:
