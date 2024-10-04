@@ -594,7 +594,11 @@ TOP_ACTIVITY_DAYS = 7
 #     'disable_existing_loggers': False,
 #     'formatters': {
 #         'console': {
-#             # very minimal format:
+#             # a very minimal formats:
+#             'format': '%(message)s',
+#         },
+#         'header': {
+#             # minimal format with header:
 #             'format': '[OpenL2M] %(message)s',
 #         },
 #     },
@@ -608,6 +612,7 @@ TOP_ACTIVITY_DAYS = 7
 #         'openl2m.console': {
 #             'handlers': ['console'],
 #             'level': 'DEBUG',
+#             'formatter': 'minimal',
 #         },
 #     },
 # }
