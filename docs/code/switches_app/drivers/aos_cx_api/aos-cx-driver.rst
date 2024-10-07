@@ -78,6 +78,34 @@ PoE changes are made with the PoEInterface() object.
 
 Vlan changes are made by assigning a Vlan() object to an interface via a call to Interface().set_untagged_vlan(Vlan())
 
+**VLAN Edit**
+
+Vlan edits are done use the Vlan() object. This is relatively straight forward.
+
+Creating vlans:
+
+.. code-block:: python
+
+    new_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id, name=vlan_name, voice=False)
+    try:
+        new_vlan.apply()
+
+Edit vlan name:
+
+.. code-block:: python
+
+    vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
+    vlan.get()
+    vlan.name = vlan_name
+    changed = vlan.apply()
+
+Deleting vlans:
+
+.. code-block:: python
+
+    vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
+    vlan.delete()
+
 
 **Fully Populated Objects**
 

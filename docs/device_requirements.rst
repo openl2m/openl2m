@@ -4,21 +4,25 @@
 Device Requirements
 ===================
 
-Juniper PyEZ
-------------
-
-* any Juniper device that supports the XML api, via the PyEZ library. Device access needs to be configured properly.
-
 Aruba AOS-CX
 ------------
 
-* any device that supports the Aruba AOS-CX API v10.08 is supported, via the pyaoscx library. Device access needs to be configured properly.
+* any device that supports the Aruba AOS-CX API v10.08 is supported, via the pyaoscx library.
+  Device access needs to be configured properly.
+
+
+Juniper PyEZ
+------------
+
+* any Juniper "ELS" device that supports the XML api, via the PyEZ library.
+  Device needs to support the "ELS" (Enhanced Layer2 Software) unified command-line interface.
+  Device access needs to be configured properly for API access.
 
 
 SNMP
 ----
 For the device that use standard SNMP OpenL2M supports v2c and v3.
-SNMP v1 is not supported. We recommend all devices are configured with v3.
+*SNMP v1 is not supported.* We recommend all devices are configured with v3.
 
 OpenL2M uses the following standard and vendor MIBs to learn and be able to manage the interfaces of a device:
 
@@ -33,12 +37,12 @@ OpenL2M uses the following standard and vendor MIBs to learn and be able to mana
 * Q-Bridge MIB, RFC 2674, https://tools.ietf.org/html/rfc2674
   This is used for VLAN and Ethernet address information.
 
-* Power Ethernet MIB, RFC 3621, <https://tools.ietf.org/html/rfc3621
+* Power Ethernet MIB, RFC 3621, https://tools.ietf.org/html/rfc3621
   Used to read PoE data for interfaces.
 
 * ipNetToMediaTable entries of SMIv2 MIB in RFC2011, https://tools.ietf.org/html/rfc2011
   or ipNetToPhysicalTable in the newer RFC4293, https://tools.ietf.org/html/rfc4293.
-  This is used to get Ethernet address and ARP information.
+  This is used to get Ethernet, IP, and ARP information.
 
 * IEEE LLDP, LLDP-EXT-DOT1 and LLDP-EXT-DOT3 MIBs, http://www.ieee802.org/1/files/public/MIBs/
   Used to read device neighbors information.
@@ -46,10 +50,16 @@ OpenL2M uses the following standard and vendor MIBs to learn and be able to mana
 * IEEE MLAG MIB at http://www.ieee802.org/1/files/public/MIBs/IEEE8023-LAG-MIB-201610120000Z.txt
   Used to find Link Aggregation (LACP) interface information.
 
+* MPLS-L3VPN-STD MIB, RFC 4383, https://tools.ietf.org/html/rfc4382
+  Used to read VRF information.
+
 
 **Vendor Specific MIBs**
 
 Several vendor specific MIB are supported at this time.
+
+* Arista MPLS MIB
+  Used to read VRF information on Arista devices.
 
 * Cisco VTP MIB
   Used for VLAN information on Cisco Switches.
@@ -92,6 +102,7 @@ Several vendor specific MIB are supported at this time.
 
 * Juniper Networks L2ALD MIB
   Used for vendor-specific vlan information.
+
 
 Napalm
 ------

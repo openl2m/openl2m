@@ -11,7 +11,7 @@ The *junos-eznc* library from PyPI is available at https://github.com/Juniper/py
 
 .. note::
 
-   The current drivers support Junos "ELS" device, ie. devices with Enhanced Layer2 Software.
+   The current drivers supports Junos "ELS" device, ie. devices with Enhanced Layer2 Software.
    This unifies commands. We have not tested against non-ELS device, such as some MX product line.
 
 
