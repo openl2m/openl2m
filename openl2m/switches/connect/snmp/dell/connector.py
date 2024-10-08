@@ -42,7 +42,6 @@ class SnmpConnectorDell(SnmpConnector):
         # for now, just call the super class
         dprint("Dell SnmpConnector __init__")
         super().__init__(request, group, switch)
-        self.description = 'Dell SNMP driver'
         self.can_save_config = True
         # force READ-ONLY for now! We have not implemented changing settings.
         self.switch.read_only = True
