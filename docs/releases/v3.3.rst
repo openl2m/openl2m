@@ -17,6 +17,9 @@ Version 3.3.2
 
 Release Date: TBD
 
+* add interface transceiver information (eg. 10g-LR) where supported.
+  Currently available in the HPE Comware SNMP driver, for devices that support it.
+
 Bug fixes:
 
 * set untagged vlan on tagged ports with AOS-CX API driver.
