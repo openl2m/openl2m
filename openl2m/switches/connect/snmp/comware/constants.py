@@ -122,3 +122,37 @@ snmp_mib_variables['hh3cifVLANTrunkAllowListHigh'] = hh3cifVLANTrunkAllowListHig
 # IGMP snooping, from hh3cIgmpSnoopingVlanStatusTable.
 hh3cIgmpSnoopingVlanEnabled = '.1.3.6.1.4.1.25506.8.35.7.1.9.1.2'  # hh3cIgmpSnoopingVlanEnabled.<vlan_id> = status
 snmp_mib_variables['hh3cIgmpSnoopingVlanEnabled'] = hh3cIgmpSnoopingVlanEnabled
+
+
+# tranciever (optics) info from HH3C-TRANSCEIVER-INFO-MIB
+# see downloadable MIB files from HPE support, and also:
+# https://mibs.observium.org/mib/HH3C-TRANSCEIVER-INFO-MIB/
+
+# hh3cTransceiverInfoAdm = ".1.3.6.1.4.1.25506.2.70.1"
+# hh3cTransceiverInfoTable = "".1.3.6.1.4.1.25506.2.70.1.1"
+# the start of the table:
+# hh3cTransceiverInfoEntry OBJECT-TYPE
+#         DESCRIPTION
+#             "The entry of the hh3cTransceiverInfoTable."
+#         INDEX { ifIndex }
+hh3cTransceiverInfoEntry = ".1.3.6.1.4.1.25506.2.70.1.1.1"
+snmp_mib_variables['hh3cTransceiverInfoEntry'] = hh3cTransceiverInfoEntry
+#
+# and the "interesting" entries we like to see:
+hh3cTransceiverHardwareType = ".1.3.6.1.4.1.25506.2.70.1.1.1.1"
+snmp_mib_variables['hh3cTransceiverHardwareType'] = hh3cTransceiverHardwareType
+
+hh3cTransceiverType = ".1.3.6.1.4.1.25506.2.70.1.1.1.2"
+snmp_mib_variables['hh3cTransceiverType'] = hh3cTransceiverType
+
+hh3cTransceiverWaveLength = ".1.3.6.1.4.1.25506.2.70.1.1.1.3"
+snmp_mib_variables['hh3cTransceiverWaveLength'] = hh3cTransceiverWaveLength
+
+hh3cTransceiverVendorName = ".1.3.6.1.4.1.25506.2.70.1.1.1.4"
+snmp_mib_variables['hh3cTransceiverVendorName'] = hh3cTransceiverVendorName
+
+# hh3cTransceiverSerialNumber = ".1.3.6.1.4.1.25506.2.70.1.1.1.5"
+# hh3cTransceiverFiberDiameterType = ".1.3.6.1.4.1.25506.2.70.1.1.1.6"
+
+hh3cTransceiverTransferDistance = ".1.3.6.1.4.1.25506.2.70.1.1.1.7"
+snmp_mib_variables['hh3cTransceiverTransferDistance'] = hh3cTransceiverTransferDistance
