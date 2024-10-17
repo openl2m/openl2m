@@ -57,6 +57,7 @@ from pyaoscx.mac import Mac as AosCxMac
 from pyaoscx.interface import Interface as AosCxInterface
 from pyaoscx.poe_interface import PoEInterface as AosCxPoEInterface
 from pyaoscx.lldp_neighbor import LLDPNeighbor as AosCxLLDPNeighbor
+from pyaoscx.vrf import Vrf as AosCxVrf
 
 
 # used to disable unknown SSL cert warnings:
@@ -256,6 +257,18 @@ class AosCxConnector(Connector):
                 dprint(f"Voice Vlan = '{vlan['voice']}' {type(vlan['voice'])})")
                 self.vlans[vlan_id].voice = True
 
+        # get any VRF information
+        vrfs = AosCxVrf.get_all(session=self.aoscx_session)
+        for name, vrf in vrfs.items():
+            # dprint(f"Found VRF '{name}'")
+            # dvar(vrf)
+            v = self.get_vrf_by_name(name=name)
+            vrf.get()
+            # dprint("  -- GET() --")
+            # dvar(vrf)
+            if vrf.rd:
+                v.rd = vrf.rd
+
         # and get the interfaces:
         try:
             # get_facts() returns Interface() items as dictionaries, not classes!
@@ -394,6 +407,15 @@ class AosCxConnector(Connector):
 
             except Exception as error:
                 dprint(f"   +++ NO PoE! - exception: {format(error)}")
+
+            # check VRF membership
+            if 'vrf' in aoscx_interface:
+                if aoscx_interface['vrf'] is not None:
+                    vrf_name = aoscx_interface['vrf']
+                    if iface.name not in self.vrfs[val].interfaces:
+                        self.vrfs[vrf_name].interfaces.append(iface.name)
+                    # assing this vrf name to the interface:
+                    iface.vrf_name = vrf_name
 
             self.add_interface(iface)
 
