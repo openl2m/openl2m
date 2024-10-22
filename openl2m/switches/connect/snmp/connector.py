@@ -37,8 +37,16 @@ from pysnmp.hlapi import (
     CommunityData,
     UsmUserData,
     usmHMACSHAAuthProtocol,
+    usmHMAC128SHA224AuthProtocol,
+    usmHMAC192SHA256AuthProtocol,
+    usmHMAC256SHA384AuthProtocol,
+    usmHMAC384SHA512AuthProtocol,
     usmHMACMD5AuthProtocol,
     usmAesCfb128Protocol,
+    usmAesCfb192Protocol,
+    usmAesCfb256Protocol,
+    usmAesBlumenthalCfb192Protocol,
+    usmAesBlumenthalCfb256Protocol,
     usmDESPrivProtocol,
 )
 from pysnmp.proto.rfc1902 import ObjectName, OctetString
@@ -337,40 +345,63 @@ class pysnmpHelper:
             # AuthNoPriv
             elif self.switch.snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
                 if self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                    self._auth_data = UsmUserData(
-                        self.switch.snmp_profile.username, self.switch.snmp_profile.passphrase
-                    )
-
+                    auth_protocol = usmHMACMD5AuthProtocol
                 elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                    self._auth_data = UsmUserData(
-                        self.switch.snmp_profile.username,
-                        self.switch.snmp_profile.passphrase,
-                        authProtocol=usmHMACSHAAuthProtocol,
-                    )
+                    auth_protocol = usmHMACSHAAuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA224:
+                    auth_protocol = usmHMAC128SHA224AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA256:
+                    auth_protocol = usmHMAC192SHA256AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA384:
+                    auth_protocol = usmHMAC256SHA384AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
+                    auth_protocol = usmHMAC384SHA512AuthProtocol
+
+                self._auth_data = UsmUserData(
+                    self.switch.snmp_profile.username,
+                    self.switch.snmp_profile.passphrase,
+                    authProtocol=auth_protocol,
+                )
                 return True
 
             # AuthPriv
             elif self.switch.snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_PRIV:
                 # authentication protocol
-                authProtocol = usmHMACSHAAuthProtocol  # default to SHA-1
+                auth_protocol = usmHMACSHAAuthProtocol  # default to SHA-1
                 if self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                    authProtocol = usmHMACMD5AuthProtocol
+                    auth_protocol = usmHMACMD5AuthProtocol
                 elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                    authProtocol = usmHMACSHAAuthProtocol
+                    auth_protocol = usmHMACSHAAuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA224:
+                    auth_protocol = usmHMAC128SHA224AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA256:
+                    auth_protocol = usmHMAC192SHA256AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA384:
+                    auth_protocol = usmHMAC256SHA384AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
+                    auth_protocol = usmHMAC384SHA512AuthProtocol
 
                 # privacy protocol
-                privProtocol = usmAesCfb128Protocol  # default to AES-128
+                priv_protocol = usmAesCfb128Protocol  # default to AES-128
                 if self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
-                    privProtocol = usmDESPrivProtocol
+                    priv_protocol = usmDESPrivProtocol
                 elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
-                    privProtocol = usmAesCfb128Protocol
+                    priv_protocol = usmAesCfb128Protocol
+                elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES192:
+                    priv_protocol = usmAesCfb192Protocol
+                elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES256:
+                    priv_protocol = usmAesCfb256Protocol
+                elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES192C:
+                    priv_protocol = usmAesBlumenthalCfb192Protocol
+                elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES256C:
+                    priv_protocol = usmAesBlumenthalCfb256Protocol
 
                 self._auth_data = UsmUserData(
                     self.switch.snmp_profile.username,
                     self.switch.snmp_profile.passphrase,
                     self.switch.snmp_profile.priv_passphrase,
-                    authProtocol=authProtocol,
-                    privProtocol=privProtocol,
+                    authProtocol=auth_protocol,
+                    privProtocol=priv_protocol,
                 )
                 return True
             else:
@@ -636,6 +667,14 @@ class SnmpConnector(Connector):
 
             # now try to connect with SNMP v3:
             dprint(f"  Trying v3 with: sec_level={security_level}, auth={auth_protocol}, priv={privacy_protocol}")
+            if not snmp_profile.passphrase:
+                passphrase = ""
+            else:
+                passphrase = snmp_profile.passphrase
+            if not snmp_profile.priv_passphrase:
+                priv_passphrase = ""
+            else:
+                priv_passphrase = snmp_profile.priv_passphrase
             try:
                 self._snmp_session = ezsnmp.Session(
                     hostname=self.switch.primary_ip4,
@@ -649,9 +688,9 @@ class SnmpConnector(Connector):
                     security_level=security_level,
                     security_username=snmp_profile.username,
                     auth_protocol=auth_protocol,
-                    auth_password=snmp_profile.passphrase,
+                    auth_password=passphrase,
                     privacy_protocol=privacy_protocol,
-                    privacy_password=snmp_profile.priv_passphrase,
+                    privacy_password=priv_passphrase,
                     context=str(com_or_ctx),
                 )
                 return True
