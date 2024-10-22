@@ -55,8 +55,16 @@ from switches.constants import (
     SNMP_V3_SECURITY_AUTH_NOPRIV,
     SNMP_V3_AUTH_MD5,
     SNMP_V3_AUTH_SHA,
+    SNMP_V3_AUTH_SHA224,
+    SNMP_V3_AUTH_SHA256,
+    SNMP_V3_AUTH_SHA384,
+    SNMP_V3_AUTH_SHA512,
     SNMP_V3_PRIV_AES,
     SNMP_V3_PRIV_DES,
+    SNMP_V3_PRIV_AES192,
+    SNMP_V3_PRIV_AES256,
+    SNMP_V3_PRIV_AES192C,
+    SNMP_V3_PRIV_AES256C,
     SNMP_V3_SECURITY_AUTH_PRIV,
 )
 from switches.models import Log, Switch, SwitchGroup
@@ -510,9 +518,15 @@ class SnmpConnector(Connector):
 
     def _set_snmp_session(self, com_or_ctx: str = '') -> bool:
         """
-        Get a ezsnmp Session() object for this snmp connection
-        com_or_ctx - the community to override the snmp profile settings if v2,
-                      or the snmp v3 context to use.
+        Get a ezsnmp Session() object for this snmp connection.
+
+        params:
+            com_or_ctx - the community to override the snmp profile settings if v2,
+                         or the snmp v3 context to use.
+
+        Return:
+            (bool) - True if succesful, False if not!
+
         """
         dprint("_set_snmp_session()")
         if not self.switch.snmp_profile:
@@ -551,144 +565,101 @@ class SnmpConnector(Connector):
 
         # everything else is version 3
         if snmp_profile.version == SNMP_VERSION_3:
-            try:
-                # NoAuthNoPriv
-                if snmp_profile.sec_level == SNMP_V3_SECURITY_NOAUTH_NOPRIV:
-                    dprint("version 3 NoAuth-NoPriv")
-                    self._snmp_session = ezsnmp.Session(
-                        hostname=self.switch.primary_ip4,
-                        version=snmp_profile.version,
-                        remote_port=snmp_profile.udp_port,
-                        use_numeric=True,
-                        use_sprint_value=False,
-                        security_level=u"no_auth_or_privacy",
-                        security_username=snmp_profile.username,
-                        context=str(com_or_ctx),
-                    )
-                    return True
+            # EzSNMPO does not like empty auth and priv, so set low defaults.
+            auth_protocol = "MD5"
+            privacy_protocol = "DES"
+            security_level = ""
+            # NoAuthNoPriv
+            if snmp_profile.sec_level == SNMP_V3_SECURITY_NOAUTH_NOPRIV:
+                dprint("version 3 NoAuth-NoPriv")
+                security_level = u"no_auth_or_privacy"
 
-                # AuthNoPriv
-                elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
-                    dprint("version 3 Auth-NoPriv")
-                    if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                        dprint("  auth = MD5")
-                        self._snmp_session = ezsnmp.Session(
-                            hostname=self.switch.primary_ip4,
-                            version=snmp_profile.version,
-                            remote_port=snmp_profile.udp_port,
-                            use_numeric=True,
-                            use_sprint_value=False,
-                            security_level=u"auth_without_privacy",
-                            security_username=snmp_profile.username,
-                            auth_protocol=u"MD5",
-                            auth_password=snmp_profile.passphrase,
-                            context=str(com_or_ctx),
-                        )
-                        return True
-
-                    elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                        dprint("  auth = MD5")
-                        self._snmp_session = ezsnmp.Session(
-                            hostname=self.switch.primary_ip4,
-                            version=snmp_profile.version,
-                            remote_port=snmp_profile.udp_port,
-                            use_numeric=True,
-                            use_sprint_value=False,
-                            security_level=u"auth_without_privacy",
-                            security_username=snmp_profile.username,
-                            auth_protocol=u"SHA",
-                            auth_password=snmp_profile.passphrase,
-                            context=str(com_or_ctx),
-                        )
-                        return True
-
-                # AuthPriv
-                elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_PRIV:
-                    dprint("version 3 Auth-Priv")
-                    if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                        dprint("  auth = MD5")
-                        if snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
-                            dprint("  priv = DES")
-                            self._snmp_session = ezsnmp.Session(
-                                hostname=self.switch.primary_ip4,
-                                version=snmp_profile.version,
-                                remote_port=snmp_profile.udp_port,
-                                use_numeric=True,
-                                use_sprint_value=False,
-                                security_level=u"auth_with_privacy",
-                                security_username=snmp_profile.username,
-                                auth_protocol=u"MD5",
-                                auth_password=snmp_profile.passphrase,
-                                privacy_protocol=u"DES",
-                                privacy_password=snmp_profile.priv_passphrase,
-                                context=str(com_or_ctx),
-                            )
-                            return True
-
-                        if snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
-                            dprint("  priv = AES")
-                            self._snmp_session = ezsnmp.Session(
-                                hostname=self.switch.primary_ip4,
-                                version=snmp_profile.version,
-                                remote_port=snmp_profile.udp_port,
-                                use_numeric=True,
-                                use_sprint_value=False,
-                                security_level=u"auth_with_privacy",
-                                security_username=snmp_profile.username,
-                                auth_protocol=u"MD5",
-                                auth_password=snmp_profile.passphrase,
-                                privacy_protocol=u"AES",
-                                privacy_password=snmp_profile.priv_passphrase,
-                                context=str(com_or_ctx),
-                            )
-                            return True
-
-                        dprint("  Unknown PRIV setting!")
-
-                    if snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                        dprint("  auth = SHA")
-                        if snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
-                            dprint("  priv = DES")
-                            self._snmp_session = ezsnmp.Session(
-                                hostname=self.switch.primary_ip4,
-                                version=snmp_profile.version,
-                                remote_port=snmp_profile.udp_port,
-                                use_numeric=True,
-                                use_sprint_value=False,
-                                security_level=u"auth_with_privacy",
-                                security_username=snmp_profile.username,
-                                auth_protocol=u"SHA",
-                                auth_password=snmp_profile.passphrase,
-                                privacy_protocol=u"DES",
-                                privacy_password=snmp_profile.priv_passphrase,
-                                context=str(com_or_ctx),
-                            )
-                            return True
-
-                        if snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
-                            dprint("  priv = AES")
-                            self._snmp_session = ezsnmp.Session(
-                                hostname=self.switch.primary_ip4,
-                                version=snmp_profile.version,
-                                remote_port=snmp_profile.udp_port,
-                                use_numeric=True,
-                                use_sprint_value=False,
-                                security_level=u"auth_with_privacy",
-                                security_username=snmp_profile.username,
-                                auth_protocol=u"SHA",
-                                auth_password=snmp_profile.passphrase,
-                                privacy_protocol=u"AES",
-                                privacy_password=snmp_profile.priv_passphrase,
-                                context=str(com_or_ctx),
-                            )
-                            return True
-                        dprint("  Unknown PRIV setting!")
+            # AuthNoPriv
+            elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
+                dprint("version 3 Auth-NoPriv")
+                security_level = u"auth_without_privacy"
+                if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
+                    auth_protocol = u"MD5"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
+                    auth_protocol = u"SHA"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA224:
+                    auth_protocol = u"SHA-224"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA256:
+                    auth_protocol = u"SHA-256"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA384:
+                    auth_protocol = u"SHA-384"
                 else:
-                    dprint("  Unknown auth-priv")
+                    return False
+
+            # AuthPriv
+            elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_PRIV:
+                dprint("version 3 Auth-Priv")
+                security_level = "auth_with_privacy"
+                # auth protocols first
+                if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
+                    auth_protocol = u"MD5"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
+                    auth_protocol = u"SHA"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA224:
+                    auth_protocol = u"SHA-224"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA256:
+                    auth_protocol = u"SHA-256"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA384:
+                    auth_protocol = u"SHA-384"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
+                    auth_protocol = u"SHA-512"
+                else:
+                    dprint(f"Invalid AUTH protocol: {snmp_profile.auth_protocol}")
+                    return False
+
+                # priv protocols next:
+                if snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
+                    privacy_protocol = u"DES"
+                elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
+                    privacy_protocol = u"AES"
+                elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES192:
+                    privacy_protocol = u"AES-192"
+                elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES256:
+                    privacy_protocol = u"AES-256"
+                elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES192C:
+                    privacy_protocol = u"AES-192C"
+                elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES256C:
+                    privacy_protocol = u"AES-256C"
+                else:
+                    dprint(f"Invalid PRIV protocol: {snmp_profile.priv_protocol}")
+                    return False
+
+            else:
+                # should never happen:
+                dprint(f"  Unknown auth-priv security level: {snmp_profile.sec_level}")
+                return False
+
+            # now try to connect with SNMP v3:
+            dprint(f"  Trying v3 with: sec_level={security_level}, auth={auth_protocol}, priv={privacy_protocol}")
+            try:
+                self._snmp_session = ezsnmp.Session(
+                    hostname=self.switch.primary_ip4,
+                    version=snmp_profile.version,
+                    remote_port=snmp_profile.udp_port,
+                    use_numeric=True,
+                    use_sprint_value=False,
+                    timeout=settings.SNMP_TIMEOUT,
+                    retries=settings.SNMP_RETRIES,
+                    # here are the v3 specific entries:
+                    security_level=security_level,
+                    security_username=snmp_profile.username,
+                    auth_protocol=auth_protocol,
+                    auth_password=snmp_profile.passphrase,
+                    privacy_protocol=privacy_protocol,
+                    privacy_password=snmp_profile.priv_passphrase,
+                    context=str(com_or_ctx),
+                )
+                return True
+
             except Exception as err:
-                dprint(f"ERROR with snmp v2 session: {repr(err)}")
+                dprint(f"ERROR with snmp v3 session: {repr(err)}")
                 self.add_log(
-                    description=f"ERROR with snmp v2 session: {err}", type=LOG_TYPE_ERROR, action=LOG_SNMP_ERROR
+                    description=f"ERROR with snmp v3 session: {err}", type=LOG_TYPE_ERROR, action=LOG_SNMP_ERROR
                 )
                 return False
 
