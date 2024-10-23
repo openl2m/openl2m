@@ -7,7 +7,7 @@ What's New...
 :doc:`Please read the release notes for more details on each release. <releases/index>`
 
 * v3.3 adds support for Arista devices via SNMP. Also read MPLS VRF info via SNMP on devices
-  and interfaces that support it.
+  and interfaces that support it. SNMP now supports authencation up to SHA-512 and privacy up to AES-256.
 
 * v3.2 adds a Dark theme, and uses the Bootstrap 5.3 framework for improved web accesibility.
   Also adds a basic admin rest api. Device info tab now shows last access and change dates and use counts.

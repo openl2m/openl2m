@@ -19,6 +19,7 @@ Release Date: TBD
 
 * add interface transceiver information (eg. 10g-LR) where supported.
   Currently available in the HPE Comware SNMP driver, for devices that support it.
+* add support for SNMP v3 SHA224 - SHA512 authencation, and AES192 - AES256 privacy.
 
 Bug fixes:
 
