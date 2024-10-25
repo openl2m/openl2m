@@ -26,9 +26,12 @@ import traceback
 from django.conf import settings
 from django.http.request import HttpRequest
 
-from pysnmp.hlapi import (
-    getCmd,
-    setCmd,
+# note that we use v3 of the new pysnmp HLAPI. This uses asyncio, instead of the old synchronous.
+# see https://docs.lextudio.com/pysnmp/v7.1/
+import asyncio
+from pysnmp.hlapi.v3arch.asyncio import (
+    # get_cmd,
+    set_cmd,
     UdpTransportTarget,
     ContextData,
     ObjectType,
@@ -203,11 +206,16 @@ from switches.connect.snmp.constants import (
 
 class pysnmpHelper:
     """
-    Implement functionality we need to do a few simple things.
-    We use the "pysnmp" library primarily for help with OctetString / BitMap values.
-    ezsnmp cannot handle this cleanly, especially for uneven byte counts, due to
-    how it maps everything to a unicode string internally!
-    Based on the pysnmp HPAPI at http://snmplabs.com/pysnmp/examples/contents.html#high-level-snmp
+    Implement functionality we need to do a few simple things to handle snmp data objects
+    that are OctetString / BitMap values.
+
+    We use the "pysnmp" library for this, as ezsnmp cannot handle this cleanly,
+    especially for uneven byte counts, due to how it maps everything to a unicode string internally!
+
+    Based on the (new) async pysnmp HLAPI version 3 at
+        https://docs.lextudio.com/pysnmp/v7.1/docs/api-reference
+    with examples at
+        https://docs.lextudio.com/pysnmp/v7.1/examples/
     """
 
     def __init__(self, switch: Switch):
@@ -215,74 +223,88 @@ class pysnmpHelper:
         Initialize the PySnmp bindings
         """
         self.switch = switch  # the Switch() object
-        self._set_auth_data()
         self.error = Error()
+        if not self._set_auth_data():
+            # cannot set auth data, throw an exception:
+            raise Exception(f"{self.error.description}: {self.error.details}")
 
-    def get(self, oid: str) -> tuple[bool, str]:
-        """
-        Get a single specific OID value via SNMP
-        Returns a tuple with (error_status (bool), return_value)
-        if error, then return_value is string with reason for error
-        """
-        if not self.switch:
-            return (True, "Switch() NOT set!")
-        if not self._auth_data:
-            return (True, "Auth Data NOT set!")
+    # async def run_get(self, oid: str):
 
-        # Get a variable using an SNMP GET
-        errorIndication, errorStatus, errorIndex, varBinds = next(
-            getCmd(
-                self._auth_data,
-                UdpTransportTarget((self.switch.primary_ip4, self.switch.snmp_profile.udp_port)),
-                ContextData(),
-                ObjectType(ObjectName(oid)),
-                lookupMib=False,
-            )
+    #     snmpEngine = SnmpEngine()
+
+    #     # Get a variable using an SNMP GET
+    #     iterator = get_cmd(
+    #         snmpEngine,
+    #         self._auth_data,
+    #         UdpTransportTarget((self.switch.primary_ip4, self.switch.snmp_profile.udp_port)).create(),
+    #         ContextData(),
+    #         ObjectType(ObjectName(oid)),
+    #         lookupMib=False,
+    #     )
+
+    #     errorIndication, errorStatus, errorIndex, varBinds = await iterator
+
+    #     if errorIndication:
+    #         details = f"ERROR 'errorIndication' in pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+    #         snmpEngine.close_dispatcher()
+    #         return (True, details)
+
+    #     elif errorStatus:
+    #         details = f"ERROR 'errorStatus' in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+    #         snmpEngine.close_dispatcher()
+    #         return (True, details)
+
+    #     else:
+    #         # store the returned data
+    #         (oid, retval) = varBinds
+    #         snmpEngine.close_dispatcher()
+    #         return (False, retval)
+
+    # def get(self, oid: str) -> tuple[bool, str]:
+    #     """
+    #     Get a single specific OID value via SNMP
+    #     Returns a tuple with (error_status (bool), return_value)
+    #     if error, then return_value is string with reason for error
+    #     """
+    #     if not self.switch:
+    #         return (True, "Switch() NOT set!")
+    #     if not self._auth_data:
+    #         return (True, "Auth Data NOT set!")
+
+    #     return asyncio.run(self.run_get(oid))
+
+    async def run_set_vars(self, vars: tuple):
+        """Asyncio implementation of snmp set call. See
+        https://docs.lextudio.com/pysnmp/v7.1/docs/hlapi/v3arch/asyncio/manager/cmdgen/setcmd
+
+        Args:
+            self: the class instance
+            vars (tuple): a tuple of snmp oid (str), and the value (snmp object type) to set.
+
+        Returns:
+            (bool): True on success, False on failure and will set self.error accordinglu
+        """
+        dprint("pysnmpHelper.run_set_vars() running...")
+
+        snmpEngine = SnmpEngine()
+
+        iterator = set_cmd(
+            snmpEngine,
+            self._auth_data,
+            await UdpTransportTarget.create((self.switch.primary_ip4, self.switch.snmp_profile.udp_port)),
+            ContextData(),
+            *vars,
+            lookupMib=False,
         )
 
-        if errorIndication:
-            details = f"ERROR 'errorIndication' in pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
-            return (True, details)
-
-        elif errorStatus:
-            details = f"ERROR 'errorStatus' in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
-            return (True, details)
-
-        else:
-            # store the returned data
-            (oid, retval) = varBinds
-            return (False, retval)
-
-    def set_vars(self, vars: tuple) -> bool:
-        """
-        Set a single OID value. Note that 'value' has to be properly typed, see
-        http://snmplabs.com/pysnmp/docs/api-reference.html#pysnmp.smi.rfc1902.ObjectType
-        Returns True if success.
-        On failure, returns False, and self.error.X will be set
-        """
-        if not self._auth_data:
-            self.error.status = True
-            self.error.description = "Auth Data NOT set!"
-            self.error.details = "SNMP authentication data NOT set in config, please update!"
-            dprint("pysnmp.set_vars() no auth_data!")
-            return False
-
-        errorIndication, errorStatus, errorIndex, varBinds = next(
-            setCmd(
-                SnmpEngine(),
-                self._auth_data,
-                UdpTransportTarget((self.switch.primary_ip4, self.switch.snmp_profile.udp_port)),
-                ContextData(),
-                *vars,
-                lookupMib=False,
-            )
-        )
+        errorIndication, errorStatus, errorIndex, varBinds = await iterator
 
         if errorIndication:
             self.error.status = True
             self.error.description = "An SNMP error occurred!"
             self.error.details = f"ERROR 'errorIndication' pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             dprint("pysnmp.set_vars() SNMP engine error!")
+            snmpEngine.close_dispatcher()
             return False
 
         elif errorStatus:
@@ -290,11 +312,43 @@ class pysnmpHelper:
             self.error.description = "An SNMP error occurred!"
             self.error.details = f"ERROR 'errorStatus' in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             dprint("pysnmp.set_vars() SNMP PDU error!")
+            snmpEngine.close_dispatcher()
+            return False
+
+        dprint("pysnmpHelper.run_set_vars() OK!")
+        return True
+
+    def set_vars(self, vars: tuple) -> bool:
+        """
+        Set a single OID value. Note that 'value' has to be properly typed, see
+        https://docs.lextudio.com/pysnmp/v7.1/docs/hlapi/v3arch/asyncio/manager/cmdgen/setcmd
+
+        Args:
+            self: the class instance
+            vars (tuple): a tuple of snmp oid (str), and the value (snmp object type) to set.
+
+        Returns:
+            (bool): True on success, False on failure and will set self.error accordinglu
+        """
+        dprint("pysnmpHelper.set_vars()")
+        if not self._auth_data:
+            self.error.status = True
+            self.error.description = "Auth Data NOT set!"
+            self.error.details = "SNMP authentication data NOT set in config, please update!"
+            dprint("pysnmp.set_vars() no auth_data!")
+            return False
+
+        dprint("pysnmpHelper.set_vars() about to call async")
+        # we now call the worker function to perform this asynchronously
+        retval = asyncio.run(self.run_set_vars(vars))
+
+        if not retval:
+            dprint("pysnmpHelper().set_vars() returns False")
             return False
 
         # no errors
         self.error.clear()
-        dprint("pysnmp.set_vars() OK")
+        dprint("pysnmpHelper.set_vars() OK")
         return True
 
     def set(self, oid: str, value) -> bool:
@@ -304,6 +358,7 @@ class pysnmpHelper:
         Returns True if success.
         On failure, returns False, and self.error.X will be set
         """
+        dprint("pysnmpHelper.set()")
         var = []
         var.append(ObjectType(ObjectIdentity(ObjectName(oid)), value))
         return self.set_vars(var)
@@ -317,6 +372,7 @@ class pysnmpHelper:
         Returns True if success.
         On failure, returns False, and self.error.X will be set
         """
+        dprint("pysnmpHelper.set_multiple()")
         # first format in the varBinds format needed by pysnmp:
         vars = []
         for oid, value in oid_values:
@@ -326,10 +382,17 @@ class pysnmpHelper:
 
     def _set_auth_data(self) -> bool:
         """
-        Set the UsmUserData() or CommunityData() object based on the snmp_profile
+        Set the UsmUserData() for v3 or CommunityData() for v2 based on the device snmp_profile.
+        Set the object in the self._auth_data variable.
+
+        Returns:
+            (bool): True on success, False on failure, and set the
         """
         if not self.switch:
             # we need a Switch() object!
+            self.error.status = True
+            self.error.description = "No device found!"
+            self.error.details = "Cannot set SNMP authentication, as no device is found!"
             return False
 
         if self.switch.snmp_profile.version == SNMP_VERSION_2C:
@@ -405,14 +468,15 @@ class pysnmpHelper:
                 )
                 return True
             else:
-                # unknown security level!
+                # unknown security level! Should not happen...
                 self.error.status = True
                 self.error.description = "Unknown Security Level!"
+                self.error.description = f"Security Level requested: {self.switch.snmp_profile.sec_level}"
                 return False
 
         # unknown version!
         self.error.status = True
-        self.error.description = f"Version {self.switch.snmp_profile.version} not supported!"
+        self.error.description = f"SNMP Version {self.switch.snmp_profile.version} not supported!"
         return False
 
     # def _parse_oid_with_fixup(self, oid: str, value: Any, snmp_type: str, parser):
