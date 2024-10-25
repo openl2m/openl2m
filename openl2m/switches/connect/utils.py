@@ -24,7 +24,7 @@ def interface_name_to_long(name: str) -> str:
     # to their equivalent long names GigabitEthernet0/1, TenGigabitEthernet1/0/1, etc.
     dprint(f"interface_name_to_long() for {name}")
     # regex to get all characters before the first number
-    match = re.search('^([a-zA-Z ]*)(\d.*)$', name)
+    match = re.search(r'^([a-zA-Z ]*)(\d.*)$', name)
     if match:
         dprint("   match found")
         if match.group(1).lower() == 'fa':
