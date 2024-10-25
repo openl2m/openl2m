@@ -39,11 +39,23 @@ We use the Session() interface from the Python "EzSnmp" library. This calls the 
 Use of the native library gives significant performance improvements over the pure Python *pysnmp* library.
 The EzSNMP documentation has helpful examples. This session is stored in *SnmpConnector()._snmp_session*
 
-Vlan manipulation via snmp requires dealing with bitmap field that are represented in OctetString snmp data types.
-EzSNMP has a hard time dealing with this due to how it internally translates everything to/from Unicode strings.
-So we use the *pysnmp* library to handle these special cases only.
+Vlan manipulation via snmp requires dealing with bitmap fields that are represented in OctetString snmp data types.
+EzSNMP has a hard time dealing with this due to how it internally translates everything to/from Python Unicode strings.
+So we use the *pysnmp* library to handle these special cases only. See more below.
 
 *Note: EzSNMP is the maintained successor of the original "Easy SNMP" library, which now is stale. (Summer 2024)*
+
+PySNMP notes
+------------
+
+We use the new "pysnmp" library primarily for help with OctetString / BitMap values.
+This is implemented in the pysnmpHelper() object. This class is used to perform SNMP "set" functions for
+things like active ports on Vlans. EzSNMP cannot handle this cleanly, especially for uneven byte counts,
+due to how it maps everything to a Python Unicode string internally!
+
+We use v3 of the new pysnmp HLAPI. This uses asyncio, instead of the old version that used synchronous io.
+This requires the use of some cool programming techniques, shown in the class, and documented at
+https://docs.lextudio.com/pysnmp/v7.1/
 
 
 **IMPORTANT DATA TYPES:**

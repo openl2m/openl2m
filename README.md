@@ -48,7 +48,7 @@ __What's New:__
 
 Highlights:
 
-v3.3 add support Arista Network devices via SNMP. Also shows info in MPLS VRFs and member interfaces on supported devices, read from the standard MPLS SNMP Mib. SNMP now supports authencation up to SHA-512 and privacy up to AES-256.
+v3.3 adds support Arista Network devices via SNMP. Also shows info in MPLS VRFs and member interfaces on supported devices, read from the standard MPLS SNMP Mib. SNMP now supports authencation up to SHA-512 and privacy up to AES-256.
 
 v3.2 adds a Dark Theme. It improves web accessibility and provides a more modern look, and more consistent layout through the use of Bootstrap 5.3. A docker compose config for developing is provided.
 
@@ -85,8 +85,9 @@ __Requirements__:
 This is minimal list of requirements. Read the documentation for more details.
 
 * a Linux OS environment able to run nginx.
-* Python 3.10 or 3.11 (3.12 is NOT supported)
+* Python v3.10 - v3.12 (v3.13 is not yet supported)
 * Postgres version 13 or higher.
+* NetSNMP packages on your Linux server, and ability to run python EzSNMP package.
 
 __License__:
 

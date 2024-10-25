@@ -12,15 +12,15 @@ The following steps are for a full, production install of OpenL2M. No containers
 
 OpenL2M has some requirements:
 
-* Python 3.10 or 3.11 (OpenL2M is developed and tested on Python 3.11.)
-  Note: Python 3.12 or greater are not supported at present!
+* Python 3.10 - 3.12 (OpenL2M is developed and tested on v3.12.)
+  Note: Python 3.13 or greater are not supported at present!
 * net-snmp v5.7 or greater, including net-snmp-devel
-* the Python "easysnmp" package v0.2.5 or greater.
+* the Python "ezsnmp" package v1.0.0 or greater.
 * a web server, with the WSGI capability. We use Nginx in all our documentation.
   Apache may work but is not tested.
-* the Django framework, v5.0 or greater.
+* the Django framework, v5.1 or greater.
 * a PostgreSQL database, running at least version 13. We use v16 in our testing.
-  Note: Ubuntu 24.04 comes with PostgreSql v16. Ubuntu 22.04 with v14
+  Note: Ubuntu 24.04 comes with PostgreSql v16. Ubuntu 22.04 comes with v14
   **Ubuntu 20.04 installs v12, and is no longer supported**
 
 **Application Stack Overview**
