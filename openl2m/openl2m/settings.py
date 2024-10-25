@@ -34,11 +34,11 @@ from django.core.exceptions import ImproperlyConfigured
 
 # Django 5.0 requires Python 3.10+
 if sys.version_info < (3, 10):
-    raise RuntimeError("OpenL2M requires Python 3.10 or higher (current: Python {})".format(sys.version.split()[0]))
+    raise RuntimeError("OpenL2M requires Python 3.10 - 3.12 (current: Python {})".format(sys.version.split()[0]))
 
-if sys.version_info >= (3, 12):
+if sys.version_info >= (3, 13):
     raise RuntimeError(
-        "Due to SNMP library dependencies OpenL2M requires Python 3.10 or 3.11 (current: Python {})".format(
+        "Due to library dependencies OpenL2M requires Python 3.10 - 3.12 (current: Python {})".format(
             sys.version.split()[0]
         )
     )
