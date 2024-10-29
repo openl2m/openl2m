@@ -10,6 +10,11 @@ using the rpc.find('.//<element name>') functions to build out the various Inter
 and other internal OpenL2M objects. See the references section for links. Note:
 the O'Reilly book Chapter 4 is especially useful!
 
+To see RPC version of commands:
+
+  show xyz | display xml rpc
+
+
 **Basic device configs**
 
 We issue the xml rpc equivalents of the following commands:
@@ -31,6 +36,13 @@ We use the following commands:
 "show arp no-resolve" becomes *rpc.get_arp_table_information()*
 
 "show lldp neigbor interface <name>" becomes *rpc.get_lldp_interface_neighbors(interface_device=<name>)*
+
+**VRF information**
+
+We issue this command:
+
+"show route instance details" becomesn *rpc.get-instance-information()*
+
 
 **Making Changes**
 

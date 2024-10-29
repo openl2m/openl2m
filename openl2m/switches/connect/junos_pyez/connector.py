@@ -306,6 +306,10 @@ class PyEZConnector(Connector):
             dprint(f"  Final type = {iface.type}")
             self.add_interface(iface)
 
+        #
+        # done with interfaces
+        #
+
         # fix up some things that are not known at time of interface discovery,
         # such as LACP master interfaces:
         self._map_lacp_members_to_logical()
@@ -365,7 +369,7 @@ class PyEZConnector(Connector):
                         mode = member.find('.//l2ng-l2rtb-vlan-member-interface-mode').text
                     except Exception:
                         mode = ''
-                    dprint(f"Vlan {id}-{name} member {phys_if_name} {tagness} {mode}")
+                    dprint(f"Vlan {id} '{name}' member {phys_if_name} {tagness} {mode}")
                     iface = self.get_interface_by_key(phys_if_name)
                     if iface:
                         if tagness == 'tagged':
@@ -378,6 +382,62 @@ class PyEZConnector(Connector):
         except Exception as error:
             dprint(f"dev.rpc.get_vlan_information() error: {error}")
             self.add_warning(f"ERROR: Cannot get vlans - {error}")
+
+        dprint("VRFs()")
+        vrf_data = self.device.rpc.get_instance_information(detail=True)
+        vrfs = vrf_data.findall(".//instance-core")
+        for vrf in vrfs:
+            vrf_name = vrf.find(".//instance-name").text
+            vrf_type = vrf.find(".//instance-type").text  # "forwarding" or "vrf"
+            dprint(f"  Found: {vrf_name} -> {vrf_type}")
+            if vrf_type != "vrf":
+                continue
+            # create OpenL2M Vrf() object:
+            dprint(f"  New VRF: {vrf_name}")
+            this_vrf = self.get_vrf_by_name(name=vrf_name)
+            # get the VRF info:
+            vrf_info = vrf.find(".//instance-vrf")
+            this_vrf.rd = vrf_info.find(".//route-distinguisher").text
+            # find the interfaces, ie the "rib"s in Junos terms.
+            intfaces = vrf.findall(".//instance-interface")
+            for intf in intfaces:
+                # the interfaces in VRF:
+                if_name = intf.find(".//interface-name").text
+                dprint(f"    Found interface: {if_name}")
+                # we need to remove the VRF name:
+                if if_name.startswith(vrf_name):
+                    if_name = if_name[(len(vrf_name) + 1) :]
+                    dprint(f"    Real interface: {if_name}")
+                    # find OpenL2M Interface():
+                    iface = self.get_interface_by_key(key=if_name)
+                    if iface:
+                        # get the interface:
+                        dprint(f"    Interface() found!")
+                        # add to the list of interfaces for this vrf
+                        if iface.name not in self.vrfs[vrf_name].interfaces:
+                            self.vrfs[vrf_name].interfaces.append(iface.name)
+                        # adding this vrf name to the interface:
+                        iface.vrf_name = vrf_name
+            # find the route tables supporte, ie the "rib"s in Junos terms.
+            # this gives us what protocols are supported.
+            ribs = vrf.findall(".//instance-rib")
+            for rib in ribs:
+                # the interfaces in VRF:
+                rib_name = rib.find(".//irib-name").text
+                dprint(f"    RIB found: {rib_name}")
+                # we need to remove the VRF name to get the protocol routing table:
+                if rib_name.startswith(vrf_name):
+                    protocol_name = rib_name[(len(vrf_name) + 1) :]
+                    dprint(f"    Protocol table: {protocol_name}")
+                    match protocol_name:
+                        case "inet.0":
+                            # IPv4
+                            this_vrf.ipv4 = True
+                        case "inet6.0":
+                            # IPv6 Unicast
+                            this_vrf.ipv6 = True
+                        # case "inet.1":
+                        #    dprint("IPv4 Multicast ignored!")
 
         # done with PyEZ connection:
         self._close_device()
