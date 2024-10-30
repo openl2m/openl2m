@@ -48,3 +48,41 @@ def interface_name_to_long(name: str) -> str:
         # no match, just return original
         dprint("   NO match found")
         return name
+
+
+def standardize_ipv4_subnet(ip: str) -> str:
+    """Expand an IPv4 address in the form of x/y, x.x/y, or x.x.x/y to x.x.x.x/y
+    Args:
+        ip (str): string representing an ipv4 subnet
+
+    Returns:
+        (str):  standardazied format, or original value if not matching.
+    """
+    dprint(f"standardize_ipv4_subnet({ip})")
+
+    # match normal format 10.1.2.0/24
+    pattern = re.compile(r"^(\d+)\.(\d+)\.(\d+)\.(\d+)\/(\d+)")  # 10.0.0.0/24
+    if re.match(pattern, ip):
+        dprint("  Normal IP found!")
+        return ip
+    # match 10.1.2/x
+    pattern = re.compile(r"^(\d+)\.(\d+)\.(\d+)\/(\d+)")  # 10.0.0/24
+    m = re.match(pattern, ip)
+    if m:
+        dprint("  3-digit IP found!")
+        return f"{m.group(1)}.{m.group(2)}.{m.group(3)}.0/{m.group(4)}"
+    # match 10.1/x
+    pattern = re.compile(r"^(\d+)\.(\d+)\/(\d+)")  # 10.0/16
+    m = re.match(pattern, ip)
+    if m:
+        dprint("  2-digit IP found!")
+        return f"{m.group(1)}.{m.group(2)}.0.0/{m.group(3)}"
+    # match 10/x
+    pattern = re.compile(r"^(\d+)\/(\d+)")  # 10/8
+    m = re.match(pattern, ip)
+    if m:
+        dprint("  1-digit IP found!")
+        return f"{m.group(1)}.0.0.0/{m.group(2)}"
+    # this does not look like an IPv4 address:
+    dprint("    NO valid IPv4 match!")
+    return ip

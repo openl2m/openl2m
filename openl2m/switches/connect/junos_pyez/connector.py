@@ -42,6 +42,7 @@ from switches.connect.junos_pyez.utils import (
     junos_remove_unit,
     junos_parse_if_type,
 )
+from switches.connect.utils import standardize_ipv4_subnet
 
 '''
 Basic Junos PyEZ connector. This uses the documented PyEZ library, which uses Netconf underneath.
@@ -106,6 +107,75 @@ class PyEZConnector(Connector):
         if not self._open_device():
             dprint("  _open_device() failed! Raising exception")
             raise Exception("PyEZ connection failed! Please check the device configuration!")
+
+    def _parse_address_family(self, iface: Interface, xml_data) -> bool:
+        """Parse the <address-family> output of an interface from the XML data in "intf"
+        Set the appropriate values on the Interface() object.
+
+        Params:
+            iface (Interface): the OpenL2M Interface() object we are parse data for.
+            xml_data (xml): XML data from the Junos get-interfaces" call.
+
+        Returns:
+            (bool): True if success, False on failure.
+        """
+        dprint(f"_parse_address_family() for '{iface.name}")
+        # look at all Address Families:
+        for af in xml_data.findall('.//address-family'):
+            af_name = af.find('.//address-family-name').text
+            dprint(f"  AF Name: {af_name}")
+            if af_name == 'eth-switch':
+                dprint("  type = switch port")
+                iface.type = IF_TYPE_ETHERNET
+            elif af_name == 'inet':  # IPv4 interface
+                dprint("  type = inet v4 routed interface!")
+                iface.is_routed = True
+                # some inet interfaces do NOT have ip address fields:
+                try:
+                    ip4_address = af.find('.//ifa-local').text
+                    if ip4_address:  # this has an IPv4 address:
+                        dprint(f"  IPv4 ADDR = {ip4_address}")
+                        # get the netmask
+                        try:
+                            ip4_net = af.find('.//ifa-destination').text
+                            ip4_net = standardize_ipv4_subnet(ip=ip4_net)
+                            dprint(f"  IPv4 NET = {ip4_net}")
+                            net = IPNetwork(ip4_net)
+                            prefixlen = net.prefixlen
+                        except Exception as err:
+                            dprint(f"    Error in finding subnet size: {err}")
+                            # not found, so lets assume a /32
+                            prefixlen = 32
+                        iface.add_ip4_network(ip4_address, prefix_len=prefixlen)
+                except Exception as error:
+                    dprint(f"  NO ipv4 address found! Error={error}")
+            elif af_name == 'inet6':
+                dprint("  type = inet v6 routed interface!")
+                iface.is_routed = True
+                # some do not have ipv6 address:
+                try:
+                    ip6_address = af.find('.//ifa-local').text
+                    if ip6_address:  # this has an IPv4 address:
+                        dprint(f"  IPv6 ADDR = {ip6_address}")
+                        try:
+                            ip6_net = af.find('.//ifa-destination').text
+                            dprint(f"  IPv6 NET = {ip6_net}")
+                            net6 = IPNetwork(ip6_net)
+                            prefixlen = net6.prefixlen
+                        except Exception:
+                            # not found, let's assume /128
+                            prefixlen = 128
+                        iface.add_ip6_network(ip6_address, prefix_len=prefixlen)
+                except Exception as error:
+                    dprint(f"  NO ipv6 address found! Error={error}")
+            elif af_name == 'aenet':
+                # aggregated ethernet!
+                ae_interface = af.find('.//ae-bundle-name').text
+                dprint(f" Aggregate Member of {ae_interface}!")
+                iface.lacp_type = LACP_IF_TYPE_MEMBER
+                iface.lacp_master_name = junos_remove_unit(ae_interface)
+                iface.lacp_master_index = 1  # anything > 0 is fine.
+                # and add as member to the master interface:
 
     def get_my_basic_info(self) -> bool:
         '''
@@ -244,59 +314,35 @@ class PyEZConnector(Connector):
                     # auto-negotiate and link-mode not found, this is likely a full-duplex-only interface (e.g. 10g and above)
                     iface.duplex = IF_DUPLEX_FULL  # appears to be duplex if we cannot find otherwize!
 
-            # look at all Address Families:
-            for af in intf.findall('.//address-family'):
-                af_name = af.find('.//address-family-name').text
-                dprint(f"  AF Name: {af_name}")
-                if af_name == 'eth-switch':
-                    dprint("  type = switch port")
-                    iface.type = IF_TYPE_ETHERNET
-                elif af_name == 'inet':  # IPv4 interface
-                    dprint("  type = inet v4 routed interface!")
-                    iface.is_routed = True
-                    # some inet interfaces do NOT have ip address fields:
+            if name == "irb":
+                dprint("IRB: looking for VLAN Interfaces...")
+                # this is the special 'placeholder' interface that has all the vlan interfaces below it
+                # as "logical interfaces". Parse this:
+                logicals = intf.findall(".//logical-interface")
+                for logical in logicals:
+                    logical_name = logical.find('.//name').text
+                    dprint(f"\nVLAN Interface: {logical_name}")
+                    # create new OpenL2M Interface() object
+                    vlan_iface = Interface(logical_name)
+                    vlan_iface.name = logical_name
                     try:
-                        ip4_address = af.find('.//ifa-local').text
-                        if ip4_address:  # this has an IPv4 address:
-                            dprint(f"  IPv4 ADDR = {ip4_address}")
-                            ip4_net = af.find('.//ifa-destination').text
-                            try:
-                                dprint(f"  IPv4 NET = {ip4_net}")
-                                net = IPNetwork(ip4_net)
-                                prefixlen = net.prefixlen
-                            except Exception:
-                                # not found, so lets assume a /32
-                                prefixlen = 32
-                            iface.add_ip4_network(ip4_address, prefix_len=prefixlen)
-                    except Exception as error:
-                        dprint(f"  NO ipv4 address found! Error={error}")
-                elif af_name == 'inet6':
-                    dprint("  type = inet v6 routed interface!")
-                    iface.is_routed = True
-                    # some do not have ipv6 address:
-                    try:
-                        ip6_address = af.find('.//ifa-local').text
-                        if ip6_address:  # this has an IPv4 address:
-                            dprint(f"  IPv6 ADDR = {ip6_address}")
-                            try:
-                                ip6_net = af.find('.//ifa-destination').text
-                                dprint(f"  IPv6 NET = {ip6_net}")
-                                net6 = IPNetwork(ip6_net)
-                                prefixlen = net6.prefixlen
-                            except Exception:
-                                # not found, let's assume /128
-                                prefixlen = 128
-                            iface.add_ip6_network(ip6_address, prefix_len=prefixlen)
-                    except Exception as error:
-                        dprint(f"  NO ipv6 address found! Error={error}")
-                elif af_name == 'aenet':
-                    # aggregated ethernet!
-                    ae_interface = af.find('.//ae-bundle-name').text
-                    dprint(f" Aggregate Member of {ae_interface}!")
-                    iface.lacp_type = LACP_IF_TYPE_MEMBER
-                    iface.lacp_master_name = junos_remove_unit(ae_interface)
-                    iface.lacp_master_index = 1  # anything > 0 is fine.
-                    # and add as member to the master interface:
+                        descr = logical.find('.//description').text
+                    except Exception:
+                        descr = ''
+                    vlan_iface.description = descr
+                    self._parse_address_family(iface=vlan_iface, xml_data=logical)
+                    # copy some values from the main IRB interface
+                    vlan_iface.type = iface.type
+                    vlan_iface.admin_status = True  # we really should parse <if-config-flags> !
+                    vlan_iface.oper_status = True
+                    vlan_iface.speed = iface.speed
+
+                    # now add this vlan interface:
+                    self.add_interface(vlan_iface)
+
+            else:
+                # parse the address information
+                self._parse_address_family(iface=iface, xml_data=intf)
 
             try:
                 intf.find('.//minimum-links-in-aggregate').text
@@ -404,20 +450,16 @@ class PyEZConnector(Connector):
                 # the interfaces in VRF:
                 if_name = intf.find(".//interface-name").text
                 dprint(f"    Found interface: {if_name}")
-                # we need to remove the VRF name:
-                if if_name.startswith(vrf_name):
-                    if_name = if_name[(len(vrf_name) + 1) :]
-                    dprint(f"    Real interface: {if_name}")
-                    # find OpenL2M Interface():
-                    iface = self.get_interface_by_key(key=if_name)
-                    if iface:
-                        # get the interface:
-                        dprint(f"    Interface() found!")
-                        # add to the list of interfaces for this vrf
-                        if iface.name not in self.vrfs[vrf_name].interfaces:
-                            self.vrfs[vrf_name].interfaces.append(iface.name)
-                        # adding this vrf name to the interface:
-                        iface.vrf_name = vrf_name
+                # find OpenL2M Interface():
+                iface = self.get_interface_by_key(key=if_name)
+                if iface:
+                    # get the Interface() object:
+                    dprint(f"    Interface() found!")
+                    # add to the list of interfaces for this vrf
+                    if iface.name not in self.vrfs[vrf_name].interfaces:
+                        self.vrfs[vrf_name].interfaces.append(iface.name)
+                    # adding this vrf name to the interface:
+                    iface.vrf_name = vrf_name
             # find the route tables supporte, ie the "rib"s in Junos terms.
             # this gives us what protocols are supported.
             ribs = vrf.findall(".//instance-rib")
