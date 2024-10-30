@@ -185,6 +185,7 @@ class Vlan:
         # self.untagged_ports_bitmap = 0x0    # exactly what you think, PortList format ! :-)
         # self.hh3c_dot1q_vlan_ports = PortList()   # hh3cdot1qVlanPorts is HH3C specific vlan untagged PortList() bitmap
         self.voice: bool = False  # if True, this is a "voice vlan"
+        self.vrf: str = ""  # the VRF this vlan is a member of, if any.
 
     def set_name(self, name: str) -> None:
         self.name = name
