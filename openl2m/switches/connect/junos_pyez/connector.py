@@ -460,6 +460,15 @@ class PyEZConnector(Connector):
                         self.vrfs[vrf_name].interfaces.append(iface.name)
                     # adding this vrf name to the interface:
                     iface.vrf_name = vrf_name
+                    # if IRB (aka Vlan-Interface) parse the vlan out of this
+                    if if_name.startswith("irb."):
+                        try:
+                            vlan_id = int(if_name[4:])
+                            vlan = self.get_vlan_by_id(vlan_id=vlan_id)
+                            vlan.vrf = vrf_name
+                        except Exception as err:
+                            dprint(f"  Error getting vlan id from if name 'if_name' - {err}")
+
             # find the route tables supporte, ie the "rib"s in Junos terms.
             # this gives us what protocols are supported.
             ribs = vrf.findall(".//instance-rib")
