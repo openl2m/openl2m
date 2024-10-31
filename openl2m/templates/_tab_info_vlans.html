@@ -22,6 +22,7 @@
         <tr>
           <td>{{ vlanid }}</td>
           <td>{% if vlan.name %}{{ vlan.name }}{% else %}<p class="fw-lighter fst-italic">(no name set){% endif %}</td>
+          {# Etc. Column #}
           <td>{{ vlan|get_vlan_info_links }}
           {% if vlan.status == VLAN_STATUS_DYNAMIC %}
             <i class="fas cloud-download-alt" aria-hidden="true"
@@ -54,7 +55,14 @@
                 title="IGMP Snooping Enabled">
             </i>
           {% endif %}
-          </td>
+          {% if vlan.vrf %}
+            &nbsp;
+            <i class="fas fa-network-wired" aria-hidden="true"
+                data-bs-toggle="tooltip"
+                title="Member of VRF '{{ vlan.vrf }}'">
+            </i>
+          {% endif %}
+          </td>{# etc. column #}
         </tr>
       {% endif %}
     {% endfor%}
