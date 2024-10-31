@@ -81,7 +81,8 @@ from switches.constants import (
 from switches.models import Log, Switch, SwitchGroup
 from switches.utils import dprint, get_remote_ip
 
-# from switches.connect.utils import *
+from switches.connect.utils import get_vlan_id_from_l3_interface
+
 # from switches.connect.snmp.utils import *
 from switches.connect.constants import (
     IF_TYPE_ETHERNET,
@@ -3132,6 +3133,12 @@ class SnmpConnector(Connector):
                     self.vrfs[vrf_name].interfaces.append(iface.name)
                 # assing this vrf name to the interface:
                 iface.vrf_name = vrf_name
+                # see if this is a routed "vlan-interface" to assign VRF to vlan
+                vlan_id = get_vlan_id_from_l3_interface(iface)
+                if vlan_id > 0:
+                    dprint("    Vlan ID {vlan_id} is part of vrf '{vrf_name}'")
+                    vlan = self.get_vlan_by_id(vlan_id=vlan_id)
+                    vlan.vrf = vrf_name
             return True
 
         sub_oid = oid_in_branch(mplsL3VpnIfVpnRouteDistProtocol, oid)
@@ -3150,6 +3157,12 @@ class SnmpConnector(Connector):
                     self.vrfs[vrf_name].interfaces[iface.name] = True
                 # assing this vrf name to the interface:
                 iface.vrf_name = vrf_name
+                # see if this is a routed "vlan-interface" to assign VRF to vlan
+                vlan_id = get_vlan_id_from_l3_interface(iface)
+                if vlan_id > 0:
+                    dprint("    Vlan ID {vlan_id} is part of vrf '{vrf_name}'")
+                    vlan = self.get_vlan_by_id(vlan_id=vlan_id)
+                    vlan.vrf = vrf_name
             return True
 
         # we did not parse:
