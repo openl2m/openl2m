@@ -6,7 +6,7 @@
     {% if iface.speed > 0 %}
       {{ iface|humanize_speed }}
     {% else %}
-      <small>(Unknown)</small>
+      <abbr data-bs-toggle="tooltip" title="(Speed Unknown)">-</abbr>
     {% endif %}
   {% else %}{# down interface #}
     {% if iface.speed > 0 %}{# show max possible link speed as hover-over #}
