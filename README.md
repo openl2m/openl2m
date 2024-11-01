@@ -48,7 +48,8 @@ __What's New:__
 
 Highlights:
 
-v3.3 adds support Arista Network devices via SNMP. Also shows info in MPLS VRFs and member interfaces on supported devices, read from the standard MPLS SNMP Mib. SNMP now supports authencation up to SHA-512 and privacy up to AES-256.
+v3.3 adds support Arista Network devices via SNMP. Also shows info in MPLS VRFs and member interfaces on supported devices, read from the standard MPLS SNMP Mib. SNMP now supports authencation up to SHA-512 and privacy up to AES-256. Django is upgraded to v5.1 and we now
+support Python v3.12
 
 v3.2 adds a Dark Theme. It improves web accessibility and provides a more modern look, and more consistent layout through the use of Bootstrap 5.3. A docker compose config for developing is provided.
 
