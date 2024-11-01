@@ -454,7 +454,7 @@ class PyEZConnector(Connector):
                 iface = self.get_interface_by_key(key=if_name)
                 if iface:
                     # get the Interface() object:
-                    dprint(f"    Interface() found!")
+                    dprint("    Interface() found!")
                     # add to the list of interfaces for this vrf
                     if iface.name not in self.vrfs[vrf_name].interfaces:
                         self.vrfs[vrf_name].interfaces.append(iface.name)

@@ -259,7 +259,7 @@ class SwitchSearch(LoginRequiredMixin, View):
             user=request.user,
             ip_address=get_remote_ip(request),
             action=LOG_VIEW_SWITCH_SEARCH,
-            description=f"Searching for switch '{ search }'",
+            description=f"Searching for switch '{search}'",
             type=LOG_TYPE_VIEW,
         )
         log.save()
@@ -1462,11 +1462,11 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
                     values["field1"] = str(field1)
                 else:
                     errors = True
-                    error_string = f"{ t.field1_name } - Invalid entry: { field1 }"
+                    error_string = f"{t.field1_name} - Invalid entry: {field1}"
             else:
                 # not found in form (or empty), but reqired!
                 errors = True
-                error_string = f"{ t.field1_name } - cannot be blank!"
+                error_string = f"{t.field1_name} - cannot be blank!"
 
         # do we need to parse field2:
         if "{{field2}}" in t.template:
@@ -1476,11 +1476,11 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
                     values["field2"] = str(field2)
                 else:
                     errors = True
-                    error_string += f"<br/>{ t.field2_name } - Invalid entry: { field2 }"
+                    error_string += f"<br/>{t.field2_name} - Invalid entry: {field2}"
             else:
                 # not found in form (or empty), but reqired!
                 errors = True
-                error_string += f"<br/>{ t.field2_name } - cannot be blank!"
+                error_string += f"<br/>{t.field2_name} - cannot be blank!"
 
         # do we need to parse field3:
         if "{{field3}}" in t.template:
@@ -1490,11 +1490,11 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
                     values["field3"] = str(field3)
                 else:
                     errors = True
-                    error_string += f"<br/>{ t.field3_name } - Invalid entry: { field3 }"
+                    error_string += f"<br/>{t.field3_name} - Invalid entry: {field3}"
             else:
                 # not found in form (or empty), but reqired!
                 errors = True
-                error_string += f"<br/>{ t.field3_name } - cannot be blank!"
+                error_string += f"<br/>{t.field3_name} - cannot be blank!"
 
         # do we need to parse field4:
         if "{{field4}}" in t.template:
@@ -1504,11 +1504,11 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
                     values["field4"] = str(field4)
                 else:
                     errors = True
-                    error_string += f"<br/>{ t.field4_name } - Invalid entry: { field4 } "
+                    error_string += f"<br/>{t.field4_name} - Invalid entry: {field4} "
             else:
                 # not found in form (or empty), but reqired!
                 errors = True
-                error_string += f"<br/>{ t.field4_name } - cannot be blank!"
+                error_string += f"<br/>{t.field4_name} - cannot be blank!"
 
         # do we need to parse field5:
         if "{{field5}}" in t.template:
@@ -1518,11 +1518,11 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
                     values["field5"] = str(field5)
                 else:
                     errors = True
-                    error_string += f"<br/>{t.field5_name} - Invalid entry: { field5 }"
+                    error_string += f"<br/>{t.field5_name} - Invalid entry: {field5}"
             else:
                 # not found in form (or empty), but reqired!
                 errors = True
-                error_string += f"<br/>{ t.field5_name } - cannot be blank!"
+                error_string += f"<br/>{t.field5_name} - cannot be blank!"
 
         # do we need to parse field6:
         if "{{field6}}" in t.template:
@@ -1532,11 +1532,11 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
                     values["field6"] = str(field6)
                 else:
                     errors = True
-                    error_string += f"<br/>{t.field6_name} - Invalid entry: { field6 } "
+                    error_string += f"<br/>{t.field6_name} - Invalid entry: {field6} "
             else:
                 # not found in form (or empty), but reqired!
                 errors = True
-                error_string += f"<br/>{ t.field6_name } - cannot be blank!"
+                error_string += f"<br/>{t.field6_name} - cannot be blank!"
 
         # do we need to parse field7:
         if "{{field7}}" in t.template:
@@ -1546,11 +1546,11 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
                     values["field7"] = str(field7)
                 else:
                     errors = True
-                    error_string += f"<br/>{t.field7_name} - Invalid entry: { field7 }"
+                    error_string += f"<br/>{t.field7_name} - Invalid entry: {field7}"
             else:
                 # not found in form (or empty), but reqired!
                 errors = True
-                error_string += f"<br/>{ t.field7_name } - cannot be blank!"
+                error_string += f"<br/>{t.field7_name} - cannot be blank!"
 
         # do we need to parse field8:
         if "{{field8}}" in t.template:
@@ -1560,11 +1560,11 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
                     values["field8"] = str(field8)
                 else:
                     errors = True
-                    error_string += f"<br/>{t.field8_name} - Invalid entry: { field8 }"
+                    error_string += f"<br/>{t.field8_name} - Invalid entry: {field8}"
             else:
                 # not found in form (or empty), but reqired!
                 errors = True
-                error_string += f"<br/>{ t.field8_name } - cannot be blank!"
+                error_string += f"<br/>{t.field8_name} - cannot be blank!"
 
         # and the pick lists:
         # do we need to parse list1:
@@ -1575,7 +1575,7 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
             else:
                 # not found in form (or empty), but reqired (unlikely to happen for list)!
                 errors = True
-                error_string += f"<br/>{ t.list1_name } - cannot be blank!"
+                error_string += f"<br/>{t.list1_name} - cannot be blank!"
 
         # do we need to parse list2:
         if "{{list2}}" in t.template:
@@ -1585,7 +1585,7 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
             else:
                 # not found in form (or empty), but reqired (unlikely to happen for list)!
                 errors = True
-                error_string += f"<br/>{ t.list2_name } - cannot be blank!"
+                error_string += f"<br/>{t.list2_name} - cannot be blank!"
 
         # do we need to parse list3:
         if "{{list3}}" in t.template:
@@ -1595,7 +1595,7 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
             else:
                 # not found in form (or empty), but reqired (unlikely to happen for list)!
                 errors = True
-                error_string += f"<br/>{ t.list3_name } - cannot be blank!"
+                error_string += f"<br/>{t.list3_name} - cannot be blank!"
 
         # do we need to parse list4:
         if "{{list4}}" in t.template:
@@ -1605,7 +1605,7 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
             else:
                 # not found in form (or empty), but reqired (unlikely to happen for list)!
                 errors = True
-                error_string += f"<br/>{ t.list4_name } - cannot be blank!"
+                error_string += f"<br/>{t.list4_name} - cannot be blank!"
 
         # do we need to parse list5:
         if "{{list5}}" in t.template:
@@ -1615,7 +1615,7 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
             else:
                 # not found in form (or empty), but reqired (unlikely to happen for list)!
                 errors = True
-                error_string += f"<br/>{ t.list5_name } - cannot be blank!"
+                error_string += f"<br/>{t.list5_name} - cannot be blank!"
 
         if errors:
             error = Error()

@@ -54,7 +54,7 @@ from .constants import (
     HH3C_running2Startup,
     HH3C_createAndGo,
     hh3cIgmpSnoopingVlanEnabled,
-    hh3cTransceiverHardwareType,
+    # hh3cTransceiverHardwareType, - currently not used.
     hh3cTransceiverType,
     hh3cTransceiverWaveLength,
     hh3cTransceiverVendorName,

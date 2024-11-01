@@ -412,7 +412,7 @@ class AosCxConnector(Connector):
             if 'vrf' in aoscx_interface:
                 if aoscx_interface['vrf'] is not None:
                     vrf_name = aoscx_interface['vrf']
-                    if iface.name not in self.vrfs[val].interfaces:
+                    if iface.name not in self.vrfs[vrf_name].interfaces:
                         self.vrfs[vrf_name].interfaces.append(iface.name)
                     # assing this vrf name to the interface:
                     iface.vrf_name = vrf_name
@@ -755,7 +755,7 @@ class AosCxConnector(Connector):
                 # we need to add error info here!!!
                 self.error.status = True
                 self.error.description = "Error setting untagged vlan!"
-                self.error.details = f"UNKNOWN ERROR in aoscx_interface.set_native_vlan()!"
+                self.error.details = "UNKNOWN ERROR in aoscx_interface.set_native_vlan()!"
                 self._close_device()
                 return False
         else:
@@ -781,7 +781,7 @@ class AosCxConnector(Connector):
                 # we need to add error info here!!!
                 self.error.status = True
                 self.error.description = "Error setting access vlan!"
-                self.error.details = f"UNKNOWN ERROR in aoscx_interface.set_untagged_vlan()!"
+                self.error.details = "UNKNOWN ERROR in aoscx_interface.set_untagged_vlan()!"
                 self._close_device()
                 return False
 
