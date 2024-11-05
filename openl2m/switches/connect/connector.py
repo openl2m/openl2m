@@ -231,6 +231,13 @@ class Connector:
             data["nms_id"] = ""
         data["save_config"] = self.can_save_config
 
+        # add VRF info
+        if self.vrfs:
+            vrfs = []
+            for v in self.vrfs:
+                vrfs.append(v.as_dict())
+            data['vrfs'] = vrfs
+
         # add PoE data:
         if self.poe_capable:
             poe = {

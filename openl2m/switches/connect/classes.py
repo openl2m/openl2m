@@ -818,6 +818,25 @@ class Vrf:
         self.active_interfaces = 0  # number of interfaces active on this VRF
         self.interfaces = []  # list of interface names in this VRF
 
+    def as_dict(self):
+        '''
+        return this Vrf() class as a dictionary for use by the API
+
+        Params:
+            None.
+
+        Returns:
+            dict(): key-value pairs with information about this VRF.
+        '''
+        # return just the basic data for now...
+        return {
+            "name": self.name,
+            'rd': self.rd,
+            'description': self.description,
+            'ipv4': self.ipv4,
+            'ipv6': self.ipv6,
+        }
+
 
 class Interface:
     """
