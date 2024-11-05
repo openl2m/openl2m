@@ -392,10 +392,10 @@ def update_or_add_token(request, token_id=-1):
     # read the rest of the form data:
     token.description = str(request.POST.get('description', ''))
     token.allowed_ips = str(request.POST.get('allowed_ips', ''))
-    if str(request.POST.get("write_enabled", "")) == "on":
+    # only allow writable tokens when user is read/write (i.e. not read_only!)
+    token.write_enabled = False
+    if not request.user.profile.read_only and str(request.POST.get("write_enabled", "")) == "on":
         token.write_enabled = True
-    else:
-        token.write_enabled = False
 
     # handle expiration, if any
     expires = str(request.POST.get('expires', ''))

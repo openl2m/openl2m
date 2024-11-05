@@ -47,12 +47,14 @@
             <td><input type="text" size=80 name="description" value="{{ token.description }}"
             data-bs-toggle="tooltip" title="Type a token description here!" /></td>
           </tr>
+{% if not user.profile.read_only %}
           <tr>
             <td>Writable</td>
             <td><input type="checkbox" name="write_enabled"
                 data-bs-toggle="tooltip" title="Un-check for Read-Only token, or leave checked for Write-Capable!"
                 {% if token.write_enabled %}checked{% endif %} /></td>
           </tr>
+{% endif %}
           <tr>
             <td>Expires</td>
             <td><input
