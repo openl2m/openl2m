@@ -205,6 +205,7 @@ class Vlan:
             'state': vlan_admin_name[self.admin_status],
             'status': vlan_status_name[self.status],
             'igmp_snooping': self.igmp_snooping,
+            'vrf': self.vrf,
         }
 
     def __str__(self) -> str:
