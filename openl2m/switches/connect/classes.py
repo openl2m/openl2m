@@ -1019,6 +1019,8 @@ class Interface:
         inf["duplex"] = duplex_name[self.duplex]
         if self.mtu:
             inf["mtu"] = self.mtu
+        # VRF info
+        inf['vrf'] = self.vrf_name
         # PoE data:
         if self.poe_entry:
             inf['poe'] = self.poe_entry.as_dict()
