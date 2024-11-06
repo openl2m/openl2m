@@ -143,9 +143,6 @@ class DummyConnector(Connector):
 
     def can_run_commands(self):
         """
-        Does the switch have the ability to execute a 'cli command'
-        Returns True or False
+        Dummy driver cannot run 'cli command'
         """
-        if self.switch.primary_ip4 and self.switch.netmiko_profile:
-            return True
         return False

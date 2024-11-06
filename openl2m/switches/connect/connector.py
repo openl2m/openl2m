@@ -1014,10 +1014,10 @@ class Connector:
 
     def can_run_commands(self) -> bool:
         '''
-        Does the switch have the ability to execute a 'cli command'
+        Does the device have the ability to execute a 'cli command'
         This should be overwritten in a vendor-specific sub-class.
         The default implementation of run_command() is with Netmiko library,
-        and we assume that we can indeed run commands.
+        and we assume that we can indeed run commands if we have a valid credential profile.
 
         Args:
             none
@@ -1025,7 +1025,9 @@ class Connector:
         Returns:
             True or False
         '''
-        return True
+        if self.switch.primary_ip4 and self.switch.netmiko_profile:
+            return True
+        return False
 
     """
     SSH connectivity uses the Netmiko library to connect to a device.
