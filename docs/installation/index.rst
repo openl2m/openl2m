@@ -6,9 +6,11 @@ Installation
 
 **To quickly test OpenL2M in your environment, run in a docker container! Please see ./docker/test/README.txt**
 
-The following steps are for a full, production install of OpenL2M. No containers are supported at this time.
+The following steps are for a full production install of OpenL2M. No containers are supported for production at this time.
 
 **Requirements**
+
+*We recommend you install OpenL2M on Ubuntu 24.04 LTS*
 
 OpenL2M has some requirements:
 
@@ -20,7 +22,7 @@ OpenL2M has some requirements:
   Apache may work but is not tested.
 * the Django framework, v5.1 or greater.
 * a PostgreSQL database, running at least version 13. We use v16 in our testing.
-  Note: Ubuntu 24.04 comes with PostgreSql v16. Ubuntu 22.04 comes with v14
+  Note: Ubuntu 24.04 comes with PostgreSQL v16. Ubuntu 22.04 comes with v14.
   **Ubuntu 20.04 installs v12, and is no longer supported**
 
 **Application Stack Overview**
@@ -28,8 +30,8 @@ OpenL2M has some requirements:
 Once installation is complete, you will have the following application stack
 to get a working OpenL2M application:
 
-* Nginx web server
-* Gunicorn WSGI Process with Python
+* Nginx web server (handled user web requests)
+* Gunicorn WSGI Process with Python (processes the request and runs OpenL2M)
 * PostgreSQL database (minimum: version 13)
 
 At the end of this page is an image showing the application stack.
@@ -40,12 +42,6 @@ OpenL2M is developed and tested in a Ubuntu 24.04 LTS environment.
 All instructions are related to that. However, this should work just fine on other
 distributions as long as the requirements are met.
 (*We no longer develop and test on CentOS/Rocky/AlmaLinux environments.*)
-
-.. note::
-
-  Ubuntu 24.04 LTS comes with Python v3.12 by default. This is NOT yet supported,
-  due to SNMP library dependencies on functionality that was removed in v3.12.
-  Please use the Alternate Python installation steps to mitigate this by backing down to v3.11.
 
 .. toctree::
    :maxdepth: 1

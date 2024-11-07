@@ -19,7 +19,7 @@ All OS pre-requisites should be already installed. You need to manually install 
 .. code-block:: bash
 
   source venv/bin/activate
-  pip3 install django-auth-ldap
+  pip3 install "django-auth-ldap>=4.2.0"
 
 Next, modify or create the file *local_requirements.txt* to allow this to be added automatically during future upgrades:
 

@@ -4,24 +4,21 @@
 Using Alternate Python Versions
 ===============================
 
+OpenL2M is now developed and tested on Ubuntu 24.04 with Python v3.12, and requires v3.10 - v3.12
+
+On Ubuntu 22.04 the default Python version is v3.10. This is supported.
+We recommend upgrading to at least v3.11 for performance reasons. See more below.
+
 On Ubuntu 20.04 the stock python version are 3.8. This is NOT supported.
-OpenL2M is now developed and tested on Python 3.11
-
-On Ubuntu 22.04 the default pything version is 3.10. This is supported.
-We recommend upgrading for v3.11 for performance reasons.
-
-On Ubuntu 24.04, the default Python is v3.12 ! Python 3.12 is NOT supported.
-The SNMP library used has a dependency on some functionality that was removed in v3.12
-
-Ie. you will need to use the information below to install down to v3.11
 
 Alternate Python Installation
 -----------------------------
 
-On Ubuntu, we recommend you use Python 3.11 from the "Deadsnakes" PPA.
+On Ubuntu, we recommend you use a minimum of Python v3.11
+If needed, you can retrieve this from the "Deadsnakes" PPA.
 Using this repository is well documented on many web pages.
 
-The details of installing an alternate version of Python from other repos are left to the user. 
+The details of installing an alternate version of Python from other repos are left to the user.
 
 You will need the following regular system packages:
 
