@@ -18,12 +18,14 @@
 import datetime
 import distro
 import git
+from importlib.metadata import version as pkg_version
 import os
 import sys
 import time
 
 import django
 from django.conf import settings
+from django.db import connection as db_connection
 from django.utils import timezone
 
 from counters.models import Counter
@@ -48,6 +50,8 @@ from switches.models import (
     Log,
 )
 
+from switches.utils import dprint
+
 from users.models import Token
 
 
@@ -61,6 +65,13 @@ def get_environment_info() -> dict:
     environment["Distro"] = f"{distro.name()} {distro.version(best=True)}"
     environment["Hostname"] = uname.nodename
     environment["Django"] = django.get_version()
+    # parse the PostgreSQL version (the only db we support)
+    version_main = int(db_connection.pg_version / 10000)
+    version_minor = int(db_connection.pg_version - (version_main * 10000))
+    environment["PostgreSQL"] = f"{version_main}.{version_minor}"
+    # show the "ezsnmp" package version
+    environment["EzSnmp"] = pkg_version('ezsnmp')
+
     environment["OpenL2M version"] = f"{settings.VERSION} ({settings.VERSION_DATE})"
     if os.environ.get('IN_CONTAINER', False):
         environment["Dockerized"] = "Yes"
