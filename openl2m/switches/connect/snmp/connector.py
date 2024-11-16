@@ -684,6 +684,8 @@ class SnmpConnector(Connector):
                     auth_protocol = u"SHA-256"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA384:
                     auth_protocol = u"SHA-384"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
+                    auth_protocol = u"SHA-512"
                 else:
                     return False
 
