@@ -16,9 +16,12 @@ groups. While primary intended to manage network switches, OpenL2M can handle an
 that has some sort of network API (e.g. SSH, Netconf, REST, etc.)
 
 OpenL2M can use various device communication methods. As of v2.0, there is an
-extensible API that allows for custom drivers to communicate with devices. Using this API,
+extensible internal API that allows for custom drivers to communicate with devices. Using this API,
 drivers can be developed that support Netconf, REST and other ways to communicate with switches.
 At present, SNMP and SSH (via Netmiko) are supported. Napalm support is implemented as an example of the new API.
+
+With v3 we introduced a external REST API for users to automate OpenL2M functionality
+from remote scripts.
 
 OpenL2M is written in Python 3 using the Django framework.
 

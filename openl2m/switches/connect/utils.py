@@ -13,6 +13,7 @@
 #
 import re
 from switches.utils import dprint
+from switches.connect.classes import Interface
 
 """
 This file contains general utility functions
@@ -24,7 +25,7 @@ def interface_name_to_long(name: str) -> str:
     # to their equivalent long names GigabitEthernet0/1, TenGigabitEthernet1/0/1, etc.
     dprint(f"interface_name_to_long() for {name}")
     # regex to get all characters before the first number
-    match = re.search('^([a-zA-Z ]*)(\d.*)$', name)
+    match = re.search(r'^([a-zA-Z ]*)(\d.*)$', name)
     if match:
         dprint("   match found")
         if match.group(1).lower() == 'fa':
@@ -48,3 +49,63 @@ def interface_name_to_long(name: str) -> str:
         # no match, just return original
         dprint("   NO match found")
         return name
+
+
+def standardize_ipv4_subnet(ip: str) -> str:
+    """Expand an IPv4 address in the form of x/y, x.x/y, or x.x.x/y to x.x.x.x/y
+    Args:
+        ip (str): string representing an ipv4 subnet
+
+    Returns:
+        (str):  standardazied format, or original value if not matching.
+    """
+    dprint(f"standardize_ipv4_subnet({ip})")
+
+    # match normal format 10.1.2.0/24
+    if re.match(r"^(\d+)\.(\d+)\.(\d+)\.(\d+)\/(\d+)", ip):
+        dprint("  Normal IP found!")
+        return ip
+    # match 10.1.2/x
+    m = re.match(r"^(\d+)\.(\d+)\.(\d+)\/(\d+)", ip)
+    if m:
+        dprint("  3-digit IP found!")
+        return f"{m.group(1)}.{m.group(2)}.{m.group(3)}.0/{m.group(4)}"
+    # match 10.1/x
+    m = re.match(r"^(\d+)\.(\d+)\/(\d+)", ip)
+    if m:
+        dprint("  2-digit IP found!")
+        return f"{m.group(1)}.{m.group(2)}.0.0/{m.group(3)}"
+    # match 10/x
+    m = re.match(r"^(\d+)\/(\d+)", ip)
+    if m:
+        dprint("  1-digit IP found!")
+        return f"{m.group(1)}.0.0.0/{m.group(2)}"
+    # this does not look like an IPv4 address:
+    dprint("    NO valid IPv4 match!")
+    return ip
+
+
+def get_vlan_id_from_l3_interface(iface: Interface) -> int:
+    """See if this interfaces is a routed vlan interface,
+       and parse the vlan-id from it.
+
+    Args:
+        iface (Interface): the Interface() we are looking at
+
+    Return:
+        (int):  the Vlan ID for this routed (L3) interface, or -1 if not found.
+    """
+    # Comware format:
+    m = re.match(r"^vlan-interface(\d+)", iface.name.lower())
+    if m:
+        vlan_id = int(m.group(1))
+        dprint(f"get_vlan_id_from_l3_interface() found Comware vlan {vlan_id}")
+        return vlan_id
+    # Cisco format:
+    m = re.match(r"^vlan(\d+)", iface.name.lower())
+    if m:
+        vlan_id = int(m.group(1))
+        dprint(f"get_vlan_id_from_l3_interface() found Cisco vlan {vlan_id}")
+        return vlan_id
+    # not found
+    return -1

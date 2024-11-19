@@ -21,17 +21,17 @@ Here are the icons used in OpenL2M, and their meanings:
    * - :fas:`download;`
      - Click to download the interface data as a spreadsheet
    * - :fas:`cogs;`
-     - A routed interface.
+     - A routed interface. Hover will show routed subnet information, if known.
    * - :fas:`ellipsis-v;`
-     - A 802.1q Tagged or Trunked interface.
+     - A 802.1q Tagged or Trunked interface. Hover will show allowed vlans.
    * - :fas:`project-diagram;`
      - IGMP snooping is enabled on interface.
    * - :fas:`link;`
-     - Interface is a member of LACP interface.
+     - Interface is an LACP interface, or member of LACP interface. Hover will show details
    * - :fas:`smile;`
-     - This is a virtual inteface.
+     - This is a virtual interface. Hover will show subnet information, if known.
    * - :fas:`spinner;`
-     - This is a software loopback Interface.
+     - This is a software loopback Interface. Hover will show IP address information, if known.
    * - :fas:`archway;`
      - This is a (mpls) tunnel interface.
    * - :fas:`sitemap;`
@@ -39,9 +39,11 @@ Here are the icons used in OpenL2M, and their meanings:
    * - :fas:`vihara;`
      - An unknown other interface type.
    * - :fas:`phone;`
-     - Interface has a voice-vlan configured.
+     - Interface has a voice-vlan configured. Hover will show voice vlan.
    * - :fas:`network-wired;`
-     - Interface is a member of a VRF.
+     - Interface is a member of a VRF. Hover will show vrf membership.
+   * - :fas:`bolt;`
+     - Interface transceiver information. Hover will show details (e.g. 10_GBASE_LR_SFP)
 
 .. _Eth:
 

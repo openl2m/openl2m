@@ -49,12 +49,3 @@ class CommandsOnlyConnector(Connector):
         dprint("Commands-Only Connector get_my_basic_info()")
         self.hostname = self.switch.hostname
         return True
-
-    def can_run_commands(self) -> bool:
-        """
-        Does the device have the ability to execute a 'cli command'
-        Returns True or False
-        """
-        if self.switch.primary_ip4 and self.switch.netmiko_profile:
-            return True
-        return False

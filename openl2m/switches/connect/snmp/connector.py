@@ -26,9 +26,12 @@ import traceback
 from django.conf import settings
 from django.http.request import HttpRequest
 
-from pysnmp.hlapi import (
-    getCmd,
-    setCmd,
+# note that we use v3 of the new pysnmp HLAPI. This uses asyncio, instead of the old synchronous.
+# see https://docs.lextudio.com/pysnmp/v7.1/
+import asyncio
+from pysnmp.hlapi.v3arch.asyncio import (
+    # get_cmd,
+    set_cmd,
     UdpTransportTarget,
     ContextData,
     ObjectType,
@@ -37,8 +40,16 @@ from pysnmp.hlapi import (
     CommunityData,
     UsmUserData,
     usmHMACSHAAuthProtocol,
+    usmHMAC128SHA224AuthProtocol,
+    usmHMAC192SHA256AuthProtocol,
+    usmHMAC256SHA384AuthProtocol,
+    usmHMAC384SHA512AuthProtocol,
     usmHMACMD5AuthProtocol,
     usmAesCfb128Protocol,
+    usmAesCfb192Protocol,
+    usmAesCfb256Protocol,
+    usmAesBlumenthalCfb192Protocol,
+    usmAesBlumenthalCfb256Protocol,
     usmDESPrivProtocol,
 )
 from pysnmp.proto.rfc1902 import ObjectName, OctetString
@@ -55,14 +66,23 @@ from switches.constants import (
     SNMP_V3_SECURITY_AUTH_NOPRIV,
     SNMP_V3_AUTH_MD5,
     SNMP_V3_AUTH_SHA,
+    SNMP_V3_AUTH_SHA224,
+    SNMP_V3_AUTH_SHA256,
+    SNMP_V3_AUTH_SHA384,
+    SNMP_V3_AUTH_SHA512,
     SNMP_V3_PRIV_AES,
     SNMP_V3_PRIV_DES,
+    SNMP_V3_PRIV_AES192,
+    SNMP_V3_PRIV_AES256,
+    SNMP_V3_PRIV_AES192C,
+    SNMP_V3_PRIV_AES256C,
     SNMP_V3_SECURITY_AUTH_PRIV,
 )
 from switches.models import Log, Switch, SwitchGroup
 from switches.utils import dprint, get_remote_ip
 
-# from switches.connect.utils import *
+from switches.connect.utils import get_vlan_id_from_l3_interface
+
 # from switches.connect.snmp.utils import *
 from switches.connect.constants import (
     IF_TYPE_ETHERNET,
@@ -187,11 +207,16 @@ from switches.connect.snmp.constants import (
 
 class pysnmpHelper:
     """
-    Implement functionality we need to do a few simple things.
-    We use the "pysnmp" library primarily for help with OctetString / BitMap values.
-    ezsnmp cannot handle this cleanly, especially for uneven byte counts, due to
-    how it maps everything to a unicode string internally!
-    Based on the pysnmp HPAPI at http://snmplabs.com/pysnmp/examples/contents.html#high-level-snmp
+    Implement functionality we need to do a few simple things to handle snmp data objects
+    that are OctetString / BitMap values.
+
+    We use the "pysnmp" library for this, as ezsnmp cannot handle this cleanly,
+    especially for uneven byte counts, due to how it maps everything to a unicode string internally!
+
+    Based on the (new) async pysnmp HLAPI version 3 at
+        https://docs.lextudio.com/pysnmp/v7.1/docs/api-reference
+    with examples at
+        https://docs.lextudio.com/pysnmp/v7.1/examples/
     """
 
     def __init__(self, switch: Switch):
@@ -199,74 +224,88 @@ class pysnmpHelper:
         Initialize the PySnmp bindings
         """
         self.switch = switch  # the Switch() object
-        self._set_auth_data()
         self.error = Error()
+        if not self._set_auth_data():
+            # cannot set auth data, throw an exception:
+            raise Exception(f"{self.error.description}: {self.error.details}")
 
-    def get(self, oid: str) -> tuple[bool, str]:
-        """
-        Get a single specific OID value via SNMP
-        Returns a tuple with (error_status (bool), return_value)
-        if error, then return_value is string with reason for error
-        """
-        if not self.switch:
-            return (True, "Switch() NOT set!")
-        if not self._auth_data:
-            return (True, "Auth Data NOT set!")
+    # async def run_get(self, oid: str):
 
-        # Get a variable using an SNMP GET
-        errorIndication, errorStatus, errorIndex, varBinds = next(
-            getCmd(
-                self._auth_data,
-                UdpTransportTarget((self.switch.primary_ip4, self.switch.snmp_profile.udp_port)),
-                ContextData(),
-                ObjectType(ObjectName(oid)),
-                lookupMib=False,
-            )
+    #     snmpEngine = SnmpEngine()
+
+    #     # Get a variable using an SNMP GET
+    #     iterator = get_cmd(
+    #         snmpEngine,
+    #         self._auth_data,
+    #         UdpTransportTarget((self.switch.primary_ip4, self.switch.snmp_profile.udp_port)).create(),
+    #         ContextData(),
+    #         ObjectType(ObjectName(oid)),
+    #         lookupMib=False,
+    #     )
+
+    #     errorIndication, errorStatus, errorIndex, varBinds = await iterator
+
+    #     if errorIndication:
+    #         details = f"ERROR 'errorIndication' in pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+    #         snmpEngine.close_dispatcher()
+    #         return (True, details)
+
+    #     elif errorStatus:
+    #         details = f"ERROR 'errorStatus' in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+    #         snmpEngine.close_dispatcher()
+    #         return (True, details)
+
+    #     else:
+    #         # store the returned data
+    #         (oid, retval) = varBinds
+    #         snmpEngine.close_dispatcher()
+    #         return (False, retval)
+
+    # def get(self, oid: str) -> tuple[bool, str]:
+    #     """
+    #     Get a single specific OID value via SNMP
+    #     Returns a tuple with (error_status (bool), return_value)
+    #     if error, then return_value is string with reason for error
+    #     """
+    #     if not self.switch:
+    #         return (True, "Switch() NOT set!")
+    #     if not self._auth_data:
+    #         return (True, "Auth Data NOT set!")
+
+    #     return asyncio.run(self.run_get(oid))
+
+    async def run_set_vars(self, vars: tuple):
+        """Asyncio implementation of snmp set call. See
+        https://docs.lextudio.com/pysnmp/v7.1/docs/hlapi/v3arch/asyncio/manager/cmdgen/setcmd
+
+        Args:
+            self: the class instance
+            vars (tuple): a tuple of snmp oid (str), and the value (snmp object type) to set.
+
+        Returns:
+            (bool): True on success, False on failure and will set self.error accordinglu
+        """
+        dprint("pysnmpHelper.run_set_vars() running...")
+
+        snmpEngine = SnmpEngine()
+
+        iterator = set_cmd(
+            snmpEngine,
+            self._auth_data,
+            await UdpTransportTarget.create((self.switch.primary_ip4, self.switch.snmp_profile.udp_port)),
+            ContextData(),
+            *vars,
+            lookupMib=False,
         )
 
-        if errorIndication:
-            details = f"ERROR 'errorIndication' in pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
-            return (True, details)
-
-        elif errorStatus:
-            details = f"ERROR 'errorStatus' in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
-            return (True, details)
-
-        else:
-            # store the returned data
-            (oid, retval) = varBinds
-            return (False, retval)
-
-    def set_vars(self, vars: tuple) -> bool:
-        """
-        Set a single OID value. Note that 'value' has to be properly typed, see
-        http://snmplabs.com/pysnmp/docs/api-reference.html#pysnmp.smi.rfc1902.ObjectType
-        Returns True if success.
-        On failure, returns False, and self.error.X will be set
-        """
-        if not self._auth_data:
-            self.error.status = True
-            self.error.description = "Auth Data NOT set!"
-            self.error.details = "SNMP authentication data NOT set in config, please update!"
-            dprint("pysnmp.set_vars() no auth_data!")
-            return False
-
-        errorIndication, errorStatus, errorIndex, varBinds = next(
-            setCmd(
-                SnmpEngine(),
-                self._auth_data,
-                UdpTransportTarget((self.switch.primary_ip4, self.switch.snmp_profile.udp_port)),
-                ContextData(),
-                *vars,
-                lookupMib=False,
-            )
-        )
+        errorIndication, errorStatus, errorIndex, varBinds = await iterator
 
         if errorIndication:
             self.error.status = True
             self.error.description = "An SNMP error occurred!"
             self.error.details = f"ERROR 'errorIndication' pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             dprint("pysnmp.set_vars() SNMP engine error!")
+            snmpEngine.close_dispatcher()
             return False
 
         elif errorStatus:
@@ -274,11 +313,43 @@ class pysnmpHelper:
             self.error.description = "An SNMP error occurred!"
             self.error.details = f"ERROR 'errorStatus' in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             dprint("pysnmp.set_vars() SNMP PDU error!")
+            snmpEngine.close_dispatcher()
+            return False
+
+        dprint("pysnmpHelper.run_set_vars() OK!")
+        return True
+
+    def set_vars(self, vars: tuple) -> bool:
+        """
+        Set a single OID value. Note that 'value' has to be properly typed, see
+        https://docs.lextudio.com/pysnmp/v7.1/docs/hlapi/v3arch/asyncio/manager/cmdgen/setcmd
+
+        Args:
+            self: the class instance
+            vars (tuple): a tuple of snmp oid (str), and the value (snmp object type) to set.
+
+        Returns:
+            (bool): True on success, False on failure and will set self.error accordinglu
+        """
+        dprint("pysnmpHelper.set_vars()")
+        if not self._auth_data:
+            self.error.status = True
+            self.error.description = "Auth Data NOT set!"
+            self.error.details = "SNMP authentication data NOT set in config, please update!"
+            dprint("pysnmp.set_vars() no auth_data!")
+            return False
+
+        dprint("pysnmpHelper.set_vars() about to call async")
+        # we now call the worker function to perform this asynchronously
+        retval = asyncio.run(self.run_set_vars(vars))
+
+        if not retval:
+            dprint("pysnmpHelper().set_vars() returns False")
             return False
 
         # no errors
         self.error.clear()
-        dprint("pysnmp.set_vars() OK")
+        dprint("pysnmpHelper.set_vars() OK")
         return True
 
     def set(self, oid: str, value) -> bool:
@@ -288,6 +359,7 @@ class pysnmpHelper:
         Returns True if success.
         On failure, returns False, and self.error.X will be set
         """
+        dprint("pysnmpHelper.set()")
         var = []
         var.append(ObjectType(ObjectIdentity(ObjectName(oid)), value))
         return self.set_vars(var)
@@ -301,6 +373,7 @@ class pysnmpHelper:
         Returns True if success.
         On failure, returns False, and self.error.X will be set
         """
+        dprint("pysnmpHelper.set_multiple()")
         # first format in the varBinds format needed by pysnmp:
         vars = []
         for oid, value in oid_values:
@@ -310,10 +383,17 @@ class pysnmpHelper:
 
     def _set_auth_data(self) -> bool:
         """
-        Set the UsmUserData() or CommunityData() object based on the snmp_profile
+        Set the UsmUserData() for v3 or CommunityData() for v2 based on the device snmp_profile.
+        Set the object in the self._auth_data variable.
+
+        Returns:
+            (bool): True on success, False on failure, and set the
         """
         if not self.switch:
             # we need a Switch() object!
+            self.error.status = True
+            self.error.description = "No device found!"
+            self.error.details = "Cannot set SNMP authentication, as no device is found!"
             return False
 
         if self.switch.snmp_profile.version == SNMP_VERSION_2C:
@@ -329,51 +409,75 @@ class pysnmpHelper:
             # AuthNoPriv
             elif self.switch.snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
                 if self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                    self._auth_data = UsmUserData(
-                        self.switch.snmp_profile.username, self.switch.snmp_profile.passphrase
-                    )
-
+                    auth_protocol = usmHMACMD5AuthProtocol
                 elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                    self._auth_data = UsmUserData(
-                        self.switch.snmp_profile.username,
-                        self.switch.snmp_profile.passphrase,
-                        authProtocol=usmHMACSHAAuthProtocol,
-                    )
+                    auth_protocol = usmHMACSHAAuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA224:
+                    auth_protocol = usmHMAC128SHA224AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA256:
+                    auth_protocol = usmHMAC192SHA256AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA384:
+                    auth_protocol = usmHMAC256SHA384AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
+                    auth_protocol = usmHMAC384SHA512AuthProtocol
+
+                self._auth_data = UsmUserData(
+                    self.switch.snmp_profile.username,
+                    self.switch.snmp_profile.passphrase,
+                    authProtocol=auth_protocol,
+                )
                 return True
 
             # AuthPriv
             elif self.switch.snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_PRIV:
                 # authentication protocol
-                authProtocol = usmHMACSHAAuthProtocol  # default to SHA-1
+                auth_protocol = usmHMACSHAAuthProtocol  # default to SHA-1
                 if self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                    authProtocol = usmHMACMD5AuthProtocol
+                    auth_protocol = usmHMACMD5AuthProtocol
                 elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                    authProtocol = usmHMACSHAAuthProtocol
+                    auth_protocol = usmHMACSHAAuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA224:
+                    auth_protocol = usmHMAC128SHA224AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA256:
+                    auth_protocol = usmHMAC192SHA256AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA384:
+                    auth_protocol = usmHMAC256SHA384AuthProtocol
+                elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
+                    auth_protocol = usmHMAC384SHA512AuthProtocol
 
                 # privacy protocol
-                privProtocol = usmAesCfb128Protocol  # default to AES-128
+                priv_protocol = usmAesCfb128Protocol  # default to AES-128
                 if self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
-                    privProtocol = usmDESPrivProtocol
+                    priv_protocol = usmDESPrivProtocol
                 elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
-                    privProtocol = usmAesCfb128Protocol
+                    priv_protocol = usmAesCfb128Protocol
+                elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES192:
+                    priv_protocol = usmAesCfb192Protocol
+                elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES256:
+                    priv_protocol = usmAesCfb256Protocol
+                elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES192C:
+                    priv_protocol = usmAesBlumenthalCfb192Protocol
+                elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES256C:
+                    priv_protocol = usmAesBlumenthalCfb256Protocol
 
                 self._auth_data = UsmUserData(
                     self.switch.snmp_profile.username,
                     self.switch.snmp_profile.passphrase,
                     self.switch.snmp_profile.priv_passphrase,
-                    authProtocol=authProtocol,
-                    privProtocol=privProtocol,
+                    authProtocol=auth_protocol,
+                    privProtocol=priv_protocol,
                 )
                 return True
             else:
-                # unknown security level!
+                # unknown security level! Should not happen...
                 self.error.status = True
                 self.error.description = "Unknown Security Level!"
+                self.error.description = f"Security Level requested: {self.switch.snmp_profile.sec_level}"
                 return False
 
         # unknown version!
         self.error.status = True
-        self.error.description = f"Version {self.switch.snmp_profile.version} not supported!"
+        self.error.description = f"SNMP Version {self.switch.snmp_profile.version} not supported!"
         return False
 
     # def _parse_oid_with_fixup(self, oid: str, value: Any, snmp_type: str, parser):
@@ -510,9 +614,15 @@ class SnmpConnector(Connector):
 
     def _set_snmp_session(self, com_or_ctx: str = '') -> bool:
         """
-        Get a ezsnmp Session() object for this snmp connection
-        com_or_ctx - the community to override the snmp profile settings if v2,
-                      or the snmp v3 context to use.
+        Get a ezsnmp Session() object for this snmp connection.
+
+        params:
+            com_or_ctx - the community to override the snmp profile settings if v2,
+                         or the snmp v3 context to use.
+
+        Return:
+            (bool) - True if succesful, False if not!
+
         """
         dprint("_set_snmp_session()")
         if not self.switch.snmp_profile:
@@ -551,144 +661,111 @@ class SnmpConnector(Connector):
 
         # everything else is version 3
         if snmp_profile.version == SNMP_VERSION_3:
-            try:
-                # NoAuthNoPriv
-                if snmp_profile.sec_level == SNMP_V3_SECURITY_NOAUTH_NOPRIV:
-                    dprint("version 3 NoAuth-NoPriv")
-                    self._snmp_session = ezsnmp.Session(
-                        hostname=self.switch.primary_ip4,
-                        version=snmp_profile.version,
-                        remote_port=snmp_profile.udp_port,
-                        use_numeric=True,
-                        use_sprint_value=False,
-                        security_level=u"no_auth_or_privacy",
-                        security_username=snmp_profile.username,
-                        context=str(com_or_ctx),
-                    )
-                    return True
+            # EzSNMPO does not like empty auth and priv, so set low defaults.
+            auth_protocol = "MD5"
+            privacy_protocol = "DES"
+            security_level = ""
+            # NoAuthNoPriv
+            if snmp_profile.sec_level == SNMP_V3_SECURITY_NOAUTH_NOPRIV:
+                dprint("version 3 NoAuth-NoPriv")
+                security_level = u"no_auth_or_privacy"
 
-                # AuthNoPriv
-                elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
-                    dprint("version 3 Auth-NoPriv")
-                    if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                        dprint("  auth = MD5")
-                        self._snmp_session = ezsnmp.Session(
-                            hostname=self.switch.primary_ip4,
-                            version=snmp_profile.version,
-                            remote_port=snmp_profile.udp_port,
-                            use_numeric=True,
-                            use_sprint_value=False,
-                            security_level=u"auth_without_privacy",
-                            security_username=snmp_profile.username,
-                            auth_protocol=u"MD5",
-                            auth_password=snmp_profile.passphrase,
-                            context=str(com_or_ctx),
-                        )
-                        return True
-
-                    elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                        dprint("  auth = MD5")
-                        self._snmp_session = ezsnmp.Session(
-                            hostname=self.switch.primary_ip4,
-                            version=snmp_profile.version,
-                            remote_port=snmp_profile.udp_port,
-                            use_numeric=True,
-                            use_sprint_value=False,
-                            security_level=u"auth_without_privacy",
-                            security_username=snmp_profile.username,
-                            auth_protocol=u"SHA",
-                            auth_password=snmp_profile.passphrase,
-                            context=str(com_or_ctx),
-                        )
-                        return True
-
-                # AuthPriv
-                elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_PRIV:
-                    dprint("version 3 Auth-Priv")
-                    if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                        dprint("  auth = MD5")
-                        if snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
-                            dprint("  priv = DES")
-                            self._snmp_session = ezsnmp.Session(
-                                hostname=self.switch.primary_ip4,
-                                version=snmp_profile.version,
-                                remote_port=snmp_profile.udp_port,
-                                use_numeric=True,
-                                use_sprint_value=False,
-                                security_level=u"auth_with_privacy",
-                                security_username=snmp_profile.username,
-                                auth_protocol=u"MD5",
-                                auth_password=snmp_profile.passphrase,
-                                privacy_protocol=u"DES",
-                                privacy_password=snmp_profile.priv_passphrase,
-                                context=str(com_or_ctx),
-                            )
-                            return True
-
-                        if snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
-                            dprint("  priv = AES")
-                            self._snmp_session = ezsnmp.Session(
-                                hostname=self.switch.primary_ip4,
-                                version=snmp_profile.version,
-                                remote_port=snmp_profile.udp_port,
-                                use_numeric=True,
-                                use_sprint_value=False,
-                                security_level=u"auth_with_privacy",
-                                security_username=snmp_profile.username,
-                                auth_protocol=u"MD5",
-                                auth_password=snmp_profile.passphrase,
-                                privacy_protocol=u"AES",
-                                privacy_password=snmp_profile.priv_passphrase,
-                                context=str(com_or_ctx),
-                            )
-                            return True
-
-                        dprint("  Unknown PRIV setting!")
-
-                    if snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                        dprint("  auth = SHA")
-                        if snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
-                            dprint("  priv = DES")
-                            self._snmp_session = ezsnmp.Session(
-                                hostname=self.switch.primary_ip4,
-                                version=snmp_profile.version,
-                                remote_port=snmp_profile.udp_port,
-                                use_numeric=True,
-                                use_sprint_value=False,
-                                security_level=u"auth_with_privacy",
-                                security_username=snmp_profile.username,
-                                auth_protocol=u"SHA",
-                                auth_password=snmp_profile.passphrase,
-                                privacy_protocol=u"DES",
-                                privacy_password=snmp_profile.priv_passphrase,
-                                context=str(com_or_ctx),
-                            )
-                            return True
-
-                        if snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
-                            dprint("  priv = AES")
-                            self._snmp_session = ezsnmp.Session(
-                                hostname=self.switch.primary_ip4,
-                                version=snmp_profile.version,
-                                remote_port=snmp_profile.udp_port,
-                                use_numeric=True,
-                                use_sprint_value=False,
-                                security_level=u"auth_with_privacy",
-                                security_username=snmp_profile.username,
-                                auth_protocol=u"SHA",
-                                auth_password=snmp_profile.passphrase,
-                                privacy_protocol=u"AES",
-                                privacy_password=snmp_profile.priv_passphrase,
-                                context=str(com_or_ctx),
-                            )
-                            return True
-                        dprint("  Unknown PRIV setting!")
+            # AuthNoPriv
+            elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
+                dprint("version 3 Auth-NoPriv")
+                security_level = u"auth_without_privacy"
+                if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
+                    auth_protocol = u"MD5"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
+                    auth_protocol = u"SHA"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA224:
+                    auth_protocol = u"SHA-224"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA256:
+                    auth_protocol = u"SHA-256"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA384:
+                    auth_protocol = u"SHA-384"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
+                    auth_protocol = u"SHA-512"
                 else:
-                    dprint("  Unknown auth-priv")
+                    return False
+
+            # AuthPriv
+            elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_PRIV:
+                dprint("version 3 Auth-Priv")
+                security_level = "auth_with_privacy"
+                # auth protocols first
+                if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
+                    auth_protocol = u"MD5"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
+                    auth_protocol = u"SHA"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA224:
+                    auth_protocol = u"SHA-224"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA256:
+                    auth_protocol = u"SHA-256"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA384:
+                    auth_protocol = u"SHA-384"
+                elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
+                    auth_protocol = u"SHA-512"
+                else:
+                    dprint(f"Invalid AUTH protocol: {snmp_profile.auth_protocol}")
+                    return False
+
+                # priv protocols next:
+                if snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
+                    privacy_protocol = u"DES"
+                elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
+                    privacy_protocol = u"AES"
+                elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES192:
+                    privacy_protocol = u"AES-192"
+                elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES256:
+                    privacy_protocol = u"AES-256"
+                elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES192C:
+                    privacy_protocol = u"AES-192C"
+                elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES256C:
+                    privacy_protocol = u"AES-256C"
+                else:
+                    dprint(f"Invalid PRIV protocol: {snmp_profile.priv_protocol}")
+                    return False
+
+            else:
+                # should never happen:
+                dprint(f"  Unknown auth-priv security level: {snmp_profile.sec_level}")
+                return False
+
+            # now try to connect with SNMP v3:
+            dprint(f"  Trying v3 with: sec_level={security_level}, auth={auth_protocol}, priv={privacy_protocol}")
+            if not snmp_profile.passphrase:
+                passphrase = ""
+            else:
+                passphrase = snmp_profile.passphrase
+            if not snmp_profile.priv_passphrase:
+                priv_passphrase = ""
+            else:
+                priv_passphrase = snmp_profile.priv_passphrase
+            try:
+                self._snmp_session = ezsnmp.Session(
+                    hostname=self.switch.primary_ip4,
+                    version=snmp_profile.version,
+                    remote_port=snmp_profile.udp_port,
+                    use_numeric=True,
+                    use_sprint_value=False,
+                    timeout=settings.SNMP_TIMEOUT,
+                    retries=settings.SNMP_RETRIES,
+                    # here are the v3 specific entries:
+                    security_level=security_level,
+                    security_username=snmp_profile.username,
+                    auth_protocol=auth_protocol,
+                    auth_password=passphrase,
+                    privacy_protocol=privacy_protocol,
+                    privacy_password=priv_passphrase,
+                    context=str(com_or_ctx),
+                )
+                return True
+
             except Exception as err:
-                dprint(f"ERROR with snmp v2 session: {repr(err)}")
+                dprint(f"ERROR with snmp v3 session: {repr(err)}")
                 self.add_log(
-                    description=f"ERROR with snmp v2 session: {err}", type=LOG_TYPE_ERROR, action=LOG_SNMP_ERROR
+                    description=f"ERROR with snmp v3 session: {err}", type=LOG_TYPE_ERROR, action=LOG_SNMP_ERROR
                 )
                 return False
 
@@ -3058,6 +3135,12 @@ class SnmpConnector(Connector):
                     self.vrfs[vrf_name].interfaces.append(iface.name)
                 # assing this vrf name to the interface:
                 iface.vrf_name = vrf_name
+                # see if this is a routed "vlan-interface" to assign VRF to vlan
+                vlan_id = get_vlan_id_from_l3_interface(iface)
+                if vlan_id > 0:
+                    dprint("    Vlan ID {vlan_id} is part of vrf '{vrf_name}'")
+                    vlan = self.get_vlan_by_id(vlan_id=vlan_id)
+                    vlan.vrf = vrf_name
             return True
 
         sub_oid = oid_in_branch(mplsL3VpnIfVpnRouteDistProtocol, oid)
@@ -3076,6 +3159,12 @@ class SnmpConnector(Connector):
                     self.vrfs[vrf_name].interfaces[iface.name] = True
                 # assing this vrf name to the interface:
                 iface.vrf_name = vrf_name
+                # see if this is a routed "vlan-interface" to assign VRF to vlan
+                vlan_id = get_vlan_id_from_l3_interface(iface)
+                if vlan_id > 0:
+                    dprint("    Vlan ID {vlan_id} is part of vrf '{vrf_name}'")
+                    vlan = self.get_vlan_by_id(vlan_id=vlan_id)
+                    vlan.vrf = vrf_name
             return True
 
         # we did not parse:

@@ -185,6 +185,7 @@ class Vlan:
         # self.untagged_ports_bitmap = 0x0    # exactly what you think, PortList format ! :-)
         # self.hh3c_dot1q_vlan_ports = PortList()   # hh3cdot1qVlanPorts is HH3C specific vlan untagged PortList() bitmap
         self.voice: bool = False  # if True, this is a "voice vlan"
+        self.vrf: str = ""  # the VRF this vlan is a member of, if any.
 
     def set_name(self, name: str) -> None:
         self.name = name
@@ -204,6 +205,7 @@ class Vlan:
             'state': vlan_admin_name[self.admin_status],
             'status': vlan_status_name[self.status],
             'igmp_snooping': self.igmp_snooping,
+            'vrf': self.vrf,
         }
 
     def __str__(self) -> str:
@@ -720,6 +722,48 @@ class PoePort:
         )
 
 
+class Transceiver:
+    """
+    Class to represent a transceiver in an interface slot. Eg. QSFP28 100g-LR4, etc.
+    """
+
+    def __init__(self):
+        """
+        Initialize the object
+        """
+        self.type: str = ""  # the type of transciever, eg.
+        self.vendor: str = ""
+        self.wavelength: int = 0  # the wavelength in nm, ie 850, 130, 1550, etc.
+        self.distance: int = 0  # the max distance of this transceiver
+
+    def as_dict(self) -> dict:
+        '''
+        return this class as a dictionary for use by the API
+        '''
+        return {
+            'type': self.type,
+            'vendor': self.vendor,
+            'wavelength': self.wavelength,
+            'distance': self.distance,
+        }
+
+    def __str__(self) -> str:
+        if self.wavelength:
+            wavelength = f" {self.wavelength}nm"
+        else:
+            wavelength = ""
+        if self.vendor:
+            vendor = f" ({self.vendor})"
+        else:
+            vendor = ""
+        if self.distance:
+            d = self.distance / 1000
+            distance = f"{d}km"
+        else:
+            distance = ""
+        return f"{self.type}{wavelength}{distance}{vendor}"
+
+
 class SyslogMsg:
     """
     Class to represent a Syslog Message, implemented in SYSLOG-MSG-MIB
@@ -774,6 +818,25 @@ class Vrf:
         self.active_interfaces = 0  # number of interfaces active on this VRF
         self.interfaces = []  # list of interface names in this VRF
 
+    def as_dict(self):
+        '''
+        return this Vrf() class as a dictionary for use by the API
+
+        Params:
+            None.
+
+        Returns:
+            dict(): key-value pairs with information about this VRF.
+        '''
+        # return just the basic data for now...
+        return {
+            "name": self.name,
+            'rd': self.rd,
+            'description': self.description,
+            'ipv4': self.ipv4,
+            'ipv6': self.ipv6,
+        }
+
 
 class Interface:
     """
@@ -801,6 +864,7 @@ class Interface:
         self.speed: int = 0  # speed counter, in 1 Mbps (ie. like ifHighSpeed data from IF-MIB)
         self.duplex: int = IF_DUPLEX_UNKNOWN  # interface duplex setting, if known.
         self.phys_addr = 0x0
+        self.transceiver: Transceiver = None  # any transceiver info know for this interface
         self.description: str = ""  # the interface description, as set by the switch configuration, from IF-MIB
         self.addresses_ip4: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
         self.addresses_ip6: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv6 addresses on this interface
@@ -975,6 +1039,8 @@ class Interface:
         inf["duplex"] = duplex_name[self.duplex]
         if self.mtu:
             inf["mtu"] = self.mtu
+        # VRF info
+        inf['vrf'] = self.vrf_name
         # PoE data:
         if self.poe_entry:
             inf['poe'] = self.poe_entry.as_dict()

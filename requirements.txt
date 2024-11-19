@@ -4,7 +4,7 @@ Django>=5.1,<5.2
 django-ipware
 # django-minify-html
 django-ordered-model>=3.7,<4.0
-# versions post 0.2.5 appear unstable:
+# Easysnmp appears unsupported.
 # easysnmp==0.2.5
 # ezsnmp replaces easysnmp, see https://github.com/carlkidcrypto/ezsnmp
 # and docs at https://carlkidcrypto.github.io/ezsnmp/html/index.html
@@ -55,9 +55,11 @@ pyaoscx==2.6.0
 pycodestyle
 # pysnmp (original) is no longer supported.
 # see https://lists.openstack.org/pipermail/openstack-discuss/2022-August/030062.html
-# we are now using the maintained clone "pysnmplib"
-# see https://github.com/pysnmp/pysnmp
-pysnmplib==5.0.24
+# we are now using the maintained clone "pysnmp" by Lextudio
+# see https://github.com/lextudio/pysnmp
+# note that the api surface is going to be reshaped in the next major release.
+# so for now pin this to the test version:
+pysnmp==7.1.8
 #PyTZ and the type library:
 pytz>=2024.1
 types-pytz

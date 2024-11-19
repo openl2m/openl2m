@@ -26,7 +26,7 @@ from pysnmp.proto.rfc1902 import OctetString, Gauge32
 
 from switches.models import Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
-from switches.connect.classes import Interface, PortList
+from switches.connect.classes import Interface, PortList, Transceiver
 from switches.connect.constants import IF_TYPE_ETHERNET, POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_branch
 from switches.connect.snmp.constants import SNMP_TRUE, dot1qPvid
@@ -54,6 +54,10 @@ from .constants import (
     HH3C_running2Startup,
     HH3C_createAndGo,
     hh3cIgmpSnoopingVlanEnabled,
+    # hh3cTransceiverHardwareType, - currently not used.
+    hh3cTransceiverType,
+    hh3cTransceiverWaveLength,
+    hh3cTransceiverVendorName,
 )
 
 
@@ -104,9 +108,14 @@ class SnmpConnectorComware(SnmpConnector):
         # first call the base class to populate interfaces:
         super()._get_interface_data()
 
-        # now add Comware data, and cache it:
+        # now add Comware data:
         if self.get_snmp_branch(branch_name='hh3cIfLinkMode', parser=self._parse_mibs_comware_if_linkmode) < 0:
             dprint("Comware hh3cIfLinkMode returned error!")
+            return False
+        # and the Tranceiver data as well:
+        # for now, just run hh3cTransceiverType, instead of full hh3cTransceiverInfoEntry
+        if self.get_snmp_branch(branch_name='hh3cTransceiverType', parser=self._parse_mibs_comware_transceiver) < 0:
+            dprint("Comware hh3cTransceiverType returned error!")
             return False
 
         return True
@@ -474,6 +483,7 @@ class SnmpConnectorComware(SnmpConnector):
         Parse Comware specific Interface Extension MIB for link mode
         return True if we parse it, False if not.
         """
+        dprint("_parse_mibs_comware_if_linkmode()")
         if_index = oid_in_branch(hh3cIfLinkMode, oid)
         if if_index:
             dprint(f"Comware LinkMode if_index {if_index} link_mode {val}")
@@ -487,11 +497,56 @@ class SnmpConnectorComware(SnmpConnector):
         Parse Comware specific ConfigMan MIB
         return True if we parse it, False if not.
         """
-        dprint("_parse_mibs_comware_configfile(Comware)")
+        dprint("_parse_mibs_comware_configfile()")
         sub_oid = oid_in_branch(hh3cCfgOperateRowStatus, oid)
         if sub_oid:
             if int(sub_oid) > self.active_config_rows:
                 self.active_config_rows = int(sub_oid)
+            return True
+
+        return False
+
+    def _parse_mibs_comware_transceiver(self, oid: str, val: str) -> bool:
+        """
+        Parse Comware specific interface Transeiver information.
+        See HH3C-TRANSCEIVER-INFO-MIB
+        return True if we parse it, False if not.
+        """
+        dprint("_parse_mibs_comware_transceiver()")
+        # if_index = oid_in_branch(hh3cTransceiverHardwareType, oid)
+        # if if_index:
+        #     iface = self.get_interface_by_key(key=if_index)
+        #     if iface:
+        #         if not iface.transceiver:
+        #             iface.transceiver = Transceiver()
+        #     iface.transceiver.type = val
+        #     return True
+
+        if_index = oid_in_branch(hh3cTransceiverType, oid)
+        if if_index:
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                if not iface.transceiver:
+                    iface.transceiver = Transceiver()
+            iface.transceiver.type = val
+            return True
+
+        if_index = oid_in_branch(hh3cTransceiverWaveLength, oid)
+        if if_index:
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                if not iface.transceiver:
+                    iface.transceiver = Transceiver()
+            iface.transceiver.wavelength = int(val)
+            return True
+
+        if_index = oid_in_branch(hh3cTransceiverVendorName, oid)
+        if if_index:
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                if not iface.transceiver:
+                    iface.transceiver = Transceiver()
+            iface.transceiver.vendor = val
             return True
 
         return False

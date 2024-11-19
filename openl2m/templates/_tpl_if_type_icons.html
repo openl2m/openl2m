@@ -124,3 +124,10 @@
       title="Member of VRF '{{ iface.vrf_name }}'">
   </i>
 {% endif %}
+{% if iface.transceiver %}
+  &nbsp;
+  <i class="fas fa-bolt" aria-hidden="true"
+      data-bs-toggle="tooltip"
+      title="{{ iface.transceiver }} transceiver">
+  </i>
+{% endif %}

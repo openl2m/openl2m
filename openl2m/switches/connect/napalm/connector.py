@@ -91,7 +91,7 @@ class NapalmConnector(Connector):
             self.add_warning("Napalm error in get_facts() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_FACTS, description=f"ERROR: {self.error.details}")
             return False
-        dprint(f"facts = \n{ facts }\n")
+        dprint(f"facts = \n{facts}\n")
 
         self.hostname = facts['hostname']
         self.add_more_info('System', 'Hostname', self.hostname)
@@ -113,7 +113,7 @@ class NapalmConnector(Connector):
                 type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_INTERFACES, description=f"ERROR: {self.error.details}"
             )
             return False
-        dprint(f"\nINTERFACES = \n{ interface_list }\n")
+        dprint(f"\nINTERFACES = \n{interface_list}\n")
         # parse
         for if_name, if_data in interface_list.items():
             dprint(f"\nInterface: {if_name}")
@@ -140,7 +140,7 @@ class NapalmConnector(Connector):
             self.add_warning("Napalm error in get_vlans() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_VLANS, description=f"ERROR: {self.error.details}")
             return False
-        # dprint(f"\nVLANS = \n{ vlan_list }\n")
+        # dprint(f"\nVLANS = \n{vlan_list}\n")
         # parse
         for vlan_id, vlan_data in vlan_list.items():
             dprint(f"\nVlan {vlan_id}: {vlan_data}")
@@ -172,7 +172,7 @@ class NapalmConnector(Connector):
             self.add_warning("Napalm error in get_interface_vlan() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_VLANS, description=f"ERROR: {self.error.details}")
             return False
-        dprint(f"interface_vlans = \n{ iface_list }\n")
+        dprint(f"interface_vlans = \n{iface_list}\n")
         """
 
         # now load the interface ipv4 data:
@@ -186,7 +186,7 @@ class NapalmConnector(Connector):
             self.add_warning("Napalm error in get_interfaces_ip() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_IF_IP, description=f"ERROR: {self.error.details}")
             return False
-        dprint(f"IPs = \n{ ip_list }\n")
+        dprint(f"IPs = \n{ip_list}\n")
         # parse
         for if_name, if_data in ip_list.items():
             # dprint(f"IF {if_name}: {if_data}")
@@ -225,7 +225,7 @@ class NapalmConnector(Connector):
             self.add_warning("Napalm error in get_mac_address_table() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_MAC, description=f"ERROR: {self.error.details}")
             return False
-        dprint(f"mac_table = \n{mac_table }\n")
+        dprint(f"mac_table = \n{mac_table}\n")
         for info in mac_table:
             if_name = info['interface']
             if if_name:
@@ -247,7 +247,7 @@ class NapalmConnector(Connector):
             self.add_warning("Napalm error in get_arp_table() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_ARP, description=f"ERROR: {self.error.details}")
             return False
-        dprint(f"arp_table = \n{ arp_table }\n")
+        dprint(f"arp_table = \n{arp_table}\n")
         for info in arp_table:
             if_name = info['interface']
             if if_name:
@@ -271,7 +271,7 @@ class NapalmConnector(Connector):
             self.add_warning("Napalm error in get_lldp_neighbors_detail() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_LLDP, description=f"ERROR: {self.error.details}")
             return False
-        dprint(f"lldp_details = \n{ lldp_details }\n")
+        dprint(f"lldp_details = \n{lldp_details}\n")
         # parse
         for if_name, lldp_data in lldp_details.items():
             # dprint(f"IF {if_name}: {if_data}")

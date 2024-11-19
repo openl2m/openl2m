@@ -30,8 +30,8 @@ from switches.utils import dprint
 from .constants import (
     aristaVrfRoutingStatus,
     aristaVrfRouteDistinguisher,
-    aristaVrfState,
-    ARISTA_VRF_ACTIVE,
+    # aristaVrfState, - currently not used.
+    #    ARISTA_VRF_ACTIVE,
     #    ARISTA_VRF_ROUTING_IPV4_BIT,
     #    ARISTA_VRF_ROUTING_IPV6_BIT,
     aristaVrfIfMembership,

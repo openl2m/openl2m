@@ -9,13 +9,19 @@ Version 3.3
   v3.3 requires Postgres version 13 or greater! (I.e. Ubuntu 20.04 will no longer work.)
   We now use Django v5.1 !
 
-**Version 3.3 adds support for Arista devices via SNMP, and can read MPLS VRF info from SNMP
-on devices that support the standard MIB.**
+**Version 3.3 adds support for Arista devices via SNMP, and can read MPLS VRF info from most drivers,
+including from SNMP devices that support the standard MIB.**
 
 Version 3.3.2
 -------------
 
 Release Date: TBD
+
+* add interface transceiver information (eg. 10g-LR) where supported.
+  Currently available in the HPE Comware SNMP driver, for devices that support it.
+* add support for SNMP v3 SHA224 - SHA512 authencation, and AES192 - AES256 privacy.
+* add support for Python 3.12 (now supports running under Pythoin v3.10 - v3.12)
+* add vrf info to vlan table, for most drivers that support reading router VRF info.
 
 Bug fixes:
 
