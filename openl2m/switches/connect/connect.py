@@ -54,6 +54,8 @@ from switches.connect.snmp.arista_eos.constants import ENTERPRISE_ID_ARISTA
 from switches.connect.snmp.arista_eos.connector import SnmpConnectorAristaEOS
 from switches.connect.snmp.aruba_cx.constants import ENTERPRISE_ID_HP_ENTERPRISE
 from switches.connect.snmp.aruba_cx.connector import SnmpConnectorArubaCx
+from switches.connect.snmp.netgear.constants import ENTERPRISE_ID_NETGEAR
+from switches.connect.snmp.netgear.connector import SnmpConnectorNetgear
 from switches.connect.aruba_aoscx.connector import AosCxConnector
 from switches.connect.junos_pyez.connector import PyEZConnector
 from switches.connect.commands_only.connector import CommandsOnlyConnector
@@ -107,6 +109,9 @@ def get_connection_object(request: HttpRequest, group: SwitchGroup, switch: Swit
 
                 elif enterprise_id == ENTERPRISE_ID_ARISTA:
                     connection = SnmpConnectorAristaEOS(request, group, switch)
+
+                elif enterprise_id == ENTERPRISE_ID_NETGEAR:
+                    connection = SnmpConnectorNetgear(request, group, switch)
 
                 # Dell is yet to be tested!
                 # elif enterprise_id == ENTERPRISE_ID_DELL:

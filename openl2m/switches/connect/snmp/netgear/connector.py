@@ -36,7 +36,10 @@ class SnmpConnectorNetgear(SnmpConnector):
     This re-implements some methods found in the base SNMP() class
     with Netgear specific ways of doing things...
 
-    Mostly to read the Netgear private PoE MIB
+    Mostly to read the PoE MIB the "netgear way".
+    Of interest are:
+    NETGEAR-POWER-ETHERNET-MIB - "NETGEAR Power Ethernet Extensions MIB"
+    NETGEAR-SWITCHING-MIB - "NETGEAR Switching - Layer 2"
     """
 
     def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
@@ -46,7 +49,7 @@ class SnmpConnectorNetgear(SnmpConnector):
         self.description = 'Netgear SNMP driver'
         self.can_save_config = False
         # force READ-ONLY for now! We have not implemented changing settings.
-        self.switch.read_only = True
+        self.switch.read_only = False
         self.vendor_name = ""
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
