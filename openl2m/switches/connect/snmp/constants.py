@@ -674,16 +674,16 @@ pethMainPseEntry = '.1.3.6.1.2.1.105.1.3.1.1'
 snmp_mib_variables['pethMainPseEntry'] = pethMainPseEntry
 
 pethMainPsePower = '.1.3.6.1.2.1.105.1.3.1.1.2'  # followed by devId.index, where devId is stack member
-snmp_mib_variables['pethMainPsePower'] = pethMainPsePower
+snmp_mib_variables['pethMainPsePower'] = pethMainPsePower  # in Watts
 
 pethMainPseOperStatus = '.1.3.6.1.2.1.105.1.3.1.1.3'  # followed by devId.index, where devId is stack member
-snmp_mib_variables['pethMainPseOperStatus'] = pethMainPseOperStatus
+snmp_mib_variables['pethMainPseOperStatus'] = pethMainPseOperStatus  # on=1, off=2, faulty=3
 
 pethMainPseConsumptionPower = '.1.3.6.1.2.1.105.1.3.1.1.4'  # followed by devId.index, where devId is stack member
-snmp_mib_variables['pethMainPseConsumptionPower'] = pethMainPseConsumptionPower
+snmp_mib_variables['pethMainPseConsumptionPower'] = pethMainPseConsumptionPower  # in Watts
 
 pethMainPseUsageThreshold = '.1.3.6.1.2.1.105.1.3.1.1.5'  # followed by devId.index, where devId is stack member
-snmp_mib_variables['pethMainPseUsageThreshold'] = pethMainPseUsageThreshold
+snmp_mib_variables['pethMainPseUsageThreshold'] = pethMainPseUsageThreshold  # in percent, e.g. 80 = 80%
 
 #
 # the pethPsePortEntry tables with port-level PoE info

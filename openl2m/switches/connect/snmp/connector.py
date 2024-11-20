@@ -2015,12 +2015,12 @@ class SnmpConnector(Connector):
         pse_id = int(oid_in_branch(pethMainPsePower, oid))
         if pse_id:
             self.poe_capable = True
-            self.poe_max_power += int(val)
+            self.poe_max_power += int(val)  # in Watts
             # store data about individual PSE unit:
             if pse_id not in self.poe_pse_devices.keys():
                 self.poe_pse_devices[pse_id] = PoePSE(pse_id)
             # update max power
-            self.poe_pse_devices[pse_id].max_power = int(val)
+            self.poe_pse_devices[pse_id].max_power = int(val)  # in Watts
             return True
 
         pse_id = int(oid_in_branch(pethMainPseOperStatus, oid))
@@ -2038,12 +2038,12 @@ class SnmpConnector(Connector):
         pse_id = int(oid_in_branch(pethMainPseConsumptionPower, oid))
         if pse_id:
             self.poe_capable = True
-            self.poe_power_consumed += int(val)  # this is in milliWatts
+            self.poe_power_consumed += int(val)  # this is in Watts (not milliWatts !)
             # store data about individual PSE unit:
             if pse_id not in self.poe_pse_devices.keys():
                 self.poe_pse_devices[pse_id] = PoePSE(pse_id)
             # update max power
-            self.poe_pse_devices[pse_id].power_consumed = int(val)
+            self.poe_pse_devices[pse_id].power_consumed = int(val)  # in Watts !
             return True
 
         pse_id = int(oid_in_branch(pethMainPseUsageThreshold, oid))

@@ -592,9 +592,9 @@ class PoePSE:
         Initialize the object
         """
         self.index: int = int(index)
-        self.max_power: int = 0  # maximum power available on this power supply
+        self.max_power: int = 0  # maximum power available on this power supply, in watts
         self.status: int = POE_PSE_STATUS_ON
-        self.power_consumed: int = 0  # total power consumed on this power supply
+        self.power_consumed: int = 0  # total power consumed on this power supply, in watts
         self.threshold: int = 0
         # some drivers have this easily available:
         self.name = ""
