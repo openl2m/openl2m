@@ -74,7 +74,19 @@ class SnmpConnectorNetgear(SnmpConnector):
         then by calling the Netgear extended NETGEAR-POWER-ETHERNET-MIB
         """
         super()._get_poe_data()
-        # now get Netgear specific info
+        # The netgear switch we have show PSE consumed power (pethMainPseConsumptionPower) in milliwatts.
+        # this even shows in their downloadable mibs, where pethMainPseConsumptionPower shows
+        #    pethMainPseConsumptionPower OBJECT-TYPE
+        #       UNITS       "Milliwatts"
+        #       DESCRIPTION
+        #          "Measured usage power expressed in Milliwatts."
+        # per the standard POWER-ETHERNET-MIB defined in https://www.rfc-editor.org/rfc/rfc3621.html
+        # this counter should be in Watts. We need to fix this over-reporting of power used!
+        for pse in self.poe_pse_devices.values():
+            pse.power_consumed = int(pse.power_consumed / 1000)
+        # and the total usage:
+        self.poe_power_consumed = int(self.poe_power_consumed / 1000)
+        # now get Netgear specific port PoE power used
         retval = self.get_snmp_branch(branch_name='agentPethOutputPower', parser=self._parse_mibs_netgear_poe)
         if retval < 0:
             self.add_warning("Error getting 'PoE-Port-Current-Power' (agentPethOutputPower)")
