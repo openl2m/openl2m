@@ -28,22 +28,27 @@ enterprise_id_info[ENTERPRISE_ID_NETGEAR] = 'Netgear'
 # NETGEAR-POWER-ETHERNET-MIB - Private POE MIB
 # https://mibs.observium.org/mib/NETGEAR-POWER-ETHERNET-MIB/
 
-#  fastPathpowerEthernetMIB		.1.3.6.1.4.1.4526.10.15
-#  agentPethObjects		.1.3.6.1.4.1.4526.10.15.1
-#  agentPethPsePortTable 		.1.3.6.1.4.1.4526.10.15.1.1
-#  agentPethPsePortEntry 		.1.3.6.1.4.1.4526.10.15.1.1.1
-#  agentPethPowerLimit 	Milliwatts	.1.3.6.1.4.1.4526.10.15.1.1.1.1
-#  agentPethPortReset 		.1.3.6.1.4.1.4526.10.15.1.1.1.10
-#  agentPethPowerUpMode 		.1.3.6.1.4.1.4526.10.15.1.1.1.11
-#  agentPethClassificationMode 		.1.3.6.1.4.1.4526.10.15.1.1.1.12
+#  fastPathpowerEthernetMIB		           .1.3.6.1.4.1.4526.10.15
+#  agentPethObjects		                .1.3.6.1.4.1.4526.10.15.1
+#  agentPethPsePortTable 		        .1.3.6.1.4.1.4526.10.15.1.1
+#  agentPethPsePortEntry 		        .1.3.6.1.4.1.4526.10.15.1.1.1
+#  agentPethPowerLimit 	Milliwatts	    .1.3.6.1.4.1.4526.10.15.1.1.1.1
 #  agentPethOutputPower 	Milliwatts	.1.3.6.1.4.1.4526.10.15.1.1.1.2
 #  agentPethOutputCurrent 	Milliamps	.1.3.6.1.4.1.4526.10.15.1.1.1.3
 #  agentPethOutputVolts 	Millivolts	.1.3.6.1.4.1.4526.10.15.1.1.1.4
-#  agentPethTemperature 	DEGREES	.1.3.6.1.4.1.4526.10.15.1.1.1.5
-#  agentPethPowerLimitType 		.1.3.6.1.4.1.4526.10.15.1.1.1.6
-#  agentPethHighPowerEnable 	obsolete	.1.3.6.1.4.1.4526.10.15.1.1.1.7
-#  agentPethPowerDetectionType 		.1.3.6.1.4.1.4526.10.15.1.1.1.8
-#  agentPethFaultStatus 		.1.3.6.1.4.1.4526.10.15.1.1.1.9
+#  agentPethTemperature 	DEGREES	    .1.3.6.1.4.1.4526.10.15.1.1.1.5
+#  agentPethPowerLimitType 		        .1.3.6.1.4.1.4526.10.15.1.1.1.6
+#  agentPethHighPowerEnable (obsolete)  .1.3.6.1.4.1.4526.10.15.1.1.1.7
+#  agentPethPowerDetectionType 		    .1.3.6.1.4.1.4526.10.15.1.1.1.8
+#  agentPethFaultStatus 		        .1.3.6.1.4.1.4526.10.15.1.1.1.9
+#  agentPethPortReset 		            .1.3.6.1.4.1.4526.10.15.1.1.1.10
+#  agentPethPowerUpMode 		        .1.3.6.1.4.1.4526.10.15.1.1.1.11
+#  agentPethClassificationMode 		    .1.3.6.1.4.1.4526.10.15.1.1.1.12
+
+agentPethOutputPower = '.1.3.6.1.4.1.4526.10.15.1.1.1.2'  # in milliWatts
+snmp_mib_variables['agentPethOutputPower'] = agentPethOutputPower
+
+# Power Supply objects
 #  agentPethMainPseObjects		.1.3.6.1.4.1.4526.10.15.1.2
 #  agentPethMainPseTable 		.1.3.6.1.4.1.4526.10.15.1.2.1
 #  agentPethMainPseEntry 		.1.3.6.1.4.1.4526.10.15.1.2.1.1
