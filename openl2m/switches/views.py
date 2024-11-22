@@ -533,8 +533,13 @@ def switch_view(
     time_since_last_read = time_duration(time.time() - conn.basic_info_read_timestamp)
 
     # finally, verify what this user can do:
-    bulk_edit = len(conn.interfaces) and user_can_bulkedit(request.user, group, switch)
-    edit_vlans = conn.can_edit_vlans and len(conn.interfaces) and user_can_edit_vlans(request.user, group, switch)
+    bulk_edit = not conn.read_only and len(conn.interfaces) and user_can_bulkedit(request.user, group, switch)
+    edit_vlans = (
+        not conn.read_only
+        and conn.can_edit_vlans
+        and len(conn.interfaces)
+        and user_can_edit_vlans(request.user, group, switch)
+    )
 
     log_title = "Recent Activity"
 
