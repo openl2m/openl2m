@@ -589,6 +589,10 @@ class SnmpConnector(Connector):
         # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
         self.netmiko_disable_paging_command = ""
 
+        # if no Snmp Profile, or profile is R/O, then set connector to read-only:
+        if not self.switch.snmp_profile or self.switch.snmp_profile.read_only:
+            self.read_only = True
+
         # capabilities of the snmp drivers:
         self.can_change_admin_status = True
         self.can_change_vlan = True
