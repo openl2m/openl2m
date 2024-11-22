@@ -2575,7 +2575,11 @@ class SnmpConnector(Connector):
 
         # add some more info about the configuration/settings
         self.add_more_info('System', 'IP/Hostname', self.switch.primary_ip4)
-        self.add_more_info('System', 'Snmp Profile', self.switch.snmp_profile.name)
+        if self.switch.snmp_profile:
+            snmp_profile_name = self.switch.snmp_profile.name
+        else:
+            snmp_profile_name = "NOT SET!"
+        self.add_more_info('System', 'Snmp Profile', snmp_profile_name)
         self.add_more_info('System', 'Vendor ID', get_switch_enterprise_info(self.object_id))
         # first time when data was read:
         self.add_more_info(
