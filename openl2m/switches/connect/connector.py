@@ -187,6 +187,10 @@ class Connector:
         # save switch previous (last) access, since this will be overwritten by this access!
         self.last_accessed = self.switch.last_accessed
 
+        self.read_only = (
+            self.switch.read_only or self.group.read_only or (self.request and self.request.user.profile.read_only)
+        )
+
         # capabilities of the vendor or tech-specific driver, we assume No for all changing:
         self.can_change_admin_status = False
         self.can_change_vlan = False
@@ -210,7 +214,7 @@ class Connector:
             'id': self.switch.id,
             'group': self.group.name,
             'group_id': self.group.id,
-            "read_only": self.switch.read_only,
+            "read_only": self.read_only,
             "primary_ipv4": self.switch.primary_ip4,
             "change_admin_status": self.can_change_admin_status,
             "change_vlan": self.can_change_vlan,
@@ -1636,8 +1640,9 @@ class Connector:
         self.allowed_vlans = {}
         # check the vlans on the switch (self.vlans) agains switchgroup.vlan_groups and switchgroup.vlans
         # if self.group.read_only and self.request and not self.request.user.is_superuser:
-        if self.group.read_only or (self.request and self.request.user.profile.read_only):
-            # Read-Only group or user, no vlan allowed!
+        # if self.group.read_only or (self.request and self.request.user.profile.read_only):
+        if self.read_only:
+            # no vlan allowed!
             dprint("  read-only, no vlans allowed!")
             return
         for switch_vlan_id in self.vlans.keys():
@@ -1690,7 +1695,7 @@ class Connector:
             # dprint(f"  checking {iface.name}")
 
             # if disabled by the Connector() driver:
-            if iface.disabled:
+            if self.read_only or iface.disabled:
                 iface.manageable = False
                 iface.allow_poe_toggle = False
                 iface.can_edit_description = False
@@ -1726,7 +1731,8 @@ class Connector:
                 continue
 
             # Read-Only switch cannot be overwritten, not even by SuperUser!
-            if switch.read_only or group.read_only or user.profile.read_only:
+            # if switch.read_only or group.read_only or user.profile.read_only:
+            if self.read_only:
                 iface.manageable = False
                 iface.unmanage_reason = "Access denied: Read-Only"
                 iface.allow_poe_toggle = False
