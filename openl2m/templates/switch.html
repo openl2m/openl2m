@@ -23,7 +23,7 @@
             {% else %}
               <strong>{{ switch.name }}</strong>
             {% endif %}
-            {% if switch.read_only or group.read_only or user.profile.read_only %}
+            {% if connection.read_only %}
               <span data-bs-toggle="tooltip" data-bs-title="This switch is set as Read-Only by the administrator. You can not make any changes!">
                 <i class="far fa-hand-point-right" aria-hidden="true"></i>&nbsp;<small>Read-Only</small>&nbsp;<i class="far fa-hand-point-left" aria-hidden="true"></i>
               </span>
