@@ -59,9 +59,9 @@ class SnmpConnectorArubaCx(SnmpConnector):
         super().__init__(request, group, switch)
         self.description = 'Aruba Networks AOS-CX SNMP driver'
         self.vendor_name = "Aruba Networks (AOS-CX)"
-        self.switch.read_only = (
-            False  # the new Aruba AOS switches support some R/W over SNMP. Full Write-access is via REST API.
-        )
+        # self.switch.read_only = (
+        #     False  # the new Aruba AOS switches support some R/W over SNMP. Full Write-access is via REST API.
+        # )
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         # all firmware versions support admin-status and poe-status change via snmp:
         self.can_change_admin_status = True

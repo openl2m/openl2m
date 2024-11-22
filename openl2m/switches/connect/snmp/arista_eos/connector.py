@@ -50,7 +50,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         super().__init__(request, group, switch)
         self.description = 'Arista Networks EOS SNMP driver'
         self.vendor_name = "Arista Networks (EOS)"
-        self.switch.read_only = False  # Arista support some mib variables as R/W
+        # self.switch.read_only = False  # Arista support some mib variables as R/W
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         # all firmware versions support admin-status, description, vlan change via snmp:
         self.can_change_admin_status = True

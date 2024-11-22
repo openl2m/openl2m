@@ -74,7 +74,7 @@ class PyEZConnector(Connector):
         super().__init__(request, group, switch)
         self.description = 'Junos PyEZ Netconf driver'
         self.vendor_name = "Juniper Networks"
-        self.switch.read_only = False
+        # self.read_only = False
 
         # current capabilities of the PyEZ drivers:
         self.can_change_admin_status = True

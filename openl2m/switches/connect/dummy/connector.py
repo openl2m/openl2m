@@ -41,7 +41,7 @@ class DummyConnector(Connector):
         self.vendor_name = "Dummy Test Device"
         self.hostname = "dummy.example.org"
         # We allow write, this will call base class bookkeeping functions in Connector()
-        self.switch.read_only = False
+        # self.read_only = False
         self.add_more_info('System', 'Type', "Software Dummy Switch")
         self.add_more_info("System", "Hostname", self.hostname)
 

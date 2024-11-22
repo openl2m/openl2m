@@ -98,7 +98,8 @@ class AosCxConnector(Connector):
         self.netmiko_ignore_prompt = True
 
         # this is a read-write driver:
-        self.switch.read_only = False
+        # self.switch.read_only = False
+
         # this will be the pyaoscx driver session object
         self.aoscx_session = False
         self.set_do_not_cache_attribute('aoscx_session')

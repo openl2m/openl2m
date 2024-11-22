@@ -44,7 +44,7 @@ class SnmpConnectorDell(SnmpConnector):
         super().__init__(request, group, switch)
         self.can_save_config = True
         # force READ-ONLY for now! We have not implemented changing settings.
-        self.switch.read_only = True
+        self.read_only = True
         self.vendor_name = "Dell Computing"
         self.description = "Dell Computing SNMP driver"
 

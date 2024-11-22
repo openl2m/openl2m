@@ -50,7 +50,7 @@ class SnmpConnectorNetgear(SnmpConnector):
         self.description = 'Netgear SNMP driver'
         self.can_save_config = False
         # force READ-ONLY for now! We have not implemented changing settings.
-        self.switch.read_only = False
+        # self.switch.read_only = False
         self.vendor_name = ""
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.

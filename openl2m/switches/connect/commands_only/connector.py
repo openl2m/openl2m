@@ -36,7 +36,7 @@ class CommandsOnlyConnector(Connector):
         self.description = 'Commands-Only (Netmiko) driver'
         self.vendor_name = "Netmiko (Commands-Only)"
         # force READ-ONLY
-        self.switch.read_only = True
+        self.read_only = True
         if switch.description:
             self.add_more_info('System', 'Description', switch.description)
         self.show_interfaces = False  # do NOT show interfaces, vlans etc...

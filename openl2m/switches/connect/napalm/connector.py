@@ -66,7 +66,7 @@ class NapalmConnector(Connector):
         self.description = 'Napalm library (R/O) driver'
         self.vendor_name = "Napalm Library"
         # force READ-ONLY for now! We have not implemented changing settings.
-        self.switch.read_only = True
+        self.read_only = True
 
         self.add_more_info('Connection', 'Type', f"Napalm Connector for '{self.switch.napalm_device_type}'")
         self.napalm_device = False  # this will be the Napalm driver connection
