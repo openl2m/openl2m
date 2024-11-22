@@ -51,6 +51,11 @@ class SnmpProfile(models.Model):
         max_length=100,
         blank=True,
     )
+    read_only = models.BooleanField(
+        default=False,
+        verbose_name='Read-Only access',
+        help_text='If checked, this is read-only profile. Devices using it will be marked read-only.',
+    )
     version = models.PositiveSmallIntegerField(
         choices=constants.SNMP_VERSION_CHOICES,
         default=constants.SNMP_VERSION_3,
@@ -843,7 +848,7 @@ class Switch(models.Model):
     read_only = models.BooleanField(
         default=False,
         verbose_name='Read-Only access',
-        help_text='The checked, this switch will be read-only.',
+        help_text='If checked, this switch will be read-only.',
     )
     bulk_edit = models.BooleanField(
         default=True,
@@ -1125,7 +1130,7 @@ class SwitchGroup(models.Model):
     read_only = models.BooleanField(
         default=False,
         verbose_name='Read-Only access',
-        help_text="If set, the switches in this group are read-only for all users.",
+        help_text="If checked, the devices in this group are read-only for all users.",
     )
     bulk_edit = models.BooleanField(
         default=True,

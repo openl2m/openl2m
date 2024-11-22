@@ -287,6 +287,7 @@ class SnmpProfileAdmin(admin.ModelAdmin):
                     'name',
                     'description',
                     'version',
+                    'read_only',
                 )
             },
         ),
