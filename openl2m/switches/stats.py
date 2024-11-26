@@ -25,7 +25,7 @@ import time
 
 import django
 from django.conf import settings
-from django.db import connection as db_connection
+from django.db import connection as db_connection, ProgrammingError
 from django.utils import timezone
 
 from counters.models import Counter
@@ -66,13 +66,28 @@ def get_environment_info() -> dict:
     environment["Hostname"] = uname.nodename
     environment["Django"] = django.get_version()
     # parse the PostgreSQL version (the only db we support)
-    version_main = int(db_connection.pg_version / 10000)
-    version_minor = int(db_connection.pg_version - (version_main * 10000))
-    environment["PostgreSQL"] = f"{version_main}.{version_minor}"
+    # version_main = int(db_connection.pg_version / 10000)
+    # version_minor = int(db_connection.pg_version - (version_main * 10000))
+    # environment["PostgreSQL"] = f"{version_main}.{version_minor}"
+    try:
+        with db_connection.cursor() as cursor:
+            cursor.execute("SELECT version()")
+            psql_version = cursor.fetchone()[0]
+            psql_version = psql_version.split('(')[0].strip()
+            cursor.execute("SELECT current_database()")
+            db_name = cursor.fetchone()[0]
+            cursor.execute(f"SELECT pg_size_pretty(pg_database_size('{db_name}'))")
+            db_size = cursor.fetchone()[0]
+            environment["Database"] = psql_version
+            environment["Database Name"] = db_name
+            environment["Database Size"] = db_size
+    except (ProgrammingError, IndexError):
+        pass
+
     # show the "ezsnmp" package version
     environment["EzSnmp"] = pkg_version('ezsnmp')
 
-    environment["OpenL2M version"] = f"{settings.VERSION} ({settings.VERSION_DATE})"
+    environment["OpenL2M"] = f"{settings.VERSION} ({settings.VERSION_DATE})"
     if os.environ.get('IN_CONTAINER', False):
         environment["Dockerized"] = "Yes"
 

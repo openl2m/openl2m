@@ -43,6 +43,7 @@
         {% for label,value in environment.items %}
           <li class="list-group-item">{{ label }}: {{ value }}</li>
         {% endfor %}
+          <li class="list-group-item">OS Time: {% now 'D, d M Y H:i:s T' %}</li>
         </ul>
       </div>
     </div>
