@@ -159,9 +159,12 @@ class Connector:
         # "Credentials Profile". Any other value will trigger an error, and fail the SSH connection.
         self.netmiko_valid_device_types = []
         # the command that should be sent to disable screen paging
-        # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
-        self.netmiko_disable_paging_command = "terminal length 0"
-        # some netmiko devices  when executing commands with send_command() have problems with prompt parsing.
+        # this allows us to override the default built-in command set by the Netmiko() driver class,
+        # where each driver __init__() set the proper value.
+        # eg.  https://github.com/ktbyers/netmiko/blob/develop/netmiko/hp/hp_comware.py )
+        # this is typically not needed.
+        self.netmiko_disable_paging_command = ""
+        # some netmiko devices, when executing commands with send_command(), have problems with prompt parsing.
         # setting this to True disables prompt checking, and uses send_command_timing() calls.
         self.netmiko_ignore_prompt = False
         # variable to deal with the SSH connection:
@@ -187,8 +190,11 @@ class Connector:
         # save switch previous (last) access, since this will be overwritten by this access!
         self.last_accessed = self.switch.last_accessed
 
+        # when we create a connection to close a session, there is no group object. So test for it!
         self.read_only = (
-            self.switch.read_only or self.group.read_only or (self.request and self.request.user.profile.read_only)
+            self.switch.read_only
+            or (self.group and self.group.read_only)
+            or (self.request and self.request.user and self.request.user.profile.read_only)
         )
 
         # capabilities of the vendor or tech-specific driver, we assume No for all changing:
@@ -1114,7 +1120,10 @@ class Connector:
     def netmiko_disable_paging(self) -> bool:
         """
         Disable paging, ie the "hit a key" for more
-        We call the Netmiko built-in function
+        We call the Netmiko built-in function with a command set in our drivers.
+        This allows us to override the default built-in command set by the Netmiko() object.
+        (see __init__() in Netmiko drivers,
+         eg.  https://github.com/ktbyers/netmiko/blob/develop/netmiko/hp/hp_comware.py )
 
         Return:
             (boolean): True on success, False on error.
@@ -1122,7 +1131,7 @@ class Connector:
         dprint("netmiko_disable_paging()")
         self.error.clear()
         if not self.netmiko_disable_paging_command:
-            dprint("  Disable command not set, ignoring!")
+            dprint("  Disable command not set, using Netmiko default!")
             return True
         if not self.netmiko_connection:
             dprint("  netmiko.disable_paging(): No connection yet, calling self.connect() (Huh?)")
@@ -1130,6 +1139,7 @@ class Connector:
                 return False
         if self.netmiko_connection:
             try:
+                dprint(f"  Trying with command: '{self.netmiko_disable_paging_command}'")
                 self.netmiko_connection.disable_paging(self.netmiko_disable_paging_command)
             except Exception as err:
                 dprint(f"  ERROR disabling paging: {err}")

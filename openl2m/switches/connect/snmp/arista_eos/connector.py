@@ -73,8 +73,8 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         # no need to override default of netmiko_valid_device_types[]
         #
         # the command that should be sent to disable screen paging
-        # (defaults in the netmiko library to "terminal length 0")
-        self.netmiko_disable_paging_command = "terminal length 0"  # by default EOS cli sessions have paging disabled!
+        # defaults in the netmiko library to "terminal length 0"
+        # self.netmiko_disable_paging_command = "terminal length 0"  # by default EOS cli sessions have paging disabled!
 
     def get_my_basic_info(self) -> bool:
         """

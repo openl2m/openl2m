@@ -94,8 +94,8 @@ class PyEZConnector(Connector):
         # no need to override default of netmiko_valid_device_types[]
         #
         # the command that should be sent to disable screen paging
-        # (defaults in the netmiko library to "terminal length 0")
-        self.netmiko_disable_paging_command = "set cli screen-length 0"
+        # let Netmiko decide this...
+        # self.netmiko_disable_paging_command = "set cli screen-length 0"
 
         # Junos driver-specific entries:
         self.is_els = False  # set to True is this a ELS switch

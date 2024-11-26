@@ -586,8 +586,8 @@ class SnmpConnector(Connector):
         # this needs to be overwritten in sub-classes that inherited from us.
         self.netmiko_device_type = ""
         # the command that should be sent to disable screen paging
-        # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
-        self.netmiko_disable_paging_command = ""
+        # let Netmiko decide this...
+        # self.netmiko_disable_paging_command = ""
 
         # if no Snmp Profile, or profile is R/O, then set connector to read-only:
         if not self.switch.snmp_profile or self.switch.snmp_profile.read_only:

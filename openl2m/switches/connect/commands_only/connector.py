@@ -40,6 +40,10 @@ class CommandsOnlyConnector(Connector):
         if switch.description:
             self.add_more_info('System', 'Description', switch.description)
         self.show_interfaces = False  # do NOT show interfaces, vlans etc...
+        # for Command-Only devices, we let netmiko decide the disable-paging command string
+        # by setting this as empty string, the Netmiko().__init() will call disable_paging()
+        # with appropriate values for the specific device class (eg. Juniper, Cisco, etc.)
+        # so no need to set 'self.netmiko_disable_paging_command'
 
     def get_my_basic_info(self) -> bool:
         """

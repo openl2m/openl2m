@@ -109,8 +109,8 @@ class SnmpConnectorCisco(SnmpConnector):
         # "Credentials Profile". Any other value will trigger an error, and fail the SSH connection.
         self.netmiko_valid_device_types = ['cisco_asa', 'cisco_ios', 'cisco_nxos', 'cisco_xe', 'cisco_xr']
         # the command that should be sent to disable screen paging
-        # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
-        self.netmiko_disable_paging_command = "terminal length 0"
+        # let Netmiko decide this...
+        # self.netmiko_disable_paging_command = "terminal length 0"
 
     def _get_interface_data(self) -> bool:
         """

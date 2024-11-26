@@ -56,8 +56,8 @@ class SnmpConnectorDell(SnmpConnector):
         self.netmiko_device_type = ""
         self.netmiko_valid_device_types = ['dell_force10', 'dell_os9', 'dell_os10']
         # the command that should be sent to disable screen paging
-        # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
-        self.netmiko_disable_paging_command = "terminal length 0"
+        # let Netmiko decide...
+        # self.netmiko_disable_paging_command = "terminal length 0"
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """

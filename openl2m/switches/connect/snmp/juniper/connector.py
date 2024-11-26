@@ -67,8 +67,8 @@ class SnmpConnectorJuniper(SnmpConnector):
         # no need to override default of netmiko_valid_device_types[]
         #
         # the command that should be sent to disable screen paging
-        # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
-        self.netmiko_disable_paging_command = "set cli screen-length 0"
+        # let Netmiko decide...
+        # self.netmiko_disable_paging_command = "set cli screen-length 0"
 
     def _map_poe_port_entries_to_interface(self):
         """
