@@ -47,11 +47,11 @@ class SnmpConnectorNetgear(SnmpConnector):
         # for now, just call the super class
         dprint("Netgear SnmpConnector __init__")
         super().__init__(request, group, switch)
-        self.description = 'Netgear SNMP driver'
+        self.description = "Netgear SNMP driver"
         self.can_save_config = False
         # force READ-ONLY for now! We have not implemented changing settings.
         # self.switch.read_only = False
-        self.vendor_name = ""
+        self.vendor_name = "Netgear"
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         #
@@ -61,7 +61,7 @@ class SnmpConnectorNetgear(SnmpConnector):
         self.netmiko_device_type = "netgear"
         # self.netmiko_valid_device_types = False
         # the command that should be sent to disable screen paging
-        # (defaults in the netmiko library to "terminal length 0", setting this to "" does NOT send a command.
+        # let Netmiko decide...
         # self.netmiko_disable_paging_command = "terminal length 0"
 
         self.add_warning(
