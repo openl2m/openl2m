@@ -87,6 +87,10 @@ Full with Junos PyEZ, R/O support with SNMP.
 * *QFX5120* series switch, running JUNOS 20.4R3-S3.4; single unit.
 * *SRX* series firewalls, with "Commands-Only" configurations to run command-templates.
 
+**Netgear**
+
+* Only one current Netgear device has been tested: M4250 series.
+
 **Generic**
 
 Several generic snmp implementations on 'home wireless routers' and 'commodity' switches have been tested,

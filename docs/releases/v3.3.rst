@@ -9,13 +9,30 @@ Version 3.3
   v3.3 requires Postgres version 13 or greater! (I.e. Ubuntu 20.04 will no longer work.)
   We now use Django v5.1 !
 
-**Version 3.3 adds support for Arista devices via SNMP, and can read MPLS VRF info from most drivers,
+**Version 3.3 adds support for Arista devices and one Netgear device via SNMP, and can read MPLS VRF info from most drivers,
 including from SNMP devices that support the standard MIB.**
+
+Version 3.3.3
+-------------
+
+Release Date: 2024-11-27
+
+* add basic Netgear SNMP driver (only 1 device tested. See docs.)
+* SNMP profiles can be marked as Read-Only, making devices using it automatically Read-Only.
+* add Vrf information to API output of Vlan and Interface objects.
+
+
+Bug fixes:
+
+* fix SSH paging disable for Command-Only devices (regression from 3.3)
+* remove vlan edit tab is device is read-only.
+* fix support for SNMP authencation with SHA-512.
+
 
 Version 3.3.2
 -------------
 
-Release Date: TBD
+Release Date: 2024-11-01
 
 * add interface transceiver information (eg. 10g-LR) where supported.
   Currently available in the HPE Comware SNMP driver, for devices that support it.
@@ -27,6 +44,7 @@ Bug fixes:
 
 * set untagged vlan on tagged ports with AOS-CX API driver.
 * fix close bug for some previous device sessions when going to menu or search.
+
 
 Version 3.3.1
 -------------
