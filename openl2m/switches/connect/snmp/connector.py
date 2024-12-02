@@ -3496,7 +3496,7 @@ class SnmpProbeConnector(SnmpConnector):
         (error_status, retval) = self.get(oid=sysObjectID, parser=self._parse_mibs_system)
         if error_status:
             self.add_log(description=self.error.details, type=LOG_TYPE_ERROR, action=LOG_SNMP_ERROR)
-            raise Exception("Error getting System OID")
+            raise Exception(f"Error getting System OID: {self.error.details}")
         dprint(f"  System OID={retval.value}")
         return retval.value
 
