@@ -8,9 +8,11 @@ django-ordered-model>=3.7,<4.0
 # easysnmp==0.2.5
 # ezsnmp replaces easysnmp, see https://github.com/carlkidcrypto/ezsnmp
 # and docs at https://carlkidcrypto.github.io/ezsnmp/html/index.html
-# Tested code 1.0.0rc2 not yet on pypi, so this requires (at this time 2024-06-07):
-git+https://github.com/carlkidcrypto/ezsnmp
-#
+# Tested code v1.1.0 from pypi
+# ezsnmp v2 may break as the interface may change. We have not tested this.
+# for now, lock to v1.1.0
+# See this: https://github.com/carlkidcrypto/ezsnmp/releases
+ezsnmp=1.1.0
 flake8
 gitpython
 gunicorn
