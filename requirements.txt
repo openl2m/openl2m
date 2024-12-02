@@ -49,11 +49,6 @@ psycopg2-binary
 #
 # Note: pyaoscx on PyPi appears stable now, so use the tested version:
 pyaoscx==2.6.0
-#
-# work around compatibility bug with pysnmp=4.4.12 in pyasn1==0.5.0, see
-# https://github.com/pyasn1/pyasn1/issues/28
-# pyasn1==0.4.8 - see pysnmplib below
-#
 pycodestyle
 # pysnmp (original) is no longer supported.
 # see https://lists.openstack.org/pipermail/openstack-discuss/2022-August/030062.html
@@ -61,7 +56,7 @@ pycodestyle
 # see https://github.com/lextudio/pysnmp
 # note that the api surface is going to be reshaped in the next major release.
 # so for now pin this to the test version:
-pysnmp==7.1.8
+pysnmp==7.1.13
 #PyTZ and the type library:
 pytz>=2024.1
 types-pytz
