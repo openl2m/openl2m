@@ -353,6 +353,9 @@ def perform_interface_pvid_change(
         error.description = f"New vlan {new_pvid} is not valid or allowed on this device"
         return False, error
 
+    # all OK, save old pvid
+    old_pvid = interface.untagged_vlan
+
     # make sure we cast the proper type here! Ie this needs an Integer()
     if not connection.set_interface_untagged_vlan(interface, new_pvid):
         log.description = f"ERROR: {connection.error.description} - {connection.error.details}"
@@ -365,7 +368,7 @@ def perform_interface_pvid_change(
         return False, error
 
     log.type = LOG_TYPE_CHANGE
-    log.description = f"Interface {interface.name}: new PVID = {new_pvid} (was {interface.untagged_vlan})"
+    log.description = f"Interface {interface.name}: new PVID = {new_pvid} (was {old_pvid})"
 
     # indicate we need to save config!
     connection.set_save_needed(True)
