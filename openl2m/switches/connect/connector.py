@@ -1847,7 +1847,7 @@ class Connector:
         log.save()
         return
 
-    def add_warning(self, warning: str):
+    def add_warning(self, warning: str, add_log: bool = True):
         '''
         Add a warning to the self.warnings[] list, and log it as well!
 
@@ -1858,8 +1858,9 @@ class Connector:
             none
         '''
         self.warnings.append(warning)
-        # add a log message
-        self.add_log(type=LOG_TYPE_WARNING, action=LOG_CONNECTION_ERROR, description=warning)
+        if add_log:
+            # add a log message
+            self.add_log(type=LOG_TYPE_WARNING, action=LOG_CONNECTION_ERROR, description=warning)
         # done!
         return
 
