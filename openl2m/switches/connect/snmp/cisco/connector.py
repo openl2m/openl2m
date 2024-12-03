@@ -259,7 +259,7 @@ class SnmpConnectorCisco(SnmpConnector):
         retval = self.get_snmp_branch(branch_name='ciscoSyslogMIBObjects', parser=self._parse_mibs_cisco_syslog_msg)
         if retval < 0:
             # something bad happened
-            self.add_warning("Error getting Cisco Syslog Messages (ciscoSyslogMIBObjects)")
+            self.add_warning(warning="Error getting Cisco Syslog Messages (ciscoSyslogMIBObjects)")
             self.log_error()
 
     def _map_poe_port_entries_to_interface(self):
@@ -284,7 +284,7 @@ class SnmpConnectorCisco(SnmpConnector):
                                 f"PoE FAULT status ({port_entry.detect_status} = "
                                 f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
                             )
-                            self.add_warning(warning)
+                            self.add_warning(warning=warning)
                             self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
 
             else:
@@ -300,7 +300,7 @@ class SnmpConnectorCisco(SnmpConnector):
                                 f"{poe_status_name[port_entry.detect_status]}) "
                                 f"on interface {iface.name}"
                             )
-                            self.add_warning(warning)
+                            self.add_warning(warning=warning)
                             self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
                         break
 
@@ -355,7 +355,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # now read Cisco specific data:
         retval = self.get_snmp_branch(branch_name='ccmHistory', parser=self._parse_mibs_cisco_config)
         if retval < 0:
-            self.add_warning("Error getting Cisco log details ('ccmHistory')")
+            self.add_warning(warning="Error getting Cisco log details ('ccmHistory')")
             return False
         return True
 

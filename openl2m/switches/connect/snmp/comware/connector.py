@@ -144,7 +144,7 @@ class SnmpConnectorComware(SnmpConnector):
         # so read HH3C version
         if self.get_snmp_branch(branch_name='hh3cdot1qVlanName', parser=self._parse_mibs_comware_vlan) < 0:
             dprint("Comware hh3cdot1qVlanName returned error!")
-            self.add_warning("Error getting 'HH3C-Vlan-Names' (hh3cdot1qVlanName)")
+            self.add_warning(warning="Error getting 'HH3C-Vlan-Names' (hh3cdot1qVlanName)")
 
         # call the standard vlan reader
         super()._get_vlan_data()
@@ -152,7 +152,7 @@ class SnmpConnectorComware(SnmpConnector):
         # read the Comware port type:
         if self.get_snmp_branch(branch_name='hh3cifVLANType', parser=self._parse_mibs_comware_if_type) < 0:
             dprint("Comware hh3cifVLANType returned error!")
-            self.add_warning("Error getting 'HH3C-Vlan-Types' (hh3cifVLANType)")
+            self.add_warning(warning="Error getting 'HH3C-Vlan-Types' (hh3cifVLANType)")
 
         # for each vlan, PortList bitmap of untagged ports
         """  NOT PARSED YET:
@@ -175,7 +175,7 @@ class SnmpConnectorComware(SnmpConnector):
             < 0
         ):
             dprint("hh3cIgmpSnoopingVlanEnabled returned error!")
-            self.add_warning("Error getting 'HH3C-Vlan-IGMP-Info' (hh3cIgmpSnoopingVlanEnabled)")
+            self.add_warning(warning="Error getting 'HH3C-Vlan-IGMP-Info' (hh3cIgmpSnoopingVlanEnabled)")
 
         return 1
 
@@ -190,7 +190,7 @@ class SnmpConnectorComware(SnmpConnector):
         # now read Comware specific data:
         retval = self.get_snmp_branch(branch_name='hh3cCfgLog', parser=self._parse_mibs_comware_config)
         if retval < 0:
-            self.add_warning("Error getting Comware log details ('hh3cCfgLog')")
+            self.add_warning(warning="Error getting Comware log details ('hh3cCfgLog')")
             return False
         return True
 
@@ -331,7 +331,7 @@ class SnmpConnectorComware(SnmpConnector):
                         else:
                             # no switchport? "should" not happen for a valid switch port interface
                             warning = f"Warning: {this_iface.name} - no port_id found in set_interface_untagged_vlan(Comware)!"
-                            self.add_warning(warning)
+                            self.add_warning(warning=warning)
 
                 # send to the switch!
                 # Comware needs bits in opposite order inside each byte! (go figure)
@@ -560,7 +560,7 @@ class SnmpConnectorComware(SnmpConnector):
         # now get HP specific info from HP-IFC-POE-MIB first
         retval = self.get_snmp_branch(branch_name='hh3cPsePortCurrentPower', parser=self._parse_mibs_comware_poe)
         if retval < 0:
-            self.add_warning("Error getting 'PoE-Port-Current-Power' (hh3cPsePortCurrentPower)")
+            self.add_warning(warning="Error getting 'PoE-Port-Current-Power' (hh3cPsePortCurrentPower)")
         return 1
 
     def _map_poe_port_entries_to_interface(self):
@@ -591,7 +591,7 @@ class SnmpConnectorComware(SnmpConnector):
                             f"{poe_status_name[port_entry.detect_status]}) "
                             f"on interface {iface.name}"
                         )
-                        self.add_warning(warning)
+                        self.add_warning(warning=warning)
                         self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
                     break
 
@@ -611,7 +611,7 @@ class SnmpConnectorComware(SnmpConnector):
         # run the Operations row status to find free slot to write to:
         retval = self.get_snmp_branch(branch_name='hh3cCfgOperateRowStatus', parser=self._parse_mibs_comware_configfile)
         if retval < 0:
-            self.add_warning("Error reading 'Config File MIB' (hh3cCfgOperateRowStatus)")
+            self.add_warning(warning="Error reading 'Config File MIB' (hh3cCfgOperateRowStatus)")
             return False
 
         # now figure out where we need to write to
@@ -626,7 +626,7 @@ class SnmpConnectorComware(SnmpConnector):
         )
         if retval < 0:
             dprint(f"return = {retval}")
-            self.add_warning("Error saving via SNMP (hh3cCfgOperateRowStatus)")
+            self.add_warning(warning="Error saving via SNMP (hh3cCfgOperateRowStatus)")
             return False
         dprint("All OK")
         return True

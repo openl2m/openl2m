@@ -93,7 +93,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         # now read Procurve specific data:
         retval = self.get_snmp_branch(branch_name='hpnicfCfgLog', parser=self._parse_mibs_procurve_config)
         if retval < 0:
-            self.add_warning("Error getting Procurve config details ('hpnicfCfgLog')")
+            self.add_warning(warning="Error getting Procurve config details ('hpnicfCfgLog')")
             return False
         return True
 
@@ -176,7 +176,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         if self.poe_capable:
             retval = self.get_snmp_branch(branch_name='hpicfPoePethPsePortPower', parser=self._parse_mibs_hp_poe)
             if retval < 0:
-                self.add_warning("Error getting 'PoE-Port-Actual-Power' (hpicfPoePethPsePortActualPower)")
+                self.add_warning(warning="Error getting 'PoE-Port-Actual-Power' (hpicfPoePethPsePortActualPower)")
             if retval == 0:
                 # maybe this device supports HP-ENTITY-POWER-MIB
                 retval = self.get_snmp_branch(branch_name='hpEntPowerCurrentPowerUsage', parser=self._parse_mibs_hp_poe)
@@ -207,7 +207,7 @@ class SnmpConnectorProcurve(SnmpConnector):
                         f"PoE FAULT status ({port_entry.detect_status} = "
                         f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
                     )
-                    self.add_warning(warning)
+                    self.add_warning(warning=warning)
                     self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
             else:
                 # should not happen!

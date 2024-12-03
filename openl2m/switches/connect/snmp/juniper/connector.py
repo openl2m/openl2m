@@ -69,6 +69,7 @@ class SnmpConnectorJuniper(SnmpConnector):
         # the command that should be sent to disable screen paging
         # let Netmiko decide...
         # self.netmiko_disable_paging_command = "set cli screen-length 0"
+        self.add_warning(warning="Note: Juniper SNMP access is Read-Only!", add_log=False)
 
     def _map_poe_port_entries_to_interface(self):
         """
@@ -94,7 +95,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                             f"PoE FAULT status ({port_entry.detect_status} = "
                             f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
                         )
-                        self.add_warning(warning)
+                        self.add_warning(warning=warning)
                         self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
                     break
 
@@ -155,7 +156,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                 self.vlans[self.vlan_id_by_index[vlan_index]].name = val
             except KeyError:
                 # should not happen!
-                self.add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanName)")
+                self.add_warning(warning=f"Invalid vlan index {vlan_index} (jnxL2aldVlanName)")
             return True
 
         # vlan type, static or dynamic
@@ -173,7 +174,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                 self.vlans[self.vlan_id_by_index[vlan_index]].status = status
             except KeyError:
                 # should not happen!
-                self.add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanType)")
+                self.add_warning(warning=f"Invalid vlan index {vlan_index} (jnxL2aldVlanType)")
             return True
 
         # the filtering database, this maps 'vlan index' (sub-oid) to 'filter db index' (return value)
@@ -186,7 +187,7 @@ class SnmpConnectorJuniper(SnmpConnector):
                 dprint(f"FDB entry:  {fdb_index}  =>  {vlan_index}")
             except KeyError:
                 # should not happen!
-                self.add_warning(f"Invalid vlan index {vlan_index} (jnxL2aldVlanFdbId)")
+                self.add_warning(warning=f"Invalid vlan index {vlan_index} (jnxL2aldVlanFdbId)")
             return True
         return False
 

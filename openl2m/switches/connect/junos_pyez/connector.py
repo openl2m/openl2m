@@ -190,7 +190,7 @@ class PyEZConnector(Connector):
         dprint("PyEZConnector().get_my_basic_info()")
         if not self._open_device():
             dprint("  _open_device() failed!")
-            self.add_warning("Error connecting to device!")
+            self.add_warning(warning="Error connecting to device!")
             # self.error already set!
             return False
 
@@ -381,7 +381,7 @@ class PyEZConnector(Connector):
                     poe_data = self.device.rpc.get_poe_interface_information()
                 except Exception as error:
                     dprint(f"dev.rpc.get_poe_interface_information() error: {error}")
-                    self.add_warning(f"ERROR: Cannot get interface PoE info - {error}")
+                    self.add_warning(warning=f"ERROR: Cannot get interface PoE info - {error}")
 
                 # find all poe interfaces:
                 dprint("POE Interfaces found:")
@@ -391,7 +391,7 @@ class PyEZConnector(Connector):
 
         except Exception as error:
             print(f"dev.rpc.get_poe_controller_information() error: {error}")
-            self.add_warning(f"ERROR: Cannot get PoE supply info - {error}")
+            self.add_warning(warning=f"ERROR: Cannot get PoE supply info - {error}")
 
         # get vlan info. this includes port membership!
         dprint("\nVLANS:")
@@ -427,7 +427,7 @@ class PyEZConnector(Connector):
 
         except Exception as error:
             dprint(f"dev.rpc.get_vlan_information() error: {error}")
-            self.add_warning(f"ERROR: Cannot get vlans - {error}")
+            self.add_warning(warning=f"ERROR: Cannot get vlans - {error}")
 
         dprint("VRFs()")
         vrf_data = self.device.rpc.get_instance_information(detail=True)
@@ -507,7 +507,7 @@ class PyEZConnector(Connector):
         dprint("PyEZConnector().get_my_client_data()")
         if not self._open_device():
             dprint("_open_device() failed!")
-            self.add_warning("Erroring connecting to device!")
+            self.add_warning(warning="Erroring connecting to device!")
             return False
         # get mac address table
         # TBD

@@ -102,7 +102,7 @@ class SnmpConnectorDell(SnmpConnector):
         retval = self.set(oid=f"{agentSaveConfig}.0", value=DELL_SAVE_ENABLE, snmp_type='i', parser=False)
         if retval < 0:
             dprint(f"return = {retval}")
-            self.add_warning("Error saving via SNMP (agentSaveConfig)")
+            self.add_warning(warning="Error saving via SNMP (agentSaveConfig)")
             return False
         dprint("All OK")
         return True

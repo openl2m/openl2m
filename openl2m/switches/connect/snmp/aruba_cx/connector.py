@@ -94,7 +94,8 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         # we recommend using the AOS-CX API driver, tell the user so:
         self.add_warning(
-            "We recommend using the AOS-CX API driver for this device. Please contact your OpenL2M administrator!"
+            warning="We recommend using the AOS-CX API driver for this device. Please contact your OpenL2M administrator!",
+            add_log=False,
         )
 
     def _parse_mibs_aruba_poe(self, oid: str, val: str) -> bool:
@@ -145,7 +146,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
                 branch_name='arubaWiredPoePethPsePortPowerDrawn', parser=self._parse_mibs_aruba_poe
             )
             if retval < 0:
-                self.add_warning("Error getting 'PoE-Port-Actual-Power' (arubaWiredPoePethPsePortPowerDrawn)")
+                self.add_warning(warning="Error getting 'PoE-Port-Actual-Power' (arubaWiredPoePethPsePortPowerDrawn)")
 
         return 1
 
@@ -192,7 +193,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         # # and get dot1qVlanStaticUntaggedPorts, this could have some more untagged vlan info on tagged ports.
         # retval = self.get_snmp_branch(branch_name='dot1qVlanStaticUntaggedPorts', parser=self._parse_mibs_vlan_related)
         # if retval < 0:
-        #     self.add_warning("Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
+        #     self.add_warning(warning="Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
         #     return retval
 
         return self.vlan_count
@@ -209,7 +210,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             branch_name='arubaWiredVsfv2MemberProductName', parser=self._parse_mibs_aruba_vsf2
         )
         if retval < 0:
-            self.add_warning("Error getting 'Aruba Vsf Product name' ('arubaWiredVsfv2MemberProductName')")
+            self.add_warning(warning="Error getting 'Aruba Vsf Product name' ('arubaWiredVsfv2MemberProductName')")
             return False
         return True
 
@@ -313,7 +314,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         )
         if retval < 0:
             dprint(f"  return = {retval}")
-            self.add_warning("Error saving via SNMP (arubaWiredVsfv2ConfigOperation)")
+            self.add_warning(warning="Error saving via SNMP (arubaWiredVsfv2ConfigOperation)")
             return False
         dprint("  All OK")
         return True

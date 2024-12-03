@@ -65,7 +65,8 @@ class SnmpConnectorNetgear(SnmpConnector):
         # self.netmiko_disable_paging_command = "terminal length 0"
 
         self.add_warning(
-            "This Netgear driver has only been tested on a single M4250 switch, and may not work for your Netgear device!"
+            warning="This Netgear driver has only been tested on a single M4250 switch, and may not work for your Netgear device!",
+            add_log=False,
         )
 
     def _get_poe_data(self) -> int:
@@ -89,7 +90,7 @@ class SnmpConnectorNetgear(SnmpConnector):
         # now get Netgear specific port PoE power used
         retval = self.get_snmp_branch(branch_name='agentPethOutputPower', parser=self._parse_mibs_netgear_poe)
         if retval < 0:
-            self.add_warning("Error getting 'PoE-Port-Current-Power' (agentPethOutputPower)")
+            self.add_warning(warning="Error getting 'PoE-Port-Current-Power' (agentPethOutputPower)")
         return 1
 
     """
@@ -143,6 +144,6 @@ class SnmpConnectorNetgear(SnmpConnector):
                             f"{poe_status_name[port_entry.detect_status]}) "
                             f"on interface {iface.name}"
                         )
-                        self.add_warning(warning)
+                        self.add_warning(warning=warning)
                         self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
                     break

@@ -133,7 +133,7 @@ class AosCxConnector(Connector):
             self.error.description = "Error establishing connection!"
             self.error.details = f"Cannot read device information: {format(error)}"
             self.add_warning(
-                f"Cannot read device information: {repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
+                warning=f"Cannot read device information: {repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
             )
             self._close_device()
             return False
@@ -461,7 +461,7 @@ class AosCxConnector(Connector):
                 dprint(f"v = Vlan() error: {err}")
                 description = f"Cannot get ethernet table for vlan {vlan_id}"
                 details = f"pyaoscx Vlan() Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
-                self.add_warning(description)
+                self.add_warning(warning=description)
                 self.add_log(type=LOG_TYPE_ERROR, action=LOG_AOSCX_ERROR_GENERIC, description=details)
                 continue
             try:
@@ -536,7 +536,7 @@ class AosCxConnector(Connector):
                 dprint(f"neighbors = AosCxLLDPNeighbor.get_all() error: {err}")
                 description = f"Cannot get LLDP table for interface '{if_name}'"
                 details = f"pyaoscx LLDPNeighbor() Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
-                self.add_warning(description)
+                self.add_warning(warning=description)
                 self.add_log(type=LOG_TYPE_ERROR, action=LOG_AOSCX_ERROR_GENERIC, description=details)
                 continue
 

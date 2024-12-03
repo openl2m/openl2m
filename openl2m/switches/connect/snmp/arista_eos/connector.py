@@ -137,7 +137,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
 
         retval = self.get_snmp_branch(branch_name='aristaVrfEntry', parser=self._parse_mib_arista_vrf_entries)
         if retval < 0:
-            self.add_warning("Error getting VRF info from the Arista MPLS tables (aristaVrfEntry)")
+            self.add_warning(warning="Error getting VRF info from the Arista MPLS tables (aristaVrfEntry)")
         if self.vrfs:
             retval = self.get_snmp_branch(
                 branch_name='aristaVrfIfMembership', parser=self._parse_mib_arista_vrf_members
