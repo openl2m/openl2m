@@ -50,6 +50,7 @@ Click here to :doc:`See What Is New <what_is_new>`!
    api/index.rst
    what_is_new.rst
    releases/index.rst
+   troubleshooting.rst
    docker.rst
    roadmap.rst
    references.rst

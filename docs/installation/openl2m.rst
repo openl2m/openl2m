@@ -256,3 +256,8 @@ or:
 Make sure you restart or undo the configuration changes (Both DEBUG and firewall settings!) when done testing!
 
 If all is well, you are now ready to install the :doc:`webserver <nginx>`.
+
+
+.. note::
+
+  IF ALL YOUR SNMP DEVICES FAIL, please see :doc:`the troubleshooting section <../troubleshooting>`.
