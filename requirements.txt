@@ -15,7 +15,8 @@ django-ordered-model>=3.7,<4.0
 ezsnmp==1.1.0
 flake8
 gitpython
-gunicorn
+#fix the WSGI runner:
+gunicorn==23.0.0
 hiredis
 # used for REST framework testing
 httpie
@@ -55,7 +56,7 @@ pycodestyle
 # we are now using the maintained clone "pysnmp" by Lextudio
 # see https://github.com/lextudio/pysnmp
 # note that the api surface is going to be reshaped in the next major release.
-# so for now pin this to the test version:
+# so for now pin this to the latest 7.1 version:
 pysnmp==7.1.13
 #PyTZ and the type library:
 pytz>=2024.1
