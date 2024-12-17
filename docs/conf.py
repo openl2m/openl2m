@@ -25,6 +25,9 @@ author = 'Various'
 # The full version, including alpha/beta/rc tags
 release = 'v3.3.4 (2024-12-03)'
 
+# --- Running on ReadTheDocs ? ---
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
 # -- General configuration ---------------------------------------------------
 
 master_doc = 'index'
@@ -69,9 +72,17 @@ html_static_path = ['_static']
 # https://docs.readthedocs.io/en/stable/guides/adding-custom-css.html
 # These paths are either relative to html_static_path
 # or fully qualified paths (eg. https://...)
-html_css_files = [
-    '/static/fontawesome-5.15.4/css/all.css',
-]
+if on_rtd:
+    # need to use fontawesome from CDN
+    html_css_files = [
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+        # 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css',
+    ]
+else:
+    # local server build
+    html_css_files = [
+        '/static/fontawesome-5.15.4/css/all.css',
+    ]
 
 # html_js_files = [
 #     'js/custom.js',
