@@ -22,6 +22,7 @@ We issue the xml rpc equivalents of the following commands:
 "show interfaces extensive" becomes *rpc.get_interface_information()*
 
 "show poe controller" becomes *rpc.get_poe_controller_information()*
+See also https://www.juniper.net/documentation/us/en/software/junos/cli-reference/topics/ref/command/show-poe-controller.html
 
 "show poe interface" becomes *rpc.get_poe_interface_information()*
 
