@@ -113,5 +113,8 @@
     </table>
 
   </div> {# class table-responsive #}
+  {% if connection.neighbor_count > 0 %}
+    {% include "_neighbor_mermaid_graphic.html" %}
+  {% endif %}
 {% endif %}
 </div> {# card #}

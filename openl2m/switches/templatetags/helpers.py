@@ -533,11 +533,86 @@ def get_interface_link(switch, iface):
     return mark_safe(info)
 
 
+def set_neighbor_icon_info(neighbor):
+    """
+    Set the FontAwesome icon for a neighbor device.
+    To keep things simple, we set a single icon, even when multiple capabilities exist.
+
+    Args:
+        neighbor (NeighborDevice()): the neighbor device object to get info about.
+
+    Returns:
+        n/a
+    """
+    capabilities = neighbor.capabilities
+    if capabilities == LLDP_CAPABILITIES_NONE:
+        neighbor.icon = settings.NB_ICON_NONE
+        neighbor.style = settings.NB_STYLE_NONE
+        neighbor.start_device = '['
+        neighbor.stop_device = ']'
+        neighbor.description = 'Capabilities NOT Advertized'
+        return
+    if capabilities & LLDP_CAPABILITIES_WLAN:
+        neighbor.icon = settings.NB_ICON_WLAN
+        neighbor.style = settings.NB_STYLE_WLAN
+        neighbor.start_device = '(['
+        neighbor.stop_device = '])'
+        neighbor.description = 'Wireless AP'
+        return
+    if capabilities & LLDP_CAPABILITIES_PHONE:
+        neighbor.icon = settings.NB_ICON_PHONE
+        neighbor.style = settings.NB_STYLE_PHONE
+        neighbor.start_device = '('
+        neighbor.stop_device = ')'
+        neighbor.description = 'VOIP Phone'
+        return
+    if capabilities & LLDP_CAPABILITIES_ROUTER:
+        neighbor.icon = settings.NB_ICON_ROUTER
+        neighbor.style = settings.NB_STYLE_ROUTER
+        neighbor.start_device = '['
+        neighbor.stop_device = ']'
+        neighbor.description = 'Router or Switch'
+        return
+    if capabilities & LLDP_CAPABILITIES_STATION:
+        neighbor.icon = settings.NB_ICON_STATION
+        neighbor.style = settings.NB_STYLE_STATION
+        neighbor.start_device = '('
+        neighbor.stop_device = ')'
+        neighbor.description = 'Workstation or Server'
+        return
+    if capabilities & LLDP_CAPABILITIES_BRIDGE:
+        # We only show Switch if no routing or phone capabilities listed.
+        # Most phones and routers also show switch capabilities.
+        # In those cases we only show the above Router or Phone icons!
+        neighbor.icon = settings.NB_ICON_BRIDGE
+        neighbor.style = settings.NB_STYLE_BRIDGE
+        neighbor.start_device = '['
+        neighbor.stop_device = ']'
+        neighbor.description = 'Switch'
+        return
+    if capabilities & LLDP_CAPABILITIES_REPEATER:
+        neighbor.icon = settings.NB_ICON_REPEATER
+        neighbor.style = settings.NB_STYLE_REPEATER
+        neighbor.start_device = '['
+        neighbor.stop_device = ']'
+        neighbor.description = 'Hub or Repeater'
+        return
+    # unlikely to see this!
+    # elif capabilities & LLDP_CAPABILITIES_DOCSIS:
+    #    icon = "unknown"
+    if capabilities & LLDP_CAPABILITIES_OTHER:
+        neighbor.icon = settings.NB_ICON_OTHER
+        neighbor.style = settings.NB_STYLE_OTHER
+        neighbor.start_device = '('
+        neighbor.stop_device = ')'
+        neighbor.description = 'Other Capabilities'
+        return
+
+
 @register.filter
 def get_lldp_info(neighbor):
     """
     Return an hmtl img string that represents the lldp neighbor device and capabilities
-    To keep things simple, we return a single icon, even when multiple capabilities exist.
     """
 
     icon = ''
@@ -599,6 +674,31 @@ def get_lldp_info(neighbor):
         info = f"{icon}{name}{port}{chassis}"
 
     return mark_safe(info)
+
+
+@register.filter
+def get_neighbor_mermaid_config(neighbor):
+    """
+    Return a string that represents the lldp neighbor for a mermaid.js graph.
+    To keep things simple, we return a single icon, even when multiple capabilities exist.
+    """
+
+    if neighbor.hostname:
+        neighbor.name = neighbor.hostname
+    elif neighbor.sys_name:
+        neighbor.name = neighbor.sys_name
+    else:
+        neighbor.name = "Unknown System"
+
+    set_neighbor_icon_info(neighbor)
+
+    mermaid = f"{neighbor.index}{neighbor.start_device}\"fa:{neighbor.icon} {neighbor.name}\n"
+    if neighbor.port_name:
+        mermaid = f"{mermaid}({neighbor.port_name})"
+    mermaid = f"{mermaid}\"{neighbor.stop_device}\n"
+    if neighbor.style:
+        mermaid = f"{mermaid}style {neighbor.index} {neighbor.style}\n"
+    return mark_safe(mermaid)
 
 
 @register.filter

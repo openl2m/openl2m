@@ -1,0 +1,25 @@
+{% load helpers %}
+{% load static %}
+
+{# this builds a basic flowchart: https://mermaid.js.org/syntax/examples.html#basic-flowchart #}
+{# test at https://mermaid.live #}
+<div class="card border-default container-fluid">
+  <pre class="mermaid">
+{% if connection.neighbor_count <= settings.NB_MAX_FOR_TD %}
+flowchart TD
+{% else %}
+flowchart LR
+{% endif %}
+DEVICE["{{ switch.name }}"]
+  {% for key,iface in connection.interfaces.items %}
+    {% if iface.visible %}
+      {% for lldp_index,neighbor in iface.lldp.items %}
+DEVICE --> |{{ iface.name }}| {{ neighbor|get_neighbor_mermaid_config }}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+  </pre>
+<script>
+  mermaid.initialize({ startOnLoad: true });
+</script>
+</div> {# card #}
