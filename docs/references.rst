@@ -52,7 +52,7 @@ and specifically the SNMP portadmin code at https://github.com/Uninett/nav/tree/
 Icons
 -----
 
-We use the Font Aweson free icon package: https://fontawesome.com/v5/search
+We use the Font Awesome v6 free web icon package: https://fontawesome.com/v6/search
 
 
 Python

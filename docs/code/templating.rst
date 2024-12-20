@@ -75,8 +75,8 @@ via mark_safe() to make sure it does not get marked up, i.e. gets interpreted as
 
 **Icons**
 
-We primarily use the free icons from the FontAwesome icon library, currently v5.15.4.
-You can see them at https://fontawesome.com/v5/search?o=r&m=free
+We primarily use the free icons from the FontAwesome icon library, currently v6.7.2.
+You can see them at https://fontawesome.com/v6/search?o=r&m=free
 
 You can include icons normally, such as shown here:
 
