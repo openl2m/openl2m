@@ -21,7 +21,16 @@
           <th><a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fas fa-download" aria-hidden="true"></i> Ethernet Addresses ({{ connection.eth_addr_count }})</a></th>
           {% endif %}
           {% if connection.neighbor_count > 0 %}
-          <th><a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fas fa-download" aria-hidden="true"></i> Neighbors ({{ connection.neighbor_count }})</a></th>
+          <th><a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fas fa-download" aria-hidden="true"></i> Neighbors ({{ connection.neighbor_count }})</a>
+              &nbsp;
+              <a
+                id="openGraphButton"
+                value=""
+                href="#"
+                data-bs-toggle="tooltip"
+                title="Click to show graphical view of neighbor devices"
+                ><i class="fa-solid fa-chart-diagram" aria-hidden="true"></i>Show Neighbors Graph</a>
+          </th>
           {% endif %}
         </tr>
       </thead>

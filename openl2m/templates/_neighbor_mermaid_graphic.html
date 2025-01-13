@@ -3,8 +3,23 @@
 
 {# this builds a basic flowchart: https://mermaid.js.org/syntax/examples.html#basic-flowchart #}
 {# test at https://mermaid.live #}
-<div class="card border-default container-fluid">
-  <pre class="mermaid">
+<script>
+  document.getElementById('openGraphButton').addEventListener('click', function() {
+    // Open a new window
+    const newWindow = window.open("", "_blank", "width=1024,height=800");
+
+    const htmlText = `
+<!DOCTYPE html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'fontawesome-5.15.4/css/all.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'img/openl2m.ico' %}" title="OpenL2M icon">
+    <title>Neighbor Graph {{ switch }}</title>
+  </head>
+  <body><h4>Connected devices for "{{ switch }}"</h4>
+    <h5>Generated for '{{ request.user.username }}' on {% now "Y-m-d H:i:s" %}</h5>
+    <pre class="mermaid">
 {% if connection.neighbor_count <= settings.NB_MAX_FOR_TD %}
 flowchart TD
 {% else %}
@@ -18,8 +33,27 @@ DEVICE --> |{{ iface.name }}| {{ neighbor|get_neighbor_mermaid_config }}
       {% endfor %}
     {% endif %}
   {% endfor %}
-  </pre>
-<script>
-  mermaid.initialize({ startOnLoad: true });
+    </pre>
+  </body>
+</html>
+`;
+
+    // write the HTML content to the new window
+    newWindow.document.write(htmlText);
+
+    // add the mermaid script source to it
+    var mermaid = document.createElement('script');
+    mermaid.setAttribute('type', 'module');
+    mermaid.setAttribute('src', 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+    newWindow.document.body.appendChild(mermaid)
+
+    // and initialize mermaid - does not seem to be needed ?
+    //var mermaid_init = document.createElement('script');
+    //mermaid_init.setAttribute('type', 'text/javascript');
+    //mermaid_init.setAttribute('text', "mermaid.initialize({ startOnLoad: true{% if settings.MM_THEME %}, theme: '{{ settings.MM_THEME }}'{% endif %} });");
+    //newWindow.document.body.appendChild(mermaid_init)
+
+    // close document to let the window load
+    newWindow.document.close();
+    });
 </script>
-</div> {# card #}

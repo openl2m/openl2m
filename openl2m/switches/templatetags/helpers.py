@@ -547,35 +547,35 @@ def set_neighbor_icon_info(neighbor):
     capabilities = neighbor.capabilities
     if capabilities == LLDP_CAPABILITIES_NONE:
         neighbor.icon = settings.NB_ICON_NONE
-        neighbor.style = settings.NB_STYLE_NONE
+        neighbor.style = settings.MM_NB_STYLE_NONE
         neighbor.start_device = '['
         neighbor.stop_device = ']'
         neighbor.description = 'Capabilities NOT Advertized'
         return
     if capabilities & LLDP_CAPABILITIES_WLAN:
         neighbor.icon = settings.NB_ICON_WLAN
-        neighbor.style = settings.NB_STYLE_WLAN
+        neighbor.style = settings.MM_NB_STYLE_WLAN
         neighbor.start_device = '(['
         neighbor.stop_device = '])'
         neighbor.description = 'Wireless AP'
         return
     if capabilities & LLDP_CAPABILITIES_PHONE:
         neighbor.icon = settings.NB_ICON_PHONE
-        neighbor.style = settings.NB_STYLE_PHONE
+        neighbor.style = settings.MM_NB_STYLE_PHONE
         neighbor.start_device = '('
         neighbor.stop_device = ')'
         neighbor.description = 'VOIP Phone'
         return
     if capabilities & LLDP_CAPABILITIES_ROUTER:
         neighbor.icon = settings.NB_ICON_ROUTER
-        neighbor.style = settings.NB_STYLE_ROUTER
+        neighbor.style = settings.MM_NB_STYLE_ROUTER
         neighbor.start_device = '['
         neighbor.stop_device = ']'
         neighbor.description = 'Router or Switch'
         return
     if capabilities & LLDP_CAPABILITIES_STATION:
         neighbor.icon = settings.NB_ICON_STATION
-        neighbor.style = settings.NB_STYLE_STATION
+        neighbor.style = settings.MM_NB_STYLE_STATION
         neighbor.start_device = '('
         neighbor.stop_device = ')'
         neighbor.description = 'Workstation or Server'
@@ -585,14 +585,14 @@ def set_neighbor_icon_info(neighbor):
         # Most phones and routers also show switch capabilities.
         # In those cases we only show the above Router or Phone icons!
         neighbor.icon = settings.NB_ICON_BRIDGE
-        neighbor.style = settings.NB_STYLE_BRIDGE
+        neighbor.style = settings.MM_NB_STYLE_BRIDGE
         neighbor.start_device = '['
         neighbor.stop_device = ']'
         neighbor.description = 'Switch'
         return
     if capabilities & LLDP_CAPABILITIES_REPEATER:
         neighbor.icon = settings.NB_ICON_REPEATER
-        neighbor.style = settings.NB_STYLE_REPEATER
+        neighbor.style = settings.MM_NB_STYLE_REPEATER
         neighbor.start_device = '['
         neighbor.stop_device = ']'
         neighbor.description = 'Hub or Repeater'
@@ -602,7 +602,7 @@ def set_neighbor_icon_info(neighbor):
     #    icon = "unknown"
     if capabilities & LLDP_CAPABILITIES_OTHER:
         neighbor.icon = settings.NB_ICON_OTHER
-        neighbor.style = settings.NB_STYLE_OTHER
+        neighbor.style = settings.MM_NB_STYLE_OTHER
         neighbor.start_device = '('
         neighbor.stop_device = ')'
         neighbor.description = 'Other Capabilities'

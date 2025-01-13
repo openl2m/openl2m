@@ -584,6 +584,38 @@ TOP_ACTIVITY = 10
 # number of days for the "Top N" activity:
 TOP_ACTIVITY_DAYS = 7
 
+#
+# Neighbor device settings, used for LLDP Neighbor tab, and Mermaid graphical view
+# Below are the defaults, adjust as needed.
+#
+# max neighbors for Top-Down diagram. Larger becomes Left-to-Right
+# NB_MAX_FOR_TD = 5
+#
+# this segment maps device types to FontAwesome icon names to be used during neighbor display.
+# if you change this, make sure you know the proper "Free" FA icon name
+# see more at https://fontawesome.com/search?o=r&m=free
+# NB_ICON_NONE = "fa-question"
+# NB_ICON_WLAN = "fa-wifi"
+# NB_ICON_PHONE = "fa-phone"
+# NB_ICON_ROUTER = "fa-cogs"
+# NB_ICON_STATION = "fa-desktop"
+# NB_ICON_BRIDGE = "fa-ethernet"
+# NB_ICON_REPEATER = "fa-ethernet"
+# NB_ICON_OTHER = "fa-question"
+#
+# this is the Mermaid.js style for the various device types.
+# this defaults to 'standard' style, but you can add fill-in colors, outlines, etc.
+# see more at https://mermaid.js.org/syntax/block.html#example-styling-a-single-block
+# MM_NB_STYLE_NONE = ""
+# MM_NB_STYLE_WLAN = ""
+# MM_NB_STYLE_PHONE = ""
+# MM_NB_STYLE_ROUTER = ""
+# MM_NB_STYLE_STATION = ""
+# MM_NB_STYLE_BRIDGE = ""
+# MM_NB_STYLE_REPEATER = ""
+# MM_NB_STYLE_OTHER = ""
+
+
 # this is a basic logging configuration for the Django settings.LOGGING
 # this is only used in the dprint() function when DEBUG=True. This prints to the console.
 # I.e. use this when in "developer mode" while running "django runserver".

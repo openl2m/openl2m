@@ -471,10 +471,12 @@ TOP_ACTIVITY_DAYS = getattr(configuration, 'TOP_ACTIVITY_DAYS', 7)
 #
 # Neighbor device settings, used for LLDP Neighbor tab, and Mermaid graphical view
 #
-NB_MAX_FOR_TD = getattr(
-    configuration, 'MAX_NB_FOR_TD', 5
-)  # max neighbors for Top-Down diagram. Larger becomes Left-to-Right
+# max neighbors for Top-Down diagram. Larger becomes Left-to-Right
+NB_MAX_FOR_TD = getattr(configuration, 'MAX_NB_FOR_TD', 5)
+
 # this segment maps device types to FontAwesome icon names:
+# if you change this, make sure you know the proper "Free" FA icon name
+# see more at https://fontawesome.com/search?o=r&m=free
 NB_ICON_NONE = getattr(configuration, 'NB_ICON_NONE', "fa-question")
 NB_ICON_WLAN = getattr(configuration, 'NB_ICON_WLAN', "fa-wifi")
 NB_ICON_PHONE = getattr(configuration, 'NB_ICON_PHONE', "fa-phone")
@@ -483,15 +485,15 @@ NB_ICON_STATION = getattr(configuration, 'NB_ICON_STATION', "fa-desktop")
 NB_ICON_BRIDGE = getattr(configuration, 'NB_ICON_BRIDGE', "fa-ethernet")
 NB_ICON_REPEATER = getattr(configuration, 'NB_ICON_REPEATER', "fa-ethernet")
 NB_ICON_OTHER = getattr(configuration, 'NB_ICON_OTHER', "fa-question")
-#
-# this is the Mermaid.js style for the device types:
-NB_STYLE_NONE = getattr(configuration, 'NB_STYLE_NONE', "")
-NB_STYLE_WLAN = getattr(
-    configuration, 'NB_STYLE_WLAN', "fill:#888,stroke:#f22,stroke-width:2px,color:#fff,stroke-dasharray: 15 15"
-)
-NB_STYLE_PHONE = getattr(configuration, 'NB_STYLE_PHONE', "")
-NB_STYLE_ROUTER = getattr(configuration, 'NB_STYLE_ROUTER', "")
-NB_STYLE_STATION = getattr(configuration, 'NB_STYLE_STATION', "")
-NB_STYLE_BRIDGE = getattr(configuration, 'NB_STYLE_BRIDGE', "")
-NB_STYLE_REPEATER = getattr(configuration, 'NB_STYLE_REPEATER', "")
-NB_STYLE_OTHER = getattr(configuration, 'NB_STYLE_OTHER', "")
+
+# this is the Mermaid.js style for the various device types.
+# this defaults to 'standard' style, but you can add fill-in colors, outlines, etc.
+# see more at https://mermaid.js.org/syntax/block.html#example-styling-a-single-block
+MM_NB_STYLE_NONE = getattr(configuration, 'MM_NB_STYLE_NONE', "")
+MM_NB_STYLE_WLAN = getattr(configuration, 'MM_NB_STYLE_WLAN', "")
+MM_NB_STYLE_PHONE = getattr(configuration, 'MM_NB_STYLE_PHONE', "")
+MM_NB_STYLE_ROUTER = getattr(configuration, 'MM_NB_STYLE_ROUTER', "")
+MM_NB_STYLE_STATION = getattr(configuration, 'MM_NB_STYLE_STATION', "")
+MM_NB_STYLE_BRIDGE = getattr(configuration, 'MM_NB_STYLE_BRIDGE', "")
+MM_NB_STYLE_REPEATER = getattr(configuration, 'MM_NB_STYLE_REPEATER', "")
+MM_NB_STYLE_OTHER = getattr(configuration, 'MM_NB_STYLE_OTHER', "")

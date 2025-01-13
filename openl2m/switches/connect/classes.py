@@ -429,8 +429,8 @@ class NeighborDevice:
         self.style = ""  # mermaid display style
         self.description = ""  # device type description, Wifi, Router, Switch etc.
         # these are the graphing block "start" and "finish" formatting characters
-        self.dev_start = ""
-        self.dev_end = ""
+        self.start_device = ""
+        self.stop_device = ""
 
     def set_port_name(self, port_name: str) -> None:
         '''
