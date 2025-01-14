@@ -120,7 +120,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # first call the base class to populate interfaces:
         super()._get_interface_data()
 
-        # now add Comware data, and cache it:
+        # now add Cisco data, and cache it:
         if self.get_snmp_branch(branch_name='cL2L3IfModeOper', parser=self._parse_mibs_cisco_if_opermode) < 0:
             dprint("Cisco cL2L3IfModeOper returned error!")
             return False
