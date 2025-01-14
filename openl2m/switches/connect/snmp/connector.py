@@ -921,12 +921,14 @@ class SnmpConnector(Connector):
             self.error.details = f"SNMP Set Error in {e.__class__.__name__}: oid '{oid}', value '{value}', value type '{type(value)}' snmp_type '{snmp_type}', Details: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   ERROR in set() - Details:\n{self.error.details}\n")
             return False
+        dprint("SnmpConnector.set() OK!")
 
         # parse the data, just like returns from get_branch()
         if parser:
+            dprint("SnmpConnector.set() parsing return:")
             parser(str(oid), str(value))
         else:
-            dprint("SnmpConnector.set(): Warning - Return NOT parsed!")
+            dprint("SnmpConnector.set() OK, BUT Return NOT parsed!")
 
         return True
 
@@ -1264,13 +1266,13 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"Base _parse_mibs_vlan_related() {str(oid)}")
+        dprint(f"SnmpConnector()._parse_mibs_vlan_related(oid={str(oid)}, val={val}")
 
         # Map the Q-BRIDGE port id to the MIB-II if_indexes.
         # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
         port_id = int(oid_in_branch(dot1dBasePortIfIndex, oid))
         if port_id:
-            dprint(f"Found dot1dBasePortIfIndex = {port_id}")
+            dprint(f"  Found dot1dBasePortIfIndex = {port_id}")
             # map port ID (as str) to interface ID (as str)
             if_index = str(val)
             if if_index in self.interfaces.keys():
@@ -1284,6 +1286,7 @@ class SnmpConnector(Connector):
         # List of all available vlans on this switch as by the command "show vlans"
         vlan_id = int(oid_in_branch(dot1qVlanStaticRowStatus, oid))
         if vlan_id:
+            dprint(f"  Found dot1qVlanStaticRowStatus for vlan {vlan_id}")
             # for now, just add to the dictionary,
             # we will fill in the initial name below at "VLAN_NAME"
             if vlan_id in self.vlans.keys():
@@ -1299,6 +1302,7 @@ class SnmpConnector(Connector):
         # The VLAN name
         vlan_id = int(oid_in_branch(dot1qVlanStaticName, oid))
         if vlan_id:
+            dprint(f"  Found dot1qVlanStaticName for vlan {vlan_id}")
             # not yet sure how to handle this
             if vlan_id in self.vlans.keys():
                 self.vlans[vlan_id].name = val
@@ -1311,6 +1315,7 @@ class SnmpConnector(Connector):
         # see if this is static or dynamic vlan
         sub_oid = oid_in_branch(dot1qVlanStatus, oid)
         if sub_oid:
+            dprint(f"  Found dot1qVlanStatus for sub_oid {sub_oid}")
             (dummy, v) = sub_oid.split('.')
             vlan_id = int(v)
             status = int(val)
@@ -1327,6 +1332,7 @@ class SnmpConnector(Connector):
         # IMPORTANT: IF THE INTERFACE IS TAGGED, this value is 1, and typically incorrect!!!
         port_id = int(oid_in_branch(dot1qPvid, oid))
         if port_id:
+            dprint(f"  Found dot1qPvid for port_id {port_id}")
             if_index = self._get_if_index_from_port_id(port_id)
             # not yet sure how to handle this. val is 'untagged vlan'
             untagged_vlan = int(val)
@@ -1365,6 +1371,7 @@ class SnmpConnector(Connector):
         # this is the bitmap of current untagged ports in vlans (see also above dot1qVlanStaticEgressPorts)
         sub_oid = oid_in_branch(dot1qVlanCurrentUntaggedPorts, oid)
         if sub_oid:
+            dprint(f"  Found dot1qVlanCurrentUntaggedPorts for sub_oid {sub_oid}")
             (dummy, v) = sub_oid.split('.')
             vlan_id = int(v)
             if vlan_id not in self.vlans.keys():
@@ -1381,6 +1388,7 @@ class SnmpConnector(Connector):
         # we read and store this so we have it ready to WRITE by setting a bit value, when we update the vlan on a port!
         vlan_id = int(oid_in_branch(dot1qVlanStaticEgressPorts, oid))
         if vlan_id:
+            dprint(f"  Found dot1qVlanStaticEgressPorts for vlan {vlan_id}")
             if vlan_id not in self.vlans.keys():
                 # not likely, we should know by now, but just in case.
                 self.add_vlan_by_id(vlan_id=vlan_id)
@@ -1392,7 +1400,7 @@ class SnmpConnector(Connector):
         # this is the bitmap of static untagged ports in vlans (see also above dot1qVlanCurrentEgressPorts)
         vlan_id = int(oid_in_branch(dot1qVlanStaticUntaggedPorts, oid))
         if vlan_id:
-            dprint("FOUND: dot1qVlanStaticUntaggedPorts")
+            dprint(f"  Found dot1qVlanStaticUntaggedPorts for vlan {vlan_id}")
             if vlan_id not in self.vlans.keys():
                 # unlikely, we should know by now, but just in case
                 self.add_vlan_by_id(vlan_id=vlan_id)
@@ -1406,6 +1414,7 @@ class SnmpConnector(Connector):
         # dot1qVlanCurrentEgressPorts
         sub_oid = oid_in_branch(dot1qVlanCurrentEgressPorts, oid)
         if sub_oid:
+            dprint(f"  Found dot1qVlanCurrentEgressPorts for sub_oid {sub_oid}")
             # sub oid part is dot1qVlanCurrentEgressPorts.timestamp.vlan_id = bitmap
             (time_val, v) = sub_oid.split('.')
             vlan_id = int(v)
@@ -3322,7 +3331,7 @@ class SnmpConnector(Connector):
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
         return True on success, False on error and set self.error variables
         """
-        dprint(f"connection.set_interface_untagged_vlan(interface={interface}, vlan={new_vlan_id})")
+        dprint(f"SnmpConnector.set_interface_untagged_vlan(interface={interface.name}, vlan={new_vlan_id})")
         if not interface:
             dprint("  Invalid interface!, returning False")
             return False
@@ -3356,11 +3365,13 @@ class SnmpConnector(Connector):
 
         # Remove port from list of ports on old vlan,
         # i.e. read current Egress PortList bitmap first:
+        dprint(f"Reading egress ports:")
         (error_status, snmpval) = self.get(
             f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", parser=self._parse_mibs_vlan_related
         )
         if error_status:
             # Hmm, not sure what to do
+            dprint("  ERROR: reading egress ports!")
             return False
 
         # now calculate new bitmap by removing this switch port
@@ -3372,7 +3383,7 @@ class SnmpConnector(Connector):
         old_vlan_portlist[interface.port_id] = 0
 
         dprint(
-            f"Updated OLD VLAN Current Egress Ports with removed port {interface.port_id}, now  = {old_vlan_portlist.to_hex_string()}"
+            f"Updating OLD VLAN Current Egress Ports with removed port {interface.port_id}, now  = {old_vlan_portlist.to_hex_string()}"
         )
 
         # now send update to switch:
@@ -3384,12 +3395,14 @@ class SnmpConnector(Connector):
             self.error.status = True
             self.error.description = "Error getting snmp connection object (pysnmpHelper())"
             self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            dprint("SnmpConnector.set_interface_untagged_vlan() -> False from pysnmpHelper()")
             return False
         if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", octet_string):
             self.error.status = True
             self.error.description += "\nError in setting port (dot1qVlanStaticEgressPorts)"
             # copy over the error details from the call:
             self.error.details = pysnmp.error.details
+            dprint("SnmpConnector.set_interface_untagged_vlan() -> False from pysnmp.set(dot1qVlanStaticEgressPorts)")
             return False
 
         # and re-read the dot1qVlanCurrentEgressPorts, all ports
@@ -3404,6 +3417,7 @@ class SnmpConnector(Connector):
             f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_related
         )
         interface.untagged_vlan = new_vlan_id
+        dprint("SnmpConnector.set_interface_untagged_vlan() -> True")
         return True
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:

@@ -18,6 +18,11 @@ from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_in
 ENTERPRISE_ID_CISCO = 9
 enterprise_id_info[ENTERPRISE_ID_CISCO] = 'Cisco'
 
+# CDP MIB:
+# https://mibs.observium.org/mib/CISCO-CDP-MIB/
+# Normall, Cisco device support the standard LLDP mib as well!
+#
+# ciscoCdpMIB = '.1.3.6.1.4.1.9.9.23'
 
 # CISCO-SYSLOG-MIB
 # http://www.circitor.fr/Mibs/Html/C/CISCO-SYSLOG-MIB.php
@@ -70,7 +75,12 @@ snmp_mib_variables['ccmHistoryStartupLastChanged'] = ccmHistoryStartupLastChange
 
 
 # VTP MIB:
-# http://www.circitor.fr/Mibs/Html/C/CISCO-VTP-MIB.php
+# https://mibs.observium.org/mib/CISCO-VTP-MIB/
+#
+# ciscoVtpMIB = .1.3.6.1.4.1.9.9.46
+#
+# Note: older style Cisco device use this MIB for vlans, port vlan changes, etc.
+# newer style use the 'standard' Q-Bridge mibs.
 #
 vtpVlanState = '.1.3.6.1.4.1.9.9.46.1.3.1.1.2.1'
 snmp_mib_variables['vtpVlanState'] = vtpVlanState
