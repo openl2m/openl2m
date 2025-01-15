@@ -1066,7 +1066,7 @@ class Interface:
     def display_name(self) -> str:
         s = self.name  # use the IF-MIB new interface name
         if self.description:
-            s = f"{s}: {self.description} {self.admin_status} {self.oper_status}"
+            s = f"{s}: \"{self.description}\""
         if self.admin_status:
             s = f"{s} (UP/"
         else:
