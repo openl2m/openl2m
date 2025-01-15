@@ -419,6 +419,18 @@ class NeighborDevice:
         self.hostname: str = ""  # if set, the hostname of the device, possibly resolved from chassis_string
         self.management_address_type: int = IANA_TYPE_OTHER  # valid is either IANA_TYPE_IPV4 or IANA_TYPE_IPV6
         self.management_address: str = ""  # IP address, either v4 or v6
+        #
+        # the entries below are for use by the mermaid.js graphing library to show neighbors in an image
+        # these are assigned in switches.templatetags.helpers.get_neighbor_mermaid_config()
+        #
+        self.name = ""  # the device name to display
+        self.chassis = ""  # chassis description, if any
+        self.icon = ""  # the FontAwesome icon to show on the device block
+        self.style = ""  # mermaid display style
+        self.description = ""  # device type description, Wifi, Router, Switch etc.
+        # these are the graphing block "start" and "finish" formatting characters
+        self.start_device = ""
+        self.stop_device = ""
 
     def set_port_name(self, port_name: str) -> None:
         '''

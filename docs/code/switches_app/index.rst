@@ -147,3 +147,7 @@ you will have a dictionary with str() keys! **This could have unexpected results
 
 Note: In general, drivers do not need to implement caching, as this is done in the base Connector() class.
 
+
+**Neighbor Graphing**
+
+See :doc:`Neighbor device graphing <graphing_neighbors>`.
