@@ -112,8 +112,9 @@ class SnmpConnectorCisco(SnmpConnector):
         # let Netmiko decide this...
         # self.netmiko_disable_paging_command = "terminal length 0"
 
-        # older style Cisco device use this MIB for vlans, port vlan changes, etc.
-        # newer style use the 'standard' Q-Bridge mibs.
+        # older style Cisco device use the proprietary VTB MIB for vlans, port vlan changes, etc.
+        # newer style use the 'standard' Q-Bridge mibs. We will sense this when we read vlan data.
+        # see self._get_vlan_data() below.
         self.use_vtp_mib = True
 
     def _get_interface_data(self) -> bool:
@@ -140,54 +141,54 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint("_get_vlan_data(Cisco)\n")
         # first, read existing vlan id's according to the old proprietary Cisco mibs:
         retval = self.get_snmp_branch(branch_name='vtpVlanState', parser=self._parse_mibs_cisco_vtp)
+        if retval < 0:  # this indicates an error, should not happen!
+            return retval
+
+        # we did not find the proprietary VTP mib. Newer Cisco devices supports the Q-Bridge standard mibs:
+        if retval == 0:
+            self.use_vtp_mib = False
+            return super()._get_vlan_data()
+
+        #
+        # we found old proprietary vtpVlan mib data, go read the others.
+        #
+        # vlan types are next
+        retval = self.get_snmp_branch(branch_name='vtpVlanType', parser=self._parse_mibs_cisco_vtp)
         if retval < 0:
             return retval
-        # we found old proprietary vtpVlan mib data, go read the others.
-        if retval > 0:
-            # vlan types are next
-            retval = self.get_snmp_branch(branch_name='vtpVlanType', parser=self._parse_mibs_cisco_vtp)
-            if retval < 0:
-                return retval
-            # next, read vlan names
-            retval = self.get_snmp_branch(branch_name='vtpVlanName', parser=self._parse_mibs_cisco_vtp)
-            if retval < 0:
-                return retval
+        # next, read vlan names
+        retval = self.get_snmp_branch(branch_name='vtpVlanName', parser=self._parse_mibs_cisco_vtp)
+        if retval < 0:
+            return retval
 
-            # find out if a port is configured as trunk or not, read port trunk(802.1q tagged) status
-            retval = self.get_snmp_branch('vlanTrunkPortDynamicState', self._parse_mibs_cisco_vtp)
-            if retval < 0:
-                return retval
-            # now, find out if interfaces are access or trunk (tagged) mode
-            # this is the actual status, not what is configured; ie NOT trunk if interface is down!!!
-            # retval = self.get_snmp_branch(branch_name=vlanTrunkPortDynamicStatus):  # read port trunk(802.1q tagged) status
-            #    dprint("Cisco PORT TRUNK STATUS data FALSE")
-            #    return False
-            # and read the native vlan for trunked ports
-            retval = self.get_snmp_branch(branch_name='vlanTrunkPortNativeVlan', parser=self._parse_mibs_cisco_vtp)
-            if retval < 0:
-                return retval
-            # also read the vlans on all trunk interfaces:
-            retval = self.get_snmp_branch(branch_name='vlanTrunkPortVlansEnabled', parser=self._parse_mibs_cisco_vtp)
-            if retval < 0:
-                return retval
-            # now read 2k, 3k and 4k vlans as well:
-            retval = self.get_snmp_branch(branch_name='vlanTrunkPortVlansEnabled2k', parser=self._parse_mibs_cisco_vtp)
-            if retval < 0:
-                return retval
-            # if the 2k vlan mibs exist, then also read 3k & 4k vlans
-            elif retval > 0:
+        # find out if a port is configured as trunk or not, read port trunk(802.1q tagged) status
+        retval = self.get_snmp_branch('vlanTrunkPortDynamicState', self._parse_mibs_cisco_vtp)
+        if retval < 0:
+            return retval
+        # now, find out if interfaces are access or trunk (tagged) mode
+        # this is the actual status, not what is configured; ie NOT trunk if interface is down!!!
+        # retval = self.get_snmp_branch(branch_name=vlanTrunkPortDynamicStatus):  # read port trunk(802.1q tagged) status
+        #    dprint("Cisco PORT TRUNK STATUS data FALSE")
+        #    return False
+        # and read the native vlan for trunked ports
+        retval = self.get_snmp_branch(branch_name='vlanTrunkPortNativeVlan', parser=self._parse_mibs_cisco_vtp)
+        if retval < 0:
+            return retval
+        # also read the vlans on all trunk interfaces:
+        retval = self.get_snmp_branch(branch_name='vlanTrunkPortVlansEnabled', parser=self._parse_mibs_cisco_vtp)
+        if retval < 0:
+            return retval
+        # now read 2k, 3k and 4k vlans as well:
+        retval = self.get_snmp_branch(branch_name='vlanTrunkPortVlansEnabled2k', parser=self._parse_mibs_cisco_vtp)
+        if retval < 0:
+            return retval
+        # if the 2k vlan mibs exist, then also read 3k & 4k vlans
+        elif retval > 0:
+            retval = self.get_snmp_branch(branch_name='vlanTrunkPortVlansEnabled3k', parser=self._parse_mibs_cisco_vtp)
+            if retval > 0:
                 retval = self.get_snmp_branch(
-                    branch_name='vlanTrunkPortVlansEnabled3k', parser=self._parse_mibs_cisco_vtp
+                    branch_name='vlanTrunkPortVlansEnabled4k', parser=self._parse_mibs_cisco_vtp
                 )
-                if retval > 0:
-                    retval = self.get_snmp_branch(
-                        branch_name='vlanTrunkPortVlansEnabled4k', parser=self._parse_mibs_cisco_vtp
-                    )
-
-        # newer Cisco devices implement standard Q-Bridge mibs
-        else:
-            self.use_vtp_mib = False
-            super()._get_vlan_data()
 
         # finally, if not trunked, read untagged interfaces vlan membership
         retval = self.get_snmp_branch(branch_name='vmVlan', parser=self._parse_mibs_cisco_vlan)
@@ -209,6 +210,9 @@ class SnmpConnectorCisco(SnmpConnector):
         Return True on success (0 or more found), False on errors
         """
         dprint("_get_known_ethernet_addresses(Cisco)\n")
+        if not self.use_vtp_mib:
+            return super()._get_known_ethernet_addresses()
+
         for vlan_id in self.vlans.keys():
             # little hack for Cisco devices, to see various vlan-specific tables:
             self.vlan_id_context = int(vlan_id)
@@ -326,42 +330,47 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint(f"SnmpConnectorCisco.set_interface_untagged_vlan(interface={interface.name}, new_vlan_id={new_vlan_id})")
         if interface:
             if not self.use_vtp_mib:
+                # newer Cisco device use the standard Q-Bridge mib for port vlan membership:
                 dprint("use_vtp_mib=False, calling super().set_interface_untagged_vlan()")
                 return super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
+
+            # old style Cisco devices use VTP mib:
+            dprint("use_vtp_mib=True !")
+            if interface.is_tagged:
+                # set the TRUNK_NATIVE_VLAN OID:
+                retval = self.set(
+                    oid=f"{vlanTrunkPortNativeVlan}.{interface.index}",
+                    value=int(new_vlan_id),
+                    snmp_type="i",
+                    parser=self._parse_mibs_cisco_vtp,
+                )
             else:
-                dprint("use_vtp_mib=True !")
-                if interface.is_tagged:
-                    # set the TRUNK_NATIVE_VLAN OID:
-                    retval = self.set(
-                        oid=f"{vlanTrunkPortNativeVlan}.{interface.index}",
-                        value=int(new_vlan_id),
-                        snmp_type="i",
-                        parser=self._parse_mibs_cisco_vtp,
-                    )
-                else:
-                    # regular access mode port:
+                # regular access mode port:
+                retval = self.set(
+                    oid=f"{vmVlan}.{interface.index}",
+                    value=int(new_vlan_id),
+                    snmp_type="i",
+                    parser=self._parse_mibs_cisco_vlan,
+                )
+                if retval < 0:
+                    # some Cisco devices want unsigned integer value:
                     retval = self.set(
                         oid=f"{vmVlan}.{interface.index}",
                         value=int(new_vlan_id),
-                        snmp_type="i",
+                        snmp_type="u",
                         parser=self._parse_mibs_cisco_vlan,
                     )
-                    if retval < 0:
-                        # some Cisco devices want unsigned integer value:
-                        retval = self.set(
-                            oid=f"{vmVlan}.{interface.index}",
-                            value=int(new_vlan_id),
-                            snmp_type="u",
-                            parser=self._parse_mibs_cisco_vlan,
-                        )
-                if retval == -1:
-                    return False
-                else:
-                    # set the interface class attribute for proper 'viewing' and caching:
-                    interface.untagged_vlan = int(new_vlan_id)
-                    return True
+            if retval == -1:
+                return False
+            else:
+                # set the interface class attribute for proper 'viewing' and caching:
+                interface.untagged_vlan = int(new_vlan_id)
+                return True
 
-        # interface not found:
+        # interface not found (should not happen!)
+        self.error.status = True
+        self.error.description = "interface not found!"
+        self.error.details = "Invalid call to set_interface_untagged_vlan(): interface parameter not set!"
         return False
 
     def get_my_hardware_details(self) -> bool:

@@ -134,6 +134,12 @@ snmp_mib_variables['vlanTrunkPortVlansEnabled3k'] = vlanTrunkPortVlansEnabled3k
 vlanTrunkPortVlansEnabled4k = '.1.3.6.1.4.1.9.9.46.1.6.1.1.19'
 snmp_mib_variables['vlanTrunkPortVlansEnabled4k'] = vlanTrunkPortVlansEnabled4k
 
+# Cisco VLAN Membership mib - on older devices only
+# https://mibs.observium.org/mib/CISCO-VLAN-MEMBERSHIP-MIB/
+# https://circitor.fr/Mibs/Html/CISCO-VLAN-MEMBERSHIP-MIB.php
+#
+# ciscoVlanMembershipMIB = '.1.3.6.1.4.1.9.9.68'
+#
 # this is the untagged or native vlan for a Cisco switch port
 # this will NOT show ports in trunk mode!!!
 vmVlan = '.1.3.6.1.4.1.9.9.68.1.2.2.1.2'
