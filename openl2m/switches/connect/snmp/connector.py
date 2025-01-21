@@ -1126,11 +1126,6 @@ class SnmpConnector(Connector):
             self.vlan_count = int(val)
             return True
 
-        sub_oid = oid_in_branch(dot1qNumVlans, oid)
-        if sub_oid:
-            self.vlan_count = int(val)
-            return True
-
         sub_oid = oid_in_branch(dot1qGvrpStatus, oid)
         if sub_oid:
             if int(val) == GVRP_ENABLED:
