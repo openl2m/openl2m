@@ -879,9 +879,10 @@ class Interface:
         )  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
         self.vlan_count: int = 0
         self.is_tagged: bool = False  # if 802.1q tagging or trunking is enabled
-        self.if_vlan_mode: int = (
-            -1
-        )  # some vendors (e.g. Comware) have a interface vlan mode, such as access, trunk, hybrid
+        # some vendors (e.g. Comware, Cisco-SB) have a interface vlan mode:
+        # Comware driver uses this for access, trunk, hybrid modes.
+        # Cisco-SB devices use this for general, access, trunk modes.
+        self.if_vlan_mode: int = -1
         self.voice_vlan: int = 0  # Cisco specific "Voice Vlan"
         self.can_change_vlan: bool = (
             True  # if set, we can change the vlan; some device types this is not implemented yet!

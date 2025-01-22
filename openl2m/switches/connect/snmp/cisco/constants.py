@@ -18,6 +18,15 @@ from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_in
 ENTERPRISE_ID_CISCO = 9
 enterprise_id_info[ENTERPRISE_ID_CISCO] = 'Cisco'
 
+# the various snmp driver mib types we can detect:
+CISCO_DEVICE_TYPE_UNKNOWN_MIB = 0
+CISCO_DEVICE_TYPE_VTP_MIB = 1
+CISCO_DEVICE_TYPE_SB_MIB = 2
+cisco_device_types = {}
+cisco_device_types[CISCO_DEVICE_TYPE_UNKNOWN_MIB] = "Unknown (MIB ?)"
+cisco_device_types[CISCO_DEVICE_TYPE_VTP_MIB] = "Catalyst (VTP MIB)"
+cisco_device_types[CISCO_DEVICE_TYPE_SB_MIB] = "CBS (SB MIB)"
+
 # CDP MIB:
 # https://mibs.observium.org/mib/CISCO-CDP-MIB/
 # Normall, Cisco device support the standard LLDP mib as well!
@@ -80,11 +89,18 @@ snmp_mib_variables['ccmHistoryStartupLastChanged'] = ccmHistoryStartupLastChange
 # ciscoVtpMIB = .1.3.6.1.4.1.9.9.46
 #
 # Note: older style Cisco device use this MIB for vlans, port vlan changes, etc.
-# newer style use the 'standard' Q-Bridge mibs.
+# newer style use the 'standard' Q-Bridge or CiscoSB mibs.
 #
+
+# used to probe VTP mib existance:
+vtpVersion = '.1.3.6.1.4.1.9.9.46.1.1.1'
+snmp_mib_variables['vtpVersion'] = vtpVersion
+
+# the vlan state, ie shows the list of vlans
 vtpVlanState = '.1.3.6.1.4.1.9.9.46.1.3.1.1.2.1'
 snmp_mib_variables['vtpVlanState'] = vtpVlanState
 
+# and the type, see types below
 vtpVlanType = '.1.3.6.1.4.1.9.9.46.1.3.1.1.3.1'
 snmp_mib_variables['vtpVlanType'] = vtpVlanType
 
@@ -209,3 +225,23 @@ snmp_mib_variables['portIfIndex'] = portIfIndex
 # OID to "write mem" via Snmp
 ciscoWriteMem = '.1.3.6.1.4.1.9.2.1.54.0'
 snmp_mib_variables['ciscoWriteMem'] = ciscoWriteMem
+
+
+#
+# Cisco SB devices, "Small Business" switches
+# Only tested on CBS-350 switch.
+#
+# see https://mibs.observium.org/mib/CISCOSB-vlan-MIB/
+# and https://github.com/librenms/librenms/blob/master/mibs/cisco/CISCOSB-vlan-MIB
+# and all high-level entries at https://mibbrowser.online/mibdb_search.php?mib=CISCOSB-MIB
+
+# see if the CISCOSB-vlan-MIB exists:
+vlanMibVersion = '.1.3.6.1.4.1.9.6.1.101.48.1'
+snmp_mib_variables['vlanMibVersion'] = vlanMibVersion
+
+# vlan state, ie access, general, trunk
+vlanPortModeState = '.1.3.6.1.4.1.9.6.1.101.48.22.1.1'
+snmp_mib_variables['vlanPortModeState'] = vlanPortModeState
+SB_VLAN_MODE_GENERAL = 10
+SB_VLAN_MODE_ACCESS = 11
+SB_VLAN_MODE_TRUNK = 12
