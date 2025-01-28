@@ -253,3 +253,6 @@ sb_vlan_mode[SB_VLAN_MODE_TRUNK] = "Trunk"
 # access mode ports set the vlan on this mib:
 vlanAccessPortModeVlanId = '.1.3.6.1.4.1.9.6.1.101.48.62.1.1'
 snmp_mib_variables['vlanAccessPortModeVlanId'] = vlanAccessPortModeVlanId
+
+vlanTrunkPortModeNativeVlanId = '.1.3.6.1.4.1.9.6.1.101.48.61.1.1'
+snmp_mib_variables['vlanTrunkPortModeNativeVlanId'] = vlanTrunkPortModeNativeVlanId

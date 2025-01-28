@@ -85,6 +85,7 @@ from .constants import (
     vlanMibVersion,
     vlanPortModeState,
     vlanAccessPortModeVlanId,
+    vlanTrunkPortModeNativeVlanId,
 )
 
 
@@ -278,8 +279,15 @@ class SnmpConnectorCisco(SnmpConnector):
         super()._get_vlan_data()
 
         # and finally read the vlanAccessPortModeVlanId, this reads access mode vlan id's
-        return self.get_snmp_branch(
+        retval = self.get_snmp_branch(
             branch_name='vlanAccessPortModeVlanId', parser=self._parse_mibs_cisco_sb_access_vlan
+        )
+        if retval < 0:
+            return retval
+
+        # and read trunk mode PVID as well:
+        return self.get_snmp_branch(
+            branch_name='vlanTrunkPortModeNativeVlanId', parser=self._parse_mibs_cisco_sb_trunk_vlan
         )
 
     def _get_known_ethernet_addresses(self) -> bool:
@@ -497,6 +505,17 @@ class SnmpConnectorCisco(SnmpConnector):
 
         if interface.if_vlan_mode == SB_VLAN_MODE_TRUNK:
             dprint("  SB_VLAN_MODE_TRUNK")
+            # we set the vlanAccessPortModeVlanId value:
+            dprint("  SB_VLAN_MODE_TRUNK - setting with vlanTrunkPortModeNativeVlanId:")
+            if not self.set(
+                oid=f"{vlanTrunkPortModeNativeVlanId}.{interface.port_id}",
+                value=int(new_vlan_id),
+                snmp_type='u',
+                parser=self._parse_mibs_cisco_sb_trunk_vlan,
+            ):
+                interface.untagged_vlan = new_vlan_id
+                return False
+            return True
 
         # for now error out
         self.error.status = True
@@ -562,6 +581,20 @@ class SnmpConnectorCisco(SnmpConnector):
             # only set if port is in "Access Mode"
             intf = self.get_interface_by_key(key=if_index)
             if intf.if_vlan_mode == SB_VLAN_MODE_ACCESS:
+                self.set_interface_attribute_by_key(if_index, "untagged_vlan", int(val))
+            return True  # parsed
+
+        return False  # not parsed.
+
+    def _parse_mibs_cisco_sb_trunk_vlan(self, oid: str, val: str) -> bool:
+        """Parse the Trunk Mode port untagged vlan"""
+        if_index = oid_in_branch(vlanTrunkPortModeNativeVlanId, oid)
+        if if_index:
+            dprint(f"FOUND: vlanTrunkPortModeNativeVlanId for index {if_index} = {val}")
+            # untagged_vlan = int(val)
+            # only set if port is in "Access Mode"
+            intf = self.get_interface_by_key(key=if_index)
+            if intf.if_vlan_mode == SB_VLAN_MODE_TRUNK:
                 self.set_interface_attribute_by_key(if_index, "untagged_vlan", int(val))
             return True  # parsed
 
@@ -989,7 +1022,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # return error status
         return False
 
-    def _disable_interface_management(self, interface: Interface):
+    def _disable_interface_management_not_needed(self, interface: Interface):
         """Function that can be implemented by other drivers to disable management of an interface
         Params:
             iface (Interface): the Interface() object to check management of.

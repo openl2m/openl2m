@@ -1682,7 +1682,7 @@ class Connector:
                             continue
         return
 
-    def _disable_interface_management(self, iface: Interface):
+    def _disable_interface_management(self, interface: Interface):
         """Function that can be implemented by other drivers to disable management of an interface
         Params:
             iface (Interface): the Interface() object to check management of.
