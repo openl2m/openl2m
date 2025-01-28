@@ -245,3 +245,11 @@ snmp_mib_variables['vlanPortModeState'] = vlanPortModeState
 SB_VLAN_MODE_GENERAL = 10
 SB_VLAN_MODE_ACCESS = 11
 SB_VLAN_MODE_TRUNK = 12
+sb_vlan_mode = {}
+sb_vlan_mode[SB_VLAN_MODE_GENERAL] = "General"
+sb_vlan_mode[SB_VLAN_MODE_ACCESS] = "Access"
+sb_vlan_mode[SB_VLAN_MODE_TRUNK] = "Trunk"
+
+# access mode ports set the vlan on this mib:
+vlanAccessPortModeVlanId = '.1.3.6.1.4.1.9.6.1.101.48.62.1.1'
+snmp_mib_variables['vlanAccessPortModeVlanId'] = vlanAccessPortModeVlanId
