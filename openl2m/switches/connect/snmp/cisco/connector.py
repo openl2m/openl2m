@@ -292,15 +292,24 @@ class SnmpConnectorCisco(SnmpConnector):
 
     def _get_known_ethernet_addresses(self) -> bool:
         """
-        Read the Bridge-MIB for known ethernet address on the switch.
-        On Cisco switches, you have to append the vlan ID after the v1/2c community,
-        eg. public@13 for vlan 13
+        Read known ethernet address on the switch. Depends on switch family.
         Return True on success (0 or more found), False on errors
         """
         dprint("_get_known_ethernet_addresses(Cisco)\n")
-        if self.mib_type == CISCO_DEVICE_TYPE_UNKNOWN_MIB:
-            return super()._get_known_ethernet_addresses()
+        if self.mib_type == CISCO_DEVICE_TYPE_VTP_MIB:
+            return super()._get_known_ethernet_addresses_vtp()
 
+        # SB type, and "unknown" types, try the regular way:
+        return super()._get_known_ethernet_addresses()
+
+    def _get_known_ethernet_addresses_vtp(self) -> bool:
+        """
+        Read the Bridge-MIB for known ethernet address on the switch.
+        On Cisco VTP switches, you have to append the vlan ID after the v1/2c community,
+        eg. public@13 for vlan 13
+        Return True on success (0 or more found), False on errors
+        """
+        dprint("_get_known_ethernet_addresses_vtp()\n")
         for vlan_id in self.vlans.keys():
             # little hack for Cisco devices, to see various vlan-specific tables:
             self.vlan_id_context = int(vlan_id)
