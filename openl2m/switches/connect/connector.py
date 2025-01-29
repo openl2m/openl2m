@@ -1682,6 +1682,16 @@ class Connector:
                             continue
         return
 
+    def _disable_interface_management(self, interface: Interface):
+        """Function that can be implemented by other drivers to disable management of an interface
+        Params:
+            iface (Interface): the Interface() object to check management of.
+
+        Returns:
+            (bool): True is disabled, False if not.
+        """
+        return False
+
     def _set_interfaces_permissions(self):
         '''
         For all found interfaces, check out rules to see if this user should be able see or edit them
@@ -1703,6 +1713,10 @@ class Connector:
         # apply the permission rules to all interfaces
         for iface in self.interfaces.values():
             # dprint(f"  checking {iface.name}")
+
+            # first give the custom lower driver an opportunity to disable management:
+            if self._disable_interface_management(interface=iface):
+                continue
 
             # if disabled by the Connector() driver:
             if self.read_only or iface.disabled:

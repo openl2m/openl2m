@@ -38,24 +38,28 @@ We now have the interface-id, aka ifIndex, and most information about the interf
 Get VLAN Membership
 -------------------
 
-We already should have vlan information at this time. We now call *SNmpConnector()._get_port_vlan_membership()*
+We already should have vlan information at this time. We now call *SnmpConnector()._get_port_vlan_membership()*
 
 The Q-Bridge "dot1qPvid" entry maps every switch port (ie port-id) to the untagged vlan on that port.
+
+.. code-block:: python
 
     self.get_snmp_branch('dot1qPvid')
 
 So here is the first time we need the mapping from port-id to interface-id (see above) to set the untagged vlan
 on an interface.
 
-Some devices may not implement the above dot1qPvid" mib, so we can also look at the "CurrentVlan"
+Some devices may not implement the above *dot1qPvid* mib, so we can also look at the "CurrentVlan"
 branch of the Q-Bridge MIB.
 
-        # THIS IS LIKELY NOT PROPERLY HANDLED !!!
-        # read the current vlan untagged port mappings
-        # retval = self.get_snmp_branch(dot1qVlanCurrentUntaggedPorts)
-        # if retval < 0:
-        #    self.add_warning(f"Error getting 'Q-Bridge-Vlan-Untagged-Interfaces' ({dot1qVlanCurrentUntaggedPorts})")
-        #    return retval
+.. code-block:: python
 
-        # read the current vlan egress port mappings, tagged and untagged
-        retval = self.get_snmp_branch('dot1qVlanCurrentEgressPorts')
+    # THIS IS LIKELY NOT PROPERLY HANDLED !!!
+    # read the current vlan untagged port mappings
+    # retval = self.get_snmp_branch(dot1qVlanCurrentUntaggedPorts)
+    # if retval < 0:
+    #    self.add_warning(f"Error getting 'Q-Bridge-Vlan-Untagged-Interfaces' ({dot1qVlanCurrentUntaggedPorts})")
+    #    return retval
+
+    # read the current vlan egress port mappings, tagged and untagged
+    retval = self.get_snmp_branch('dot1qVlanCurrentEgressPorts')
