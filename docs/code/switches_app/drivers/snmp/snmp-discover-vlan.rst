@@ -9,7 +9,7 @@ VLAN Discovery
 Switching capabilities are described by what is called the **Q-Bridge MIB**. The Q-Bridge defines the switch ports
 and vlans on a device. Note that in this context, a port is NOT the same as an interface as described above.
 A (switch) port is typically a physical port on the device, and as such has a port-id. Interfaces can be virtual
-(eg. "interface Vlan 100"), and have interface-id's but *not port-id's.*
+(eg. "interface Vlan 100"), and that situation (virtual interfaces) they have interface-id's but *not port-id's.*
 
 The often confusing part is that on many (but not all) devices, the interface-id and port-id are the same number.
 However, this is not a given, so we need to discover the mapping of (switch) port-id to interface-id,
@@ -32,3 +32,13 @@ and if found, we try to get the names and status from  "dot1qVlanStaticName" and
 
     self.get_snmp_branch('dot1qVlanStaticName')
     self.get_snmp_branch('dot1qVlanStatus')
+
+
+.. note::
+
+    The process of discovering vlans, interfaces, (switch) ports, ethernet addresses and IP address is explained well
+    in this StackExchange posting:
+
+    https://networkengineering.stackexchange.com/questions/2900/using-snmp-to-retrieve-the-arp-and-mac-address-tables-from-a-switch
+
+

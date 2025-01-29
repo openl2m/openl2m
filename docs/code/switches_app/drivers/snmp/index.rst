@@ -22,10 +22,11 @@ for additional data.
    snmp-base.rst
    snmp-discover-vlan.rst
    snmp-discover-interface.rst
+   snmp-discover-mac-arp.rst
    snmp-discover-vrf.rst
    snmp-vlan-add-del.rst
 
-Additional vendor-specific SNMP drivers information is here:
+Additional vendor-specific SNMP drivers information is here, in alphabetical order:
 
 .. toctree::
    :maxdepth: 1

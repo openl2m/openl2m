@@ -35,12 +35,17 @@ However, we recognize there is no such thing as completely 'standard' SNMP.
 
 We have tested OpenL2M on the following hardware, with the listed limitations.
 
+**Arista**
+
+* Any Arista switch via SNMP, as they all support the same MIBS. Tested on 7280CR3 series.
+
 **Cisco**
 
 Via SNMP.
 
 * *Catalyst 2960* series; single and stacked units.
 * *Catalyst 4500-E* series, with Sup6L-E and Sup7L-E.
+* *CBS* series, withouth PoE. Tested on CBS350-8T-E-2G
 
 **HP/Aruba (ProCurve/ArubaOS)**
 
@@ -68,6 +73,7 @@ Via SNMP.
 
 * *HPE 1950* series switches, running Comware 7; single and IRF-stacked units.
 * HPE J3400CL-24G (J4905A)
+* *HPE 5120v3* series switches, running Comware 7; single units.
 * *HPE 5130EI* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5140EI* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5500* series switches, running Comware 5; single units.
@@ -88,6 +94,8 @@ Full with Junos PyEZ, R/O support with SNMP.
 * *SRX* series firewalls, with "Commands-Only" configurations to run command-templates.
 
 **Netgear**
+
+Via SNMP.
 
 * Only one current Netgear device has been tested: M4250 series.
 

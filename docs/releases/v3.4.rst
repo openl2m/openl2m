@@ -1,0 +1,21 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 3.4
+===========
+
+.. note::
+
+  v3.3 and up require Postgres version 13 or greater! (I.e. Ubuntu 20.04 will no longer work.)
+
+
+**Version 3.4 adds support for Cisco CBS devices and can produce a graphic view of all device neighbors.**
+
+Version 3.4
+-------------
+
+Release Date: 2025-TBD
+
+* add Cisco CBS device support (PoE not tested!)
+* show more descriptive error details in SNMP authentication or timeout errors.
+* upgrade to FontAwese v6.7
