@@ -254,5 +254,22 @@ sb_vlan_mode[SB_VLAN_MODE_TRUNK] = "Trunk"
 vlanAccessPortModeVlanId = '.1.3.6.1.4.1.9.6.1.101.48.62.1.1'
 snmp_mib_variables['vlanAccessPortModeVlanId'] = vlanAccessPortModeVlanId
 
+# trunk mode ports set the PVID/untagged vlan on this mib:
 vlanTrunkPortModeNativeVlanId = '.1.3.6.1.4.1.9.6.1.101.48.61.1.1'
 snmp_mib_variables['vlanTrunkPortModeNativeVlanId'] = vlanTrunkPortModeNativeVlanId
+
+#
+# from the CISCOSB-rlInterfaces mib
+#
+# this show the physical port type, eg copper, fiber.
+swIfTransceiverType = '.1.3.6.1.4.1.9.6.1.101.43.1.1.7'
+snmp_mib_variables['swIfTransceiverType'] = swIfTransceiverType
+SB_TX_TYPE_COPPER = 1
+SB_TX_TYPE_FIBER = 2
+SB_TX_TYPE_COMBO = 3  # this really is combo/unknown
+SB_TX_TYPE_COMBO_FIBER = 4  # an optical transciever is used.
+sb_tx_type = {}
+sb_tx_type[SB_TX_TYPE_COPPER] = "Copper"
+sb_tx_type[SB_TX_TYPE_FIBER] = "FiberOptics"
+sb_tx_type[SB_TX_TYPE_COMBO] = "Fiber/Copper Combo Port"  # combo port without transceiver
+sb_tx_type[SB_TX_TYPE_COMBO_FIBER] = "FiberOptics Combo"  # combo port with optical transceiver installed.

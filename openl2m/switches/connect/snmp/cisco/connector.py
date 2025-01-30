@@ -25,7 +25,7 @@ from typing import Dict
 
 from switches.models import Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_SAVE_SWITCH, LOG_PORT_POE_FAULT, SNMP_VERSION_2C
-from switches.connect.classes import Interface, SyslogMsg
+from switches.connect.classes import Interface, Transceiver, SyslogMsg
 from switches.connect.constants import poe_status_name, POE_PORT_DETECT_FAULT, VLAN_TYPE_NORMAL
 from switches.connect.snmp.connector import dot1qPvid
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
@@ -86,6 +86,9 @@ from .constants import (
     vlanPortModeState,
     vlanAccessPortModeVlanId,
     vlanTrunkPortModeNativeVlanId,
+    swIfTransceiverType,
+    SB_TX_TYPE_COPPER,
+    sb_tx_type,
 )
 
 
@@ -270,7 +273,14 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint("_get_vlan_data_sb(Cisco)\n")
 
         # go probe the CiscoSB-VLAN mib
-        retval = self.get_snmp_branch(branch_name='vlanPortModeState', parser=self._parse_cisco_sb_vlan_port_mode)
+        retval = self.get_snmp_branch(branch_name='vlanPortModeState', parser=self._parse_mibs_sb_vlan_port_mode)
+        if retval < 0:
+            return retval
+
+        # and parse the transceiver type, if any
+        retval = self.get_snmp_branch(
+            branch_name='swIfTransceiverType', parser=self._parse_mibs_sb_port_transceiver_type
+        )
         if retval < 0:
             return retval
 
@@ -279,16 +289,12 @@ class SnmpConnectorCisco(SnmpConnector):
         super()._get_vlan_data()
 
         # and finally read the vlanAccessPortModeVlanId, this reads access mode vlan id's
-        retval = self.get_snmp_branch(
-            branch_name='vlanAccessPortModeVlanId', parser=self._parse_mibs_cisco_sb_access_vlan
-        )
+        retval = self.get_snmp_branch(branch_name='vlanAccessPortModeVlanId', parser=self._parse_mibs_sb_access_vlan)
         if retval < 0:
             return retval
 
         # and read trunk mode PVID as well:
-        return self.get_snmp_branch(
-            branch_name='vlanTrunkPortModeNativeVlanId', parser=self._parse_mibs_cisco_sb_trunk_vlan
-        )
+        return self.get_snmp_branch(branch_name='vlanTrunkPortModeNativeVlanId', parser=self._parse_mibs_sb_trunk_vlan)
 
     def _get_known_ethernet_addresses(self) -> bool:
         """
@@ -297,7 +303,7 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         dprint("_get_known_ethernet_addresses(Cisco)\n")
         if self.mib_type == CISCO_DEVICE_TYPE_VTP_MIB:
-            return super()._get_known_ethernet_addresses_vtp()
+            return self._get_known_ethernet_addresses_vtp()
 
         # SB type, and "unknown" types, try the regular way:
         return super()._get_known_ethernet_addresses()
@@ -506,7 +512,7 @@ class SnmpConnectorCisco(SnmpConnector):
                 oid=f"{vlanAccessPortModeVlanId}.{interface.port_id}",
                 value=int(new_vlan_id),
                 snmp_type='u',
-                parser=self._parse_mibs_cisco_sb_access_vlan,
+                parser=self._parse_mibs_sb_access_vlan,
             ):
                 interface.untagged_vlan = new_vlan_id
                 return False
@@ -520,7 +526,7 @@ class SnmpConnectorCisco(SnmpConnector):
                 oid=f"{vlanTrunkPortModeNativeVlanId}.{interface.port_id}",
                 value=int(new_vlan_id),
                 snmp_type='u',
-                parser=self._parse_mibs_cisco_sb_trunk_vlan,
+                parser=self._parse_mibs_sb_trunk_vlan,
             ):
                 interface.untagged_vlan = new_vlan_id
                 return False
@@ -569,7 +575,7 @@ class SnmpConnectorCisco(SnmpConnector):
             return True  # parsed
         return False  # not parsed.
 
-    def _parse_cisco_sb_vlan_port_mode(self, oid: str, val: str) -> bool:
+    def _parse_mibs_sb_vlan_port_mode(self, oid: str, val: str) -> bool:
         """
         Parse CiscoSB-Vlan Port Mode, ie access, trunk, general.
         """
@@ -581,7 +587,26 @@ class SnmpConnectorCisco(SnmpConnector):
 
         return False  # not parsed.
 
-    def _parse_mibs_cisco_sb_access_vlan(self, oid: str, val: str) -> bool:
+    def _parse_mibs_sb_port_transceiver_type(self, oid: str, val: str) -> bool:
+        """
+        Parse CiscoSB-rlInterfaces Port transceiver type
+        """
+
+        if_index = oid_in_branch(swIfTransceiverType, oid)
+        if if_index:
+            dprint(f"FOUND: swIfTransceiverType for index {if_index} = {val}")
+            # only set data for optical or combo transceiver ports:
+            if int(val) != SB_TX_TYPE_COPPER:
+                iface = self.get_interface_by_key(key=if_index)
+                if iface:
+                    if not iface.transceiver:
+                        iface.transceiver = Transceiver()
+                    iface.transceiver.type = sb_tx_type[int(val)]
+            return True  # parsed
+
+        return False  # not parsed.
+
+    def _parse_mibs_sb_access_vlan(self, oid: str, val: str) -> bool:
         """Parse the Access Mode port untagged vlan"""
         if_index = oid_in_branch(vlanAccessPortModeVlanId, oid)
         if if_index:
@@ -595,7 +620,7 @@ class SnmpConnectorCisco(SnmpConnector):
 
         return False  # not parsed.
 
-    def _parse_mibs_cisco_sb_trunk_vlan(self, oid: str, val: str) -> bool:
+    def _parse_mibs_sb_trunk_vlan(self, oid: str, val: str) -> bool:
         """Parse the Trunk Mode port untagged vlan"""
         if_index = oid_in_branch(vlanTrunkPortModeNativeVlanId, oid)
         if if_index:
