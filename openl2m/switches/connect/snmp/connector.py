@@ -105,14 +105,15 @@ from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
 )
 from switches.connect.classes import (
-    Error,
     Interface,
-    StackMember,
-    PoePSE,
-    PoePort,
     EthernetAddress,
+    Error,
     NeighborDevice,
+    PoePort,
+    PoePSE,
     PortList,
+    StackMember,
+    Transceiver,
     Vlan,
 )
 
@@ -202,6 +203,10 @@ from switches.connect.snmp.constants import (
     MPLS_VRF_STATE_ENABLED,
     mplsL3VpnIfVpnClassification,
     mplsL3VpnIfVpnRouteDistProtocol,
+    ifMauType,
+    mau_types,
+    MAU_TYPE_BASE,
+    MAU_TYPE_UNKNOWN,
 )
 
 
@@ -984,7 +989,9 @@ class SnmpConnector(Connector):
                             retval = self._get_poe_data()
                             if retval != -1:
                                 # try to map poe port info to actual interfaces
-                                self._map_poe_port_entries_to_interface()
+                                retval = self._map_poe_port_entries_to_interface()
+                                if retval != -1:
+                                    retval = self._get_interface_transceiver_types()
                                 return True
         return False
 
@@ -1502,6 +1509,46 @@ class SnmpConnector(Connector):
         if_index = oid_in_branch(dot3StatsDuplexStatus, oid)
         if if_index:
             return self.set_interface_attribute_by_key(if_index, "duplex", int(val))
+
+        # we did not parse the OID.
+        return False
+
+    def _parse_mibs_if_mau_type(self, oid: str, val: str) -> bool:
+        """Parse a few entries in the MAU MIB.
+        See https://github.com/librenms/librenms/blob/master/mibs/MAU-MIB
+        This defines transceiver types.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"Base _parse_mibs_if_mau_type() {str(oid)} = {val}")
+
+        # get MAU "transceiver" type information:
+        sub_oid = oid_in_branch(ifMauType, oid)
+        if sub_oid:
+            # if the return value is "0.0", there is no data!
+            if val != MAU_TYPE_UNKNOWN:
+                # see if this is a type we want to mark down:
+                if val.startswith(MAU_TYPE_BASE):
+                    type = val[len(MAU_TYPE_BASE) :]
+                    # dprint(f"Found MAU type {type}")
+                    if int(type) in mau_types:
+                        # the sub_oid is "<if_index>.<sub-port>"
+                        if_index = sub_oid.split(".")[0]
+                        # dprint("Found interface index {if_index}")
+                        iface = self.get_interface_by_key(key=if_index)
+                        if iface:
+                            # dprint(f"Found interface {iface.name}")
+                            trx = Transceiver()
+                            trx.type = mau_types[int(type)]
+                            iface.transceiver = trx
+
+            # we parsed it
+            return True
 
         # we did not parse the OID.
         return False
@@ -2710,6 +2757,17 @@ class SnmpConnector(Connector):
         # if not self.get_snmp_branch(branch_name='ifStackEntry', parser=self._parse_mibs_if_stack):
         #    return False
         return 1
+
+    def _get_interface_transceiver_types(self) -> int:
+        """
+        Get Interface MAU data from the switch. This reads the transceiver type of an physical port.
+        Returns 1 on succes, -1 on failure
+        """
+        # read the MAU MIB to get the interface transceiver types
+        retval = self.get_snmp_branch(branch_name='ifMauType', parser=self._parse_mibs_if_mau_type)
+        if retval < 0:
+            self.add_warning(f"Error getting 'Interfaces MAU (Transceiver) data'")
+            return retval
 
     def _get_vlans(self) -> int:
         """
