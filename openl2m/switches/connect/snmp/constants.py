@@ -1049,70 +1049,73 @@ mplsL3VpnIfConfStorageType = ".1.3.6.1.2.1.10.166.11.1.2.1.1.4"
 mplsL3VpnIfConfRowStatus = ".1.3.6.1.2.1.10.166.11.1.2.1.1.5"
 
 #
-# MAU mib is the standard way of describing media types, ie. transceivers.
+# MAU (Media Access Unit) mib is the standard way of describing media types, ie. transceivers.
 # See
 # https://mibs.observium.org/mib/MAU-MIB/
 # https://github.com/librenms/librenms/blob/master/mibs/IANA-MAU-MIB
 #
-ifMauType = '.1.3.6.1.2.1.26.2.1.1.3'
+ifMauType = ".1.3.6.1.2.1.26.2.1.1.3"
 snmp_mib_variables['ifMauType'] = ifMauType
 
 # and the type values are defined at:
 # https://www.iana.org/assignments/ianamau-mib/ianamau-mib
 # these are show at the above ifMauType as ".1.3.6.1.2.1.26.4.<type-integer>"
+MAU_TYPE_BASE = ".1.3.6.1.2.1.26.4."
+MAU_TYPE_UNKNOWN = "0.0"
 # Here are the entries we mostly care about, organized by speed:
-mau_type = {}
-mau_type[23] = "1000BASE-LX(Hd)"
-mau_type[24] = "1000BASE-LX"
-mau_type[25] = "1000BASE-SX(Hd)"
-mau_type[26] = "1000BASE-SX"
-mau_type[27] = "1000BASE-CX(Hd)"
-mau_type[28] = "1000BASE-CX"
+mau_types = {}
+# mau_types[0] = "Unknown"
+mau_types[23] = "1000BASE-LX(Hd)"
+mau_types[24] = "1000BASE-LX"
+mau_types[25] = "1000BASE-SX(Hd)"
+mau_types[26] = "1000BASE-SX"
+mau_types[27] = "1000BASE-CX(Hd)"
+mau_types[28] = "1000BASE-CX"
 
-mau_type[34] = "10GBASE-ER"
-mau_type[35] = "10GBASE-LR"
-mau_type[36] = "10GBASE-SR"
+mau_types[34] = "10GBASE-ER"
+mau_types[35] = "10GBASE-LR"
+mau_types[36] = "10GBASE-SR"
 
-mau_type[93] = "25GBASE-SR"
+mau_types[93] = "25GBASE-SR"
 
-mau_type[72] = "40GBASE-SR4"
-mau_type[74] = "40GBASE-LR4"
-mau_type[95] = "40GBASE-ER4"
+mau_types[72] = "40GBASE-SR4"
+mau_types[74] = "40GBASE-LR4"
+mau_types[95] = "40GBASE-ER4"
 
-mau_type[119] = "50GBASE-SR"
-mau_type[120] = "50GBASE-FR"
-mau_type[121] = "50GBASE-LR"
-mau_type[122] = "50GBASE-ER"
+mau_types[119] = "50GBASE-SR"
+mau_types[120] = "50GBASE-FR"
+mau_types[121] = "50GBASE-LR"
+mau_types[122] = "50GBASE-ER"
 
-mau_type[77] = "100GBASE-LR4"
-mau_type[78] = "100GBASE-ER4"
-mau_type[77] = "100GBASE-SR4"
-mau_type[194] = "100GBASE-ZR"
+mau_types[77] = "100GBASE-LR4"
+mau_types[78] = "100GBASE-ER4"
+mau_types[77] = "100GBASE-SR4"
+mau_types[194] = "100GBASE-ZR"
 
-mau_type[128] = "200GBASE-DR4"
-mau_type[129] = "200GBASE-FR4"
-mau_type[130] = "200GBASE-LR4"
-mau_type[133] = "200GBASE-SR4"
-mau_type[134] = "200GBASE-ER4"
+mau_types[128] = "200GBASE-DR4"
+mau_types[129] = "200GBASE-FR4"
+mau_types[130] = "200GBASE-LR4"
+mau_types[133] = "200GBASE-SR4"
+mau_types[134] = "200GBASE-ER4"
 
-mau_type[136] = "400GBASE-SR16"
-mau_type[137] = "400GBASE-DR4"
-mau_type[138] = "400GBASE-FR8"
-mau_type[139] = "400GBASE-LR8"
-mau_type[140] = "400GBASE-ER8"
-mau_type[147] = "400GBASE-FR4"
-mau_type[148] = "400GBASE-LR4-6"
-mau_type[149] = "400GBASE-SR8"
-mau_type[150] = "400GBASE-LR4.2"
-mau_type[219] = "400GBASE-DR4-2"
+mau_types[136] = "400GBASE-SR16"
+mau_types[137] = "400GBASE-DR4"
+mau_types[138] = "400GBASE-FR8"
+mau_types[139] = "400GBASE-LR8"
+mau_types[140] = "400GBASE-ER8"
+mau_types[147] = "400GBASE-FR4"
+mau_types[148] = "400GBASE-LR4-6"
+mau_types[149] = "400GBASE-SR8"
+mau_types[150] = "400GBASE-LR4.2"
+mau_types[219] = "400GBASE-DR4-2"
 
-mau_type[220] = "800GBASE-CR8"
-mau_type[221] = "800GBASE-DR8"
-mau_type[222] = "800GBASE-DR8-2"
-mau_type[223] = "800GBASE-KR8"
-mau_type[224] = "800GBASE-R"
-mau_type[225] = "800GBASE-SR8"
-mau_type[226] = "800GBASE-VR8"
+mau_types[220] = "800GBASE-CR8"
+mau_types[221] = "800GBASE-DR8"
+mau_types[222] = "800GBASE-DR8-2"
+mau_types[223] = "800GBASE-KR8"
+mau_types[224] = "800GBASE-R"
+mau_types[225] = "800GBASE-SR8"
+mau_types[226] = "800GBASE-VR8"
 
 
 #
