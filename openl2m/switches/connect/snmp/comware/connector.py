@@ -519,7 +519,7 @@ class SnmpConnectorComware(SnmpConnector):
         #     if iface:
         #         if not iface.transceiver:
         #             iface.transceiver = Transceiver()
-        #     iface.transceiver.type = val
+        #         iface.transceiver.type = val
         #     return True
 
         if_index = oid_in_branch(hh3cTransceiverType, oid)
@@ -528,7 +528,7 @@ class SnmpConnectorComware(SnmpConnector):
             if iface:
                 if not iface.transceiver:
                     iface.transceiver = Transceiver()
-            iface.transceiver.type = val
+                iface.transceiver.type = val
             return True
 
         if_index = oid_in_branch(hh3cTransceiverWaveLength, oid)
@@ -537,7 +537,7 @@ class SnmpConnectorComware(SnmpConnector):
             if iface:
                 if not iface.transceiver:
                     iface.transceiver = Transceiver()
-            iface.transceiver.wavelength = int(val)
+                iface.transceiver.wavelength = int(val)
             return True
 
         if_index = oid_in_branch(hh3cTransceiverVendorName, oid)
@@ -546,7 +546,7 @@ class SnmpConnectorComware(SnmpConnector):
             if iface:
                 if not iface.transceiver:
                     iface.transceiver = Transceiver()
-            iface.transceiver.vendor = val
+                iface.transceiver.vendor = val
             return True
 
         return False
