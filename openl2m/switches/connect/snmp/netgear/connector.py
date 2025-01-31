@@ -24,7 +24,7 @@ from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 
-from .constants import agentPethOutputPower
+from .constants import agentPethOutputPower, agentPortType, agentPortTypeFp
 
 """
 Work in Progress
@@ -69,6 +69,25 @@ class SnmpConnectorNetgear(SnmpConnector):
             add_log=False,
         )
 
+    def _get_interface_transceiver_types(self):
+        """Override the SnmpConnector() function, and read the Netgear-specific entries"""
+        retval = self.get_snmp_branch(branch_name='agentPortType', parser=self._parse_mibs_netgear_agent_port_type)
+        if retval < 0:
+            self.add_warning("Error getting Netgear 'agentPortType'")
+            return retval
+        if retval == 0:
+            # try the older FastPath mib:
+            retval = self.get_snmp_branch(
+                branch_name='agentPortTypeFp', parser=self._parse_mibs_netgear_agent_port_type_fp
+            )
+            if retval < 0:
+                self.add_warning("Error getting Netgear 'agentPortTypeFp'")
+            if retval == 0:
+                # still nothing found, try the standard MAU MIB
+                return super()._get_interface_transceiver_types()
+            return retval
+        return retval
+
     def _get_poe_data(self) -> int:
         """
         Get PoE data, first via the standard PoE MIB,
@@ -92,6 +111,40 @@ class SnmpConnectorNetgear(SnmpConnector):
         if retval < 0:
             self.add_warning(warning="Error getting 'PoE-Port-Current-Power' (agentPethOutputPower)")
         return 1
+
+    def _parse_mibs_netgear_agent_port_type(self, oid: str, val: str) -> bool:
+        """
+        Parse the Netgear NETGEAR-SWITCHING-MIB for the interface port/transceiver type.
+        This returns the same values as the standard MAU MIB in switches.snmp.connector.py
+
+        return True if we parse it, False if not.
+        """
+        dprint(f"_parse_mibs_netgear_agent_port_type() {oid}, len = {val}, type = {type(val)}")
+
+        if_index = oid_in_branch(agentPortType, oid)
+        if if_index:
+            dprint(f"   ifIndex = {if_index}")
+            self._parse_and_set_mau_type(if_index=if_index, mau_value=val)
+            return True  # parsed.
+
+        return False
+
+    def _parse_mibs_netgear_agent_port_type_fp(self, oid: str, val: str) -> bool:
+        """
+        Parse the older Netgear NG700-SWITCHING-MIB for the interface port/transceiver type.
+        This returns the same values as the standard MAU MIB in switches.snmp.connector.py
+
+        return True if we parse it, False if not.
+        """
+        dprint(f"_parse_mibs_netgear_agent_port_type_fp() {oid}, len = {val}, type = {type(val)}")
+
+        if_index = oid_in_branch(agentPortTypeFp, oid)
+        if if_index:
+            dprint(f"   ifIndex = {if_index}")
+            self._parse_and_set_mau_type(if_index=if_index, mau_value=val)
+            return True  # parsed.
+
+        return False
 
     """
     the NETGEAR-POWER-ETHERNET-MIB tables with port-level PoE power usage info
