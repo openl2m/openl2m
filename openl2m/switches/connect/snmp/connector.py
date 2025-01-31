@@ -206,7 +206,6 @@ from switches.connect.snmp.constants import (
     ifMauType,
     mau_types,
     MAU_TYPE_BASE,
-    MAU_TYPE_UNKNOWN,
 )
 
 
@@ -1528,24 +1527,25 @@ class SnmpConnector(Connector):
         dprint(f"Base _parse_mibs_if_mau_type() {str(oid)} = {val}")
 
         # get MAU "transceiver" type information:
+        # technically, we have to first read the mapping in ifMauIfIndex to get ifIndex
+        # but all implementations we've seen use the ifIndex in the OID,
+        # so we can parse ifIndex direct from sub_oid !
         sub_oid = oid_in_branch(ifMauType, oid)
         if sub_oid:
-            # if the return value is "0.0", there is no data!
-            if val != MAU_TYPE_UNKNOWN:
-                # see if this is a type we want to mark down:
-                if val.startswith(MAU_TYPE_BASE):
-                    type = val[len(MAU_TYPE_BASE) :]
-                    # dprint(f"Found MAU type {type}")
-                    if int(type) in mau_types:
-                        # the sub_oid is "<if_index>.<sub-port>"
-                        if_index = sub_oid.split(".")[0]
-                        # dprint("Found interface index {if_index}")
-                        iface = self.get_interface_by_key(key=if_index)
-                        if iface:
-                            # dprint(f"Found interface {iface.name}")
-                            trx = Transceiver()
-                            trx.type = mau_types[int(type)]
-                            iface.transceiver = trx
+            # see if this is a type we want to mark down:
+            if val.startswith(MAU_TYPE_BASE):
+                type = val[len(MAU_TYPE_BASE) :]
+                # dprint(f"Found MAU type {type}")
+                if int(type) in mau_types:
+                    # the sub_oid is "<if_index>.<sub-port>"
+                    if_index = sub_oid.split(".")[0]
+                    # dprint("Found interface index {if_index}")
+                    iface = self.get_interface_by_key(key=if_index)
+                    if iface:
+                        # dprint(f"Found interface {iface.name}")
+                        trx = Transceiver()
+                        trx.type = mau_types[int(type)]
+                        iface.transceiver = trx
 
             # we parsed it
             return True
@@ -2764,6 +2764,8 @@ class SnmpConnector(Connector):
         Returns 1 on succes, -1 on failure
         """
         # read the MAU MIB to get the interface transceiver types
+        # technically, we have to first read the mapping in ifMauIfIndex to get ifIndex
+        # but all implementations we've seen use the ifIndex in the OID....so we can parse direct.
         retval = self.get_snmp_branch(branch_name='ifMauType', parser=self._parse_mibs_if_mau_type)
         if retval < 0:
             self.add_warning(f"Error getting 'Interfaces MAU (Transceiver) data'")
