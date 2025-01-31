@@ -75,3 +75,12 @@ snmp_mib_variables['agentPethOutputPower'] = agentPethOutputPower
 #  agentPethPoePsePowerManagementMode 		.1.3.6.1.4.1.4526.10.15.1.4.1.1.9
 
 # .1.3.6.1.4.1.4526.11.16.1.1.1.3.1
+
+# The Netgear NG700-SWITCHING-MIB defines extra data about interfaces
+# see https://mibs.observium.org/mib/NG700-SWITCHING-MIB/
+# and https://github.com/librenms/librenms/blob/master/mibs/netgear/NETGEAR-SWITCHING-MIB
+#
+# agentPortType defines values for the port transceiver, per the MAU MIB values.
+# Note these are defined in switches.snmp.constants.py
+agentPortType = ".1.3.6.1.4.1.4526.11.1.2.13.1.12"
+snmp_mib_variables['agentPortType'] = agentPortType
