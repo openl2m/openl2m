@@ -1054,6 +1054,8 @@ mplsL3VpnIfConfRowStatus = ".1.3.6.1.2.1.10.166.11.1.2.1.1.5"
 # https://mibs.observium.org/mib/MAU-MIB/
 # https://github.com/librenms/librenms/blob/master/mibs/IANA-MAU-MIB
 #
+# ifMauIfIndex = ".1.3.6.1.2.1.26.2.1.1.1"
+#
 ifMauType = ".1.3.6.1.2.1.26.2.1.1.3"
 snmp_mib_variables['ifMauType'] = ifMauType
 
@@ -1061,7 +1063,7 @@ snmp_mib_variables['ifMauType'] = ifMauType
 # https://www.iana.org/assignments/ianamau-mib/ianamau-mib
 # these are show at the above ifMauType as ".1.3.6.1.2.1.26.4.<type-integer>"
 MAU_TYPE_BASE = ".1.3.6.1.2.1.26.4."
-MAU_TYPE_UNKNOWN = "0.0"
+MAU_TYPE_UNKNOWN = ".0.0"
 # Here are the entries we mostly care about, organized by speed:
 mau_types = {}
 # mau_types[0] = "Unknown"
