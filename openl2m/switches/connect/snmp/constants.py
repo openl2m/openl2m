@@ -1060,6 +1060,7 @@ ifMauType = ".1.3.6.1.2.1.26.2.1.1.3"
 snmp_mib_variables['ifMauType'] = ifMauType
 
 # and the type values are defined at:
+# https://datatracker.ietf.org/doc/html/rfc3636
 # https://www.iana.org/assignments/ianamau-mib/ianamau-mib
 # these are show at the above ifMauType as ".1.3.6.1.2.1.26.4.<type-integer>"
 MAU_TYPE_BASE = ".1.3.6.1.2.1.26.4."

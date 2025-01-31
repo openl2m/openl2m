@@ -1512,6 +1512,32 @@ class SnmpConnector(Connector):
         # we did not parse the OID.
         return False
 
+    def _parse_and_set_mau_type(self, if_index: str, mau_value: str) -> bool:
+        """Parse the MAU MIB value, and if of interest assigned to interface.transceiver
+        Params:
+            if_index (str): the key to the Interface() object, typically ifIndex
+            mau_value (str): the string indicating the MAU type, defined in the MIB.
+
+        Returns:
+            (bool): True is assigned, False if not.
+        """
+        dprint(f"Base _parse_and_set_mau_type() ifIndex {if_index} = {mau_value}")
+
+        # see if this is a type we want to look at:
+        if mau_value.startswith(MAU_TYPE_BASE):
+            type = mau_value[len(MAU_TYPE_BASE) :]
+            # dprint(f"Found MAU type {type}")
+            if int(type) in mau_types:
+                dprint("  Adding MAU info to interface")
+                iface = self.get_interface_by_key(key=if_index)
+                if iface:
+                    # dprint(f"Found interface {iface.name}")
+                    trx = Transceiver()
+                    trx.type = mau_types[int(type)]
+                    iface.transceiver = trx
+                    return True
+        return False
+
     def _parse_mibs_if_mau_type(self, oid: str, val: str) -> bool:
         """Parse a few entries in the MAU MIB.
         See https://github.com/librenms/librenms/blob/master/mibs/MAU-MIB
@@ -1532,20 +1558,22 @@ class SnmpConnector(Connector):
         # so we can parse ifIndex direct from sub_oid !
         sub_oid = oid_in_branch(ifMauType, oid)
         if sub_oid:
-            # see if this is a type we want to mark down:
-            if val.startswith(MAU_TYPE_BASE):
-                type = val[len(MAU_TYPE_BASE) :]
-                # dprint(f"Found MAU type {type}")
-                if int(type) in mau_types:
-                    # the sub_oid is "<if_index>.<sub-port>"
-                    if_index = sub_oid.split(".")[0]
-                    # dprint("Found interface index {if_index}")
-                    iface = self.get_interface_by_key(key=if_index)
-                    if iface:
-                        # dprint(f"Found interface {iface.name}")
-                        trx = Transceiver()
-                        trx.type = mau_types[int(type)]
-                        iface.transceiver = trx
+            # the sub_oid is "<if_index>.<sub-port>"
+            if_index = sub_oid.split(".")[0]
+            # dprint("Found interface index {if_index}")
+            self._parse_and_set_mau_type(if_index=if_index, mau_value=val)
+
+            # # see if this is a type we want to mark down:
+            # if val.startswith(MAU_TYPE_BASE):
+            #     type = val[len(MAU_TYPE_BASE) :]
+            #     # dprint(f"Found MAU type {type}")
+            #     if int(type) in mau_types:
+            #         iface = self.get_interface_by_key(key=if_index)
+            #         if iface:
+            #             # dprint(f"Found interface {iface.name}")
+            #             trx = Transceiver()
+            #             trx.type = mau_types[int(type)]
+            #             iface.transceiver = trx
 
             # we parsed it
             return True
