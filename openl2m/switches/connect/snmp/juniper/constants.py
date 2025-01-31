@@ -56,3 +56,16 @@ snmp_mib_variables['jnxL2aldVlanFdbId'] = jnxL2aldVlanFdbId
 jnxVlanTable = '.1.3.6.1.4.1.2636.3.40.1.5.1.1'
 # Layer 3 is below this:
 jnxVlanInterfaceTable = '.1.3.6.1.4.1.2636.3.40.1.5.1.2'
+
+#
+# JUNIPER-IF-MIB has additional data about interfaces
+#
+ifJnxMediaType = ".1.3.6.1.4.1.2636.3.3.5.1.1"
+snmp_mib_variables['ifJnxMediaType'] = ifJnxMediaType
+JNX_IF_TYPE_COPPER = 1
+JNX_IF_TYPE_FIBER = 2
+JNX_IF_TYPE_OTHER = 3
+jnx_if_types = {}
+jnx_if_types[JNX_IF_TYPE_COPPER] = "Copper"
+jnx_if_types[JNX_IF_TYPE_FIBER] = "Fiber"
+jnx_if_types[JNX_IF_TYPE_OTHER] = "None Copper/Fiber"

@@ -28,7 +28,7 @@ from switches.connect.constants import (
     VLAN_STATUS_DYNAMIC,
     VLAN_STATUS_OTHER,
 )
-from switches.connect.classes import Interface, Error
+from switches.connect.classes import Interface, Transceiver, Error
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.utils import dprint
 
@@ -39,6 +39,9 @@ from .constants import (
     jnxL2aldVlanName,
     jnxL2aldVlanType,
     jnxL2aldVlanFdbId,
+    ifJnxMediaType,
+    JNX_IF_TYPE_FIBER,
+    jnx_if_types,
 )
 
 
@@ -99,6 +102,14 @@ class SnmpConnectorJuniper(SnmpConnector):
                         self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
                     break
 
+    def _get_interface_transceiver_types(self):
+        """Override the SnmpConnector() function, and read some Juniper-specific data."""
+        retval = self.get_snmp_branch(branch_name='ifJnxMediaType', parser=self._parse_mibs_juniper_if_media_type)
+        if retval < 0:
+            self.add_warning("Error getting Juniper 'ifJnxMediaType'")
+            return retval
+        return retval
+
     def _get_vlan_data(self) -> int:
         """
         Implement an override of vlan parsing to read Junos EX specific MIB
@@ -125,6 +136,28 @@ class SnmpConnectorJuniper(SnmpConnector):
                 return retval
             return 1
         return 0
+
+    def _parse_mibs_juniper_if_media_type(self, oid: str, val: str) -> bool:
+        """
+        Parse the JUNIPER-IF-MIB for the interface port/transceiver type.
+
+        return True if we parse it, False if not.
+        """
+        dprint(f"_parse_mibs_juniper_if_media_type() {oid}, len = {val}, type = {type(val)}")
+
+        if_index = oid_in_branch(ifJnxMediaType, oid)
+        if if_index:
+            dprint(f"   ifIndex = {if_index}")
+            # see if this is a type we want to look at, for now fiber only:
+            if int(val) == JNX_IF_TYPE_FIBER:
+                iface = self.get_interface_by_key(key=if_index)
+                if iface:
+                    # dprint(f"Found interface {iface.name}")
+                    trx = Transceiver()
+                    trx.type = jnx_if_types[int(val)]
+                    iface.transceiver = trx
+                    return True
+        return False
 
     def _parse_mibs_juniper_l2ald_vlans(self, oid: str, val: str) -> bool:
         """
