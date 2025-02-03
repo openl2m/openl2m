@@ -19,3 +19,10 @@ Release Date: 2025-TBD
 * add Cisco CBS device support (PoE not tested!)
 * show more descriptive error details in SNMP authentication or timeout errors.
 * upgrade to FontAwese v6.7
+* support reading the MAU MIB to discover (optical) transceiver types (on devices that support it).
+
+Bug fixes:
+
+* fix icons showing on openl2m.readthedocs.io online documentation.
+* fix potential invalid interface transceiver assignment on HPE Comware devices.
+* fix minor code duplication.

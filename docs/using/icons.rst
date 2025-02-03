@@ -43,7 +43,7 @@ Here are the icons used in OpenL2M, and their meanings:
    * - :fas:`network-wired;`
      - Interface is a member of a VRF. Hover will show vrf membership.
    * - :fas:`bolt;`
-     - Interface transceiver information. Hover will show details (e.g. 10_GBASE_LR_SFP)
+     - Interface optical transceiver information. Hover will show details (e.g. 10_GBASE_LR_SFP)
 
 .. _Eth:
 
@@ -54,6 +54,8 @@ Here are the icons used in OpenL2M, and their meanings:
      - Meaning
    * - :fas:`download;`
      - Click to download the ethernet/lldp data as a spreadsheet
+   * - :fas:`chart-diagram;`
+     - Click to show a graphical version of all neighbor devices
    * - :fas:`question;`
      - Device capabilities not advertized (i.e. unknown type)
    * - :fas:`wifi;`
