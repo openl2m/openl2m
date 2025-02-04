@@ -12,6 +12,8 @@ django-ordered-model>=3.7,<4.0
 # ezsnmp v2 may break as the interface may change. We have not tested this.
 # for now, lock to v1.1.0
 # See this: https://github.com/carlkidcrypto/ezsnmp/releases
+# ezsnmp may not build properly for Ubuntu. If you get SNMP session errors, then run
+# pip install --force-reinstall --no-binary :all: ezsnmp
 ezsnmp==1.1.0
 flake8
 gitpython
