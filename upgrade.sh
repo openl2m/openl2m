@@ -92,6 +92,12 @@ else
   echo "Skipping local dependencies (local_requirements.txt not found)"
 fi
 
+# temporary(?) fix.
+# ezsnmp may not build properly for Ubuntu. If you get SNMP session errors, then run
+COMMAND="pip install --force-reinstall --no-binary :all: ezsnmp"
+echo "Apply fix for ezsnmp: re-install it..."
+eval $COMMAND || exit 1
+
 # Apply any database migrations
 COMMAND="python3 openl2m/manage.py migrate"
 echo "Applying database migrations ($COMMAND)..."
