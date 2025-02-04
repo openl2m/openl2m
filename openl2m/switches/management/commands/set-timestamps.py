@@ -1,7 +1,7 @@
 '''Script to update Switch().created, last_changed and last_access time stamps,
-   and access_count and change_count counters.
-   This should only be run ONCE, and only if you have a version of OpenL2M that
-   preceedes v3.2
+and access_count and change_count counters.
+This should only be run ONCE, and only if you have a version of OpenL2M that
+preceedes v3.2
 '''
 
 # admin LogEntry() model is here:
