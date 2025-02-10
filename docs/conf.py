@@ -19,11 +19,11 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'OpenL2M'
-copyright = '2019-2024, Various'
+copyright = '2019-2025, Various'
 author = 'Various'
 
 # The full version, including alpha/beta/rc tags
-release = 'v3.3.4 (2024-12-03)'
+release = 'v3.4 (2025-2-10)'
 
 # --- Running on ReadTheDocs ? ---
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
