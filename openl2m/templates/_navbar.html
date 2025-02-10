@@ -1,18 +1,20 @@
 {% load static %}
 <nav class="navbar navbar-expand-sm">
   <div class="container-fluid">
-    <a class="navbar-brand"
-       href="{% url 'switches:groups' %}"
-    {% if connection.save_needed %}
-       onclick="return confirm_change('There are UNSAVED changes, are you sure?')"
-    {% endif %}
-    >
-      <img src="{% static 'img/openl2m-logo.png' %}"
-           data-bs-toggle="tooltip"
-           data-bs-title="Go back to Devices Menu"
-           alt="OpenL2M logo"
+    <h1 class="navbar-brand pb-0">
+      <a class="navbar-brand"
+        href="{% url 'switches:groups' %}"
+      {% if connection.save_needed %}
+        onclick="return confirm_change('There are UNSAVED changes, are you sure?')"
+      {% endif %}
       >
-    </a>
+        <img src="{% static 'img/openl2m-logo.png' %}"
+            data-bs-toggle="tooltip"
+            data-bs-title="Go back to Devices Menu"
+            alt="OpenL2M logo"
+        >
+      </a>
+    </h1>
 
 {% if request.user.is_authenticated %}
 
