@@ -10,92 +10,36 @@ Features Supported
    :stub-columns: 1
 
    * - Features
-     - SNMP (Generic)
-     - Arista (Snmp)
-     - Aruba AOS-CX (Snmp)
-     - Comware (Snmp)
-     - Procurve (Snmp)
-     - Juniper (Snmp) *
-     - Aruba AOS-CX (API)
-     - Junos (PyEZ) *
-     - Napalm
+     - Up/Down
+     - VLAN Change
+     - PoE
+     - Descr.
+     - Neighbor Info
+     - VLAN Edit
      - SSH
+     - VRF
 
-   * - Port Up/Down
-     - Yes
-     - Yes
-     - Yes
+   * - Arista (Snmp)
      - Yes
      - Yes
      -
      - Yes
      - Yes
      -
-     -
+     - Yes
+     - Yes
 
-   * - Port VLAN Change
+   * - Aruba AOS-CX (Snmp)
      - Yes
+     - Yes  (>= v10.12, access ports)
      - Yes
-     - Yes (>= v10.12, access ports)
+     - Yes (>=v10.09)
      - Yes
+     - Yes (>=v10.12, no name)
      - Yes
-     -
-     - Yes
-     - Yes
-     -
-     -
+     - Yes (untested)
 
-   * - PoE Up/Down
-     - Yes
-     -
-     - Yes
-     - Yes
-     - Yes
-     -
-     - Yes
-     - Yes
-     -
-     -
-
-   * - Description Edit
-     - Yes
-     - Yes
-     - Yes (>= v10.09)
-     - Yes
-     - Yes
-     -
-     - Yes
-     - Yes
-     -
-     -
-
-   * - Ethernet/ARP/LLDP Info
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     -
-
-   * - VLAN Edit/Create
-     - Yes
-     -
-     - Yes (>= v10.12, no name)
-     - Yes
-     - Yes
-     -
-     - Yes
-     - Yes
-     -
-     -
-
-   * - SSH Commands
-     - Yes
-     - Yes
+   * - Comware (Snmp)
      - Yes
      - Yes
      - Yes
@@ -105,16 +49,75 @@ Features Supported
      - Yes
      - Yes
 
-   * - VRF Info
+   * - Procurve (Snmp)
      - Yes
-     - Partial
-     - (untested)
      - Yes
-     - (untested)
      - Yes
-     - No
-     - No
-     - No
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes (untested)
+
+   * - Juniper (Snmp) *
+     -
+     -
+     -
+     -
+     - Yes
+     -
+     - Yes
+     - Yes
+
+   * - SNMP (Generic)
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+
+   * - Aruba AOS-CX (API)
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     -
+
+   * - Junos (PyEZ) *
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     -
+
+
+   * - Napalm (R/O)
+     -
+     -
+     -
+     -
+     - Yes
+     -
+     - Yes
+     -
+
+   * - SSH
+     -
+     -
+     -
+     -
+     -
+     -
+     - Yes
      - n/a
 
 .. note::

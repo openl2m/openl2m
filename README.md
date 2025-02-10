@@ -23,11 +23,12 @@ __Features:__
 * change vlan on interface
 * enable/disable PoE
 * change description
-* see ethernet addresses, lldp neighbors, and download to spreadsheet
+* see ethernet addresses, lldp neighbors, and download to spreadsheet or graph
 * add, edit or delete vlans on devices
 * show interface MPLS VRF membership on supported devices
 * run configurable pre-defined 'static' commands on the device
 * run configurable pre-defined 'form input' commands on the device
+* show optical transceiver info
 * and more...
 
 __Devices Supported:__
@@ -36,19 +37,20 @@ __Devices Supported:__
 * HP/Aruba Procurve switches (via SNMP)
 * HPE Comware switches (via SNMP)
 * Arista devices (via SNMP)
-* Juniper "ELS" devices (via Junos PyEz API)
+* Juniper "ELS" devices (via Junos PyEz API, or R/O via SNMP)
 * Cisco switches (Catalyst, CBS, via SNMP)
+* Netgear (newer)
 * Generic SNMP devices
 * Any device supported by the Netmiko library (see SSH devices)
 * Most devices supported by Napalm (read-only)
 
-See the documentation for more information.
+See the documentation for more information about specific devices tested.
 
 __What's New:__
 
 Highlights:
 
-v3.4 adds support for Cisco CBS devices. Also allows for all LLDP neighbor devices to be graphed for printing.
+v3.4 adds support for Cisco CBS devices. Also allows for neighbor devices to be graphed for printing.
 
 v3.3 adds support Arista Network devices via SNMP. Also shows info in MPLS VRFs and member interfaces on supported devices, read from the standard MPLS SNMP Mib. SNMP now supports authencation up to SHA-512 and privacy up to AES-256. Django is upgraded to v5.1 and we now support Python v3.12
 
