@@ -171,6 +171,7 @@ from switches.connect.snmp.constants import (
     ieee8021QBridgeMvrpEnabledStatus,
     ieee8021QBridgeVlanStaticName,
     ieee8021QBridgePortVlanEntry,
+    ieee8021QBridgePvid,
     ieee8021QBridgeVlanCurrentEgressPorts,
     ieee8021QBridgeVlanCurrentUntaggedPorts,
     dot1dTpFdbPort,
@@ -1591,9 +1592,9 @@ class SnmpConnector(Connector):
     #     # we did not parse the OID.
     #     return False
 
-    def _parse_mibs_ieee_qbridge(self, oid: str, val: str) -> bool:
+    def _parse_mibs_ieee_qbridge_vlan_static_name(self, oid: str, val: str) -> bool:
         """
-        Parse ieee 802.1q bridge Mibs
+        Parse IEEE 802.1Q bridge Mibs vlan static names
 
         Params:
             oid (str): the SNMP OID to parse
@@ -1602,7 +1603,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_ieee_qbridge() {oid} = {val}")
+        dprint(f"_parse_mibs_ieee_qbridge_vlan_static_name() {oid} = {val}")
 
         retval = oid_in_branch(ieee8021QBridgeVlanStaticName, oid)
         if retval:
@@ -1612,26 +1613,70 @@ class SnmpConnector(Connector):
             self.add_vlan(v)
             return True
 
-        retval = oid_in_branch(ieee8021QBridgePortVlanEntry, oid)
-        if retval:
-            # retval is in format 1.1.1, for name 1/1/1
-            name = retval.replace('.', '/')
-            # dprint(f"Aruba Port {name} untagged vlan {val}")
-            # however, the key to the interface is the ifIndex, not name!
-            iface = self.get_interface_by_name(name)
-            if iface:
-                # dprint("   Port found !")
-                untagged_vlan = int(val)
-                if not iface.is_tagged and untagged_vlan in self.vlans.keys():
-                    iface.untagged_vlan = untagged_vlan
-                    iface.untagged_vlan_name = self.vlans[untagged_vlan].name
-            else:
-                # AOS-CX appears to report all interfaces for all possible stack members.
-                # even when less then max-stack-members are actualy present!
-                # so we are ignoring this warning for now...
-                # self.add_warning(f"IEEE802.1QBridgePortVlanEntry found, but interface {name} NOT found!")
-                dprint(f"IEEE802.1QBridgePortVlanEntry found, but interface {name} does not exist!")
-            return True
+        return False
+
+    def _parse_mibs_ieee_qbridge_pvid(self, oid: str, val: str) -> bool:
+        """Parse IEEE 802.1Q bridge Mibs
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+
+        """
+        dprint(f"_parse_mibs_ieee_qbridge_pvid() {oid} = {val}")
+
+        sub_oid = oid_in_branch(ieee8021QBridgePvid, oid)
+        if sub_oid:
+            dprint(f"Found ieee8021QBridgePvid for sub_oid '{sub_oid}")
+            # sub-oid is <some integer>.<if_index>
+            # we dont care about the integer (not sure what it is)
+            # we cheat, we know last number is ifIndex:
+            if_index = sub_oid.split('.')[-1]
+            # val" is the untagged vlan of this ifIndex
+            untagged_vlan = int(val)
+            self.set_interface_attribute_by_key(if_index, "untagged_vlan", untagged_vlan)
+            if untagged_vlan not in self.vlans.keys():
+                # vlan not defined on switch!
+                # should not happen, unless we missed something with MVRP
+                self.set_interface_attribute_by_key(if_index, "disabled", True)
+                self.set_interface_attribute_by_key(
+                    if_index, "unmanage_reason", f"Untagged vlan {untagged_vlan} is NOT defined on switch"
+                )
+                warning = f"Undefined vlan {untagged_vlan} on {self.interfaces[if_index].name}"
+                self.add_warning(warning)
+                # log this as well
+                log = Log(
+                    user=self.request.user,
+                    group=self.group,
+                    switch=self.switch,
+                    ip_address=get_remote_ip(self.request),
+                    if_index=if_index,
+                    type=LOG_TYPE_ERROR,
+                    action=LOG_UNDEFINED_VLAN,
+                    description=f"ERROR: {warning}",
+                )
+                if self.request:
+                    log.user = self.request.user
+                log.save()
+                # not sure what else to do here
+            return True  # parsed!
+
+        return False
+
+    def _parse_mibs_ieee_qbridge_vlan_current_egress_ports(self, oid: str, val: str) -> bool:
+        """
+        Parse IEEE 802.1Q bridge vlan data for current egress ports.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"_parse_mibs_ieee_qbridge_vlan_current_untagged() {oid} = {val}")
 
         sub_oid = oid_in_branch(ieee8021QBridgeVlanCurrentEgressPorts, oid)
         if sub_oid:
@@ -1649,6 +1694,21 @@ class SnmpConnector(Connector):
             # and go figure out what ports are part of this vlan:
             self._get_ports_from_vlan_bitmap(vlan_id=vlan_id, byte_string=val)
             return True
+
+        return False
+
+    def _parse_mibs_ieee_qbridge_vlan_current_untagged_ports(self, oid: str, val: str) -> bool:
+        """
+        Parse IEEE 802.1Q bridge vlan data for current untagged ports.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"_parse_mibs_ieee_qbridge_vlan_current_untagged() {oid} = {val}")
 
         sub_oid = oid_in_branch(ieee8021QBridgeVlanCurrentUntaggedPorts, oid)
         if sub_oid:
