@@ -22,7 +22,8 @@ project = 'OpenL2M'
 copyright = '2019-2025, Various'
 author = 'Various'
 
-# The full version, including alpha/beta/rc tags
+# The main version and full release, including alpha/beta/rc tags
+version = '3.4'
 release = 'v3.4 (2025-2-10)'
 
 # --- Running on ReadTheDocs ? ---

@@ -5,9 +5,9 @@
 
 .. image:: _static/openl2m_logo.png
 
-=======================
-Welcome to OpenL2M v3.4
-=======================
+============================
+Welcome to OpenL2M |version|
+============================
 
 Welcome to the documentation for the "Open Layer 2 Management" project.
 
@@ -66,4 +66,4 @@ If you are interesting in contributing, writing drivers for new devices, or just
   code/index.rst
 
 
-These documents were generated on |today|.
+These documents were generated on |today| for version |release|.
