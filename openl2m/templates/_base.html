@@ -11,6 +11,7 @@
     <link rel="icon" type="image/png" href="{% static 'img/openl2m.ico' %}" title="OpenL2M icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="hostname" content="{{ settings.HOSTNAME }}">
     <style>
       td.color_if_up {
         background: {{ settings.BGCOLOR_IF_ADMIN_UP_UP }} !important;
