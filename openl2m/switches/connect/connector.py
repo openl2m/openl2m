@@ -410,25 +410,26 @@ class Connector:
         if hasattr(self, 'get_my_client_data'):
             start_time = time.time()
             self.get_my_client_data()  # to be implemented by device/vendor class!
-            read_duration = int((time.time() - start_time) + 0.5)
-            self.add_more_info('System', 'Client Info Read', f"{read_duration} seconds")
+            stop_time = time.time()
+            # add to timing data, for admin use!
+            self.add_timing('Client Info Read', 1, time.time() - start_time)
             # are we resolving IP addresses to hostnames?
             if settings.LOOKUP_HOSTNAME_ARP:
-                dns_start = time.time()
-                self._lookup_hostname_from_arp()
-                dns_duration = int((time.time() - dns_start) + 0.5)
-                self.add_more_info('System', 'DNS Read (arp)', f"{dns_duration} seconds")
+                start_time = time.time()
+                count = self._lookup_hostname_from_arp()
+                # add to timing data, for admin use!
+                self.add_timing('DNS Read (arp)', count, time.time() - start_time)
             # are we resolving IP addresses for LLDP neighbors?
             if settings.LOOKUP_HOSTNAME_LLDP:
-                dns_start = time.time()
-                self._lookup_hostname_from_lldp()
-                dns_duration = int((time.time() - dns_start) + 0.5)
-                self.add_more_info('System', 'DNS Read (lldp)', f"{dns_duration} seconds")
+                start_time = time.time()
+                count = self._lookup_hostname_from_lldp()
+                # add to timing data, for admin use!
+                self.add_timing('DNS Read (lldp)', count, time.time() - start_time)
             # resolve the ethernet OUI to vendor
-            oui_start = time.time()
-            self._lookup_ethernet_vendors()
-            oui_duration = int((time.time() - oui_start) + 0.5)
-            self.add_more_info('System', 'Ethernet Vendor Search', f"{oui_duration} seconds")
+            start_time = time.time()
+            count = self._lookup_ethernet_vendors()
+            # add to timing data, for admin use!
+            self.add_timing('Ethernet Vendor Search', count, time.time() - start_time)
 
             return True
         self.add_warning("WARNING: device driver does not support 'get_my_client_data()' !")
@@ -1973,17 +1974,20 @@ class Connector:
             none
 
         Returns:
-            none
+            (int): number of entries attempted to resolve.
         """
         dprint("_lookup_hostname_from_arp() called.")
+        count = 0
         for interface in self.interfaces.values():
             for eth in interface.eth.values():
                 if eth.address_ip4:
                     eth.hostname = get_ip_dns_name(eth.address_ip4)
+                    count += 1
                 # only resolve IPv6 if IPv4 did not resolve hostname
                 if not eth.hostname and eth.address_ip6:
                     eth.hostname = get_ip_dns_name(eth.address_ip6)
-        return
+                    count += 1
+        return count
 
     def _lookup_hostname_from_lldp(self):
         """Look up the hostnames for found lldp neigbors on all interfaces,
@@ -1995,17 +1999,19 @@ class Connector:
             none
 
         Returns:
-            none
+            (int): number of entries attemted to resolve.
         """
         dprint("_lookup_hostname_from_lldp() called.")
+        count = 0
         for interface in self.interfaces.values():
             for neighbor in interface.lldp.values():
                 if neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
                     # networkAddress(5), first byte is address type, next bytes are address.
                     # see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml
                     if neighbor.chassis_string_type in [IANA_TYPE_IPV4, IANA_TYPE_IPV6]:
+                        count += 1
                         neighbor.hostname = get_ip_dns_name(neighbor.chassis_string)
-        return
+        return count
 
     def _lookup_ethernet_vendors(self):
         """Look up the vendor names for the ethernet addresses found on interfaces.
@@ -2015,22 +2021,26 @@ class Connector:
             none
 
         Returns:
-            none
+            (int): number of entries attemted to resolve.
         """
         dprint("_lookup_ethernet_vendors() called.")
 
         # load the Wireshark ethernet OUI parser
         parser = manuf.manuf.MacParser()
         # go through the list of ethernet addresses on each interface
+        count = 0
         for interface in self.interfaces.values():
             for eth in interface.eth.values():
+                count += 1
                 eth.vendor = self._get_oui_vendor(parser=parser, ethernet_address=str(eth))
                 dprint(f"  Vendor = {eth.vendor}")
             # also lookup vendor for Neighbors where the chassis-string is an ethernet address:
             for neighbor in interface.lldp.values():
                 if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
+                    count += 1
                     neighbor.vendor = self._get_oui_vendor(parser=parser, ethernet_address=neighbor.chassis_string)
                     dprint(f"  Neighbor vendor = {neighbor.vendor}")
+        return count
 
     def _get_oui_vendor(self, parser, ethernet_address: str) -> str:
         '''Look up an ethernet address in the OUI database, and return vendor information.
