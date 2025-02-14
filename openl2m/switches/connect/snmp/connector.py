@@ -871,18 +871,19 @@ class SnmpConnector(Connector):
             for item in items:
                 count = count + 1
                 oid_found = f"{item.oid}.{item.oid_index}"
-                # Note: with ezsnmp, the returned "item.value" is ALWAYS of type str!
-                # the real SNMP type is indicated in item.snmp_type !!!
-                if item.snmp_type == 'OCTETSTR':
-                    if item.value.isprintable():
-                        value = item.value
+                if settings.DEBUG:
+                    # Note: with ezsnmp, the returned "item.value" is ALWAYS of type str!
+                    # the real SNMP type is indicated in item.snmp_type !!!
+                    if item.snmp_type == 'OCTETSTR':
+                        if item.value.isprintable():
+                            value = item.value
+                        else:
+                            # for non-printable octetstring, you can use this:
+                            # https://github.com/kamakazikamikaze/easysnmp/issues/91
+                            value = "CAN NOT PRINT!"
                     else:
-                        # for non-printable octetstring, you can use this:
-                        # https://github.com/kamakazikamikaze/easysnmp/issues/91
-                        value = "CAN NOT PRINT!"
-                else:
-                    value = item.value
-                dprint(f"\n\n====> SNMP READ: {oid_found} {item.snmp_type} = {value}")
+                        value = item.value
+                    dprint(f"\n\n====> SNMP READ: {oid_found} {item.snmp_type} = {value}")
 
                 # call the mib parser
                 parser(oid_found, item.value)
