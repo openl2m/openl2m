@@ -783,10 +783,22 @@ snmp_mib_variables['ieee8021QBridgeVlanStaticUntaggedPorts'] = ieee8021QBridgeVl
 ieee8021QBridgeVlanStaticRowStatus = '.1.3.111.2.802.1.1.4.1.4.3.1.7'
 snmp_mib_variables['ieee8021QBridgeVlanStaticRowStatus'] = ieee8021QBridgeVlanStaticRowStatus
 
-# the PVID of a port is here.
-# see also https://oidref.com/1.3.111.2.802.1.1.4.1.4.5.1.1
+#
+# Port VLAN table
+# ieee8021QBridgePortVlanTable = '.1.3.111.2.802.1.1.4.1.4.5'
+#
+
+# Port VLAN entries are below this:
 ieee8021QBridgePortVlanEntry = '.1.3.111.2.802.1.1.4.1.4.5.1'
 snmp_mib_variables['ieee8021QBridgePortVlanEntry'] = ieee8021QBridgePortVlanEntry
+
+# the PVID of a port is in the VlanEntry:.
+# see also https://oidref.com/1.3.111.2.802.1.1.4.1.4.5.1.1
+ieee8021QBridgePvid = '.1.3.111.2.802.1.1.4.1.4.5.1.1'
+snmp_mib_variables['ieee8021QBridgePvid'] = ieee8021QBridgePvid
+
+# possibly interesting:
+# ieee8021QBridgePortMvrpEnabledStatus = '.1.3.111.2.802.1.1.4.1.4.5.1.4'
 
 
 #

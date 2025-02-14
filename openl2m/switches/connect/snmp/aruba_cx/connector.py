@@ -31,7 +31,7 @@ from django.http.request import HttpRequest
 # from switches.connect.classes import PortList
 from switches.connect.classes import Interface
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.connect.snmp.constants import dot1qPvid
+from switches.connect.snmp.constants import dot1qPvid, ieee8021QBridgePvid
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 
@@ -157,16 +157,18 @@ class SnmpConnectorArubaCx(SnmpConnector):
         Returns -1 on error, or number to indicate vlans found.
         """
         dprint("_get_vlan_data(ArubaAosCx)\n")
+
         # first, Aruba vlan names
-        retval = self.get_snmp_branch('ieee8021QBridgeVlanStaticName', self._parse_mibs_ieee_qbridge)
-        if retval < 0:
-            return retval
-        # port PVID untagged vlan
-        retval = self.get_snmp_branch(branch_name='ieee8021QBridgePortVlanEntry', parser=self._parse_mibs_ieee_qbridge)
+        retval = self.get_snmp_branch('ieee8021QBridgeVlanStaticName', self._parse_mibs_ieee_qbridge_vlan_static_name)
         if retval < 0:
             return retval
         # set vlan count
         self.vlan_count = len(self.vlans)
+
+        # port PVID untagged vlan
+        retval = self.get_snmp_branch(branch_name='ieee8021QBridgePvid', parser=self._parse_mibs_ieee_qbridge_pvid)
+        if retval < 0:
+            return retval
 
         # get the generic vlan data:
         super()._get_vlan_data()
@@ -178,13 +180,15 @@ class SnmpConnectorArubaCx(SnmpConnector):
         # AOS-CX uses the ieee802.1 Q-Bridge mibs for interface vlan info on trunked ports:
         # read ports in vlans
         retval = self.get_snmp_branch(
-            branch_name='ieee8021QBridgeVlanCurrentEgressPorts', parser=self._parse_mibs_ieee_qbridge
+            branch_name='ieee8021QBridgeVlanCurrentEgressPorts',
+            parser=self._parse_mibs_ieee_qbridge_vlan_current_egress_ports,
         )
         if retval < 0:
             return retval
         # and get untagged ports in those vlans:
         retval = self.get_snmp_branch(
-            branch_name='ieee8021QBridgeVlanCurrentUntaggedPorts', parser=self._parse_mibs_ieee_qbridge
+            branch_name='ieee8021QBridgeVlanCurrentUntaggedPorts',
+            parser=self._parse_mibs_ieee_qbridge_vlan_current_untagged_ports,
         )
         if retval < 0:
             return retval
