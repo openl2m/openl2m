@@ -465,23 +465,6 @@ class Connector:
             interface.eth = {}
             interface.lldp = {}
 
-    def get_routing_details(self) -> bool:
-        """
-        Get information about vrf's, routing tables, etc.
-        Currently only reads vrfs
-
-        Args:
-            none
-
-        Returns:
-            return True on success, False on error and set self.error variables
-        """
-        dprint("Connector.get_routing_details()")
-
-        if hasattr(self, 'get_my_vrfs'):
-            return self.get_my_vrfs()
-        return True
-
     def get_hardware_details(self) -> bool:
         '''
         Get all (possible) hardware info, stacking details, etc.
