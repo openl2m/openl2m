@@ -73,7 +73,7 @@ IANA_TYPE_OTHER = 0
 IANA_TYPE_IPV4 = 1
 IANA_TYPE_IPV6 = 2
 LLDP_CHASSIC_TYPE_IFNAME = 6  # interfaceName(6), ifName from IF-MIB
-LLDP_CHASSIC_TYPE_LOCAL = 7  # local(7)
+LLDP_CHASSIC_TYPE_LOCAL = 7  # local(7) - a string locally assigned, likely a name.
 
 # Capabilities as announced via lldp bits in SNMP data, translated to integer.
 # see also switches.connect.snmp.constants

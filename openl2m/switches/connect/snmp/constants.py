@@ -854,6 +854,8 @@ snmp_mib_variables['lldpRemIndex'] = lldpRemIndex
 
 lldpRemChassisIdSubtype = '.1.0.8802.1.1.2.1.4.1.1.4'
 snmp_mib_variables['lldpRemChassisIdSubtype'] = lldpRemChassisIdSubtype
+# note: the definitions of this chassis type are now in
+# switches/connect/constants.py, around line 65
 
 lldpRemChassisId = '.1.0.8802.1.1.2.1.4.1.1.5'
 snmp_mib_variables['lldpRemChassisId'] = lldpRemChassisId

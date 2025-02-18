@@ -92,6 +92,7 @@ from switches.connect.constants import (
     LLDP_CHASSIS_TYPE_NONE,
     LLDP_CHASSIC_TYPE_ETH_ADDR,
     LLDP_CHASSIC_TYPE_NET_ADDR,
+    LLDP_CHASSIC_TYPE_LOCAL,
     LLDP_PORT_SUBTYPE_CHASSIS_COMPONENT,
     LLDP_PORT_SUBTYPE_PORT_COMPONENT,
     LLDP_PORT_SUBTYPE_LOCAL,
@@ -2431,6 +2432,11 @@ class SnmpConnector(Connector):
                                 # we should simplify this here - TBD
                             else:
                                 chassis_info = 'Unknown Address Type'
+                        elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_LOCAL:
+                            # a locally assigned string, we are going to assume name!
+                            chassis_info = ""
+                            if not neighbor.sys_name:
+                                neighbor.sys_name = str(val)
                         else:
                             # we don't parse this chassis_type, so just assume it is a string :-)
                             chassis_info = str(val)
