@@ -353,6 +353,20 @@ class Connector:
             else:
                 self.add_warning("WARNING: device driver does not support 'get_my_basic_info()' !")
 
+            # see if we can get hardware details from the driver:
+            if hasattr(self, 'get_my_hardware_details'):
+                start_time = time.time()
+                self.get_my_hardware_details()
+                self.add_timing('HW Info Read', 1, time.time() - start_time)
+            # this is optional, so we do not warn if not found!
+
+            # see if the driver has VRF support:
+            if hasattr(self, 'get_my_vrfs'):
+                start_time = time.time()
+                self.get_my_vrfs()
+                self.add_timing('VRF Info Read', 1, time.time() - start_time)
+            # this is optional, so we do not warn if not found!
+
             # info about access times, etc.
             default_time = datetime.datetime(2000, 1, 1, 0, 0, 0, 0, datetime.timezone.utc)
 
@@ -464,37 +478,6 @@ class Connector:
         for interface in self.interfaces.values():
             interface.eth = {}
             interface.lldp = {}
-
-    def get_hardware_details(self) -> bool:
-        '''
-        Get all (possible) hardware info, stacking details, etc.
-        Also attempts to get VRFs tables.
-
-        Args:
-            none
-
-        Returns:
-            return True on success, False on any failure.
-        '''
-        if self.hardware_details_needed:
-            # this only will be called once!
-            self.hardware_details_needed = False
-            # call the vendor-specific data first, if implemented
-            if hasattr(self, 'get_my_hardware_details'):
-                hw_return = self.get_my_hardware_details()
-            else:
-                hw_return = True
-            # see if the driver has VRF support:
-            if hasattr(self, 'get_my_vrfs'):
-                vrf_return = self.get_my_vrfs()
-            else:
-                vrf_return = True
-            # if any fails, return failed:
-            if not hw_return or not vrf_return:
-                return False
-            return True
-        # already loaded.
-        return True
 
     '''
     These are the "set" functions that implement changes on the device.

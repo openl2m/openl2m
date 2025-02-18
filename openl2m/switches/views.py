@@ -413,26 +413,6 @@ def switch_view(
 
     dprint("Basic Info OK")
 
-    # get hardware info as well.
-    try:
-        if not conn.get_hardware_details():
-            # don't render error, since we have already read the basic interface data
-            # Note that driver errors should are already be logged and added to warnings!
-            dprint("ERROR in conn.get_hardware_details()!")
-        else:
-            dprint("get_hardware_details() OK!")
-    except Exception as e:
-        # some untrapped error, not likely to happen...
-        log.type = LOG_TYPE_ERROR
-        log.description = (
-            f"ERROR caught in get_hardware_details(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-        )
-        dprint(log.description)
-        log.save()
-        # add a warning message only, since we alread have basic info!
-        conn.add_warning(f"Error caught in get_hardware_details(): {e}")
-        dprint("ERROR Caught in Details Info!")
-
     if view == "arp_lldp":
         # catch errors in case not trapped in drivers
         try:
