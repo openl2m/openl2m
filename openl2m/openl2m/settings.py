@@ -486,6 +486,9 @@ NB_ICON_BRIDGE = getattr(configuration, 'NB_ICON_BRIDGE', "fa-ethernet")
 NB_ICON_REPEATER = getattr(configuration, 'NB_ICON_REPEATER', "fa-ethernet")
 NB_ICON_OTHER = getattr(configuration, 'NB_ICON_OTHER', "fa-question")
 
+# Mermaid.js graphs can be simple or expanded.
+MM_GRAPH_EXPANDED = getattr(configuration, 'MM_GRAPH_EXPANDED', False)
+
 # this is the Mermaid.js style for the various device types.
 # this defaults to 'standard' style, but you can add fill-in colors, outlines, etc.
 # see more at https://mermaid.js.org/syntax/block.html#example-styling-a-single-block
