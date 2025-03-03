@@ -605,6 +605,8 @@ TOP_ACTIVITY_DAYS = 7
 #
 
 # Mermaid graphs of connected devices  (neighbors) can be simple or expanded.
+# Simple shows current device interface and connected neigbor.
+# Expanded also show the remote neighbor interface, if shown.
 # default is simple, ie. False. Set to True for slightly more interesting graph.
 # MM_GRAPH_EXPANDED = False
 
