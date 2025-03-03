@@ -6,7 +6,7 @@
 <script>
   document.getElementById('openGraphButton').addEventListener('click', function() {
     // Open a new window
-    const newWindow = window.open("", "_blank", "width=1024,height=800");
+    const newWindow = window.open("", "_blank", "width=1200,height=800");
 
     const htmlText = `
 <!DOCTYPE html>
@@ -18,23 +18,10 @@
     <title>'{{ switch }}' Neighbor Graph</title>
   </head>
   <body>
-    <h4>Connected devices for "{{ switch }}"</h4>
-    <h5>Generated for '{{ request.user.username }}' on {% now "Y-m-d H:i:s" %}</h5>
     <pre class="mermaid">
-{% if connection.neighbor_count <= settings.NB_MAX_FOR_TD %}
-flowchart TD
-{% else %}
-flowchart LR
-{% endif %}
-DEVICE["{{ switch.name }}"]
-  {% for key,iface in connection.interfaces.items %}
-    {% if iface.visible %}
-      {% for lldp_index,neighbor in iface.lldp.items %}
-DEVICE --> |{{ iface.name }}| {{ neighbor|get_neighbor_mermaid_config }}
-      {% endfor %}
-    {% endif %}
-  {% endfor %}
+{{ connection|get_neighbor_mermaid_graph }}
     </pre>
+    <h5>Generated for '{{ request.user.username }}' on {% now "Y-m-d H:i:s" %}</h5>
   </body>
 </html>
 `;

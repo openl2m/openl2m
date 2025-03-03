@@ -569,8 +569,8 @@ def set_neighbor_icon_info(neighbor):
     if capabilities & LLDP_CAPABILITIES_ROUTER:
         neighbor.icon = settings.NB_ICON_ROUTER
         neighbor.style = settings.MM_NB_STYLE_ROUTER
-        neighbor.start_device = '['
-        neighbor.stop_device = ']'
+        neighbor.start_device = '[['
+        neighbor.stop_device = ']]'
         neighbor.description = 'Router or Switch'
         return
     if capabilities & LLDP_CAPABILITIES_STATION:
@@ -676,6 +676,21 @@ def get_lldp_info(neighbor):
     return mark_safe(info)
 
 
+# {% if connection.neighbor_count <= settings.NB_MAX_FOR_TD %}
+# flowchart TD
+# {% else %}
+# flowchart LR
+# {% endif %}
+# DEVICE["{{ switch.name }}"]
+#   {% for key,iface in connection.interfaces.items %}
+#     {% if iface.visible %}
+#       {% for lldp_index,neighbor in iface.lldp.items %}
+# DEVICE --> |{{ iface.name }}| {{ neighbor|get_neighbor_mermaid_config }}
+#       {% endfor %}
+#     {% endif %}
+#   {% endfor %}
+
+
 @register.filter
 def get_neighbor_mermaid_config(neighbor):
     """
@@ -683,21 +698,75 @@ def get_neighbor_mermaid_config(neighbor):
     To keep things simple, we return a single icon, even when multiple capabilities exist.
     """
 
-    if neighbor.hostname:
-        neighbor.name = neighbor.hostname
-    elif neighbor.sys_name:
-        neighbor.name = neighbor.sys_name
-    else:
-        neighbor.name = "Unknown System"
-
-    set_neighbor_icon_info(neighbor)
-
     mermaid = f"{neighbor.index}{neighbor.start_device}\"fa:{neighbor.icon} {neighbor.name}\n"
     if neighbor.port_name:
         mermaid = f"{mermaid}({neighbor.port_name})"
     mermaid = f"{mermaid}\"{neighbor.stop_device}\n"
     if neighbor.style:
         mermaid = f"{mermaid}style {neighbor.index} {neighbor.style}\n"
+    return mark_safe(mermaid)
+
+
+@register.filter
+def get_neighbor_mermaid_graph(connection):
+    """
+    Return a string that represents the all lldp neighbors in a mermaid.js graph format.
+    To keep things simple, we return a single icon, even when multiple capabilities exist.
+    """
+    mermaid = f"""
+---
+title: Device connections for '{connection.switch.name}'
+---
+"""
+    # select horizontal (LeftRight) or vertical (TopDown)
+    if settings.MM_GRAPH_EXPANDED or connection.neighbor_count > settings.NB_MAX_FOR_TD:
+        mermaid += "flowchart LR\n"
+    else:
+        mermaid += "flowchart TD\n"
+
+    # start with our device:
+    mermaid += f"DEVICE[[\"{connection.switch.name}\"]]\n"
+
+    # now find all neighbors on all interfaces:
+    num = 0
+    for key, iface in connection.interfaces.items():
+        if iface.visible:
+            for lldp_index, neighbor in iface.lldp.items():
+                num += 1
+                # figure out "neighbor display name" from what we know:
+                if neighbor.hostname:
+                    neighbor.name = neighbor.hostname
+                elif neighbor.sys_name:
+                    neighbor.name = neighbor.sys_name
+                else:
+                    neighbor.name = "Unknown System"
+                set_neighbor_icon_info(neighbor)
+
+                # add remote neighbor device
+                remote_device_object = f"REMOTE_{num}"
+                mermaid += f"{remote_device_object}{neighbor.start_device}\"fa:{neighbor.icon} {neighbor.name}\"{neighbor.stop_device}\n"
+
+                if not settings.MM_GRAPH_EXPANDED:
+                    # simple version
+                    mermaid += f"DEVICE <==> |{ iface.name }| {remote_device_object}\n"
+                else:
+                    # expanded graphic, first add local interface device
+                    local_interface_object = f"DEVICE_INTERFACE_{num}"
+                    mermaid += f"{local_interface_object}(\"{iface.name}\")\n"
+
+                    # and add remote device interface
+                    remote_interface_object = f"REMOTE_INTERFACE_{num}"
+                    if not neighbor.port_name:
+                        port_name = "?"
+                    else:
+                        port_name = neighbor.port_name
+                    mermaid += f"{remote_interface_object}(\"{port_name}\")\n"
+
+                    # connect it all together
+                    mermaid += f"DEVICE --- {local_interface_object}\n"
+                    mermaid += f"{local_interface_object} <==> {remote_interface_object}\n"
+                    mermaid += f"{remote_interface_object} --- {remote_device_object}\n\n"
+
     return mark_safe(mermaid)
 
 
