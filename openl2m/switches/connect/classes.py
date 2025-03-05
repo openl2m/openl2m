@@ -357,17 +357,20 @@ class EthernetAddress(netaddr.EUI):
         self.vendor: str = ''
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
         self.address_ip4: str = ""  # ipv4 address from arp table, if known
-        self.address_ip6: str = ""  # ipv6 address, if known
+        self.address_ip6: List = []  # known ipv6 addresses of this ethernet address, in list
         self.hostname: str = ""  # reverse lookup for ip4 or ip6 address.
 
     def set_vlan(self, vlan_id: int) -> None:
         self.vlan_id = int(vlan_id)
 
     def set_ip4_address(self, ip4_address: str) -> None:
+        """Set the IPv4 address for this ethernet address."""
         self.address_ip4 = ip4_address
 
-    def set_ip6_address(self, ip6_address: str) -> None:
-        self.address_ip6 = ip6_address
+    def add_ip6_address(self, ip6_address: str) -> None:
+        """Add an IPv6 address to the list of addresses for this ethernet address."""
+        # need to add logic to recognize IPv6 link-local "FE80::/10" subnets.
+        self.address_ip6.append(ip6_address)
 
     def as_dict(self) -> dict:
         '''
@@ -969,7 +972,11 @@ class Interface:
         # return True
 
     def add_learned_ethernet_address(
-        self, eth_address: str, vlan_id: int = -1, ip4_address: str = ''
+        self,
+        eth_address: str,
+        vlan_id: int = -1,
+        ip4_address: str = '',
+        ip6_address: str = '',
     ) -> EthernetAddress:
         '''
         Add an ethernet address to this interface, as given by the layer2 CAM/Switching tables.
@@ -983,7 +990,9 @@ class Interface:
         Returns:
             EthernetAddress(), either existing or new.
         '''
-        dprint(f"Interface().add_learned_ethernet_address() for {eth_address}, vlan={vlan_id}, ip4={ip4_address}")
+        dprint(
+            f"Interface().add_learned_ethernet_address() for {eth_address}, vlan={vlan_id}, ip4='{ip4_address}', ip6='{ip6_address}'"
+        )
         if eth_address in self.eth.keys():
             # already known!
             dprint("  Eth already known!")
@@ -999,7 +1008,9 @@ class Interface:
             if vlan_id > 0:
                 a.set_vlan(vlan_id)
             if ip4_address:
-                a.set_ip4_address(ip4_address)
+                a.set_ip4_address(ip4_address=ip4_address)
+            if ip6_address:
+                a.add_ip6_address(ip6_address=ip6_address)
             self.eth[eth_address] = a
             return a
 
