@@ -137,6 +137,8 @@ else:
     # default:
     MAC_DIALECT = netaddr.mac_unix_expanded  # 00:11:22:33:44:55
 
+IPV6_USE_UPPER = getattr(configuration, "IPV6_USE_UPPER", False)
+
 IFACE_HIDE_REGEX_IFNAME = getattr(configuration, "IFACE_HIDE_REGEX_IFNAME", "")
 IFACE_HIDE_REGEX_IFDESCR = getattr(configuration, "IFACE_HIDE_REGEX_IFDESCR", "")
 IFACE_HIDE_SPEED_ABOVE = getattr(configuration, "IFACE_HIDE_SPEED_ABOVE", 0)
