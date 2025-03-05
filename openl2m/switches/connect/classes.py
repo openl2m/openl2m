@@ -370,7 +370,12 @@ class EthernetAddress(netaddr.EUI):
     def add_ip6_address(self, ip6_address: str) -> None:
         """Add an IPv6 address to the list of addresses for this ethernet address."""
         # need to add logic to recognize IPv6 link-local "FE80::/10" subnets.
-        self.address_ip6.append(ip6_address)
+        # we do no check validity of the address at this time.
+        if settings.IPV6_USE_UPPER:
+            ipv6 = ip6_address.upper()
+        else:
+            ipv6 = ip6_address.lower()
+        self.address_ip6.append(ipv6)
 
     def as_dict(self) -> dict:
         '''
