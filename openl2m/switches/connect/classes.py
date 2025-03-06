@@ -887,7 +887,10 @@ class Interface:
         self.transceiver: Transceiver = None  # any transceiver info know for this interface
         self.description: str = ""  # the interface description, as set by the switch configuration, from IF-MIB
         self.addresses_ip4: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
-        self.addresses_ip6: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv6 addresses on this interface
+        self.addresses_ip6: Dict[str, IPNetworkHostname] = (
+            {}
+        )  # dictionary of all my (routable) ipv6 addresses on this interface
+        self.address_ip6_linklocal: str = ""  # the IPv6 LinkLocal address for this interface, if any.
         self.igmp_snooping: bool = False  # if True, interface does IGMP snooping
         # vlan related
         self.port_id: int = -1  # Q-Bridge MIB port id
