@@ -50,13 +50,11 @@ class DummyConnector(Connector):
 
         self.add_poe_powersupply(1, 45)  # simulate a 45W power supply
 
-        v = Vrf()
-        v.name = "VRF-1"
-        v.rd = "65000:1"
-        v.description = "Test VRF"
-        v.ipv4 = True
-        v.ipv6 = True
-        self.vrfs[v.name] = v
+        vrf = self.get_vrf_by_name(name="VRF-1")  # this will create if not exists.
+        vrf.rd = "65000:1"
+        vrf.description = "Test VRF"
+        vrf.ipv4 = True
+        vrf.ipv6 = True
 
         self.add_vlan_by_id(1, "Default!")
         self.add_vlan_by_id(5, "Vlan Five")
@@ -184,4 +182,4 @@ class DummyConnector(Connector):
         """
         Dummy driver cannot run 'cli command'
         """
-        return False
+        return
