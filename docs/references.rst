@@ -11,10 +11,10 @@ and potentially developing, OpenL2M.
 Documentation
 -------------
 
-Sphinx is used to handle the ReStructuredText this documentation is written in.
+**Sphinx** is used to handle the ReStructuredText this documentation is written in.
 Get started here:  https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html
 
-We use SPhinx-Design to make life easier: https://sphinx-design.readthedocs.io/en/latest/get_started.html
+We use Sphinx-Design to make life easier: https://sphinx-design.readthedocs.io/en/latest/get_started.html
 
 Python doc string options are nicely described here:
 https://stackoverflow.com/questions/3898572/what-is-the-standard-python-docstring-format
@@ -33,18 +33,19 @@ Sphinx-specific Directives: https://www.sphinx-doc.org/en/master/usage/restructu
 Frameworks and projects
 ---------------------------
 
-Django, the web framework used. See https://docs.djangoproject.com/
+**Django**, the web framework used. See https://docs.djangoproject.com/
 
-Bootstrap, the html front-end library used. See https://getbootstrap.com/
+**Bootstrap**, the html front-end library used. See https://getbootstrap.com/
 
-Introduction to the Bootstrap framework used for web rendering. See https://www.w3schools.com/bootstrap/default.asp
+Where there are many tutotials about using Bootstrap, a very comprehensive one is at https://www.tutorialrepublic.com/twitter-bootstrap-tutorial/
+
+Additionally, the W3Schools "Introduction to the Bootstrap" is a valuable resource: See https://www.w3schools.com/bootstrap/default.asp
+
+**Django Rest Framework**, used to implement our REST api. See https://www.django-rest-framework.org/
 
 The Netbox project. This is the original project that inspired the birth of OpenL2M :-).
-See https://github.com/netbox-community/netbox
 
-Django Rest Framework, used to implement our REST api. See https://www.django-rest-framework.org/
-
-HP/Aruba vlan management tool. https://sourceforge.net/projects/procurve-admin/
+See https://github.com/netbox-community/netboxHP/Aruba vlan management tool. https://sourceforge.net/projects/procurve-admin/
 
 Uninett NAV (Network Adminstration Visualized), at https://nav.uninett.no/
 and specifically the SNMP portadmin code at https://github.com/Uninett/nav/tree/master/python/nav/portadmin/snmp
@@ -52,7 +53,7 @@ and specifically the SNMP portadmin code at https://github.com/Uninett/nav/tree/
 Icons
 -----
 
-We use the Font Awesome v6 free web icon package: https://fontawesome.com/v6/search
+We use the **Font Awesome** v6 free web icon package: https://fontawesome.com/v6/search
 
 
 Python
