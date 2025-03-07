@@ -57,40 +57,39 @@ def bytes_ethernet_to_string(bytes: str) -> str:
     return ''
 
 
-def get_ip_from_oid_index(index: str, addr_type: int, has_length: bool = True) -> str:
-    """Convert an OID sub-index to an IP address in string format.
+def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
+    """Convert an OID sub-sub_oid to an IP address in string format.
     Note: currently does NOT do IPV6 parsing yet!
 
     Params:
-        index (str): the OID index contains length as first number, followed by the rest of the IP digits.
-        addr_type (int): the either IANA_TYPE_IPV4 (1) or IANA_TYPE_IPV6 (2)
-                    this defines parsing to the index
-                    Note: currently does NOT do IPV6 parsing yet!
-        has_length (bool): if True, first byte is length, ie. "<length>.<ip in decimal>"
-                            False: format is "<ip in decimal>"
+        sub_oid (str): the sub_oid is the final part of the returned SNMP OID.
+                       It may contains length as first number, followed by the rest of the IP digits in dotted-decimal format.
+        addr_type (int): either IANA_TYPE_IPV4 (1) or IANA_TYPE_IPV6 (2). This defines format of the sub_oid string.
+        has_length (bool): if True, first byte in sub_oid is length, ie. "<length>.<ip in dotted-decimal>"
+                           False: format is "<ip in dotted-decimal>"
     Returns:
-        (str): the parsed IP address in string format.
+        (str): the parsed IP address in string format, or "" if invalid.
     """
-    dprint(f"get_ip_from_oid_index( index={index}, addr_type={addr_type}, has_length={has_length}")
+    dprint(f"get_ip_from_sub_oid(sub_oid={sub_oid}, addr_type={addr_type}, has_length={has_length}")
     if addr_type == IANA_TYPE_IPV4:
         if has_length:
             # for IPv4, encoding is simply the length (always 4) followed by IP:
-            parts = index.split('.', 1)  # only split in 2
+            parts = sub_oid.split('.', 1)  # only split in 2
             if int(parts[0]) != 4:  # looks valid
                 # very unlikely to happen (only if bad snmp implementation on device):
                 dprint(f"  INVALID IPv4 length field, expected 4, got {int(parts[0])}")
-                return "0.0.0.0"
-            # the remaining part of the IPv4 address:
+                return ""
+            # the remaining part is the IPv4 address:
             ip = parts[1]
         else:
-            # no length, just use full sub-oid
-            ip = index
+            # no length, just use full sub-oid as IPv4:
+            ip = sub_oid
         return ip
 
     if addr_type == IANA_TYPE_IPV6:
         # for IPv6, encoding has optional length (always 16) followed by IP:
         if has_length:
-            parts = index.split('.', 1)  # only split in 2
+            parts = sub_oid.split('.', 1)  # only split in 2
             if int(parts[0]) != 16:  # invalid
                 dprint(f"INVALID IPv6 lenght field, expected 16, got {int(parts[0])}")
                 return ""
@@ -98,7 +97,7 @@ def get_ip_from_oid_index(index: str, addr_type: int, has_length: bool = True) -
             oid_ip = parts[1]
         else:
             # no length, just use full sub-oid:
-            oid_ip = index
+            oid_ip = sub_oid
         # move from dotted decimal to IPv6 format. Convert OID string into list of integers:
         ipv6_list = [int(octet) for octet in oid_ip.split('.')]
         # Pack the integers into a byte string

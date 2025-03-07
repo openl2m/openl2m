@@ -120,7 +120,7 @@ from switches.connect.classes import (
 
 # from switches.connect.connect import *
 from switches.connect.connector import Connector
-from switches.connect.snmp.utils import decimal_to_hex_string_ethernet, bytes_ethernet_to_string, get_ip_from_oid_index
+from switches.connect.snmp.utils import decimal_to_hex_string_ethernet, bytes_ethernet_to_string, get_ip_from_sub_oid
 from switches.connect.snmp.constants import (
     snmp_mib_variables,
     ifIndex,
@@ -155,6 +155,7 @@ from switches.connect.snmp.constants import (
     dot1dBasePortIfIndex,
     ipAdEntIfIndex,
     ipAdEntNetMask,
+    ipv6AddrPfxLength,
     entPhysicalClass,
     entPhysicalDescr,
     entPhysicalSerialNum,
@@ -178,6 +179,7 @@ from switches.connect.snmp.constants import (
     dot1dTpFdbPort,
     ipNetToMediaPhysAddress,
     ipNetToPhysicalPhysAddress,
+    ipv6NetToMediaEntry,
     ipAddressIfIndex,
     lldpRemChassisId,
     lldpRemPortId,
@@ -984,7 +986,7 @@ class SnmpConnector(Connector):
             if retval != -1:
                 retval = self._get_vlan_data()
                 if retval != -1:
-                    retval = self._get_my_ip4_addresses()
+                    retval = self._get_my_ip_addresses()
                     if retval != -1:
                         retval = self._get_lacp_data()
                         if retval != -1:
@@ -1908,20 +1910,34 @@ class SnmpConnector(Connector):
                 dprint(f"  OID '{oid}' = '{val}', parsed if_index='{if_index}' to unknown interface!")
                 return True  # we did parse this, with errors.
 
+            # look at valid address types only:
             addr_type = int(parts[1])
-            dprint(f"  Interface '{iface.name}', IP address type={addr_type}")
+            if addr_type not in (IANA_TYPE_IPV4, IANA_TYPE_IPV6):
+                dprint(f"   INVALID INTERFACE IP ADDRESS TYPE {addr_type}")
+                return True  # we parsed the entry
+
             # the rest is IP, either v4 or v6
-            ip = get_ip_from_oid_index(index=parts[2], addr_type=addr_type)
+            ip = get_ip_from_sub_oid(sub_oid=parts[2], addr_type=addr_type, has_length=True)
+            if not ip:  # could not decode?
+                dprint("INVALID empty IP returned!")
+                return True  # we did parse this SNMP entry
+            mac_addr = bytes_ethernet_to_string(val)
+            dprint(f"    MAC={mac_addr}")
             # we currently only deal with IPv4:
             if addr_type == IANA_TYPE_IPV4:
                 dprint(f"    IPV4={ip}")
-                mac_addr = bytes_ethernet_to_string(val)
-                dprint(f"    MAC={mac_addr}")
                 if mac_addr in iface.eth.keys():
-                    # Found existing MAC addr, adding IP4
+                    # Found existing MAC addr, adding IPv4
                     iface.eth[mac_addr].address_ip4 = ip
                 else:
                     iface.add_learned_ethernet_address(eth_address=mac_addr, ip4_address=ip)
+            elif addr_type == IANA_TYPE_IPV6:
+                dprint(f"    IPv6={ip}")
+                if mac_addr in iface.eth.keys():
+                    # Found existing MAC addr, adding IPv6
+                    iface.eth[mac_addr].address_ip6.append(ip)
+                else:
+                    iface.add_learned_ethernet_address(eth_address=mac_addr, ip6_address=ip)
 
             return True
 
@@ -2013,11 +2029,14 @@ class SnmpConnector(Connector):
         return False
 
     #
-    # Interface IP Address MIB parsing
+    # Interface IP Address MIB parsing, using the old, deprecated part of IP-MIB
+    # under ipAddrTable = '.1.3.6.1.2.1.4.20'
     #
     def _parse_mibs_ip_addr_table(self, oid: str, val: str) -> bool:
         """
         Parse a single OID with data returned from the "ipAddrTable" Interface IP address MIBs.
+        This is an OLD deprecated part of the IP-MIB, that only handles IPv4 addresses.
+        Some devices still support this!
 
         Params:
             oid (str): the SNMP OID to parse
@@ -2058,11 +2077,13 @@ class SnmpConnector(Connector):
         return False
 
     #
-    # New IP-MIB - Interface IP Address MIB parsing
+    # IP-MIB - New way of Interface IP Address MIB parsing, under ipAddressTable = '.1.3.6.1.2.1.4.34'
+    # handles both IPv4 and IPv6 with address type field, see parsing below.
     #
     def _parse_mibs_ip_address_table(self, oid: str, val: str) -> bool:
         """
-        Parse a single OID with data returned from the "ipAddressIfIndex" Interface IP address MIBs.
+        Parse a single OID from IP-MIB with data returned from the "ipAddressIfIndex" Interface IP address MIBs.
+        This can return both IPv4 and IPv6 with address type field, see parsing below.
 
         Params:
             oid (str): the SNMP OID to parse
@@ -2074,7 +2095,7 @@ class SnmpConnector(Connector):
         dprint(f"_parse_mibs_ip_address_table() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
 
         """
-        Find a device IP addresses. Returned OID is ipAddressIfIndex.<address-type>.<length>.<ip-address> = <if-index>
+        Find a device IP addresses. Returned OID is ipAddressIfIndex.<address-type>.<length>.<dotted-decimal-ip-address> = <if-index>
         """
         oid_ip_string = oid_in_branch(ipAddressIfIndex, oid)
         if oid_ip_string:
@@ -2087,19 +2108,68 @@ class SnmpConnector(Connector):
                 addr_type = int(parts[0])
                 dprint(f"  Interface '{iface.name}', IP type={addr_type}")
                 # the rest is IP, either v4 or v6
-                ip = get_ip_from_oid_index(index=parts[1], addr_type=addr_type)
-                # we currently only deal with IPv4:
-                if addr_type == IANA_TYPE_IPV4:
-                    dprint(f"    IPV4={ip}")
-                    # add to the interface:
-                    iface.add_ip4_network(address=ip, prefix_len=32)
-                elif addr_type == IANA_TYPE_IPV6:
-                    dprint("   IPV6 NOT HANDLED YET! Ignored!")
-                else:  # should not happen...
-                    dprint(f"INVALID IP ADDRESS TYPE {addr_type}")
+                if addr_type not in (IANA_TYPE_IPV4, IANA_TYPE_IPV6):
+                    dprint(f"   INVALID INTERFACE IP ADDRESS TYPE {addr_type}")
+                    return True  # we parsed the entry
+                # parse oid sub-string for IP, still includes length field!
+                ip = get_ip_from_sub_oid(sub_oid=parts[1], addr_type=addr_type, has_length=True)
+                if ip:
+                    # we currently only deal with IPv4:
+                    if addr_type == IANA_TYPE_IPV4:
+                        dprint(f"   INTERFACE IPV4={ip}")
+                        # add to the interface:
+                        iface.add_ip4_network(address=ip, prefix_len=32)
+                    elif addr_type == IANA_TYPE_IPV6:
+                        dprint("   INTERFACE IPV6 NOT HANDLED YET! Ignored!")
+                dprint("INVALID empty IP!")
             else:
                 # should not happen!
                 dprint(f"ERROR: Interface NOT found for key '{val}'")
+            return True  # we parsed the entry
+
+        # we did not parse the OID.
+        return False
+
+    #
+    # Parse the OLD deprecated IPV6-MIB entries for interface ipv6 addresses.
+    #
+    def _parse_mibs_ipv6_interface_address(self, oid: str, val: str) -> bool:
+        """Parse the OLD, deprecated IPV6-MIB entry "ipv6AddrPfxLength" for interface IPv6 addresses.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"_parse_mibs_ipv6_interface_address() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+
+        # this reads the IPv6 address, and the prefix length all in one:
+        # ipv6AddrPfxLength = ".1.3.6.1.2.1.55.1.8.1.2"
+        # return value is .1.3.6.1.2.1.55.1.8.1.2.<ifIndex>.<ipv6 in 16 decimals> = <prefix-len>
+        # e.g.:
+        # .1.3.6.1.2.1.55.1.8.1.2.2153.254.128.0.0.0.0.0.0.0.0.0.0.105.8.0.0 = INTEGER: 10 # Link-Local fe80::6908:0/10
+        # ifIndex 2153, rest is IPv6: 254 = feh, 128 = 80h, etc. ==> fe80::6908:0000/10
+
+        sub_oid = oid_in_branch(ipv6AddrPfxLength, oid)
+        if sub_oid:
+            parts = sub_oid.split('.', 1)  # split in 2, if-index, and the IPv6 address in dotted decimal
+            if_index = int(parts[0])
+            dprint(f"IPMIB IPv6 ipv6AddrPfxLength for ifIndex {if_index}")
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                dprint(f"Found interface '{iface.name}'")
+                ip = get_ip_from_sub_oid(sub_oid=parts[1], addr_type=IANA_TYPE_IPV6, has_length=False)
+                if ip:
+                    # add to interface
+                    iface.add_ip6_network(
+                        address=ip, prefix_len=int(val)
+                    )  # Link-Local is handled by add_ip6_network()!
+                else:
+                    dprint("INVALID empty IP returned!")
+            else:
+                self.add_warning(warning=f"'ipv6AddrPfxLength' returned invalid interface index: '{if_index}'")
             return True
 
         # we did not parse the OID.
@@ -2964,22 +3034,36 @@ class SnmpConnector(Connector):
 
         return self.vlan_count
 
-    def _get_my_ip4_addresses(self) -> int:
+    def _get_my_ip_addresses(self) -> int:
         """
-        Read the ipAddrEntry tables for the switch IP4 addresses
+        Read various entries for IPv4 or IPv6 addressses:
+        - in the ipAddrTable from IP-MIB, the
+            ipAddrEntry table for the switch IP4 addresses (old, but still used on some devices)
+            ipAddressIfIndex from ipAddressTable, new style, contains both IPv4 and IPv6 addresses.
+        - ipv6AddrPfxLength from OLD deprecated IPV6-MIB, still available on some routers.
+
         Returns 1 on success, -1 on failure
         """
-        retval = self.get_snmp_branch(
-            branch_name='ipAddrTable', parser=self._parse_mibs_ip_addr_table
-        )  # small mib, read all entries below it
+        # these are OLD mib entries:
+        # ipAddrTable is only interface IPv4 entries:
+        # small mib, read all entries below it
+        retval = self.get_snmp_branch(branch_name='ipAddrTable', parser=self._parse_mibs_ip_addr_table)
         if retval < 0:
             self.add_warning("Error getting 'IP-Address-Entries' (ipAddrTable)")
             return retval
+        # go try old IPv6 MIB interface address entry:
+        retval = self.get_snmp_branch(branch_name='ipv6AddrPfxLength', parser=self._parse_mibs_ipv6_interface_address)
+        if retval < 0:
+            self.add_warning("Error getting 'IPv6-Interface-Address-Entries' (ipv6AddrPfxLength)")
+            return retval
+
+        #
         # also try the newer entry ipAddressIfIndex from IP-MIB ipAddressTable:
+        # this can handle IPv4 and IPv6 (see the parser function)
+        #
         retval = self.get_snmp_branch(branch_name='ipAddressIfIndex', parser=self._parse_mibs_ip_address_table)
         if retval < 0:
             self.add_warning("Error getting 'IP-Address-ifIndex' (ipAddressIfIndex)")
-
         return 1
 
     def _map_poe_port_entries_to_interface(self) -> None:
