@@ -138,6 +138,7 @@ else:
     MAC_DIALECT = netaddr.mac_unix_expanded  # 00:11:22:33:44:55
 
 IPV6_USE_UPPER = getattr(configuration, "IPV6_USE_UPPER", False)
+IPV6_SHOW_LINKLOCAL = getattr(configuration, "IPV6_SHOW_LINKLOCAL", False)
 
 IFACE_HIDE_REGEX_IFNAME = getattr(configuration, "IFACE_HIDE_REGEX_IFNAME", "")
 IFACE_HIDE_REGEX_IFDESCR = getattr(configuration, "IFACE_HIDE_REGEX_IFDESCR", "")

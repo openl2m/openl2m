@@ -40,7 +40,7 @@
             {% endif %}
             / {{ addr.prefixlen }} <br />
           {% endfor %}
-          {% if iface.address_ip6_linklocal %}
+          {% if settings.IPV6_SHOW_LINKLOCAL and iface.address_ip6_linklocal %}
             {{ iface.address_ip6_linklocal.ip }} / {{ iface.address_ip6_linklocal.prefixlen }} <br />
         {% endif %}
           </td>
