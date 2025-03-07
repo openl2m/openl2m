@@ -11,7 +11,9 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+import ipaddress
 import netaddr
+import struct
 
 from django.conf import settings
 from switches.utils import dprint
@@ -55,7 +57,7 @@ def bytes_ethernet_to_string(bytes: str) -> str:
     return ''
 
 
-def get_ip_from_oid_index(index: str, addr_type: int) -> str:
+def get_ip_from_oid_index(index: str, addr_type: int, has_length: bool = True) -> str:
     """Convert an OID sub-index to an IP address in string format.
     Note: currently does NOT do IPV6 parsing yet!
 
@@ -64,22 +66,56 @@ def get_ip_from_oid_index(index: str, addr_type: int) -> str:
         addr_type (int): the either IANA_TYPE_IPV4 (1) or IANA_TYPE_IPV6 (2)
                     this defines parsing to the index
                     Note: currently does NOT do IPV6 parsing yet!
+        has_length (bool): if True, first byte is length, ie. "<length>.<ip in decimal>"
+                            False: format is "<ip in decimal>"
     Returns:
         (str): the parsed IP address in string format.
     """
-    dprint("get_ip_from_oid_index()")
+    dprint(f"get_ip_from_oid_index( index={index}, addr_type={addr_type}, has_length={has_length}")
     if addr_type == IANA_TYPE_IPV4:
-        # for IPv4, encoding is simply the length (always 4) followed by IP:
-        parts = index.split('.', 1)  # only split in 2
-        if int(parts[0]) == 4:  # looks valid
+        if has_length:
+            # for IPv4, encoding is simply the length (always 4) followed by IP:
+            parts = index.split('.', 1)  # only split in 2
+            if int(parts[0]) != 4:  # looks valid
+                # very unlikely to happen (only if bad snmp implementation on device):
+                dprint(f"  INVALID IPv4 length field, expected 4, got {int(parts[0])}")
+                return "0.0.0.0"
+            # the remaining part of the IPv4 address:
             ip = parts[1]
         else:
-            # very unlikely to happen (only if bad snmp implementation on device):
-            dprint(f"  INVALID index for address type {addr_type}: '{index}")
-            ip = "0.0.0.0"
+            # no length, just use full sub-oid
+            ip = index
         return ip
+
     if addr_type == IANA_TYPE_IPV6:
-        dprint("IPV6 NOT USUPPORTED YET!")
-        return ""
+        # for IPv6, encoding has optional length (always 16) followed by IP:
+        if has_length:
+            parts = index.split('.', 1)  # only split in 2
+            if int(parts[0]) != 16:  # invalid
+                dprint(f"INVALID IPv6 lenght field, expected 16, got {int(parts[0])}")
+                return ""
+            # the IPv6 is encoded in the rest of the OID:
+            oid_ip = parts[1]
+        else:
+            # no length, just use full sub-oid:
+            oid_ip = index
+        # move from dotted decimal to IPv6 format. Convert OID string into list of integers:
+        ipv6_list = [int(octet) for octet in oid_ip.split('.')]
+        # Pack the integers into a byte string
+        ipv6_bytes = struct.pack('!16B', *ipv6_list)
+        # convert to proper format:
+        try:
+            ipv6 = ipaddress.ip_address(ipv6_bytes)
+            if ipv6.version == 6:  # valid!
+                dprint(f"IPv6 = {ipv6}")
+                return str(ipv6)
+            else:
+                # invalid!
+                dprint(f"INVALID Ipv6 conversion, version return: {ipv6.version}")
+                return ""
+        except Exception as err:
+            dprint(f"IPv6 conversion failed - {err}")
+            return ""
+
     dprint(f"INVALID TYPE {addr_type}")
     return ""
