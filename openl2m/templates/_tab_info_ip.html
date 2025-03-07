@@ -3,7 +3,7 @@
 
 <div class="card border-default mb-2">
   <div class="card-header bg-default">
-    <strong>IPv4 Interfaces</strong>
+    <strong>IP Interfaces</strong>
   </div>
   <div class="card-body">
     <table class="table table-striped table-hover table-headings w-auto">
@@ -12,34 +12,49 @@
       </thead>
       <tbody>
       {% for if_index,iface in connection.interfaces.items %}
-        {% if iface.addresses_ip4 %}
+      {# this needs work ! #}
+        {% if iface.addresses_ip4 or iface.addresses_ip6 or iface.address_ip6_linklocal %}
+        <tr>
+          <td>{{iface.name}}</td>
+          <td>
           {% for ip,addr in iface.addresses_ip4.items %}
-          <tr>
-            <td>{{iface.name}}</td>
-            <td>
-              {% if addr.hostname %}
-                <abbr data-bs-toggle="tooltip" title="{{ addr.hostname }}">{{ addr.ip }}</abbr>
-              {% else %}
-                {{ addr.ip }}
-              {% endif %}
-              /
-              {% if settings.IFACE_IP4_SHOW_PREFIXLEN %}
-                {{ addr.prefixlen }}
-              {% else %}
-                {{ addr.netmask }}
-              {% endif %}
-            </td>
-            <td>{{ connection.switch|get_interface_info_links:iface }} {{ addr.ip|get_ip4_info_links }}
-              {% if iface.vrf_name %}
-                &nbsp;
-                <i class="fas fa-network-wired" aria-hidden="true"
-                    data-bs-toggle="tooltip"
-                    title="Member of VRF '{{ iface.vrf_name }}'">
-                </i>
-              {% endif %}
-            </td>
-          </tr>
+            {% if addr.hostname %}
+              <abbr data-bs-toggle="tooltip" title="{{ addr.hostname }}">{{ addr.ip }}</abbr>
+            {% else %}
+              {{ addr.ip }}
+            {% endif %}
+            /
+            {% if settings.IFACE_IP4_SHOW_PREFIXLEN %}
+              {{ addr.prefixlen }}
+            {% else %}
+              {{ addr.netmask }}
+            {% endif %}
+            <br />
           {% endfor %}
+
+          {% for ip,addr in iface.addresses_ip6.items %}
+            {% if addr.hostname %}
+              <abbr data-bs-toggle="tooltip" title="{{ addr.hostname }}">{{ addr.ip }}</abbr>
+            {% else %}
+              {{ addr.ip }}
+            {% endif %}
+            / {{ addr.prefixlen }} <br />
+          {% endfor %}
+          {% if iface.address_ip6_linklocal %}
+            {{ iface.address_ip6_linklocal.ip }} / {{ iface.address_ip6_linklocal.prefixlen }} <br />
+        {% endif %}
+          </td>
+          {# info links/icons in the "Etc" column #}
+          <td>{{ connection.switch|get_interface_info_links:iface }} {{ addr.ip|get_ip4_info_links }}
+            {% if iface.vrf_name %}
+              &nbsp;
+              <i class="fas fa-network-wired" aria-hidden="true"
+                  data-bs-toggle="tooltip"
+                  title="Member of VRF '{{ iface.vrf_name }}'">
+              </i>
+            {% endif %}
+          </td>
+        </tr>
         {% endif %}
       {% endfor %}
       </tbody>
