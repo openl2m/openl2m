@@ -11,6 +11,15 @@ Version 3.4
 
 **Version 3.4 adds support for Cisco CBS devices and can produce a graphic view of all device neighbors.**
 
+Version 3.4.1
+-------------
+
+Release Date: TBD
+
+Bug fixes:
+
+* fixed white-space handling in CSV import that caused device IP address errors.
+
 Version 3.4
 -------------
 

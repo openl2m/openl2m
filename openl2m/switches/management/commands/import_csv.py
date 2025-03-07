@@ -33,6 +33,12 @@ from switches.constants import (
 )
 
 
+def strip_whitespace_from_values(row):
+    """Strip whitespace from all entries in the dictionary"""
+    for key, value in row.items():
+        row[key] = value.strip()
+
+
 class Command(BaseCommand):
     help = 'Import CSV files with Switches, etc.'
 
@@ -65,15 +71,19 @@ class Command(BaseCommand):
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing Commands")
                 for row in reader:
+                    strip_whitespace_from_values(row)
                     if 'name' not in row.keys():
-                        self.stdout.write(self.style.ERROR("'name' field is required!"))
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
                     self.stdout.write(f"Found: {row['name']}")
                     try:
                         c = Command.objects.get(name=row['name'], type=row['os'])
                         if not update:
+                            self.stdout.write(f"Line {reader.line_num}:")
                             self.stdout.write(
-                                self.style.WARNING(f"Command '{row['name']}' already exists, but update NOT allowed!")
+                                self.style.WARNING(
+                                    f"Line {reader.line_num}: Command '{row['name']}' already exists, but update NOT allowed!"
+                                )
                             )
                             continue
                     except Exception:
@@ -91,9 +101,13 @@ class Command(BaseCommand):
                     try:
                         c.save()
                     except Exception as e:
-                        self.stdout.write(self.style.ERROR(f"   Error saving Command '{row['name']}'"))
-                        self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                        self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error saving Command '{row['name']}'")
+                        )
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                        )
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                         continue
                     self.stdout.write(self.style.SUCCESS("   Save OK"))
 
@@ -105,13 +119,16 @@ class Command(BaseCommand):
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing SwitchGroups")
                 for row in reader:
+                    strip_whitespace_from_values(row)
                     if 'name' not in row.keys():
-                        self.stdout.write(self.style.ERROR("'name' field is required!"))
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
                     self.stdout.write("Found: %s" % row['name'])
                     try:
                         g = SwitchGroup.objects.get(name=row['name'])
-                        self.stdout.write(self.style.WARNING(f"SwitchGroup {row['name']} already exists!"))
+                        self.stdout.write(
+                            self.style.WARNING(f"Line {reader.line_num}: SwitchGroup {row['name']} already exists!")
+                        )
                         continue
                     except Exception:
                         # create new group
@@ -121,9 +138,13 @@ class Command(BaseCommand):
                         g.save()
                         self.stdout.write(self.style.SUCCESS("   Save OK"))
                     except Exception as e:
-                        self.stdout.write(self.style.ERROR(f"   Error saving SwitchGroup '{row['name']}'"))
-                        self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                        self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error saving SwitchGroup '{row['name']}'")
+                        )
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                        )
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                         continue
 
         user_file = options['users']
@@ -132,14 +153,16 @@ class Command(BaseCommand):
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing Users")
                 for row in reader:
+                    strip_whitespace_from_values(row)
                     if 'username' not in row.keys():
+                        self.stdout.write(f"Line {reader.line_num}:")
                         self.stdout.write(self.style.ERROR("'username' field is required!"))
                         sys.exit()
                     if 'email' not in row.keys():
-                        self.stdout.write(self.style.ERROR("'email' field is required!"))
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'email' field is required!"))
                         sys.exit()
                     if 'password' not in row.keys():
-                        self.stdout.write(self.style.ERROR("'password' field is required!"))
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'password' field is required!"))
                         sys.exit()
                     self.stdout.write("Found: %s" % row['username'])
                     username = row['username']
@@ -149,9 +172,13 @@ class Command(BaseCommand):
                     try:
                         u = User.objects.create_user(username, email, password)
                     except Exception as e:
-                        self.stdout.write(self.style.ERROR(f"   Error creating User '{row['username']}'"))
-                        self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                        self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error creating User '{row['username']}'")
+                        )
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                        )
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                         continue
                     if 'staff' in row.keys():
                         u.is_staff = bool(row['staff'])
@@ -165,9 +192,13 @@ class Command(BaseCommand):
                             group = Group.objects.get(name=row['group'])
                             group.user_set.add(u)
                         except Exception as e:
-                            self.stdout.write(self.style.ERROR(f"   Error adding user to group '{row['group']}'"))
-                            self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                            self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                            self.stdout.write(
+                                self.style.ERROR(f"Line {reader.line_num}: Error adding user to group '{row['group']}'")
+                            )
+                            self.stdout.write(
+                                self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                            )
+                            self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
 
         vlan_file = options['vlans']
         if vlan_file:
@@ -175,15 +206,20 @@ class Command(BaseCommand):
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing VLANs")
                 for row in reader:
+                    strip_whitespace_from_values(row)
                     if 'name' not in row.keys():
-                        self.stdout.write(self.style.ERROR("'name' field is required!"))
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
                     self.stdout.write("Found: %s" % row['name'])
                     # are we updating?
                     try:
                         v = VLAN.objects.get(vid=row['vid'], name=row['name'])
                         if not update:
-                            self.stdout.write(self.style.WARNING("Existing VLAN found, but update NOT allowed!"))
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"Line {reader.line_num}: Existing VLAN found, but update NOT allowed!"
+                                )
+                            )
                             continue
                     except Exception:
                         # create new vlan:
@@ -198,9 +234,13 @@ class Command(BaseCommand):
                     try:
                         v.save()
                     except Exception as e:
-                        self.stdout.write(self.style.ERROR(f"   Error saving VLAN '{row['name']}'"))
-                        self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                        self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error saving VLAN '{row['name']}'")
+                        )
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                        )
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                         continue
                     self.stdout.write(self.style.SUCCESS("   Save OK"))
 
@@ -210,15 +250,20 @@ class Command(BaseCommand):
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing Switches")
                 for row in reader:
+                    strip_whitespace_from_values(row)
                     if 'name' not in row.keys():
-                        self.stdout.write(self.style.ERROR("'name' field is required!"))
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
                     self.stdout.write(f"Found: {row['name']}")
                     # see if switch object exists:
                     try:
                         switch = Switch.objects.get(name=row['name'])
                         if not update:
-                            self.stdout.write(self.style.WARNING("Existing switch found, but update NOT allowed!"))
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"Line {reader.line_num}: Existing switch found, but update NOT allowed!"
+                                )
+                            )
                             continue
                     except Exception:
                         # not found, create new object:
@@ -228,7 +273,7 @@ class Command(BaseCommand):
                     if 'primary_ip4' in row.keys():
                         switch.primary_ip4 = row['primary_ip4']
                     else:
-                        self.stdout.write(self.style.ERROR("'primary_ip4' field is required!"))
+                        self.stdout.write(self.style.ERROR("Line {reader.line_num}: 'primary_ip4' field is required!"))
                         sys.exit()
                     if 'description' in row.keys():
                         switch.description = row['description']
@@ -247,13 +292,20 @@ class Command(BaseCommand):
                             switch.snmp_profile = snmp
                         except Exception as e:
                             self.stdout.write(
-                                self.style.ERROR("   Error getting valid SNMP Profile '%s'" % row['snmp_profile'])
+                                self.style.ERROR(
+                                    f"Line {reader.line_num}: Error getting valid SNMP Profile '%s'"
+                                    % row['snmp_profile']
+                                )
                             )
                             self.stdout.write(
-                                self.style.ERROR("   We cannot import a switch with an invalid SNMP Profile!")
+                                self.style.ERROR(
+                                    f"Line {reader.line_num}: We cannot import a switch with an invalid SNMP Profile!"
+                                )
                             )
-                            self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                            self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                            self.stdout.write(
+                                self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                            )
+                            self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                             continue
                     if 'netmiko_profile' in row.keys() and row['netmiko_profile']:
                         try:
@@ -261,13 +313,20 @@ class Command(BaseCommand):
                             switch.netmiko_profile = nm
                         except Exception as e:
                             self.stdout.write(
-                                self.style.ERROR("   Error getting Netmiko Profile '%s'" % row['netmiko_profile'])
+                                self.style.ERROR(
+                                    f"Line {reader.line_num}: Error getting Netmiko Profile '%s'"
+                                    % row['netmiko_profile']
+                                )
                             )
                             self.stdout.write(
-                                self.style.ERROR("   We cannot import a switch with an invalid Netmiko Profile!")
+                                self.style.ERROR(
+                                    f"Line {reader.line_num}: We cannot import a switch with an invalid Netmiko Profile!"
+                                )
                             )
-                            self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                            self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                            self.stdout.write(
+                                self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                            )
+                            self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                             continue
                     if 'command_list' in row.keys() and row['command_list']:
                         try:
@@ -281,23 +340,34 @@ class Command(BaseCommand):
                                 cl.save()
                                 self.stdout.write(
                                     self.style.WARNING(
-                                        "   EMPTY Command List '%s' created, please edit as needed!"
+                                        f"Line {reader.line_num}: EMPTY Command List '%s' created, please edit as needed!"
                                         % row['command_list']
                                     )
                                 )
                             except Exception as e:
                                 self.stdout.write(
-                                    self.style.ERROR("   Error creating Command List '%s'" % row['command_list'])
+                                    self.style.ERROR(
+                                        f"Line {reader.line_num}: Error creating Command List '%s'"
+                                        % row['command_list']
+                                    )
                                 )
-                                self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                                self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                                self.stdout.write(
+                                    self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                                )
+                                self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                                 continue
                     try:
                         switch.save()
                     except Exception as e:
-                        self.stdout.write(self.style.ERROR("   Error saving new switch object for '%s'" % row['name']))
-                        self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                        self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                        self.stdout.write(
+                            self.style.ERROR(
+                                f"Line {reader.line_num}: Error saving new switch object for '%s'" % row['name']
+                            )
+                        )
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                        )
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                         continue
                     # do we need to add switch to a group?
                     if 'group' in row.keys() and row['group']:
@@ -312,9 +382,15 @@ class Command(BaseCommand):
                                 g.save()
                                 self.stdout.write(self.style.SUCCESS("  SwitchGroup '%s' created" % row['group']))
                             except Exception as e:
-                                self.stdout.write(self.style.ERROR("   Error creating SwitchGroup '%s'" % row['group']))
-                                self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                                self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                                self.stdout.write(
+                                    self.style.ERROR(
+                                        f"Line {reader.line_num}: Error creating SwitchGroup '%s'" % row['group']
+                                    )
+                                )
+                                self.stdout.write(
+                                    self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                                )
+                                self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                                 continue
                         # assign switch to the switchgroup
                         try:
@@ -322,11 +398,14 @@ class Command(BaseCommand):
                         except Exception as e:
                             self.stdout.write(
                                 self.style.ERROR(
-                                    "   Error adding switch to switchgroup '%s', please do this manually!" % g.name
+                                    f"Line {reader.line_num}: Error adding switch to switchgroup '%s', please do this manually!"
+                                    % g.name
                                 )
                             )
-                            self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                            self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                            self.stdout.write(
+                                self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                            )
+                            self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                             continue
                     self.stdout.write(self.style.SUCCESS("   Import OK"))
 
@@ -336,15 +415,18 @@ class Command(BaseCommand):
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing Netmiko Profile")
                 for row in reader:
+                    strip_whitespace_from_values(row)
                     if 'name' not in row.keys():
-                        self.stdout.write(self.style.ERROR("'name' field is required!"))
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}:'name' field is required!"))
                         sys.exit()
                     self.stdout.write("Found: %s" % row['name'])
                     try:
                         nm = NetmikoProfile.objects.get(name=row['name'])
                         if not update:
                             self.stdout.write(
-                                self.style.WARNING("Existing NetmikeProfile found, but update NOT allowed!")
+                                self.style.WARNING(
+                                    f"Line {reader.line_num}: Existing NetmikeProfile found, but update NOT allowed!"
+                                )
                             )
                             continue
                     except Exception:
@@ -371,9 +453,13 @@ class Command(BaseCommand):
                     try:
                         nm.save()
                     except Exception as e:
-                        self.stdout.write(self.style.ERROR("   Error saving Netmiko Profile '%s'" % row['name']))
-                        self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                        self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error saving Netmiko Profile '%s'" % row['name'])
+                        )
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                        )
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                         continue
                     self.stdout.write(self.style.SUCCESS("   Import OK"))
 
@@ -383,14 +469,19 @@ class Command(BaseCommand):
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing SNMP Profile")
                 for row in reader:
+                    strip_whitespace_from_values(row)
                     if 'name' not in row.keys():
-                        self.stdout.write(self.style.ERROR("'name' field is required!"))
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
                     self.stdout.write("Found: %s" % row['name'])
                     try:
                         s = SnmpProfile.objects.get(name=row['name'])
                         if not update:
-                            self.stdout.write(self.style.WARNING("Existing SnmpProfile found, but update NOT allowed!"))
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"Line {reader.line_num}: Existing SnmpProfile found, but update NOT allowed!"
+                                )
+                            )
                             continue
                     except Exception:
                         # create new
@@ -440,8 +531,12 @@ class Command(BaseCommand):
                     try:
                         s.save()
                     except Exception as e:
-                        self.stdout.write(self.style.ERROR(f"   Error saving SNMP Profile '{row['name']}'"))
-                        self.stdout.write(self.style.ERROR(f"   Error details: {sys.exc_info()[0]}"))
-                        self.stdout.write(self.style.ERROR(f"   {format(e)}"))
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error saving SNMP Profile '{row['name']}'")
+                        )
+                        self.stdout.write(
+                            self.style.ERROR(f"Line {reader.line_num}: Error details: {sys.exc_info()[0]}")
+                        )
+                        self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                         continue
                     self.stdout.write(self.style.SUCCESS("   Import OK"))
