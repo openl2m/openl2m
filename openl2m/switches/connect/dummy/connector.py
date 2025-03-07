@@ -19,7 +19,7 @@ Dummy Connector
 from django.http.request import HttpRequest
 
 from switches.connect.constants import IF_TYPE_ETHERNET
-from switches.connect.classes import Interface, NeighborDevice
+from switches.connect.classes import Interface, NeighborDevice, Vrf
 from switches.connect.connector import Connector
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
@@ -50,6 +50,14 @@ class DummyConnector(Connector):
 
         self.add_poe_powersupply(1, 45)  # simulate a 45W power supply
 
+        v = Vrf()
+        v.name = "VRF-1"
+        v.rd = "65000:1"
+        v.description = "Test VRF"
+        v.ipv4 = True
+        v.ipv6 = True
+        self.vrfs[v.name] = v
+
         self.add_vlan_by_id(1, "Default!")
         self.add_vlan_by_id(5, "Vlan Five")
         self.add_vlan_by_id(15, "Vlan Fifteen")
@@ -75,6 +83,9 @@ class DummyConnector(Connector):
         iface.speed = 10
         iface.description = "Interface eth0/0/1"
         iface.untagged_vlan = 5
+        iface.add_ip4_network(address="192.168.5.1", prefix_len=24)
+        iface.add_ip4_network(address="192.168.15.1", prefix_len=24)
+        iface.vrf_name = "VRF-1"
         self.add_interface(iface)
 
         iface = Interface("eth2")
@@ -85,6 +96,8 @@ class DummyConnector(Connector):
         iface.speed = 100
         iface.description = "Interface eth2"
         iface.untagged_vlan = 15
+        iface.add_ip4_network(address="192.168.99.99", prefix_len=24)
+        iface.add_ip4_network(address="192.168.55.1", prefix_len=24)
         self.add_interface(iface)
         self.set_interface_poe_available(iface, 15000)
         self.set_interface_poe_consumed(iface, 4500)
@@ -97,6 +110,11 @@ class DummyConnector(Connector):
         iface.speed = 10
         iface.description = "Interface eth3"
         iface.untagged_vlan = 5
+        iface.add_ip4_network(address="192.168.55.1", prefix_len=24)
+        iface.add_ip6_network(address="fc00::dead:beef")  # prefix_len is optional, default=64
+        iface.add_ip6_network(address="fc00::deaa:beee")  # prefix_len is optional, default=64
+        iface.add_ip6_network(address="fe80::1234:4567", prefix_len=64)  # this is a Link-Local address.
+        iface.vrf_name = "VRF-1"
         self.add_interface(iface)
 
         return True
