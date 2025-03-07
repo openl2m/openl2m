@@ -55,6 +55,7 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_DOCSIS,
     LLDP_CAPABILITIES_STATION,
     LLDP_CAPABILITIES_NONE,
+    IPV6_LINK_LOCAL_NETWORK,
 )
 from switches.utils import dprint, get_ip_dns_name
 
@@ -947,15 +948,22 @@ class Interface:
             self.addresses_ip4[address].resolve_ip_address()
         # return True
 
-    def add_ip6_network(self, address: str, prefix_len: int) -> None:
+    def add_ip6_network(self, address: str, prefix_len: int = 64) -> None:
         '''
         Add an IPv6 address to this interface, as given by the IPv6 address and prefix_len
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
         return True on success, False on failure.
         '''
-        self.addresses_ip6[address] = IPNetworkHostname(f"{address}/{prefix_len}")
-        if settings.LOOKUP_HOSTNAME_ROUTED_IP:
-            self.addresses_ip6[address].resolve_ip_address()
+        try:
+            ipv6 = IPNetworkHostname(f"{address}/{prefix_len}")
+            if ipv6 in IPV6_LINK_LOCAL_NETWORK:
+                self.address_ip6_linklocal = ipv6
+            else:
+                if settings.LOOKUP_HOSTNAME_ROUTED_IP:
+                    ipv6.resolve_ip_address()
+                self.addresses_ip6[address] = ipv6
+        except Exception as err:
+            dprint(f"INVALID IPv6 address '{address}/{prefix_len}': {err}")
         # return True
 
     def add_tagged_vlan(self, vlan_id: int) -> None:
