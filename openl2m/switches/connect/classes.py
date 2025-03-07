@@ -826,18 +826,31 @@ class Vrf:
     Class to represent a VRF (Virtual Routing and Forwarding instance) that exists on the device.
     """
 
-    def __init__(self):
+    def __init__(self, name: str = "", rd: str = "", description: str = "", ipv4: bool = False, ipv6: bool = False):
         """
         Initialize the VRF object
+
+        Params:
+            name (str): the name of the VRF.
+            rd (str): the Route Distinguisher, as a string.
+            description (str): the VRF description.
+            ipv4 (bool): if True, this VRF is used for IPv4 routing.
+            ipv6 (bool): if True, this VRF is used for IPv6 routing.
         """
-        self.name = ""
-        self.rd = ""  # vrf route distinguisher
-        self.description = ""
+        self.name = name
+        self.rd = rd  # vrf route distinguisher
+        self.description = description
         # self.state      # enable or disabled, VRF_ACTIVE or VRF_INACTIVE
-        self.ipv4 = False  # True if VRF is enabled for IPv4
-        self.ipv6 = False  # True if VRF is enabled for IPv6
+        self.ipv4 = ipv4  # True if VRF is enabled for IPv4
+        self.ipv6 = ipv6  # True if VRF is enabled for IPv6
         self.active_interfaces = 0  # number of interfaces active on this VRF
         self.interfaces = []  # list of interface names in this VRF
+
+    def add_interface(name: str = ""):
+        """Add an interface name to the dict of interfaces in this vrf."""
+        if name:
+            self.interfaces.append(name)
+        # return
 
     def as_dict(self):
         '''
