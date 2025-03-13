@@ -1884,7 +1884,14 @@ class SnmpConnector(Connector):
 
     def _parse_mibs_net_to_physical(self, oid: str, val: str) -> bool:
         """
-        Parse a single OID with data returned from the (various) Net-To-Physical (ie new ARP) mibs
+        Parse a single OID with data returned from the (various) Net-To-Physical (ie new ARP/ND) mibs
+        This mib entry contains an ifIndex, and a protocol field,
+        so both IPv4 (ARP) and IPv6 (ND) entries are in this table.
+
+        The returned OID format is:
+        ipNetToPhysicalPhysAddress.<if-index>.<address-type>.<length>."ip address in dotted format" = "ethernet address"
+        where address-type = IANA_TYPE_IPV4 (1) or IANA_TYPE_IPV6 (2)
+        and returned value is ethernet address as 6 bytes.
 
         Params:
             oid (str): the SNMP OID to parse
@@ -1900,7 +1907,6 @@ class SnmpConnector(Connector):
         if if_ip_string:
             # the returned OID format is:
             # ipNetToPhysicalPhysAddress.<if-index>.<address-type>.<length>."ip address in dotted format" = "mac address"
-            # no if_ip_string = <if-index>.<address-type>.<length>."ip address in dotted format"
             # address-type = IANA_TYPE_IPV4 (1) or IANA_TYPE_IPV6 (2)
             parts = if_ip_string.split('.', 2)  # split in 3: if-index, address-type, and the rest
 
@@ -1922,23 +1928,18 @@ class SnmpConnector(Connector):
             if not ip:  # could not decode?
                 dprint("INVALID empty IP returned!")
                 return True  # we did parse this SNMP entry
-            mac_addr = bytes_ethernet_to_string(val)
-            dprint(f"    MAC={mac_addr}")
+
+            # decode the return value into the ethernet address
+            eth_addr = bytes_ethernet_to_string(val)
+            dprint(f"    MAC={eth_addr}")
             # we currently only deal with IPv4:
             if addr_type == IANA_TYPE_IPV4:
                 dprint(f"    IPV4={ip}")
-                if mac_addr in iface.eth.keys():
-                    # Found existing MAC addr, adding IPv4
-                    iface.eth[mac_addr].address_ip4 = ip
-                else:
-                    iface.add_learned_ethernet_address(eth_address=mac_addr, ip4_address=ip)
+                iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
             elif addr_type == IANA_TYPE_IPV6:
                 dprint(f"    IPv6={ip}")
-                if mac_addr in iface.eth.keys():
-                    # Found existing MAC addr, adding IPv6
-                    iface.eth[mac_addr].address_ip6.append(ip)
-                else:
-                    iface.add_learned_ethernet_address(eth_address=mac_addr, ip6_address=ip)
+                # add new ethernet address to interface:
+                iface.add_learned_ethernet_address(eth_address=eth_addr, ip6_address=ip)
 
             return True
 
