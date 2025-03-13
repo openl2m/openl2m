@@ -196,12 +196,12 @@ class NapalmConnector(Connector):
                 for ipv4, values in if_data['ipv4'].items():
                     prefix_len = values['prefix_length']
                     # dprint(f"IP: {ipv4}/{prefix_len}")
-                    iface.add_ip4_network(ipv4, prefix_len)
+                    iface.add_ip4_network(address=ipv4, prefix_len=prefix_len)
             if 'ipv6' in if_data.keys():
                 for ipv6, values in if_data['ipv6'].items():
                     prefix_len = values['prefix_length']
                     # dprint(f"IP: {ipv6}/{prefix_len}")
-                    iface.add_ip6_network(ipv6, prefix_len)
+                    iface.add_ip6_network(address=ipv6, prefix_len=prefix_len)
 
         return True
 

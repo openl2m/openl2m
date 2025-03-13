@@ -285,7 +285,11 @@ IP_ADDRESS_TYPE_ANYCAST = 2
 IP_ADDRESS_TYPE_BROADCAST = 3
 
 # A pointer to the row in the prefix table to which this address belongs. May be { 0 0 } if there is no such row.
+# this contains bot the IP4/6 address, the ifIndex where it is from, and the PrefixLength!
 ipAddressPrefix = '.1.3.6.1.2.1.4.34.1.5'
+snmp_mib_variables['ipAddressPrefix'] = ipAddressPrefix
+# this returns ipAddressPrefixOrigin.<ifIndex>.<add type>.<addr lenght>.<IP info in dotted decimal>.<prefix-length>
+ipAddressPrefixOrigin = ".1.3.6.1.2.1.4.32.1.5"
 
 # The origin of the address.
 ipAddressOrigin = '.1.3.6.1.2.1.4.34.1.6'

@@ -146,7 +146,7 @@ class PyEZConnector(Connector):
                             dprint(f"    Error in finding subnet size: {err}")
                             # not found, so lets assume a /32
                             prefixlen = 32
-                        iface.add_ip4_network(ip4_address, prefix_len=prefixlen)
+                        iface.add_ip4_network(address=ip4_address, prefix_len=prefixlen)
                 except Exception as error:
                     dprint(f"  NO ipv4 address found! Error={error}")
             elif af_name == 'inet6':

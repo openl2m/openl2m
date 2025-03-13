@@ -84,6 +84,7 @@ def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
         else:
             # no length, just use full sub-oid as IPv4:
             ip = sub_oid
+        dprint(f"  IPv4={ip}")
         return ip
 
     if addr_type == IANA_TYPE_IPV6:
@@ -91,7 +92,7 @@ def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
         if has_length:
             parts = sub_oid.split('.', 1)  # only split in 2
             if int(parts[0]) != 16:  # invalid
-                dprint(f"INVALID IPv6 lenght field, expected 16, got {int(parts[0])}")
+                dprint(f"  INVALID IPv6 lenght field, expected 16, got {int(parts[0])}")
                 return ""
             # the IPv6 is encoded in the rest of the OID:
             oid_ip = parts[1]
@@ -106,15 +107,15 @@ def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
         try:
             ipv6 = ipaddress.ip_address(ipv6_bytes)
             if ipv6.version == 6:  # valid!
-                dprint(f"IPv6 = {ipv6}")
+                dprint(f"  IPv6={ipv6}")
                 return str(ipv6)
             else:
                 # invalid!
-                dprint(f"INVALID Ipv6 conversion, version return: {ipv6.version}")
+                dprint(f"  INVALID Ipv6 conversion, version return: {ipv6.version}")
                 return ""
         except Exception as err:
-            dprint(f"IPv6 conversion failed - {err}")
+            dprint(f"  IPv6 conversion failed - {err}")
             return ""
 
-    dprint(f"INVALID TYPE {addr_type}")
+    dprint(f"  INVALID TYPE {addr_type}")
     return ""
