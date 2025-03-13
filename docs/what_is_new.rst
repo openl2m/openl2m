@@ -6,7 +6,8 @@ What's New...
 
 :doc:`Please read the release notes for more details on each release. <releases/index>`
 
-* v3.4 adds support for Cisco CBS devices and can produce a graphic view of all device neighbors.
+* v3.4 adds support for IPv6 for interfaces and neighbors, supports Cisco CBS devices
+  and can produce a graphic view of all device neighbors.
 
 * v3.3 adds support for Arista devices via SNMP. Also read MPLS VRF info via SNMP on devices
   and interfaces that support it. SNMP now supports authencation up to SHA-512 and privacy up to AES-256.

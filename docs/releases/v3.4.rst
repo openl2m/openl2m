@@ -9,15 +9,47 @@ Version 3.4
   v3.3 and up require Postgres version 13 or greater! (I.e. Ubuntu 20.04 will no longer work.)
 
 
-**Version 3.4 adds support for Cisco CBS devices and can produce a graphic view of all device neighbors.**
+**Version 3.4 adds support for IPv6, Cisco CBS devices and can produce a graphic view of all device neighbors.**
+
+New Configuration Options
+-------------------------
+
+IPv6 related:
+
+.. code-block:: python
+
+  # if set to True, IPv6 addresses will be shown with UPPER case letters.
+  # default is lower case.
+  IPV6_USE_UPPER = False
+
+  # if set to True, the IPv6 Link-Local address of interfaces will be shown (if known)
+  # note this is link-specific, and not very useful!
+  IPV6_SHOW_LINKLOCAL = False
+
+Neighbor Graph Options
+----------------------
+
+.. code-block:: python
+
+  # Mermaid graphs of connected devices  (neighbors) can be simple or expanded.
+  # Simple shows current device interface and connected neigbor.
+  # Expanded also show the remote neighbor interface, if shown.
+  # default is simple, ie. False. Set to True for slightly more interesting graph.
+  MM_GRAPH_EXPANDED = False
+
+
 
 Version 3.4.1
 -------------
 
 Release Date: TBD
 
+* add IPv6 information for interface addresses, and neighbor devices (aka IPv6 'ND')
+* add expanded graph.
+
 Bug fixes:
 
+* fixed duplicate interface IPv4 for SNMP devices.
 * fixed white-space handling in CSV import that caused device IP address errors.
 
 Version 3.4
