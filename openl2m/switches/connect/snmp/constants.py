@@ -182,6 +182,12 @@ ifSpecific = '.1.3.6.1.2.1.2.2.1.20'
 snmp_mib_variables['ifSpecific'] =  ifSpecific
 """
 
+##############################################
+# IP-MIB contains various IP address entries #
+# see https://mibs.observium.org/mib/IP-MIB  #
+#                                            #
+# ip = ".1.3.6.1.2.1.4"                      #
+##############################################
 
 #
 # the IP address(es) of the switch
@@ -215,6 +221,22 @@ snmp_mib_variables['ipNetToMediaPhysAddress'] = ipNetToMediaPhysAddress
 # ipNetToMediaNetAddress is the 'arp' table,
 ipNetToMediaNetAddress = '.1.3.6.1.2.1.4.22.1.3'
 snmp_mib_variables['ipNetToMediaNetAddress'] = ipNetToMediaNetAddress
+
+#
+# IP-MIB IPv6 interface info
+#
+# ipv6InterfaceTable = ".1.3.6.1.2.1.4.30"
+# ipv6InterfaceEntry = ".1.3.6.1.2.1.4.30.1"
+# snmp_mib_variables['ipv6InterfaceEntry'] = ipv6InterfaceEntry
+
+# ipv6InterfaceIfIndex = ".1.3.6.1.2.1.4.30.1.1"
+# snmp_mib_variables['ipv6InterfaceIfIndex'] = ipv6InterfaceIfIndex
+
+# ipv6InterfaceReasmMaxSize 	octets	.1.3.6.1.2.1.4.30.1.2
+
+# this is the interface IPv6 address:
+ipv6InterfaceIdentifier = ".1.3.6.1.2.1.4.30.1.3"
+snmp_mib_variables['ipv6InterfaceIdentifier'] = ipv6InterfaceIdentifier
 
 #
 # the newer ipAddressTable, from the IP-MIB:
@@ -263,7 +285,11 @@ IP_ADDRESS_TYPE_ANYCAST = 2
 IP_ADDRESS_TYPE_BROADCAST = 3
 
 # A pointer to the row in the prefix table to which this address belongs. May be { 0 0 } if there is no such row.
+# this contains bot the IP4/6 address, the ifIndex where it is from, and the PrefixLength!
 ipAddressPrefix = '.1.3.6.1.2.1.4.34.1.5'
+snmp_mib_variables['ipAddressPrefix'] = ipAddressPrefix
+# this returns ipAddressPrefixOrigin.<ifIndex>.<add type>.<addr lenght>.<IP info in dotted decimal>.<prefix-length>
+ipAddressPrefixOrigin = ".1.3.6.1.2.1.4.32.1.5"
 
 # The origin of the address.
 ipAddressOrigin = '.1.3.6.1.2.1.4.34.1.6'
@@ -330,7 +356,59 @@ ipNetToPhysicalState = '.1.3.6.1.2.1.4.35.1.7'
 ipNetToPhysicalRowStatus = '.1.3.6.1.2.1.4.35.1.8'
 
 #
+# OLD, deprecated IPV6-MIB
+# still used in some routers.
+# see https://mibs.observium.org/mib/IPV6-MIB
+#
+# see also above IP-MIB older entries "ipv6InterfaceTable"
+#
+# ipv6MIB = ".1.3.6.1.2.1.55"
+# ipv6MIBObjects  .1.3.6.1.2.1.55.1
+# ipv6DefaultHopLimit .1.3.6.1.2.1.55.1.2
+# ipv6Interfaces .1.3.6.1.2.1.55.1.3
+# ipv6IfTableLastChange .1.3.6.1.2.1.55.1.4
 
+# this sounds like it should have IPv6 interface info, but does not!
+# ipv6IfTable .1.3.6.1.2.1.55.1.5
+
+# ipv6IfStatsTable .1.3.6.1.2.1.55.1.6
+# ipv6AddrPrefixTable .1.3.6.1.2.1.55.1.7
+
+#
+# this tables contain IPv6 info for device interfaces:
+#
+# ipv6AddrTable  .1.3.6.1.2.1.55.1.8
+# ipv6AddrEntry  .1.3.6.1.2.1.55.1.8.1
+# ipv6AddrAddress = ".1.3.6.1.2.1.55.1.8.1.1"
+
+# this reads the IPv6 address, and the prefix length all in one:
+ipv6AddrPfxLength = ".1.3.6.1.2.1.55.1.8.1.2"
+snmp_mib_variables['ipv6AddrPfxLength'] = ipv6AddrPfxLength
+
+# return value is .1.3.6.1.2.1.55.1.8.1.2.<ifIndex>.<ipv6 in 16 decimals> = <prefix-len>
+# e.g.:
+# .1.3.6.1.2.1.55.1.8.1.2.2153.38.32.1.5.240.18.0.0.0.0.0.0.0.0.0.17 = INTEGER: 128
+# ifIndex 2153, 38 = 26h, 32 = 20h, etc. ==> 2620:0105:f012::11 / 128
+# .1.3.6.1.2.1.55.1.8.1.2.2153.254.128.0.0.0.0.0.0.0.0.0.0.105.8.0.0 = INTEGER: 10  # Link-Local fe80::6908:0000/10
+
+# ipv6AddrType  .1.3.6.1.2.1.55.1.8.1.3
+# ipv6AddrAnycastFlag  .1.3.6.1.2.1.55.1.8.1.4
+# ipv6AddrStatus  .1.3.6.1.2.1.55.1.8.1.5
+
+# ipv6RouteNumber .1.3.6.1.2.1.55.1.9
+# ipv6DiscardedRoutes .1.3.6.1.2.1.55.1.10
+# ipv6RouteTable .1.3.6.1.2.1.55.1.11
+
+# IPv6 "arp" aka Neighbor entries:
+# ipv6NetToMediaTable = ".1.3.6.1.2.1.55.1.12"
+ipv6NetToMediaEntry = ".1.3.6.1.2.1.55.1.12.1"
+snmp_mib_variables['ipv6NetToMediaEntry'] = ipv6NetToMediaEntry
+
+
+#
+# from the IEEE802.3 stats mib:
+#
+# interface duplex status:
 dot3StatsDuplexStatus = '.1.3.6.1.2.1.10.7.2.1.19'
 snmp_mib_variables['dot3StatsDuplexStatus'] = dot3StatsDuplexStatus
 

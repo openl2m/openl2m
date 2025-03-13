@@ -376,6 +376,14 @@ HIDE_NONE_ETHERNET_INTERFACES = False
 # CISCO = 2  e.g.  0011.2233.4455
 ETH_FORMAT = 0
 
+# if set to True, IPv6 addresses will be shown with UPPER case letters.
+# default is lower case.
+IPV6_USE_UPPER = False
+
+# if set to True, the IPv6 Link-Local address of interfaces will be shown (if known)
+# note this is link-specific, and not very useful!
+IPV6_SHOW_LINKLOCAL = False
+
 #
 # various regular expression to remove interfaces from the user
 # this uses the Python 're' module.

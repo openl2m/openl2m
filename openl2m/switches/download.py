@@ -186,10 +186,11 @@ def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector, 
     COL_INTERFACE_DESCRIPTION = 3
     COL_ETHERNET = 4
     COL_IPV4 = 5
-    COL_VENDOR = 6
-    COL_NEIGHBOR_NAME = 7
-    COL_NEIGHBOR_TYPE = 8
-    COL_NEIGHBOR_DESCRIPTION = 9
+    COL_IPV6 = 6
+    COL_VENDOR = 7
+    COL_NEIGHBOR_NAME = 8
+    COL_NEIGHBOR_TYPE = 9
+    COL_NEIGHBOR_DESCRIPTION = 10
 
     # start with a date message:
     row = 0
@@ -219,6 +220,9 @@ def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector, 
 
     worksheet.write(row, COL_IPV4, 'IPv4 Address', spreadsheet.format_bold)
     worksheet.set_column(COL_IPV4, COL_IPV4, 20)
+
+    worksheet.write(row, COL_IPV6, 'IPv6 Address', spreadsheet.format_bold)
+    worksheet.set_column(COL_IPV6, COL_IPV6, 25)
 
     worksheet.write(row, COL_VENDOR, 'Vendor', spreadsheet.format_bold)
     worksheet.set_column(COL_VENDOR, COL_VENDOR, 25)
@@ -253,6 +257,8 @@ def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector, 
             worksheet.write(row, COL_ETHERNET, str(eth), spreadsheet.format_regular)
             worksheet.write(row, COL_VENDOR, eth.vendor, spreadsheet.format_regular)
             worksheet.write(row, COL_IPV4, eth.address_ip4, spreadsheet.format_regular)
+            # for IPv6, we keep multiple addresses, so handle the list:
+            worksheet.write(row, COL_IPV6, ", ".join(eth.address_ip6), spreadsheet.format_regular)
 
         # and loop through lldp:
         for neighbor in interface.lldp.values():

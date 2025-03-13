@@ -55,6 +55,7 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_DOCSIS,
     LLDP_CAPABILITIES_STATION,
     LLDP_CAPABILITIES_NONE,
+    IPV6_LINK_LOCAL_NETWORK,
 )
 from switches.utils import dprint, get_ip_dns_name
 
@@ -356,18 +357,48 @@ class EthernetAddress(netaddr.EUI):
         super().__init__(ethernet_string)
         self.vendor: str = ''
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
-        self.address_ip4: str = ""  # ipv4 address from arp table, if known
-        self.address_ip6: str = ""  # ipv6 address, if known
+        self.address_ip4: str = ""  # ipv4 address as str() from arp table, if known
+        self.address_ip6: List = []  # known ipv6 addresses of this ethernet address, in list as str()
+        self.address_ip6_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
         self.hostname: str = ""  # reverse lookup for ip4 or ip6 address.
 
     def set_vlan(self, vlan_id: int) -> None:
         self.vlan_id = int(vlan_id)
 
     def set_ip4_address(self, ip4_address: str) -> None:
+        """Set the IPv4 address for this ethernet address."""
         self.address_ip4 = ip4_address
 
-    def set_ip6_address(self, ip6_address: str) -> None:
-        self.address_ip6 = ip6_address
+    def add_ip6_address(self, ip6_address: str) -> None:
+        """Add an IPv6 address to the list of addresses for this ethernet address.
+        If Link-Local is given, will set the self.ip6_address_linklocal property,
+        else will add to self.address_ip6 Dict() indexed by address as key.
+
+        Args:
+            ip6_address (str): string representing the IPv6 address for this ethernet address
+
+        Returns:
+            n/a
+        """
+        dprint(f"EthernetAddress() adding IPv6 address '{ip6_address}'")
+
+        # need to add logic to recognize IPv6 link-local "FE80::/10" subnets.
+        # we do no check validity of the address at this time.
+        if settings.IPV6_USE_UPPER:
+            ipv6 = ip6_address.upper()
+        else:
+            ipv6 = ip6_address.lower()
+        try:
+            # validate format
+            ipv6 = IPNetworkHostname(network=f"{ip6_address}/64")
+            # and check if this is Link-Local address
+            if ipv6 in IPV6_LINK_LOCAL_NETWORK:
+                dprint("   IS LINK-LOCAL!")
+                self.address_ip6_linklocal = ip6_address
+            else:
+                self.address_ip6.append(ip6_address)
+        except Exception as err:
+            dprint(f"EthernetAddress() object: adding INVALID IPv6 address '{ip6_address}': {err}")
 
     def as_dict(self) -> dict:
         '''
@@ -817,18 +848,31 @@ class Vrf:
     Class to represent a VRF (Virtual Routing and Forwarding instance) that exists on the device.
     """
 
-    def __init__(self):
+    def __init__(self, name: str = "", rd: str = "", description: str = "", ipv4: bool = False, ipv6: bool = False):
         """
         Initialize the VRF object
+
+        Params:
+            name (str): the name of the VRF.
+            rd (str): the Route Distinguisher, as a string.
+            description (str): the VRF description.
+            ipv4 (bool): if True, this VRF is used for IPv4 routing.
+            ipv6 (bool): if True, this VRF is used for IPv6 routing.
         """
-        self.name = ""
-        self.rd = ""  # vrf route distinguisher
-        self.description = ""
+        self.name = name
+        self.rd = rd  # vrf route distinguisher
+        self.description = description
         # self.state      # enable or disabled, VRF_ACTIVE or VRF_INACTIVE
-        self.ipv4 = False  # True if VRF is enabled for IPv4
-        self.ipv6 = False  # True if VRF is enabled for IPv6
+        self.ipv4 = ipv4  # True if VRF is enabled for IPv4
+        self.ipv6 = ipv6  # True if VRF is enabled for IPv6
         self.active_interfaces = 0  # number of interfaces active on this VRF
         self.interfaces = []  # list of interface names in this VRF
+
+    def add_interface(name: str = ""):
+        """Add an interface name to the dict of interfaces in this vrf."""
+        if name:
+            self.interfaces.append(name)
+        # return
 
     def as_dict(self):
         '''
@@ -879,7 +923,10 @@ class Interface:
         self.transceiver: Transceiver = None  # any transceiver info know for this interface
         self.description: str = ""  # the interface description, as set by the switch configuration, from IF-MIB
         self.addresses_ip4: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
-        self.addresses_ip6: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv6 addresses on this interface
+        self.addresses_ip6: Dict[str, IPNetworkHostname] = (
+            {}
+        )  # dictionary of all my (routable) ipv6 addresses on this interface
+        self.address_ip6_linklocal: str = ""  # the IPv6 LinkLocal address for this interface, if any.
         self.igmp_snooping: bool = False  # if True, interface does IGMP snooping
         # vlan related
         self.port_id: int = -1  # Q-Bridge MIB port id
@@ -922,29 +969,40 @@ class Interface:
         # the Vrf() this interface belongs to, if any
         self.vrf_name = ''
 
-    def add_ip4_network(self, address: str, prefix_len: int = 0) -> None:
+    def add_ip4_network(self, address: str, prefix_len: int = 0, netmask: str = "") -> None:
         '''
         Add an IPv4 address to this interface, as given by the IPv4 address and prefix_len
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
         return True on success, False on failure.
         '''
+        dprint(f"add_ip4_network(): interface '{self.name}': adding '{address}' len {prefix_len}, netmask '{netmask}")
         if prefix_len:
             self.addresses_ip4[address] = IPNetworkHostname(f"{address}/{prefix_len}")
+        elif netmask:
+            self.addresses_ip4[address] = IPNetworkHostname(f"{address}/{netmask}")
         else:
             self.addresses_ip4[address] = IPNetworkHostname(address)
         if settings.LOOKUP_HOSTNAME_ROUTED_IP:
             self.addresses_ip4[address].resolve_ip_address()
         # return True
 
-    def add_ip6_network(self, address: str, prefix_len: int) -> None:
+    def add_ip6_network(self, address: str, prefix_len: int = 64) -> None:
         '''
         Add an IPv6 address to this interface, as given by the IPv6 address and prefix_len
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
         return True on success, False on failure.
         '''
-        self.addresses_ip6[address] = IPNetworkHostname(f"{address}/{prefix_len}")
-        if settings.LOOKUP_HOSTNAME_ROUTED_IP:
-            self.addresses_ip6[address].resolve_ip_address()
+        dprint(f"add_ip6_network(): interface '{self.name}': adding '{address}' len {prefix_len}")
+        try:
+            ipv6 = IPNetworkHostname(f"{address}/{prefix_len}")
+            if ipv6 in IPV6_LINK_LOCAL_NETWORK:
+                self.address_ip6_linklocal = ipv6
+            else:
+                if settings.LOOKUP_HOSTNAME_ROUTED_IP:
+                    ipv6.resolve_ip_address()
+                self.addresses_ip6[address] = ipv6
+        except Exception as err:
+            dprint(f"INVALID IPv6 address '{address}/{prefix_len}': {err}")
         # return True
 
     def add_tagged_vlan(self, vlan_id: int) -> None:
@@ -969,39 +1027,52 @@ class Interface:
         # return True
 
     def add_learned_ethernet_address(
-        self, eth_address: str, vlan_id: int = -1, ip4_address: str = ''
+        self,
+        eth_address: str,
+        vlan_id: int = -1,
+        ip4_address: str = '',
+        ip6_address: str = '',
     ) -> EthernetAddress:
         '''
         Add an ethernet address to this interface, as given by the layer2 CAM/Switching tables.
-        It gets stored indexed by address. Create new EthernetAddress() object is not found yet.
+        It gets stored indexed by ethernet address. Create new EthernetAddress() object if not found yet.
         If the object already exists, return it.
 
         Args:
             eth_address(str): ethernet address as string.
             vlan_id(int): the vlan this ethernet address was heard on.
+            ip4_address (str): the IPv4 address for this ethernet address, if known. Typically from ARP tables.
+            ip6_address (str): the IPv6 address for this ethernet address, if known. Found in ND tables.
 
         Returns:
             EthernetAddress(), either existing or new.
         '''
-        dprint(f"Interface().add_learned_ethernet_address() for {eth_address}, vlan={vlan_id}, ip4={ip4_address}")
+        dprint(
+            f"Interface().add_learned_ethernet_address() for {eth_address}, vlan={vlan_id}, ip4='{ip4_address}', ip6='{ip6_address}'"
+        )
         if eth_address in self.eth.keys():
             # already known!
+            e = self.eth[eth_address]
             dprint("  Eth already known!")
             if vlan_id > 0:
-                self.eth[eth_address].set_vlan(vlan_id)
+                e.set_vlan(vlan_id)
             if ip4_address:
-                self.eth[eth_address].set_ip4_address(ip4_address)
-            return self.eth[eth_address]
+                e.set_ip4_address(ip4_address)
+            if ip6_address:
+                e.add_ip6_address(ip6_address=ip6_address)
+            return e
         else:
             # add the new ethernet address
             dprint("  New ethernet, adding.")
-            a = EthernetAddress(eth_address)
+            e = EthernetAddress(eth_address)
             if vlan_id > 0:
-                a.set_vlan(vlan_id)
+                e.set_vlan(vlan_id)
             if ip4_address:
-                a.set_ip4_address(ip4_address)
-            self.eth[eth_address] = a
-            return a
+                e.set_ip4_address(ip4_address=ip4_address)
+            if ip6_address:
+                e.add_ip6_address(ip6_address=ip6_address)
+            self.eth[eth_address] = e
+            return e
 
     def add_neighbor(self, neighbor: NeighborDevice) -> None:
         '''

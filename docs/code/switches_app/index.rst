@@ -60,7 +60,7 @@ In general, all view functions follow these high level steps.
 
    conn.get_switch_basic_info()
 
-This information could be cached for the session, if this is the second time something is done on this switch.
+Once the device has been read, this data is cached in the user session. On subsequent views, the cached data is used.
 E.g. you read the basic layout, then disable an interface, and go back to the main switch page.
 That second time around, the cached data will be used.
 
@@ -78,13 +78,10 @@ This calls the following:
 .. code-block:: python
 
     self._get_known_ethernet_addresses()
-      This calls  _get_branch_by_name('dot1dTpFdbPort')
 
     self._get_lldp_data()
-      This calls several lldp mib counters.
 
     self._get_arp_data()
-      This calls   _get_branch_by_name('ipNetToMediaPhysAddress')
 
 
 This Ethernet/LLDP data is *never cached*, so it is always the most recent data from the switch.
@@ -116,7 +113,7 @@ With the SNMP driver, this reads a number of entityPhysical MIB entries. Other d
 
 We use the Netmiko framework to establish SSH CLI sessions, and execute CLI commands.
 
-See :doc:`Netmiko Connector <drivers/netmiko/index>` for more.
+See :doc:`Netmiko Connector <../drivers/netmiko/index>` for more.
 
 
 **Connections**
@@ -128,8 +125,9 @@ We currently provide several vendor-specific drivers. Each is a sub-class of the
 * a Juniper PyEz-NC based driver.
 * a Aruba AOS-CX REST-API based drivers.
 * read-only demonstration driver based on the Napalm automation framework.
+* a dummy driver, mostly used to show how the Connector API can be used to fill data, and to test/debug html templates.
 
-See :doc:`Connections and Drivers <drivers/index>` for more.
+See :doc:`Connections and Drivers <../drivers/index>` for more.
 
 **Caching**
 

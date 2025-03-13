@@ -19,7 +19,7 @@ Dummy Connector
 from django.http.request import HttpRequest
 
 from switches.connect.constants import IF_TYPE_ETHERNET
-from switches.connect.classes import Interface, NeighborDevice
+from switches.connect.classes import Interface, NeighborDevice, Vrf
 from switches.connect.connector import Connector
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
@@ -50,6 +50,12 @@ class DummyConnector(Connector):
 
         self.add_poe_powersupply(1, 45)  # simulate a 45W power supply
 
+        vrf = self.get_vrf_by_name(name="VRF-1")  # this will create if not exists.
+        vrf.rd = "65000:1"
+        vrf.description = "Test VRF"
+        vrf.ipv4 = True
+        vrf.ipv6 = True
+
         self.add_vlan_by_id(1, "Default!")
         self.add_vlan_by_id(5, "Vlan Five")
         self.add_vlan_by_id(15, "Vlan Fifteen")
@@ -75,6 +81,9 @@ class DummyConnector(Connector):
         iface.speed = 10
         iface.description = "Interface eth0/0/1"
         iface.untagged_vlan = 5
+        iface.add_ip4_network(address="192.168.5.1", prefix_len=24)
+        iface.add_ip4_network(address="192.168.15.1", prefix_len=24)
+        iface.vrf_name = "VRF-1"
         self.add_interface(iface)
 
         iface = Interface("eth2")
@@ -85,6 +94,8 @@ class DummyConnector(Connector):
         iface.speed = 100
         iface.description = "Interface eth2"
         iface.untagged_vlan = 15
+        iface.add_ip4_network(address="192.168.99.99", prefix_len=24)
+        iface.add_ip4_network(address="192.168.55.1", prefix_len=24)
         self.add_interface(iface)
         self.set_interface_poe_available(iface, 15000)
         self.set_interface_poe_consumed(iface, 4500)
@@ -97,6 +108,11 @@ class DummyConnector(Connector):
         iface.speed = 10
         iface.description = "Interface eth3"
         iface.untagged_vlan = 5
+        iface.add_ip4_network(address="192.168.55.1", prefix_len=24)
+        iface.add_ip6_network(address="fc00::dead:beef")  # prefix_len is optional, default=64
+        iface.add_ip6_network(address="fc00::deaa:beee")  # prefix_len is optional, default=64
+        iface.add_ip6_network(address="fe80::1234:4567", prefix_len=64)  # this is a Link-Local address.
+        iface.vrf_name = "VRF-1"
         self.add_interface(iface)
 
         return True
@@ -110,9 +126,30 @@ class DummyConnector(Connector):
         """
         dprint("Dummy Connector get_my_client_data()")
         # add some simulated data:
-        self.add_learned_ethernet_address("eth0/0/0", "00:11:22:33:44:55", 10)
-        self.add_learned_ethernet_address("eth0/0/1", "0000.1111.2222", 5)
-        self.add_learned_ethernet_address("eth2", "aa-bb-cc-dd-ee-ff", 15)
+        eth = self.add_learned_ethernet_address(
+            if_name="eth0/0/0",
+            eth_address="00:11:22:33:44:55",
+            vlan_id=10,
+            ip4_address="192.168.0.100",
+            ip6_address="FE80::0001/64",
+        )
+        # "fc00::/7"  is a private range for IPv6
+        eth.add_ip6_address("fc00::0001/64")
+        eth = self.add_learned_ethernet_address(
+            if_name="eth0/0/1",
+            eth_address="0000.1111.2222",
+            vlan_id=5,
+            ip4_address="192.168.1.222",
+            ip6_address="FE80::00F0/64",
+        )
+        eth.add_ip6_address("fc00::0001:0010/64")
+        self.add_learned_ethernet_address(
+            if_name="eth2",
+            eth_address="aa-bb-cc-dd-ee-ff",
+            vlan_id=15,
+            ip4_address="192.168.2.56",
+            ip6_address="FE80::00E5/64",
+        )
 
         neighbor = NeighborDevice("0000.aabb.1111")
         neighbor.sys_name = "Simulated Remote Device"
@@ -145,4 +182,4 @@ class DummyConnector(Connector):
         """
         Dummy driver cannot run 'cli command'
         """
-        return False
+        return

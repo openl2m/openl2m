@@ -372,7 +372,7 @@ class AosCxConnector(Connector):
             if 'ip4_address' in aoscx_interface:
                 if aoscx_interface['ip4_address']:
                     dprint(f"   IPv4 = {aoscx_interface['ip4_address']}")
-                    iface.add_ip4_network(aoscx_interface['ip4_address'])
+                    iface.add_ip4_network(address=aoscx_interface['ip4_address'])
                     if 'ip4_address_secondary' in aoscx_interface:
                         dprint(f"   IPv4(2nd) = {aoscx_interface['ip4_address_secondary']}")
 

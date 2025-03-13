@@ -11,6 +11,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+import netaddr
 
 # various global constants used throughout the various connector methods:
 # some of these are the equivalent of the snmp mib counterparts!
@@ -256,3 +257,11 @@ vlan_admin_name[VLAN_ADMIN_DISABLED] = "Disabled"
 
 # mostly used for Cisco vlans, to avoid the 1000-1003 range. This is "regular(1)" in the Cisco VTP mib
 VLAN_TYPE_NORMAL = 1  # used to indicate 'normal' vlans,
+
+# special IP addresses:
+IPV4_LINK_LOCAL = "169.254.0.0/16"
+IPV4_PRIVATES = ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16")
+IPV6_LINK_LOCAL = "fe80::/10"
+IPV6_PRIVATE = "fc00::7"
+
+IPV6_LINK_LOCAL_NETWORK = netaddr.IPNetwork(IPV6_LINK_LOCAL)
