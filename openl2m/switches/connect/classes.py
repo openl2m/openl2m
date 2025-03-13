@@ -357,8 +357,9 @@ class EthernetAddress(netaddr.EUI):
         super().__init__(ethernet_string)
         self.vendor: str = ''
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
-        self.address_ip4: str = ""  # ipv4 address from arp table, if known
-        self.address_ip6: List = []  # known ipv6 addresses of this ethernet address, in list
+        self.address_ip4: str = ""  # ipv4 address as str() from arp table, if known
+        self.address_ip6: List = []  # known ipv6 addresses of this ethernet address, in list as str()
+        self.address_ip6_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
         self.hostname: str = ""  # reverse lookup for ip4 or ip6 address.
 
     def set_vlan(self, vlan_id: int) -> None:
@@ -369,14 +370,35 @@ class EthernetAddress(netaddr.EUI):
         self.address_ip4 = ip4_address
 
     def add_ip6_address(self, ip6_address: str) -> None:
-        """Add an IPv6 address to the list of addresses for this ethernet address."""
+        """Add an IPv6 address to the list of addresses for this ethernet address.
+        If Link-Local is given, will set the self.ip6_address_linklocal property,
+        else will add to self.address_ip6 Dict() indexed by address as key.
+
+        Args:
+            ip6_address (str): string representing the IPv6 address for this ethernet address
+
+        Returns:
+            n/a
+        """
+        dprint(f"EthernetAddress() adding IPv6 address '{ip6_address}'")
+
         # need to add logic to recognize IPv6 link-local "FE80::/10" subnets.
         # we do no check validity of the address at this time.
         if settings.IPV6_USE_UPPER:
             ipv6 = ip6_address.upper()
         else:
             ipv6 = ip6_address.lower()
-        self.address_ip6.append(ipv6)
+        try:
+            # validate format
+            ipv6 = IPNetworkHostname(network=f"{ip6_address}/64")
+            # and check if this is Link-Local address
+            if ipv6 in IPV6_LINK_LOCAL_NETWORK:
+                dprint("   IS LINK-LOCAL!")
+                self.address_ip6_linklocal = ip6_address
+            else:
+                self.address_ip6.append(ip6_address)
+        except Exception as err:
+            dprint(f"EthernetAddress() object: adding INVALID IPv6 address '{ip6_address}': {err}")
 
     def as_dict(self) -> dict:
         '''
@@ -1013,12 +1035,14 @@ class Interface:
     ) -> EthernetAddress:
         '''
         Add an ethernet address to this interface, as given by the layer2 CAM/Switching tables.
-        It gets stored indexed by address. Create new EthernetAddress() object is not found yet.
+        It gets stored indexed by ethernet address. Create new EthernetAddress() object if not found yet.
         If the object already exists, return it.
 
         Args:
             eth_address(str): ethernet address as string.
             vlan_id(int): the vlan this ethernet address was heard on.
+            ip4_address (str): the IPv4 address for this ethernet address, if known. Typically from ARP tables.
+            ip6_address (str): the IPv6 address for this ethernet address, if known. Found in ND tables.
 
         Returns:
             EthernetAddress(), either existing or new.
@@ -1028,24 +1052,27 @@ class Interface:
         )
         if eth_address in self.eth.keys():
             # already known!
+            e = self.eth[eth_address]
             dprint("  Eth already known!")
             if vlan_id > 0:
-                self.eth[eth_address].set_vlan(vlan_id)
+                e.set_vlan(vlan_id)
             if ip4_address:
-                self.eth[eth_address].set_ip4_address(ip4_address)
-            return self.eth[eth_address]
+                e.set_ip4_address(ip4_address)
+            if ip6_address:
+                e.add_ip6_address(ip6_address=ip6_address)
+            return e
         else:
             # add the new ethernet address
             dprint("  New ethernet, adding.")
-            a = EthernetAddress(eth_address)
+            e = EthernetAddress(eth_address)
             if vlan_id > 0:
-                a.set_vlan(vlan_id)
+                e.set_vlan(vlan_id)
             if ip4_address:
-                a.set_ip4_address(ip4_address=ip4_address)
+                e.set_ip4_address(ip4_address=ip4_address)
             if ip6_address:
-                a.add_ip6_address(ip6_address=ip6_address)
-            self.eth[eth_address] = a
-            return a
+                e.add_ip6_address(ip6_address=ip6_address)
+            self.eth[eth_address] = e
+            return e
 
     def add_neighbor(self, neighbor: NeighborDevice) -> None:
         '''
