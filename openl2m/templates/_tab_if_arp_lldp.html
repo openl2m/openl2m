@@ -101,6 +101,9 @@
                     {% for ipv6 in eth.address_ip6 %}
                      / {{ ipv6|get_ip6_info_links }} {{ ipv6 }}
                     {% endfor %}
+                    {% if settings.IPV6_SHOW_LINKLOCAL and eth.address_ip6_linklocal %}
+                     / {{ eth.address_ip6_linklocal}}
+                    {% endif %}
                   {% endif %}
                   {% if eth.vendor %}&nbsp;<small>({{ eth.vendor }})</small>{% endif %}
                 </div>

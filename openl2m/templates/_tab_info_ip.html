@@ -42,7 +42,7 @@
           {% endfor %}
           {% if settings.IPV6_SHOW_LINKLOCAL and iface.address_ip6_linklocal %}
             {{ iface.address_ip6_linklocal.ip }} / {{ iface.address_ip6_linklocal.prefixlen }} <br />
-        {% endif %}
+          {% endif %}
           </td>
           {# info links/icons in the "Etc" column #}
           <td>{{ connection.switch|get_interface_info_links:iface }} {{ addr.ip|get_ip4_info_links }}
