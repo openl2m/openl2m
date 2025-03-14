@@ -26,8 +26,7 @@ IPv6 related:
   # note this is link-specific, and not very useful!
   IPV6_SHOW_LINKLOCAL = False
 
-Neighbor Graph Options
-----------------------
+Neighbor Graph Options:
 
 .. code-block:: python
 
@@ -46,6 +45,7 @@ Release Date: TBD
 
 * add IPv6 information for interface addresses, and neighbor devices (aka IPv6 'ND')
 * add expanded graph.
+* show error banner if browser-side Javascript is disabled (OpenL2M requires is for proper functionality)
 
 Bug fixes:
 
