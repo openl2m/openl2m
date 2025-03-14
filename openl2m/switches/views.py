@@ -97,6 +97,7 @@ from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
 )
 from switches.download import create_eth_neighbor_xls_file, create_interfaces_xls_file
+from switches.myview import MyView
 from switches.permissions import get_group_and_switch, get_connection_if_permitted, get_my_device_groups
 
 from switches.stats import (
@@ -1127,7 +1128,7 @@ class SwitchVlanManage(LoginRequiredMixin, View):
 #
 # Change admin status, ie port Enable/Disable
 #
-class InterfaceAdminChange(LoginRequiredMixin, View):
+class InterfaceAdminChange(LoginRequiredMixin, MyView):
     """
     Toggle the admin status of an interface, ie admin up or down.
     Params:
@@ -1141,7 +1142,7 @@ class InterfaceAdminChange(LoginRequiredMixin, View):
         renders either OK or Error page, depending permissions and result.
     """
 
-    def get(
+    def post(
         self,
         request,
         group_id,
@@ -1149,7 +1150,7 @@ class InterfaceAdminChange(LoginRequiredMixin, View):
         interface_name,
         new_state,
     ):
-        dprint("InterfaceAdminChange() - GET called")
+        dprint("InterfaceAdminChange() - POST called")
         retval, info = perform_interface_admin_change(
             request=request,
             group_id=group_id,
@@ -1163,7 +1164,7 @@ class InterfaceAdminChange(LoginRequiredMixin, View):
         # we don't know the name of the interface, only the key or id.
         # message = f"Interface {interface_name} description changed"
         # message = f"Interface description changed"
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+        return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 class InterfaceDescriptionChange(LoginRequiredMixin, View):
