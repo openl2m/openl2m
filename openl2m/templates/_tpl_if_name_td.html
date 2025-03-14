@@ -10,28 +10,46 @@
     {% endif %}
     {{ switch|get_interface_info_links:iface }}
     {% if connection.can_change_admin_status %}
-      <a href="{% url 'switches:admin_change' group.id switch.id iface.key 0 %}"
+      <form
+        id="{{ iface.key }}"
+        action="{% url 'switches:admin_change' group.id switch.id iface.key 0 %}"
+        method="post">
+        {% csrf_token %}
+        <button type="submit" name="NAME" value="VALUE" class="btn-link"
         data-bs-toggle="tooltip"
         data-bs-title="Click here to Disable {{ iface.name }}"
       {% if request.user.profile.are_you_sure %}
         onclick="return confirm_change('Are you sure you want to DISABLE {{ iface.name }}?')"
       {% endif %}
-      >
+        >{{ iface.name }}</button>
+        {% include "_tpl_if_type_icons.html" %}
+      </form>
+    {% else %}
+      {{ iface.name }}
+      {% include "_tpl_if_type_icons.html" %}
     {% endif %}
   {% else %}
     class="color_if_shutdown">
     {{ switch|get_interface_info_links:iface }}
     {% if connection.can_change_admin_status %}
-    <a href="{% url 'switches:admin_change' group.id switch.id iface.key 1 %}"
-       data-bs-toggle="tooltip"
-       data-bs-title="Click here to Enable {{ iface.name }}"
-    {% if request.user.profile.are_you_sure %}
-       onclick="return confirm_change('Are you sure you want to ENABLE {{ iface.name }}?')"
-    {% endif %}
-    >
+      <form
+        id="{{ iface.key }}"
+        action="{% url 'switches:admin_change' group.id switch.id iface.key 1 %}"
+        method="post">
+        {% csrf_token %}
+        <button type="submit" name="NAME" value="VALUE" class="btn-link"
+        data-bs-toggle="tooltip"
+        data-bs-title="Click here to Enable {{ iface.name }}"
+      {% if request.user.profile.are_you_sure %}
+        onclick="return confirm_change('Are you sure you want to ENABLE {{ iface.name }}?')"
+      {% endif %}
+      >{{ iface.name }}</button>
+      {% include "_tpl_if_type_icons.html" %}
+      </form>
+    {% else %}
+      {{ iface.name }}
+      {% include "_tpl_if_type_icons.html" %}
     {% endif %}
   {% endif %}
-  {{ iface.name }}{% if connection.can_change_admin_status %}</a>{% endif %}
-  {% include "_tpl_if_type_icons.html" %}
   <!-- ifkey = {{ iface.key }}, ifIndex = {{ iface.index }}, port_id = {{ iface.port_id }} -->
 </td>
