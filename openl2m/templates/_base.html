@@ -37,13 +37,31 @@
   </div>
   <!-- end navbar -->
   <!-- we need Javascript -->
-   <noscript>
+  <noscript>
     <div class="alert alert-danger text-center" role="alert">
       <i class="fa-solid fa-triangle-exclamation"></i>
       You have disabled Javascript. OpenL2M requires it for proper functionality. Please enable Javascript.
       <i class="fa-solid fa-triangle-exclamation"></i>
     </div>
-   </noscript>
+  </noscript>
+  <!-- attempt only permit one tab or window on the client browser
+       from https://stackoverflow.com/questions/11008177/stop-people-having-my-website-loaded-on-multiple-tabs
+  -->
+  <script>
+    //in entry point of your app (index.js)
+
+    const channel = new BroadcastChannel('openl2m_tab');
+
+    channel.postMessage('new-tab');
+    // note that listener is added after posting the message
+
+    channel.addEventListener('message', (msg) => {
+      if (msg.data === 'new-tab') {
+        // message received from 2nd tab
+        alert('OpenL2M cannot be opened in multiple tabs or windows! Please close this new window or tab!');
+      }
+    });
+  </script>
   <!-- various banners -->
   <div class="container-fluid">
 
