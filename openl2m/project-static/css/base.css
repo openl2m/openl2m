@@ -68,3 +68,18 @@ td .progress {
 textarea {
     font-family: Consolas, Lucida Console, monospace;
 }
+/* Create a button to look like HREF link, used in the interface enable/disable POST */
+.btn-link{
+    border:none;
+    outline:none;
+    background:none;
+    cursor:pointer;
+    color:#0000EE;
+    padding:0;
+    text-decoration:underline;
+    font-family:inherit;
+    font-size:inherit;
+}
+.btn-link:active{
+    color:#FF0000;
+}
