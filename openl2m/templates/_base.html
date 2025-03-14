@@ -36,7 +36,14 @@
   {% include '_navbar.html' %}
   </div>
   <!-- end navbar -->
-
+  <!-- we need Javascript -->
+   <noscript>
+    <div class="alert alert-danger text-center" role="alert">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      You have disabled Javascript. OpenL2M requires it for proper functionality. Please enable Javascript.
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+   </noscript>
   <!-- various banners -->
   <div class="container-fluid">
 
@@ -51,7 +58,7 @@
     {% if settings.MAINTENANCE_MODE %}
     <!-- maintenance banner -->
       <div class="alert alert-warning text-center" role="alert">
-        <h4><i class="fas fa-exclamation-triangle"></i> Maintenance Mode</h4>
+        <h4><i class="fas fa-exclamation"></i> Maintenance Mode</h4>
         <p>OpenL2M is currently in maintenance mode. Functionality may be limited.</p>
       </div>
     <!-- end maintenance -->
