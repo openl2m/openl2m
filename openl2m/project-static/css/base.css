@@ -74,12 +74,15 @@ textarea {
     outline:none;
     background:none;
     cursor:pointer;
-    color:#0000EE;
+    color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
     padding:0;
     text-decoration:underline;
-    font-family:inherit;
+    font-family:var(--bs-body-font-family);
     font-size:inherit;
 }
 .btn-link:active{
     color:#FF0000;
+}
+form {
+    display: inline;
 }

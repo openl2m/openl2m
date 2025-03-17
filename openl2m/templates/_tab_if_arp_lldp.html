@@ -18,18 +18,35 @@
           <th>PoE</th>
           {% endif %}
           {% if connection.eth_addr_count > 0 %}
-          <th><a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fas fa-download" aria-hidden="true"></i> Ethernet Addresses ({{ connection.eth_addr_count }})</a></th>
+          <th>
+            <!-- <a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fas fa-download" aria-hidden="true"></i> Ethernet Addresses ({{ connection.eth_addr_count }})</a> -->
+            <form
+              action="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id %}"
+              method="post">
+              {% csrf_token %}
+              <button type="submit" name="DownloadXLSX" value="Download" class="btn-link"
+              data-bs-toggle="tooltip"
+              data-bs-title="Click here to download Ethernet addresses and Neighbor info to Excel"
+              ><i class="fas fa-download" aria-hidden="true"></i> Ethernet Addresses ({{ connection.eth_addr_count }})</button>
+            </form>
+          </th>
           {% endif %}
           {% if connection.neighbor_count > 0 %}
-          <th><a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fas fa-download" aria-hidden="true"></i> Neighbors ({{ connection.neighbor_count }})</a>
-              &nbsp;
-              <a
-                id="openGraphButton"
-                value=""
-                href="#"
-                data-bs-toggle="tooltip"
-                title="Click to show graphical view of neighbor devices"
-                ><i class="fa-solid fa-chart-diagram" aria-hidden="true"></i> Show Neighbors Graph</a>
+          <th>
+            <form
+              action="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id %}"
+              method="post">
+              {% csrf_token %}
+              <button type="submit" name="DownloadXLSX" value="Download" class="btn-link"
+              data-bs-toggle="tooltip"
+              data-bs-title="Click here to download Ethernet addresses and Neighbor info to Excel"
+              ><i class="fas fa-download" aria-hidden="true"></i> Neighbors ({{ connection.neighbor_count }})</button>
+            </form>
+            &nbsp;
+            <button id="openGraphButton" type="submit" name="ShowGraph" value="ShowGraph" class="btn-link"
+              data-bs-toggle="tooltip"
+              data-bs-title="Click to show graphical view of neighbor devices"
+            ><i class="fas fa-download" aria-hidden="true"></i> Show Neighbors Graph</button>
           </th>
           {% endif %}
         </tr>

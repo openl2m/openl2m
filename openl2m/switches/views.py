@@ -1943,18 +1943,18 @@ class SwitchAdminActivity(LoginRequiredMixin, View):
         )
 
 
-class SwitchDownloadEthernetAndNeighbors(LoginRequiredMixin, View):
+class SwitchDownloadEthernetAndNeighbors(LoginRequiredMixin, MyView):
     """
     Download list of known ethernet addressess on a device.
     """
 
-    def get(
+    def post(
         self,
         request,
         group_id,
         switch_id,
     ):
-        dprint("SwitchDownloadEthernetAndNeighbors() - GET called")
+        dprint("SwitchDownloadEthernetAndNeighbors() - POST called")
 
         group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
         connection, error = get_connection_if_permitted(request=request, group=group, switch=switch)
@@ -2001,18 +2001,18 @@ class SwitchDownloadEthernetAndNeighbors(LoginRequiredMixin, View):
         return FileResponse(stream, as_attachment=True, filename=filename)
 
 
-class SwitchDownloadInterfaces(LoginRequiredMixin, View):
+class SwitchDownloadInterfaces(LoginRequiredMixin, MyView):
     """
     Download a spreadsheet of visible interfaces on a device.
     """
 
-    def get(
+    def post(
         self,
         request,
         group_id,
         switch_id,
     ):
-        dprint("SwitchDownloadInterfaces() - GET called")
+        dprint("SwitchDownloadInterfaces() - POST called")
 
         group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
         connection, error = get_connection_if_permitted(request=request, group=group, switch=switch)

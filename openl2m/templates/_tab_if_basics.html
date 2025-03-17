@@ -12,10 +12,15 @@
       <thead>
       <tr>
         <th>
-          <a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_interfaces' group.id switch.id  %}"
-             data-bs-title="Click here to download interfaces info to Excel">
-             Interface Name <i class="fas fa-download" aria-hidden="true"></i>
-          </a>
+          <form
+            action="{% url 'switches:switch_download_interfaces' group.id switch.id %}"
+            method="post">
+            {% csrf_token %}
+            <button type="submit" name="DownloadInterfaceXLSX" value="Download" class="btn-link"
+              data-bs-toggle="tooltip"
+              data-bs-title="Click here to download interfaces info to Excel"
+            >Interface Name <i class="fas fa-download" aria-hidden="true"></i></button>
+          </form>
         </th>
         <th>Link</th>
         <th>Vlan</th>
