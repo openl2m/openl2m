@@ -94,51 +94,64 @@
                   {% if iface.poe_entry %}
                     {% if connection.can_change_poe_status %}
                       {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
-                        <a
-                           data-bs-toggle="tooltip"
-                        {% if request.user.profile.are_you_sure %}
-                           onclick="return confirm_change('Are you sure you want to DISABLE POWER on interface {{ iface.name }}?')"
-                        {% endif %}
-                           href="{% url 'switches:poe_change' group.id switch.id iface.key POE_PORT_ADMIN_DISABLED %}"
-                        {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
+                        <form
+                          action="{% url 'switches:poe_change' group.id switch.id iface.key POE_PORT_ADMIN_DISABLED %}"
+                          method="post"
+                          {% if request.user.profile.are_you_sure %}
+                          onclick="return confirm_change('Are you sure you want to DISABLE POWER on interface {{ iface.name }}?')"
+                          {% endif %}
+                          data-bs-toggle="tooltip"
+                          {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
                           {# fault or something like that #}
-                          title="PoE Enabled with FAULT! Click here to Disable PoE on interface {{ iface.name }}">
-                          <img src="{% static 'img/poe-fault.png' %}" alt="PoE Fault!">
-                        {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
-                          title="PoE Enabled and DELIVERING! Click here to Disable PoE on interface {{ iface.name }}">
-                          <img src="{% static 'img/poe-serving.png' %}" alt="PoE Delivering!">
-                        </a>
+                          title="PoE Enabled with FAULT! Click here to Disable PoE on interface {{ iface.name }}"
+                        >
+                          <input type="image" name="submit" src="{% static 'img/poe-fault.png' %}" alt="PoE Fault!">
+                          {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
+                          title="PoE Enabled and DELIVERING! Click here to Disable PoE on interface {{ iface.name }}"
+                        >
+                          <input type="image" name="submit" src="{% static 'img/poe-serving.png' %}" alt="PoE Delivering!">
                             {% if iface.poe_entry.power_consumption_supported %}
                               {{ iface.poe_entry.power_consumed|humanize_power }}
                             {% endif %}
-                        {% else %}
-                              title="PoE Enabled, NOT delivering! Click here to Disable PoE on interface {{ iface.name }}">
-                          <img src="{% static 'img/poe-enabled.png' %}" alt="PoE Enabled"></a>
-                        {% endif %}
+                          {% else %}
+                          title="PoE Enabled, NOT delivering! Click here to Disable PoE on interface {{ iface.name }}"
+                        >
+                          <input type="image" name="submit" src="{% static 'img/poe-enabled.png' %}" alt="PoE Enabled">
+                          {% endif %}
+                          {% csrf_token %}
+                        </form>
+
                         {% if iface.allow_poe_toggle and iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
                           {# if delivering power, toggle option if allowed #}
-                          <a
-                             data-bs-toggle="tooltip"
+                          <form
+                            action="{% url 'switches:poe_down_up' group.id switch.id iface.key %}"
+                            method="post"
+                            {% if request.user.profile.are_you_sure %}
+                            onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
+                            {% endif %}
+                            data-bs-toggle="tooltip"
+                            title="Toggle PoE Off and then On on interface {{ iface.name }}"
+                            >
+                            <input type="image" name="submit" src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle">
+                            {% csrf_token %}
+                          </form>
+                        {% endif %}
+
+                      {% else %}{# PoE is down #}
+                        <form
+                          action="{% url 'switches:poe_change' group.id switch.id iface.key POE_PORT_ADMIN_ENABLED %}"
+                          method="post"
                           {% if request.user.profile.are_you_sure %}
-                             onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
+                          onclick="return confirm_change('Are you sure you want to ENABLE POWER on interface {{ iface.name }}?')"
                           {% endif %}
-                             href="{% url 'switches:poe_down_up' group.id switch.id iface.key %}"
-                             title="Toggle PoE Off and then On on interface {{ iface.name }}">
-                            <img src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle">
-                          </a>
-                        {% endif %}
-                      {% else %}
-                        <a
-                           data-bs-toggle="tooltip"
-                        {% if request.user.profile.are_you_sure %}
-                           onclick="return confirm_change('Are you sure you want to ENABLE POWER on interface {{ iface.name }}?')"
-                        {% endif %}
-                           href="{% url 'switches:poe_change' group.id switch.id iface.key POE_PORT_ADMIN_ENABLED %}"
-                           title="PoE Disabled! Click here to Enable PoE on interface {{ iface.name }}">
-                            <img src="{% static 'img/poe-disabled-0.png' %}" alt="PoE Disabled">
-                        </a>
+                          data-bs-toggle="tooltip"
+                          title="PoE Disabled! Click here to Enable PoE on interface {{ iface.name }}"
+                        >
+                        <input type="image" name="submit" src="{% static 'img/poe-disabled-0.png' %}" alt="PoE Disabled">
+                        {% csrf_token %}
+                        </form>
                       {% endif %}
-                    {% else %}  {# driver cannot change poe #}
+                    {% else %}  {# driver or user cannot change poe #}
                       {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
                         {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
                           {# fault or something like that #}

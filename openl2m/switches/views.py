@@ -1263,7 +1263,7 @@ class InterfacePvidChange(LoginRequiredMixin, View):
 #
 # Change PoE status, i.e. port power Enable/Disable
 #
-class InterfacePoeChange(LoginRequiredMixin, View):
+class InterfacePoeChange(LoginRequiredMixin, MyView):
     """
     Change the PoE status of an interfaces.
     This still needs to be tested for propper PoE port to interface ifIndex mappings.
@@ -1279,7 +1279,7 @@ class InterfacePoeChange(LoginRequiredMixin, View):
         renders either OK or Error page, depending permissions and result.
     """
 
-    def get(
+    def post(
         self,
         request,
         group_id,
@@ -1287,7 +1287,7 @@ class InterfacePoeChange(LoginRequiredMixin, View):
         interface_name,
         new_state,
     ):
-        dprint("InterfacePoeChange() - GET called")
+        dprint("InterfacePoeChange() - POST called")
 
         if new_state == POE_PORT_ADMIN_ENABLED:
             enable = True
@@ -1310,19 +1310,19 @@ class InterfacePoeChange(LoginRequiredMixin, View):
 #
 # Toggle PoE status Down then Up
 #
-class InterfacePoeDownUp(LoginRequiredMixin, View):
+class InterfacePoeDownUp(LoginRequiredMixin, MyView):
     """
     Toggle the PoE status of an interfaces. I.e disable, wait some, then enable again.
     """
 
-    def get(
+    def post(
         self,
         request,
         group_id,
         switch_id,
         interface_name,
     ):
-        dprint("InterfacePoeDownUp() - GET called")
+        dprint("InterfacePoeDownUp() - POST called")
         # disable power first:
         retval, info = perform_interface_poe_change(
             request=request,
