@@ -31,8 +31,18 @@ A little bit of logic creates a horizontal graph for a few neighors, or a vertic
 Next we loop through all interfaces and neighbors, and call the function *get_neighbor_mermaid_config()*
 to create the Mermaid code for each neighbor connection. This is implemented in *switches/templatetags/helpers.py*
 
-Finally, we stuff the Mermaid javascript code into the page, and close the new page to let the browser load it.
+Finally, if neighbors found, we stuff the Mermaid javascript code into the page, and close the new page to let the browser load it.
 Note that this new page is "coded inside the regular main html page"!
+
+At the end of *_tab_if_arp_lldp.html*:
+
+.. code-block:: jinja
+
+    {% if connection.neighbor_count > 0 %}
+        {% include "_neighbor_mermaid_graphic.html" %}
+    {% endif %}
+
+
 
 The final 'stuffing' of the js code is needed, as inline coding with <script>mermaid.js</script> confuses
 browser parsing engines; they take the </script> as part of the "mother page" and this breaks things...
