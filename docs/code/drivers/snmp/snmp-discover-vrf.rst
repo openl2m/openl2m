@@ -9,7 +9,7 @@ VRF info
 
 This section describes how we discover L3VPN aka. "VRF" info.
 
-This is implemented in the *switches.connect.snmp.connector.SnmpConnector().get_my_vrfs()* function, 
+This is implemented in the *switches.connect.snmp.connector.SnmpConnector().get_my_vrfs()* function,
 which is called from *switches.connect.connector.Connector().get_hardware_details()*
 
 VRF information on a device is added to the *Connector().vrfs{}* dictionary, indexed by VRF name.
@@ -27,8 +27,8 @@ Each row is "indexed" by the VRF NAME encoded as an OID string. This is best exp
 
 mplsL3VpnVrfName = ".1.3.6.1.2.1.10.166.11.1.2.2.1.1"
 
-So the returned OID *".1.3.6.1.2.1.10.166.11.1.2.2.1.1.8.86.82.70.45.78.97.109.101"* is 
-*mplsL3VpnVrfName.8.86.82.70.45.78.97.109.101*. 
+So the returned OID *".1.3.6.1.2.1.10.166.11.1.2.2.1.1.8.86.82.70.45.78.97.109.101"* is
+*mplsL3VpnVrfName.8.86.82.70.45.78.97.109.101*.
 
 This tells us the VRF name is a string of length 8, with the value "VRF-Name".
 V is ascii code 86, R is 82, etc.
@@ -83,7 +83,7 @@ The value is not interesting to us, but the full OID is. It looks like:
 
     mplsL3VpnIfVpnClassification.<vrf-name-as-oid-encoded>.<if_index> = value.
 
-So the sub-oid gives us a VRF name, and an interface tied to it. We parse this for the vrf name, 
+So the sub-oid gives us a VRF name, and an interface tied to it. We parse this for the vrf name,
 and lookup the interface from the index. Then we assign that interface to the Vrf() object, and
 set the Interface.vrf to point to that Vrf() object.
 
@@ -104,3 +104,20 @@ In that table, the element *aristaVrfIfMembership* has what we need. An example:
 This means that the interface with ifIndex 099001 is member of VRF "Management".
 So this is somewhat easier then the standard mib!
 
+
+
+Displaying in HTML
+------------------
+
+The Interface() objects attribute *vrf_name* is the string that is set when an interface belong to a VRF.
+The template *_tpl_if_name_icons.html* will show the vrf icon and hover name if found.
+
+.. code-block:: jinja
+
+    {% if iface.vrf_name %}
+    &nbsp;
+    <i class="fas fa-network-wired" aria-hidden="true"
+        data-bs-toggle="tooltip"
+        title="Member of VRF '{{ iface.vrf_name }}'">
+    </i>
+    {% endif %}

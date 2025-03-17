@@ -25,6 +25,7 @@ for additional data.
    snmp-discover-mac-arp.rst
    snmp-interface-ip.rst
    snmp-discover-vrf.rst
+   snmp-transceiver-type
    snmp-vlan-add-del.rst
 
 Additional vendor-specific SNMP drivers information is here, in alphabetical order:

@@ -22,7 +22,7 @@ Interface VRF membership
 ------------------------
 
 On layer 3 devices, we may be able to find what VRF a specific interface is a member of.
-This is stored in the *Interface().vrf* attribute, as a string with the name of the VRF.
+This is stored in the *Interface().vrf_name* attribute, as a string with the name of the VRF.
 
 Note this can be used as an index into the *Connector().vrfs{}* dictionary for more information.
 
