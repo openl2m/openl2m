@@ -323,19 +323,19 @@ class SwitchBasics(LoginRequiredMixin, View):
         return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="basic")
 
 
-class SwitchDetails(LoginRequiredMixin, View):
+class SwitchDetails(LoginRequiredMixin, MyView):
     """
     "details" switch view, i.e. with Ethernet/ARP/LLDP data.
     Simply call switch_view() with proper parameter
     """
 
-    def get(
+    def post(
         self,
         request,
         group_id,
         switch_id,
     ):
-        dprint("SwitchDetails() - GET called")
+        dprint("SwitchDetails() - POST called")
         counter_increment(COUNTER_DETAILVIEWS)
         return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="arp_lldp")
 
@@ -1352,18 +1352,18 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
         return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message=description)
 
 
-class SwitchSaveConfig(LoginRequiredMixin, View):
+class SwitchSaveConfig(LoginRequiredMixin, MyView):
     """
     This will save the running config to flash/startup/whatever, on supported platforms
     """
 
-    def get(
+    def post(
         self,
         request,
         group_id,
         switch_id,
     ):
-        dprint("SwitchSaveConfig() - GET called")
+        dprint("SwitchSaveConfig() - POST called")
         retval, error = perform_switch_save_config(
             request=request,
             group_id=group_id,
@@ -1649,19 +1649,19 @@ class InterfaceCmdOutput(LoginRequiredMixin, View):
         )
 
 
-class SwitchReload(LoginRequiredMixin, View):
+class SwitchReload(LoginRequiredMixin, MyView):
     """
     This forces a new reading of device data
     """
 
-    def get(
+    def post(
         self,
         request,
         group_id,
         switch_id,
         view,
     ):
-        dprint("SwitchReload() - GET called")
+        dprint("SwitchReload() - POST called")
 
         group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
@@ -1700,7 +1700,7 @@ class SwitchReload(LoginRequiredMixin, View):
 
 class SwitchActivity(LoginRequiredMixin, View):
     """
-    This shows recent activity for a specific switch
+    This shows recent activity logs for a specific device
     """
 
     def get(

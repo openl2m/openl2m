@@ -34,6 +34,7 @@
 
           {% if connection.can_get_client_data %}
           <td>
+<!--
             <a href="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
                class="btn btn-primary" data-bs-toggle="tooltip"
                data-bs-title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time..."
@@ -46,11 +47,30 @@
                 Read
               {% endif %} Eth/Arp/LLDP
             </a>
+-->
+            <form
+              action="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
+              method="post">
+              {% csrf_token %}
+              <button type="submit" name="Arp_Lldp" value="SUBMIT"
+                class="btn btn-primary"
+                data-bs-toggle="tooltip"
+                data-bs-title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time..."
+              >
+              {% if view == 'arp_lldp' %}
+                <i class="fas fa-sync" aria-hidden="true"></i>Refresh
+              {% else %}
+                <i class="fas fa-sitemap" aria-hidden="true"></i>Read
+              {% endif %} Eth/Arp/LLDP
+              </button>
+          </form>
+
           </td>
           {% endif %}
 
           {% if connection.save_needed %}
           <td>
+<!--
             <a href="{% url 'switches:switch_save_config' group.id switch.id %}"
                data-bs-toggle="tooltip"
                data-bs-title="Click here to save changes to the startup config of the switch!"
@@ -59,11 +79,28 @@
                 Save Changes
               <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
             </a>
+-->
+            <form
+              action="{% url 'switches:switch_save_config' group.id switch.id %}"
+              method="post">
+              {% csrf_token %}
+              <button type="submit" name="Reload" value="SUBMIT"
+                class="btn btn-warning"
+                data-bs-toggle="tooltip"
+                data-bs-title="Click here to save changes to the startup config of the switch!"
+              >
+                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                Save Changes
+                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+              </button>
+            </form>
+
           </td>
           {% endif %}
 
           {% if connection.can_reload_all %}
           <td>
+            <!--
             <a href="{% url 'switches:switch_reload' group.id switch.id view %}"
                data-bs-toggle="tooltip"
                data-bs-title="Click here to fully reload all data for this switch! This may take some time..."
@@ -71,6 +108,19 @@
               <i class="fas fa-sync" aria-hidden="true"></i>
               Reload All
             </a>
+          -->
+            <form
+              action="{% url 'switches:switch_reload' group.id switch.id view %}"
+              method="post">
+              {% csrf_token %}
+              <button type="submit" name="Reload" value="SUBMIT"
+                class="btn btn-primary"
+                data-bs-toggle="tooltip"
+                data-bs-title="Click here to fully reload all data for this switch! This may take some time..."
+              >
+                <i class="fas fa-sync" aria-hidden="true"></i>Reload All
+              </button>
+            </form>
           </td>
           {% endif %}
 
