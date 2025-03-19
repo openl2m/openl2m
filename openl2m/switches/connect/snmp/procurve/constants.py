@@ -78,8 +78,21 @@ snmp_mib_variables['hpEntPowerCurrentPowerUsage'] = hpEntPowerCurrentPowerUsage
 # transceiver info is here:
 # https://mibs.observium.org/mib/HP-ICF-TRANSCEIVER-MIB/
 #
-# hpicfXcvrInfoTable = ".1.3.6.1.4.1.11.2.14.11.5.1.82.1.1.1"
+# format mib at https://github.com/netdisco/netdisco-mibs/blob/master/hp/hpicftransceiver.mib
+#
+hpicfXcvrInfoTable = ".1.3.6.1.4.1.11.2.14.11.5.1.82.1.1.1"
+snmp_mib_variables['hpicfXcvrInfoTable'] = hpicfXcvrInfoTable
 # hpicfXcvrInfoEntry = ".1.3.6.1.4.1.11.2.14.11.5.1.82.1.1.1.1"
+# hpicfXcvrInfoEntry OBJECT-TYPE
+#           SYNTAX      HpicfXcvrInfoEntry
+#           MAX-ACCESS  not-accessible
+#           STATUS      current
+#           DESCRIPTION
+#                  "A set of objects that displays information of
+#                   a transceiver."
+#           INDEX { ifIndex }
+# the index for this is ifIndex, very convenient!
+
 # some interesting entries:
 hpicfXcvrPortIndex = ".1.3.6.1.4.1.11.2.14.11.5.1.82.1.1.1.1.1"
 snmp_mib_variables['hpicfXcvrPortIndex'] = hpicfXcvrPortIndex
