@@ -774,7 +774,7 @@ class Transceiver:
         """
         Initialize the object
         """
-        self.type: str = ""  # the type of transciever, eg.
+        self.type: str = ""  # the type of transceiver, eg. SFP, SFP+, 10G-LR, 40G-SR4, 400G-LR4, etc.
         self.vendor: str = ""
         self.wavelength: int = 0  # the wavelength in nm, ie 850, 130, 1550, etc.
         self.distance: int = 0  # the max distance of this transceiver
@@ -786,11 +786,18 @@ class Transceiver:
         return {
             'type': self.type,
             'vendor': self.vendor,
+            'model': self.model,
+            'description': self.description,
+            'serial': self.serial,
             'wavelength': self.wavelength,
             'distance': self.distance,
         }
 
     def __str__(self) -> str:
+        """String representation of this Transceiver() object.
+        This is shows in the HTML template in _tpl_if_type_icons.html, since it uses "{{ transceiver }} transceiver"
+        """
+
         if self.wavelength:
             wavelength = f" {self.wavelength}nm"
         else:
@@ -804,7 +811,14 @@ class Transceiver:
             distance = f"{d}km"
         else:
             distance = ""
-        return f"{self.type}{wavelength}{distance}{vendor}"
+        # what do we show for the type of optics?
+        if self.type:
+            name = self.type
+        elif self.model:
+            name = self.model
+        else:
+            name = "Unknown"
+        return f"{name}{wavelength}{distance}{vendor}"
 
 
 class SyslogMsg:
