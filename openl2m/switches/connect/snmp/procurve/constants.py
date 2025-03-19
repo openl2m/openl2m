@@ -73,3 +73,25 @@ hpEntityPowerMIB = '.1.3.6.1.4.1.11.2.14.11.5.1.71'
 
 hpEntPowerCurrentPowerUsage = '.1.3.6.1.4.1.11.2.14.11.5.1.71.1.1.1.3'
 snmp_mib_variables['hpEntPowerCurrentPowerUsage'] = hpEntPowerCurrentPowerUsage
+
+#
+# transceiver info is here:
+# https://mibs.observium.org/mib/HP-ICF-TRANSCEIVER-MIB/
+#
+# hpicfXcvrInfoTable = ".1.3.6.1.4.1.11.2.14.11.5.1.82.1.1.1"
+# hpicfXcvrInfoEntry = ".1.3.6.1.4.1.11.2.14.11.5.1.82.1.1.1.1"
+# some interesting entries:
+hpicfXcvrPortIndex = ".1.3.6.1.4.1.11.2.14.11.5.1.82.1.1.1.1.1"
+snmp_mib_variables['hpicfXcvrPortIndex'] = hpicfXcvrPortIndex
+
+hpicfXcvrModel = ".1.3.6.1.4.1.11.2.14.11.5.1.82.1.1.1.1.3"
+snmp_mib_variables['hpicfXcvrModel'] = hpicfXcvrModel
+
+hpicfXcvrType = ".1.3.6.1.4.1.11.2.14.11.5.1.82.1.1.1.1.5"
+snmp_mib_variables['hpicfXcvrType'] = hpicfXcvrType
+
+hpicfXcvrConnectorType = ".1.3.6.1.4.1.11.2.14.11.5.1.82.1.1.1.1.6"
+snmp_mib_variables['hpicfXcvrConnectorType'] = hpicfXcvrConnectorType
+
+hpicfXcvrWavelength = ".1.3.6.1.4.1.11.2.14.11.5.1.82.1.1.1.1.7"
+snmp_mib_variables['hpicfXcvrWavelength'] = hpicfXcvrWavelength
