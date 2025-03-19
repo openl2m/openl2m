@@ -26,6 +26,7 @@ from django.http.request import HttpRequest
 
 from switches.models import Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
+from switches.connect.classes import Transceiver
 from switches.connect.constants import POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.utils import dprint
@@ -37,6 +38,11 @@ from .constants import (
     hpnicfCfgRunModifiedLast,
     hpnicfCfgRunSavedLast,
     HP_ROUTE_MODE,
+    hpicfXcvrInfoTable,
+    hpicfXcvrModel,
+    hpicfXcvrType,
+    hpicfXcvrConnectorType,
+    hpicfXcvrWavelength,
 )
 
 
@@ -84,6 +90,20 @@ class SnmpConnectorProcurve(SnmpConnector):
 
         return True
 
+    def _get_interface_transceiver_types(self) -> int:
+        """
+        Augment SnmpConnector._get_interface_transceiver_type() to read more transceiver info of a physical port
+        from an HP-specific MIB.
+
+        Returns 1 on succes, -1 on failure
+        """
+        super()._get_interface_transceiver_types()
+        # now read HP data
+        retval = self.get_snmp_branch(branch_name='hpicfXcvrInfoTable', parser=self._parse_mibs_procurve_transceiver)
+        if retval < 0:
+            self.add_warning(f"Error getting Transceiver data (hpicfXcvrInfoTable)'")
+            return retval
+
     def get_my_hardware_details(self) -> bool:
         """
         Implement the get_my_hardware_details(), called from the base object get_hardware_details()
@@ -111,7 +131,8 @@ class SnmpConnectorProcurve(SnmpConnector):
         """
         Parse HP specific Power Extention MIBs
         """
-        dprint("HP _parse_mibs_hp_poe()")
+        dprint(f"HP _parse_mibs_hp_poe(): {str(oid)} = {val}")
+
         pe_index = oid_in_branch(hpicfPoePethPsePortPower, oid)
         if pe_index:
             dprint(f"Found hpicfPoePethPsePortPower, pe_index = {pe_index}")
@@ -134,7 +155,8 @@ class SnmpConnectorProcurve(SnmpConnector):
         """
         Parse HP specific Interface Extension MIB for link mode, PoE info
         """
-        dprint("HP _parse_mibs_hp_if_linkmode()")
+        dprint(f"HP _parse_mibs_hp_if_linkmode(): {str(oid)} = {val}")
+
         if_index = int(oid_in_branch(hpnicfIfLinkMode, oid))
         if if_index:
             dprint(f"HP LinkMode if_index {if_index} link_mode {val}")
@@ -149,7 +171,8 @@ class SnmpConnectorProcurve(SnmpConnector):
         Parse Procurve specific ConfigMan MIBs for running-config info
         This gets added to the Information tab!
         """
-        dprint("HP _parse_mibs_procurve_config()")
+        dprint(f"HP _parse_mibs_procurve_config(): {str(oid)} = {val}")
+
         sub_oid = oid_in_branch(hpnicfCfgRunModifiedLast, oid)
         if sub_oid:
             ago = str(datetime.timedelta(seconds=int(val) / 100))
@@ -161,6 +184,56 @@ class SnmpConnectorProcurve(SnmpConnector):
             ago = str(datetime.timedelta(seconds=int(val) / 100))
             self.add_more_info("Configuration", "Running Last Saved", ago)
             return True
+        return False
+
+    def _parse_mibs_procurve_transceiver(self, oid: str, val: str) -> bool:
+        """
+        Parse HP/Procurve specific interface Transeiver information.
+        See HP-ICF-TRANSCEIVER-MIB
+        return True if we parse it, False if not.
+        """
+        dprint(f"HP _parse_mibs_procurve_transceiver(): {str(oid)} = {val}")
+
+        if_index = oid_in_branch(hpicfXcvrModel, oid)
+        if if_index:
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                if not iface.transceiver:
+                    iface.transceiver = Transceiver()
+                iface.transceiver.model = val
+            return True
+
+        if_index = oid_in_branch(hpicfXcvrType, oid)
+        if if_index:
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                if not iface.transceiver:
+                    iface.transceiver = Transceiver()
+                # ifMauType was parsed before this, so it is possible that type field is already set!
+                # we prefer the standardized ifMayType format!
+                if not iface.transceiver.type:
+                    # not yet set from the ifMau mib!
+                    iface.transceiver.type = val.strip()  # some entries have extra spaces.
+            return True
+
+        if_index = oid_in_branch(hpicfXcvrWavelength, oid)
+        if if_index:
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                if not iface.transceiver:
+                    iface.transceiver = Transceiver()
+                iface.transceiver.wavelength = val
+            return True
+
+        if_index = oid_in_branch(hpicfXcvrConnectorType, oid)
+        if if_index:
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                if not iface.transceiver:
+                    iface.transceiver = Transceiver()
+                iface.transceiver.connector = val
+            return True
+
         return False
 
     def _get_poe_data(self) -> int:
