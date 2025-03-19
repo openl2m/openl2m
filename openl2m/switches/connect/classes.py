@@ -57,7 +57,7 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_NONE,
     IPV6_LINK_LOCAL_NETWORK,
 )
-from switches.utils import dprint, get_ip_dns_name
+from switches.utils import dprint, get_ip_dns_name, string_is_int
 
 
 class Error:
@@ -776,8 +776,12 @@ class Transceiver:
         """
         self.type: str = ""  # the type of transceiver, eg. SFP, SFP+, 10G-LR, 40G-SR4, 400G-LR4, etc.
         self.vendor: str = ""
+        self.model: str = ""
+        self.description: str = ""
+        self.serial: str = ""
         self.wavelength: int = 0  # the wavelength in nm, ie 850, 130, 1550, etc.
         self.distance: int = 0  # the max distance of this transceiver
+        self.connector: str = ""  # 'LC', SC', etc.
 
     def as_dict(self) -> dict:
         '''
@@ -791,6 +795,7 @@ class Transceiver:
             'serial': self.serial,
             'wavelength': self.wavelength,
             'distance': self.distance,
+            'connector': self.connector,
         }
 
     def __str__(self) -> str:
@@ -799,7 +804,10 @@ class Transceiver:
         """
 
         if self.wavelength:
-            wavelength = f" {self.wavelength}nm"
+            if string_is_int(self.wavelength):
+                wavelength = f" {self.wavelength}nm"
+            else:
+                wavelength = f" {self.wavelength}"
         else:
             wavelength = ""
         if self.vendor:
