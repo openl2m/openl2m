@@ -358,3 +358,18 @@ def get_choice_name(choice_list: list, choice) -> str:
         if item[0] == choice:
             return item[1]
     return "Invalid Choice!"
+
+
+def string_is_int(text: str) -> bool:
+    """Check is a string represents a number.
+    Args:
+        text (str): the string to test
+
+    Return:
+        (bool): True if number is represented, False if not
+    """
+    try:
+        int(text)
+    except Exception:
+        return False
+    return True
