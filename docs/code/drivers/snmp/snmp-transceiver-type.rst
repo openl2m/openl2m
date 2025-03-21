@@ -4,6 +4,9 @@
 Discover interface optics
 =========================
 
+Using MAU-MIB
+-------------
+
 The MAU (Media Access Unit) mib is the standard way of describing media types, ie. transceivers.
 See https://mibs.observium.org/mib/MAU-MIB/
 
@@ -43,3 +46,33 @@ per the definitions in the IF-MAU MIB.
 .. note::
 
     Some drivers augment or override the _get_interface_transceiver_types() call to run their own discovery.
+
+
+Other thoughs
+-------------
+
+**Not Implemented Yet**
+
+We can also look at this:
+entPhysicalClass (.1.3.6.1.2.1.47.1.1.1.1.5) for values 10 (Port)
+
+    .1.3.6.1.2.1.47.1.1.1.1.5.1006 = INTEGER: 10
+
+
+followed by:
+
+Use 'entPhysicalDescr ('.1.3.6.1.2.1.47.1.1.1.1.2')
+    .1.3.6.1.2.1.47.1.1.1.1.2.1006 = STRING: "Gigabit Ethernet Port"
+    .1.3.6.1.2.1.47.1.1.1.1.2.1007 = STRING: "SFP-10Gbase-SR"
+
+*Some* implementation show the optics type in the device description, *but not all!*
+
+The interface index 1006 is type .1.3.6.1.4.1.9.12.3.1.10.151
+and interface 1007 is type .1.3.6.1.4.1.9.12.3.1.9.76.3, defined as SFP10GSR
+See https://oid-base.com/get/1.3.6.1.4.1.9.12.3.1.9.76.3
+
+entPhysicalVendorType (.1.3.6.1.2.1.47.1.1.1.1.3) can also be used:
+    .1.3.6.1.2.1.47.1.1.1.1.3.1006 = OID: .1.3.6.1.4.1.9.12.3.1.10.151
+    .1.3.6.1.2.1.47.1.1.1.1.3.1007 = OID: .1.3.6.1.4.1.9.12.3.1.9.76.3
+
+Note that the returned value is *vendor-defined*, i.e. complex to parse!

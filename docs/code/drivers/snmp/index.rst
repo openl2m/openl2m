@@ -35,7 +35,7 @@ Additional vendor-specific SNMP drivers information is here, in alphabetical ord
 
    arista-eos-driver.rst
    aos-cx-driver.rst
-   cisco-driver.rst
+   cisco/index.rst
    hpe-comware-driver.rst
    hp-procurve-driver.rst
    juniper-driver.rst
