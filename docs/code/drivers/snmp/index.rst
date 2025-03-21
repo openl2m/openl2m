@@ -33,9 +33,9 @@ Additional vendor-specific SNMP drivers information is here, in alphabetical ord
 .. toctree::
    :maxdepth: 1
 
-   arista-eos-driver.rst
-   aos-cx-driver.rst
+   arista/index.rst
+   aruba_cx/index.rst
    cisco/index.rst
-   hpe-comware-driver.rst
-   hp-procurve-driver.rst
-   juniper-driver.rst
+   comware/index.rst
+   procurve/index.rst
+   juniper/index.rst

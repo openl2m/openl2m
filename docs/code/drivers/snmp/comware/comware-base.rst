@@ -1,5 +1,5 @@
 
-.. image:: ../../../_static/openl2m_logo.png
+.. image:: ../../../../_static/openl2m_logo.png
 
 ================================
 HPE Comware SNMP Driver Overview
