@@ -214,13 +214,6 @@ snmp_mib_variables['cpeExtPsePortPwrConsumption'] = cpeExtPsePortPwrConsumption
 cpeExtPsePortMaxPwrDrawn = '.1.3.6.1.4.1.9.9.402.1.2.1.10'
 snmp_mib_variables['cpeExtPsePortMaxPwrDrawn'] = cpeExtPsePortMaxPwrDrawn
 
-# CISCO-STACK-MIB contains various mappings
-ciscoStackMIB = '.1.3.6.1.4.1.9.5.1'
-snmp_mib_variables['ciscoStackMIB'] = ciscoStackMIB
-# this maps a Cisco port # to a standard if_index:
-portIfIndex = '.1.3.6.1.4.1.9.5.1.4.1.1.11'
-snmp_mib_variables['portIfIndex'] = portIfIndex
-
 
 # OID to "write mem" via Snmp
 ciscoWriteMem = '.1.3.6.1.4.1.9.2.1.54.0'
@@ -273,3 +266,55 @@ sb_tx_type[SB_TX_TYPE_COPPER] = "Copper"
 sb_tx_type[SB_TX_TYPE_FIBER] = "FiberOptics"
 sb_tx_type[SB_TX_TYPE_COMBO] = "Fiber/Copper Combo Port"  # combo port without transceiver
 sb_tx_type[SB_TX_TYPE_COMBO_FIBER] = "FiberOptics Combo"  # combo port with optical transceiver installed.
+
+#
+# Cisco Stack MIB
+# CISCO-STACK-MIB contains various mappings
+# https://github.com/librenms/librenms/blob/master/mibs/cisco/CISCO-STACK-MIB
+#
+# ciscoStackMIB = '.1.3.6.1.4.1.9.5.1'
+#
+# This returns a number for the type of interface this "stack index" is.
+# See below how this is mapped to the SNMP ifIndex value of an interface
+ciscoPortType = ".1.3.6.1.4.1.9.5.1.4.1.1.5"  # actually called 'portType' in CISCO-STACK-MIB.
+snmp_mib_variables['ciscoPortType'] = ciscoPortType
+# most common interesting port transceiver types:
+cisco_port_types = {}
+cisco_port_types[31] = "GBIC"  # e1000Empty(31),  -- GBIC not installed
+cisco_port_types[32] = "GBIC-LH"  # e1000BaseLH(32), -- Long Haul fiber Gigabit Ethernet
+cisco_port_types[35] = "1000BaseZX"  # e1000BaseZX(35), -- Extended Reach Gigabit
+cisco_port_types[57] = "10GBaseLX4"  # e10GBaseLX4(57), -- 10GE Wide-WDM 1310nm
+cisco_port_types[59] = "10GBaseEX4"  # e10GBaseEX4(59), -- 10GE Wide-WDM 1550 Laser
+cisco_port_types[60] = "10G-Empty"  # e10GEmpty(60),   -- 10GE not installed
+cisco_port_types[65] = "10GBaseLR"  # e10GBaseLR(65),  -- 10GE Serial 1310nm Laser
+cisco_port_types[70] = "10GBaseSX4"  # e10GBaseSX4(70), -- 10GE Wide-WDM 850nm
+cisco_port_types[71] = "10GBaseER"  # e10GBaseER(71),  -- 10GE Serial 1550nm Laser
+cisco_port_types[92] = "100BaseLX"  # e100BaseLX(92),  -- Long Wave fiber FastEthernet
+cisco_port_types[93] = "10GBaseSR"  # e10GBaseSR(93),  -- 10GE Serial 850nm Laser
+cisco_port_types[94] = "10GBaseCX4"  # e10GBaseCX4(94), -- 10GE XAUI Copper
+cisco_port_types[95] = "10GBaseWdm(1550nm)"  # e10GBaseWdm1550(95), -- 10GE Serial 1550nm Laser
+cisco_port_types[96] = "10GBaseEdc(1310nm)"  # e10GBaseEdc1310(96), -- 10GE Serial 1310nm EDC Laser
+cisco_port_types[103] = "100M-Empty"  # e100BaseEmpty(103),   -- Fiber Fast Ethernet not installed
+cisco_port_types[113] = "40GBase-Empty"  # e40GBaseEmpty(113), -- 40G Ethernet not installed
+cisco_port_types[1001] = "10GBase-Unknown"  # e10GBaseUnknown(1001),    -- Unknown 10G
+cisco_port_types[1069] = (
+    "GigE-BiDi(Down,SMF)"  # e1000BaseBX10D(1069), Giga Ethernet bi-directional 10km -- Downlink over SMF
+)
+cisco_port_types[1070] = (
+    "GigE-BiDi(Up,SMF)"  # e1000BaseBX10U(1070), -- Giga Ethernet bi-directional 10km -- Uplink over SMF
+)
+cisco_port_types[1077] = "10GBaseZR"  # e10GBaseZR(1077),     -- 10GE Laser
+cisco_port_types[1080] = "10GBaseLRM"  # e10GBaseLRM(1080), -- 10GE Laser 300m over 50um Multi Mode Fiber
+cisco_port_types[1081] = "10GBase-T"  # e10GBaseTPluggable(1081), -- 10GE twisted pair on Transceiver
+cisco_port_types[1090] = (
+    "10GBaseUSR (Ultra Short MM)"  # e10GBaseUSR(1090), -- 10GE Laser Ultra Short Reach -- Multi Mode Fiber
+)
+cisco_port_types[1091] = "10GBaseLRMSM"  # e10GBaseLRMSM(1091), -- 10GE Laser 300m over 50um Single Mode Fiber
+cisco_port_types[1100] = "40GBaseLR"  # e40GBaseLR(1100), -- 40G Ethernet LR
+cisco_port_types[1101] = "40GBaseSR"  # e40GBaseSR(1101), -- 40G Ethernet SR
+cisco_port_types[1102] = "40GBase-Unapproved"  # e40GBaseUnapproved(1102), -- Unapproved 40G Ethernet
+#
+# # this maps the "stack index" to a SNMP interface id "ifIndex".
+# this allows us to attach the Transceiver() info to an Interface()
+portIfIndex = ".1.3.6.1.4.1.9.5.1.4.1.1.11"
+snmp_mib_variables['portIfIndex'] = portIfIndex

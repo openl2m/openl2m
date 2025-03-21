@@ -89,6 +89,8 @@ from .constants import (
     swIfTransceiverType,
     SB_TX_TYPE_COPPER,
     sb_tx_type,
+    ciscoPortType,
+    cisco_port_types,
 )
 
 
@@ -135,6 +137,10 @@ class SnmpConnectorCisco(SnmpConnector):
         self.mib_type = CISCO_DEVICE_TYPE_UNKNOWN_MIB
         self._probe_mib_type()
         self.add_more_info(category="System", name="MIB Type", value=cisco_device_types[self.mib_type])
+
+        # we need to track CISCO-STACK-MIB portType info (transceiver data), which to keyed on 'stack id'.
+        # this is then used by portIfIndex to map 'stack id' to 'ifIndex'
+        self.cisco_port_type_by_stack_id = {}
 
     def _probe_mib_type(self):
         """Probe the mib type we see, e.g. VTP, SB or neither.
@@ -295,6 +301,25 @@ class SnmpConnectorCisco(SnmpConnector):
 
         # and read trunk mode PVID as well:
         return self.get_snmp_branch(branch_name='vlanTrunkPortModeNativeVlanId', parser=self._parse_mibs_sb_trunk_vlan)
+
+    def _get_interface_transceiver_types(self) -> int:
+        """
+        Augment SnmpConnector._get_interface_transceiver_type() to read more transceiver info of a physical port
+        from an Cisco-specific MIB called CISCO-STACK-MIB. Mostly in older Catalyst switches.
+
+        Returns 1 on succes, -1 on failure
+        """
+        super()._get_interface_transceiver_types()
+        # note: we have already read 'portIfIndex' in _get_poe_data().
+        # this maps stack-id's to ifIndex.
+        # only load portType if we found stack-id mappings.
+        if len(self.stack_port_to_if_index) > 0:
+            # now read Cisco data, first the "portType" branch to find interesting types by 'stack id'
+            retval = self.get_snmp_branch(branch_name='ciscoPortType', parser=self._parse_mibs_cisco_port_type)
+            if retval < 0:
+                self.add_warning(f"Error getting Transceiver data (ciscoPortType)'")
+                return retval
+        return 1
 
     def _get_known_ethernet_addresses(self) -> bool:
         """
@@ -644,6 +669,69 @@ class SnmpConnectorCisco(SnmpConnector):
             if int(val) == CISCO_ROUTE_MODE:
                 self.set_interface_attribute_by_key(if_index, "is_routed", True)
             return True
+        return False
+
+    def _parse_mibs_cisco_port_type(self, oid: str, val: str) -> bool:
+        """Parse a the portType entry in the CISCO-STACK-MIB
+        See https://github.com/cisco/cisco-mibs/blob/main/v1/CISCO-STACK-MIB-V1SMI.my
+        This defines transceiver types.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"_parse_mibs_cisco_port_type() {str(oid)} = {val}")
+
+        stack_id = oid_in_branch(ciscoPortType, oid)
+        if stack_id:
+            # do we have an ifIndex for this stack-id ?
+            if stack_id in self.stack_port_to_if_index:
+                # the returned "val" is a number indicating the interface 'transceiver' type
+                port_type = int(val)
+                # is this an interesting port type:
+                if port_type in cisco_port_types:
+                    dprint(f"  Interesting port type found for stack id '{stack_id}': {cisco_port_types[port_type]}")
+                    if_index = self.stack_port_to_if_index[stack_id]
+                    iface = self.get_interface_by_key(key=str(if_index))
+                    if iface:
+                        dprint(f"  Found interface '{iface.name}'")
+                        # go assign as a Transceiver, only if not assigned yet!
+                        if not iface.transceiver:
+                            trx = Transceiver()
+                            trx.type = cisco_port_types[port_type]
+                            iface.transceiver = trx
+                        else:
+                            dprint("  Transceiver() already set, NOT assigning!")
+            return True  # we parsed this!
+
+        # we did not parse the OID.
+        return False
+
+    def _parse_and_set_cisco_port_type(self, if_index: str, type: int) -> bool:
+        """See if the portType value is of interest, and assign to interface().transceiver.
+
+        Params:
+            if_index (str): the key to the Interface() object, typically ifIndex
+            type (int): the port type, defined in the CISCO-STACK-MIB.
+
+        Returns:
+            (bool): True is assigned, False if not.
+        """
+        dprint(f"_parse_and_set_cisco_port_type() ifIndex {if_index} = type {type}")
+
+        # see if this is a type we want to look at:
+        if type in cisco_port_types:
+            dprint(f"  Interesting port type found: {cisco_port_types[type]}")
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                dprint(f"Found interface {iface.name}, assigning port type.")
+                trx = Transceiver()
+                trx.type = cisco_port_types[type]
+                iface.transceiver = trx
+                return True
         return False
 
     def _parse_mibs_cisco_poe(self, oid: str, val: str) -> bool:
