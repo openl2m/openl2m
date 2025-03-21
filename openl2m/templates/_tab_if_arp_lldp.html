@@ -109,7 +109,7 @@
                   {% if eth.address_ip4 %}
                      / {{ eth.address_ip4|get_ip4_info_links }}
                        {% if eth.hostname %}
-                       <abbr data-bs-toggle="tooltip" title="{{ eth.hostname }}">{{ eth.address_ip4 }}</abbr>
+                       <abbr data-bs-toggle="tooltip" title="{{ eth.hostname }}" class="text-decoration-underline">{{ eth.address_ip4 }}</abbr>
                        {% else %}
                        {{ eth.address_ip4 }}
                        {% endif %}
