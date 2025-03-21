@@ -103,7 +103,15 @@ class SnmpConnectorJuniper(SnmpConnector):
                     break
 
     def _get_interface_transceiver_types(self):
-        """Override the SnmpConnector() function, and read some Juniper-specific data."""
+        """
+        Augment SnmpConnector._get_interface_transceiver_type() to read more transceiver info of a physical port
+        from an JUNIPER-IF-MIB.
+
+        Returns 1 on succes, -1 on failure
+        """
+        # first generic, using MAU-MIB
+        super()._get_interface_transceiver_types()
+        # See what we can get from Juniper-specific data.
         retval = self.get_snmp_branch(branch_name='ifJnxMediaType', parser=self._parse_mibs_juniper_if_media_type)
         if retval < 0:
             self.add_warning("Error getting Juniper 'ifJnxMediaType'")
@@ -153,10 +161,11 @@ class SnmpConnectorJuniper(SnmpConnector):
                 iface = self.get_interface_by_key(key=if_index)
                 if iface:
                     # dprint(f"Found interface {iface.name}")
-                    trx = Transceiver()
-                    trx.type = jnx_if_types[int(val)]
-                    iface.transceiver = trx
-                    return True
+                    if not iface.transceiver:  # only if not set yet!
+                        trx = Transceiver()
+                        trx.type = jnx_if_types[int(val)]
+                        iface.transceiver = trx
+            return True  # we parsed it
         return False
 
     def _parse_mibs_juniper_l2ald_vlans(self, oid: str, val: str) -> bool:
