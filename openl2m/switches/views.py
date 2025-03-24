@@ -322,12 +322,32 @@ class SwitchBasics(LoginRequiredMixin, View):
         counter_increment(COUNTER_VIEWS)
         return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="basic")
 
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchBasics() - POST called")
+        counter_increment(COUNTER_VIEWS)
+        return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="basic")
+
 
 class SwitchDetails(LoginRequiredMixin, MyView):
     """
     "details" switch view, i.e. with Ethernet/ARP/LLDP data.
     Simply call switch_view() with proper parameter
     """
+
+    def get(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchDetails() - GET called")
+        counter_increment(COUNTER_DETAILVIEWS)
+        return switch_view(request=request, group_id=group_id, switch_id=switch_id, view="arp_lldp")
 
     def post(
         self,

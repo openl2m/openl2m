@@ -161,31 +161,6 @@ def get_device_class(device):
     return ENTITY_CLASS_NAME[device.type]
 
 
-@register.filter
-def get_my_results(results, group_count):
-    """
-    Display the search results as a list of links.
-    """
-    num = len(results)
-    if num == 0:
-        return "We did not find any matching switches!"
-    found = ""
-    for group_id, switch_id, name, description, default_view, group_name in results:
-        link = f"\n<a class=\"list-group-item list-group-item-action\" href=\"/switches/{group_id}/{switch_id}/"
-        if default_view == SWITCH_VIEW_DETAILS:
-            link += "details/\""
-        else:
-            link += "\""
-        if description:
-            link += f" data-bs-toggle=\"tooltip\" data-bs-title=\"{description}\""
-        if group_count > 1:
-            found += f"{link}>{name} ({group_name})</a>"
-        else:
-            found += f"{link}>{name}</a>"
-
-    return mark_safe(found)
-
-
 def get_group_menu(group, group_id, open=False):
     """Show the menu for just a single group
 

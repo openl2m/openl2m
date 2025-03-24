@@ -23,7 +23,38 @@
       </div>
       <div class="card-body overflow-scroll" style="max-height: 200px;">
         <div class="list-group">
-      {{ results|get_my_results:group_count }}
+        {% for group_id, switch_id, name, description, default_view, group_name in results %}
+          <form
+            id="{{ group_id }}_{{ switch_id}}"
+            class="list-group-item list-group-item-action"
+          {% if default_view == SWITCH_VIEW_DETAILS %}
+            action="{% url 'switches:switch_details' group_id switch_id %}"
+          {% else %}
+            action="{% url 'switches:switch_basics' group_id switch_id %}"
+          {% endif %}
+            method="post">
+            {% csrf_token %}
+            <span data-bs-toggle="tooltip" data-bs-title="Click to go to
+            {% if description %}
+              '{{ description }}'"
+            {% else %}
+              '{{ name }}'"
+            {% endif %}
+            onclick="submit_{{ group_id }}_{{ switch_id}}()">
+            {% if results_count > 1 %}
+              {{ name }} ({{ group_name }})
+            {% else %}
+              {{ name }}
+            {% endif %}
+            </span>
+            <script>
+              function submit_{{ group_id }}_{{ switch_id}}() {
+                let form = document.getElementById("{{ group_id }}_{{ switch_id}}");
+                form.submit();
+              }
+            </script>
+          </form>
+        {% endfor %}
         </div>
       </div>
       </div>
