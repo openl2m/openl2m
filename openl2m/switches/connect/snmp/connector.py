@@ -1845,7 +1845,7 @@ class SnmpConnector(Connector):
 
     def _parse_mibs_net_to_media(self, oid: str, val: str) -> bool:
         """
-        Parse a single OID with data returned from the (various) Net-To-Media (ie ARP) mibs
+        Parse a single OID with data returned from the Old-Style Net-To-Media (ie ARP) mibs
 
         Params:
             oid (str): the SNMP OID to parse
@@ -1866,20 +1866,31 @@ class SnmpConnector(Connector):
             dprint(f"IfIndex={if_index}, IP={ip}")
             if if_index in self.interfaces.keys():
                 mac_addr = bytes_ethernet_to_string(val)
-                dprint(f"   MAC={mac_addr}")
+                dprint(f"  MAC={mac_addr}")
                 # see if we can add this to a known ethernet address
+                # this should work on layer-2 (switch) devices, where we have already learned
+                # the ethernet address from the dot1qTpFdbPort tables.
+                # on pure layer 3, we do not learn ethernets from the switching side.
                 # time consuming, but useful
+                eth_found = False
                 for iface in self.interfaces.values():
                     if mac_addr in iface.eth.keys():
+                        dprint(f"  Found in Layer 2 table at '{iface.name}'")
                         # Found existing MAC addr, adding IP4
                         iface.eth[mac_addr].address_ip4 = ip
+                        eth_found = True
+                if not eth_found:
+                    dprint("  Eth not found in layer 2, adding from Layer 3 info!")
+                    # ethernet not found from the layer 2 tables. Add an entry
+                    iface = self.get_interface_by_key(key=if_index)
+                    if iface:
+                        iface.add_learned_ethernet_address(eth_address=mac_addr, ip4_address=ip)
+                        self.eth_addr_count += 1
+                    else:
+                        dprint(f"ERROR: interface not found for ifIndex '{if_index}'")
 
             return True
 
-        """
-        Next (eventually) the newer ipNetToPhysical tables
-        Note: we have not found any device yet that returns this!
-        """
         return False
 
     def _parse_mibs_net_to_physical(self, oid: str, val: str) -> bool:
@@ -1943,15 +1954,11 @@ class SnmpConnector(Connector):
 
             return True
 
-        """
-        Next (eventually) the newer ipNetToPhysical tables
-        Note: we have not found any device yet that returns this!
-        """
         return False
 
-        #
-        # LACP MIB parsing
-        #
+    #
+    # LACP MIB parsing
+    #
 
     def _parse_mibs_lacp(self, oid: str, val: str) -> bool:
         """
