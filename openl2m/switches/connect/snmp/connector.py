@@ -1948,14 +1948,24 @@ class SnmpConnector(Connector):
             # decode the return value into the ethernet address
             eth_addr = bytes_ethernet_to_string(val)
             dprint(f"    MAC={eth_addr}")
-            # we currently only deal with IPv4:
+            # did we see this ethernet address in the switching tables?
+            eth = self._find_ethernet_address(eth_address=eth_addr)
             if addr_type == IANA_TYPE_IPV4:
                 dprint(f"    IPV4={ip}")
-                iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
+                if eth:
+                    # known ethernet, go add Ipv4 address
+                    eth.add_ip6_address(ip4_address=ip)
+                else:
+                    # add new ethernet address to this interface:
+                    iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
             elif addr_type == IANA_TYPE_IPV6:
                 dprint(f"    IPv6={ip}")
-                # add new ethernet address to interface:
-                iface.add_learned_ethernet_address(eth_address=eth_addr, ip6_address=ip)
+                if eth:
+                    # known ethernet, go add Ipv4 address
+                    eth.add_ip6_address(ip6_address=ip)
+                else:
+                    # add new ethernet address to this interface:
+                    iface.add_learned_ethernet_address(eth_address=eth_addr, ip6_address=ip)
 
             return True
 
@@ -3606,6 +3616,22 @@ class SnmpConnector(Connector):
             )
             value = ""  # reset to default, just in case
         return value
+
+    def _find_ethernet_address(self, eth_address):
+        """Search for an ethernet address on all interface. Return EthernetAddress() if found.
+
+        Args:
+            eth_address (str): the ethernet address to search for.
+
+        Returns:
+            EthernetAddress(): the object of the found address, if any
+        """
+        dprint(f"_find_ethernet_address() for '{eth_address}'")
+        for iface in self.interfaces.values():
+            if eth_address in iface.eth.keys():
+                dprint(f"  Found on interface '{iface.name}'")
+                return iface.eth[eth_address]
+        return None
 
     #
     # "Public" interface methods
