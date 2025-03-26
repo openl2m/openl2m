@@ -1866,30 +1866,28 @@ class SnmpConnector(Connector):
             if_index = str(parts[0])
             ip = str(parts[1])
             dprint(f"IfIndex={if_index}, IP={ip}")
-            if if_index in self.interfaces.keys():
-                mac_addr = bytes_ethernet_to_string(val)
-                dprint(f"  MAC={mac_addr}")
+            # valid interface ?
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                eth_addr = bytes_ethernet_to_string(val)
+                dprint(f"  MAC={eth_addr}")
                 # see if we can add this to a known ethernet address
                 # this should work on layer-2 (switch) devices, where we have already learned
                 # the ethernet address from the dot1qTpFdbPort tables.
-                # this maps ethernet address to the switch port, whereas the data here
+                # this maps ethernet address to the switch port interface, whereas the data here
                 # would possibly be the "virtual interface", e.g. interface Vlan100
-                # we map to the phsyical port, if known.
+                # we show the ethernet on the phsyical port, if known.
                 # Note: on pure layer 3, we do not learn ethernets from the switching side.
-                eth_found = False
-                # time consuming, but useful
-                for iface in self.interfaces.values():
-                    if mac_addr in iface.eth.keys():
-                        dprint(f"  Found in Layer 2 table at '{iface.name}'")
-                        # Found existing MAC addr, adding IP4
-                        iface.eth[mac_addr].address_ip4 = ip
-                        eth_found = True
-                if not eth_found:
+                #
+                # This loops through all interfaces, time consuming, but useful
+                eth = self._find_ethernet_address(eth_address=eth_addr)
+                if eth:
+                    eth.address_ip4 = ip
+                else:
                     dprint("  Eth not found in layer 2, adding from Layer 3 info!")
                     # ethernet not found from the layer 2 tables. Add an entry
-                    iface = self.get_interface_by_key(key=if_index)
                     # this should never fail, as this was already checked above!
-                    iface.add_learned_ethernet_address(eth_address=mac_addr, ip4_address=ip)
+                    iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
                     self.eth_addr_count += 1
             else:
                 dprint(f"ERROR: interface not found for ifIndex {if_index}")
@@ -1953,15 +1951,15 @@ class SnmpConnector(Connector):
             if addr_type == IANA_TYPE_IPV4:
                 dprint(f"    IPV4={ip}")
                 if eth:
-                    # known ethernet, go add Ipv4 address
-                    eth.add_ip6_address(ip4_address=ip)
+                    # known ethernet, go add IPv4 address
+                    eth.set_ip4_address(ip4_address=ip)
                 else:
                     # add new ethernet address to this interface:
                     iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
             elif addr_type == IANA_TYPE_IPV6:
                 dprint(f"    IPv6={ip}")
                 if eth:
-                    # known ethernet, go add Ipv4 address
+                    # known ethernet, go add IPv6 address
                     eth.add_ip6_address(ip6_address=ip)
                 else:
                     # add new ethernet address to this interface:
