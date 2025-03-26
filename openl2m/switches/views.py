@@ -226,6 +226,7 @@ class Switches(LoginRequiredMixin, View):
             request,
             template_name,
             {
+                "is_top_menu": True,
                 "groups": groups,
                 "groups_count": len(groups),
             },

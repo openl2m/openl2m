@@ -2,7 +2,7 @@
 <nav class="navbar navbar-expand-sm">
   <div class="container-fluid">
     <h1 class="navbar-brand pb-0">
-{% if request.user.is_authenticated %}
+{% if request.user.is_authenticated and not is_top_menu %}
       <form class="navbar-brand"
         action="{% url 'switches:groups' %}"
         method="post"
@@ -18,10 +18,7 @@
         >
     </form>
 {% else %}
-    <img src="{% static 'img/openl2m-logo.png' %}"
-      data-bs-toggle="tooltip"
-      data-bs-title="OpenL2M Logo"
-      alt="OpenL2M logo">
+    <img src="{% static 'img/openl2m-logo.png' %}" alt="OpenL2M logo">
 {% endif %}
     </h1>
 
