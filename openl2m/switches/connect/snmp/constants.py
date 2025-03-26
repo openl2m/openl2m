@@ -1172,6 +1172,8 @@ mau_types[35] = "10GBASE-LR"
 mau_types[36] = "10GBASE-SR"
 
 mau_types[93] = "25GBASE-SR"
+mau_types[114] = "25GBASE-LR"
+mau_types[115] = "25GBASE-ER"
 
 mau_types[72] = "40GBASE-SR4"
 mau_types[74] = "40GBASE-LR4"
@@ -1184,7 +1186,7 @@ mau_types[122] = "50GBASE-ER"
 
 mau_types[77] = "100GBASE-LR4"
 mau_types[78] = "100GBASE-ER4"
-mau_types[77] = "100GBASE-SR4"
+mau_types[102] = "100GBASE-SR4"
 mau_types[194] = "100GBASE-ZR"
 
 mau_types[128] = "200GBASE-DR4"
