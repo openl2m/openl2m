@@ -2,18 +2,27 @@
 <nav class="navbar navbar-expand-sm">
   <div class="container-fluid">
     <h1 class="navbar-brand pb-0">
-      <a class="navbar-brand"
-        href="{% url 'switches:groups' %}"
+{% if request.user.is_authenticated %}
+      <form class="navbar-brand"
+        action="{% url 'switches:groups' %}"
+        method="post"
       {% if connection.save_needed %}
         onclick="return confirm_change('There are UNSAVED changes, are you sure?')"
       {% endif %}
       >
-        <img src="{% static 'img/openl2m-logo.png' %}"
+        {% csrf_token %}
+        <input type="image" src="{% static 'img/openl2m-logo.png' %}"
             data-bs-toggle="tooltip"
             data-bs-title="Go back to Devices Menu"
             alt="OpenL2M logo"
         >
-      </a>
+    </form>
+{% else %}
+    <img src="{% static 'img/openl2m-logo.png' %}"
+      data-bs-toggle="tooltip"
+      data-bs-title="OpenL2M Logo"
+      alt="OpenL2M logo">
+{% endif %}
     </h1>
 
 {% if request.user.is_authenticated %}

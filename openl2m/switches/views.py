@@ -179,6 +179,12 @@ class Switches(LoginRequiredMixin, View):
     It shows the list of switches a user has access to
     """
 
+    def post(
+        self,
+        request,
+    ):
+        return self.get(request=request)
+
     def get(
         self,
         request,
