@@ -15,7 +15,15 @@
       {# this needs work ! #}
         {% if iface.addresses_ip4 or iface.addresses_ip6 or iface.address_ip6_linklocal %}
         <tr>
-          <td>{{iface.name}}</td>
+          <td>
+            {% if not iface.oper_status %}
+            <span data-bs-toggle="tooltip" title="{{ iface.name }} is DOWN!">
+              {{ iface.name }} <i class="fa-solid fa-down-long"></i>
+            </span>
+            {% else %}
+              {{iface.name}}
+            {% endif %}
+            </td>
           <td>
           {% for ip,addr in iface.addresses_ip4.items %}
             {% if addr.hostname %}
