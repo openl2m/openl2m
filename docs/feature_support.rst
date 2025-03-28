@@ -18,6 +18,7 @@ Features Supported
      - VLAN Edit
      - SSH
      - VRF
+     - IPv6 Info
 
    * - Arista (Snmp)
      - Yes
@@ -26,6 +27,7 @@ Features Supported
      - Yes
      - Yes
      -
+     - Yes
      - Yes
      - Yes
 
@@ -38,8 +40,10 @@ Features Supported
      - Yes (>=v10.12, no name)
      - Yes
      - Yes (untested)
+     - Yes
 
    * - Comware (Snmp)
+     - Yes
      - Yes
      - Yes
      - Yes
@@ -58,6 +62,7 @@ Features Supported
      - Yes
      - Yes
      - Yes (untested)
+     - ?
 
    * - Juniper (Snmp) *
      -
@@ -68,8 +73,10 @@ Features Supported
      -
      - Yes
      - Yes
+     - Yes
 
    * - SNMP (Generic)
+     - Yes
      - Yes
      - Yes
      - Yes
@@ -88,6 +95,7 @@ Features Supported
      - Yes
      - Yes
      -
+     - TBD
 
    * - Junos (PyEZ) *
      - Yes
@@ -98,6 +106,7 @@ Features Supported
      - Yes
      - Yes
      -
+     - TBD
 
 
    * - Napalm (R/O)
@@ -109,6 +118,7 @@ Features Supported
      -
      - Yes
      -
+     - No
 
    * - SSH
      -
@@ -118,6 +128,7 @@ Features Supported
      -
      -
      - Yes
+     - n/a
      - n/a
 
 .. note::

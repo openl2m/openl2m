@@ -19,6 +19,7 @@ for additional data.
    :maxdepth: 1
    :caption: The various parts of the SNMP driver:
 
+   snmp-mibs.rst
    snmp-base.rst
    snmp-discover-vlan.rst
    snmp-discover-interface.rst
