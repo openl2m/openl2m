@@ -68,8 +68,12 @@ SNMP MIB variables names and their string numeric value. EasySNMP uses the forma
 
 snmp_mib_variables = {}
 
+###################
+# MIB-2 variables #
+###################
+
 #
-# SYSTEM RELATED
+# SYSTEM RELATED - MIB-2 - 1.3.6.1.2.1.1
 #
 system = '.1.3.6.1.2.1.1'
 snmp_mib_variables['system'] = system
@@ -95,8 +99,9 @@ snmp_mib_variables['sysLocation'] = sysLocation
 snmp_mib_variables['sysServices'] = '.1.3.6.1.2.1.1.7.0'
 
 #
-# INTERFACE RELATED
+# INTERFACE RELATED - RFC 1213 - 1.3.6.1.2.1.2 (extended by IF-MIB)
 #
+# interfaces = '.1.3.6.1.2.1.2'
 ifNumber = '.1.3.6.1.2.1.2.1.0'  # interface count on device
 snmp_mib_variables['ifNumber'] = ifNumber
 
@@ -111,6 +116,8 @@ snmp_mib_variables['ifIndex'] = ifIndex
 ifDescr = '.1.3.6.1.2.1.2.2.1.2'  # the OLD interface name, see ifName below
 snmp_mib_variables['ifDescr'] = ifDescr
 
+# this defines the type interface. Note that types we are looking for are defined in
+# switches/connect/constants.py
 ifType = '.1.3.6.1.2.1.2.2.1.3'
 snmp_mib_variables['ifType'] = ifType
 
@@ -244,7 +251,10 @@ snmp_mib_variables['ipv6InterfaceIdentifier'] = ipv6InterfaceIdentifier
 # https://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.3.6.1.2.1.4.34
 #
 ipAddressTable = '.1.3.6.1.2.1.4.34'
+
 ipAddressEntry = '.1.3.6.1.2.1.4.34.1'
+snmp_mib_variables['ipAddressEntry'] = ipAddressEntry
+
 # and the entries is this table are index via <address-type>.<length>.<ip-address> = <field value>
 # see the INDEX definition, not that ipAddressAddr = <length>.<ip-address>
 # ipAddressEntry OBJECT-TYPE
@@ -285,10 +295,10 @@ IP_ADDRESS_TYPE_ANYCAST = 2
 IP_ADDRESS_TYPE_BROADCAST = 3
 
 # A pointer to the row in the prefix table to which this address belongs. May be { 0 0 } if there is no such row.
-# this contains bot the IP4/6 address, the ifIndex where it is from, and the PrefixLength!
+# this contains both the IP4/6 address, the ifIndex where it is from, and the PrefixLength!
 ipAddressPrefix = '.1.3.6.1.2.1.4.34.1.5'
 snmp_mib_variables['ipAddressPrefix'] = ipAddressPrefix
-# this returns ipAddressPrefixOrigin.<ifIndex>.<add type>.<addr lenght>.<IP info in dotted decimal>.<prefix-length>
+# this returns ipAddressPrefixOrigin.<ifIndex>.<addr type>.<addr lenght>.<IP info in dotted decimal>.<prefix-length>
 ipAddressPrefixOrigin = ".1.3.6.1.2.1.4.32.1.5"
 
 # The origin of the address.
@@ -355,55 +365,6 @@ ipNetToPhysicalState = '.1.3.6.1.2.1.4.35.1.7'
 
 ipNetToPhysicalRowStatus = '.1.3.6.1.2.1.4.35.1.8'
 
-#
-# OLD, deprecated IPV6-MIB
-# still used in some routers.
-# see https://mibs.observium.org/mib/IPV6-MIB
-#
-# see also above IP-MIB older entries "ipv6InterfaceTable"
-#
-# ipv6MIB = ".1.3.6.1.2.1.55"
-# ipv6MIBObjects  .1.3.6.1.2.1.55.1
-# ipv6DefaultHopLimit .1.3.6.1.2.1.55.1.2
-# ipv6Interfaces .1.3.6.1.2.1.55.1.3
-# ipv6IfTableLastChange .1.3.6.1.2.1.55.1.4
-
-# this sounds like it should have IPv6 interface info, but does not!
-# ipv6IfTable .1.3.6.1.2.1.55.1.5
-
-# ipv6IfStatsTable .1.3.6.1.2.1.55.1.6
-# ipv6AddrPrefixTable .1.3.6.1.2.1.55.1.7
-
-#
-# this tables contain IPv6 info for device interfaces:
-#
-# ipv6AddrTable  .1.3.6.1.2.1.55.1.8
-# ipv6AddrEntry  .1.3.6.1.2.1.55.1.8.1
-# ipv6AddrAddress = ".1.3.6.1.2.1.55.1.8.1.1"
-
-# this reads the IPv6 address, and the prefix length all in one:
-ipv6AddrPfxLength = ".1.3.6.1.2.1.55.1.8.1.2"
-snmp_mib_variables['ipv6AddrPfxLength'] = ipv6AddrPfxLength
-
-# return value is .1.3.6.1.2.1.55.1.8.1.2.<ifIndex>.<ipv6 in 16 decimals> = <prefix-len>
-# e.g.:
-# .1.3.6.1.2.1.55.1.8.1.2.2153.38.32.1.5.240.18.0.0.0.0.0.0.0.0.0.17 = INTEGER: 128
-# ifIndex 2153, 38 = 26h, 32 = 20h, etc. ==> 2620:0105:f012::11 / 128
-# .1.3.6.1.2.1.55.1.8.1.2.2153.254.128.0.0.0.0.0.0.0.0.0.0.105.8.0.0 = INTEGER: 10  # Link-Local fe80::6908:0000/10
-
-# ipv6AddrType  .1.3.6.1.2.1.55.1.8.1.3
-# ipv6AddrAnycastFlag  .1.3.6.1.2.1.55.1.8.1.4
-# ipv6AddrStatus  .1.3.6.1.2.1.55.1.8.1.5
-
-# ipv6RouteNumber .1.3.6.1.2.1.55.1.9
-# ipv6DiscardedRoutes .1.3.6.1.2.1.55.1.10
-# ipv6RouteTable .1.3.6.1.2.1.55.1.11
-
-# IPv6 "arp" aka Neighbor entries:
-# ipv6NetToMediaTable = ".1.3.6.1.2.1.55.1.12"
-ipv6NetToMediaEntry = ".1.3.6.1.2.1.55.1.12.1"
-snmp_mib_variables['ipv6NetToMediaEntry'] = ipv6NetToMediaEntry
-
 
 #
 # from the IEEE802.3 stats mib:
@@ -411,6 +372,69 @@ snmp_mib_variables['ipv6NetToMediaEntry'] = ipv6NetToMediaEntry
 # interface duplex status:
 dot3StatsDuplexStatus = '.1.3.6.1.2.1.10.7.2.1.19'
 snmp_mib_variables['dot3StatsDuplexStatus'] = dot3StatsDuplexStatus
+
+#
+# MPLS L3VPN related, aka "VRF" data
+# in the MPLS-L3VPN-STD-MIB
+# good reference is https://mibs.observium.org/mib/MPLS-L3VPN-STD-MIB/
+#
+# mplsStdMIB = ".1.3.6.1.2.1.10.166"
+
+# the start of the "VRF table":
+# mplsL3VpnVrfTable = ".1.3.6.1.2.1.10.166.11.1.2.2"
+
+# and all the "VRF" entries:
+mplsL3VpnVrfEntry = ".1.3.6.1.2.1.10.166.11.1.2.2.1"
+snmp_mib_variables['mplsL3VpnVrfEntry'] = mplsL3VpnVrfEntry
+# the entries in each "row" of the table:
+mplsL3VpnVrfName = ".1.3.6.1.2.1.10.166.11.1.2.2.1.1"
+# mplsL3VpnVrfVpnId 		.1.3.6.1.2.1.10.166.11.1.2.2.1.2
+mplsL3VpnVrfDescription = ".1.3.6.1.2.1.10.166.11.1.2.2.1.3"
+mplsL3VpnVrfRD = ".1.3.6.1.2.1.10.166.11.1.2.2.1.4"
+# mplsL3VpnVrfCreationTime 		.1.3.6.1.2.1.10.166.11.1.2.2.1.5
+mplsL3VpnVrfOperStatus = ".1.3.6.1.2.1.10.166.11.1.2.2.1.6"
+mplsL3VpnVrfActiveInterfaces = '.1.3.6.1.2.1.10.166.11.1.2.2.1.7'
+# mplsL3VpnVrfAssociatedInterfaces 		.1.3.6.1.2.1.10.166.11.1.2.2.1.8
+# mplsL3VpnVrfConfMidRteThresh 		.1.3.6.1.2.1.10.166.11.1.2.2.1.9
+# mplsL3VpnVrfConfHighRteThresh 		.1.3.6.1.2.1.10.166.11.1.2.2.1.10
+# mplsL3VpnVrfConfMaxRoutes 		.1.3.6.1.2.1.10.166.11.1.2.2.1.11
+# mplsL3VpnVrfConfLastChanged 		.1.3.6.1.2.1.10.166.11.1.2.2.1.12
+# mplsL3VpnVrfConfRowStatus 		.1.3.6.1.2.1.10.166.11.1.2.2.1.13
+mplsL3VpnVrfConfAdminStatus = ".1.3.6.1.2.1.10.166.11.1.2.2.1.14"
+# mplsL3VpnVrfConfStorageType 		.1.3.6.1.2.1.10.166.11.1.2.2.1.15
+
+MPLS_VRF_STATE_ENABLED = 1
+MPLS_VRF_STATE_DISABLED = 2
+
+
+# the VRF IF Conf Table entries have the lists of interfaces that are part of a VRF
+# indexed by VRF name (as oid string) with interface id, value is dependent on variable.
+# mplsL3VpnIfConfTable = .1.3.6.1.2.1.10.166.11.1.2.1
+mplsL3VpnIfConfEntry = ".1.3.6.1.2.1.10.166.11.1.2.1.1"
+mplsL3VpnIfConfIndex = ".1.3.6.1.2.1.10.166.11.1.2.1.1.1"  # appears NOT used!
+
+mplsL3VpnIfVpnClassification = ".1.3.6.1.2.1.10.166.11.1.2.1.1.2"
+snmp_mib_variables['mplsL3VpnIfVpnClassification'] = mplsL3VpnIfVpnClassification
+VPN_CLASSIFICATION_CARRIER = 1
+VPN_CLASSIFICATION_ENTERPRISE = 2
+VPN_CLASSIFICATION_INTERPROVIDER = 2
+# E.g.:  .1.3.6.1.2.1.10.166.11.1.2.1.1.2.6.86.79.73.80.95.72.2156 = INTEGER: 2
+# The VRF name of length 6, OID chars 86.79.73.80.95.72 is active on ifIndex 2156 with Vpn Classificaciton 2
+# ie. VRF "VOIP_H" on ifIndex 2156
+
+mplsL3VpnIfVpnRouteDistProtocol = ".1.3.6.1.2.1.10.166.11.1.2.1.1.3"
+# Note: the value is a Bit Mask indicating the protocols in use:
+L3VPN_ROUTE_DIST_PROTOCOL_NONE = 0
+L3VPN_ROUTE_DIST_PROTOCOL_BGP_BIT = 1
+L3VPN_ROUTE_DIST_PROTOCOL_OSPF_BIT = 2
+L3VPN_ROUTE_DIST_PROTOCOL_RIP_BIT = 3
+L3VPN_ROUTE_DIST_PROTOCOL_ISIS_BIT = 4
+L3VPN_ROUTE_DIST_PROTOCOL_STATIC_BIT = 5
+L3VPN_ROUTE_DIST_PROTOCOL_OTHER_BIT = 6
+
+mplsL3VpnIfConfStorageType = ".1.3.6.1.2.1.10.166.11.1.2.1.1.4"
+mplsL3VpnIfConfRowStatus = ".1.3.6.1.2.1.10.166.11.1.2.1.1.5"
+
 
 #
 # BRIDGE MIB RELATED
@@ -629,6 +653,82 @@ snmp_mib_variables['dot1qPortGvrpStatus'] = dot1qPortGvrpStatus
 
 # vlan status: defined above!
 
+#
+# MAU (Media Access Unit) mib is the standard way of describing media types, ie. transceivers.
+# See
+# https://mibs.observium.org/mib/MAU-MIB/
+# https://github.com/librenms/librenms/blob/master/mibs/IANA-MAU-MIB
+#
+# snmpDot3MauMgt = ".1.3.6.1.2.1.26"
+#
+# ifMauIfIndex = ".1.3.6.1.2.1.26.2.1.1.1"
+#
+ifMauType = ".1.3.6.1.2.1.26.2.1.1.3"
+snmp_mib_variables['ifMauType'] = ifMauType
+
+# and the type values are defined at:
+# https://datatracker.ietf.org/doc/html/rfc3636
+# https://www.iana.org/assignments/ianamau-mib/ianamau-mib
+# these are show at the above ifMauType as ".1.3.6.1.2.1.26.4.<type-integer>"
+MAU_TYPE_BASE = ".1.3.6.1.2.1.26.4."
+MAU_TYPE_UNKNOWN = ".0.0"
+# Here are the entries we mostly care about, organized by speed:
+mau_types = {}
+# mau_types[0] = "Unknown"
+mau_types[23] = "1000BASE-LX(Hd)"
+mau_types[24] = "1000BASE-LX"
+mau_types[25] = "1000BASE-SX(Hd)"
+mau_types[26] = "1000BASE-SX"
+mau_types[27] = "1000BASE-CX(Hd)"
+mau_types[28] = "1000BASE-CX"
+
+mau_types[34] = "10GBASE-ER"
+mau_types[35] = "10GBASE-LR"
+mau_types[36] = "10GBASE-SR"
+
+mau_types[93] = "25GBASE-SR"
+mau_types[114] = "25GBASE-LR"
+mau_types[115] = "25GBASE-ER"
+
+mau_types[72] = "40GBASE-SR4"
+mau_types[74] = "40GBASE-LR4"
+mau_types[95] = "40GBASE-ER4"
+
+mau_types[119] = "50GBASE-SR"
+mau_types[120] = "50GBASE-FR"
+mau_types[121] = "50GBASE-LR"
+mau_types[122] = "50GBASE-ER"
+
+mau_types[77] = "100GBASE-LR4"
+mau_types[78] = "100GBASE-ER4"
+mau_types[102] = "100GBASE-SR4"
+mau_types[194] = "100GBASE-ZR"
+
+mau_types[128] = "200GBASE-DR4"
+mau_types[129] = "200GBASE-FR4"
+mau_types[130] = "200GBASE-LR4"
+mau_types[133] = "200GBASE-SR4"
+mau_types[134] = "200GBASE-ER4"
+
+mau_types[136] = "400GBASE-SR16"
+mau_types[137] = "400GBASE-DR4"
+mau_types[138] = "400GBASE-FR8"
+mau_types[139] = "400GBASE-LR8"
+mau_types[140] = "400GBASE-ER8"
+mau_types[147] = "400GBASE-FR4"
+mau_types[148] = "400GBASE-LR4-6"
+mau_types[149] = "400GBASE-SR8"
+mau_types[150] = "400GBASE-LR4.2"
+mau_types[219] = "400GBASE-DR4-2"
+
+mau_types[220] = "800GBASE-CR8"
+mau_types[221] = "800GBASE-DR8"
+mau_types[222] = "800GBASE-DR8-2"
+mau_types[223] = "800GBASE-KR8"
+mau_types[224] = "800GBASE-R"
+mau_types[225] = "800GBASE-SR8"
+mau_types[226] = "800GBASE-VR8"
+
 ########################################################################
 #
 # ifMIB, extensions for higher speed, etc.
@@ -680,6 +780,8 @@ snmp_mib_variables['ifStackStatus'] = ifStackStatus
 
 #
 # ENTITY MIB
+#
+# entityMIB = ".1.3.6.1.2.47"
 #
 """
 1.3.6.1.2.1.47.1.1.1.1.1 (entPhysicalIndex)
@@ -737,6 +839,55 @@ snmp_mib_variables['entPhysicalModelName'] = entPhysicalModelName
        stack(11),        -- e.g., stack of multiple chassis entities
        cpu(12)
 """
+
+#
+# OLD, deprecated IPV6-MIB - 1.3.6.1.2.1.55
+# still used in some routers.
+# see https://mibs.observium.org/mib/IPV6-MIB
+#
+# see also above IP-MIB older entries "ipv6InterfaceTable"
+#
+# ipv6MIB = ".1.3.6.1.2.1.55"
+# ipv6MIBObjects  .1.3.6.1.2.1.55.1
+# ipv6DefaultHopLimit .1.3.6.1.2.1.55.1.2
+# ipv6Interfaces .1.3.6.1.2.1.55.1.3
+# ipv6IfTableLastChange .1.3.6.1.2.1.55.1.4
+
+# this sounds like it should have IPv6 interface info, but does not!
+# ipv6IfTable .1.3.6.1.2.1.55.1.5
+
+# ipv6IfStatsTable .1.3.6.1.2.1.55.1.6
+# ipv6AddrPrefixTable .1.3.6.1.2.1.55.1.7
+
+#
+# this tables contain IPv6 info for device interfaces:
+#
+# ipv6AddrTable  .1.3.6.1.2.1.55.1.8
+# ipv6AddrEntry  .1.3.6.1.2.1.55.1.8.1
+# ipv6AddrAddress = ".1.3.6.1.2.1.55.1.8.1.1"
+
+# this reads the IPv6 address, and the prefix length all in one:
+ipv6AddrPfxLength = ".1.3.6.1.2.1.55.1.8.1.2"
+snmp_mib_variables['ipv6AddrPfxLength'] = ipv6AddrPfxLength
+
+# return value is .1.3.6.1.2.1.55.1.8.1.2.<ifIndex>.<ipv6 in 16 decimals> = <prefix-len>
+# e.g.:
+# .1.3.6.1.2.1.55.1.8.1.2.2153.38.32.1.5.240.18.0.0.0.0.0.0.0.0.0.17 = INTEGER: 128
+# ifIndex 2153, 38 = 26h, 32 = 20h, etc. ==> 2620:0105:f012::11 / 128
+# .1.3.6.1.2.1.55.1.8.1.2.2153.254.128.0.0.0.0.0.0.0.0.0.0.105.8.0.0 = INTEGER: 10  # Link-Local fe80::6908:0000/10
+
+# ipv6AddrType  .1.3.6.1.2.1.55.1.8.1.3
+# ipv6AddrAnycastFlag  .1.3.6.1.2.1.55.1.8.1.4
+# ipv6AddrStatus  .1.3.6.1.2.1.55.1.8.1.5
+
+# ipv6RouteNumber .1.3.6.1.2.1.55.1.9
+# ipv6DiscardedRoutes .1.3.6.1.2.1.55.1.10
+# ipv6RouteTable .1.3.6.1.2.1.55.1.11
+
+# IPv6 "arp" aka Neighbor entries:
+# ipv6NetToMediaTable = ".1.3.6.1.2.1.55.1.12"
+ipv6NetToMediaEntry = ".1.3.6.1.2.1.55.1.12.1"
+snmp_mib_variables['ipv6NetToMediaEntry'] = ipv6NetToMediaEntry
 
 #
 # POE RELATED
@@ -880,7 +1031,9 @@ snmp_mib_variables['ieee8021QBridgePvid'] = ieee8021QBridgePvid
 
 
 #
-# LLDP related#
+# LLDP related
+#
+# lldpMIB = 1.0.8802.1.2
 #
 # local port:
 # (lldpLocPortEntry)
@@ -1006,12 +1159,13 @@ LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER = 3  # systemPortNumber(3)
 
 
 #
-# LACP MIB
+# LAG MIB, aka LACP MIB
 #
 # see also
 # http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.2.840.10006.300.43.1.1
 # https://stackoverflow.com/questions/14960157/how-to-map-portchannel-to-interfaces-via-snmp
 #
+# lagMIB = ".1.2.840.10006.300.43"
 
 dot3adAgg = '.1.2.840.10006.300.43.1.1'
 
@@ -1077,142 +1231,6 @@ dot3adAggPortActorOperState = '.1.2.840.10006.300.43.1.2.1.1.21'
 # Syntax: TruthValue (SNMPv2-TC)
 dot3adAggPortAggregateOrIndividual = '.1.2.840.10006.300.43.1.2.1.1.24'
 snmp_mib_variables['dot3adAggPortAggregateOrIndividual'] = dot3adAggPortAggregateOrIndividual
-
-
-#
-# MPLS L3VPN related, aka "VRF" data
-# in the MPLS-L3VPN-STD-MIB
-# good reference is https://mibs.observium.org/mib/MPLS-L3VPN-STD-MIB/
-#
-
-# the start of the "VRF table":
-# mplsL3VpnVrfTable = ".1.3.6.1.2.1.10.166.11.1.2.2"
-
-# and all the "VRF" entries:
-mplsL3VpnVrfEntry = ".1.3.6.1.2.1.10.166.11.1.2.2.1"
-snmp_mib_variables['mplsL3VpnVrfEntry'] = mplsL3VpnVrfEntry
-# the entries in each "row" of the table:
-mplsL3VpnVrfName = ".1.3.6.1.2.1.10.166.11.1.2.2.1.1"
-# mplsL3VpnVrfVpnId 		.1.3.6.1.2.1.10.166.11.1.2.2.1.2
-mplsL3VpnVrfDescription = ".1.3.6.1.2.1.10.166.11.1.2.2.1.3"
-mplsL3VpnVrfRD = ".1.3.6.1.2.1.10.166.11.1.2.2.1.4"
-# mplsL3VpnVrfCreationTime 		.1.3.6.1.2.1.10.166.11.1.2.2.1.5
-mplsL3VpnVrfOperStatus = ".1.3.6.1.2.1.10.166.11.1.2.2.1.6"
-mplsL3VpnVrfActiveInterfaces = '.1.3.6.1.2.1.10.166.11.1.2.2.1.7'
-# mplsL3VpnVrfAssociatedInterfaces 		.1.3.6.1.2.1.10.166.11.1.2.2.1.8
-# mplsL3VpnVrfConfMidRteThresh 		.1.3.6.1.2.1.10.166.11.1.2.2.1.9
-# mplsL3VpnVrfConfHighRteThresh 		.1.3.6.1.2.1.10.166.11.1.2.2.1.10
-# mplsL3VpnVrfConfMaxRoutes 		.1.3.6.1.2.1.10.166.11.1.2.2.1.11
-# mplsL3VpnVrfConfLastChanged 		.1.3.6.1.2.1.10.166.11.1.2.2.1.12
-# mplsL3VpnVrfConfRowStatus 		.1.3.6.1.2.1.10.166.11.1.2.2.1.13
-mplsL3VpnVrfConfAdminStatus = ".1.3.6.1.2.1.10.166.11.1.2.2.1.14"
-# mplsL3VpnVrfConfStorageType 		.1.3.6.1.2.1.10.166.11.1.2.2.1.15
-
-MPLS_VRF_STATE_ENABLED = 1
-MPLS_VRF_STATE_DISABLED = 2
-
-
-# the VRF IF Conf Table entries have the lists of interfaces that are part of a VRF
-# indexed by VRF name (as oid string) with interface id, value is dependent on variable.
-# mplsL3VpnIfConfTable = .1.3.6.1.2.1.10.166.11.1.2.1
-mplsL3VpnIfConfEntry = ".1.3.6.1.2.1.10.166.11.1.2.1.1"
-mplsL3VpnIfConfIndex = ".1.3.6.1.2.1.10.166.11.1.2.1.1.1"  # appears NOT used!
-
-mplsL3VpnIfVpnClassification = ".1.3.6.1.2.1.10.166.11.1.2.1.1.2"
-snmp_mib_variables['mplsL3VpnIfVpnClassification'] = mplsL3VpnIfVpnClassification
-VPN_CLASSIFICATION_CARRIER = 1
-VPN_CLASSIFICATION_ENTERPRISE = 2
-VPN_CLASSIFICATION_INTERPROVIDER = 2
-# E.g.:  .1.3.6.1.2.1.10.166.11.1.2.1.1.2.6.86.79.73.80.95.72.2156 = INTEGER: 2
-# The VRF name of length 6, OID chars 86.79.73.80.95.72 is active on ifIndex 2156 with Vpn Classificaciton 2
-# ie. VRF "VOIP_H" on ifIndex 2156
-
-mplsL3VpnIfVpnRouteDistProtocol = ".1.3.6.1.2.1.10.166.11.1.2.1.1.3"
-# Note: the value is a Bit Mask indicating the protocols in use:
-L3VPN_ROUTE_DIST_PROTOCOL_NONE = 0
-L3VPN_ROUTE_DIST_PROTOCOL_BGP_BIT = 1
-L3VPN_ROUTE_DIST_PROTOCOL_OSPF_BIT = 2
-L3VPN_ROUTE_DIST_PROTOCOL_RIP_BIT = 3
-L3VPN_ROUTE_DIST_PROTOCOL_ISIS_BIT = 4
-L3VPN_ROUTE_DIST_PROTOCOL_STATIC_BIT = 5
-L3VPN_ROUTE_DIST_PROTOCOL_OTHER_BIT = 6
-
-mplsL3VpnIfConfStorageType = ".1.3.6.1.2.1.10.166.11.1.2.1.1.4"
-mplsL3VpnIfConfRowStatus = ".1.3.6.1.2.1.10.166.11.1.2.1.1.5"
-
-#
-# MAU (Media Access Unit) mib is the standard way of describing media types, ie. transceivers.
-# See
-# https://mibs.observium.org/mib/MAU-MIB/
-# https://github.com/librenms/librenms/blob/master/mibs/IANA-MAU-MIB
-#
-# ifMauIfIndex = ".1.3.6.1.2.1.26.2.1.1.1"
-#
-ifMauType = ".1.3.6.1.2.1.26.2.1.1.3"
-snmp_mib_variables['ifMauType'] = ifMauType
-
-# and the type values are defined at:
-# https://datatracker.ietf.org/doc/html/rfc3636
-# https://www.iana.org/assignments/ianamau-mib/ianamau-mib
-# these are show at the above ifMauType as ".1.3.6.1.2.1.26.4.<type-integer>"
-MAU_TYPE_BASE = ".1.3.6.1.2.1.26.4."
-MAU_TYPE_UNKNOWN = ".0.0"
-# Here are the entries we mostly care about, organized by speed:
-mau_types = {}
-# mau_types[0] = "Unknown"
-mau_types[23] = "1000BASE-LX(Hd)"
-mau_types[24] = "1000BASE-LX"
-mau_types[25] = "1000BASE-SX(Hd)"
-mau_types[26] = "1000BASE-SX"
-mau_types[27] = "1000BASE-CX(Hd)"
-mau_types[28] = "1000BASE-CX"
-
-mau_types[34] = "10GBASE-ER"
-mau_types[35] = "10GBASE-LR"
-mau_types[36] = "10GBASE-SR"
-
-mau_types[93] = "25GBASE-SR"
-mau_types[114] = "25GBASE-LR"
-mau_types[115] = "25GBASE-ER"
-
-mau_types[72] = "40GBASE-SR4"
-mau_types[74] = "40GBASE-LR4"
-mau_types[95] = "40GBASE-ER4"
-
-mau_types[119] = "50GBASE-SR"
-mau_types[120] = "50GBASE-FR"
-mau_types[121] = "50GBASE-LR"
-mau_types[122] = "50GBASE-ER"
-
-mau_types[77] = "100GBASE-LR4"
-mau_types[78] = "100GBASE-ER4"
-mau_types[102] = "100GBASE-SR4"
-mau_types[194] = "100GBASE-ZR"
-
-mau_types[128] = "200GBASE-DR4"
-mau_types[129] = "200GBASE-FR4"
-mau_types[130] = "200GBASE-LR4"
-mau_types[133] = "200GBASE-SR4"
-mau_types[134] = "200GBASE-ER4"
-
-mau_types[136] = "400GBASE-SR16"
-mau_types[137] = "400GBASE-DR4"
-mau_types[138] = "400GBASE-FR8"
-mau_types[139] = "400GBASE-LR8"
-mau_types[140] = "400GBASE-ER8"
-mau_types[147] = "400GBASE-FR4"
-mau_types[148] = "400GBASE-LR4-6"
-mau_types[149] = "400GBASE-SR8"
-mau_types[150] = "400GBASE-LR4.2"
-mau_types[219] = "400GBASE-DR4-2"
-
-mau_types[220] = "800GBASE-CR8"
-mau_types[221] = "800GBASE-DR8"
-mau_types[222] = "800GBASE-DR8-2"
-mau_types[223] = "800GBASE-KR8"
-mau_types[224] = "800GBASE-R"
-mau_types[225] = "800GBASE-SR8"
-mau_types[226] = "800GBASE-VR8"
 
 
 #
