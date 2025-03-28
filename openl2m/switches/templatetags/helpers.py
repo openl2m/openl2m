@@ -797,19 +797,15 @@ def list_ip_addresses(iface: Interface) -> str:
     s = ''
     if iface.addresses_ip4:
         for ip, addr in iface.addresses_ip4.items():
-            s += f"{addr.ip}/"
+            s += f" {addr.ip}/"
             if settings.IFACE_IP4_SHOW_PREFIXLEN:
                 s += f"{addr.prefixlen}"
             else:
                 s += f"{addr.netmask}"
-    # ipv6 tbd
-    # if iface.addresses_ip6:
-    #     for ip,addr in iface.addresses_ip4.items():
-    #         s += f"{addr.ip}/"
-    #         if settings.IFACE_IP4_SHOW_PREFIXLEN:
-    #             s += f"{addr.prefixlen}"
-    #         else:
-    #             s += f"{addr.netmask}"
+    # add IPv6 if found
+    if iface.addresses_ip6:
+        for ip, addr in iface.addresses_ip6.items():
+            s += f" {addr.ip}/{addr.prefixlen}"
     return s
 
 
