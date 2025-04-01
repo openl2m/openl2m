@@ -82,4 +82,4 @@ You can include icons normally, such as shown here:
 
 .. code-block:: html
 
-  <i class="fas fa-ethernet" aria-hidden="true"></i>
+  <i class="fa-solid fa-ethernet" aria-hidden="true"></i>

@@ -116,7 +116,7 @@ The template *_tpl_if_name_icons.html* will show the vrf icon and hover name if 
 
     {% if iface.vrf_name %}
     &nbsp;
-    <i class="fas fa-network-wired" aria-hidden="true"
+    <i class="fa-solid fa-network-wired" aria-hidden="true"
         data-bs-toggle="tooltip"
         title="Member of VRF '{{ iface.vrf_name }}'">
     </i>

@@ -73,14 +73,14 @@ Interface names can also have several icons behind them. They are:
 
 .. raw:: html
 
-  <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
+  <i class="fa-solid fa-ellipsis-v" aria-hidden="true"></i>
 
 This means the interface is in trunking or 802.1Q tagged mode.
 Hovering over the icon will show the tagged Vlans on this port.
 
 .. raw:: html
 
-  <i class="fas fa-link" aria-hidden="true"></i>
+  <i class="fa-solid fa-link" aria-hidden="true"></i>
 
 This means the interface is an LACP bridge-aggregate interface, or a member of an LACP
 aggregation interface. Hovering over the icon will either show the member interfaces
@@ -88,7 +88,7 @@ for a virtual aggregate interface, or for a physical interface the bridge aggreg
 
 .. raw:: html
 
-  <i class="fas fa-phone" aria-hidden="true"></i>
+  <i class="fa-solid fa-phone" aria-hidden="true"></i>
 
 This means the interface has a voice vlan defined on it. This is Cisco
 specific. Hovering over the icon will
@@ -96,7 +96,7 @@ show the Voice Vlan.
 
 .. raw:: html
 
-  <i class="fas fa-cogs" aria-hidden="true"></i>
+  <i class="fa-solid fa-cogs" aria-hidden="true"></i>
 
 This means the interface is in routed mode (i.e. layer 3).
 Routed Mode interfaces can not be managed.

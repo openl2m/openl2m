@@ -25,7 +25,7 @@ This is then displayed in the template *_tpl_if_type_icons.html*
 
     {% if iface.transceiver %}
     &nbsp;
-    <i class="fas fa-bolt" aria-hidden="true"
+    <i class="fa-solid fa-bolt" aria-hidden="true"
         data-bs-toggle="tooltip"
         title="{{ iface.transceiver }} transceiver">
     </i>

@@ -11,6 +11,8 @@ Here are the icons used in OpenL2M, and their meanings:
 * :ref:`Tabs`
 * :ref:`Menu`
 
+.. NOTE: sphinx-rtd-theme only support "fas", no "fa-solid" as of v3.0.2 !
+
 .. _Interface:
 
 .. list-table:: Interface Tab Icons

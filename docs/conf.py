@@ -23,8 +23,8 @@ copyright = '2019-2025, Various'
 author = 'Various'
 
 # The main version and full release, including alpha/beta/rc tags
-version = '3.4'
-release = 'v3.4 (2025-2-10)'
+version = '3.4.1'
+release = 'v3.4.1 (2025-04-02)'
 
 # --- Running on ReadTheDocs ? ---
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'

@@ -39,6 +39,6 @@ to be posted on *any* page, if the *messages* variable has content in it. At pre
 
     {% for message in messages %}
         <div class="alert alert-{{ message.tags }} text-center" role="alert">
-            <i class="fas fa-exclamation-triangle"></i>&nbsp;<bold>{{ message }}</bold>&nbsp;<i class="fas fa-exclamation-triangle"></i>
+            <i class="fa-solid fa-exclamation-triangle"></i>&nbsp;<bold>{{ message }}</bold>&nbsp;<i class="fa-solid fa-exclamation-triangle"></i>
         </div>
     {% endfor %}
