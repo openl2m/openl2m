@@ -178,16 +178,16 @@ def ip_in_list(client_ip, ip_list):
     """
     dprint("ip_in_list()")
     for net in ip_list.replace(" ", "").split(","):
-        dprint(f"  Checking for net '{ net }'")
+        dprint(f"  Checking for net '{net}'")
         try:
             ipnet = netaddr.IPNetwork(net)
         except Exception as err:
             # bad network string, IGNORE!
-            dprint(f"  IGNORING BAD network: '{ net }' ({err})")
+            dprint(f"  IGNORING BAD network: '{net}' ({err})")
             continue
         else:
             if client_ip in ipnet:
-                dprint(f"  IP '{client_ip}' found in '{ net }'")
+                dprint(f"  IP '{client_ip}' found in '{net}'")
                 return True
     return False
 
@@ -249,7 +249,7 @@ class Token(models.Model):
         """
         Validate the API client IP address against the source IP restrictions (if any) set on the token.
         """
-        dprint(f"Token().validate_client_ip() for { client_ip }")
+        dprint(f"Token().validate_client_ip() for {client_ip}")
 
         # are we globally denying this IP address?
         if settings.API_CLIENT_IP_DENIED and ip_in_list(client_ip=client_ip, ip_list=settings.API_CLIENT_IP_DENIED):

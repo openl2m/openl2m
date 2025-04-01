@@ -20,7 +20,7 @@ from django.template import Template, Context
 from django.utils.html import mark_safe
 from django.urls import reverse
 
-from switches.constants import SWITCH_VIEW_BASIC, SWITCH_VIEW_DETAILS
+from switches.constants import SWITCH_VIEW_BASIC
 from switches.connect.classes import Interface
 from switches.connect.constants import (
     ENTITY_CLASS_NAME,
@@ -723,7 +723,7 @@ title: Device connections for '{connection.switch.name}'
 
                 if not settings.MM_GRAPH_EXPANDED:
                     # simple version
-                    mermaid += f"DEVICE <==> |{ iface.name }| {remote_device_object}\n"
+                    mermaid += f"DEVICE <==> |{iface.name}| {remote_device_object}\n"
                 else:
                     # expanded graphic, first add local interface device
                     local_interface_object = f"DEVICE_INTERFACE_{num}"

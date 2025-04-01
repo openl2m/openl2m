@@ -50,8 +50,6 @@ from switches.models import (
     Log,
 )
 
-from switches.utils import dprint
-
 from users.models import Token
 
 
