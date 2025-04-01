@@ -3,7 +3,7 @@
  <!--  iface.type = {{ iface.type }} -->
 {% if iface.is_routed %}
   &nbsp;
-  <i class="fas fa-cogs" aria-hidden="true"
+  <i class="fa-solid fa-cogs" aria-hidden="true"
        data-bs-toggle="tooltip"
        title="Routed Mode Interface
        {{ iface|list_ip_addresses }}
@@ -12,28 +12,28 @@
 {% endif %}
 {% if iface.is_tagged %}
   &nbsp;
-  <i class="fas fa-ellipsis-v" aria-hidden="true"
+  <i class="fa-solid fa-ellipsis-v" aria-hidden="true"
        data-bs-toggle="tooltip"
        title="Tagged/Trunked Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
   </i>
 {% endif %}
 {% if iface.igmp_snooping %}
   &nbsp;
-  <i class="fas fa-project-diagram" aria-hidden="true"
+  <i class="fa-solid fa-project-diagram" aria-hidden="true"
        data-bs-toggle="tooltip"
        title="IGMP Snooping Enabled">
   </i>
 {% endif %}
 {% if iface.lacp_master_index > 0 %}
   &nbsp;
-  <i class="fas fa-link" aria-hidden="true"
+  <i class="fa-solid fa-link" aria-hidden="true"
        data-bs-toggle="tooltip"
        title="This interface is a member of LACP interface {{ iface.lacp_master_name }}">
   </i>
 {% endif %}
 {% if iface.type == IF_TYPE_LAGG %}
   &nbsp;
-  <i class="fas fa-link" aria-hidden="true"
+  <i class="fa-solid fa-link" aria-hidden="true"
        data-bs-toggle="tooltip"
        title="This interface is an LACP interface! Members are: {% for if_index, if_name in iface.lacp_members.items %}{{ if_name }} {% endfor %}
        {{ iface|list_ip_addresses }}
@@ -49,7 +49,7 @@
   </i>
 {% elif iface.type == IF_TYPE_LOOPBACK %}
   &nbsp;
-  <i class="fas fa-spinner" aria-hidden="true"
+  <i class="fa-solid fa-spinner" aria-hidden="true"
        data-bs-toggle="tooltip"
        title="Software Loopback
        {{ iface|list_ip_addresses }}
@@ -57,7 +57,7 @@
   </i>
 {% elif iface.type == IF_TYPE_TUNNEL %}
   &nbsp;
-  <i class="fas fa-archway" aria-hidden="true"
+  <i class="fa-solid fa-archway" aria-hidden="true"
        data-bs-toggle="tooltip"
        title="Tunnel Interface
        {{ iface|list_ip_addresses }}
@@ -73,7 +73,7 @@
   </i>
   {% elif iface.type == IF_TYPE_MPLS_TUNNEL %}
   &nbsp;
-  <i class="fas fa-archway" aria-hidden="true"
+  <i class="fa-solid fa-archway" aria-hidden="true"
        data-bs-toggle="tooltip"
        title="MPLS Tunnel Interface
        {{ iface|list_ip_addresses }}
@@ -81,7 +81,7 @@
   </i>
 {% elif iface.type == IF_TYPE_MCAST %}
   &nbsp;
-  <i class="fas fa-sitemap" aria-hidden="true"
+  <i class="fa-solid fa-sitemap" aria-hidden="true"
        data-bs-toggle="tooltip"
        title="Multicast Interface
        {{ iface|list_ip_addresses }}
@@ -89,7 +89,7 @@
   </i>
 {% elif iface.type == IF_TYPE_OTHER %}
   &nbsp;
-  <i class="fas fa-vihara" aria-hidden="true"
+  <i class="fa-solid fa-vihara" aria-hidden="true"
        data-bs-toggle="tooltip"
        title="Other Interface
        {{ iface|list_ip_addresses }}
@@ -112,21 +112,21 @@
 {% endif %}
 {% if iface.voice_vlan %}
   &nbsp;
-  <i class="fas fa-phone" aria-hidden="true"
+  <i class="fa-solid fa-phone" aria-hidden="true"
        data-bs-toggle="tooltip"
        title="Voice VLAN {{ iface.voice_vlan }}">
   </i>
 {% endif %}
 {% if iface.vrf_name %}
   &nbsp;
-  <i class="fas fa-network-wired" aria-hidden="true"
+  <i class="fa-solid fa-network-wired" aria-hidden="true"
       data-bs-toggle="tooltip"
       title="Member of VRF '{{ iface.vrf_name }}'">
   </i>
 {% endif %}
 {% if iface.transceiver %}
   &nbsp;
-  <i class="fas fa-bolt" aria-hidden="true"
+  <i class="fa-solid fa-bolt" aria-hidden="true"
       data-bs-toggle="tooltip"
       title="{{ iface.transceiver }} transceiver">
   </i>

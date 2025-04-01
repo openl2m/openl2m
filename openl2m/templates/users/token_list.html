@@ -34,8 +34,8 @@
                 {% if request.user.profile.are_you_sure %}
                 onclick="return confirm_change('Are you sure you want to delete this API token ?')"
                 {% endif %}
-                ><i class="fas fa-trash-alt"></i></a></td>
-            <td><a href="{% url 'users:token_edit' token.id %}" title="Edit token"><i class="fas fa-pen"></i></a></td>
+                ><i class="fa-solid fa-trash-alt"></i></a></td>
+            <td><a href="{% url 'users:token_edit' token.id %}" title="Edit token"><i class="fa-solid fa-pen"></i></a></td>
             {% if settings.ALLOW_TOKEN_RETRIEVAL %}
             <td>{{token.key }}</td>
             {% else %}
@@ -43,7 +43,7 @@
             {% endif %}
             <td>{{ token.expires }}</td>
             <td>{{ token.last_used }}</td>
-            <td>{% if token.write_enabled %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-times"></i>{% endif %}</td>
+            <td>{% if token.write_enabled %}<i class="fa-solid fa-check"></i>{% else %}<i class="fa-solid fa-times"></i>{% endif %}</td>
             <td>{{ token.description }}</td>
           </tr>
             {% endfor %}
@@ -51,7 +51,7 @@
         </tbody>
         </table>
         {% if not tokens or tokens|length < settings.MAX_API_TOKENS %}
-        <a href="{% url 'users:token_add' %}" title="Create a new token"><i class="fas fa-plus-circle"></i> Add a token</a>
+        <a href="{% url 'users:token_add' %}" title="Create a new token"><i class="fa-solid fa-plus-circle"></i> Add a token</a>
         {% endif %}
       </div>
     </div>

@@ -76,7 +76,7 @@
     {% if settings.MAINTENANCE_MODE %}
     <!-- maintenance banner -->
       <div class="alert alert-warning text-center" role="alert">
-        <h4><i class="fas fa-exclamation"></i> Maintenance Mode</h4>
+        <h4><i class="fa-solid fa-exclamation"></i> Maintenance Mode</h4>
         <p>OpenL2M is currently in maintenance mode. Functionality may be limited.</p>
       </div>
     <!-- end maintenance -->
@@ -86,17 +86,17 @@
     {% for message in messages %}
       <div class="alert alert-{{ message.tags }} text-center" role="alert">
         {% if "info" in message.tags %}
-          <i class="fas fa-info"></i>
+          <i class="fa-solid fa-info"></i>
         {% elif "success" in message.tags %}
-          <i class="fas fa-check"></i>
+          <i class="fa-solid fa-check"></i>
         {% elif "warning" in message.tags %}
-          <i class="fas fa-exclamation"></i>
+          <i class="fa-solid fa-exclamation"></i>
         {% elif "error" in message.tags %}
-          <i class="fas fa-times"></i>
+          <i class="fa-solid fa-times"></i>
         {% elif "debug" in message.tags %}
-          <i class="fas fa-bug"></i>
+          <i class="fa-solid fa-bug"></i>
         {% else %}{# should not happen #}
-          <i class="fas fa-question"></i>
+          <i class="fa-solid fa-question"></i>
         {% endif %}
         &nbsp;<bold>{{ message }}</bold>
       </div>

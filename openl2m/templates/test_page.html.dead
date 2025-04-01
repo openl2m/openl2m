@@ -1,0 +1,11 @@
+{% extends '_base.html' %}
+<!-- this is intended to test a variety of HMTL, mostly related to Bootstrap 5 -->
+{% block title %}HTML Test Page{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+  <h1>This page is to be used for testing Bootstrap and HTMNL</h1>
+</div>
+
+{% endblock %}

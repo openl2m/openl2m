@@ -25,7 +25,7 @@
           {# Etc. Column #}
           <td>{{ vlan|get_vlan_info_links }}
           {% if vlan.status == VLAN_STATUS_DYNAMIC %}
-            <i class="fas cloud-download-alt" aria-hidden="true"
+            <i class="fa-solid cloud-download-alt" aria-hidden="true"
                 alt="MVRP/GVRP Image"
                 data-bs-toggle="tooltip"
                 title="Vlan learned via MVRP or GVRP">
@@ -33,7 +33,7 @@
           {% endif %}
           {% if vlan.admin_status == VLAN_ADMIN_DISABLED %}
             &nbsp;
-            <i class="fas fa-ban" aria-hidden="true"
+            <i class="fa-solid fa-ban" aria-hidden="true"
                 alt="Vlan is Admin Shutdown"
                 data-bs-toggle="tooltip"
                 title="Shutdown Vlan">
@@ -41,7 +41,7 @@
           {% endif %}
           {% if vlan.voice %}
             &nbsp;
-            <i class="fas fa-phone" aria-hidden="true"
+            <i class="fa-solid fa-phone" aria-hidden="true"
                 alt="Voice Vlan"
                 data-bs-toggle="tooltip"
                 title="Voice Vlan">
@@ -49,7 +49,7 @@
           {% endif %}
           {% if vlan.igmp_snooping %}
             &nbsp;
-            <i class="fas fa-project-diagram" aria-hidden="true"
+            <i class="fa-solid fa-project-diagram" aria-hidden="true"
                 alt="IGMP Snooping Enabled"
                 data-bs-toggle="tooltip"
                 title="IGMP Snooping Enabled">
@@ -57,7 +57,7 @@
           {% endif %}
           {% if vlan.vrf %}
             &nbsp;
-            <i class="fas fa-network-wired" aria-hidden="true"
+            <i class="fa-solid fa-network-wired" aria-hidden="true"
                 data-bs-toggle="tooltip"
                 title="Member of VRF '{{ vlan.vrf }}'">
             </i>

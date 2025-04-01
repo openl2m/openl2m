@@ -9,7 +9,7 @@
         <a href="{% url 'switches:switch_activity' group.id switch.id %}"
           data-bs-toggle="tooltip"
           title="Click here to see all switch activity logs">
-        <i class="fas fa-list-ul" aria-hidden="true"></i> All Actity Logs
+        <i class="fa-solid fa-list-ul" aria-hidden="true"></i> All Actity Logs
         </a>
       {% endif %}
     </div>
@@ -29,7 +29,7 @@
                   <a href="{% url 'switches:admin_activity'%}?user={{ l.user.id }}"
                     data-bs-toggle="tooltip"
                     title="Click here to see all logs for '{{ l.user }}'">
-                  <i class="fas fa-list-ul" aria-hidden="true"></i>
+                  <i class="fa-solid fa-list-ul" aria-hidden="true"></i>
                   </a>
                   &nbsp;
                   <a href="{% url 'users:info' l.user.id %}"
@@ -48,7 +48,7 @@
                   <a href="{% url 'switches:admin_activity'%}?switch={{ l.switch.id }}"
                     data-bs-toggle="tooltip"
                     title="Click here to see all logs for '{{ l.switch }}'">
-                  <i class="fas fa-list-ul" aria-hidden="true"></i>
+                  <i class="fa-solid fa-list-ul" aria-hidden="true"></i>
                   </a>
                   &nbsp;
                   <a href="{% url 'switches:switch_basics' l.group.id l.switch.id %}"
@@ -61,7 +61,7 @@
                       <a href="{% url 'admin:switches_switch_change' l.switch.id %}"
                         data-bs-toggle="tooltip"
                         title="Go to '{{ l.switch }}' admin page">
-                        <i class="fas fa-cog" aria-hidden="true"></i>
+                        <i class="fa-solid fa-cog" aria-hidden="true"></i>
                       </a>
                     {% endif %}
                   {% else %}

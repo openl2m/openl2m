@@ -56,7 +56,7 @@
           <td>{{ connection.switch|get_interface_info_links:iface }} {{ addr.ip|get_ip4_info_links }}
             {% if iface.vrf_name %}
               &nbsp;
-              <i class="fas fa-network-wired" aria-hidden="true"
+              <i class="fa-solid fa-network-wired" aria-hidden="true"
                   data-bs-toggle="tooltip"
                   title="Member of VRF '{{ iface.vrf_name }}'">
               </i>

@@ -63,7 +63,7 @@ def build_url_string(values):
         s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{values['hint']}\""
     s = s + ">"
     if 'fa_icon' in values.keys():
-        s = s + f" <i class=\"fas {values['fa_icon']}\" aria-hidden=\"false\"></i>"
+        s = s + f" <i class=\"fa-solid {values['fa_icon']}\" aria-hidden=\"false\"></i>"
     elif 'icon' in values.keys():
         s = (
             s
@@ -233,7 +233,7 @@ def get_my_group_menu(groups):
 
     num_groups = len(groups)
     if not num_groups:
-        s = '<div class="card border-warning"><div class="card-header bg-warning"><i class="fas fa-exclamation-triangle"></i>&nbsp;<strong>No groups assigned!</strong></div><div class="card-body row justify-content-md-center">You are not a member of any switch groups! Please contact the OpenL2M administrator.</div></div>'
+        s = '<div class="card border-warning"><div class="card-header bg-warning"><i class="fa-solid fa-exclamation-triangle"></i>&nbsp;<strong>No groups assigned!</strong></div><div class="card-body row justify-content-md-center">You are not a member of any switch groups! Please contact the OpenL2M administrator.</div></div>'
         return mark_safe(s)
 
     # the Group Title:
@@ -495,13 +495,13 @@ def get_interface_link(switch, iface):
     if iface.is_tagged:
         info = (
             info
-            + "&nbsp;&nbsp;<i class=\"fas fa-ellipsis-v\" aria-hidden=\"true\" \
+            + "&nbsp;&nbsp;<i class=\"fa-solid fa-ellipsis-v\" aria-hidden=\"true\" \
                  alt=\"Tagged/Trunked Interface\" data-bs-toggle=\"tooltip\" data-bs-title=\"Tagged/Trunked Interface\"></i>"
         )
     if iface.voice_vlan:
         info = (
             info
-            + f"&nbsp;&nbsp;<i class=\"fas fa-phone\" aria-hidden=\"true\" \
+            + f"&nbsp;&nbsp;<i class=\"fa-solid fa-phone\" aria-hidden=\"true\" \
                  alt=\"Voice VLAN\" data-bs-toggle=\"tooltip\" data-bs-title=\"Voice VLAN {iface.voice_vlan}>\""
         )
 
@@ -592,7 +592,7 @@ def get_lldp_info(neighbor):
 
     icon = ''
     # add an image for the capabilities
-    icon_format = "<i class=\"fas %s\" data-bs-toggle=\"tooltip\" data-bs-title=\"%s\"></i>&nbsp;"
+    icon_format = "<i class=\"fa-solid %s\" data-bs-toggle=\"tooltip\" data-bs-title=\"%s\"></i>&nbsp;"
     capabilities = neighbor.capabilities
     if capabilities == LLDP_CAPABILITIES_NONE:
         icon = icon_format % ('fa-question', 'Capabilities NOT Advertized')

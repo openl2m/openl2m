@@ -1,11 +1,83 @@
 {% extends '_base.html' %}
-<!-- this is intended to test a variety of HMTL, mostly related to Bootstrap 5 -->
+<!--
+  When running with DEBUG=True, this template is mapped in switches/urls.py to the URL "/switches/testpage"
+  This is intended to test a variety of HMTL, mostly related to Bootstrap 5
+ -->
 {% block title %}HTML Test Page{% endblock %}
 
 {% block content %}
+<!-- your test content goes here -->
+<a
+                id="openGraphButton"
+                value=""
+                href="#"
+                data-bs-toggle="tooltip"
+                title="Click to show graphical view of neighbor devices"
+                ><i class="fa-solid fa-chart-diagram" aria-hidden="true"></i>Show Neighbors Graph</a>
 
-<div class="container-fluid">
-  <h1>This page is to be used for testing Bootstrap and HTMNL</h1>
+<script>
+  document.getElementById('openGraphButton').addEventListener('click', function() {
+    // Open a new window
+    const newWindow = window.open("", "_blank", "width=1024,height=800");
+
+    const htmlText = `
+<!DOCTYPE html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/fontawesome-5.15.4/css/all.css">
+    <link rel="icon" type="image/png" href="/static/img/openl2m.ico" title="OpenL2M icon">
+    <title>Neighbor Graph</title>
+  </head>
+  <body><h4>Connected devices for "hmsc-pump-climate-vfsw"</h4>
+    <h5>Generated for 'admin' on 2025-01-08 14:22:22</h5>
+    <pre class="mermaid">
+---
+title: hmsc-pump-climate-vfsw
+---
+flowchart LR
+
+DEVICE["hmsc-pump-climate-vfsw"]
+
+DEVICE_Ten-GigabitEthernet1/1/5["Ten-GigabitEthernet1/1/5"]
+mbrguin-mdf-pri_ID2["Ten-GigabitEthernet1/0/17"]
+mbrguin-mdf-pri_ID3["fa:fa-cogs mbrguin-mdf-pri"]
+
+DEVICE --> DEVICE_Ten-GigabitEthernet1/1/5
+DEVICE_Ten-GigabitEthernet1/1/5 --> mbrguin-mdf-pri_ID2
+mbrguin-mdf-pri_ID2 --> mbrguin-mdf-pri_ID3
+
+DEVICE --> DEV2
+DEVICE --> DEV3
+
+    </pre>
+  </body>
+</html>
+`;
+
+    // write the HTML content to the new window
+    newWindow.document.write(htmlText);
+
+    // and initialize mermaid
+    var mermaid_init = document.createElement('script');
+    mermaid_init.setAttribute('type', 'text/javascript');
+    mermaid_init.setAttribute('text', "mermaid.initialize({ startOnLoad: true, theme: 'dark' });");
+    newWindow.document.body.appendChild(mermaid_init)
+
+    // add the mermaid script source to it
+    var mermaid = document.createElement('script');
+    mermaid.setAttribute('type', 'module');
+    mermaid.setAttribute('src', 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+    newWindow.document.body.appendChild(mermaid)
+
+
+    // close document to let the window load
+    newWindow.document.close();
+    });
+</script>
 </div>
 
+<!-- end test content -->
 {% endblock %}
+
+
