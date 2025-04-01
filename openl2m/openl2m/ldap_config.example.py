@@ -80,4 +80,4 @@ AUTH_LDAP_GROUP_CACHE_TIMEOUT = 3600
 # eg. "^switches-([\w\d\s-]+)$"  matches "switches-group1" and
 # creates a SwitchGroup named "group1"
 # If not set, or no matches, SwitchGroup() objects will NOT be created!
-AUTH_LDAP_GROUP_TO_SWITCHGROUP_REGEX = "^switches-([\w\d\s-]+)$"
+AUTH_LDAP_GROUP_TO_SWITCHGROUP_REGEX = r"^switches-([\w\d\s-]+)$"
