@@ -19,7 +19,7 @@ Dummy Connector
 from django.http.request import HttpRequest
 
 from switches.connect.constants import IF_TYPE_ETHERNET
-from switches.connect.classes import Interface, NeighborDevice, Vrf
+from switches.connect.classes import Interface, NeighborDevice
 from switches.connect.connector import Connector
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint

@@ -424,7 +424,6 @@ class Connector:
         if hasattr(self, 'get_my_client_data'):
             start_time = time.time()
             self.get_my_client_data()  # to be implemented by device/vendor class!
-            stop_time = time.time()
             # add to timing data, for admin use!
             self.add_timing('Client Info Read', 1, time.time() - start_time)
             # are we resolving IP addresses to hostnames?
