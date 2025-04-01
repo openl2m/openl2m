@@ -41,16 +41,28 @@ Neighbor Graph Options:
 Version 3.4.1
 -------------
 
-Release Date: TBD
+Release Date: 2025-04-02
 
 * add IPv6 information for interface addresses, and neighbor devices (aka IPv6 'ND')
 * add expanded graph.
-* show error banner if browser-side Javascript is disabled (OpenL2M requires is for proper functionality)
+* show error banner if browser-side Javascript is disabled (OpenL2M requires is for proper functionality).
+* add IPv6 info to interface tooltip.
+* add data from snmp "netToPhysical" info to known ethernets
+* additional transceiver parsing for HP
+* draw attention to ip address' hostname by underlining.
+* documentation update for various driver internals.
 
 Bug fixes:
 
 * fixed duplicate interface IPv4 for SNMP devices.
 * fixed white-space handling in CSV import that caused device IP address errors.
+* fix 100g-lr4 typo (showed as sr4).
+* move FontAwesome icons to "fa-solid" (from "fas").
+* flake8 updates.
+* no top menu link if on top menu.
+* nearly all 'clickable' items are moved to http post.
+* add warning on open new tab/window.
+
 
 Version 3.4
 -------------
