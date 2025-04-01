@@ -890,12 +890,6 @@ class Vrf:
         self.active_interfaces = 0  # number of interfaces active on this VRF
         self.interfaces = []  # list of interface names in this VRF
 
-    def add_interface(name: str = ""):
-        """Add an interface name to the dict of interfaces in this vrf."""
-        if name:
-            self.interfaces.append(name)
-        # return
-
     def as_dict(self):
         '''
         return this Vrf() class as a dictionary for use by the API
