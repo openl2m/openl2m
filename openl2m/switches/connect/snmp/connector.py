@@ -2213,7 +2213,7 @@ class SnmpConnector(Connector):
             # go parse the interface IP address in the returned OID:
             parts = oid_ip_string.split('.', 2)  # split in 3, address-type, length, and the address
             addr_type = int(parts[0])
-            addr_len = int(parts[1])
+            # addr_len = int(parts[1])
             dotted_decimal_ip = parts[2]
 
             # we can handle either IPv4 or IPv6
@@ -3075,7 +3075,7 @@ class SnmpConnector(Connector):
         # but all implementations we've seen use the ifIndex in the OID....so we can parse direct.
         retval = self.get_snmp_branch(branch_name='ifMauType', parser=self._parse_mibs_if_mau_type)
         if retval < 0:
-            self.add_warning(f"Error getting 'Interfaces MAU (Transceiver) data'")
+            self.add_warning("Error getting 'Interfaces MAU (Transceiver) data'")
             return retval
 
     def _get_vlans(self) -> int:
@@ -3775,7 +3775,7 @@ class SnmpConnector(Connector):
 
         # Remove port from list of ports on old vlan,
         # i.e. read current Egress PortList bitmap first:
-        dprint(f"Reading egress ports:")
+        dprint("Reading egress ports:")
         (error_status, snmpval) = self.get(
             f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", parser=self._parse_mibs_vlan_related
         )

@@ -31,7 +31,7 @@ from django.http.request import HttpRequest
 # from switches.connect.classes import PortList
 from switches.connect.classes import Interface
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.connect.snmp.constants import dot1qPvid, ieee8021QBridgePvid
+from switches.connect.snmp.constants import dot1qPvid
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 

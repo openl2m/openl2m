@@ -38,7 +38,6 @@ from .constants import (
     hpnicfCfgRunModifiedLast,
     hpnicfCfgRunSavedLast,
     HP_ROUTE_MODE,
-    hpicfXcvrInfoTable,
     hpicfXcvrModel,
     hpicfXcvrType,
     hpicfXcvrConnectorType,
@@ -101,7 +100,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         # now read HP data
         retval = self.get_snmp_branch(branch_name='hpicfXcvrInfoTable', parser=self._parse_mibs_procurve_transceiver)
         if retval < 0:
-            self.add_warning(f"Error getting Transceiver data (hpicfXcvrInfoTable)'")
+            self.add_warning("Error getting Transceiver data (hpicfXcvrInfoTable)'")
             return retval
 
     def get_my_hardware_details(self) -> bool:

@@ -317,7 +317,7 @@ class SnmpConnectorCisco(SnmpConnector):
             # now read Cisco data, first the "portType" branch to find interesting types by 'stack id'
             retval = self.get_snmp_branch(branch_name='ciscoPortType', parser=self._parse_mibs_cisco_port_type)
             if retval < 0:
-                self.add_warning(f"Error getting Transceiver data (ciscoPortType)'")
+                self.add_warning("Error getting Transceiver data (ciscoPortType)'")
                 return retval
         return 1
 
@@ -478,7 +478,7 @@ class SnmpConnectorCisco(SnmpConnector):
         Implement VLAN change for old style Cisco devices using the VTP MIB
         Returns True or False
         """
-        dprint(f"SnmpConnectorCisco.set_interface_untagged_vlan_vtp()")
+        dprint("SnmpConnectorCisco.set_interface_untagged_vlan_vtp()")
 
         if interface.is_tagged:
             # set the TRUNK_NATIVE_VLAN OID:
@@ -516,7 +516,7 @@ class SnmpConnectorCisco(SnmpConnector):
         Implement VLAN change for old style Cisco devices using the VTP MIB
         Returns True or False
         """
-        dprint(f"SnmpConnectorCisco.set_interface_untagged_vlan_sb()")
+        dprint("SnmpConnectorCisco.set_interface_untagged_vlan_sb()")
 
         if interface.if_vlan_mode == SB_VLAN_MODE_GENERAL:
             # we set the dot1qPvid value:
