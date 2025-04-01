@@ -523,8 +523,8 @@ def set_neighbor_icon_info(neighbor):
     if capabilities == LLDP_CAPABILITIES_NONE:
         neighbor.icon = settings.NB_ICON_NONE
         neighbor.style = settings.MM_NB_STYLE_NONE
-        neighbor.start_device = '['
-        neighbor.stop_device = ']'
+        neighbor.start_device = '{{'
+        neighbor.stop_device = '}}'
         neighbor.description = 'Capabilities NOT Advertized'
         return
     if capabilities & LLDP_CAPABILITIES_WLAN:
@@ -544,8 +544,8 @@ def set_neighbor_icon_info(neighbor):
     if capabilities & LLDP_CAPABILITIES_ROUTER:
         neighbor.icon = settings.NB_ICON_ROUTER
         neighbor.style = settings.MM_NB_STYLE_ROUTER
-        neighbor.start_device = '[['
-        neighbor.stop_device = ']]'
+        neighbor.start_device = '['
+        neighbor.stop_device = ']'
         neighbor.description = 'Router or Switch'
         return
     if capabilities & LLDP_CAPABILITIES_STATION:
@@ -700,7 +700,7 @@ title: Device connections for '{connection.switch.name}'
         mermaid += "flowchart TD\n"
 
     # start with our device:
-    mermaid += f"DEVICE[[\"{connection.switch.name}\"]]\n"
+    mermaid += f"DEVICE[\"{connection.switch.name}\"]\n"
 
     # now find all neighbors on all interfaces:
     num = 0
