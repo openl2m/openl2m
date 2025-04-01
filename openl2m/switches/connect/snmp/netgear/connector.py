@@ -18,8 +18,8 @@ with Dell specific ways of doing things...
 """
 from django.http.request import HttpRequest
 
-from switches.connect.classes import Interface
-from switches.connect.constants import POE_PORT_DETECT_DELIVERING
+from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
+from switches.connect.constants import POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
