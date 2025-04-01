@@ -16,6 +16,7 @@ django-ordered-model>=3.7,<4.0
 # pip install --force-reinstall --no-binary :all: ezsnmp
 ezsnmp==1.1.0
 flake8
+flake8-pyproject
 gitpython
 #fix the WSGI runner:
 gunicorn==23.0.0
