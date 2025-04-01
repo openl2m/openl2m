@@ -42,7 +42,7 @@ We use the following commands:
 
 We issue this command:
 
-"show route instance details" becomesn *rpc.get-instance-information()*
+"show route instance details" becomes *rpc.get-instance-information()*
 
 
 **Making Changes**
