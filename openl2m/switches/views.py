@@ -745,8 +745,8 @@ class SwitchBulkEdit(LoginRequiredMixin, View):
             err.description = "Bulk-Edit errors"
             err.details = mark_safe(description)
             return error_page(request=request, group=group, switch=switch, error=err)
-        else:
-            return success_page(request, group, switch, mark_safe(description))
+
+        return success_page(request, group, switch, mark_safe(description))
 
 
 """Note: there is duplicate code here!
@@ -803,7 +803,7 @@ def bulkedit_processor(
     success_count = 0
     error_count = 0
     outputs = []  # description of any errors found
-    for if_key, name in interfaces.items():
+    for if_key in interfaces:
         iface = conn.get_interface_by_key(if_key)
         if not iface:
             error_count += 1
@@ -1128,7 +1128,7 @@ class SwitchVlanManage(LoginRequiredMixin, View):
                 return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
             return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
-        elif request.POST.get("vlan_edit"):
+        if request.POST.get("vlan_edit"):
             dprint("switch_vlan_manage(edit)")
             retval, info = perform_switch_vlan_edit(
                 request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
@@ -1137,7 +1137,7 @@ class SwitchVlanManage(LoginRequiredMixin, View):
                 return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
             return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
-        elif request.POST.get("vlan_delete"):
+        if request.POST.get("vlan_delete"):
             dprint("switch_vlan_manage(delete)")
             retval, info = perform_switch_vlan_delete(
                 request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id
