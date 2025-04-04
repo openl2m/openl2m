@@ -26,6 +26,7 @@
         {% for group_id, switch_id, name, description, default_view, group_name in results %}
           <form
             id="{{ group_id }}_{{ switch_id}}"
+            style="cursor: pointer;"
             class="list-group-item list-group-item-action"
           {% if default_view == SWITCH_VIEW_BASIC %}
             action="{% url 'switches:switch_basics' group_id switch_id %}"
