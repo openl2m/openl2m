@@ -221,14 +221,24 @@ class Switches(LoginRequiredMixin, View):
             for notice in notices:
                 messages.add_message(request=request, level=notice.priority, message=notice.content)
 
+        # calculate column width, if set. Bootstrap uses 12 grid columns per page, max width we use is 2 grids
+        if settings.TOPMENU_MAX_COLUMNS > 6:
+            col_width = 2
+            max_columns = 6
+        else:
+            col_width = int(12 / settings.TOPMENU_MAX_COLUMNS)
+            max_columns = settings.TOPMENU_MAX_COLUMNS
+
         # render the template
         return render(
-            request,
-            template_name,
-            {
+            request=request,
+            template_name=template_name,
+            context={
                 "is_top_menu": True,
                 "groups": groups,
-                "groups_count": len(groups),
+                "group_count": len(groups),
+                "col_width": col_width,
+                "max_columns": max_columns,
             },
         )
 

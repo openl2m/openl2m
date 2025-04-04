@@ -1,10 +1,146 @@
 {% extends '_base.html' %}
 
-{# Home page! This shows the list of devices a user has access to #}
+<!--  Home page! This shows the list of devices a user has access to  -->
 
 {% block content %}
 
 {% load helpers %}
-{{ groups|get_my_group_menu }}
 
+{% if group_count == 0 %}
+    <div class="card border-warning">
+        <div class="card-header bg-warning">
+        <i class="fa-solid fa-exclamation-triangle"></i>
+            &nbsp;<strong>No groups assigned!</strong>
+        </div>
+        <div class="card-body row justify-content-md-center">
+            You are not a member of any switch groups! Please contact the OpenL2M administrator.
+        </div>
+    </div>
+{% else %}
+    <div class="container-fluid">
+        <div class="card border-default">
+            <div class="card-header bg-default">
+                <strong>My Device
+    {% if group_count == 1 %}
+                Group:
+    {% else %}
+                Groups:
+    {% endif %}
+                </strong>
+            </div>{# card header #}
+            {# start groups wrapper #}
+            <div class="card-body">
+
+    {# max_columns and col_width are vars passed into template! #}
+    <!-- max_columns = {{ max_columns }}, col_width = {{ col_width }} -->
+    {% for group_id, group in groups.items %}
+        <!-- counter = {{ forloop.counter0 }} -->
+        {% if forloop.counter0|divisibleby:max_columns %}
+                <!--  new row  -->
+                <div class="row">
+        {% endif %}
+                    <!--  add new column  -->
+                    <div class="col-{{ col_width }}">
+                        <!-- START Group {{ group_id }} '{{ group.name }}' -->
+                        {# header for collapsible items, i.e. the switchgroup name #}
+                        <div class="d-grid">
+
+<!--
+                   # parse open/closed options:
+                    if open:
+                        expanded = "true"
+                        show = "show"
+                    else:
+                        expanded = "false"
+                        show = ""
+-->
+
+                        {# wrap description around the menu button, set full size...#}
+                            {% if group.description %}
+                            <span class="d-grid" data-bs-toggle="tooltip" data-bs-title="{{ group.description }}">
+                            {% endif %}
+
+                            {# add the button #}
+                            <button class="btn btn-outline-secondary mb-2"
+                                type="button"
+                                data-bs-toggle="collapse" data-bs-target="#group{{ group_id }}"
+                            {% if group_count == 1 %}
+                                aria_expanded="true"
+                            {% else %}
+                                aria-expanded="false"
+                            {% endif %}
+                                aria-controls="group{{ group_id }}">
+                            {# use display name if set, else just group name #}
+                            {% if group.display_name %}
+                                {{ group.display_name }}
+                            {% else %}
+                                {{ group.name }}
+                            {% endif %}
+                            {% if group.read_only %}:
+                                (r/o)
+                            {% endif %}
+                            {# end button #}
+                            </button>
+
+                            {% if group.description %}
+                            {# end description wrapper span #}
+                            </span>
+                            {% endif %}
+
+                        {# end d-grip #}
+                        </div>
+
+                        {# the list of devices in this menu, ie collapsible items #}
+                        <div class="collapse overflow-scroll{% if group_count == 1 %} show{% endif %}"
+                             id="group{{ group_id }}"
+                             style="max-height: 200px;">
+                            <div class="list-group">
+                            {% for switch_id, switch in group.members.items %}
+                                <form
+                                    method="post"
+                                    id="{{ group_id }}_{{ switch_id}}"
+                                    style="cursor: pointer;"
+                                    class="list-group-item list-group-item-action"
+                                    {% if switch.default_view == SWITCH_VIEW_BASIC %}
+                                        action="{% url 'switches:switch_basics' group_id switch_id %}"
+                                    {% else %}
+                                        action="{% url 'switches:switch_arp_lldp' group_id switch_id %}"
+                                    {% endif %}>
+                                    {% csrf_token %}
+                                    <span onclick="submit_{{ group_id }}_{{ switch_id}}()">{{ switch.name }}</span>
+                                    <script>
+                                        function submit_{{ group_id }}_{{ switch_id}}() {
+                                        let form = document.getElementById("{{ group_id }}_{{ switch_id}}");
+                                        form.submit();
+                                        }
+                                    </script>
+                                </form>
+                            {% endfor %}
+                            </div>
+                        </div>
+                        <!-- END Group {{ group.id }} -->
+
+
+
+                    <!--  and end this group column  -->
+                    </div>
+
+        {% with col_count=forloop.counter|divisibleby:max_columns %}
+                    <!-- col_count = {{ col_count }} -->
+            {% if col_count  %}
+                </div> <!--  end row-->
+            {% endif %}
+        {% endwith %}
+    {% endfor %}
+
+    <!--  end the last row, and container, if needed  -->
+    {% if max_columns > 1 %}
+                </div><!--  column  -->
+    {% endif %}
+
+            </div> <!--  card-body  -->
+        </div> <!--  card  -->
+    </div> <!--  container  -->
+
+{% endif %}
 {% endblock %}
