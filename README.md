@@ -17,40 +17,43 @@ __For Quick Testing:__ download the __Docker Compose__ test config at https://gi
 __Features:__
 
 * Light or Dark theme.
-* pluggable backend to support new vendor devices, allowing easy development
-* vendor-agnostic REST API. Automate changes from scripts, etc.
 * enable/disable interface
 * change vlan on interface
 * enable/disable PoE
 * change description
 * see ethernet addresses, lldp neighbors, and download to spreadsheet or graph
+* on routers, show IPv4 ARP and IPv6 ND (Neighbors Discovery) information.
 * add, edit or delete vlans on devices
 * show interface MPLS VRF membership on supported devices
 * run configurable pre-defined 'static' commands on the device
 * run configurable pre-defined 'form input' commands on the device
 * show optical transceiver info
+* vendor-agnostic REST API. Automate changes from scripts, etc.
+* pluggable backend to support new vendor devices, allowing easy development
 * and more...
 
 __Devices Supported:__
 
+In alphabetical order:
+
+* Arista devices (via SNMP)
+* Cisco switches (Catalyst, CBS, via SNMP)
 * Aruba AOS-CX switches (REST API(preferred), or SNMP)
 * HP/Aruba Procurve switches (via SNMP)
 * HPE Comware switches (via SNMP)
-* Arista devices (via SNMP)
 * Juniper "ELS" devices (via Junos PyEz API, or R/O via SNMP)
-* Cisco switches (Catalyst, CBS, via SNMP)
 * Netgear (newer)
 * Generic SNMP devices
 * Any device supported by the Netmiko library (see SSH devices)
 * Most devices supported by Napalm (read-only)
 
-See the documentation for more information about specific devices tested.
+See the documentation for more information about device compatibility and specific devices tested.
 
 __What's New:__
 
 Highlights:
 
-v3.4 adds support for Cisco CBS devices. Also allows for neighbor devices to be graphed for printing.
+v3.4 adds support for IPv6. Also supports Cisco CBS devices. And we can graph neighbor devices.
 
 v3.3 adds support Arista Network devices via SNMP. Also shows info in MPLS VRFs and member interfaces on supported devices, read from the standard MPLS SNMP Mib. SNMP now supports authencation up to SHA-512 and privacy up to AES-256. Django is upgraded to v5.1 and we now support Python v3.12
 
