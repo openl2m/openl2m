@@ -20,16 +20,17 @@ snmp branch you want to walk (eg. interfaces branch), and the function that will
 Optionally, you can pass in *non_repeaters* and *max_repetitions*. *non_repeaters* is the number of
 'single' OIDs you want to 'get'. This is normally a list of single OIDs passed to GetBulk, such as sysUptime,
 so you can get time along with interface values. Since we don't use this, we set it to 0.
-*max_repetitions* is the number of instances of the branch you expect to get.
+*max_repetitions* is the number of instances of the branch you expect to get with a single bulk-read call.
 
 E.g. if there are 48 interfaces on switch, you would need at least that much to retrieve them efficiently.
-We set this to a default of 25, which can be handled by most devices. This means it will take 3 bulk-reads for most 48 port switches
-(with some stacking and loopback interfaces). The underlying library will take care of multiple calls if there are more ports in eg. a stack.
+We set this to a default of 25, which can be handled by most devices. This means it will take 3 bulk-reads for most 48 port
+switches (with some stacking and loopback interfaces). The underlying library will take care of multiple calls if there are
+more ports in eg. a stack.
 
 
-**get_snmp_branch()** calls used the *ezsnmp* library to do the work, and calls *ezsnmp.bulkwalk()* to read the mib data.
+**get_snmp_branch()** calls use the *ezsnmp* library to do the work, and calls *ezsnmp.bulkwalk()* to read the mib data.
 
-In the parsing loop, the return data is passed to the parser function specified in the *get_snmp_branch()* call.
+In the parsing loop, the returned data is passed to the parser function specified in the *get_snmp_branch()* call.
 
 
 EzSnmp Library use
@@ -64,12 +65,12 @@ There are several Python dictionaries used to store data. Several of these have 
 
 They are:
 
-* self.vlans: the key (index) is an *integer (int)* representing the numeric vlan ID. Items are Vlan() class instances.
+* **self.vlans**: the key (index) is an *integer (int)* representing the numeric vlan ID. Items are Vlan() class instances.
 
-* self.interfaces: this key (index) is a *string (str)*, representing a driver-specific key (frequently the name or snmp interface index)
+* **self.interfaces**: this key (index) is a *string (str)*, representing a driver-specific key (frequently the name or snmp interface index)
   Items are Interface() class instances.
 
-* interface.port_id: this is an *integer (int)* representing the switch port ID. This comes into play with SNMP drivers,
+* **interface.port_id**: this is an *integer (int)* representing the switch port ID. This comes into play with SNMP drivers,
   as the interface index and the switchport ID can be different.
 
 *More details on the SNMP drivers, and specific MIB entries used, will be written as time allows...*
@@ -78,8 +79,8 @@ They are:
 Vendor-specific SNMP implementations
 ------------------------------------
 
-Most switches supported use inherit the base SnmpConnector() class and override the vendor-specific functions.
-The vendor-specific derived classes are:
+Most switches supported inherit the base SnmpConnector() class and override parts of the base functionality with
+the vendor-specific functions. The vendor-specific derived classes are:
 
 * **SnmpConnectorArista()** - switches/connect/snmp/arista_eos/connector.py - supports all Arista devices.
 * **SnmpConnectorArubaCx()** - switches/connect/snmp/aruba_cx/connector.py - supports the HP/Aruba AOS-CX switches,
@@ -88,4 +89,5 @@ The vendor-specific derived classes are:
 * **SnmpConnectorComware()** - switches/connect/snmp/comware/connector.py - HPE Comware OS switches (ie. the FlexFabric line)
 * **SnmpConnectorDell()** - switches/connect/snmp/dell/connector.py - Dell switches (untested at this time)
 * **SnmpConnectorJuniper()** - switches/connect/snmp/juniper/connector.py - Juniper switches in 'read-only' mode
-* **SnmpConnectorProcurve()** - switches/connect/snmp/procurve/connector.py - supports the HP/Procurve 'Provision' switches
+* **SnmpConnectorNetgear()** - switches/connect/snmp/netgear/connector.py - supports several Netgear switches
+* **SnmpConnectorProcurve()** - switches/connect/snmp/procurve/connector.py - supports the HP/Procurve 'Provision' and Aruba switches

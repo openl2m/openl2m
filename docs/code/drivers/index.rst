@@ -9,7 +9,7 @@ Connector() Class
 
 The *switches/connect/* directory contains the drivers for the various devices supported by OpenL2M.
 
-All drivers are derived from a base Connector() class. This implemented basic attributes and functions
+All drivers are derived from a base Connector() class. This implements basic attributes and functions
 used by all drivers. It is also the programatic interface used by the HTML templates in */templates/*,
 mostly through the *conn* object passed into the templates.
 
@@ -35,7 +35,7 @@ Vendor Drivers
 Here are some details about some of the drivers we have implemented.
 We currently provide several sub-connectors (sub-classes):
 
-* several based on SNMP (generic, Arista, Aruba/HP-Procurve, Aruba/AOS-CX, Cisco, Juniper).
+* several based on SNMP (generic, Arista, Aruba/HP-Procurve, Aruba/AOS-CX, Cisco, Juniper, Netgear).
 * a Juniper PyEz-NC API based driver.
 * a REST-API based connector for the Aruba AOS-CX line of devices.
 * a read-only driver based on the Napalm automation framework.
