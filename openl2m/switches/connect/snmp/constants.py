@@ -11,7 +11,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""constants.py defines 'standard' SNMP-related variables. These are mostly MIB OIDs and their value definitions."""
 # here we defined mappings from SNMP Enterprise Id to Company Name
 # specific entries for supported vendors are in their implementation
 # directories, eg. vendors/procurve/constants.py, vendors/cisco/constants.py...
@@ -539,36 +539,36 @@ snmp_mib_variables['dot1qVlanIndex'] = dot1qVlanIndex
 dot1qVlanFdbId = '.1.3.6.1.2.1.17.7.1.4.2.1.3'  # The Filtering Database used by this VLAN. This is one of the dot1qFdbId values in the dot1qFdbTable.
 snmp_mib_variables['dot1qVlanFdbId'] = dot1qVlanFdbId
 
-"""
-PortList ::= TEXTUAL-CONVENTION
-    STATUS      current
-    DESCRIPTION
-        "Each octet within this value specifies a set of eight
-        ports, with the first octet specifying ports 1 through
-        8, the second octet specifying ports 9 through 16, etc.
-        Within each octet, the most significant bit represents
-        the lowest numbered port, and the least significant bit
-        represents the highest numbered port.  Thus, each port
-        of the bridge is represented by a single bit within the
-        value of this object.  If that bit has a value of '1',
-        then that port is included in the set of ports; the port
-        is not included if its bit has a value of '0'."
-    SYNTAX      OCTET STRING
+#
+# PortList ::= TEXTUAL-CONVENTION
+#     STATUS      current
+#     DESCRIPTION
+#         "Each octet within this value specifies a set of eight
+#         ports, with the first octet specifying ports 1 through
+#         8, the second octet specifying ports 9 through 16, etc.
+#         Within each octet, the most significant bit represents
+#         the lowest numbered port, and the least significant bit
+#         represents the highest numbered port.  Thus, each port
+#         of the bridge is represented by a single bit within the
+#         value of this object.  If that bit has a value of '1',
+#         then that port is included in the set of ports; the port
+#         is not included if its bit has a value of '0'."
+#     SYNTAX      OCTET STRING
 
-PORT VLAN INFO:
+# PORT VLAN INFO:
 
-NOTE _ NOTE _ NOTE:
-    The qBridge Current_* entries are READ-only
+# NOTE _ NOTE _ NOTE:
+#     The qBridge Current_* entries are READ-only
 
-We READ the untagged vlan on a port from:
-    dot1qPvid
+# We READ the untagged vlan on a port from:
+#     dot1qPvid
 
-We READ bitmap port-on-vlan info from this read-only oid:
-    dot1qVlanCurrentEgressPorts
+# We READ bitmap port-on-vlan info from this read-only oid:
+#     dot1qVlanCurrentEgressPorts
 
-We WRITE changes to the port-on-vlan bitmap to
-    dot1qVlanStaticEgressPorts
-"""
+# We WRITE changes to the port-on-vlan bitmap to
+#     dot1qVlanStaticEgressPorts
+#
 
 # The set of ports that are transmitting traffic for this VLAN
 # as either tagged or untagged frames.

@@ -16,99 +16,45 @@ SNMP Library for OpenL2M, based on MIB-2 based RFC standards. Uses the pysnmp li
 Some of the code here is inspired by the NAV (Network Administration Visualized) tool
 Various vendor specific implementations that augment this class exist.
 """
-import datetime
-import ezsnmp
-import pprint
-import time
-from typing import Dict
-import traceback
-
-from django.conf import settings
-from django.http.request import HttpRequest
-
 # note that we use v3 of the new pysnmp HLAPI. This uses asyncio, instead of the old synchronous.
 # see https://docs.lextudio.com/pysnmp/v7.1/
 import asyncio
-from pysnmp.hlapi.v3arch.asyncio import (
-    # get_cmd,
-    set_cmd,
-    UdpTransportTarget,
-    ContextData,
-    ObjectType,
-    ObjectIdentity,
-    SnmpEngine,
+import datetime
+import pprint
+import time
+import traceback
+from typing import Dict
+
+import ezsnmp
+from django.conf import settings
+from django.http.request import HttpRequest
+from pysnmp.hlapi.v3arch.asyncio import (  # get_cmd,
     CommunityData,
+    ContextData,
+    ObjectIdentity,
+    ObjectType,
+    SnmpEngine,
+    UdpTransportTarget,
     UsmUserData,
-    usmHMACSHAAuthProtocol,
+    set_cmd,
+    usmAesBlumenthalCfb192Protocol,
+    usmAesBlumenthalCfb256Protocol,
+    usmAesCfb128Protocol,
+    usmAesCfb192Protocol,
+    usmAesCfb256Protocol,
+    usmDESPrivProtocol,
     usmHMAC128SHA224AuthProtocol,
     usmHMAC192SHA256AuthProtocol,
     usmHMAC256SHA384AuthProtocol,
     usmHMAC384SHA512AuthProtocol,
     usmHMACMD5AuthProtocol,
-    usmAesCfb128Protocol,
-    usmAesCfb192Protocol,
-    usmAesCfb256Protocol,
-    usmAesBlumenthalCfb192Protocol,
-    usmAesBlumenthalCfb256Protocol,
-    usmDESPrivProtocol,
+    usmHMACSHAAuthProtocol,
 )
 from pysnmp.proto.rfc1902 import ObjectName, OctetString
-
-from switches.constants import (
-    LOG_TYPE_ERROR,
-    LOG_TYPE_WARNING,
-    LOG_SNMP_ERROR,
-    LOG_UNDEFINED_VLAN,
-    LOG_NEW_HOSTNAME_FOUND,
-    SNMP_VERSION_2C,
-    SNMP_VERSION_3,
-    SNMP_V3_SECURITY_NOAUTH_NOPRIV,
-    SNMP_V3_SECURITY_AUTH_NOPRIV,
-    SNMP_V3_AUTH_MD5,
-    SNMP_V3_AUTH_SHA,
-    SNMP_V3_AUTH_SHA224,
-    SNMP_V3_AUTH_SHA256,
-    SNMP_V3_AUTH_SHA384,
-    SNMP_V3_AUTH_SHA512,
-    SNMP_V3_PRIV_AES,
-    SNMP_V3_PRIV_DES,
-    SNMP_V3_PRIV_AES192,
-    SNMP_V3_PRIV_AES256,
-    SNMP_V3_PRIV_AES192C,
-    SNMP_V3_PRIV_AES256C,
-    SNMP_V3_SECURITY_AUTH_PRIV,
-)
-from switches.models import Log, Switch, SwitchGroup
-from switches.utils import dprint, get_remote_ip
-
-from switches.connect.utils import get_vlan_id_from_l3_interface
-
-# from switches.connect.snmp.utils import *
-from switches.connect.constants import (
-    IF_TYPE_ETHERNET,
-    IF_TYPE_LAGG,
-    LACP_IF_TYPE_AGGREGATOR,
-    LACP_IF_TYPE_MEMBER,
-    LLDP_CHASSIS_TYPE_NONE,
-    LLDP_CHASSIC_TYPE_ETH_ADDR,
-    LLDP_CHASSIC_TYPE_NET_ADDR,
-    LLDP_CHASSIC_TYPE_LOCAL,
-    LLDP_PORT_SUBTYPE_CHASSIS_COMPONENT,
-    LLDP_PORT_SUBTYPE_PORT_COMPONENT,
-    LLDP_PORT_SUBTYPE_LOCAL,
-    GVRP_ENABLED,
-    ENTITY_CLASS_STACK,
-    ENTITY_CLASS_CHASSIS,
-    ENTITY_CLASS_MODULE,
-    IANA_TYPE_IPV4,
-    IANA_TYPE_IPV6,
-    POE_PORT_ADMIN_ENABLED,
-    POE_PORT_ADMIN_DISABLED,
-)
 from switches.connect.classes import (
-    Interface,
-    EthernetAddress,
     Error,
+    EthernetAddress,
+    Interface,
     NeighborDevice,
     PoePort,
     PoePSE,
@@ -120,97 +66,151 @@ from switches.connect.classes import (
 
 # from switches.connect.connect import *
 from switches.connect.connector import Connector
-from switches.connect.snmp.utils import decimal_to_hex_string_ethernet, bytes_ethernet_to_string, get_ip_from_sub_oid
+
+# from switches.connect.snmp.utils import *
+from switches.connect.constants import (
+    ENTITY_CLASS_CHASSIS,
+    ENTITY_CLASS_MODULE,
+    ENTITY_CLASS_STACK,
+    GVRP_ENABLED,
+    IANA_TYPE_IPV4,
+    IANA_TYPE_IPV6,
+    IF_TYPE_ETHERNET,
+    IF_TYPE_LAGG,
+    LACP_IF_TYPE_AGGREGATOR,
+    LACP_IF_TYPE_MEMBER,
+    LLDP_CHASSIC_TYPE_ETH_ADDR,
+    LLDP_CHASSIC_TYPE_LOCAL,
+    LLDP_CHASSIC_TYPE_NET_ADDR,
+    LLDP_CHASSIS_TYPE_NONE,
+    LLDP_PORT_SUBTYPE_CHASSIS_COMPONENT,
+    LLDP_PORT_SUBTYPE_LOCAL,
+    LLDP_PORT_SUBTYPE_PORT_COMPONENT,
+    POE_PORT_ADMIN_DISABLED,
+    POE_PORT_ADMIN_ENABLED,
+)
 from switches.connect.snmp.constants import (
-    snmp_mib_variables,
-    ifIndex,
-    ifDescr,
-    ifType,
-    ifMtu,
-    ifSpeed,
-    ifPhysAddress,
-    ifAdminStatus,
-    ifOperStatus,
-    ifName,
-    ifAlias,
-    ifHighSpeed,
-    sysName,
-    sysUpTime,
-    sysObjectID,
-    sysDescr,
-    sysContact,
-    sysLocation,
-    dot3StatsDuplexStatus,
-    dot1qTpFdbPort,
-    dot1qNumVlans,
+    IF_ADMIN_STATUS_UP,
+    IF_OPER_STATUS_DOWN,
+    IF_OPER_STATUS_UP,
+    LLDP_REM_MAN_ADDR_TYPE_IFINDEX,
+    LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER,
+    MAU_TYPE_BASE,
+    MPLS_VRF_STATE_ENABLED,
+    dot1dBasePortIfIndex,
+    dot1dTpFdbPort,
     dot1qGvrpStatus,
+    dot1qNumVlans,
     dot1qPortGvrpStatus,
+    dot1qPvid,
+    dot1qTpFdbPort,
     dot1qVlanCurrentEgressPorts,
-    dot1qVlanStatus,
     dot1qVlanStaticEgressPorts,
     dot1qVlanStaticName,
-    dot1qVlanStaticUntaggedPorts,
     dot1qVlanStaticRowStatus,
-    dot1qPvid,
-    dot1dBasePortIfIndex,
-    ipAdEntIfIndex,
-    ipAdEntNetMask,
-    ipv6AddrPfxLength,
-    entPhysicalClass,
-    entPhysicalDescr,
-    entPhysicalSerialNum,
-    entPhysicalSoftwareRev,
-    entPhysicalModelName,
-    syslogMsgTableMaxSize,
-    pethMainPsePower,
-    pethMainPseOperStatus,
-    pethMainPseConsumptionPower,
-    pethMainPseUsageThreshold,
-    pethPsePortAdminEnable,
-    pethPsePortDetectionStatus,
+    dot1qVlanStaticUntaggedPorts,
+    dot1qVlanStatus,
     dot3adAggActorAdminKey,
     dot3adAggPortActorAdminKey,
+    dot3StatsDuplexStatus,
+    enterprise_id_info,
+    enterprises,
+    entPhysicalClass,
+    entPhysicalDescr,
+    entPhysicalModelName,
+    entPhysicalSerialNum,
+    entPhysicalSoftwareRev,
     ieee8021QBridgeMvrpEnabledStatus,
-    ieee8021QBridgeVlanStaticName,
     ieee8021QBridgePvid,
     ieee8021QBridgeVlanCurrentEgressPorts,
     ieee8021QBridgeVlanCurrentUntaggedPorts,
-    dot1dTpFdbPort,
-    ipNetToMediaPhysAddress,
-    ipNetToPhysicalPhysAddress,
+    ieee8021QBridgeVlanStaticName,
+    ifAdminStatus,
+    ifAlias,
+    ifDescr,
+    ifHighSpeed,
+    ifIndex,
+    ifMauType,
+    ifMtu,
+    ifName,
+    ifOperStatus,
+    ifPhysAddress,
+    ifSpeed,
+    ifType,
     ipAddressIfIndex,
     ipAddressPrefix,
     ipAddressPrefixOrigin,
+    ipAdEntIfIndex,
+    ipAdEntNetMask,
+    ipNetToMediaPhysAddress,
+    ipNetToPhysicalPhysAddress,
+    ipv6AddrPfxLength,
     lldpRemChassisId,
-    lldpRemPortId,
-    lldpRemPortIdSubType,
-    lldpRemPortDesc,
-    lldpRemSysName,
-    lldpRemSysDesc,
-    lldpRemSysCapEnabled,
     lldpRemChassisIdSubtype,
     lldpRemManAddrIfSubtype,
-    LLDP_REM_MAN_ADDR_TYPE_IFINDEX,
-    LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER,
-    enterprises,
-    enterprise_id_info,
-    IF_ADMIN_STATUS_UP,
-    IF_OPER_STATUS_UP,
-    IF_OPER_STATUS_DOWN,
-    vlan_createAndGo,
-    vlan_destroy,
-    mplsL3VpnVrfName,
-    mplsL3VpnVrfDescription,
-    mplsL3VpnVrfRD,
-    mplsL3VpnVrfOperStatus,
-    mplsL3VpnVrfActiveInterfaces,
-    MPLS_VRF_STATE_ENABLED,
+    lldpRemPortDesc,
+    lldpRemPortId,
+    lldpRemPortIdSubType,
+    lldpRemSysCapEnabled,
+    lldpRemSysDesc,
+    lldpRemSysName,
+    mau_types,
     mplsL3VpnIfVpnClassification,
     mplsL3VpnIfVpnRouteDistProtocol,
-    ifMauType,
-    mau_types,
-    MAU_TYPE_BASE,
+    mplsL3VpnVrfActiveInterfaces,
+    mplsL3VpnVrfDescription,
+    mplsL3VpnVrfName,
+    mplsL3VpnVrfOperStatus,
+    mplsL3VpnVrfRD,
+    pethMainPseConsumptionPower,
+    pethMainPseOperStatus,
+    pethMainPsePower,
+    pethMainPseUsageThreshold,
+    pethPsePortAdminEnable,
+    pethPsePortDetectionStatus,
+    snmp_mib_variables,
+    sysContact,
+    sysDescr,
+    sysLocation,
+    syslogMsgTableMaxSize,
+    sysName,
+    sysObjectID,
+    sysUpTime,
+    vlan_createAndGo,
+    vlan_destroy,
 )
+from switches.connect.snmp.utils import (
+    bytes_ethernet_to_string,
+    decimal_to_hex_string_ethernet,
+    get_ip_from_sub_oid,
+)
+from switches.connect.utils import get_vlan_id_from_l3_interface
+from switches.constants import (
+    LOG_NEW_HOSTNAME_FOUND,
+    LOG_SNMP_ERROR,
+    LOG_TYPE_ERROR,
+    LOG_TYPE_WARNING,
+    LOG_UNDEFINED_VLAN,
+    SNMP_V3_AUTH_MD5,
+    SNMP_V3_AUTH_SHA,
+    SNMP_V3_AUTH_SHA224,
+    SNMP_V3_AUTH_SHA256,
+    SNMP_V3_AUTH_SHA384,
+    SNMP_V3_AUTH_SHA512,
+    SNMP_V3_PRIV_AES,
+    SNMP_V3_PRIV_AES192,
+    SNMP_V3_PRIV_AES192C,
+    SNMP_V3_PRIV_AES256,
+    SNMP_V3_PRIV_AES256C,
+    SNMP_V3_PRIV_DES,
+    SNMP_V3_SECURITY_AUTH_NOPRIV,
+    SNMP_V3_SECURITY_AUTH_PRIV,
+    SNMP_V3_SECURITY_NOAUTH_NOPRIV,
+    SNMP_VERSION_2C,
+    SNMP_VERSION_3,
+)
+from switches.models import Log, Switch, SwitchGroup
+from switches.utils import dprint, get_remote_ip
 
 
 class pysnmpHelper:
@@ -282,18 +282,18 @@ class pysnmpHelper:
 
     #     return asyncio.run(self.run_get(oid))
 
-    async def run_set_vars(self, vars: tuple):
+    async def run_set_oids_values(self, oids_values: tuple):
         """Asyncio implementation of snmp set call. See
         https://docs.lextudio.com/pysnmp/v7.1/docs/hlapi/v3arch/asyncio/manager/cmdgen/setcmd
 
         Args:
             self: the class instance
-            vars (tuple): a tuple of snmp oid (str), and the value (snmp object type) to set.
+            oids_values (tuple): a tuple of snmp oid (str), and the value (snmp object type) to set.
 
         Returns:
             (bool): True on success, False on failure and will set self.error accordinglu
         """
-        dprint("pysnmpHelper.run_set_vars() running...")
+        dprint("pysnmpHelper.run_set_oids_values() running...")
 
         snmpEngine = SnmpEngine()
 
@@ -302,7 +302,7 @@ class pysnmpHelper:
             self._auth_data,
             await UdpTransportTarget.create((self.switch.primary_ip4, self.switch.snmp_profile.udp_port)),
             ContextData(),
-            *vars,
+            *oids_values,
             lookupMib=False,
         )
 
@@ -312,52 +312,52 @@ class pysnmpHelper:
             self.error.status = True
             self.error.description = "An SNMP error occurred!"
             self.error.details = f"ERROR 'errorIndication' pySNMP Engine: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
-            dprint("pysnmp.set_vars() SNMP engine error!")
+            dprint("pysnmp.run_set_oids_values() SNMP engine error!")
             snmpEngine.close_dispatcher()
             return False
 
-        elif errorStatus:
+        if errorStatus:
             self.error.status = True
             self.error.description = "An SNMP error occurred!"
             self.error.details = f"ERROR 'errorStatus' in pySNMP PDU: {pprint.pformat(errorStatus)} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
-            dprint("pysnmp.set_vars() SNMP PDU error!")
+            dprint("pysnmp.run_set_oids_values() SNMP PDU error!")
             snmpEngine.close_dispatcher()
             return False
 
-        dprint("pysnmpHelper.run_set_vars() OK!")
+        dprint("pysnmpHelper.run_set_oids_values() OK!")
         return True
 
-    def set_vars(self, vars: tuple) -> bool:
+    def set_oids_values(self, oids_values: tuple) -> bool:
         """
         Set a single OID value. Note that 'value' has to be properly typed, see
         https://docs.lextudio.com/pysnmp/v7.1/docs/hlapi/v3arch/asyncio/manager/cmdgen/setcmd
 
         Args:
             self: the class instance
-            vars (tuple): a tuple of snmp oid (str), and the value (snmp object type) to set.
+            oids_values (tuple): a tuple of snmp oid (str), and the value (snmp object type) to set.
 
         Returns:
             (bool): True on success, False on failure and will set self.error accordinglu
         """
-        dprint("pysnmpHelper.set_vars()")
+        dprint("pysnmpHelper.set_oids_values()")
         if not self._auth_data:
             self.error.status = True
             self.error.description = "Auth Data NOT set!"
             self.error.details = "SNMP authentication data NOT set in config, please update!"
-            dprint("pysnmp.set_vars() no auth_data!")
+            dprint("pysnmp.set_oids_values() no auth_data!")
             return False
 
-        dprint("pysnmpHelper.set_vars() about to call async")
+        dprint("pysnmpHelper.set_oids_values() about to call async")
         # we now call the worker function to perform this asynchronously
-        retval = asyncio.run(self.run_set_vars(vars))
+        retval = asyncio.run(self.run_set_oids_values(oids_values=oids_values))
 
         if not retval:
-            dprint("pysnmpHelper().set_vars() returns False")
+            dprint("pysnmpHelper().set_oids_values() returns False")
             return False
 
         # no errors
         self.error.clear()
-        dprint("pysnmpHelper.set_vars() OK")
+        dprint("pysnmpHelper.set_oids_values() OK")
         return True
 
     def set(self, oid: str, value) -> bool:
@@ -370,7 +370,7 @@ class pysnmpHelper:
         dprint("pysnmpHelper.set()")
         var = []
         var.append(ObjectType(ObjectIdentity(ObjectName(oid)), value))
-        return self.set_vars(var)
+        return self.set_oids_values(var)
 
     def set_multiple(self, oid_values: list) -> bool:
         """
@@ -383,11 +383,11 @@ class pysnmpHelper:
         """
         dprint("pysnmpHelper.set_multiple()")
         # first format in the varBinds format needed by pysnmp:
-        vars = []
+        oids_values = []
         for oid, value in oid_values:
-            vars.append(ObjectType(ObjectIdentity(ObjectName(oid)), value))
-        # now call set_vars() to do the work:
-        return self.set_vars(vars)
+            oids_values.append(ObjectType(ObjectIdentity(ObjectName(oid)), value))
+        # now call set_oids_values() to do the work:
+        return self.set_oids_values(oids_values)
 
     def _set_auth_data(self) -> bool:
         """
@@ -395,7 +395,7 @@ class pysnmpHelper:
         Set the object in the self._auth_data variable.
 
         Returns:
-            (bool): True on success, False on failure, and set the
+            (bool): True on success, False on failure, and set the self.error() object.
         """
         if not self.switch:
             # we need a Switch() object!
@@ -415,7 +415,7 @@ class pysnmpHelper:
                 return True
 
             # AuthNoPriv
-            elif self.switch.snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
+            if self.switch.snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
                 if self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
                     auth_protocol = usmHMACMD5AuthProtocol
                 elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
@@ -428,6 +428,12 @@ class pysnmpHelper:
                     auth_protocol = usmHMAC256SHA384AuthProtocol
                 elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
                     auth_protocol = usmHMAC384SHA512AuthProtocol
+                else:
+                    # should never happen:
+                    self.error.status = True
+                    self.error.description = "Unknown authentication method"
+                    self.error.details = f"auth_protocol = {self.switch.snmp_profile.auth_protocol} is unknown!"
+                    return False
 
                 self._auth_data = UsmUserData(
                     self.switch.snmp_profile.username,
@@ -437,7 +443,7 @@ class pysnmpHelper:
                 return True
 
             # AuthPriv
-            elif self.switch.snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_PRIV:
+            if self.switch.snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_PRIV:
                 # authentication protocol
                 auth_protocol = usmHMACSHAAuthProtocol  # default to SHA-1
                 if self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
@@ -452,6 +458,12 @@ class pysnmpHelper:
                     auth_protocol = usmHMAC256SHA384AuthProtocol
                 elif self.switch.snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
                     auth_protocol = usmHMAC384SHA512AuthProtocol
+                else:
+                    # should never happen:
+                    self.error.status = True
+                    self.error.description = "Unknown authentication method"
+                    self.error.details = f"auth_protocol = {self.switch.snmp_profile.auth_protocol} is unknown!"
+                    return False
 
                 # privacy protocol
                 priv_protocol = usmAesCfb128Protocol  # default to AES-128
@@ -467,6 +479,12 @@ class pysnmpHelper:
                     priv_protocol = usmAesBlumenthalCfb192Protocol
                 elif self.switch.snmp_profile.priv_protocol == SNMP_V3_PRIV_AES256C:
                     priv_protocol = usmAesBlumenthalCfb256Protocol
+                else:
+                    # should never happen:
+                    self.error.status = True
+                    self.error.description = "Unknown privacy method"
+                    self.error.details = f"priv_protocol = {self.switch.snmp_profile.priv_protocol} is unknown!"
+                    return False
 
                 self._auth_data = UsmUserData(
                     self.switch.snmp_profile.username,
@@ -476,12 +494,12 @@ class pysnmpHelper:
                     privProtocol=priv_protocol,
                 )
                 return True
-            else:
-                # unknown security level! Should not happen...
-                self.error.status = True
-                self.error.description = "Unknown Security Level!"
-                self.error.description = f"Security Level requested: {self.switch.snmp_profile.sec_level}"
-                return False
+
+            # unknown security level! Should not happen...
+            self.error.status = True
+            self.error.description = "Unknown Security Level!"
+            self.error.description = f"Security Level requested: {self.switch.snmp_profile.sec_level}"
+            return False
 
         # unknown version!
         self.error.status = True
@@ -680,24 +698,24 @@ class SnmpConnector(Connector):
             # NoAuthNoPriv
             if snmp_profile.sec_level == SNMP_V3_SECURITY_NOAUTH_NOPRIV:
                 dprint("version 3 NoAuth-NoPriv")
-                security_level = u"no_auth_or_privacy"
+                security_level = "no_auth_or_privacy"
 
             # AuthNoPriv
             elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
                 dprint("version 3 Auth-NoPriv")
-                security_level = u"auth_without_privacy"
+                security_level = "auth_without_privacy"
                 if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                    auth_protocol = u"MD5"
+                    auth_protocol = "MD5"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                    auth_protocol = u"SHA"
+                    auth_protocol = "SHA"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA224:
-                    auth_protocol = u"SHA-224"
+                    auth_protocol = "SHA-224"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA256:
-                    auth_protocol = u"SHA-256"
+                    auth_protocol = "SHA-256"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA384:
-                    auth_protocol = u"SHA-384"
+                    auth_protocol = "SHA-384"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
-                    auth_protocol = u"SHA-512"
+                    auth_protocol = "SHA-512"
                 else:
                     return False
 
@@ -707,34 +725,34 @@ class SnmpConnector(Connector):
                 security_level = "auth_with_privacy"
                 # auth protocols first
                 if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
-                    auth_protocol = u"MD5"
+                    auth_protocol = "MD5"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
-                    auth_protocol = u"SHA"
+                    auth_protocol = "SHA"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA224:
-                    auth_protocol = u"SHA-224"
+                    auth_protocol = "SHA-224"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA256:
-                    auth_protocol = u"SHA-256"
+                    auth_protocol = "SHA-256"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA384:
-                    auth_protocol = u"SHA-384"
+                    auth_protocol = "SHA-384"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA512:
-                    auth_protocol = u"SHA-512"
+                    auth_protocol = "SHA-512"
                 else:
                     dprint(f"Invalid AUTH protocol: {snmp_profile.auth_protocol}")
                     return False
 
                 # priv protocols next:
                 if snmp_profile.priv_protocol == SNMP_V3_PRIV_DES:
-                    privacy_protocol = u"DES"
+                    privacy_protocol = "DES"
                 elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES:
-                    privacy_protocol = u"AES"
+                    privacy_protocol = "AES"
                 elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES192:
-                    privacy_protocol = u"AES-192"
+                    privacy_protocol = "AES-192"
                 elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES256:
-                    privacy_protocol = u"AES-256"
+                    privacy_protocol = "AES-256"
                 elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES192C:
-                    privacy_protocol = u"AES-192C"
+                    privacy_protocol = "AES-192C"
                 elif snmp_profile.priv_protocol == SNMP_V3_PRIV_AES256C:
-                    privacy_protocol = u"AES-256C"
+                    privacy_protocol = "AES-256C"
                 else:
                     dprint(f"Invalid PRIV protocol: {snmp_profile.priv_protocol}")
                     return False
@@ -791,12 +809,10 @@ class SnmpConnector(Connector):
         dprint("UNKNOWN snmp version!")
         return False
 
-    """
-    The following methods implement basic snmp functionality based on the ezsnmp library (for speed reasons).
-    If you want to use some other snmp library, inherit from SnmpConnector()
-    and override the basic snmp interfaces get(), get_snmp_branch() set(), set_multiple() and _set_snmp_session()
-    This would allow you to implement using pysnmp, netsnmp-python, etc.
-    """
+    # The following methods implement basic snmp functionality based on the ezsnmp library (for speed reasons).
+    # If you want to use some other snmp library, inherit from SnmpConnector()
+    # and override the basic snmp interfaces get(), get_snmp_branch() set(), set_multiple() and _set_snmp_session()
+    # This would allow you to implement using pysnmp, netsnmp-python, etc.
 
     def get(self, oid: str, parser) -> tuple:
         """
@@ -847,7 +863,7 @@ class SnmpConnector(Connector):
             On error, self.error() is set appropriately.
         """
         dprint(f"\n\n### get_snmp_branch({branch_name}) ###\n")
-        if branch_name not in snmp_mib_variables.keys():
+        if branch_name not in snmp_mib_variables:
             self.error.status = True
             self.error.description = f"ERROR: invalid branch name '{branch_name}'"
             dprint(f"+++> INVALID BRANCH NAME: {branch_name}")
@@ -964,13 +980,13 @@ class SnmpConnector(Connector):
 
         return True
 
-    """
-    end of the ezsnmp interfaces
-    """
+    #
+    # end of the ezsnmp interfaces
+    #
 
-    """
-    various methods from the base Connector() class implemented here.
-    """
+    #
+    # various methods from the base Connector() class implemented here.
+    #
 
     def get_my_basic_info(self) -> bool:
         """
@@ -993,9 +1009,9 @@ class SnmpConnector(Connector):
                             retval = self._get_poe_data()
                             if retval != -1:
                                 # try to map poe port info to actual interfaces
-                                retval = self._map_poe_port_entries_to_interface()
-                                if retval != -1:
-                                    retval = self._get_interface_transceiver_types()
+                                self._map_poe_port_entries_to_interface()
+                                # get interface transceiver data. Don't care if this fails.
+                                self._get_interface_transceiver_types()
                                 return True
         return False
 
@@ -1025,9 +1041,9 @@ class SnmpConnector(Connector):
         self._get_syslog_msgs()
         return True
 
-    """
-    internal class-specific functions
-    """
+    #
+    # internal class-specific functions
+    #
 
     def _get_ports_from_vlan_bitmap(self, vlan_id: int, byte_string: bytes):
         """Parse the list of all egress ports of a VLAN (tagged + untagged) as a hex byte string
@@ -1210,11 +1226,11 @@ class SnmpConnector(Connector):
             status = True if int(val) == IF_OPER_STATUS_UP else False
             return self.set_interface_attribute_by_key(if_index, "oper_status", status)
 
-        """
-        if_index = int(oid_in_branch(ifLastChange, oid))
-        if if_index:
-            return self.set_interface_attribute_by_key(if_index, "last_change", int(val))
-        """
+        #
+        # if_index = int(oid_in_branch(ifLastChange, oid))
+        # if if_index:
+        #     return self.set_interface_attribute_by_key(if_index, "last_change", int(val))
+        #
 
         # we did not parse the OID.
         return False
@@ -1245,18 +1261,18 @@ class SnmpConnector(Connector):
         if if_index:
             return self.set_interface_attribute_by_key(if_index, "speed", int(val))
 
-        """
-        if_index = int(oid_in_branch(ifConnectorPresent, oid))
-        if if_index:
-            val = int(val)
-            if if_index in self.interfaces.keys():
-                if val == SNMP_TRUE:
-                    self.set_interface_attribute_by_key(if_index, "has_connector", True)
-                else:
-                    self.set_interface_attribute_by_key(if_index, "has_connector", False)
-                    self.set_interface_attribute_by_key(if_index, "manageable", False)
-            return True
-        """
+        #
+        # if_index = int(oid_in_branch(ifConnectorPresent, oid))
+        # if if_index:
+        #     val = int(val)
+        #     if if_index in self.interfaces:
+        #         if val == SNMP_TRUE:
+        #             self.set_interface_attribute_by_key(if_index, "has_connector", True)
+        #         else:
+        #             self.set_interface_attribute_by_key(if_index, "has_connector", False)
+        #             self.set_interface_attribute_by_key(if_index, "manageable", False)
+        #     return True
+        #
 
         # we did not parse the OID.
         return False
@@ -1281,7 +1297,7 @@ class SnmpConnector(Connector):
             dprint(f"  Found dot1dBasePortIfIndex = {port_id}")
             # map port ID (as str) to interface ID (as str)
             if_index = str(val)
-            if if_index in self.interfaces.keys():
+            if if_index in self.interfaces:
                 dprint(f"  Mapping to if_index = {if_index}")
                 self.qbridge_port_to_if_index[port_id] = if_index
                 # and map Interface() object back to port ID as well:
@@ -1295,7 +1311,7 @@ class SnmpConnector(Connector):
             dprint(f"  Found dot1qVlanStaticRowStatus for vlan {vlan_id}")
             # for now, just add to the dictionary,
             # we will fill in the initial name below at "VLAN_NAME"
-            if vlan_id in self.vlans.keys():
+            if vlan_id in self.vlans:
                 # currently we don't parse the status, so nothing to do here
                 return True
             # else add entry, should never happen!
@@ -1310,7 +1326,7 @@ class SnmpConnector(Connector):
         if vlan_id:
             dprint(f"  Found dot1qVlanStaticName for vlan {vlan_id}")
             # not yet sure how to handle this
-            if vlan_id in self.vlans.keys():
+            if vlan_id in self.vlans:
                 self.vlans[vlan_id].name = val
             else:
                 # vlan not found yet, create it
@@ -1325,7 +1341,7 @@ class SnmpConnector(Connector):
             (dummy, v) = sub_oid.split('.')
             vlan_id = int(v)
             status = int(val)
-            if vlan_id in self.vlans.keys():
+            if vlan_id in self.vlans:
                 self.vlans[vlan_id].status = status
             else:
                 # only should happen for non-permanent vlans, we should know static vlans by now!
@@ -1343,7 +1359,7 @@ class SnmpConnector(Connector):
             # not yet sure how to handle this. val is 'untagged vlan'
             untagged_vlan = int(val)
             self.set_interface_attribute_by_key(if_index, "untagged_vlan", untagged_vlan)
-            if untagged_vlan not in self.vlans.keys():
+            if untagged_vlan not in self.vlans:
                 # vlan not defined on switch!
                 self.set_interface_attribute_by_key(if_index, "disabled", True)
                 self.set_interface_attribute_by_key(
@@ -1373,41 +1389,41 @@ class SnmpConnector(Connector):
         # CURRENT_VLAN_EGRESS_PORTS = QBRIDGENODES['dot1qVlanCurrentEgressPorts']['oid'] + '.0'
         # NOTE: this is a READ-ONLY variable!
 
-        """
-        # this is the bitmap of current untagged ports in vlans (see also above dot1qVlanStaticEgressPorts)
-        sub_oid = oid_in_branch(dot1qVlanCurrentUntaggedPorts, oid)
-        if sub_oid:
-            dprint(f"  Found dot1qVlanCurrentUntaggedPorts for sub_oid {sub_oid}")
-            (dummy, v) = sub_oid.split('.')
-            vlan_id = int(v)
-            if vlan_id not in self.vlans.keys():
-                # not likely, but just in case:
-                self.add_vlan_by_id(vlan_id=vlan_id)
-            # store bitmap for later use
-            self.vlans[vlan_id].untagged_ports_bitmap = val
-            return True
-        """
+        #
+        # # this is the bitmap of current untagged ports in vlans (see also above dot1qVlanStaticEgressPorts)
+        # sub_oid = oid_in_branch(dot1qVlanCurrentUntaggedPorts, oid)
+        # if sub_oid:
+        #     dprint(f"  Found dot1qVlanCurrentUntaggedPorts for sub_oid {sub_oid}")
+        #     (dummy, v) = sub_oid.split('.')
+        #     vlan_id = int(v)
+        #     if vlan_id not in self.vlans:
+        #         # not likely, but just in case:
+        #         self.add_vlan_by_id(vlan_id=vlan_id)
+        #     # store bitmap for later use
+        #     self.vlans[vlan_id].untagged_ports_bitmap = val
+        #     return True
+        #
 
-        """
-        # List of all static egress ports of a VLAN (tagged + untagged) as a hexstring
-        # dot1qVlanStaticEgressPorts - READ-WRITE variable
-        # we read and store this so we have it ready to WRITE by setting a bit value, when we update the vlan on a port!
-        vlan_id = int(oid_in_branch(dot1qVlanStaticEgressPorts, oid))
-        if vlan_id:
-            dprint(f"  Found dot1qVlanStaticEgressPorts for vlan {vlan_id}")
-            if vlan_id not in self.vlans.keys():
-                # not likely, we should know by now, but just in case.
-                self.add_vlan_by_id(vlan_id=vlan_id)
-            # store it!
-            self.vlans[vlan_id].static_egress_portlist.from_unicode(val)
-            return True
-        """
+        #
+        # # List of all static egress ports of a VLAN (tagged + untagged) as a hexstring
+        # # dot1qVlanStaticEgressPorts - READ-WRITE variable
+        # # we read and store this so we have it ready to WRITE by setting a bit value, when we update the vlan on a port!
+        # vlan_id = int(oid_in_branch(dot1qVlanStaticEgressPorts, oid))
+        # if vlan_id:
+        #     dprint(f"  Found dot1qVlanStaticEgressPorts for vlan {vlan_id}")
+        #     if vlan_id not in self.vlans:
+        #         # not likely, we should know by now, but just in case.
+        #         self.add_vlan_by_id(vlan_id=vlan_id)
+        #     # store it!
+        #     self.vlans[vlan_id].static_egress_portlist.from_unicode(val)
+        #     return True
+        #
 
         # this is the bitmap of static untagged ports in vlans (see also above dot1qVlanCurrentEgressPorts)
         vlan_id = int(oid_in_branch(dot1qVlanStaticUntaggedPorts, oid))
         if vlan_id:
             dprint(f"  Found dot1qVlanStaticUntaggedPorts for vlan {vlan_id}")
-            if vlan_id not in self.vlans.keys():
+            if vlan_id not in self.vlans:
                 # unlikely, we should know by now, but just in case
                 self.add_vlan_by_id(vlan_id=vlan_id)
             # store for later use:
@@ -1425,7 +1441,7 @@ class SnmpConnector(Connector):
             (time_val, v) = sub_oid.split('.')
             vlan_id = int(v)
             # check if vlan is globally defined on switch:
-            if vlan_id not in self.vlans.keys():
+            if vlan_id not in self.vlans:
                 # not likely, we should know vlan by now, but just in case!
                 self.add_vlan_by_id(vlan_id=vlan_id)
             # store the egress port list, as some switches need this when setting untagged vlans
@@ -1530,15 +1546,15 @@ class SnmpConnector(Connector):
 
         # see if this is a type we want to look at:
         if mau_value.startswith(MAU_TYPE_BASE):
-            type = mau_value[len(MAU_TYPE_BASE) :]
+            optic_type = mau_value[len(MAU_TYPE_BASE) :]
             # dprint(f"Found MAU type {type}")
-            if int(type) in mau_types:
+            if int(optic_type) in mau_types:
                 dprint("  Adding MAU info to interface")
                 iface = self.get_interface_by_key(key=if_index)
                 if iface:
                     # dprint(f"Found interface {iface.name}")
                     trx = Transceiver()
-                    trx.type = mau_types[int(type)]
+                    trx.type = mau_types[int(optic_type)]
                     iface.transceiver = trx
                     return True
         return False
@@ -1641,7 +1657,7 @@ class SnmpConnector(Connector):
             # val" is the untagged vlan of this ifIndex
             untagged_vlan = int(val)
             self.set_interface_attribute_by_key(if_index, "untagged_vlan", untagged_vlan)
-            if untagged_vlan not in self.vlans.keys():
+            if untagged_vlan not in self.vlans:
                 # vlan not defined on switch!
                 # should not happen, unless we missed something with MVRP
                 self.set_interface_attribute_by_key(if_index, "disabled", True)
@@ -1690,7 +1706,7 @@ class SnmpConnector(Connector):
             (ignore, time_val, v) = sub_oid.split('.')
             vlan_id = int(v)
             # check if vlan is globally defined on switch:
-            if vlan_id not in self.vlans.keys():
+            if vlan_id not in self.vlans:
                 # not likely, we should know vlan by now, but just in case!
                 self.add_vlan_by_id(vlan_id=vlan_id)
             # store the egress port list, as some switches need this when setting untagged vlans
@@ -1722,7 +1738,7 @@ class SnmpConnector(Connector):
             # (ignore, ignore2, v) = sub_oid.split('.')
             # vlan_id = int(v)
             # # check if vlan is globally defined on switch:
-            # if vlan_id not in self.vlans.keys():
+            # if vlan_id not in self.vlans:
             #     # not likely, we should know vlan by now, but just in case!
             #     self.add_vlan_by_id(vlan_id=vlan_id)
             # # figure out untagged ports based on the bitmap
@@ -1758,7 +1774,7 @@ class SnmpConnector(Connector):
             if int(port_id) > 0:
                 # now port_id should map to the interface_id!
                 if_index = self._get_if_index_from_port_id(port_id)
-                if if_index in self.interfaces.keys():
+                if if_index in self.interfaces:
                     e = EthernetAddress(eth_string)
                     # make sure we use consistent string representation of this ethernet address:
                     e.dialect = settings.MAC_DIALECT
@@ -1809,7 +1825,7 @@ class SnmpConnector(Connector):
             # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
             if port_id:
                 if_index = self._get_if_index_from_port_id(port_id)
-                if if_index in self.interfaces.keys():
+                if if_index in self.interfaces:
                     # make sure we use consistent string representation of this ethernet address:
                     e = EthernetAddress(eth_string)
                     e.dialect = settings.MAC_DIALECT
@@ -1819,16 +1835,17 @@ class SnmpConnector(Connector):
                     else:
                         # see if we can use Forward DB mapping:
                         # double lookup: from fdb index find vlan index, then from vlan index find vlan id!
-                        """
-                        vlan_index = self.dot1tp_fdb_to_vlan_index.get(fdb_index, 0)
-                        vlan_id = self.vlan_id_by_index.get(vlan_index, 0)
-                        dprint(f"Eth found in fdb_index {fdb_index} => vlan_index {vlan_index} => vlan_id {vlan_id}")
-                        """
+
+                        #
+                        # vlan_index = self.dot1tp_fdb_to_vlan_index.get(fdb_index, 0)
+                        # vlan_id = self.vlan_id_by_index.get(vlan_index, 0)
+                        # dprint(f"Eth found in fdb_index {fdb_index} => vlan_index {vlan_index} => vlan_id {vlan_id}")
+                        #
                         e.vlan_id = self.vlan_id_by_index.get(self.dot1tp_fdb_to_vlan_index.get(fdb_index, 0), 0)
                         # if vlan_id is still 0, if could be the fbd_index is the vlan id!
                         if e.vlan_id == 0:
                             # if fdb_index is a valid vlan id, assume so!
-                            if fdb_index in self.vlans.keys():
+                            if fdb_index in self.vlans:
                                 e.vlan_id = fdb_index
                     dprint(f"  NEW MAC: {e}, vlan: {e.vlan_id}, interface {self.interfaces[if_index].name}")
                     if str(e) not in self.interfaces[if_index].eth:
@@ -1985,10 +2002,10 @@ class SnmpConnector(Connector):
         """
         dprint(f"_parse_mibs_lacp() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
 
-        """
-        Parse a single OID with data returned from the LACP MIB
-        Will return True if we have parsed this, and False if not.
-        """
+        #
+        # Parse a single OID with data returned from the LACP MIB
+        # Will return True if we have parsed this, and False if not.
+        #
 
         # this gets the aggregator interface admin key or "index"
         # note that aggregator index is an integer according to MIB, but
@@ -1996,7 +2013,7 @@ class SnmpConnector(Connector):
         aggr_if_index = oid_in_branch(dot3adAggActorAdminKey, oid)
         if aggr_if_index:
             # this interface is a aggregator!
-            if aggr_if_index in self.interfaces.keys():
+            if aggr_if_index in self.interfaces:
                 self.interfaces[aggr_if_index].lacp_type = LACP_IF_TYPE_AGGREGATOR
                 self.interfaces[aggr_if_index].lacp_admin_key = int(val)
                 # some vendors (certain Cisco switches) set the IF-MIB::ifType to Virtual (53) instead of LAGG (161)
@@ -2011,7 +2028,7 @@ class SnmpConnector(Connector):
         # we use it as a string value for the interfaces{} dictionary key!!!
         if member_if_index:
             # this interface is an lacp member!
-            if member_if_index in self.interfaces.keys():
+            if member_if_index in self.interfaces:
                 # can we find an aggregate with this key value ?
                 lacp_key = int(val)
                 for lacp_index, iface in self.interfaces.items():
@@ -2029,22 +2046,22 @@ class SnmpConnector(Connector):
                         dprint(f"LACP MEMBER FOUND: {self.interfaces[member_if_index].name}")
             return True
 
-        """
-        # LACP port membership, may only valid once an interface is "up" and has joined the aggregate
-        member_if_index = int(oid_in_branch(dot3adAggPortAttachedAggID, oid))
-        if member_if_index:
-            lacp_if_index = int(val)
-            if lacp_if_index > 0:
-                dprint(f"Member ifIndex {member_if_index} is part of LACP ifIndex {lacp_if_index})
-                if member_if_index in self.interfaces.keys() and lacp_if_index in self.interfaces.keys():
-                    # from this one read, we can get the aggregate ifIndex for the virtual interface
-                    # (and name, for display convenience)
-                    self.interfaces[member_if_index].lacp_master_index = lacp_if_index
-                    self.interfaces[member_if_index].lacp_master_name = self.interfaces[lacp_if_index].name
-                    # and also the member interface (i.e. the physical interface!)
-                    self.interfaces[lacp_if_index].lacp_members[member_if_index] = self.interfaces[member_if_index].name
-            return True
-        """
+        #
+        # # LACP port membership, may only valid once an interface is "up" and has joined the aggregate
+        # member_if_index = int(oid_in_branch(dot3adAggPortAttachedAggID, oid))
+        # if member_if_index:
+        #     lacp_if_index = int(val)
+        #     if lacp_if_index > 0:
+        #         dprint(f"Member ifIndex {member_if_index} is part of LACP ifIndex {lacp_if_index})
+        #         if member_if_index in self.interfaces and lacp_if_index in self.interfaces:
+        #             # from this one read, we can get the aggregate ifIndex for the virtual interface
+        #             # (and name, for display convenience)
+        #             self.interfaces[member_if_index].lacp_master_index = lacp_if_index
+        #             self.interfaces[member_if_index].lacp_master_name = self.interfaces[lacp_if_index].name
+        #             # and also the member interface (i.e. the physical interface!)
+        #             self.interfaces[lacp_if_index].lacp_members[member_if_index] = self.interfaces[member_if_index].name
+        #     return True
+        #
 
         # we did not parse the OID.
         return False
@@ -2068,14 +2085,14 @@ class SnmpConnector(Connector):
         """
         dprint(f"_parse_mibs_ip_addr_table_ifindex() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
 
-        """
-        Handle the device IP addresses, e.g. interface ip, vlan ip, etc.
-        """
+        #
+        # Handle the device IP addresses, e.g. interface ip, vlan ip, etc.
+        #
         ip = oid_in_branch(ipAdEntIfIndex, oid)
         if ip:
             # snmp oid return value is the string "if_index"
             # Interfaces are indexed by string index, ie the 'val' returned:
-            if val in self.interfaces.keys():
+            if val in self.interfaces:
                 # store IP and interface index (as str) for lookup of netmask below
                 self.ip4_to_if_index[ip] = val
                 # no need to store yet:
@@ -2104,17 +2121,17 @@ class SnmpConnector(Connector):
         """
         dprint(f"_parse_mibs_ip_addr_table_netmask() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
 
-        """
-        Handle the device IP addresses netmask entry.
-        """
+        #
+        # Handle the device IP addresses netmask entry.
+        #
         ip = oid_in_branch(ipAdEntNetMask, oid)
         if ip:
             # OID return value is netmask
             # we should have found the IP address already above!
-            if ip in self.ip4_to_if_index.keys():
+            if ip in self.ip4_to_if_index:
                 if_key = self.ip4_to_if_index[ip]
                 # make sure we have an interface for this key:
-                if if_key in self.interfaces.keys():
+                if if_key in self.interfaces:
                     # now add this IP / Netmask combo to this interface:
                     self.interfaces[if_key].add_ip4_network(address=ip, netmask=val)
             return True
@@ -2145,9 +2162,9 @@ class SnmpConnector(Connector):
         """
         dprint(f"_parse_mibs_ip_address_if_index() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
 
-        """
-        Find a device IP addresses. Returned OID is ipAddressIfIndex.<address-type>.<length>.<dotted-decimal-ip-address> = <if-index>
-        """
+        #
+        # Find a device IP addresses. Returned OID is ipAddressIfIndex.<address-type>.<length>.<dotted-decimal-ip-address> = <if-index>
+        #
         oid_ip_string = oid_in_branch(ipAddressIfIndex, oid)
         if oid_ip_string:
             # oid_ip_string return value is the string "<ip-type>.<length>.<ip-address>"
@@ -2202,12 +2219,12 @@ class SnmpConnector(Connector):
         """
         dprint(f"_parse_mibs_ip_address_prefix() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
 
-        """
-        Find a device IP addresses. Returned OID is
-        ipAddressPrefix.<address-type>.<length>.<interface-dotted-decimal-ip-address> =
-            ipAddressPrefixOrigin.<ifIndex>.<add-type>.<addr-lenght>.<subnet-ip-in-dotted-decimal>.<subnet-prefix-length>
-        where ipAddressPrefixOrigin = ".1.3.6.1.2.1.4.32.1.5"
-        """
+        #
+        # Find a device IP addresses. Returned OID is
+        # ipAddressPrefix.<address-type>.<length>.<interface-dotted-decimal-ip-address> =
+        #     ipAddressPrefixOrigin.<ifIndex>.<add-type>.<addr-lenght>.<subnet-ip-in-dotted-decimal>.<subnet-prefix-length>
+        # where ipAddressPrefixOrigin = ".1.3.6.1.2.1.4.32.1.5"
+        #
         oid_ip_string = oid_in_branch(ipAddressPrefix, oid)
         if oid_ip_string:
             # go parse the interface IP address in the returned OID:
@@ -2333,18 +2350,18 @@ class SnmpConnector(Connector):
         """
         dprint(f"_parse_mibs_syslog_msg() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
 
-        """
-        SYSLOG-MSG-MIB - mostly meant to define notification, but we can read the log size
-        """
+        #
+        # SYSLOG-MSG-MIB - mostly meant to define notification, but we can read the log size
+        #
         sub_oid = oid_in_branch(syslogMsgTableMaxSize, oid)
         if sub_oid:
             # this is the max number of syslog messages stored.
             self.syslog_max_msgs = int(val)
             return True
-        """
-        Note: the rest of the SYSLOG_MSG_MIB is meant to define OID's for sending
-        SNMP traps with syslog messages, NOT to poll messages from snmp reads !!!
-        """
+        #
+        # Note: the rest of the SYSLOG_MSG_MIB is meant to define OID's for sending
+        # SNMP traps with syslog messages, NOT to poll messages from snmp reads !!!
+        #
 
     #
     # POE parsing - first Power Supplies
@@ -2362,19 +2379,19 @@ class SnmpConnector(Connector):
         """
         dprint(f"_parse_mibs_poe_supply() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
 
-        """
-        PoE related entries:
-        the pethMainPseEntry table entries with device-level PoE info
-        the OID is <base><device-id>.1 = <value>,
-        where <device-id> is stack member number, vendor and device specific!
-        """
+        #
+        # PoE related entries:
+        # the pethMainPseEntry table entries with device-level PoE info
+        # the OID is <base><device-id>.1 = <value>,
+        # where <device-id> is stack member number, vendor and device specific!
+        #
 
         pse_id = int(oid_in_branch(pethMainPsePower, oid))
         if pse_id:
             self.poe_capable = True
             self.poe_max_power += int(val)  # in Watts
             # store data about individual PSE unit:
-            if pse_id not in self.poe_pse_devices.keys():
+            if pse_id not in self.poe_pse_devices:
                 self.poe_pse_devices[pse_id] = PoePSE(pse_id)
             # update max power
             self.poe_pse_devices[pse_id].max_power = int(val)  # in Watts
@@ -2386,7 +2403,7 @@ class SnmpConnector(Connector):
             self.poe_capable = True
             self.poe_enabled = int(val)
             # store data about individual PSE unit:
-            if pse_id not in self.poe_pse_devices.keys():
+            if pse_id not in self.poe_pse_devices:
                 self.poe_pse_devices[pse_id] = PoePSE(pse_id)
             # update status
             self.poe_pse_devices[pse_id].status = int(val)
@@ -2397,7 +2414,7 @@ class SnmpConnector(Connector):
             self.poe_capable = True
             self.poe_power_consumed += int(val)  # this is in Watts (not milliWatts !)
             # store data about individual PSE unit:
-            if pse_id not in self.poe_pse_devices.keys():
+            if pse_id not in self.poe_pse_devices:
                 self.poe_pse_devices[pse_id] = PoePSE(pse_id)
             # update max power
             self.poe_pse_devices[pse_id].power_consumed = int(val)  # in Watts !
@@ -2407,7 +2424,7 @@ class SnmpConnector(Connector):
         if pse_id:
             self.poe_capable = True
             # store data about individual PSE unit:
-            if pse_id not in self.poe_pse_devices.keys():
+            if pse_id not in self.poe_pse_devices:
                 self.poe_pse_devices[pse_id] = PoePSE(pse_id)
             # update max power
             self.poe_pse_devices[pse_id].threshold = int(val)
@@ -2433,16 +2450,16 @@ class SnmpConnector(Connector):
         """
         dprint(f"_parse_mibs_poe_port() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
 
-        """
-        the pethPsePortEntry tables with port-level PoE info
-        OID is followed by PortEntry index (pe_index). This is typically
-        or module_num.port_num for modules switch chassis, or
-        device_id.port_num for stack members.
-        This gets mapped to an interface later on in
-        self._map_poe_port_entries_to_interface(), which is typically device specific
-        (i.e. implemented in the device-specific classes in
-        vendor/cisco/snmp.py, vendor/comware/snmp.py, etc.)
-        """
+        #
+        # the pethPsePortEntry tables with port-level PoE info
+        # OID is followed by PortEntry index (pe_index). This is typically
+        # or module_num.port_num for modules switch chassis, or
+        # device_id.port_num for stack members.
+        # This gets mapped to an interface later on in
+        # self._map_poe_port_entries_to_interface(), which is typically device specific
+        # (i.e. implemented in the device-specific classes in
+        # vendor/cisco/snmp.py, vendor/comware/snmp.py, etc.)
+        #
 
         pe_index = oid_in_branch(pethPsePortAdminEnable, oid)
         if pe_index:
@@ -2451,24 +2468,24 @@ class SnmpConnector(Connector):
 
         pe_index = oid_in_branch(pethPsePortDetectionStatus, oid)
         if pe_index:
-            if pe_index in self.poe_port_entries.keys():
+            if pe_index in self.poe_port_entries:
                 self.poe_port_entries[pe_index].detect_status = int(val)
             return True
 
-        """
-        These are currently not used:
-        pe_index = oid_in_branch(pethPsePortPowerPriority, oid)
-        if pe_index:
-            if pe_index in self.poe_port_entries.keys():
-                self.poe_port_entries[pe_index].priority = int(val)
-            return True
+        #
+        # These are currently not used:
+        # pe_index = oid_in_branch(pethPsePortPowerPriority, oid)
+        # if pe_index:
+        #     if pe_index in self.poe_port_entries:
+        #         self.poe_port_entries[pe_index].priority = int(val)
+        #     return True
 
-        pe_index = oid_in_branch(pethPsePortType, oid)
-        if pe_index:
-            if pe_index in self.poe_port_entries.keys():
-                self.poe_port_entries[pe_index].description = str(val)
-            return True
-        """
+        # pe_index = oid_in_branch(pethPsePortType, oid)
+        # if pe_index:
+        #     if pe_index in self.poe_port_entries:
+        #         self.poe_port_entries[pe_index].description = str(val)
+        #     return True
+        #
 
         # we did not parse the OID.
         return False
@@ -2512,7 +2529,7 @@ class SnmpConnector(Connector):
             # need to find the ifIndex first.
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces.keys():
+            if if_index in self.interfaces:
                 # add new LLDP neighbor
                 # self.interfaces[if_index].lldp[lldp_index] = NeighborDevice(lldp_index, if_index)
                 neighbor = NeighborDevice(lldp_index)
@@ -2531,7 +2548,7 @@ class SnmpConnector(Connector):
             # need to find the ifIndex first.
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces.keys():
+            if if_index in self.interfaces:
                 sub_type = int(val)
                 # depending on type, we may need to blank neighbor.port_name!
                 # we 'think' we can handle these: LLDP_PORT_SUBTYPE_INTERFACE_ALIAS, LLDP_PORT_SUBTYPE_MAC_ADDRESS
@@ -2552,8 +2569,8 @@ class SnmpConnector(Connector):
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces.keys():
-                if lldp_index in self.interfaces[if_index].lldp.keys():
+            if if_index in self.interfaces:
+                if lldp_index in self.interfaces[if_index].lldp:
                     # now update with system port description
                     self.interfaces[if_index].lldp[lldp_index].port_descr = str(val)
             return True
@@ -2564,8 +2581,8 @@ class SnmpConnector(Connector):
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces.keys():
-                if lldp_index in self.interfaces[if_index].lldp.keys():
+            if if_index in self.interfaces:
+                if lldp_index in self.interfaces[if_index].lldp:
                     # now update with system name
                     self.interfaces[if_index].lldp[lldp_index].sys_name = str(val)
             return True
@@ -2577,8 +2594,8 @@ class SnmpConnector(Connector):
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces.keys():
-                if lldp_index in self.interfaces[if_index].lldp.keys():
+            if if_index in self.interfaces:
+                if lldp_index in self.interfaces[if_index].lldp:
                     # now update with system description
                     self.interfaces[if_index].lldp[lldp_index].sys_descr = str(val)
             return True
@@ -2590,8 +2607,8 @@ class SnmpConnector(Connector):
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces.keys():
-                if lldp_index in self.interfaces[if_index].lldp.keys():
+            if if_index in self.interfaces:
+                if lldp_index in self.interfaces[if_index].lldp:
                     # now update with system capabilities
                     cap_bytes = bytes(val, 'utf-8')
                     # self.interfaces[if_index].lldp[lldp_index].capabilities = cap_bytes
@@ -2604,8 +2621,8 @@ class SnmpConnector(Connector):
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces.keys():
-                if lldp_index in self.interfaces[if_index].lldp.keys():
+            if if_index in self.interfaces:
+                if lldp_index in self.interfaces[if_index].lldp:
                     # now update with system chassis type
                     if self.interfaces[if_index].lldp[lldp_index].chassis_type > LLDP_CHASSIS_TYPE_NONE:
                         self.add_warning(
@@ -2622,8 +2639,8 @@ class SnmpConnector(Connector):
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces.keys():
-                if lldp_index in self.interfaces[if_index].lldp.keys():
+            if if_index in self.interfaces:
+                if lldp_index in self.interfaces[if_index].lldp:
                     # now update with system chassis info, but only chassis type is known
                     # (it should be at this time)
                     neighbor = self.interfaces[if_index].lldp[lldp_index]
@@ -2677,8 +2694,8 @@ class SnmpConnector(Connector):
         #     # at this point, we should have already found the lldp neighbor and created an object
         #     # did we find Q-Bridge mappings?
         #     if_index = self._get_if_index_from_port_id(int(port_id))
-        #     if if_index in self.interfaces.keys():
-        #         if lldp_index in self.interfaces[if_index].lldp.keys():
+        #     if if_index in self.interfaces:
+        #         if lldp_index in self.interfaces[if_index].lldp:
         #             # store management address type
         #             self.interfaces[if_index].lldp[lldp_index].management_address_type = int(val)
         #     return True
@@ -2690,8 +2707,8 @@ class SnmpConnector(Connector):
         #     # at this point, we should have already found the lldp neighbor and created an object
         #     # did we find Q-Bridge mappings?
         #     if_index = self._get_if_index_from_port_id(int(port_id))
-        #     if if_index in self.interfaces.keys():
-        #         if lldp_index in self.interfaces[if_index].lldp.keys():
+        #     if if_index in self.interfaces:
+        #         if lldp_index in self.interfaces[if_index].lldp:
         #             # set management address
         #             self.interfaces[if_index].lldp[lldp_index].management_address = val
         #     return True
@@ -2716,8 +2733,8 @@ class SnmpConnector(Connector):
                 # did we find Q-Bridge mappings?
                 if_index = self._get_if_index_from_port_id(port_id)
                 # dprint(f"  INFO: lldp_index='{lldp_index}', port_id='{port_id}', if_index='{if_index}'")
-                if if_index in self.interfaces.keys():
-                    if lldp_index in self.interfaces[if_index].lldp.keys():
+                if if_index in self.interfaces:
+                    if lldp_index in self.interfaces[if_index].lldp:
                         # set management address
                         mgmt_ip = f"{numbers[5]}.{numbers[6]}.{numbers[7]}.{numbers[8]}"
                         dprint(f"  SETTING MGMT IPv4 = {mgmt_ip}")
@@ -2734,18 +2751,18 @@ class SnmpConnector(Connector):
 
         # get the interface index first:
         if_index = self._get_if_index_from_port_id(port_id)
-        if if_index in self.interfaces.keys():
+        if if_index in self.interfaces:
             if self.interfaces[if_index].untagged_vlan == vlan_id:
                 dprint("   PVID already set!")
                 # interface already has this untagged vlan, not adding
                 return True
-            else:
-                dprint("   Add as tagged?")
-                # only add vlan once, and only if defined!
-                if vlan_id in self.vlans.keys() and vlan_id not in self.interfaces[if_index].vlans:
-                    dprint("      yes!")
-                    self.interfaces[if_index].vlans.append(vlan_id)
-                    self.interfaces[if_index].is_tagged = True
+
+            dprint("   Add as tagged?")
+            # only add vlan once, and only if defined!
+            if vlan_id in self.vlans and vlan_id not in self.interfaces[if_index].vlans:
+                dprint("      yes!")
+                self.interfaces[if_index].vlans.append(vlan_id)
+                self.interfaces[if_index].is_tagged = True
             return True
         return False
 
@@ -2757,19 +2774,20 @@ class SnmpConnector(Connector):
 
         # get the interface index first:
         if_index = self._get_if_index_from_port_id(port_id)
-        if if_index in self.interfaces.keys():
+        if if_index in self.interfaces:
             if self.interfaces[if_index].untagged_vlan == 0:
                 dprint("   PVID was 0, now set!")
                 self.interfaces[if_index].untagged_vlan = vlan_id
                 return True
-            elif self.interfaces[if_index].untagged_vlan == vlan_id:
+
+            if self.interfaces[if_index].untagged_vlan == vlan_id:
                 dprint("   PVID already set!")
                 # interface already has this untagged vlan, not adding
                 return True
-            else:
-                dprint(f"   PVID was {self.interfaces[if_index].untagged_vlan}, now set!")  # should not happend
-                self.interfaces[if_index].untagged_vlan = vlan_id
-                return True
+            # this case should not happen:
+            dprint(f"   PVID was {self.interfaces[if_index].untagged_vlan}, now set!")  # should not happen
+            self.interfaces[if_index].untagged_vlan = vlan_id
+            return True
         dprint(f"if_index '{if_index}' not found!")
         return False
 
@@ -2801,25 +2819,25 @@ class SnmpConnector(Connector):
 
         dev_id = int(oid_in_branch(entPhysicalDescr, oid))
         if dev_id:
-            if dev_id in self.stack_members.keys():
+            if dev_id in self.stack_members:
                 self.stack_members[dev_id].description = str(val)
             return True
 
         dev_id = int(oid_in_branch(entPhysicalSerialNum, oid))
         if dev_id:
-            if dev_id in self.stack_members.keys():
+            if dev_id in self.stack_members:
                 self.stack_members[dev_id].serial = str(val)
             return True
 
         dev_id = int(oid_in_branch(entPhysicalSoftwareRev, oid))
         if dev_id:
-            if dev_id in self.stack_members.keys():
+            if dev_id in self.stack_members:
                 self.stack_members[dev_id].version = str(val)
             return True
 
         dev_id = int(oid_in_branch(entPhysicalModelName, oid))
         if dev_id:
-            if dev_id in self.stack_members.keys():
+            if dev_id in self.stack_members:
                 self.stack_members[dev_id].model = str(val)
             return True
 
@@ -2840,14 +2858,14 @@ class SnmpConnector(Connector):
         """
         dprint(f"_get_if_index_from_port_id(port_id={port_id} ({type(port_id)})")
         port_id = int(port_id)  # make sure we have the proper type!
-        # if len(self.qbridge_port_to_if_index) > 0 and port_id in self.qbridge_port_to_if_index.keys():
-        if port_id in self.qbridge_port_to_if_index.keys():
+        # if len(self.qbridge_port_to_if_index) > 0 and port_id in self.qbridge_port_to_if_index:
+        if port_id in self.qbridge_port_to_if_index:
             dprint(f"  Found in port_to_if_index = {self.qbridge_port_to_if_index[port_id]}")
             return self.qbridge_port_to_if_index[port_id]
-        else:
-            # we did not find the Q-BRIDGE mib. port_id = ifIndex !
-            dprint("  port_id NOT FOUND, returning port_id as if_index")
-            return str(port_id)  # if_index is the interface key as string!
+
+        # we did not find the Q-BRIDGE mib. port_id = ifIndex !
+        dprint("  port_id NOT FOUND, returning port_id as if_index")
+        return str(port_id)  # if_index is the interface key as string!
 
     def _get_port_id_from_if_index(self, if_index: str) -> int:
         """
@@ -2861,7 +2879,7 @@ class SnmpConnector(Connector):
             (str): the string representation of theQ-Bridge port id for this interface index.
         """
         if_index = str(if_index)
-        if if_index in self.interfaces.keys() and len(self.qbridge_port_to_if_index) > 0:
+        if if_index in self.interfaces and len(self.qbridge_port_to_if_index) > 0:
             for port_id, index in self.qbridge_port_to_if_index.items():
                 if if_index == index:
                     return port_id
@@ -2882,9 +2900,9 @@ class SnmpConnector(Connector):
         """
         if interface.port_id != -1:
             return interface.port_id
-        else:
-            # we did not find the Q-BRIDGE mib. port_id = ifIndex !
-            return int(interface.index)  # port_id is integer!
+
+        # we did not find the Q-BRIDGE mib. port_id = ifIndex !
+        return int(interface.index)  # port_id is integer!
 
     def _parse_mibs_system(self, oid: str, value: str) -> bool:
         """
@@ -2900,7 +2918,7 @@ class SnmpConnector(Connector):
         if oid == sysUpTime:
             self.sys_uptime = int(value)
             self.sys_uptime_timestamp = time.time()
-            self.add_more_info('System', 'Uptime', str(datetime.timedelta(seconds=(self.sys_uptime / 100))))
+            self.add_more_info('System', 'Uptime', str(datetime.timedelta(seconds=self.sys_uptime / 100)))
             return True
         if oid == sysObjectID:
             self.object_id = value
@@ -3003,50 +3021,50 @@ class SnmpConnector(Connector):
         # it all starts with the interface indexes
         retval = self.get_snmp_branch(branch_name='ifIndex', parser=self._parse_mibs_if_table)
         if retval < 0:
-            self.add_warning(f"Error getting 'Interfaces' ({ifIndex})")
+            self.add_warning(f"Error getting 'ifIndex' ({ifIndex})")
             return retval
         # and the types
         retval = self.get_snmp_branch(branch_name='ifType', parser=self._parse_mibs_if_table)
         if retval < 0:
-            self.add_warning(f"Error getting 'Interface-Type' ({ifType})")
+            self.add_warning(f"Error getting 'ifType' ({ifType})")
             return retval
 
         # the status of the interface, admin up/down, link up/down
         retval = self.get_snmp_branch(branch_name='ifAdminStatus', parser=self._parse_mibs_if_table)
         if retval < 0:
-            self.add_warning(f"Error getting 'Interface-AdminStatus' ({ifAdminStatus})")
+            self.add_warning(f"Error getting 'ifAdminStatus' ({ifAdminStatus})")
             return retval
         retval = self.get_snmp_branch(branch_name='ifOperStatus', parser=self._parse_mibs_if_table)
         if retval < 0:
-            self.add_warning(f"Error getting 'Interface-OperStatus' ({ifOperStatus})")
+            self.add_warning(f"Error getting 'ifOperStatus' ({ifOperStatus})")
             return retval
 
         # find the interface name, start with the newer IF-MIB
         retval = self.get_snmp_branch(branch_name='ifName', parser=self._parse_mibs_if_x_table)
         if retval < 0:
-            self.add_warning(f"Error getting 'Interface-Names' ({ifName})")
+            self.add_warning(f"Error getting 'ifName' ({ifName})")
             return retval
         if retval == 0:  # newer IF-MIB entries no found, try the old
             retval = self.get_snmp_branch(branch_name='ifDescr', parser=self._parse_mibs_if_table)
             if retval < 0:
-                self.add_warning(f"Error getting 'Interface-Descriptions' ({ifDescr})")
+                self.add_warning(f"Error getting 'ifDescr' ({ifDescr})")
                 return retval
 
         # this is the interface description
         retval = self.get_snmp_branch(branch_name='ifAlias', parser=self._parse_mibs_if_x_table)
         if retval < 0:
-            self.add_warning(f"Error getting 'Interface-Alias' ({ifAlias})")
+            self.add_warning(f"Error getting 'ifAlias' ({ifAlias})")
             return retval
 
         # speed is in new IF-MIB
         retval = self.get_snmp_branch(branch_name='ifHighSpeed', parser=self._parse_mibs_if_x_table)
         if retval < 0:
-            self.add_warning(f"Error getting 'Interface-HiSpeed' ({ifHighSpeed})")
+            self.add_warning(f"Error getting 'ifHighSpeed' ({ifHighSpeed})")
             return retval
         if retval == 0:  # new IF-MIB hcspeed entry not found, try old speed
             retval = self.get_snmp_branch(branch_name='ifSpeed', parser=self._parse_mibs_if_table)
             if retval < 0:
-                self.add_warning(f"Error getting 'Interface-Speed' ({ifSpeed})")
+                self.add_warning(f"Error getting 'ifSpeed' ({ifSpeed})")
                 return retval
 
         # try to read duplex status
@@ -3234,10 +3252,10 @@ class SnmpConnector(Connector):
         E.g. "5.12" from the index becomes "5/12", and you then search for an interface with matching ending
         e.g. GigabitEthernet5/12
         """
-        for pe_index, port_entry in self.poe_port_entries.items():
+        for port_entry in self.poe_port_entries.values():
             end = port_entry.index.replace('.', '/')
             count = len(end)
-            for if_index, iface in self.interfaces.items():
+            for iface in self.interfaces.values():
                 if iface.name[-count:] == end:
                     iface.poe_entry = port_entry
                     break
@@ -3264,14 +3282,14 @@ class SnmpConnector(Connector):
                 )
                 if retval < 0:
                     self.add_warning("Error getting 'PoE-Port-Detect-Status' (pethPsePortDetectionStatus)")
-                """ Currently not used:
-                retval = self.get_snmp_branch(branch_name='pethPsePortPowerPriority', parser=self._parse_mibs_poe_port)
-                if retval < 0:
-                    self.add_warning("Error getting 'PoE-Port-Detect-Status' (pethPsePortPowerPriority)")
-                retval = self.get_snmp_branch(branch_name='pethPsePortType', parser=self._parse_mibs_poe_port)
-                if retval < 0:
-                    self.add_warning("Error getting 'PoE-Port-Description' (pethPsePortType)")
-                """
+                # Currently not used:
+                # retval = self.get_snmp_branch(branch_name='pethPsePortPowerPriority', parser=self._parse_mibs_poe_port)
+                # if retval < 0:
+                #     self.add_warning("Error getting 'PoE-Port-Detect-Status' (pethPsePortPowerPriority)")
+                # retval = self.get_snmp_branch(branch_name='pethPsePortType', parser=self._parse_mibs_poe_port)
+                # if retval < 0:
+                #     self.add_warning("Error getting 'PoE-Port-Description' (pethPsePortType)")
+                #
         return 1
 
     def _get_known_ethernet_addresses(self) -> bool:
@@ -3403,13 +3421,13 @@ class SnmpConnector(Connector):
                 self.add_warning("Error getting 'LACP-Port-Admin-Key' (dot3adAggPortActorAdminKey)")
                 return False
 
-        """
-        # this is a shortcut to find aggregates and members all in one, but does not work for every device.
-        retval = self.get_snmp_branch(branch_name='dot3adAggPortAttachedAggID', parser=self._parse_mibs_lacp)
-        if retval < 0:
-            self.add_warning("Error getting 'LACP-Port-AttachedAggID' (dot3adAggPortAttachedAggID)")
-            return False
-        """
+        #
+        # # this is a shortcut to find aggregates and members all in one, but does not work for every device.
+        # retval = self.get_snmp_branch(branch_name='dot3adAggPortAttachedAggID', parser=self._parse_mibs_lacp)
+        # if retval < 0:
+        #     self.add_warning("Error getting 'LACP-Port-AttachedAggID' (dot3adAggPortAttachedAggID)")
+        #     return False
+        #
 
         return True
 
@@ -3535,10 +3553,10 @@ class SnmpConnector(Connector):
             # sub-oid is <vrf-name-as-oid-encoded>.<if_index>
             # for now we dont care about "val"
             # we cheat, we know last number is ifIndex:
-            ifIndex = sub_oid.split('.')[-1]
+            if_index = sub_oid.split('.')[-1]
             vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
-            dprint(f"  mplsL3VpnIfVpnClassification: vrf '{vrf_name}' interface index {ifIndex} = {val}")
-            iface = self.get_interface_by_key(key=str(ifIndex))
+            dprint(f"  mplsL3VpnIfVpnClassification: vrf '{vrf_name}' interface index {if_index} = {val}")
+            iface = self.get_interface_by_key(key=str(if_index))
             if iface:
                 dprint(f"    interface '{iface.name}'")
                 # add to the list of interfaces for this vrf
@@ -3559,10 +3577,10 @@ class SnmpConnector(Connector):
             # sub-oid is <vrf-name-as-oid-encoded>.<if_index>
             # for now we dont care about "val"
             # we cheat, we know last number is ifIndex:
-            ifIndex = sub_oid.split('.')[-1]
+            if_index = sub_oid.split('.')[-1]
             vrf_name = self._get_string_from_oid_index(oid_index=sub_oid)
-            dprint(f"  mplsL3VpnIfVpnRouteDistProtocol: vrf '{vrf_name}' interface index {ifIndex} = {val}")
-            iface = self.get_interface_by_key(key=str(ifIndex))
+            dprint(f"  mplsL3VpnIfVpnRouteDistProtocol: vrf '{vrf_name}' interface index {if_index} = {val}")
+            iface = self.get_interface_by_key(key=str(if_index))
             if iface:
                 dprint(f"    interface '{iface.name}'")
                 # add to the list of interfaces for this vrf
@@ -3628,7 +3646,7 @@ class SnmpConnector(Connector):
         """
         dprint(f"_find_ethernet_address() for '{eth_address}'")
         for iface in self.interfaces.values():
-            if eth_address in iface.eth.keys():
+            if eth_address in iface.eth:
                 dprint(f"  Found on interface '{iface.name}'")
                 return iface.eth[eth_address]
         return None
@@ -3637,9 +3655,9 @@ class SnmpConnector(Connector):
     # "Public" interface methods
     #
 
-    """
-    Class specific functions
-    """
+    #
+    # Class specific functions
+    #
 
     # Duplicates of connect.connector.Connector() base function:
     # def get_switch_vlans(self) -> dict:
@@ -3653,7 +3671,7 @@ class SnmpConnector(Connector):
     #     Return the Vlan() object for the given id
     #     """
     #     vlan_id = int(vlan_id)
-    #     if vlan_id in self.vlans.keys():
+    #     if vlan_id in self.vlans:
     #         return self.vlans[vlan_id]
     #     return False
 
@@ -3701,7 +3719,8 @@ class SnmpConnector(Connector):
             self.error = Error(status=True, description="set_interface_poe_status(): interface has no poe_entry!")
             return False
         # proper status value?
-        if new_state != POE_PORT_ADMIN_ENABLED and new_state != POE_PORT_ADMIN_DISABLED:
+        # if new_state != POE_PORT_ADMIN_ENABLED and new_state != POE_PORT_ADMIN_DISABLED:
+        if new_state not in (POE_PORT_ADMIN_ENABLED, POE_PORT_ADMIN_DISABLED):
             self.error = Error(status=True, description=f"set_interface_poe_status(): Invalid status: {new_state}")
             return False
 
@@ -3955,10 +3974,9 @@ def get_switch_enterprise_info(system_oid: str) -> str:
         parts = sub_oid.split('.', 1)  # 1 means one split, two elements!
         enterprise_id = int(parts[0])
         # here we go:
-        if enterprise_id in enterprise_id_info.keys():
+        if enterprise_id in enterprise_id_info:
             return enterprise_id_info[enterprise_id]
-        else:
-            return f"Unknown ({enterprise_id})"
-    else:
-        # sub oid, ie enterprise data, not found!
-        return 'Not found'
+        return f"Unknown ({enterprise_id})"
+
+    # sub oid, ie enterprise data, not found!
+    return 'Not found'
