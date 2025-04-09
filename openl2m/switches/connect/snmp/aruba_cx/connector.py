@@ -106,7 +106,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         pe_index = oid_in_branch(arubaWiredPoePethPsePortPowerDrawn, oid)
         if pe_index:
             dprint(f"Found branch arubaWiredPoePethPsePortPowerDrawn, pe_index = {pe_index}")
-            if pe_index in self.poe_port_entries.keys():
+            if pe_index in self.poe_port_entries:
                 self.poe_port_entries[pe_index].power_consumption_supported = True
                 self.poe_port_entries[pe_index].power_consumed = int(val)
             return True
@@ -124,7 +124,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             # add to device/stacking info area:
             dprint(f"Device {dev_index}: {val}")
             # save this info!
-            if dev_index in self.stack_members.keys():
+            if dev_index in self.stack_members:
                 # save this info!
                 self.stack_members[dev_index].info = val
             else:
@@ -228,7 +228,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             dprint("  Invalid interface!, returning False")
             return False
         # does this vlan exist on the device?
-        if new_vlan_id not in self.vlans.keys():
+        if new_vlan_id not in self.vlans:
             dprint(f"  Invalid new vlan {new_vlan_id}, returning False")
             return False
         # set this switch port on the new vlan:
@@ -245,57 +245,57 @@ class SnmpConnectorArubaCx(SnmpConnector):
                     dprint("   ERROR!")
                     return False
                 return True
-            else:
-                # this needs work!
-                self.error.status = True
-                self.error.description = f"Vlan {new_vlan_id} is not allowed on this trunk port."
-                self.error.details = "We cannot yet change the untagged vlan if this is not allowed on the trunk!"
-                dprint("  ERROR: New vlan NOT allowed on TRUNK!")
-                return False
 
-                # # need to add this vlan to the trunk vlans, by setting bit to 1.
-                # # get the current list of static ports on this vlan:
-                # egress_oid = f"{ieee8021QBridgeVlanStaticEgressPorts}.1.{new_vlan_id}"
-                # (error_status, retval) = self.get(oid=egress_oid, parser=self._parse_mibs_vlan_related)
-                # if error_status:
-                #     dprint(f"Error getting SNMP value for 'ieee8021QBridgeVlanStaticEgressPorts': {self.error.details}")
-                #     return False
-                # # get the return value into a port list:
-                # dprint(f"Portlist size is {len(str(retval))} bytes")
-                # egress_portlist = PortList()
-                # egress_portlist.from_unicode(str(retval))
-                # # now set the bit for this port
-                # egress_portlist[int(interface.index)] = 1
-                # # and atomically set both the egress port list, and the pvid OIDs:
-                # pvid_oid_val = (f"{dot1qPvid}.{interface.index}", Gauge32(new_vlan_id))
-                # egress_oid_val = (egress_oid, OctetString(hexValue=egress_portlist.to_hex_string()), )
-                # # get the PySNMP helper to do the work with the OctetString() BitMaps:
-                # try:
-                #     pysnmp = pysnmpHelper(self.switch)
-                # except Exception as err:
-                #     self.error.status = True
-                #     self.error.description = "Error getting snmp connection object (pysnmpHelper())"
-                #     self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
-                #     return False
+            # this needs work!
+            self.error.status = True
+            self.error.description = f"Vlan {new_vlan_id} is not allowed on this trunk port."
+            self.error.details = "We cannot yet change the untagged vlan if this is not allowed on the trunk!"
+            dprint("  ERROR: New vlan NOT allowed on TRUNK!")
+            return False
 
-                # if not pysnmp.set_multiple([egress_oid_val, pvid_oid_val]):
-                #     self.error.status = True
-                #     self.error.description = f"Error setting vlan '{new_vlan_id}' on tagged port!"
-                #     # copy over the error details from the call:
-                #     self.error.details = pysnmp.error.details
-                #     # we leave self.error.details as is!
-                #     return False
+            # # need to add this vlan to the trunk vlans, by setting bit to 1.
+            # # get the current list of static ports on this vlan:
+            # egress_oid = f"{ieee8021QBridgeVlanStaticEgressPorts}.1.{new_vlan_id}"
+            # (error_status, retval) = self.get(oid=egress_oid, parser=self._parse_mibs_vlan_related)
+            # if error_status:
+            #     dprint(f"Error getting SNMP value for 'ieee8021QBridgeVlanStaticEgressPorts': {self.error.details}")
+            #     return False
+            # # get the return value into a port list:
+            # dprint(f"Portlist size is {len(str(retval))} bytes")
+            # egress_portlist = PortList()
+            # egress_portlist.from_unicode(str(retval))
+            # # now set the bit for this port
+            # egress_portlist[int(interface.index)] = 1
+            # # and atomically set both the egress port list, and the pvid OIDs:
+            # pvid_oid_val = (f"{dot1qPvid}.{interface.index}", Gauge32(new_vlan_id))
+            # egress_oid_val = (egress_oid, OctetString(hexValue=egress_portlist.to_hex_string()), )
+            # # get the PySNMP helper to do the work with the OctetString() BitMaps:
+            # try:
+            #     pysnmp = pysnmpHelper(self.switch)
+            # except Exception as err:
+            #     self.error.status = True
+            #     self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+            #     self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            #     return False
 
-        else:
-            dprint("Setting NEW VLAN on ACCESS port")
-            if not self.set(
-                oid=f"{dot1qPvid}.{interface.index}",
-                value=int(new_vlan_id),
-                snmp_type='u',
-                parser=self._parse_mibs_vlan_related,
-            ):
-                dprint("   ERROR!")
-                return False
+            # if not pysnmp.set_multiple([egress_oid_val, pvid_oid_val]):
+            #     self.error.status = True
+            #     self.error.description = f"Error setting vlan '{new_vlan_id}' on tagged port!"
+            #     # copy over the error details from the call:
+            #     self.error.details = pysnmp.error.details
+            #     # we leave self.error.details as is!
+            #     return False
+
+        dprint("Setting NEW VLAN on ACCESS port")
+        if not self.set(
+            oid=f"{dot1qPvid}.{interface.index}",
+            value=int(new_vlan_id),
+            snmp_type='u',
+            parser=self._parse_mibs_vlan_related,
+        ):
+            dprint("   ERROR!")
+            return False
+
         return True
 
     def save_running_config(self) -> bool:
