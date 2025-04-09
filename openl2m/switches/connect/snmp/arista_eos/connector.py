@@ -87,7 +87,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         if not super().get_my_basic_info():
             return False
         # now run all interfaces and set routed if no valid vlan.
-        for key, iface in self.interfaces.items():
+        for iface in self.interfaces.values():
             if iface.type == IF_TYPE_ETHERNET and iface.untagged_vlan == -1:
                 iface.is_routed = True
         return True
