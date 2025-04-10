@@ -11,6 +11,8 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+"""constants.py defines Netgear-specific SNMP-related variables. These are mostly MIB OIDs and their value definitions."""
+
 
 from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_info
 

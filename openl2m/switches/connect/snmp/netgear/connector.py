@@ -26,9 +26,9 @@ from switches.utils import dprint
 
 from .constants import agentPethOutputPower, agentPortType, agentPortTypeFp
 
-"""
-Work in Progress
-"""
+#
+# Work in Progress !
+#
 
 
 class SnmpConnectorNetgear(SnmpConnector):
@@ -146,14 +146,14 @@ class SnmpConnectorNetgear(SnmpConnector):
 
         return False
 
-    """
-    the NETGEAR-POWER-ETHERNET-MIB tables with port-level PoE power usage info
-    OID is followed by PortEntry index (pe_index). This is typically
-    or module_num.port_num for modules switch chassis, or
-    device_id.port_num for stack members.
-    This gets mapped to an interface later on in
-    self._map_poe_port_entries_to_interface(), which is typically device specific
-    """
+    #
+    # the NETGEAR-POWER-ETHERNET-MIB tables with port-level PoE power usage info
+    # OID is followed by PortEntry index (pe_index). This is typically
+    # or module_num.port_num for modules switch chassis, or
+    # device_id.port_num for stack members.
+    # This gets mapped to an interface later on in
+    # self._map_poe_port_entries_to_interface(), which is typically device specific
+    #
 
     def _parse_mibs_netgear_poe(self, oid: str, val: str) -> bool:
         """
@@ -163,7 +163,7 @@ class SnmpConnectorNetgear(SnmpConnector):
         dprint(f"_parse_mibs_netgear_poe() {oid}, len = {val}, type = {type(val)}")
         pe_index = oid_in_branch(agentPethOutputPower, oid)
         if pe_index:
-            if pe_index in self.poe_port_entries.keys():
+            if pe_index in self.poe_port_entries:
                 self.poe_port_entries[pe_index].power_consumption_supported = True
                 self.poe_port_entries[pe_index].power_consumed = int(val)
             return True
