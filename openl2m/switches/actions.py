@@ -447,7 +447,7 @@ def perform_interface_poe_change(
         log.description = f"Interface {interface.name} does not support PoE"
         error = Error()
         error.status = True
-        error.description = log.descr
+        error.description = log.description
         log.save()
         counter_increment(COUNTER_ERRORS)
         return False, error
@@ -619,8 +619,8 @@ def perform_switch_vlan_add(request: HttpRequest, group_id: int, switch_id: int,
             error = Error()
             error.description = "Please provide a vlan name!"
             return False, error
-        else:  # set to reasonable default to show in WebUI until refreshed from device.
-            vlan_name = f"VLAN{vlan_id}"
+        # set to reasonable default to show in WebUI until refreshed from device.
+        vlan_name = f"VLAN{vlan_id}"
 
     # all OK, go create
     counter_increment(COUNTER_VLAN_MANAGE)
@@ -644,22 +644,23 @@ def perform_switch_vlan_add(request: HttpRequest, group_id: int, switch_id: int,
         info.status = False  # no error
         info.description = log.description
         return True, info
-    else:
-        error = Error()
-        error.status = True
-        error.description = f"Error creating vlan {vlan_id}!"
-        error.details = connection.error.details
-        log = Log(
-            user=request.user,
-            ip_address=get_remote_ip(request),
-            switch=switch,
-            group=group,
-            action=LOG_VLAN_CREATE,
-            type=LOG_TYPE_ERROR,
-            description=f"Error creating vlan {vlan_id} ({vlan_name}): {connection.error.details}",
-        )
-        log.save()
-        return False, error
+
+    # an error occured:
+    error = Error()
+    error.status = True
+    error.description = f"Error creating vlan {vlan_id}!"
+    error.details = connection.error.details
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_VLAN_CREATE,
+        type=LOG_TYPE_ERROR,
+        description=f"Error creating vlan {vlan_id} ({vlan_name}): {connection.error.details}",
+    )
+    log.save()
+    return False, error
 
 
 def perform_switch_vlan_delete(request: HttpRequest, group_id: int, switch_id: int, vlan_id: int):
@@ -726,22 +727,23 @@ def perform_switch_vlan_delete(request: HttpRequest, group_id: int, switch_id: i
         info.status = False  # no error
         info.description = f"Vlan {vlan_id} was deleted!"
         return True, info
-    else:
-        error = Error()
-        error.status = True
-        error.description = "Error deleting vlan {vlan_id}!"
-        error.details = connection.error.details
-        log = Log(
-            user=request.user,
-            ip_address=get_remote_ip(request),
-            switch=switch,
-            group=group,
-            action=LOG_VLAN_DELETE,
-            type=LOG_TYPE_ERROR,
-            description=f"Error deleting vlan {vlan_id}: {connection.error.details}",
-        )
-        log.save()
-        return False, error
+
+    # an error occured:
+    error = Error()
+    error.status = True
+    error.description = "Error deleting vlan {vlan_id}!"
+    error.details = connection.error.details
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_VLAN_DELETE,
+        type=LOG_TYPE_ERROR,
+        description=f"Error deleting vlan {vlan_id}: {connection.error.details}",
+    )
+    log.save()
+    return False, error
 
 
 def perform_switch_vlan_edit(request: HttpRequest, group_id: int, switch_id: int, vlan_id: int, vlan_name: str):
@@ -804,19 +806,20 @@ def perform_switch_vlan_edit(request: HttpRequest, group_id: int, switch_id: int
         info.status = False  # no error
         info.description = f"Updated name for vlan {vlan_id} to '{vlan_name}'"
         return True, info
-    else:
-        error = Error()
-        error.status = True
-        error.description = f"Error updating vlan {vlan_id}!"
-        error.details = connection.error.details
-        log = Log(
-            user=request.user,
-            ip_address=get_remote_ip(request),
-            switch=switch,
-            group=group,
-            action=LOG_VLAN_EDIT,
-            type=LOG_TYPE_ERROR,
-            description=f"Error updating vlan {vlan_id} name to '{vlan_name}': {connection.error.details}",
-        )
-        log.save()
-        return False, error
+
+    # an error occured:
+    error = Error()
+    error.status = True
+    error.description = f"Error updating vlan {vlan_id}!"
+    error.details = connection.error.details
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_VLAN_EDIT,
+        type=LOG_TYPE_ERROR,
+        description=f"Error updating vlan {vlan_id} name to '{vlan_name}': {connection.error.details}",
+    )
+    log.save()
+    return False, error
