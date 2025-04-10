@@ -127,8 +127,6 @@ def main():
                     switch.read_only = row['read_only']
                 if 'default_view' in row.keys():
                     switch.default_view = row['default_view']
-                if 'indent_level' in row.keys():
-                    switch.indent_level = int(row['indent_level'])
                 # figure out the SnmpProfile
                 if 'snmp_profile' in row.keys() and row['snmp_profile']:
                     try:

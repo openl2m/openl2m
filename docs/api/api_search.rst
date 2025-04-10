@@ -58,7 +58,6 @@ Note the group information contains the REST url to access the device using that
             "description": "Switch 1",
             "hostname": "switch-1",
             "id": "798",
-            "indent_level": 1,
             "name": "switch-1",
             "nms_id": "",
             "primary_ipv4": "10.1.1.1",

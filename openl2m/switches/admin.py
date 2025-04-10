@@ -94,12 +94,7 @@ class SwitchAdmin(admin.ModelAdmin):
         ),
         (
             'View Options',
-            {
-                'fields': (
-                    'indent_level',
-                    'default_view',
-                )
-            },
+            {'fields': ('default_view',)},
         ),
         (
             'Access Options',

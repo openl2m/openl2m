@@ -281,8 +281,6 @@ class Command(BaseCommand):
                         switch.read_only = row['read_only']
                     if 'default_view' in row.keys():
                         switch.default_view = row['default_view']
-                    if 'indent_level' in row.keys():
-                        switch.indent_level = int(row['indent_level'])
                     if 'nms_id' in row.keys():
                         switch.nms_id = row['nms_id']
                     # figure out the SnmpProfile
