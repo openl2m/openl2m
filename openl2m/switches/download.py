@@ -162,7 +162,7 @@ def create_interfaces_worksheet(spreadsheet: Spreadsheet(), connection: Connecto
             worksheet.write(row, COL_INTERFACE_DESCRIPTION, interface.description, spreadsheet.format_regular)
 
 
-def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector, active=False):
+def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector):
     """To the existing workbook, add a worksheet that contains the ethernet and neighbors of a device.
     Does NOT trap exceptions, so these can be caught in the calling function for better
     error reporting.
