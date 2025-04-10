@@ -155,10 +155,10 @@ class SnmpConnectorComware(SnmpConnector):
             self.add_warning(warning="Error getting 'HH3C-Vlan-Types' (hh3cifVLANType)")
 
         # for each vlan, PortList bitmap of untagged ports
-        """  NOT PARSED YET:
-        if self.get_snmp_branch(branch_name='hh3cdot1qVlanPorts', parser=self._parse_mibs_comware_vlan) < 0:
-            dprint("Comware hh3cdot1qVlanPorts returned error!")
-        """
+        #  NOT PARSED YET:
+        # if self.get_snmp_branch(branch_name='hh3cdot1qVlanPorts', parser=self._parse_mibs_comware_vlan) < 0:
+        #     dprint("Comware hh3cdot1qVlanPorts returned error!")
+        #
 
         # tagged vlan types are next
         # if not self.get_snmp_branch(branch_name='hh3cifVLANTrunkAllowListLow'):
@@ -285,19 +285,19 @@ class SnmpConnectorComware(SnmpConnector):
                 dprint(f"interface.port_id = {interface.port_id}")
                 new_vlan_portlist[int(interface.port_id)] = 1
 
-                """
-                # next, read current Egress PortList bitmap first:
-                # note the 0 to hopefull deactivate time filter!
-                (error_status, snmpval) = self.get(oid=f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_related)
-                if error_status:
-                    # Hmm, not sure what to do
-                    self.error.status = True
-                    self.error.description = "Error retrieving new vlan member portlist (dot1qVlanCurrentEgressPorts)"
-                    return -1
-                # now calculate new bitmap by removing this switch port
-                current_egress_portlist = PortList()
-                current_egress_portlist.from_unicode(snmpval.value)
-                """
+                #
+                # # next, read current Egress PortList bitmap first:
+                # # note the 0 to hopefull deactivate time filter!
+                # (error_status, snmpval) = self.get(oid=f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_related)
+                # if error_status:
+                #     # Hmm, not sure what to do
+                #     self.error.status = True
+                #     self.error.description = "Error retrieving new vlan member portlist (dot1qVlanCurrentEgressPorts)"
+                #     return -1
+                # # now calculate new bitmap by removing this switch port
+                # current_egress_portlist = PortList()
+                # current_egress_portlist.from_unicode(snmpval.value)
+                #
 
                 # now loop to find other existing ports on this vlan:
                 dprint("Finding other ports on this vlan:")
@@ -318,11 +318,11 @@ class SnmpConnectorComware(SnmpConnector):
                                     if self.vlans[new_vlan_id].current_egress_portlist[this_iface.port_id]:
                                         dprint("  and in allow list, adding!")
                                         new_vlan_portlist[this_iface.port_id] = 1
-                                    """
-                                    if current_egress_portlist[this_iface.port_id]:
-                                        # dprint("  and in allow list!")
-                                        new_vlan_portlist[this_iface.port_id] = 1
-                                    """
+                                    #
+                                    # if current_egress_portlist[this_iface.port_id]:
+                                    #     # dprint("  and in allow list!")
+                                    #     new_vlan_portlist[this_iface.port_id] = 1
+                                    #
                             else:
                                 # untagged on this new vlanId ?
                                 if this_iface.untagged_vlan == new_vlan_id:
@@ -367,20 +367,20 @@ class SnmpConnectorComware(SnmpConnector):
         # interface not found, return False!
         return False
 
-    def _can_manage_interface(self, interface: Interface) -> bool:
+    def _can_manage_interface(self, iface: Interface) -> bool:
         """
         vendor-specific override of function to check if this interface can be managed.
         We check for IRF ports here. This is detected via 'hh3cifVLANType' MIB value,
         in _parse_mibs_comware_if_type()
         Returns True for normal interfaces, but False for IRF ports.
         """
-        if interface.type == IF_TYPE_ETHERNET:
-            if interface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
+        if iface.type == IF_TYPE_ETHERNET:
+            if iface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
                 # dprint(f"Interface {iface.name}: mode={interface.if_vlan_mode}, NO MANAGEMENT ALLOWED!")
-                interface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
+                iface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
                 return False
-            if interface.if_vlan_mode == HH3C_IF_MODE_HYBRID or interface.if_vlan_mode == HH3C_IF_MODE_FABRIC:
-                interface.unmanage_reason = "Access denied: interface in Hybrid or Fabric mode!"
+            if iface.if_vlan_mode in (HH3C_IF_MODE_HYBRID, HH3C_IF_MODE_FABRIC):
+                iface.unmanage_reason = "Access denied: interface in Hybrid or Fabric mode!"
                 return False
         return True
 
@@ -392,32 +392,32 @@ class SnmpConnectorComware(SnmpConnector):
         """
         sub_oid = oid_in_branch(hh3cCfgRunModifiedLast, oid)
         if sub_oid:
-            ago = str(datetime.timedelta(seconds=(int(val) / 100)))
+            ago = str(datetime.timedelta(seconds=int(val) / 100))
             self.add_more_info("Configuration", "Running Last Modified", ago)
             return True
 
         sub_oid = oid_in_branch(hh3cCfgRunSavedLast, oid)
         if sub_oid:
-            ago = str(datetime.timedelta(seconds=(int(val) / 100)))
+            ago = str(datetime.timedelta(seconds=int(val) / 100))
             self.add_more_info("Configuration", "Running Last Saved", ago)
             return True
 
         sub_oid = oid_in_branch(hh3cCfgStartModifiedLast, oid)
         if sub_oid:
-            ago = str(datetime.timedelta(seconds=(int(val) / 100)))
+            ago = str(datetime.timedelta(seconds=int(val) / 100))
             self.add_more_info("Configuration", "Startup Last Saved", ago)
             return True
 
         return False
 
-    """
-    the HH3C-POWER-ETH MIB tables with port-level PoE power usage info
-    OID is followed by PortEntry index (pe_index). This is typically
-    or module_num.port_num for modules switch chassis, or
-    device_id.port_num for stack members.
-    This gets mapped to an interface later on in
-    self._map_poe_port_entries_to_interface(), which is typically device specific
-    """
+    #
+    # the HH3C-POWER-ETH MIB tables with port-level PoE power usage info
+    # OID is followed by PortEntry index (pe_index). This is typically
+    # or module_num.port_num for modules switch chassis, or
+    # device_id.port_num for stack members.
+    # This gets mapped to an interface later on in
+    # self._map_poe_port_entries_to_interface(), which is typically device specific
+    #
 
     def _parse_mibs_comware_poe(self, oid: str, val: str) -> bool:
         """
@@ -427,7 +427,7 @@ class SnmpConnectorComware(SnmpConnector):
         dprint(f"_parse_mibs_comware_poe() {oid}, len = {val}, type = {type(val)}")
         pe_index = oid_in_branch(hh3cPsePortCurrentPower, oid)
         if pe_index:
-            if pe_index in self.poe_port_entries.keys():
+            if pe_index in self.poe_port_entries:
                 self.poe_port_entries[pe_index].power_consumption_supported = True
                 self.poe_port_entries[pe_index].power_consumed = int(val)
             return True
@@ -441,7 +441,7 @@ class SnmpConnectorComware(SnmpConnector):
         """
         vlan_id = int(oid_in_branch(hh3cdot1qVlanName, oid))
         if vlan_id > 0:
-            if vlan_id not in self.vlans.keys():
+            if vlan_id not in self.vlans:
                 # define vlan:
                 self.add_vlan_by_id(vlan_id)
             # some Comware switches only report "VLAN xxxx", skip that!
@@ -458,7 +458,7 @@ class SnmpConnectorComware(SnmpConnector):
         vlan_id = int(oid_in_branch(hh3cIgmpSnoopingVlanEnabled, oid))
         if vlan_id > 0:
             # this vlan has IMGP snooping enabled.
-            if vlan_id in self.vlans.keys():
+            if vlan_id in self.vlans:
                 if int(val) == SNMP_TRUE:
                     self.vlans[vlan_id].igmp_snooping = True
             return True
@@ -500,8 +500,9 @@ class SnmpConnectorComware(SnmpConnector):
         dprint("_parse_mibs_comware_configfile()")
         sub_oid = oid_in_branch(hh3cCfgOperateRowStatus, oid)
         if sub_oid:
-            if int(sub_oid) > self.active_config_rows:
-                self.active_config_rows = int(sub_oid)
+            # if int(sub_oid) > self.active_config_rows:
+            #     self.active_config_rows = int(sub_oid)
+            self.active_config_rows = max(self.active_config_rows, int(sub_oid))
             return True
 
         return False
