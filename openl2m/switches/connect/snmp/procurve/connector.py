@@ -101,7 +101,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         retval = self.get_snmp_branch(branch_name='hpicfXcvrInfoTable', parser=self._parse_mibs_procurve_transceiver)
         if retval < 0:
             self.add_warning("Error getting Transceiver data (hpicfXcvrInfoTable)'")
-            return retval
+        return retval
 
     def get_my_hardware_details(self) -> bool:
         """
@@ -116,15 +116,15 @@ class SnmpConnectorProcurve(SnmpConnector):
             return False
         return True
 
-    """
-    HP has 2 possible MIBs with port(interface) power information:
-    the hpicfPoePethPsePortPower or hpEntPowerCurrentPowerUsage tables.
-    OID is followed by PortEntry index (pe_index). This is typically
-    or module_num.port_num for a modular switch chassis, or
-    device_id.port_num for stack members.
-    This gets mapped to an interface later on in
-    self._map_poe_port_entries_to_interface()
-    """
+    #
+    # HP has 2 possible MIBs with port(interface) power information:
+    # the hpicfPoePethPsePortPower or hpEntPowerCurrentPowerUsage tables.
+    # OID is followed by PortEntry index (pe_index). This is typically
+    # or module_num.port_num for a modular switch chassis, or
+    # device_id.port_num for stack members.
+    # This gets mapped to an interface later on in
+    # self._map_poe_port_entries_to_interface()
+    #
 
     def _parse_mibs_hp_poe(self, oid: str, val: str) -> bool:
         """
@@ -135,7 +135,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         pe_index = oid_in_branch(hpicfPoePethPsePortPower, oid)
         if pe_index:
             dprint(f"Found hpicfPoePethPsePortPower, pe_index = {pe_index}")
-            if pe_index in self.poe_port_entries.keys():
+            if pe_index in self.poe_port_entries:
                 self.poe_port_entries[pe_index].power_consumption_supported = True
                 self.poe_port_entries[pe_index].power_consumed = int(val)
             return True
@@ -143,7 +143,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         pe_index = oid_in_branch(hpEntPowerCurrentPowerUsage, oid)
         if pe_index:
             dprint(f"Found branch hpEntPowerCurrentPowerUsage, pe_index = {pe_index}")
-            if pe_index in self.poe_port_entries.keys():
+            if pe_index in self.poe_port_entries:
                 self.poe_port_entries[pe_index].power_consumption_supported = True
                 self.poe_port_entries[pe_index].power_consumed = int(val)
             return True
@@ -159,7 +159,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         if_index = int(oid_in_branch(hpnicfIfLinkMode, oid))
         if if_index:
             dprint(f"HP LinkMode if_index {if_index} link_mode {val}")
-            if if_index in self.interfaces.keys():
+            if if_index in self.interfaces:
                 if int(val) == HP_ROUTE_MODE:
                     self.interfaces[if_index].is_routed = True
             return True
@@ -269,7 +269,7 @@ class SnmpConnectorProcurve(SnmpConnector):
             # we take the ending part of "5.12" as the index
             (module, index) = port_entry.index.split('.')
             # for the SnmpConnector() class and sub-classes, the "index" is the key to the Interface()
-            if index in self.interfaces.keys():
+            if index in self.interfaces:
                 iface = self.interfaces[index]
                 dprint(f"   PoE Port Map FOUND {iface.name}")
                 # add this poe entry to the interface
