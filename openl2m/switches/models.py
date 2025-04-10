@@ -1091,7 +1091,7 @@ class Switch(models.Model):
             return self.primary_ip4
         # elif self.primary_ip6:
         #    return self.primary_ip6
-        elif self.primary_ip4:
+        if self.primary_ip4:
             return self.primary_ip4
         else:
             return None
