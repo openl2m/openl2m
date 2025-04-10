@@ -19,9 +19,10 @@ with Cisco specific ways of doing things...
 import datetime
 import random
 import time
+from typing import Dict
+
 from django.conf import settings
 from django.http.request import HttpRequest
-from typing import Dict
 
 from switches.models import Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_SAVE_SWITCH, LOG_PORT_POE_FAULT, SNMP_VERSION_2C
@@ -132,11 +133,16 @@ class SnmpConnectorCisco(SnmpConnector):
         # self.netmiko_disable_paging_command = "terminal length 0"
 
         # older style Cisco device use the proprietary VTB MIB for vlans, port vlan changes, etc.
-        # newer style use the 'standard' Q-Bridge mibs. We will sense this when we read vlan data.
+        # newer style use the 'standard' Q-Bridge mibs. We will use this when we read vlan data.
         # see self._get_vlan_data() below.
-        self.mib_type = CISCO_DEVICE_TYPE_UNKNOWN_MIB
-        self._probe_mib_type()
+        self.mib_type = self._probe_mib_type()
         self.add_more_info(category="System", name="MIB Type", value=cisco_device_types[self.mib_type])
+        if self.mib_type == CISCO_DEVICE_TYPE_UNKNOWN_MIB:
+            # add a warning !
+            self.add_warning(
+                warning="We did not sense a know Cisco device type (not VTP or SB)! Functionality is UNTESTED!",
+                add_log=True,
+            )
 
         # we need to track CISCO-STACK-MIB portType info (transceiver data), which to keyed on 'stack id'.
         # this is then used by portIfIndex to map 'stack id' to 'ifIndex'
@@ -145,29 +151,27 @@ class SnmpConnectorCisco(SnmpConnector):
     def _probe_mib_type(self):
         """Probe the mib type we see, e.g. VTP, SB or neither.
         This defines how we talk to this device.
+        Returns a value indicated by CISCO_DEVICE_TYPE_<XXXXX>_MIB
 
-        Sets self.mib_type according what it finds, indicated by CISCO_DEVICE_TYPE_<XXXXX>_MIB
+        Args:
+            n/a
+
+        Returns:
+            int: MIB type discovered.
         """
         # first, probe the old proprietary VTP mibs:
         retval = self.get_snmp_branch(branch_name='vtpVersion', parser=self._parse_mibs_vtp_version)
-        if retval < 0:  # this indicates an error, should not happen! We stop parsing!
-            return
-
         if retval > 0:
             # found VTP mib entries
-            self.mib_type = CISCO_DEVICE_TYPE_VTP_MIB
-            return
+            return CISCO_DEVICE_TYPE_VTP_MIB
 
         # next, probe for the CiscoSB-VLAN mib
         retval = self.get_snmp_branch(branch_name='vlanMibVersion', parser=self._parse_mibs_sb_version)
-        if retval < 0:
-            return retval
-
         if retval > 0:  # found the SB mib.
-            self.mib_type = CISCO_DEVICE_TYPE_SB_MIB
+            return CISCO_DEVICE_TYPE_SB_MIB
 
-        # default is unknown, just return.
-        return
+        # default is unknown
+        return CISCO_DEVICE_TYPE_UNKNOWN_MIB
 
     def _get_interface_data(self) -> bool:
         """
@@ -249,7 +253,7 @@ class SnmpConnectorCisco(SnmpConnector):
             return retval
 
         # if the 2k vlan mibs exist, then also read 3k & 4k vlans
-        elif retval > 0:
+        if retval > 0:
             retval = self.get_snmp_branch(branch_name='vlanTrunkPortVlansEnabled3k', parser=self._parse_mibs_cisco_vtp)
             if retval > 0:
                 retval = self.get_snmp_branch(
@@ -341,7 +345,7 @@ class SnmpConnectorCisco(SnmpConnector):
         Return True on success (0 or more found), False on errors
         """
         dprint("_get_known_ethernet_addresses_vtp()\n")
-        for vlan_id in self.vlans.keys():
+        for vlan_id in self.vlans:
             # little hack for Cisco devices, to see various vlan-specific tables:
             self.vlan_id_context = int(vlan_id)
             com_or_ctx = ''
@@ -421,7 +425,7 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         for pe_index, port_entry in self.poe_port_entries.items():
             if len(self.stack_port_to_if_index) > 0:
-                if pe_index in self.stack_port_to_if_index.keys():
+                if pe_index in self.stack_port_to_if_index:
                     if_index = str(self.stack_port_to_if_index[pe_index])
                     iface = self.get_interface_by_key(if_index)
                     if iface:
@@ -464,8 +468,8 @@ class SnmpConnectorCisco(SnmpConnector):
             if self.mib_type == CISCO_DEVICE_TYPE_SB_MIB:
                 return self.set_interface_untagged_vlan_sb(interface=interface, new_vlan_id=new_vlan_id)
 
-            # unknown type, try regular way in SnmpConnector() (should not happen!)
-            return super().set_interface_untagged_vlan_vtp(interface=interface, new_vlan_id=new_vlan_id)
+            # unknown type, try regular way in SnmpConnector() (Untested Cisco device!)
+            return super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
 
         # interface not found (should not happen!)
         self.error.status = True
@@ -506,10 +510,10 @@ class SnmpConnectorCisco(SnmpConnector):
                 )
         if retval == -1:
             return False
-        else:
-            # set the interface class attribute for proper 'viewing' and caching:
-            interface.untagged_vlan = int(new_vlan_id)
-            return True
+
+        # set the interface class attribute for proper 'viewing' and caching:
+        interface.untagged_vlan = int(new_vlan_id)
+        return True
 
     def set_interface_untagged_vlan_sb(self, interface: Interface, new_vlan_id: int) -> bool:
         """
@@ -710,7 +714,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # we did not parse the OID.
         return False
 
-    def _parse_and_set_cisco_port_type(self, if_index: str, type: int) -> bool:
+    def _parse_and_set_cisco_port_type(self, if_index: str, port_type: int) -> bool:
         """See if the portType value is of interest, and assign to interface().transceiver.
 
         Params:
@@ -720,16 +724,16 @@ class SnmpConnectorCisco(SnmpConnector):
         Returns:
             (bool): True is assigned, False if not.
         """
-        dprint(f"_parse_and_set_cisco_port_type() ifIndex {if_index} = type {type}")
+        dprint(f"_parse_and_set_cisco_port_type() ifIndex {if_index} = port_type {port_type}")
 
         # see if this is a type we want to look at:
-        if type in cisco_port_types:
-            dprint(f"  Interesting port type found: {cisco_port_types[type]}")
+        if port_type in cisco_port_types:
+            dprint(f"  Interesting port type found: {cisco_port_types[port_type]}")
             iface = self.get_interface_by_key(key=if_index)
             if iface:
                 dprint(f"Found interface {iface.name}, assigning port type.")
                 trx = Transceiver()
-                trx.type = cisco_port_types[type]
+                trx.type = cisco_port_types[port_type]
                 iface.transceiver = trx
                 return True
         return False
@@ -739,9 +743,9 @@ class SnmpConnectorCisco(SnmpConnector):
         Parse Cisco POE Extension MIB database
         """
 
-        """
-        Stack-MIB PortId to ifIndex mapping
-        """
+        #
+        # Stack-MIB PortId to ifIndex mapping
+        #
         stack_port_id = oid_in_branch(portIfIndex, oid)
         if stack_port_id:
             self.stack_port_to_if_index[stack_port_id] = int(val)
@@ -750,7 +754,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # the actual consumed power, shown in 'show power inline <name> detail'
         pe_index = oid_in_branch(cpeExtPsePortPwrConsumption, oid)
         if pe_index:
-            if pe_index in self.poe_port_entries.keys():
+            if pe_index in self.poe_port_entries:
                 self.poe_port_entries[pe_index].power_consumption_supported = True
                 self.poe_port_entries[pe_index].power_consumed = int(val)
             return True
@@ -758,14 +762,14 @@ class SnmpConnectorCisco(SnmpConnector):
         # this is what is shown via 'show power inline interface X' command:
         pe_index = oid_in_branch(cpeExtPsePortPwrAvailable, oid)
         if pe_index:
-            if pe_index in self.poe_port_entries.keys():
+            if pe_index in self.poe_port_entries:
                 self.poe_port_entries[pe_index].power_consumption_supported = True
                 self.poe_port_entries[pe_index].power_available = int(val)
             return True
 
         pe_index = oid_in_branch(cpeExtPsePortMaxPwrDrawn, oid)
         if pe_index:
-            if pe_index in self.poe_port_entries.keys():
+            if pe_index in self.poe_port_entries:
                 self.poe_port_entries[pe_index].power_consumption_supported = True
                 self.poe_port_entries[pe_index].max_power_consumed = int(val)
             return True
@@ -786,18 +790,18 @@ class SnmpConnectorCisco(SnmpConnector):
         # vlan type
         vlan_id = int(oid_in_branch(vtpVlanType, oid))
         if vlan_id:
-            type = int(val)
-            if vlan_id in self.vlans.keys():
-                if type == CISCO_VLAN_TYPE_NORMAL:
+            vlan_type = int(val)
+            if vlan_id in self.vlans:
+                if vlan_type == CISCO_VLAN_TYPE_NORMAL:
                     self.vlans[vlan_id].type = VLAN_TYPE_NORMAL
                 else:
-                    self.vlans[vlan_id].type = type
+                    self.vlans[vlan_id].type = vlan_type
             return True
 
         # vlan name
         vlan_id = int(oid_in_branch(vtpVlanName, oid))
         if vlan_id:
-            if vlan_id in self.vlans.keys():
+            if vlan_id in self.vlans:
                 self.vlans[vlan_id].name = str(val)
             return True
 
@@ -827,7 +831,7 @@ class SnmpConnectorCisco(SnmpConnector):
             iface = self.get_interface_by_key(if_index)
             if iface:
                 # make sure this is a trunked interface and vlan is valid
-                if iface.is_tagged and int(val) in self.vlans.keys():
+                if iface.is_tagged and int(val) in self.vlans:
                     iface.untagged_vlan = int(val)
                 else:
                     dprint("  TRUNK NATIVE found, but NOT TRUNK PORT")
@@ -905,7 +909,7 @@ class SnmpConnectorCisco(SnmpConnector):
             iface = self.get_interface_by_key(if_index)
             if iface:
                 untagged_vlan = int(val)
-                if not iface.is_tagged and untagged_vlan in self.vlans.keys():
+                if not iface.is_tagged and untagged_vlan in self.vlans:
                     iface.untagged_vlan = untagged_vlan
                     iface.untagged_vlan_name = self.vlans[untagged_vlan].name
             else:
@@ -920,12 +924,12 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         if_index = oid_in_branch(vmVoiceVlanId, oid)
         if if_index:
-            voiceVlanId = int(val)
+            voice_vlan_id = int(val)
             iface = self.get_interface_by_key(if_index)
-            if iface and voiceVlanId in self.vlans.keys():
-                iface.voice_vlan = voiceVlanId
+            if iface and voice_vlan_id in self.vlans:
+                iface.voice_vlan = voice_vlan_id
                 # mark vlan as voice:
-                self.vlans[voiceVlanId].voice = True
+                self.vlans[voice_vlan_id].voice = True
             return True
 
         return False
@@ -980,21 +984,21 @@ class SnmpConnectorCisco(SnmpConnector):
         sub_oid = oid_in_branch(ccmHistoryRunningLastChanged, oid)
         if sub_oid:
             # ticks in 1/100th of a second
-            ago = str(datetime.timedelta(seconds=(int(val) / 100)))
+            ago = str(datetime.timedelta(seconds=int(val) / 100))
             self.add_more_info("Configuration", "Running Last Modified", ago)
             return True
 
         sub_oid = oid_in_branch(ccmHistoryRunningLastSaved, oid)
         if sub_oid:
             # ticks in 1/100th of a second
-            ago = str(datetime.timedelta(seconds=(int(val) / 100)))
+            ago = str(datetime.timedelta(seconds=int(val) / 100))
             self.add_more_info("Configuration", "Running Last Saved", ago)
             return True
 
         sub_oid = oid_in_branch(ccmHistoryStartupLastChanged, oid)
         if sub_oid:
             # ticks in 1/100th of a second
-            ago = str(datetime.timedelta(seconds=(int(val) / 100)))
+            ago = str(datetime.timedelta(seconds=int(val) / 100))
             self.add_more_info("Configuration", "Startup Last Changed", ago)
             return True
         return False
@@ -1021,7 +1025,7 @@ class SnmpConnectorCisco(SnmpConnector):
         if sub_oid:
             # verify we have an object for this index
             index = int(sub_oid)
-            if index in self.syslog_msgs.keys():
+            if index in self.syslog_msgs:
                 self.syslog_msgs[index].facility = val
             else:
                 msg = SyslogMsg(index)
@@ -1034,7 +1038,7 @@ class SnmpConnectorCisco(SnmpConnector):
         if sub_oid:
             # verify we have an object for this index
             index = int(sub_oid)
-            if index in self.syslog_msgs.keys():
+            if index in self.syslog_msgs:
                 self.syslog_msgs[index].severity = int(val)
             else:
                 # be save, create; "should" never happen
@@ -1047,7 +1051,7 @@ class SnmpConnectorCisco(SnmpConnector):
         if sub_oid:
             # verify we have an object for this index
             index = int(sub_oid)
-            if index in self.syslog_msgs.keys():
+            if index in self.syslog_msgs:
                 self.syslog_msgs[index].name = val
             else:
                 # be save, create; "should" never happen
@@ -1060,7 +1064,7 @@ class SnmpConnectorCisco(SnmpConnector):
         if sub_oid:
             # verify we have an object for this index
             index = int(sub_oid)
-            if index in self.syslog_msgs.keys():
+            if index in self.syslog_msgs:
                 self.syslog_msgs[index].message = val
             else:
                 # be save, create; "should" never happen
@@ -1075,7 +1079,7 @@ class SnmpConnectorCisco(SnmpConnector):
             index = int(sub_oid)
             # val is sysUpTime value when message was generated, ie. timetick!
             timetick = int(val)
-            if index in self.syslog_msgs.keys():
+            if index in self.syslog_msgs:
                 # approximate / calculate the datetime value:
                 # msg timestamp = time when sysUpTime was read minus seconds between sysUptime and msg timetick
                 dprint(f"TIMES ARE: {self.sys_uptime_timestamp}  {self.sys_uptime}  {timetick}")
@@ -1113,7 +1117,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # first, set source to running config
         self.set(oid=f"{ccCopySourceFileType}.{some_number}", value=int(runningConfig), snmp_type='i', parser=False)
         # next, set destination to startup co -=nfig
-        self.set(oid=f"{ccCopyDestFileType}.{some_number}", value=int(startupConfig), snmp_type='i', parseer=False)
+        self.set(oid=f"{ccCopyDestFileType}.{some_number}", value=int(startupConfig), snmp_type='i', parser=False)
         # and then activate the copy:
         self.set(oid=f"{ccCopyEntryRowStatus}.{some_number}", value=int(rowStatusActive), snmp_type='i', parser=False)
         # now wait for this row to return success or fail:
