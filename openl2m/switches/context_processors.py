@@ -18,8 +18,9 @@
 #
 
 from django.conf import settings as mysettings
-import switches.constants as constants
-import switches.connect.constants as if_constants
+
+from switches import constants
+from switches.connect import constants as if_constants
 
 
 def add_variables(request):
