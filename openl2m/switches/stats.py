@@ -16,17 +16,17 @@
 # Functions that perform statistics calculations used in Web UI and REST API
 #
 import datetime
-import distro
-import git
 from importlib.metadata import version as pkg_version
 import os
 import sys
 import time
 
+import distro
 import django
 from django.conf import settings
 from django.db import connection as db_connection, ProgrammingError
 from django.utils import timezone
+import git
 
 from counters.models import Counter
 
@@ -129,98 +129,111 @@ def get_usage_info() -> dict:
     usage = {}  # usage statistics
 
     # Devices accessed:
-    filter = {
+    filter_values = {
         "type__in": [LOG_TYPE_VIEW, LOG_TYPE_CHANGE],
         "switch_id__isnull": False,
         "timestamp__date": datetime.date.today(),
     }
-    usage['Devices today'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
+    usage['Devices today'] = Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count()
 
-    filter = {
+    filter_values = {
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
         "switch_id__isnull": False,
     }
-    usage['Devices last 7 days'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
+    usage['Devices last 7 days'] = (
+        Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count()
+    )
 
-    filter = {
+    filter_values = {
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
         "switch_id__isnull": False,
     }
-    usage['Devices last 31 days'] = Log.objects.filter(**filter).values_list('switch_id', flat=True).distinct().count()
+    usage['Devices last 31 days'] = (
+        Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count()
+    )
 
     # Changes made
-    filter = {}
-    filter['type'] = int(LOG_TYPE_CHANGE)
-    filter['timestamp__date'] = datetime.date.today()
-    usage['Changes today'] = Log.objects.filter(**filter).count()
+    filter_values = {
+        'type': int(LOG_TYPE_CHANGE),
+        'timestamp__date': datetime.date.today(),
+    }
+    usage['Changes today'] = Log.objects.filter(**filter_values).count()
 
-    filter = {
+    filter_values = {
         "type": int(LOG_TYPE_CHANGE),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
     }
-    usage["Changes last 7 days"] = Log.objects.filter(**filter).count()
+    usage["Changes last 7 days"] = Log.objects.filter(**filter_values).count()
 
-    filter = {
+    filter_values = {
         "type": int(LOG_TYPE_CHANGE),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
     }
-    usage["Changes last 31 days"] = Log.objects.filter(**filter).count()
+    usage["Changes last 31 days"] = Log.objects.filter(**filter_values).count()
 
     # the total change count since install from Counter()'changes') object:
     usage["Total Changes"] = Counter.objects.get(name="changes").value
 
     # Unique Logins
-    filter = {}
-    filter['type'] = int(LOG_TYPE_LOGIN_OUT)
-    filter['timestamp__date'] = datetime.date.today()
-    usage['Users today'] = Log.objects.filter(**filter).values_list('user_id', flat=True).distinct().count()
+    filter_values = {
+        'type': int(LOG_TYPE_LOGIN_OUT),
+        'timestamp__date': datetime.date.today(),
+    }
+    usage['Users today'] = Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count()
 
-    filter = {}
-    filter['type'] = int(LOG_TYPE_LOGIN_OUT)
-    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=7)
-    usage['Users last 7 days'] = Log.objects.filter(**filter).values_list('user_id', flat=True).distinct().count()
+    filter_values = {
+        'type': int(LOG_TYPE_LOGIN_OUT),
+        'timestamp__gte': timezone.now().date() - datetime.timedelta(days=7),
+    }
+    usage['Users last 7 days'] = (
+        Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count()
+    )
 
-    filter = {}
-    filter['type'] = int(LOG_TYPE_LOGIN_OUT)
-    filter['timestamp__gte'] = timezone.now().date() - datetime.timedelta(days=31)
-    usage['Users last 31 days'] = Log.objects.filter(**filter).values_list('user_id', flat=True).distinct().count()
+    filter_values = {
+        'type': int(LOG_TYPE_LOGIN_OUT),
+        'timestamp__gte': timezone.now().date() - datetime.timedelta(days=31),
+    }
+    usage['Users last 31 days'] = (
+        Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count()
+    )
 
     # API requests:
-    filter = {}
-    filter['type'] = int(LOG_TYPE_LOGIN_OUT)
-    filter['action'] = int(LOG_LOGIN_REST_API)
-    filter['timestamp__date'] = datetime.date.today()
-    usage['API calls today'] = Log.objects.filter(**filter).count()
+    filter_values = {
+        'type': int(LOG_TYPE_LOGIN_OUT),
+        'action': int(LOG_LOGIN_REST_API),
+        'timestamp__date': datetime.date.today(),
+    }
+    usage['API calls today'] = Log.objects.filter(**filter_values).count()
 
-    filter = {
+    filter_values = {
         "type": int(LOG_TYPE_LOGIN_OUT),
         "action": int(LOG_LOGIN_REST_API),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
     }
-    usage["API calls last 7 days"] = Log.objects.filter(**filter).count()
+    usage["API calls last 7 days"] = Log.objects.filter(**filter_values).count()
 
-    filter = {
+    filter_values = {
         "type": int(LOG_TYPE_LOGIN_OUT),
         "action": int(LOG_LOGIN_REST_API),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
     }
-    usage["API calls last 31 days"] = Log.objects.filter(**filter).count()
+    usage["API calls last 31 days"] = Log.objects.filter(**filter_values).count()
 
     # Commands run:
-    filter = {"type": int(LOG_TYPE_COMMAND), "timestamp__date": datetime.date.today()}
-    usage["Commands today"] = Log.objects.filter(**filter).count()
+    filter_values = {"type": int(LOG_TYPE_COMMAND), "timestamp__date": datetime.date.today()}
+    usage["Commands today"] = Log.objects.filter(**filter_values).count()
 
-    filter = {
+    filter_values = {
         "type": int(LOG_TYPE_COMMAND),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
     }
-    usage["Commands last 7 days"] = Log.objects.filter(**filter).count()
+    usage["Commands last 7 days"] = Log.objects.filter(**filter_values).count()
 
-    filter = {
+    filter_values = {
         "type": int(LOG_TYPE_COMMAND),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
     }
-    usage["Commands last 31 days"] = Log.objects.filter(**filter).count()
+    usage["Commands last 31 days"] = Log.objects.filter(**filter_values).count()
 
     # total number of commands run:
     usage["Total Commands"] = Counter.objects.get(name="commands").value
@@ -254,12 +267,12 @@ def get_top_n_from_dict_on_count(data: dict) -> dict:
 def get_top_changed_devices() -> dict:
     """Return a dict with the most active (changed) devices over the last TOP_ACTIVITY_DAYS"""
     devices = {}
-    filter = {
+    filter_values = {
         "type": int(LOG_TYPE_CHANGE),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=settings.TOP_ACTIVITY_DAYS),
     }
-    # records = Log.objects.filter(**filter).values_list('switch_id', flat=True)
-    logs = Log.objects.filter(**filter)
+    # records = Log.objects.filter(**filter_values).values_list('switch_id', flat=True)
+    logs = Log.objects.filter(**filter_values)
     # there is probably a better way to do this with a filter above, but this works also:
     for log in logs:
         if log.switch is not None:
@@ -277,12 +290,12 @@ def get_top_changed_devices() -> dict:
 def get_top_viewed_devices() -> dict:
     """Return a dict with the most viewed devices over the last TOP_ACTIVITY_DAYS"""
     devices = {}
-    filter = {
+    filter_values = {
         "type": int(LOG_TYPE_VIEW),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=settings.TOP_ACTIVITY_DAYS),
     }
-    # records = Log.objects.filter(**filter).values_list('switch_id', flat=True)
-    logs = Log.objects.filter(**filter)
+    # records = Log.objects.filter(**filter_values).values_list('switch_id', flat=True)
+    logs = Log.objects.filter(**filter_values)
     # there is probably a better way to do this with a filter above, but this works also:
     for log in logs:
         if log.switch is not None:
@@ -300,11 +313,11 @@ def get_top_viewed_devices() -> dict:
 def get_top_active_users() -> dict:
     """Return a dict with the most active users, based on views or changes, over the last TOP_ACTIVITY_DAYS"""
     users = {}
-    filter = {
+    filter_values = {
         "type__in": [LOG_TYPE_VIEW, LOG_TYPE_CHANGE],
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=settings.TOP_ACTIVITY_DAYS),
     }
-    logs = Log.objects.filter(**filter)
+    logs = Log.objects.filter(**filter_values)
     # there is probably a better way to do this with a filter above, but this works also:
     for log in logs:
         if log.user is not None:
