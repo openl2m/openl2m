@@ -17,10 +17,8 @@ Various utility functions
 import datetime
 import inspect
 import ipaddress
-from ipware import get_client_ip
 import logging
 import pprint
-import pytz
 import re
 import socket
 
@@ -29,6 +27,9 @@ from django.http import HttpResponse
 from django.http.request import HttpRequest
 from django.shortcuts import render
 from django.utils.timezone import get_default_timezone
+
+from ipware import get_client_ip
+import pytz
 
 # from switches.models import Switch, SwitchGroup
 # from switches.connect.classes import Error
@@ -182,9 +183,9 @@ def dvar(var, header: str = ""):
         if isinstance(var, (float, int, str, list, dict, tuple)):
             logger_console.debug(pprint.pformat(var))
         else:
-            logger_console.debug(f"Type: {type(var)}, Values:")
+            logger_console.debug("Type: %s, Values:", type(var))
             # use inspect.getmembers() to find attributes that are not functions:
-            attribs = inspect.getmembers(var, lambda a: not (inspect.isroutine(a)))
+            attribs = inspect.getmembers(var, lambda a: not inspect.isroutine(a))
             for attrib in attribs:
                 # props is a list of all the object’s attributes and their current values,
                 # wrapped in (name, value) tuples.
@@ -242,9 +243,9 @@ def get_from_http_session(request: HttpRequest, name: str, delete: bool = False)
             del request.session[name]
             request.session.modified = True
         return data
-    else:
-        dprint("  NOT found in session cache!")
-        return None
+
+    dprint("  NOT found in session cache!")
+    return None
 
 
 def get_remote_ip(request: HttpRequest) -> str:
@@ -267,16 +268,16 @@ def is_valid_hostname_or_ip(data: str) -> bool:
     Return True if so, False otherwize.
     Note: this does not handle IPv6 yet!
     """
-    # check IP v4 pattern first
+    # check IPv4/v6 pattern first
     try:
         address = ipaddress.ip_address(data)
-        if type(address) is ipaddress.IPv4Address:
+        if isinstance(address, ipaddress.IPv4Address):
             return True
-        if type(address) is ipaddress.IPv6Address:
+        if isinstance(address, ipaddress.IPv6Address):
             return False  # v6 not supported for now!
         return False  # should not happen!
     except ValueError:
-        # not IP v4 or v6!, so check hostname:
+        # not IPv4 or IPv6!, so check hostname:
         try:
             socket.gethostbyname(data)
             # note: this does IPv4 resolution. When we support IPv6, change to socket.getaddrinfo()
@@ -284,7 +285,6 @@ def is_valid_hostname_or_ip(data: str) -> bool:
         except Exception:
             # fail gracefully!
             return False
-    return False
 
 
 def string_matches_regex(string: str, regex: str) -> bool:
@@ -302,9 +302,9 @@ def string_matches_regex(string: str, regex: str) -> bool:
         if match:
             dprint("  ==> PASS!")
             return True
-        else:
-            dprint("  ==> FAIL!")
-            return False
+        dprint("  ==> FAIL!")
+        return False
+    # if no regex given, validate!
     return True
 
 
@@ -322,9 +322,9 @@ def string_contains_regex(string: str, regex: str) -> bool:
         if found:
             dprint("  ==> PASS!")
             return True
-        else:
-            dprint("  ==> FAIL!")
-            return False
+        dprint("  ==> FAIL!")
+        return False
+    # if no regex given, validate!
     return True
 
 
