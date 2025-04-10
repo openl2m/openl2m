@@ -759,9 +759,10 @@ class SwitchBulkEdit(LoginRequiredMixin, View):
         return success_page(request, group, switch, mark_safe(description))
 
 
-"""Note: there is duplicate code here!
-   This needs to be updated to use the actions.* functions.
-"""
+#
+# Note: there is duplicate code here!
+#    This needs to be updated to use the actions.* functions.
+#
 
 
 def bulkedit_processor(
@@ -1474,9 +1475,9 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
         errors = False
         error_string = ""
 
-        """
-        do field / list validation here. This can likely be simplified - needs work!
-        """
+        #
+        # do field / list validation here. This can likely be simplified - needs work!
+        #
         # do we need to parse field1:
         if "{{field1}}" in t.template:
             field1 = request.POST.get("field1", False)
@@ -1767,8 +1768,8 @@ class SwitchActivity(LoginRequiredMixin, View):
             return error_page(request=request, group=False, switch=False, error=error)
 
         # only show this switch. May add more filters later...
-        filter = {"switch_id": switch_id}
-        logs = Log.objects.all().filter(**filter).order_by("-timestamp")
+        filter_values = {"switch_id": switch_id}
+        logs = Log.objects.all().filter(**filter_values).order_by("-timestamp")
 
         # setup pagination of the resulting activity logs
         page_number = int(request.GET.get("page", default=1))
@@ -1933,23 +1934,23 @@ class SwitchAdminActivity(LoginRequiredMixin, View):
         page_number = int(request.GET.get("page", default=1))
 
         # look at query string, and filter as needed
-        filter = {}
+        filter_values = {}
         if len(request.GET) > 0:
             if request.GET.get("type", ""):
-                filter["type"] = int(request.GET["type"])
+                filter_values["type"] = int(request.GET["type"])
             if request.GET.get("action", ""):
-                filter["action"] = int(request.GET["action"])
+                filter_values["action"] = int(request.GET["action"])
             if request.GET.get("user", ""):
-                filter["user_id"] = int(request.GET["user"])
+                filter_values["user_id"] = int(request.GET["user"])
             if request.GET.get("switch", ""):
-                filter["switch_id"] = int(request.GET["switch"])
+                filter_values["switch_id"] = int(request.GET["switch"])
             if request.GET.get("group", ""):
-                filter["group_id"] = int(request.GET["group"])
+                filter_values["group_id"] = int(request.GET["group"])
 
         # now set the filter, if found
-        if len(filter) > 0:
-            logs = Log.objects.all().filter(**filter).order_by("-timestamp")
-            log.description = f"Viewing filtered logs: {filter} (page {page_number})"
+        if len(filter_values) > 0:
+            logs = Log.objects.all().filter(**filter_values).order_by("-timestamp")
+            log.description = f"Viewing filtered logs: {filter_values} (page {page_number})"
             title = "Filtered Logs"
         else:
             logs = Log.objects.all().order_by("-timestamp")
