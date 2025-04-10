@@ -1037,8 +1037,9 @@ class SnmpConnector(Connector):
         """
         # call the vendor-specific data first, if implemented
         self._get_hardware_data()
-        # read Syslog data, if any
-        self._get_syslog_msgs()
+        # # read Syslog data, if any
+        if hasattr(self, '_get_syslog_msgs'):
+            self._get_syslog_msgs()
         return True
 
     #
@@ -1218,12 +1219,14 @@ class SnmpConnector(Connector):
 
         if_index = oid_in_branch(ifAdminStatus, oid)
         if if_index:
-            status = True if int(val) == IF_ADMIN_STATUS_UP else False
+            # status = True if int(val) == IF_ADMIN_STATUS_UP else False
+            status = int(val) == IF_ADMIN_STATUS_UP
             return self.set_interface_attribute_by_key(if_index, "admin_status", status)
 
         if_index = oid_in_branch(ifOperStatus, oid)
         if if_index:
-            status = True if int(val) == IF_OPER_STATUS_UP else False
+            # status = True if int(val) == IF_OPER_STATUS_UP else False
+            status = int(val) == IF_OPER_STATUS_UP
             return self.set_interface_attribute_by_key(if_index, "oper_status", status)
 
         #
@@ -2334,34 +2337,35 @@ class SnmpConnector(Connector):
         # we did not parse the OID.
         return False
 
-    #
-    # SYSLOG-MSG MIB
-    #
-    def _parse_mibs_syslog_msg(self, oid: str, val: str) -> bool:
-        """
-        Parse a single OID with data returned from the "SYSLOG-MSG" MIB.
+    # #
+    # # SYSLOG-MSG MIB
+    # #
+    # def _parse_mibs_syslog_msg(self, oid: str, val: str) -> bool:
+    #     """
+    #     Parse a single OID with data returned from the "SYSLOG-MSG" MIB.
 
-        Params:
-            oid (str): the SNMP OID to parse
-            val (str): the value of the SNMP OID we are parsing
+    #     Params:
+    #         oid (str): the SNMP OID to parse
+    #         val (str): the value of the SNMP OID we are parsing
 
-        Returns:
-            (boolean): True if we parse the OID, False if not.
-        """
-        dprint(f"_parse_mibs_syslog_msg() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+    #     Returns:
+    #         (boolean): True if we parse the OID, False if not.
+    #     """
+    #     dprint(f"_parse_mibs_syslog_msg() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
 
-        #
-        # SYSLOG-MSG-MIB - mostly meant to define notification, but we can read the log size
-        #
-        sub_oid = oid_in_branch(syslogMsgTableMaxSize, oid)
-        if sub_oid:
-            # this is the max number of syslog messages stored.
-            self.syslog_max_msgs = int(val)
-            return True
-        #
-        # Note: the rest of the SYSLOG_MSG_MIB is meant to define OID's for sending
-        # SNMP traps with syslog messages, NOT to poll messages from snmp reads !!!
-        #
+    #     #
+    #     # SYSLOG-MSG-MIB - mostly meant to define notification, but we can read the log size
+    #     #
+    #     sub_oid = oid_in_branch(syslogMsgTableMaxSize, oid)
+    #     if sub_oid:
+    #         # this is the max number of syslog messages stored.
+    #         self.syslog_max_msgs = int(val)
+    #         return True
+    #     #
+    #     # Note: the rest of the SYSLOG_MSG_MIB is meant to define OID's for sending
+    #     # SNMP traps with syslog messages, NOT to poll messages from snmp reads !!!
+    #     #
+    #     return False     # we did not parsed it
 
     #
     # POE parsing - first Power Supplies
@@ -3094,7 +3098,7 @@ class SnmpConnector(Connector):
         retval = self.get_snmp_branch(branch_name='ifMauType', parser=self._parse_mibs_if_mau_type)
         if retval < 0:
             self.add_warning("Error getting 'Interfaces MAU (Transceiver) data'")
-            return retval
+        return retval
 
     def _get_vlans(self) -> int:
         """
@@ -3431,14 +3435,14 @@ class SnmpConnector(Connector):
 
         return True
 
-    def _get_syslog_msgs(self):
-        """
-        Read the SYSLOG-MSG-MIB: note this is meant for notifications, but we can read log size!
-        Returns True on success, False on failure
-        """
-        retval = self.get_snmp_branch(branch_name='syslogMsgTableMaxSize', parser=self._parse_mibs_syslog_msg)
-        if retval < 0:
-            self.add_warning("Error getting Log Size Info (syslogMsgTableMaxSize)")
+    # def _get_syslog_msgs(self):
+    #     """
+    #     Read the SYSLOG-MSG-MIB: note this is meant for notifications, but we can read log size!
+    #     Returns True on success, False on failure
+    #     """
+    #     retval = self.get_snmp_branch(branch_name='syslogMsgTableMaxSize', parser=self._parse_mibs_syslog_msg)
+    #     if retval < 0:
+    #         self.add_warning("Error getting Log Size Info (syslogMsgTableMaxSize)")
 
     def get_my_vrfs(self):
         """Read the VRFs defined on this device.
