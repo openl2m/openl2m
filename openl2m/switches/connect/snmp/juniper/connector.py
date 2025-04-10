@@ -175,14 +175,15 @@ class SnmpConnectorJuniper(SnmpConnector):
         """
         dprint("_parse_mibs_juniper_l2ald_vlans()\n")
 
-        """
-        # internal vlan tag - frequently NOT returned
-        vlan_index = int(oid_in_branch(jnxL2aldVlanID, oid))
-        if vlan_index:
-            if (int(val) == 1):
-                self.vlan_id_by_index[vlan_index] = Vlan(none, vlan_index)
-            return True
-        """
+        #
+        # # internal vlan tag - frequently NOT returned
+        # vlan_index = int(oid_in_branch(jnxL2aldVlanID, oid))
+        # if vlan_index:
+        #     if (int(val) == 1):
+        #         self.vlan_id_by_index[vlan_index] = Vlan(none, vlan_index)
+        #     return True
+        #
+
         # a new vlan tag or index that maps to an actual vlan id on the wire!
         vlan_index = int(oid_in_branch(jnxL2aldVlanTag, oid))
         if vlan_index:
@@ -233,13 +234,13 @@ class SnmpConnectorJuniper(SnmpConnector):
             return True
         return False
 
-    def set_interface_admin_status(self, interface: Interface, status: int) -> bool:
+    def set_interface_admin_status(self, interface: Interface, new_state: int) -> bool:
         self.error = Error(
             status=True, description="set_interface_admin_status(): JUNOS switches are Read-Only for SNMP!"
         )
         return False
 
-    def set_interface_poe_status(self, nterface: Interface, status: int) -> bool:
+    def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
         self.error = Error(
             status=True, description="set_interface_poe_status(): JUNOS switches are Read-Only for SNMP!"
         )
