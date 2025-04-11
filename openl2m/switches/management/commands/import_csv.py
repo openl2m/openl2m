@@ -22,6 +22,8 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User, Group
 
 from switches.models import Switch, SwitchGroup, VLAN, SnmpProfile, NetmikoProfile, CommandList
+from switches.models import Command as DeviceCommand
+
 from switches.constants import (
     SNMP_V3_AUTH_MD5,
     SNMP_V3_AUTH_SHA,
@@ -48,9 +50,9 @@ class Command(BaseCommand):
         # optional commands
         parser.add_argument('--switchgroups', type=str, help='the SwitchGroup CSV file to import')
 
-        parser.add_argument('--commands', type=str, help='the Commands CSV file to import')
+        parser.add_argument('--commands', type=str, help='the Device Commands CSV file to import')
 
-        parser.add_argument('--switches', type=str, help='the Switch CSV file to import')
+        parser.add_argument('--switches', type=str, help='the Switch/Device CSV file to import')
 
         parser.add_argument('--netmiko', type=str, help='the Netmiko Profile CSV file to import')
 
@@ -67,9 +69,9 @@ class Command(BaseCommand):
 
         commands_file = options['commands']
         if commands_file:
-            with open(commands_file, newline='') as csvfile:
+            with open(commands_file, newline='', encoding="utf-8") as csvfile:
                 reader = csv.DictReader(csvfile)
-                self.stdout.write("Importing Commands")
+                self.stdout.write("Importing Device Commands")
                 for row in reader:
                     strip_whitespace_from_values(row)
                     if 'name' not in row.keys():
@@ -77,7 +79,7 @@ class Command(BaseCommand):
                         sys.exit()
                     self.stdout.write(f"Found: {row['name']}")
                     try:
-                        c = Command.objects.get(name=row['name'], type=row['os'])
+                        c = DeviceCommand.objects.get(name=row['name'], type=row['os'])
                         if not update:
                             self.stdout.write(f"Line {reader.line_num}:")
                             self.stdout.write(
@@ -87,7 +89,8 @@ class Command(BaseCommand):
                             )
                             continue
                     except Exception:
-                        c = Command()
+                        # not found, create a new OpenL2M Command() object:
+                        c = DeviceCommand()
                         c.name = row['name']  # the only mandatory field!
                     # the remaining fields
                     if 'description' in row.keys():
@@ -113,7 +116,7 @@ class Command(BaseCommand):
 
         switchgroup_file = options['switchgroups']
         if switchgroup_file:
-            with open(switchgroup_file, newline='') as csvfile:
+            with open(switchgroup_file, newline='', encoding="utf-8") as csvfile:
                 # see the comment about newline at https://docs.python.org/3/library/csv.html
                 # to make sure "\n" in strings gets properly parsed!
                 reader = csv.DictReader(csvfile)
@@ -123,7 +126,7 @@ class Command(BaseCommand):
                     if 'name' not in row.keys():
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
-                    self.stdout.write("Found: %s" % row['name'])
+                    self.stdout.write(f"Found: {row['name']}")
                     try:
                         g = SwitchGroup.objects.get(name=row['name'])
                         self.stdout.write(
@@ -149,7 +152,7 @@ class Command(BaseCommand):
 
         user_file = options['users']
         if user_file:
-            with open(user_file, newline='') as csvfile:
+            with open(user_file, newline='', encoding="utf-8") as csvfile:
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing Users")
                 for row in reader:
@@ -164,7 +167,7 @@ class Command(BaseCommand):
                     if 'password' not in row.keys():
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'password' field is required!"))
                         sys.exit()
-                    self.stdout.write("Found: %s" % row['username'])
+                    self.stdout.write(f"Found: {row['username']}")
                     username = row['username']
                     email = row['email']
                     # current does not deal with hashed password (as required for import)
@@ -202,7 +205,7 @@ class Command(BaseCommand):
 
         vlan_file = options['vlans']
         if vlan_file:
-            with open(vlan_file, newline='') as csvfile:
+            with open(vlan_file, newline='', encoding="utf-8") as csvfile:
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing VLANs")
                 for row in reader:
@@ -210,7 +213,7 @@ class Command(BaseCommand):
                     if 'name' not in row.keys():
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
-                    self.stdout.write("Found: %s" % row['name'])
+                    self.stdout.write(f"Found: {row['name']}")
                     # are we updating?
                     try:
                         v = VLAN.objects.get(vid=row['vid'], name=row['name'])
@@ -246,7 +249,7 @@ class Command(BaseCommand):
 
         switch_file = options['switches']
         if switch_file:
-            with open(switch_file, newline='') as csvfile:
+            with open(switch_file, newline='', encoding="utf-8") as csvfile:
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing Switches")
                 for row in reader:
@@ -291,8 +294,7 @@ class Command(BaseCommand):
                         except Exception as e:
                             self.stdout.write(
                                 self.style.ERROR(
-                                    f"Line {reader.line_num}: Error getting valid SNMP Profile '%s'"
-                                    % row['snmp_profile']
+                                    f"Line {reader.line_num}: Error getting valid SNMP Profile \"{row['snmp_profile']}\""
                                 )
                             )
                             self.stdout.write(
@@ -312,8 +314,7 @@ class Command(BaseCommand):
                         except Exception as e:
                             self.stdout.write(
                                 self.style.ERROR(
-                                    f"Line {reader.line_num}: Error getting Netmiko Profile '%s'"
-                                    % row['netmiko_profile']
+                                    f"Line {reader.line_num}: Error getting Netmiko Profile \"{row['netmiko_profile']}\""
                                 )
                             )
                             self.stdout.write(
@@ -378,11 +379,11 @@ class Command(BaseCommand):
                             g.name = row['group']
                             try:
                                 g.save()
-                                self.stdout.write(self.style.SUCCESS("  SwitchGroup '%s' created" % row['group']))
+                                self.stdout.write(self.style.SUCCESS(f"  SwitchGroup '{row['group']}' created"))
                             except Exception as e:
                                 self.stdout.write(
                                     self.style.ERROR(
-                                        f"Line {reader.line_num}: Error creating SwitchGroup '%s'" % row['group']
+                                        f"Line {reader.line_num}: Error creating SwitchGroup '{row['group']}'"
                                     )
                                 )
                                 self.stdout.write(
@@ -409,7 +410,7 @@ class Command(BaseCommand):
 
         netmiko_file = options['netmiko']
         if netmiko_file:
-            with open(netmiko_file, newline='') as csvfile:
+            with open(netmiko_file, newline='', encoding="utf-8") as csvfile:
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing Netmiko Profile")
                 for row in reader:
@@ -417,7 +418,7 @@ class Command(BaseCommand):
                     if 'name' not in row.keys():
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}:'name' field is required!"))
                         sys.exit()
-                    self.stdout.write("Found: %s" % row['name'])
+                    self.stdout.write(f"Found: {row['name']}")
                     try:
                         nm = NetmikoProfile.objects.get(name=row['name'])
                         if not update:
@@ -463,7 +464,7 @@ class Command(BaseCommand):
 
         snmp_file = options['snmp']
         if snmp_file:
-            with open(snmp_file, newline='') as csvfile:
+            with open(snmp_file, newline='', encoding="utf-8") as csvfile:
                 reader = csv.DictReader(csvfile)
                 self.stdout.write("Importing SNMP Profile")
                 for row in reader:
@@ -471,7 +472,7 @@ class Command(BaseCommand):
                     if 'name' not in row.keys():
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
-                    self.stdout.write("Found: %s" % row['name'])
+                    self.stdout.write(f"Found: {row['name']}")
                     try:
                         s = SnmpProfile.objects.get(name=row['name'])
                         if not update:
