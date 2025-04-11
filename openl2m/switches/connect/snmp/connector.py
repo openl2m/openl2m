@@ -3112,13 +3112,12 @@ class SnmpConnector(Connector):
                 "Error getting 'Q-Bridge-PortId-Map' (dot1dBasePortIfIndex), NOT reading VLAN mibs dot1qVlanStaticRowStatus, dot1qVlanStaticName, dot1qVlanStatus, dot1qVlanStaticRowStatus"
             )
             return retval
-        # read existing vlan id's from "dot1qVlanStaticTable"
+        # read existing vlan id's from MIB-2 Q-Bridge "dot1qVlanStaticTable"
         retval = self.get_snmp_branch(branch_name='dot1qVlanStaticRowStatus', parser=self._parse_mibs_vlan_related)
         if retval < 0:
             self.add_warning("Error getting 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
             return retval
-        vlan_count = retval
-        # if there are vlans, read the name and type
+        # if there are MIB-2 Q-Bridge vlans, read the name and type
         if retval > 0:
             retval = self.get_snmp_branch(branch_name='dot1qVlanStaticName', parser=self._parse_mibs_vlan_related)
             if retval < 0:
@@ -3130,13 +3129,15 @@ class SnmpConnector(Connector):
             if retval < 0:
                 self.add_warning("Error getting 'Q-Bridge-Vlan-Status' (dot1qVlanStatus)")
                 # we have found VLANs, so we are going to ignore this!
-        else:
-            # retval = 0, no vlans found!
+
+        # it is possible that the driver overrode _get_vlans() (eg. Aruba-AOSCX over SNMP))
+        # and has found vlans from the IEEE 802.1Q Q-Bridge MIB (IEEE8021-Q-BRIDGE-MIB), instead of MIB-2 Q-Bridge MIB.
+        self.vlan_count = len(self.vlans)
+        if not self.vlan_count:
+            # no vlans found!
             self.add_warning("No VLANs found at 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
 
-        # set vlan count
-        self.vlan_count = len(self.vlans)
-        return vlan_count
+        return self.vlan_count
 
     def _get_port_vlan_membership(self) -> int:
         """
