@@ -27,6 +27,17 @@ Please consult your distribution's documentation for assistance with any errors.
   sudo systemctl start postgresql
   sudo systemctl enable postgresql
 
+**Installation - MacOS**
+
+.. code-block:: bash
+
+  brew install postgresql
+  brew services start postgresql
+
+NOTE: DO NOT USE SUDO TO BREW INSTALL, IT WILL CAUSE PERMISSION ISSUES. If you experience this please refer here_, or the brew documentation_.
+
+.. _here: https://stackoverflow.com/questions/67688802/brew-postgresql-starts-but-process-is-not-running
+.. _documentation: https://docs.brew.sh/Installation
 **Verify Version**
 
 Verify you are running at least version 13:
@@ -46,6 +57,22 @@ NOTE: DO NOT USE THE PASSWORD FROM THE EXAMPLE:
 .. code-block:: bash
 
   sudo -u postgres psql
+  psql (16.4 ...)
+  Type "help" for help.
+  postgres=# CREATE DATABASE openl2m;
+  CREATE DATABASE
+  postgres=# CREATE USER openl2m WITH PASSWORD 'xxxxxxxxxxxx';
+  CREATE ROLE
+  postgres=# GRANT ALL PRIVILEGES ON DATABASE openl2m TO openl2m;
+  GRANT
+  postgres=# \q
+
+
+*MacOS*
+
+.. code-block:: bash
+
+  psql postgres
   psql (16.4 ...)
   Type "help" for help.
   postgres=# CREATE DATABASE openl2m;

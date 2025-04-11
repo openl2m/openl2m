@@ -28,6 +28,14 @@ Begin by installing all system packages required by OpenL2M and its dependencies
 *For best performance, we recommend using Python v3.12 (Ubuntu 24.04), as it has significant improvements over v3.10*
 :doc:`See the Alternate Python Installation section for more. <alt-python>`
 
+**MacOS**
+
+.. code-block:: bash
+
+  brew install libxml2 libxslt libffi postgresql openssl zlib
+  brew install openldap cyrus-sasl net-snmp git curl
+  brew install python@3.10
+
 OpenL2M Install
 ---------------
 
@@ -37,6 +45,23 @@ First, create the user environment for OpenL2M:
 
   sudo adduser --system --group openl2m
 
+
+**MacOS**
+.. code-block:: bash
+  #create the user
+  sudo dscl . -create /Users/openl2m
+  sudo dscl . -create /Users/openl2m UserShell /usr/bin/false
+  sudo dscl . -create /Users/openl2m UniqueID 600
+  sudo dscl . -create /Users/openl2m PrimaryGroupID 600
+  sudo dscl . -create /Users/openl2m NFSHomeDirectory /var/empty
+
+  #create the group
+  sudo dscl . -create /Groups/openl2m
+  sudo dscl . -create /Groups/openl2m PrimaryGroupID 600
+  sudo dscl . -append /Groups/openl2m GroupMembership openl2m
+
+  #add openl2m to the group
+  sudo dscl . -append /Groups/openl2m GroupMembership openl2m
 
 Next, install OpenL2M. The easiest is cloning the main branch of its repository on GitHub.
 
