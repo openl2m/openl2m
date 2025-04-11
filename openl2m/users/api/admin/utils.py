@@ -81,7 +81,7 @@ def update_user_profile(request, user):
     dprint(f"Updating profile with: {request.data['profile']}")
     try:
         d = json.loads(request.data['profile'])
-        if type(d) is dict:
+        if isinstance(d, dict):
             # all looks good, get user's Profile()
             profile = Profile.objects.get(user=user)
             dprint(f"Found Profile: {repr(profile)}")
@@ -94,9 +94,10 @@ def update_user_profile(request, user):
                     dprint("  INVALID Profile attribute!")
             profile.save()
             return profile
-        else:
-            dprint(f"  INVALID data type: {type(d)}")
-            return None
+
+        dprint(f"  INVALID data type: {type(d)}")
+        return None
+
     except Exception as err:
         dprint(f"  ERROR: {err}")
         return None
