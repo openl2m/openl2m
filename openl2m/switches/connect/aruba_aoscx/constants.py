@@ -11,6 +11,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-Aruba AOS-CX library related constants.
-"""
+
+#
+# Aruba AOS-CX library related constants.
+#
