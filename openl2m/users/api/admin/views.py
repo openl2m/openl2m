@@ -21,9 +21,7 @@ from rest_framework import status as http_status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from openl2m.api.authentication import IsSuperUser
-from switches.utils import get_remote_ip
-
+from switches.utils import dprint, get_remote_ip
 from switches.constants import (
     LOG_TYPE_CHANGE,
     LOG_TYPE_ERROR,
@@ -33,11 +31,12 @@ from switches.constants import (
     LOG_REST_API_ADMIN_USER_GET,
     LOG_REST_API_ADMIN_USER_MODIFY,
 )
-
 from switches.models import Log
-from switches.utils import dprint
+
 from users.api.admin.serializers import UserSerializer, ProfileSerializer
 from users.api.admin.utils import add_user_to_switchgroups, update_user_profile
+
+from openl2m.api.authentication import IsSuperUser
 
 
 class UserViewSet(viewsets.ModelViewSet):
