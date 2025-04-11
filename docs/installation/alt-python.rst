@@ -93,3 +93,12 @@ If this is all correct, you can restart the services, and should be good to go!
 .. code-block:: bash
 
   sudo systemctl start openl2m
+
+
+MacOS Python Versions
+---------------------
+
+You may use brew to install other versions of Python on MacOS. If you frequently switch versions,
+you may be interested in pyenv_
+
+.. _pyenv:https://realpython.com/intro-to-pyenv/
