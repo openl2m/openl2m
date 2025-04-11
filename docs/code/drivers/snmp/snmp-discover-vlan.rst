@@ -6,7 +6,7 @@ VLAN Discovery
 
 We start with VLAN discovery. *This is executed by calling _get_vlan_data()*
 
-Switching capabilities are described by what is called the **Q-Bridge MIB**. The Q-Bridge defines the switch ports
+Switching capabilities are described by what is called the **MIB-2 Q-Bridge MIB**. The Q-Bridge defines the switch ports
 and vlans on a device. Note that in this context, a port is NOT the same as an interface as described above.
 A (switch) port is typically a physical port on the device, and as such has a port-id. Interfaces can be virtual
 (eg. "interface Vlan 100"). Virtual interfaces have interface-id's but *not port-id's.*
@@ -49,3 +49,10 @@ We then read the vlan status (dynamic, static, etc.) from **dot1qVlanStatus** (.
 
 
 Once we know existing vlans, we move on to finding the interfaces via snmp.
+
+
+.. note::
+
+    Some devices implement the **IEEE 802.1Q Q-Bridge MIB (IEEE8021-Q-BRIDGE-MIB)**, instead of MIB-2 Q-Bridge MIB.
+    Drivers for these devices will override the function *_get_vlan_data()* and read the data from that MIB.
+    See eg. the Aruba AOS-CX over SNMP driver in *snmp/aruba_cx/connector.py*
