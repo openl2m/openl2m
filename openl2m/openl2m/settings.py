@@ -32,16 +32,11 @@ import netaddr
 
 from django.core.exceptions import ImproperlyConfigured
 
-# Django 5.0 requires Python 3.10+
-if sys.version_info < (3, 10):
-    raise RuntimeError("OpenL2M requires Python 3.10 - 3.12 (current: Python {})".format(sys.version.split()[0]))
+# Django 5.1 requires Python 3.10 - 3.13.
+# OpenL2M has libraries that do not work with 3.13 that have not been tested yet.
+if sys.version_info < (3, 10) or sys.version_info >= (3, 13):
+    raise RuntimeError(f"OpenL2M requires Python 3.10 - 3.12 (current: Python {sys.version.split()[0]})")
 
-if sys.version_info >= (3, 13):
-    raise RuntimeError(
-        "Due to library dependencies OpenL2M requires Python 3.10 - 3.12 (current: Python {})".format(
-            sys.version.split()[0]
-        )
-    )
 
 # Check for configuration file
 try:
@@ -75,7 +70,7 @@ for setting in ["ALLOWED_HOSTS", "DATABASE", "SECRET_KEY"]:
     try:
         globals()[setting] = getattr(configuration, setting)
     except AttributeError:
-        raise ImproperlyConfigured("Mandatory setting {} is missing from configuration.py.".format(setting))
+        raise ImproperlyConfigured(f"Mandatory setting {setting} is missing from configuration.py.")
 
 # Import optional configuration parameters
 ADMINS = getattr(configuration, "ADMINS", [])
@@ -182,8 +177,8 @@ if SYSLOG_HOST:
 # Sessions
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 if LOGIN_TIMEOUT is not None:
-    if type(LOGIN_TIMEOUT) is not int or LOGIN_TIMEOUT < 0:
-        raise ImproperlyConfigured("LOGIN_TIMEOUT must be a positive integer (value: {})".format(LOGIN_TIMEOUT))
+    if not isinstance(LOGIN_TIMEOUT, int) or LOGIN_TIMEOUT < 0:
+        raise ImproperlyConfigured(f"LOGIN_TIMEOUT must be a positive integer (value: {LOGIN_TIMEOUT})")
     # Django default is 1209600 seconds (14 days)
     SESSION_COOKIE_AGE = LOGIN_TIMEOUT
     # if this is set, then the login timeout is treated as inactivity timeout:
@@ -408,8 +403,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 # Static files (CSS, JavaScript, Images)
-STATIC_ROOT = BASE_DIR + "/static"
-STATIC_URL = "/{}static/".format(BASE_PATH)
+STATIC_ROOT = f"{BASE_DIR}/static"
+STATIC_URL = f"/{BASE_PATH}static/"
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "project-static"),)
 
 #
