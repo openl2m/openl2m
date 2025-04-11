@@ -12,8 +12,9 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import binascii
-import netaddr
 import os
+
+import netaddr
 
 from django.db import models
 from django.conf import settings
