@@ -144,8 +144,8 @@ class InfoView(LoginRequiredMixin, View):
                     'tokens': tokens,
                 },
             )
-        else:
-            return HttpResponseNotFound("You do not have access to this page!")
+
+        return HttpResponseNotFound("You do not have access to this page!")
 
 
 #
@@ -205,13 +205,13 @@ class TokenDelete(LoginRequiredMixin, View):
                 log.description = f"Error deleting API key! (id={token_id})"
             log.save()
             return error_page(request=request, group=None, switch=None, error=error)
-        else:
-            log.action = LOG_REST_API_TOKEN_DELETE
-            log.description = f"API Key deleted! (id={token_id}, token={partial_token})"
-            log.save()
-            return success_page(
-                request=request, group=None, switch=None, description=f"API Key deleted! (token={partial_token})"
-            )
+
+        log.action = LOG_REST_API_TOKEN_DELETE
+        log.description = f"API Key deleted! (id={token_id}, token={partial_token})"
+        log.save()
+        return success_page(
+            request=request, group=None, switch=None, description=f"API Key deleted! (token={partial_token})"
+        )
 
 
 class TokenEdit(LoginRequiredMixin, View):
@@ -248,16 +248,16 @@ class TokenEdit(LoginRequiredMixin, View):
             log.description = f"Error editing API key for token id {token_id}!"
             log.save()
             return error_page(request=request, group=None, switch=None, error=error)
-        else:
-            return render(
-                request,
-                template_name,
-                {
-                    'action': 'edit',
-                    'request': request,
-                    'token': token,
-                },
-            )
+
+        return render(
+            request,
+            template_name,
+            {
+                'action': 'edit',
+                'request': request,
+                'token': token,
+            },
+        )
 
     def post(
         self,
@@ -277,12 +277,12 @@ class TokenEdit(LoginRequiredMixin, View):
             log.description = info.description
             log.save()
             return success_page(request=request, group=None, switch=None, description=info.description)
-        else:
-            # error occurred
-            log.type = LOG_TYPE_ERROR
-            log.description = info.description
-            log.save()
-            return error_page(request=request, group=None, switch=None, error=info)
+
+        # error occurred
+        log.type = LOG_TYPE_ERROR
+        log.description = info.description
+        log.save()
+        return error_page(request=request, group=None, switch=None, error=info)
 
 
 class TokenAdd(LoginRequiredMixin, View):
@@ -345,12 +345,12 @@ class TokenAdd(LoginRequiredMixin, View):
             log.description = info.description
             log.save()
             return success_page(request=request, group=None, switch=None, description=info.description)
-        else:
-            # error occurred
-            log.type = LOG_TYPE_ERROR
-            log.description = "Error creating API key!"
-            log.save()
-            return error_page(request=request, group=None, switch=None, error=info)
+
+        # error occurred
+        log.type = LOG_TYPE_ERROR
+        log.description = "Error creating API key!"
+        log.save()
+        return error_page(request=request, group=None, switch=None, error=info)
 
 
 def update_or_add_token(request, token_id=-1):
@@ -375,8 +375,7 @@ def update_or_add_token(request, token_id=-1):
             error.description = "Error updating API key!"
             error.details = str(err)
             return False, error
-        else:
-            action = "updated"
+        action = "updated"
     else:
         # create new token
         token = Token()
@@ -417,11 +416,11 @@ def update_or_add_token(request, token_id=-1):
         error.description = "Error saving API key!"
         error.details = str(err)
         return False, error
+
+    info = Error()
+    info.status = False  # not an error!
+    if token.expires:
+        info.description = f"Token {action}! Note: token expires on {token.expires}"
     else:
-        info = Error()
-        info.status = False  # not an error!
-        if token.expires:
-            info.description = f"Token {action}! Note: token expires on {token.expires}"
-        else:
-            info.description = f"Token {action}!"
-        return True, info
+        info.description = f"Token {action}!"
+    return True, info
