@@ -132,12 +132,11 @@ def switch_info(request, group_id, switch_id, details):
         "switch": connection.as_dict(),
         "vlans": connection.vlans_as_dict(),
     }
-    interfaces = list()
-    for key, iface in connection.interfaces.items():
-        if not iface.visible:  # only return interfaces visible to this user!
-            continue
-        # append this interface data to the list of interfaces:
-        interfaces.append(iface.as_dict())
+    interfaces = []
+    for iface in connection.interfaces.values():
+        if iface.visible:  # only return interfaces visible to this user!
+            # append this interface data to the list of interfaces:
+            interfaces.append(iface.as_dict())
     # add to return data:
     data["interfaces"] = interfaces
     connection.save_cache()  # this only works for SessionAuthentication !
@@ -229,10 +228,12 @@ class APIInterfaceSetState(
         except Exception:
             return respond_error("Missing or invalid required parameter: 'state'")
 
-        if state.lower() in on_values:
-            new_state = True
-        else:
-            new_state = False
+        # if state.lower() in on_values:
+        #     new_state = True
+        # else:
+        #     new_state = False
+        new_state = state.lower() in on_values
+
         retval, info = perform_interface_admin_change(
             request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, new_state=new_state
         )
@@ -291,10 +292,11 @@ class APIInterfaceSetPoE(
         except Exception:
             return respond_error("Missing or invalid required parameter: 'poe_state'")
 
-        if poe_state.lower() in on_values:
-            new_state = True
-        else:
-            new_state = False
+        # if poe_state.lower() in on_values:
+        #     new_state = True
+        # else:
+        #     new_state = False
+        new_state = poe_state.lower() in on_values
 
         retval, info = perform_interface_poe_change(
             request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, new_state=new_state
@@ -421,9 +423,9 @@ class APISwitchVlanDelete(
         return respond_ok(info.description)
 
 
-"""
-Support functions.
-"""
+#
+# Support functions.
+#
 
 
 def get_connection_to_switch(request, group_id, switch_id, details=False):
