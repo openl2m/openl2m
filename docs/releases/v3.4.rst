@@ -37,6 +37,23 @@ Neighbor Graph Options:
   MM_GRAPH_EXPANDED = False
 
 
+Version 3.4.2
+-------------
+
+Release Date: 2025-04-02
+
+* move home group list into template (future flexibility for multiple templates.)
+* warn if multiple browser tabs are found (not supported!)
+* additional SNMP driver documentation for developers.
+
+Bug fixes:
+
+* search returns proper link for devices with 'details' default view.
+* remove warning for no SNMP Q-Bridge when IEEE Q-Bridge is found in device snmp tree.
+* snmp syslog parsing removed from standard driver, optional in others where implemented.
+* remove device indent level (not used anymore).
+* pylint update throughout all source code.
+
 
 Version 3.4.1
 -------------
