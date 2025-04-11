@@ -27,9 +27,8 @@ from django.urls import include, path
 # from django.conf.urls import include
 from django.http import HttpResponseRedirect
 
-from openl2m.api.views import APIRootView, APIAdminRootView, APIStatsView, APIEnvironmentView
-
 from users.views import MyLoginView, LogoutView
+from openl2m.api.views import APIRootView, APIAdminRootView, APIStatsView, APIEnvironmentView
 
 # Custom admin site:
 from .admin import admin_site
