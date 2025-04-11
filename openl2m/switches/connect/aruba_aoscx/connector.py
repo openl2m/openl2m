@@ -14,6 +14,32 @@
 import datetime
 import traceback
 
+
+#
+# Basic Aruba AOS-CX connector. This uses the documented REST API, and allows us to handle
+# any device supported by the Aruba Python "pyaoscx" library.
+# See more at https://github.com/aruba/pyaoscx/
+# and https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
+
+# For clarity, and to avoid namespace collisions with our own internal classes,
+# we import all AOS-CX classes as AosCx<original-name>
+#
+from pyaoscx.session import Session as AosCxSession
+
+# from pyaoscx.configuration import Configuration as AosCxConfiguration
+from pyaoscx.device import Device as AosCxDevice
+from pyaoscx.vlan import Vlan as AosCxVlan
+from pyaoscx.mac import Mac as AosCxMac
+from pyaoscx.interface import Interface as AosCxInterface
+from pyaoscx.poe_interface import PoEInterface as AosCxPoEInterface
+from pyaoscx.lldp_neighbor import LLDPNeighbor as AosCxLLDPNeighbor
+from pyaoscx.vrf import Vrf as AosCxVrf
+
+
+# used to disable unknown SSL cert warnings:
+import urllib3
+
+
 from switches.utils import dprint, dvar
 from switches.constants import LOG_TYPE_ERROR, LOG_AOSCX_ERROR_GENERIC
 from switches.connect.classes import Interface, PoePort, NeighborDevice
@@ -38,30 +64,6 @@ from switches.connect.constants import (
     #   IANA_TYPE_IPV6,
 )
 
-
-"""
-Basic Aruba AOS-CX connector. This uses the documented REST API, and allows us to handle
-any device supported by the Aruba Python "pyaoscx" library.
-See more at https://github.com/aruba/pyaoscx/
-and https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
-
-For clarity, and to avoid namespace collisions with our own internal classes,
-we import all AOS-CX classes as AosCx<original-name>
-"""
-from pyaoscx.session import Session as AosCxSession
-
-# from pyaoscx.configuration import Configuration as AosCxConfiguration
-from pyaoscx.device import Device as AosCxDevice
-from pyaoscx.vlan import Vlan as AosCxVlan
-from pyaoscx.mac import Mac as AosCxMac
-from pyaoscx.interface import Interface as AosCxInterface
-from pyaoscx.poe_interface import PoEInterface as AosCxPoEInterface
-from pyaoscx.lldp_neighbor import LLDPNeighbor as AosCxLLDPNeighbor
-from pyaoscx.vrf import Vrf as AosCxVrf
-
-
-# used to disable unknown SSL cert warnings:
-import urllib3
 
 # devices support up to v10.12, but pyaoscx currently supports 10.09 as highest,
 # see https://github.com/aruba/pyaoscx/tree/master/pyaoscx/rest
@@ -168,12 +170,12 @@ class AosCxConnector(Connector):
                             dprint(f"\n  FOUND PS INFO for {ps_name}\n{ps}\n")
                             if ps['status'] == 'ok':
                                 # get used and max power:
-                                used = int(ps['characteristics']['instantaneous_power'])
-                                max = int(ps['characteristics']['maximum_power'])
-                                dprint("  MAX: {max} W, used {used} W")
-                                new_ps = self.add_poe_powersupply(id=ps_id, power_available=max)
-                                new_ps.set_consumed_power(power=used)
-                                self.poe_power_consumed += used  # total value
+                                power_used = int(ps['characteristics']['instantaneous_power'])
+                                power_max = int(ps['characteristics']['maximum_power'])
+                                dprint("  MAX: {power_max} W, used {power_used} W")
+                                new_ps = self.add_poe_powersupply(id=ps_id, power_available=power_max)
+                                new_ps.set_consumed_power(power=power_used)
+                                self.poe_power_consumed += power_used  # total value
                                 ps_id += 1
                                 # set a few more attributes, currently not displayed yet (9/2024)
                                 new_ps.name = ps['name']
@@ -242,10 +244,10 @@ class AosCxConnector(Connector):
             self._close_device()
             return False
 
-        for id, vlan in aoscx_vlans.items():
+        for vid, vlan in aoscx_vlans.items():
             dvar(var=vlan, header="VLAN():")
-            # dprint(f"Vlan {id}: {vlan['name']}")
-            vlan_id = int(id)
+            # dprint(f"Vlan {vid}: {vlan['name']}")
+            vlan_id = int(vid)
             self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan['name'])
             # is this vlan enabled?
             if not vlan['admin'] == 'up' and not vlan['oper_state'] == 'up':
@@ -337,9 +339,9 @@ class AosCxConnector(Connector):
             #
             if 'applied_vlan_tag' in aoscx_interface and aoscx_interface['applied_vlan_tag'] is not None:
                 # the untagged vlan
-                for id in aoscx_interface['applied_vlan_tag']:
+                for vid in aoscx_interface['applied_vlan_tag']:
                     # there is only 1:
-                    iface.untagged_vlan = int(id)
+                    iface.untagged_vlan = int(vid)
             if 'applied_vlan_mode' in aoscx_interface:
                 if aoscx_interface['applied_vlan_mode'] == 'access':
                     iface.is_tagged = False
@@ -348,8 +350,8 @@ class AosCxConnector(Connector):
                     # see if there are vlans on the trunk (untagged vlan is set above)
                     # vlan_trunks = {'500': '/rest/v10.04/system/vlans/500', '504': '/rest/v10.04/system/vlans/504'}
                     if 'applied_vlan_trunks' in aoscx_interface:
-                        for id in aoscx_interface['applied_vlan_trunks']:
-                            iface.add_tagged_vlan(int(id))
+                        for vid in aoscx_interface['applied_vlan_trunks']:
+                            iface.add_tagged_vlan(int(vid))
 
             # check LACP 'stuff':
             if 'lacp' in aoscx_interface and aoscx_interface['lacp'] == 'active':
@@ -449,7 +451,7 @@ class AosCxConnector(Connector):
             return False
         # get mac address table, this is based on vlans:
         dprint("Getting MAC table per VLAN:")
-        for vlan_id in self.vlans.keys():
+        for vlan_id in self.vlans:
             dprint(f"Vlan {vlan_id}:")
             try:
                 v = AosCxVlan(session=self.aoscx_session, vlan_id=int(vlan_id))
@@ -486,7 +488,7 @@ class AosCxConnector(Connector):
                     # just try the next one...
 
         dprint("Getting LLDP data per INTERFACE:")
-        for if_name in self.interfaces.keys():
+        for if_name in self.interfaces:
             dprint(f"  Interface {if_name}:")
             try:
                 aoscx_iface = AosCxInterface(session=self.aoscx_session, name=if_name)
@@ -581,11 +583,11 @@ class AosCxConnector(Connector):
             super().set_interface_admin_status(interface, new_state)
             self._close_device()
             return True
-        else:
-            dprint(f"   Interface change '{state}' FAILED!")
-            # we need to add error info here!!!
-            self._close_device()
-            return False
+
+        dprint(f"   Interface change '{state}' FAILED!")
+        # we need to add error info here!!!
+        self._close_device()
+        return False
 
     def set_interface_description(self, interface: Interface, description: str) -> bool:
         """
@@ -618,11 +620,11 @@ class AosCxConnector(Connector):
             super().set_interface_description(interface, description)
             self._close_device()
             return True
-        else:
-            dprint("   Descr FAILED!")
-            # we need to add error info here!!!
-            self._close_device()
-            return False
+
+        dprint("   Descr FAILED!")
+        # we need to add error info here!!!
+        self._close_device()
+        return False
 
     def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
         """
@@ -668,18 +670,18 @@ class AosCxConnector(Connector):
                 super().set_interface_poe_status(interface, new_state)
                 self._close_device()
                 return True
-            else:
-                dprint("   PoE change FAILED!")
-                # we need to add error info here!!!
-                self._close_device()
-                return False
-        else:
-            # this should never happen!
-            dprint("PoE change requested, but interface does not support PoE!!!")
-            self.error.status = True
-            self.error.description = "PoE change requested, but interface does not support PoE!!!"
-            self.error.details = ""
+
+            dprint("   PoE change FAILED!")
+            # we need to add error info here!!!
+            self._close_device()
             return False
+
+        # this should never happen!
+        dprint("PoE change requested, but interface does not support PoE!!!")
+        self.error.status = True
+        self.error.description = "PoE change requested, but interface does not support PoE!!!"
+        self.error.details = ""
+        return False
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
@@ -748,40 +750,40 @@ class AosCxConnector(Connector):
                 super().set_interface_untagged_vlan(interface, new_vlan_id)
                 self._close_device()
                 return True
-            else:
-                dprint("   Vlan Change FAILED for Unknown Reasons!")
-                # we need to add error info here!!!
-                self.error.status = True
-                self.error.description = "Error setting untagged vlan!"
-                self.error.details = "UNKNOWN ERROR in aoscx_interface.set_native_vlan()!"
-                self._close_device()
-                return False
-        else:
-            # untagged, ie set access mode vlan
-            dprint("  access mode port: calling aoscx.set_untagged_vlan()")
-            try:
-                changed = aoscx_interface.set_untagged_vlan(vlan=aoscx_vlan)
-            except Exception as err:
-                dprint(f"ERROR in aoscx_interface.set_untagged_vlan() object: {err}")
-                self.error.status = True
-                self.error.description = "Error setting access vlan!"
-                self.error.details = f"ERROR in aoscx_interface.set_untagged_vlan(): {format(err)}"
-                self._close_device()
-                return False
-            if changed:
-                dprint("   Vlan Change OK!")
-                # call the super class for bookkeeping.
-                super().set_interface_untagged_vlan(interface, new_vlan_id)
-                self._close_device()
-                return True
-            else:
-                dprint("   Vlan Change FAILED for Unknown Reasons!")
-                # we need to add error info here!!!
-                self.error.status = True
-                self.error.description = "Error setting access vlan!"
-                self.error.details = "UNKNOWN ERROR in aoscx_interface.set_untagged_vlan()!"
-                self._close_device()
-                return False
+
+            dprint("   Vlan Change FAILED for Unknown Reasons!")
+            # we need to add error info here!!!
+            self.error.status = True
+            self.error.description = "Error setting untagged vlan!"
+            self.error.details = "UNKNOWN ERROR in aoscx_interface.set_native_vlan()!"
+            self._close_device()
+            return False
+
+        # untagged, ie set access mode vlan
+        dprint("  access mode port: calling aoscx.set_untagged_vlan()")
+        try:
+            changed = aoscx_interface.set_untagged_vlan(vlan=aoscx_vlan)
+        except Exception as err:
+            dprint(f"ERROR in aoscx_interface.set_untagged_vlan() object: {err}")
+            self.error.status = True
+            self.error.description = "Error setting access vlan!"
+            self.error.details = f"ERROR in aoscx_interface.set_untagged_vlan(): {format(err)}"
+            self._close_device()
+            return False
+        if changed:
+            dprint("   Vlan Change OK!")
+            # call the super class for bookkeeping.
+            super().set_interface_untagged_vlan(interface, new_vlan_id)
+            self._close_device()
+            return True
+
+        dprint("   Vlan Change FAILED for Unknown Reasons!")
+        # we need to add error info here!!!
+        self.error.status = True
+        self.error.description = "Error setting access vlan!"
+        self.error.details = "UNKNOWN ERROR in aoscx_interface.set_untagged_vlan()!"
+        self._close_device()
+        return False
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
         '''
