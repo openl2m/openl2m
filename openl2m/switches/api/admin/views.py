@@ -19,8 +19,6 @@ from rest_framework import status as http_status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from openl2m.api.authentication import IsSuperUser
-
 from switches.constants import (
     LOG_TYPE_CHANGE,
     LOG_TYPE_ERROR,
@@ -53,6 +51,8 @@ from switches.api.admin.serializers import (
 from switches.utils import dprint, get_remote_ip
 
 from switches.api.admin.utils import add_switch_to_switchgroup
+
+from openl2m.api.authentication import IsSuperUser
 
 
 class APIAdminSwitches(APIView):
@@ -214,18 +214,18 @@ class APIAdminSwitchDetail(APIView):
             )
             log.save()
             return Response(serializer.data, status=http_status.HTTP_200_OK)
-        else:
-            # invalid data
-            log = Log(
-                type=LOG_TYPE_ERROR,
-                action=LOG_REST_API_ADMIN_SWITCH_MODIFY,
-                switch=switch,
-                user=request.user,
-                ip_address=get_remote_ip(request),
-                description=f"API Admin modify device error for id={pk}, name={switch.name}, parameters={request.data}: '{serializer.errors}'",
-            )
-            log.save()
-            return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
+
+        # invalid data
+        log = Log(
+            type=LOG_TYPE_ERROR,
+            action=LOG_REST_API_ADMIN_SWITCH_MODIFY,
+            switch=switch,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            description=f"API Admin modify device error for id={pk}, name={switch.name}, parameters={request.data}: '{serializer.errors}'",
+        )
+        log.save()
+        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
 class APIAdminNetmikoProfiles(APIView):
@@ -379,20 +379,20 @@ class APIAdminNetmikoProfileDetail(APIView):
                 data=serializer.data,
                 status=http_status.HTTP_200_OK,
             )
-        else:
-            # invalid data
-            log = Log(
-                type=LOG_TYPE_ERROR,
-                action=LOG_REST_API_ADMIN_NETMIKO_PROFILE_MODIFY,
-                user=request.user,
-                ip_address=get_remote_ip(request),
-                description=f"API Admin modify credential profile error for id={pk}, name={profile.name}, parameters={request.data}: '{serializer.errors}'",
-            )
-            log.save()
-            return Response(
-                data=serializer.errors,
-                status=http_status.HTTP_400_BAD_REQUEST,
-            )
+
+        # invalid data
+        log = Log(
+            type=LOG_TYPE_ERROR,
+            action=LOG_REST_API_ADMIN_NETMIKO_PROFILE_MODIFY,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            description=f"API Admin modify credential profile error for id={pk}, name={profile.name}, parameters={request.data}: '{serializer.errors}'",
+        )
+        log.save()
+        return Response(
+            data=serializer.errors,
+            status=http_status.HTTP_400_BAD_REQUEST,
+        )
 
 
 class APIAdminSnmpProfiles(APIView):
@@ -438,17 +438,17 @@ class APIAdminSnmpProfiles(APIView):
             )
             log.save()
             return Response(serializer.data, status=http_status.HTTP_201_CREATED)
-        else:
-            # invalid data:
-            log = Log(
-                type=LOG_TYPE_ERROR,
-                action=LOG_REST_API_ADMIN_SNMP_PROFILE_CREATE,
-                user=request.user,
-                ip_address=get_remote_ip(request),
-                description=f"API Admin create SNMP profile error: '{serializer.errors}', parameters: {request.data}",
-            )
-            log.save()
-            return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
+
+        # invalid data:
+        log = Log(
+            type=LOG_TYPE_ERROR,
+            action=LOG_REST_API_ADMIN_SNMP_PROFILE_CREATE,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            description=f"API Admin create SNMP profile error: '{serializer.errors}', parameters: {request.data}",
+        )
+        log.save()
+        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
 class APIAdminSnmpProfileDetail(APIView):
@@ -546,20 +546,20 @@ class APIAdminSnmpProfileDetail(APIView):
                 data=serializer.data,
                 status=http_status.HTTP_200_OK,
             )
-        else:
-            # invalid data
-            log = Log(
-                type=LOG_TYPE_ERROR,
-                action=LOG_REST_API_ADMIN_SNMP_PROFILE_MODIFY,
-                user=request.user,
-                ip_address=get_remote_ip(request),
-                description=f"API Admin modify SNMP profile error for id={pk}, name={profile.name}, parameters={request.data}: '{serializer.errors}'",
-            )
-            log.save()
-            return Response(
-                data=serializer.errors,
-                status=http_status.HTTP_400_BAD_REQUEST,
-            )
+
+        # invalid data
+        log = Log(
+            type=LOG_TYPE_ERROR,
+            action=LOG_REST_API_ADMIN_SNMP_PROFILE_MODIFY,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            description=f"API Admin modify SNMP profile error for id={pk}, name={profile.name}, parameters={request.data}: '{serializer.errors}'",
+        )
+        log.save()
+        return Response(
+            data=serializer.errors,
+            status=http_status.HTTP_400_BAD_REQUEST,
+        )
 
 
 class APIAdminSwitchGroups(APIView):
@@ -605,17 +605,17 @@ class APIAdminSwitchGroups(APIView):
             )
             log.save()
             return Response(serializer.data, status=http_status.HTTP_201_CREATED)
-        else:
-            # invalid data:
-            log = Log(
-                type=LOG_TYPE_ERROR,
-                action=LOG_REST_API_ADMIN_SWITCHGROUP_CREATE,
-                user=request.user,
-                ip_address=get_remote_ip(request),
-                description=f"API Admin create switchgroup error: '{serializer.errors}', parameters: {request.data}",
-            )
-            log.save()
-            return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
+
+        # invalid data:
+        log = Log(
+            type=LOG_TYPE_ERROR,
+            action=LOG_REST_API_ADMIN_SWITCHGROUP_CREATE,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            description=f"API Admin create switchgroup error: '{serializer.errors}', parameters: {request.data}",
+        )
+        log.save()
+        return Response(serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
 
 
 class APIAdminSwitchGroupDetail(APIView):
@@ -715,17 +715,17 @@ class APIAdminSwitchGroupDetail(APIView):
                 data=serializer.data,
                 status=http_status.HTTP_200_OK,
             )
-        else:
-            # invalid data
-            log = Log(
-                type=LOG_TYPE_ERROR,
-                action=LOG_REST_API_ADMIN_SWITCHGROUP_MODIFY,
-                group=switchgroup,
-                user=request.user,
-                ip_address=get_remote_ip(request),
-                description=f"API Admin modify switchgroup error for id={pk}, name={switchgroup.name}, parameters={request.data}: '{serializer.errors}'",
-            )
-            return Response(
-                data=serializer.errors,
-                status=http_status.HTTP_400_BAD_REQUEST,
-            )
+
+        # invalid data
+        log = Log(
+            type=LOG_TYPE_ERROR,
+            action=LOG_REST_API_ADMIN_SWITCHGROUP_MODIFY,
+            group=switchgroup,
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            description=f"API Admin modify switchgroup error for id={pk}, name={switchgroup.name}, parameters={request.data}: '{serializer.errors}'",
+        )
+        return Response(
+            data=serializer.errors,
+            status=http_status.HTTP_400_BAD_REQUEST,
+        )
