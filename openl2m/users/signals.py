@@ -11,10 +11,10 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-from django.utils.timezone import now
 import re
 
 from django.conf import settings
+from django.utils.timezone import now
 
 from switches.utils import dprint, get_remote_ip
 
@@ -24,7 +24,7 @@ if settings.LDAP_CONFIG is not None:
     from django_auth_ldap.backend import populate_user, ldap_error, LDAPBackend
 
     from switches.models import SwitchGroup, Log
-    import switches.constants as constants
+    from switches import constants
 
     @receiver(populate_user, sender=LDAPBackend)
     def ldap_auth_handler(user, ldap_user, **kwargs):
