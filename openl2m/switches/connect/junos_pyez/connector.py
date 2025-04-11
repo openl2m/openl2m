@@ -11,8 +11,18 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-from netaddr import IPNetwork
+
+#
+# Basic Junos PyEZ connector. This uses the documented PyEZ library, which uses Netconf underneath.
+# https://www.juniper.net/documentation/us/en/software/junos-pyez/junos-pyez-developer/index.html
+#
 import re
+
+from jnpr.junos import Device
+from jnpr.junos.utils.config import Config
+from jnpr.junos.exception import RpcError, ConfigLoadError, CommitError, LockError, UnlockError
+
+from netaddr import IPNetwork
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -43,14 +53,6 @@ from switches.connect.junos_pyez.utils import (
     junos_parse_if_type,
 )
 from switches.connect.utils import standardize_ipv4_subnet
-
-'''
-Basic Junos PyEZ connector. This uses the documented PyEZ library, which uses Netconf underneath.
-https://www.juniper.net/documentation/us/en/software/junos-pyez/junos-pyez-developer/index.html
-'''
-from jnpr.junos import Device
-from jnpr.junos.utils.config import Config
-from jnpr.junos.exception import RpcError, ConfigLoadError, CommitError, LockError, UnlockError
 
 
 class PyEZConnector(Connector):
@@ -226,9 +228,9 @@ class PyEZConnector(Connector):
 
         # first get interface information:
         dprint("INTERFACES:")
-        '''
-        This RPC is cli equivalent of "show interfaces extensive"
-        '''
+        #
+        # This RPC is cli equivalent of "show interfaces extensive"
+        #
         intf_data = self.device.rpc.get_interface_information(extensive=False)
         interfaces = intf_data.findall('.//physical-interface')
         for intf in interfaces:
@@ -240,9 +242,9 @@ class PyEZConnector(Connector):
 
             # try several fields to figure out what kind of interface this is:
             try:
-                type = intf.find('.//link-level-type').text
-                dprint(f"  link-level-type = {type}")
-                iface.type = junos_parse_if_type(type)
+                link_type = intf.find('.//link-level-type').text
+                dprint(f"  link-level-type = {link_type}")
+                iface.type = junos_parse_if_type(link_type)
             except Exception:
                 try:
                     if_type = intf.find('.//if-type').text
@@ -362,9 +364,9 @@ class PyEZConnector(Connector):
 
         # Now get PoE power supply info:
         try:
-            '''
-            This RPC is cli equivalent of "show poe controller"
-            '''
+            #
+            # This RPC is cli equivalent of "show poe controller"
+            #
             ps_data = self.device.rpc.get_poe_controller_information()
             # check that there is PoE info:
             controllers = ps_data.findall('.//controller-information')
@@ -375,9 +377,9 @@ class PyEZConnector(Connector):
 
                 # and get PoE Interface info:
                 try:
-                    '''
-                    This RPC is cli equivalent of "show poe interface"
-                    '''
+                    #
+                    # This RPC is cli equivalent of "show poe interface"
+                    #
                     poe_data = self.device.rpc.get_poe_interface_information()
                 except Exception as error:
                     dprint(f"dev.rpc.get_poe_interface_information() error: {error}")
@@ -396,15 +398,15 @@ class PyEZConnector(Connector):
         # get vlan info. this includes port membership!
         dprint("\nVLANS:")
         try:
-            '''
-            This RPC is cli equivalent of "show vlans extensive"
-            '''
+            #
+            # This RPC is cli equivalent of "show vlans extensive"
+            #
             vlan_response = self.device.rpc.get_vlan_information(extensive=True)
             vlans = vlan_response.findall('.//l2ng-l2ald-vlan-instance-group')
             for v in vlans:
                 name = v.find('.//l2ng-l2rtb-vlan-name').text
-                id = v.find('.//l2ng-l2rtb-vlan-tag').text
-                self.add_vlan_by_id(int(id), name)
+                vid = v.find('.//l2ng-l2rtb-vlan-tag').text
+                self.add_vlan_by_id(int(vid), name)
                 # and parse the interfaces on this vlan:
                 members = v.findall('.//l2ng-l2rtb-vlan-member')
                 for member in members:
@@ -415,13 +417,13 @@ class PyEZConnector(Connector):
                         mode = member.find('.//l2ng-l2rtb-vlan-member-interface-mode').text
                     except Exception:
                         mode = ''
-                    dprint(f"Vlan {id} '{name}' member {phys_if_name} {tagness} {mode}")
+                    dprint(f"Vlan {vid} '{name}' member {phys_if_name} {tagness} {mode}")
                     iface = self.get_interface_by_key(phys_if_name)
                     if iface:
                         if tagness == 'tagged':
-                            iface.add_tagged_vlan(int(id))
+                            iface.add_tagged_vlan(int(vid))
                         else:
-                            iface.untagged_vlan = int(id)
+                            iface.untagged_vlan = int(vid)
                         if mode == 'trunk':
                             iface.is_tagged = True
 
@@ -513,9 +515,9 @@ class PyEZConnector(Connector):
         # TBD
         #
         dprint("\nMAC ADDRESSESS:")
-        '''
-        This RPC is cli equivalent of "show ethernet-switching table extensive"
-        '''
+        #
+        # This RPC is cli equivalent of "show ethernet-switching table extensive"
+        #
         mac_data = self.device.rpc.get_ethernet_switching_table_information(extensive=True)
         macs = mac_data.findall('.//l2ng-l2ald-mac-entry-vlan')
         for mac in macs:
@@ -527,9 +529,9 @@ class PyEZConnector(Connector):
             self.add_learned_ethernet_address(if_name=phys_if_name, eth_address=mac_address, vlan_id=vlan_id)
 
         dprint("\nARP:")
-        '''
-        This RPC is cli equivalent of "show arp no-resolve"
-        '''
+        #
+        # This RPC is cli equivalent of "show arp no-resolve"
+        #
         arp_data = self.device.rpc.get_arp_table_information(no_resolve=True)
         arp_entries = arp_data.findall('.//arp-table-entry')
         # compile the IRB matching reg-ex for performance:
@@ -551,18 +553,18 @@ class PyEZConnector(Connector):
             self.add_learned_ethernet_address(if_name=if_name, eth_address=mac_address, ip4_address=ip_address)
 
         dprint("\nLLDP:")
-        '''
-        Most details come from the RPC call to
-            get_lldp_interface_neighbors(interface_device=<name>)
-        This RPC is cli equivalent of "show lldp neigbor interface <name>"
-        So we are going to loop through all interfaces:
-        '''
+        #
+        # Most details come from the RPC call to
+        #     get_lldp_interface_neighbors(interface_device=<name>)
+        # This RPC is cli equivalent of "show lldp neigbor interface <name>"
+        # So we are going to loop through all interfaces:
+        #
         for iface in self.interfaces.values():
             dprint(f"  Interface:{iface.name}")
             try:
-                '''
-                This RPC is cli equivalent of "show lldp neigbor interface <interface-name>"
-                '''
+                #
+                # This RPC is cli equivalent of "show lldp neigbor interface <interface-name>"
+                #
                 lldp_data = self.device.rpc.get_lldp_interface_neighbors(interface_device=iface.name)
                 neighbors = lldp_data.findall('.//lldp-neighbor-information')
                 for nb in neighbors:
@@ -613,16 +615,15 @@ class PyEZConnector(Connector):
         Returns:
             none
         '''
-        id = supply.find('.//controller-number').text
-        dprint(f"Power Supply id {id}")
+        ps_id = supply.find('.//controller-number').text
+        dprint(f"Power Supply id {ps_id}")
         max_power = junos_parse_power(supply.find('.//controller-maxpower').text)
         dprint(f"  max {max_power} Watts")
-        pse = self.add_poe_powersupply(id, max_power)
+        pse = self.add_poe_powersupply(ps_id, max_power)
         # set additional data:
         consumed_power = junos_parse_power(supply.find('.//controller-power').text)
         dprint(f"  used {consumed_power} Watts")
         pse.set_consumed_power(consumed_power)
-        return
 
     def _parse_poe_interface(self, intf):
         '''
@@ -937,12 +938,6 @@ class PyEZConnector(Connector):
             conf.unlock()
             dprint(f"conf.unlock() OK, returning ret_val={ret_val}")
             return ret_val
-        except RpcError as err:
-            dprint("Error: RcpError")
-            self.error.status = True
-            self.error.description = "Network Communications Error, change was NOT applied!"
-            self.error.details = f"Error: '{err}', commands '{commands}'"
-            return False
         except ConfigLoadError as err:
             dprint("Error: ConfigLoadError")
             self.error.status = True
@@ -965,6 +960,12 @@ class PyEZConnector(Connector):
             dprint("Error: UnlockError")
             self.error.status = True
             self.error.description = "Cannot release lock, but change was applied!"
+            self.error.details = f"Error: '{err}', commands '{commands}'"
+            return False
+        except RpcError as err:
+            dprint("Error: RcpError")
+            self.error.status = True
+            self.error.description = "Network Communications Error, change was NOT applied!"
             self.error.details = f"Error: '{err}', commands '{commands}'"
             return False
         except ValueError as err:
