@@ -34,10 +34,12 @@ Please consult your distribution's documentation for assistance with any errors.
   brew install postgresql
   brew services start postgresql
 
-NOTE: DO NOT USE SUDO TO BREW INSTALL, IT WILL CAUSE PERMISSION ISSUES. If you experience this please refer here_, or the brew documentation_.
+NOTE: DO NOT USE SUDO TO BREW INSTALL, IT WILL CAUSE PERMISSION ISSUES. If you experience this please refer here_,
+or the brew documentation_.
 
 .. _here: https://stackoverflow.com/questions/67688802/brew-postgresql-starts-but-process-is-not-running
 .. _documentation: https://docs.brew.sh/Installation
+
 **Verify Version**
 
 Verify you are running at least version 13:

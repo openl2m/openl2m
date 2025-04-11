@@ -37,6 +37,7 @@ you will need the following parts:
   # install needed python 3.11 packages
   sudo apt install python3.11 python3.11-dev python3.11-venv
 
+
 *The excercise of installing from source is left to the reader!*
 
 
@@ -99,6 +100,6 @@ MacOS Python Versions
 ---------------------
 
 You may use brew to install other versions of Python on MacOS. If you frequently switch versions,
-you may be interested in pyenv_
+you may be interested in `pyenv`_
 
-.. _pyenv:https://realpython.com/intro-to-pyenv/
+.. _pyenv: https://realpython.com/intro-to-pyenv/

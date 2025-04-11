@@ -28,7 +28,7 @@ Begin by installing all system packages required by OpenL2M and its dependencies
 *For best performance, we recommend using Python v3.12 (Ubuntu 24.04), as it has significant improvements over v3.10*
 :doc:`See the Alternate Python Installation section for more. <alt-python>`
 
-**MacOS**
+**On MacOS:**
 
 .. code-block:: bash
 
@@ -46,8 +46,10 @@ First, create the user environment for OpenL2M:
   sudo adduser --system --group openl2m
 
 
-**MacOS**
+**On MacOS:**
+
 .. code-block:: bash
+
   #create the user
   sudo dscl . -create /Users/openl2m
   sudo dscl . -create /Users/openl2m UserShell /usr/bin/false
