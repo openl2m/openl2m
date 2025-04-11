@@ -148,17 +148,17 @@ class Command(BaseCommand):
             # number => description
             log_actions[item[0]] = item[1]
 
-        # validate type choices
-        type = options["type"].lower()
-        if type not in log_types_by_name:
-            self.stdout.write(f"Error: invalid log type '{type}', select from {log_types.keys()}")
+        # validate log type choices
+        ltype = options["type"].lower()
+        if ltype not in log_types_by_name:
+            self.stdout.write(f"Error: invalid log type '{ltype}', select from {log_types.keys()}")
             return
-        log_type = log_types_by_name[type]
+        log_type = log_types_by_name[ltype]
 
         # create filter for Log() query:
-        filter = {}
+        filter_values = {}
         if log_type != -1:  # -1 = 'all', the default of the objects.all() below!
-            filter["type"] = log_type
+            filter_values["type"] = log_type
 
         # do we ignore some log entry types?
         excludes = []
@@ -203,7 +203,7 @@ class Command(BaseCommand):
                 return
             # create a filter of the list of user names,
             # for the models.User() object referenced in Log() object:
-            filter["user__username__in"] = users
+            filter_values["user__username__in"] = users
 
         # look for specific groups only?
         if options["groups"]:
@@ -218,7 +218,7 @@ class Command(BaseCommand):
                 return
             # create a filter of the list of group names,
             # for the SwitchGroup() object referenced in Log() object:
-            filter["group__name__in"] = groups
+            filter_values["group__name__in"] = groups
 
         # look for specific devices only?
         if options["devices"]:
@@ -233,7 +233,7 @@ class Command(BaseCommand):
                 return
             # create a filter of the list of device names,
             # for the Switch() object referenced in Log() object:
-            filter["switch__name__in"] = devices
+            filter_values["switch__name__in"] = devices
 
         # calculate what the cut-off time is. Use local timezone.
         now = timezone.now().astimezone(tz=None)
@@ -251,8 +251,8 @@ class Command(BaseCommand):
         )
 
         # get log since cut-off time
-        filter["timestamp__gt"] = cutoff_local
-        logs = Log.objects.all().exclude(action__in=excludes).filter(**filter).order_by("timestamp")
+        filter_values["timestamp__gt"] = cutoff_local
+        logs = Log.objects.all().exclude(action__in=excludes).filter(**filter_values).order_by("timestamp")
 
         # go output them!
         if logs:
