@@ -18,9 +18,7 @@ from django.conf import settings
 from django import template
 from django.template import Template, Context
 from django.utils.html import mark_safe
-from django.urls import reverse
 
-from switches.constants import SWITCH_VIEW_BASIC
 from switches.connect.classes import Interface
 from switches.connect.constants import (
     ENTITY_CLASS_NAME,
@@ -39,7 +37,7 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_OTHER,
 )
 
-from switches.utils import dprint
+# from switches.utils import dprint
 
 # see https://docs.djangoproject.com/en/2.2/ref/templates/api/
 # and https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/
@@ -81,16 +79,18 @@ def get_list_value_from_json(s, index):
     """
     if index:
         return json.loads(s)[index]
+    return ""
 
 
 @register.filter
-def get_list_value(list, index):
+def get_list_value(my_list, index):
     """
     Get a list value for the given index.
     call as {{ list|get_list_value:index }}
     """
     if index:
-        return list[index]
+        return my_list[index]
+    return ""
 
 
 @register.filter
@@ -101,6 +101,7 @@ def get_dictionary_value(d, key):
     """
     if key:
         return d.get(key)
+    return ""
 
 
 @register.filter
@@ -111,6 +112,7 @@ def get_dictionary_value_from_json(s, key):
     """
     if key:
         return json.loads(s).get(key)
+    return ""
 
 
 @register.filter
@@ -170,9 +172,9 @@ def get_switch_info_url_links(switch, user):
             # if we have a url defined, make sure used fields are set:
             if not validate_info_url_fields(info_url, switch):
                 continue
-            template = Template(build_url_string(info_url))
+            tpl = Template(build_url_string(info_url))
             context = Context({'switch': switch})
-            links += template.render(context)
+            links += tpl.render(context)
 
     if user.is_superuser or user.is_staff:
         if settings.SWITCH_INFO_URLS_STAFF:
@@ -180,18 +182,18 @@ def get_switch_info_url_links(switch, user):
                 # if we have a url defined, make sure used fields are set:
                 if not validate_info_url_fields(info_url, switch):
                     continue
-                template = Template(build_url_string(info_url))
+                tpl = Template(build_url_string(info_url))
                 context = Context({'switch': switch})
-                links += template.render(context)
+                links += tpl.render(context)
 
     if user.is_superuser and settings.SWITCH_INFO_URLS_ADMINS:
         for info_url in settings.SWITCH_INFO_URLS_ADMINS:
             # if we have a url defined, make sure used fields are set:
             if not validate_info_url_fields(info_url, switch):
                 continue
-            template = Template(build_url_string(info_url))
+            tpl = Template(build_url_string(info_url))
             context = Context({'switch': switch})
-            links += template.render(context)
+            links += tpl.render(context)
 
     return mark_safe(links)
 
@@ -206,9 +208,9 @@ def get_interface_info_links(switch, iface):
         for info_url in settings.INTERFACE_INFO_URLS:
             if not validate_info_url_fields(info_url, switch, iface):
                 continue
-            template = Template(build_url_string(info_url))
+            tpl = Template(build_url_string(info_url))
             context = Context({'switch': switch, 'iface': iface})
-            links += template.render(context)
+            links += tpl.render(context)
     return mark_safe(links)
 
 
@@ -221,13 +223,13 @@ def get_vlan_info_links(vlan):
     if settings.VLAN_INFO_URLS:
         # do this for all URLs listed:
         for info_url in settings.VLAN_INFO_URLS:
-            template = Template(build_url_string(info_url))
+            tpl = Template(build_url_string(info_url))
             context = Context(
                 {
                     'vlan': vlan,
                 }
             )
-            links += template.render(context)
+            links += tpl.render(context)
     return mark_safe(links)
 
 
@@ -240,13 +242,13 @@ def get_ethernet_info_links(ethernet):
     if settings.ETHERNET_INFO_URLS:
         # do this for all URLs listed:
         for info_url in settings.ETHERNET_INFO_URLS:
-            template = Template(build_url_string(info_url))
+            tpl = Template(build_url_string(info_url))
             context = Context(
                 {
                     'ethernet': ethernet,
                 }
             )
-            links += template.render(context)
+            links += tpl.render(context)
     return mark_safe(links)
 
 
@@ -259,13 +261,13 @@ def get_ip4_info_links(ip4_address):
     if settings.IP4_INFO_URLS:
         # do this for all URLs listed:
         for info_url in settings.IP4_INFO_URLS:
-            template = Template(build_url_string(info_url))
+            tpl = Template(build_url_string(info_url))
             context = Context(
                 {
                     'ip4': ip4_address,
                 }
             )
-            links += template.render(context)
+            links += tpl.render(context)
     return mark_safe(links)
 
 
@@ -278,13 +280,13 @@ def get_ip6_info_links(ip6_address):
     if settings.IP6_INFO_URLS:
         # do this for all URLs listed:
         for info_url in settings.IP6_INFO_URLS:
-            template = Template(build_url_string(info_url))
+            tpl = Template(build_url_string(info_url))
             context = Context(
                 {
                     'ip6': ip6_address,
                 }
             )
-            links += template.render(context)
+            links += tpl.render(context)
     return mark_safe(links)
 
 
@@ -547,9 +549,9 @@ title: Device connections for '{connection.switch.name}'
 
     # now find all neighbors on all interfaces:
     num = 0
-    for key, iface in connection.interfaces.items():
+    for iface in connection.interfaces.values():
         if iface.visible:
-            for lldp_index, neighbor in iface.lldp.items():
+            for neighbor in iface.lldp.values():
                 num += 1
                 # figure out "neighbor display name" from what we know:
                 if neighbor.hostname:
@@ -639,7 +641,7 @@ def list_ip_addresses(iface: Interface) -> str:
     """
     s = ''
     if iface.addresses_ip4:
-        for ip, addr in iface.addresses_ip4.items():
+        for addr in iface.addresses_ip4.values():
             s += f" {addr.ip}/"
             if settings.IFACE_IP4_SHOW_PREFIXLEN:
                 s += f"{addr.prefixlen}"
@@ -647,7 +649,7 @@ def list_ip_addresses(iface: Interface) -> str:
                 s += f"{addr.netmask}"
     # add IPv6 if found
     if iface.addresses_ip6:
-        for ip, addr in iface.addresses_ip6.items():
+        for addr in iface.addresses_ip6.values():
             s += f" {addr.ip}/{addr.prefixlen}"
     return s
 
@@ -663,11 +665,11 @@ def querystring(request, **kwargs):
             querydict[k] = str(v)
         elif k in querydict:
             querydict.pop(k)
-    querystring = querydict.urlencode(safe='/')
-    if querystring:
-        return '?' + querystring
-    else:
-        return ''
+    query = querydict.urlencode(safe='/')
+    if query:
+        return '?' + query
+
+    return ''
 
 
 # adopted from Netbox!
@@ -691,14 +693,14 @@ def humanize_speed(iface):
         duplex = ''
     if speed >= 1000000000 and speed % 1000000000 == 0:
         return f'{int(speed / 1000000000)} Pbps{duplex}'
-    elif speed >= 1000000 and speed % 1000000 == 0:
+    if speed >= 1000000 and speed % 1000000 == 0:
         return f'{format(int(speed / 1000000))} Tbps{duplex}'
-    elif speed >= 1000 and speed % 1000 == 0:
+    if speed >= 1000 and speed % 1000 == 0:
         return f'{format(int(speed / 1000))} Gbps{duplex}'
-    elif speed >= 1000:
+    if speed >= 1000:
         return f'{format(float(speed) / 1000)} Gbps{duplex}'
-    else:
-        return f'{format(speed)} Mbps{duplex}'
+
+    return f'{format(speed)} Mbps{duplex}'
 
 
 # adopted from Netbox!
@@ -711,7 +713,8 @@ def humanize_power(power):
     """
     if not power:
         return ''
-    return '{:.1f}W'.format(power / 1000)
+    # return '{:.1f}W'.format(power / 1000)
+    return f'{power/1000:.1f}W'
 
 
 # from https://stackoverflow.com/questions/2751319/is-there-a-django-template-filter-to-display-percentages
@@ -723,4 +726,3 @@ def as_percentage_of(part, whole):
         return "%d%%" % (float(part) / whole * 100)
     except (ValueError, ZeroDivisionError):
         return "0%"
-    return "unknown %"
