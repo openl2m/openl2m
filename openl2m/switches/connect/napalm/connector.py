@@ -11,6 +11,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+
+#
+# Basic Napalm connector. This allows us to handle any device supported by
+# the Napalm Library, at least in read-only mode.
+#
+
 import traceback
 
 from django.http.request import HttpRequest
@@ -45,11 +51,6 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_STATION,
     LLDP_CAPABILITIES_OTHER,
 )
-
-"""
-Basic Napalm connector. This allows us to handle any device supported by
-the Napalm Library, at least in read-only mode.
-"""
 
 
 class NapalmConnector(Connector):
@@ -161,19 +162,20 @@ class NapalmConnector(Connector):
                     iface.untagged_vlan = int(vlan_id)
 
         # now load the per-interface vlan data, implemented in some drivers ?
-        """
-        try:
-            iface_list = self.napalm_device.get_interface_vlans()
-        except Exception as e:
-            self.error.status = True
-            self.error.description = "Cannot get interface vlan list"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            dprint(f"   napalm.device.get_interface_vlan() Exception: {e.__class__.__name__}\n{self.error.details}\n")
-            self.add_warning(warning="Napalm error in get_interface_vlan() - Likely not implemented!")
-            self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_VLANS, description=f"ERROR: {self.error.details}")
-            return False
-        dprint(f"interface_vlans = \n{iface_list}\n")
-        """
+
+        #
+        # try:
+        #     iface_list = self.napalm_device.get_interface_vlans()
+        # except Exception as e:
+        #     self.error.status = True
+        #     self.error.description = "Cannot get interface vlan list"
+        #     self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+        #     dprint(f"   napalm.device.get_interface_vlan() Exception: {e.__class__.__name__}\n{self.error.details}\n")
+        #     self.add_warning(warning="Napalm error in get_interface_vlan() - Likely not implemented!")
+        #     self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_VLANS, description=f"ERROR: {self.error.details}")
+        #     return False
+        # dprint(f"interface_vlans = \n{iface_list}\n")
+        #
 
         # now load the interface ipv4 data:
         try:
