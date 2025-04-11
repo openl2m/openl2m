@@ -266,21 +266,39 @@ def is_valid_hostname_or_ip(data: str) -> bool:
     """
     Check if the data given is either an IPv4 address, or a valid hostname.
     Return True if so, False otherwize.
-    Note: this does not handle IPv6 yet!
     """
-    # check IPv4/v6 pattern first
+    # check IPv4 pattern first
     try:
         address = ipaddress.ip_address(data)
         if isinstance(address, ipaddress.IPv4Address):
             return True
-        if isinstance(address, ipaddress.IPv6Address):
-            return False  # v6 not supported for now!
         return False  # should not happen!
     except ValueError:
-        # not IPv4 or IPv6!, so check hostname:
+        # not IPv4 so check hostname:
         try:
+            # note: this does IPv4 resolution only!
             socket.gethostbyname(data)
-            # note: this does IPv4 resolution. When we support IPv6, change to socket.getaddrinfo()
+            return True
+        except Exception:
+            # fail gracefully!
+            return False
+
+
+def is_valid_hostname_or_ip6(data: str) -> bool:
+    """
+    Check if the data given is either an IPv6 address, or a valid IPv6 hostname.
+    Return True if so, False otherwize.
+    """
+    # check IPv6 pattern first
+    try:
+        address = ipaddress.ip_address(data)
+        if isinstance(address, ipaddress.IPv6Address):
+            return True
+        return False  # should not happen!
+    except ValueError:
+        # not IPv6!, so check IPv6 hostname:
+        try:
+            result = socket.getaddrinfo(host=data, port=0, family=socket.AF_INET6)
             return True
         except Exception:
             # fail gracefully!

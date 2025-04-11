@@ -71,7 +71,7 @@ class SwitchAdmin(admin.ModelAdmin):
     search_fields = ['name']
     inlines = (SwitchInline,)
     fieldsets = (
-        (None, {'fields': ('name', 'description', 'primary_ip4')}),
+        (None, {'fields': ('name', 'description', 'primary_ip4', 'primary_ip6')}),
         (
             'Connection Configuration',
             {

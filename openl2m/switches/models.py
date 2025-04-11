@@ -28,7 +28,7 @@ from ordered_model.models import OrderedModelManager, OrderedModel
 
 import switches.constants as constants
 from switches.connect.constants import NETMIKO_DEVICE_TYPES, NAPALM_DEVICE_TYPES
-from switches.utils import is_valid_hostname_or_ip
+from switches.utils import is_valid_hostname_or_ip, is_valid_hostname_or_ip6
 
 
 #
@@ -855,12 +855,6 @@ class Switch(models.Model):
         verbose_name='Bulk-editing of interfaces',
         help_text='If Bulk Edit is set, we allow multiple interfaces on this switch to be edited at once.',
     )
-    indent_level = models.SmallIntegerField(
-        default=0,
-        verbose_name='Indentation level',
-        validators=[MinValueValidator(0), MaxValueValidator(10)],
-        help_text='Tab indentation level, helps organize the switchgroup view.',
-    )
     default_view = models.PositiveSmallIntegerField(
         choices=constants.SWITCH_VIEW_CHOICES,
         default=constants.SWITCH_VIEW_BASIC,
@@ -891,14 +885,15 @@ class Switch(models.Model):
         verbose_name='Management IPv4',
         help_text='IPv4 address or hostname, can be duplicate as long as name is unique.',
     )
-    #    primary_ip6 = models.CharField(
-    #        max_length=64,
-    #        on_delete=models.SET_NULL,
-    #        blank=True,
-    #        null=True,
-    #        unique=False,   # we allow duplication, but combination of IP and SnmpProfile should be unique!
-    #        verbose_name='Management IPv6',
-    #    )
+    primary_ip6 = models.CharField(
+        max_length=64,
+        # on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        unique=False,  # we allow duplication, but combination of IP and SnmpProfile should be unique!
+        verbose_name='Management IPv6',
+        help_text='IPv6 address or hostname, can be duplicate as long as device name is unique.',
+    )
     comments = models.TextField(
         blank=True,
         help_text='Add any additional information about this switch.',
@@ -1065,8 +1060,10 @@ class Switch(models.Model):
     # see also https://docs.djangoproject.com/en/2.2/ref/models/instances/#validating-objects
     def clean(self):
         # check if IPv4 address or hostname given is valid!
-        if not is_valid_hostname_or_ip(self.primary_ip4):
+        if self.primary_ip4 and not is_valid_hostname_or_ip(self.primary_ip4):
             raise ValidationError('Invalid Management IPv4 address or hostname.')
+        if self.primary_ip6 and not is_valid_hostname_or_ip6(self.primary_ip6):
+            raise ValidationError('Invalid Management IPv6 address or hostname.')
         # if SNMP, we need snmp_profile
         if self.connector_type == constants.CONNECTOR_TYPE_SNMP:
             if not self.snmp_profile:
