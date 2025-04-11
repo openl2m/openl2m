@@ -20,9 +20,10 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from openl2m.api.authentication import IsSuperUser
 from switches.stats import get_environment_info, get_database_info, get_usage_info
 from switches.utils import dprint
+
+from openl2m.api.authentication import IsSuperUser
 
 API_VERSION = 1
 
