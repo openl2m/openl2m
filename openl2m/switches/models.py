@@ -27,7 +27,13 @@ from django.utils import timezone
 from ordered_model.models import OrderedModelManager, OrderedModel
 
 import switches.constants as constants
-from switches.connect.constants import NETMIKO_DEVICE_TYPES, NAPALM_DEVICE_TYPES
+from switches.connect.constants import (
+    IANA_TYPE_IPV4,
+    IANA_TYPE_IPV6,
+    IANA_TYPE_OTHER,
+    NETMIKO_DEVICE_TYPES,
+    NAPALM_DEVICE_TYPES,
+)
 from switches.utils import is_valid_hostname_or_ip, is_valid_hostname_or_ip6
 
 
@@ -1083,22 +1089,29 @@ class Switch(models.Model):
             if not self.netmiko_profile:
                 raise ValidationError('This Connector needs a Credentials Profile!')
 
-    # this needs to be accessed from templates:
-    @property
-    def primary_ip(self):
+    def get_primary_ip(self):
+        '''Return the primary IP or hostname (ipv4 or ipv6) of a device, and the type,
+        depending on global setting
+
+        Returns:
+            (str, int): tuple of (IPv4 or IPv6 address or hostname) and
+                      address type (IANA_TYPE_IPV4, IANA_TYPE_IPV6 or IANA_TYPE_OTHER)
+        '''
         if settings.PREFER_IPV4:
             if self.primary_ip4:
-                return self.primary_ip4
+                return (self.primary_ip4, IANA_TYPE_IPV4)
             if self.primary_ip6:
-                return self.primary_ip6
-            return ""
+                return (self.primary_ip6, IANA_TYPE_IPV6)
+            return ("", IANA_TYPE_OTHER)
+
         # we prefer IPv6:
         if self.primary_ip6:
-            return self.primary_ip6
+            return (self.primary_ip6, IANA_TYPE_IPV6)
         if self.primary_ip4:
-            return self.primary_ip4
+            return (self.primary_ip4, IANA_TYPE_IPV4)
+
         # no valid IPv4/6 found, should not happen!
-        return ""
+        return ("", IANA_TYPE_OTHER)
 
 
 # this adds the switches to a group, with all other things needed
