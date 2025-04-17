@@ -89,9 +89,9 @@ MAINTENANCE_MODE = False
 # Determine how many objects to display per page within a list. (Default: 50)
 PAGINATE_COUNT = 50
 
-# When determining the primary IP address for a device, IPv6 is preferred over IPv4 by default. Set this to True to
-# prefer IPv4 instead.
-PREFER_IPV4 = True  # IPv6 has not been tested!
+# When determining the primary IP address for a device, IPv4 is preferred over IPv6 by default.
+# Set this to False to prefer IPv6 instead.
+PREFER_IPV4 = True
 
 # By default, OpenL2M will store session data in the database. Alternatively, a file path can be specified here to use
 # local file storage instead. (This can be useful for enabling authentication on a standby instance with read-only
