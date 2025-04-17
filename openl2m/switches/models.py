@@ -1064,6 +1064,8 @@ class Switch(models.Model):
             raise ValidationError('Invalid Management IPv4 address or hostname.')
         if self.primary_ip6 and not is_valid_hostname_or_ip6(self.primary_ip6):
             raise ValidationError('Invalid Management IPv6 address or hostname.')
+        if not self.primary_ip4 and not self.primary_ip6:
+            raise ValidationError('We need a valid IPv4 or IPv6 address or hostname.')
         # if SNMP, we need snmp_profile
         if self.connector_type == constants.CONNECTOR_TYPE_SNMP:
             if not self.snmp_profile:
@@ -1084,14 +1086,19 @@ class Switch(models.Model):
     # this needs to be accessed from templates:
     @property
     def primary_ip(self):
-        if settings.PREFER_IPV4 and self.primary_ip4:
-            return self.primary_ip4
-        # elif self.primary_ip6:
-        #    return self.primary_ip6
+        if settings.PREFER_IPV4:
+            if self.primary_ip4:
+                return self.primary_ip4
+            if self.primary_ip6:
+                return self.primary_ip6
+            return ""
+        # we prefer IPv6:
+        if self.primary_ip6:
+            return self.primary_ip6
         if self.primary_ip4:
             return self.primary_ip4
-        else:
-            return None
+        # no valid IPv4/6 found, should not happen!
+        return ""
 
 
 # this adds the switches to a group, with all other things needed
