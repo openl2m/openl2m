@@ -34,7 +34,7 @@ First we create the directory to hold your SSL keys and certificate:
   cd /etc/nginx/ssl
   sudo chmod g-rwx,o-rws .
 
-**This assumes your private key is installed in /etc/nginx/ssl,
+**This assumes your private key will be installed in /etc/nginx/ssl,
 and that this directory is only accessible by the 'root' account.
 If your organization has different security requirements,
 change this as appropriate.**
@@ -104,7 +104,7 @@ Again, modify your domain name accordingly!
 
 .. code-block:: bash
 
-  nginx -t
+  sudo nginx -t
 
 
 Solve any errors that may show. If all is OK, restart Nginx, and you should have an SSL web site up::
