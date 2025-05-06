@@ -16,8 +16,6 @@
 # Basic Junos PyEZ connector. This uses the documented PyEZ library, which uses Netconf underneath.
 # https://www.juniper.net/documentation/us/en/software/junos-pyez/junos-pyez-developer/index.html
 #
-import re
-
 from jnpr.junos import Device
 from jnpr.junos.utils.config import Config
 from jnpr.junos.exception import RpcError, ConfigLoadError, CommitError, LockError, UnlockError
@@ -50,6 +48,7 @@ from switches.connect.junos_pyez.utils import (
     junos_parse_power,
     junos_parse_duplex,
     junos_remove_unit,
+    junos_get_real_ifname,
     junos_parse_if_type,
 )
 from switches.connect.utils import standardize_ipv4_subnet
@@ -432,65 +431,74 @@ class PyEZConnector(Connector):
             self.add_warning(warning=f"ERROR: Cannot get vlans - {error}")
 
         dprint("VRFs()")
-        vrf_data = self.device.rpc.get_instance_information(detail=True)
-        vrfs = vrf_data.findall(".//instance-core")
-        for vrf in vrfs:
-            vrf_name = vrf.find(".//instance-name").text
-            vrf_type = vrf.find(".//instance-type").text  # "forwarding" or "vrf"
-            dprint(f"  Found: {vrf_name} -> {vrf_type}")
-            if vrf_type != "vrf":
-                continue
-            # create OpenL2M Vrf() object:
-            dprint(f"  New VRF: {vrf_name}")
-            this_vrf = self.get_vrf_by_name(name=vrf_name)
-            # get the VRF info:
-            vrf_info = vrf.find(".//instance-vrf")
-            this_vrf.rd = vrf_info.find(".//route-distinguisher").text
-            # find the interfaces, ie the "rib"s in Junos terms.
-            intfaces = vrf.findall(".//instance-interface")
-            for intf in intfaces:
-                # the interfaces in VRF:
-                if_name = intf.find(".//interface-name").text
-                dprint(f"    Found interface: {if_name}")
-                # find OpenL2M Interface():
-                iface = self.get_interface_by_key(key=if_name)
-                if iface:
-                    # get the Interface() object:
-                    dprint("    Interface() found!")
-                    # add to the list of interfaces for this vrf
-                    if iface.name not in self.vrfs[vrf_name].interfaces:
-                        self.vrfs[vrf_name].interfaces.append(iface.name)
-                    # adding this vrf name to the interface:
-                    iface.vrf_name = vrf_name
-                    # if IRB (aka Vlan-Interface) parse the vlan out of this
-                    if if_name.startswith("irb."):
-                        try:
-                            vlan_id = int(if_name[4:])
-                            vlan = self.get_vlan_by_id(vlan_id=vlan_id)
-                            vlan.vrf = vrf_name
-                        except Exception as err:
-                            dprint(f"  Error getting vlan id from if name 'if_name' - {err}")
+        try:
+            #
+            # This RPC is cli equivalent of "show route instance detail"
+            #
+            vrf_data = self.device.rpc.get_instance_information(detail=True)
+            vrfs = vrf_data.findall(".//instance-core")
+            for vrf in vrfs:
+                vrf_name = vrf.find(".//instance-name").text
+                vrf_type = vrf.find(".//instance-type").text  # "forwarding" or "vrf"
+                dprint(f"  Found: {vrf_name} -> {vrf_type}")
+                if vrf_type != "vrf":
+                    continue
+                # create OpenL2M Vrf() object:
+                dprint(f"  New VRF: {vrf_name}")
+                this_vrf = self.get_vrf_by_name(name=vrf_name)
+                # get the VRF info:
+                vrf_info = vrf.find(".//instance-vrf")
+                this_vrf.rd = vrf_info.find(".//route-distinguisher").text
+                # find the interfaces, ie the "rib"s in Junos terms.
+                intfaces = vrf.findall(".//instance-interface")
+                for intf in intfaces:
+                    # the interfaces in VRF:
+                    if_name = intf.find(".//interface-name").text
+                    dprint(f"    Found interface: {if_name}")
+                    # find OpenL2M Interface():
+                    iface = self.get_interface_by_key(key=if_name)
+                    if iface:
+                        # get the Interface() object:
+                        dprint("    Interface() found!")
+                        # add to the list of interfaces for this vrf
+                        if iface.name not in self.vrfs[vrf_name].interfaces:
+                            self.vrfs[vrf_name].interfaces.append(iface.name)
+                        # adding this vrf name to the interface:
+                        iface.vrf_name = vrf_name
+                        # if IRB (aka Vlan-Interface) parse the vlan out of this
+                        if if_name.startswith("irb."):
+                            try:
+                                vlan_id = int(if_name[4:])
+                                vlan = self.get_vlan_by_id(vlan_id=vlan_id)
+                                vlan.vrf = vrf_name
+                            except Exception as err:
+                                dprint(f"  Error getting vlan id from if name 'if_name' - {err}")
 
-            # find the route tables supporte, ie the "rib"s in Junos terms.
-            # this gives us what protocols are supported.
-            ribs = vrf.findall(".//instance-rib")
-            for rib in ribs:
-                # the interfaces in VRF:
-                rib_name = rib.find(".//irib-name").text
-                dprint(f"    RIB found: {rib_name}")
-                # we need to remove the VRF name to get the protocol routing table:
-                if rib_name.startswith(vrf_name):
-                    protocol_name = rib_name[(len(vrf_name) + 1) :]
-                    dprint(f"    Protocol table: {protocol_name}")
-                    match protocol_name:
-                        case "inet.0":
-                            # IPv4
-                            this_vrf.ipv4 = True
-                        case "inet6.0":
-                            # IPv6 Unicast
-                            this_vrf.ipv6 = True
-                        # case "inet.1":
-                        #    dprint("IPv4 Multicast ignored!")
+                # find the route tables supporte, ie the "rib"s in Junos terms.
+                # this gives us what protocols are supported.
+                ribs = vrf.findall(".//instance-rib")
+                for rib in ribs:
+                    # the interfaces in VRF:
+                    rib_name = rib.find(".//irib-name").text
+                    dprint(f"    RIB found: {rib_name}")
+                    # we need to remove the VRF name to get the protocol routing table:
+                    if rib_name.startswith(vrf_name):
+                        protocol_name = rib_name[(len(vrf_name) + 1) :]
+                        dprint(f"    Protocol table: {protocol_name}")
+                        match protocol_name:
+                            case "inet.0":
+                                # IPv4
+                                this_vrf.ipv4 = True
+                            case "inet6.0":
+                                # IPv6 Unicast
+                                this_vrf.ipv6 = True
+                            # case "inet.1":
+                            #    dprint("IPv4 Multicast ignored!")
+
+        except Exception as error:
+            dprint(f"dev.rpc.get_instance_information() error: {error}")
+            # NO warning to user - not all devices support VRF's
+            # self.add_warning(warning=f"ERROR: Cannot get VRFs - {error}")
 
         # done with PyEZ connection:
         self._close_device()
@@ -515,42 +523,67 @@ class PyEZConnector(Connector):
         # TBD
         #
         dprint("\nMAC ADDRESSESS:")
-        #
-        # This RPC is cli equivalent of "show ethernet-switching table extensive"
-        #
-        mac_data = self.device.rpc.get_ethernet_switching_table_information(extensive=True)
-        macs = mac_data.findall('.//l2ng-l2ald-mac-entry-vlan')
-        for mac in macs:
-            mac_address = mac.find('.//l2ng-l2-mac-address').text
-            vlan_id = int(mac.find('.//l2ng-l2-vlan-id').text)
-            if_name = mac.find('.//l2ng-l2-mac-logical-interface').text
-            phys_if_name = junos_remove_unit(if_name)
-            dprint(f"  Found: {mac_address}, on vlan {vlan_id}, interface {phys_if_name}")
-            self.add_learned_ethernet_address(if_name=phys_if_name, eth_address=mac_address, vlan_id=vlan_id)
+        try:
+            #
+            # This RPC is cli equivalent of "show ethernet-switching table extensive"
+            #
+            mac_data = self.device.rpc.get_ethernet_switching_table_information(extensive=True)
+            macs = mac_data.findall('.//l2ng-l2ald-mac-entry-vlan')
+            for mac in macs:
+                mac_address = mac.find('.//l2ng-l2-mac-address').text
+                vlan_id = int(mac.find('.//l2ng-l2-vlan-id').text)
+                if_name = mac.find('.//l2ng-l2-mac-logical-interface').text
+                phys_if_name = junos_remove_unit(if_name)
+                dprint(f"  Found: {mac_address}, on vlan {vlan_id}, interface {phys_if_name}")
+                self.add_learned_ethernet_address(if_name=phys_if_name, eth_address=mac_address, vlan_id=vlan_id)
+        except Exception as error:
+            dprint(f"dev.rpc.get_ethernet_switching_table_information() error: {error}")
+            self.add_warning(warning=f"ERROR: Cannot get ethernet addresses - {error}")
 
         dprint("\nARP:")
-        #
-        # This RPC is cli equivalent of "show arp no-resolve"
-        #
-        arp_data = self.device.rpc.get_arp_table_information(no_resolve=True)
-        arp_entries = arp_data.findall('.//arp-table-entry')
-        # compile the IRB matching reg-ex for performance:
-        irb_regex = re.compile(r"^irb\.\d+\s+\[([\w\-\.\/]+)\]$")
-        for arp in arp_entries:
-            mac_address = arp.find('.//mac-address').text
-            ip_address = arp.find('.//ip-address').text
-            if_name = arp.find('.//interface-name').text
-            dprint(f"  {mac_address} = {ip_address}, on {if_name}")
-            # if found on routed interface, if_name could be formed as "irb.nnn [if_name]"
-            m = re.match(irb_regex, if_name)
-            if m:
-                if_name = junos_remove_unit(m.group(1))
-                dprint(f"     Matched IRB, real interface = {if_name}")
-            else:
-                # maybe this is a 'regular' interface with unit:
-                if_name = junos_remove_unit(if_name)
-            dprint(f"   Final real interface: {if_name}")
-            self.add_learned_ethernet_address(if_name=if_name, eth_address=mac_address, ip4_address=ip_address)
+        try:
+            #
+            # This RPC is cli equivalent of "show arp no-resolve"
+            #
+            arp_data = self.device.rpc.get_arp_table_information(no_resolve=True)
+            arp_entries = arp_data.findall('.//arp-table-entry')
+            for arp in arp_entries:
+                mac_address = arp.find('.//mac-address').text
+                ip_address = arp.find('.//ip-address').text
+                if_name = arp.find('.//interface-name').text
+                dprint(f"  {mac_address} = {ip_address}, on {if_name}")
+                # if found on routed interface, if_name could be formed as "irb.nnn [if_name]"
+                if_name = junos_get_real_ifname(if_name)
+                dprint(f"   Final real interface: {if_name}")
+                self.add_learned_ethernet_address(if_name=if_name, eth_address=mac_address, ip4_address=ip_address)
+        except Exception as error:
+            dprint(f"dev.rpc.get_arp_table_information() error: {error}")
+            self.add_warning(warning=f"ERROR: Cannot get ARP data - {error}")
+
+        dprint("\nIPv6 ND:")
+        try:
+            #
+            # This RPC is cli equivalent of "show ipv6 neighbors"
+            #
+            nd_data = self.device.rpc.get_ipv6_nd_information()
+            nd_entries = nd_data.findall('.//ipv6-nd-entry')
+            for nd in nd_entries:
+                mac_address = nd.find('.//ipv6-nd-neighbor-l2-address').text
+                ipv6_address = nd.find('.//ipv6-nd-neighbor-address').text
+                state = nd.find('.//ipv6-nd-state').text
+                expire = nd.find('.//ipv6-nd-expire').text
+                isrouter = nd.find('.//ipv6-nd-isrouter').text
+                issecure = nd.find('.//ipv6-nd-issecure').text
+                if_name = nd.find('.//ipv6-nd-interface-name').text
+                dprint(f"  {mac_address} = {ip_address}, on {if_name}")
+                # if found on routed interface, if_name could be formed as "irb.nnn [if_name]"
+                if_name = junos_get_real_ifname(if_name=if_name)
+                dprint(f"   Final real interface: {if_name}")
+                self.add_learned_ethernet_address(if_name=if_name, eth_address=mac_address, ip6_address=ipv6_address)
+        except Exception as error:
+            dprint(f"dev.rpc.get_ipv6_nd_information() error: {error}")
+            # NO warning to the user - not all devices support IPv6
+            # self.add_warning(warning=f"ERROR: Cannot get IPv6 ND data - {error}")
 
         dprint("\nLLDP:")
         #

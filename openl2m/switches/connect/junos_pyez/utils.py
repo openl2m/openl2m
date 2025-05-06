@@ -11,6 +11,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+import re
 
 from switches.connect.constants import (
     IF_TYPE_NONE,
@@ -23,6 +24,7 @@ from switches.connect.constants import (
     IF_DUPLEX_HALF,
     IF_DUPLEX_FULL,
 )
+from switches.utils import dprint
 
 
 def junos_speed_to_mbps(speed: str) -> int:
@@ -100,7 +102,7 @@ def junos_parse_duplex(duplex: str) -> int:
 def junos_remove_unit(if_name: str) -> str:
     '''
     Remove the Junos unit from the interface name.
-    E.g. "" eth-0/0/0.0" becomes "eth-0/0/0"
+    E.g. "eth-0/0/0.0" becomes "eth-0/0/0"
 
     Args:
         if_name(str): the interface name
@@ -112,6 +114,19 @@ def junos_remove_unit(if_name: str) -> str:
     if pos > 0:
         return if_name[:pos]
     return if_name
+
+
+def junos_get_real_ifname(if_name: str) -> str:
+    '''Return real interface name from string that could be an IRB or regular interface with unit number.'''
+    # compile the IRB matching reg-ex:
+    irb_regex = re.compile(r"^irb\.\d+\s+\[([\w\-\.\/]+)\]$")
+    # see if interface name matches this expanded formation
+    m = re.match(irb_regex, if_name)
+    if m:
+        dprint(f"junos_get_real_ifname() found IRB in '{if_name}'")
+        return junos_remove_unit(m.group(1))
+    # maybe this is a 'regular' interface with unit:
+    return junos_remove_unit(if_name)
 
 
 def junos_parse_if_type(if_type: str) -> int:
