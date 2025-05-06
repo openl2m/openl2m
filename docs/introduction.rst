@@ -61,7 +61,7 @@ OpenL2M is not meant to be a network management or monitoring system (aka NMS). 
 does not have trending and alerting capabilities; and does not have any other features typically found in
 network monitoring or management systems. An admin can configure various additive web links (clickable icons)
 on interfaces or devices to link OpenL2M to other enterprise network management systems
-such as LibreNMS_, Observium_, Nagios_, Akips_ and others.
+such as `LibreNMS <https:/www.librenms.org/>`_, `Observium <https://www.observium.org/>`_, `Nagios <https://www.nagios.org/>`_, `Akips <https:/www.akips.com/>`_ and others.
 
 **How OpenL2M Works**
 
@@ -87,16 +87,8 @@ matching "Trunk", or with port speeds above 9.5Gbps can be matched to be off-lim
 
 **Getting Started**
 
-OpenL2M uses the Django_ framework with a PostgreSQL_ database.
-It uses the Python_ v3 programming language. Most common switches are supported via SNMP v3 or v2c, and SSH.
-
-.. _Django: https://www.djangoproject.com/
-.. _PostgreSQL: http://www.postgresql.org/
-.. _Python: http://www.python.org/
-.. _Observium: https://www.observium.org
-.. _LibreNMS: https:/www.librenms.org
-.. _Akips: https:/www.akips.com
-.. _Nagios: https://www.nagios.org
+OpenL2M uses the `Django <https://www.djangoproject.com/>`_ framework with a `PostgreSQL <http://www.postgresql.org/>`_ database.
+It uses the `Python v3 <http://www.python.org/>`_ programming language. Most common switches are supported via SNMP v3 or v2c, and SSH.
 
 See the installation section for help with getting OpenL2M up and running quickly.
 
@@ -113,16 +105,11 @@ version.
 
 This software is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE.  See the GNU General Public License in LICENSE.TXT_
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License in `LICENSE.TXT <https://www.gnu.org/licenses/gpl-3.0.txt>`_
 for more details.
-
-.. _LICENSE.TXT: https://www.gnu.org/licenses/gpl-3.0.txt
 
 **Influences and Credits**
 
-OpenL2M is influenced by the Netbox_ open source tool.
+OpenL2M is influenced by the `Netbox <https://github.com/netbox-community/netbox>`_ open source tool.
 OpenL2M sprouted from curiosity to figure out how Netbox works and uses the Django framework.
-Some credit goes to Uninett_ NAV as well, showing various SNMP related actions on devices.
-
-.. _Netbox: https://github.com/netbox-community/netbox
-.. _Uninett: https://nav.uninett.no/
+Some credit goes to `Uninett NAV <https://nav.uninett.no/>`_ as well, showing various SNMP related actions on devices.
