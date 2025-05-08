@@ -73,6 +73,7 @@ six
 Sphinx
 sphinx_rtd_theme
 sphinx-design
+sphinxcontrib-mermaid
 textfsm
 PyYAML>=6.0
 pipenv
