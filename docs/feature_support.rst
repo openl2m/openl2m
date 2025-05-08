@@ -105,8 +105,8 @@ Features Supported
      - Yes
      - Yes
      - Yes
-     -
-     - TBD
+     - Yes
+     - Yes
 
 
    * - Napalm (R/O)
