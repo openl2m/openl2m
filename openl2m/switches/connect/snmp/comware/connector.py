@@ -558,10 +558,11 @@ class SnmpConnectorComware(SnmpConnector):
         then by calling the Comware extended HH3C-POWER-ETH MIB
         """
         super()._get_poe_data()
-        # now get HP specific info from HP-IFC-POE-MIB first
-        retval = self.get_snmp_branch(branch_name='hh3cPsePortCurrentPower', parser=self._parse_mibs_comware_poe)
-        if retval < 0:
-            self.add_warning(warning="Error getting 'PoE-Port-Current-Power' (hh3cPsePortCurrentPower)")
+        if self.poe_capable:  # we found PoE power supplies!
+            # now get HP specific info from HP-IFC-POE-MIB first
+            retval = self.get_snmp_branch(branch_name='hh3cPsePortCurrentPower', parser=self._parse_mibs_comware_poe)
+            if retval < 0:
+                self.add_warning(warning="Error getting 'PoE-Port-Current-Power' (hh3cPsePortCurrentPower)")
         return 1
 
     def _map_poe_port_entries_to_interface(self):
