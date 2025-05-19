@@ -37,6 +37,21 @@ Neighbor Graph Options:
   MM_GRAPH_EXPANDED = False
 
 
+Version 3.4.3
+-------------
+
+Release Date: 2025-05-19
+
+* add IPv6 ND info to the Juniper EzNC driver.
+* IPv6 discovery developer documentation update.
+* add foundation for IPv6 connections to devices.
+
+Bug fixes:
+
+* only read port PoE data if power supplies found (Comware & Netgear drivers.)
+* many documentation updates.
+
+
 Version 3.4.2
 -------------
 
@@ -89,7 +104,7 @@ Release Date: 2025-02-10
 * add Cisco CBS device support (PoE not tested!)
 * show graphical view of neighbor devices.
 * show more descriptive error details in SNMP authentication or timeout errors.
-* upgrade to FontAwese v6.7
+* upgrade to FontAwesome v6.7
 * support reading the MAU MIB to discover (optical) transceiver types (on devices that support it).
 * add (some) Juniper optical tx discovery
 
