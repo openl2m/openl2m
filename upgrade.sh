@@ -93,8 +93,9 @@ else
 fi
 
 # temporary(?) fix.
+# Note: if you change the version here, also change "upgrade.sh" !
 # ezsnmp may not build properly for Ubuntu. If you get SNMP session errors, then run
-COMMAND="pip install --force-reinstall --no-binary :all: ezsnmp"
+COMMAND="pip install --force-reinstall --no-binary :all: ezsnmp==1.1.0"
 echo "Apply fix for ezsnmp: re-install it..."
 eval $COMMAND || exit 1
 

@@ -4,8 +4,6 @@ Django>=5.1,<5.2
 django-ipware
 # django-minify-html
 django-ordered-model>=3.7,<4.0
-# Easysnmp appears unsupported.
-# easysnmp==0.2.5
 # ezsnmp replaces easysnmp, see https://github.com/carlkidcrypto/ezsnmp
 # and docs at https://carlkidcrypto.github.io/ezsnmp/html/index.html
 # Tested code v1.1.0 from pypi
@@ -13,7 +11,8 @@ django-ordered-model>=3.7,<4.0
 # for now, lock to v1.1.0
 # See this: https://github.com/carlkidcrypto/ezsnmp/releases
 # ezsnmp may not build properly for Ubuntu. If you get SNMP session errors, then run
-# pip install --force-reinstall --no-binary :all: ezsnmp
+# pip install --force-reinstall --no-binary :all: ezsnmp==1.1.0
+# Note: if you change the version here, also change "upgrade.sh" !
 ezsnmp==1.1.0
 flake8
 flake8-pyproject
@@ -57,10 +56,8 @@ pycodestyle
 # pysnmp (original) is no longer supported.
 # see https://lists.openstack.org/pipermail/openstack-discuss/2022-August/030062.html
 # we are now using the maintained clone "pysnmp" by Lextudio
-# see https://github.com/lextudio/pysnmp
-# note that the api surface is going to be reshaped in the next major release.
-# so for now pin this to the latest 7.1 version:
-pysnmp==7.1.13
+# see https://pysnmp.com
+pysnmp==7.1.20
 #PyTZ and the type library:
 pytz>=2024.1
 types-pytz
@@ -81,7 +78,7 @@ XlsxWriter>=3.2
 
 # A REST API framework for Django projects
 # https://www.django-rest-framework.org/community/release-notes/
-djangorestframework
+djangorestframework==3.16.0
 
 # Sane and flexible OpenAPI 3 schema generation for Django REST framework.
 # https://github.com/tfranzel/drf-spectacular/blob/master/CHANGELOG.rst
