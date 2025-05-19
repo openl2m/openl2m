@@ -17,16 +17,13 @@ __For Quick Testing:__ download the __Docker Compose__ test config at https://gi
 __Features:__
 
 * Light or Dark theme.
-* enable/disable interface
-* change vlan on interface
-* enable/disable PoE
-* change description
+* enable/disable interface, or PoE state
+* change vlan or description on interface
 * see ethernet addresses, lldp neighbors, and download to spreadsheet or graph
-* on routers, show IPv4 ARP and IPv6 ND (Neighbors Discovery) information.
+* on routers, show IPv4/v6 interface info, and IPv4 ARP and IPv6 ND (Neighbor Discovery) information.
 * add, edit or delete vlans on devices
 * show interface MPLS VRF membership on supported devices
-* run configurable pre-defined 'static' commands on the device
-* run configurable pre-defined 'form input' commands on the device
+* run configurable pre-defined 'static' and 'form input' commands on the device
 * show optical transceiver info
 * vendor-agnostic REST API. Automate changes from scripts, etc.
 * pluggable backend to support new vendor devices, allowing easy development
@@ -53,7 +50,7 @@ __What's New:__
 
 Highlights:
 
-v3.4 adds support for IPv6. Also supports Cisco CBS devices. And we can graph neighbor devices.
+v3.4 adds support for IPv6 ND and interface IPv6 info. Also supports Cisco CBS devices. And we can graph neighbor devices.
 
 v3.3 adds support Arista Network devices via SNMP. Also shows info in MPLS VRFs and member interfaces on supported devices, read from the standard MPLS SNMP Mib. SNMP now supports authencation up to SHA-512 and privacy up to AES-256. Django is upgraded to v5.1 and we now support Python v3.12
 
@@ -94,7 +91,7 @@ This is minimal list of requirements. Read the documentation for more details.
 * a Linux OS environment able to run nginx.
 * Python v3.10 - v3.12 (v3.13 is not yet supported)
 * Postgres version 13 or higher.
-* NetSNMP packages on your Linux server, and ability to run python EzSNMP package.
+* NetSNMP packages on your Linux server, and ability to install and run python EzSNMP package.
 
 __License__:
 
@@ -163,6 +160,11 @@ __Command Templates Menu:__ Run pre-defined commands with user-input on the devi
 __VLAN Edit Menu:__ Add, Rename, or Delete vlans
 
 <kbd><img src= "docs/_static/vlan-edit.png" alt="VLAN Edit Menu"></kbd>
+
+
+__Device Connections Graph:__
+
+<kbd><img src= "docs/_static/device-connections-graph.png" alt="Device Connections Graph"></kbd>
 
 
 __Downloads__:
