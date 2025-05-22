@@ -1032,8 +1032,9 @@ snmp_mib_variables['ieee8021QBridgePvid'] = ieee8021QBridgePvid
 
 #
 # LLDP related
+# see also https://circitor.fr/Mibs/Html/LLDP-MIB.php
 #
-# lldpMIB = 1.0.8802.1.2
+# lldpMIB = 1.0.8802.1.1.2
 #
 # local port:
 # (lldpLocPortEntry)
@@ -1068,7 +1069,10 @@ snmp_mib_variables['lldpLocSysCapEnabled'] = lldpLocSysCapEnabled
 lldpLocPortTable = '.1.0.8802.1.1.2.1.3.7'
 snmp_mib_variables['lldpLocPortTable'] = lldpLocPortTable
 
-# remote system data at .1.0.8802.1.1.2.1.4
+# remote system data at
+# lldpRemoteSystemsData = .1.0.8802.1.1.2.1.4
+# lldpRemTable = .1.0.8802.1.1.2.1.4.1
+#
 # lldpRemEntry
 lldpRemEntry = '.1.0.8802.1.1.2.1.4.1.1'
 snmp_mib_variables['lldpRemEntry'] = lldpRemEntry

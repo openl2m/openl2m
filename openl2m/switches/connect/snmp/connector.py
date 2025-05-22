@@ -2523,8 +2523,8 @@ class SnmpConnector(Connector):
         #    dprint(f"LLDP REMOTE_LOCAL PORT ENTRY {lldp} = {str(val)}")
         #    return True
 
-        # the following are indexed by  <remote-device-random-id>.<port-id>.1
-        # if Q-BRIDGE is implemented, <port-id> is that port_id, mapped in self.qbridge_port_to_if_index[port_id]
+        # the following are indexed by  <remote-device-random-id>.<port-id>.<lldp-id-on-this-port>
+        # if Q-BRIDGE is implemented, <port-id> is that port_id, mapped to ifIndex in self.qbridge_port_to_if_index[port_id]
         # if Q-BRIDGE is NOT implemented, <port-id> = <ifIndex>, ie without the mapping
         lldp_index = oid_in_branch(lldpRemPortId, oid)
         if lldp_index:
