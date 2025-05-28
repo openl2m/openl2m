@@ -1032,6 +1032,7 @@ snmp_mib_variables['ieee8021QBridgePvid'] = ieee8021QBridgePvid
 
 #
 # LLDP related
+# defined by IEEE, see https://www.ieee802.org/1/files/public/MIBs/LLDP-MIB-200505060000Z.mib
 # see also https://circitor.fr/Mibs/Html/LLDP-MIB.php
 #
 # lldpMIB = 1.0.8802.1.1.2
@@ -1076,6 +1077,13 @@ snmp_mib_variables['lldpLocPortTable'] = lldpLocPortTable
 # lldpRemEntry
 lldpRemEntry = '.1.0.8802.1.1.2.1.4.1.1'
 snmp_mib_variables['lldpRemEntry'] = lldpRemEntry
+# from the MIB:
+#     INDEX   {
+#            lldpRemTimeMark,
+#            lldpRemLocalPortNum,
+#            lldpRemIndex
+#     }
+#     ::= { lldpRemTable 1 }
 
 # LLDP_REM_TIMEMARK =       '.1.0.8802.1.1.2.1.4.1.1.1'  # NOT USED
 # this does not appear to be implemented in most gear.
@@ -1160,6 +1168,14 @@ LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER = 3  # systemPortNumber(3)
 # management address device OID:
 # lldpRemManAddrOID = '.11.0.8802.1.1.2.1.4.2.1.5'
 # snmp_mib_variables['	lldpRemManAddrOID'] = 	lldpRemManAddrOID
+
+#
+# LLDP version 2, a different MIB:
+#
+# see https://www.ieee802.org/1/files/public/MIBs/LLDP-V2-MIB-200906080000Z.mib
+# and https://mibs.observium.org/mib/LLDP-V2-MIB/
+#
+# lldpV2MIB = '.1.3.111.2.802.1.1.13'
 
 
 #

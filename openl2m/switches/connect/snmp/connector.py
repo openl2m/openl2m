@@ -2517,15 +2517,48 @@ class SnmpConnector(Connector):
         #    dprint(f"LLDP LOCAL PORT ENTRY {lldp} = {str(val)}")
         #    return True
 
+        # the following 'lldpRemEntry" items are indexed by  <lldpRemTimeMark>.<lldpRemLocalPortNum>.<lldpRemIndex>
+        #
+        # from the MIB:
+        #   lldpRemEntry:
+        #   INDEX {
+        #            lldpRemTimeMark,
+        #            lldpRemLocalPortNum,
+        #            lldpRemIndex
+        #     }
+        #
+        # lldpRemLocalPortNum (of type LldpPortNumber) identifies the port on which the remote system information is received.
+        # lldpRemLocalPortNum is the Q-BRIDGE <port-id>, mapped to ifIndex in self.qbridge_port_to_if_index[port_id]
+        # if Q-BRIDGE is NOT implemented, <port-id> = <ifIndex>, ie without the mapping
+        #
+        # LldpPortNumber ::=
+        #         "Each port contained in the chassis (that is known to the
+        #         LLDP agent) is uniquely identified by a port number.
+
+        #         A port number has no mandatory relationship to an
+        #         InterfaceIndex object (of the interfaces MIB, IETF RFC 2863).
+        #         If the LLDP agent is a IEEE 802.1D, IEEE 802.1Q bridge, the
+        #         LldpPortNumber will have the same value as the dot1dBasePort
+        #         object (defined in IETF RFC 1493) associated corresponding
+        #         bridge port.  If the system hosting LLDP agent is not an
+        #         IEEE 802.1D or an IEEE 802.1Q bridge, the LldpPortNumber
+        #         will have the same value as the corresponding interface's
+        #         InterfaceIndex object.
+
+        #         Port numbers should be in the range of 1 and 4096 since a
+        #         particular port is also represented by the corresponding
+        #         port number bit in LldpPortList."
+
+        #
+        # lldpRemIndex is "an arbitrary local integer value used by this agent to identify a particular connection instance,
+        # unique only for the indicated remote system
+
         # this does not appear to be implemented in most gear:
         # lldp = oid_in_branch(lldpRemLocalPortNum, oid)
         # if lldp:
         #    dprint(f"LLDP REMOTE_LOCAL PORT ENTRY {lldp} = {str(val)}")
         #    return True
 
-        # the following are indexed by  <remote-device-random-id>.<port-id>.<lldp-id-on-this-port>
-        # if Q-BRIDGE is implemented, <port-id> is that port_id, mapped to ifIndex in self.qbridge_port_to_if_index[port_id]
-        # if Q-BRIDGE is NOT implemented, <port-id> = <ifIndex>, ie without the mapping
         lldp_index = oid_in_branch(lldpRemPortId, oid)
         if lldp_index:
             (extra_one, port_id, extra_two) = lldp_index.split('.')
