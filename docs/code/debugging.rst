@@ -3,8 +3,8 @@
 Debugging
 =========
 
-When running the built-in web server, and with DEBUG=True in *settings.py*, the code will spit out lots
-of debugging information, about what functions are being called, what important stuff they do,
+When running the built-in web server, and with DEBUG=True in *settings.py*, the web server will produce lots
+of console debugging information, about what functions are being called, what they do,
 and more. The output shown is produced by inserting lots of calls to *dprint()* in the code.
 
 *dprint()* is defined in switches.utils, and if DEBUG=True will log to the logger configured.

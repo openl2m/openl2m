@@ -8,10 +8,9 @@ how the OpenL2M project works "under the hood".
 
 **Python 3**
 
-Django 5 requires v3.10 or above. Due to SNMP library incompatibilities,
-we cannot support Python 3.12 or higher at this time! Ie. we require Python 3.10 or 3.11
+Django 5 requires v3.10 or above. We have not tested 3.13 yet at time of writing. Ie. we require Python 3.10, 3.11 or 3.12
 
-As of OpenL2M v2.4, all the code is written and tested in Python v3.11.
+As of OpenL2M v3, all the code is written and tested in Python v3.12.
 
 The project by default is located in **/opt/openl2m**. To use these scripts, or work on things,
 you should first activate the Python virtual environment:
@@ -27,7 +26,7 @@ Normal Django development steps can now be used.
 
 **Django**
 
-We use the Django web framework, v5.0 or higher. For a good introduction, see
+We use the Django web framework, v5.2 or higher. For a good introduction, see
 `the Django Tutorial <https://docs.djangoproject.com/>`_
 If you follow this tutorial, you will have enough of an Django understanding
 to start digging into the code.
@@ -62,7 +61,7 @@ package on your Linux server. For more,
 `see these EzSNMP installation docs <https://carlkidcrypto.github.io/ezsnmp/html/index.html>`_
 and the original `EasySNMP docs <https://easysnmp.readthedocs.io/en/latest/>`_
 
-We also use the `pysnmplib library <https://github.com/pysnmp/pysnmp>`_
+We also use the `pysnmplib library <https://docs.lextudio.com/snmp/>`_
 for a few backend functions where "ezsnmp" does not shine. Specifically,
 we use *pysnmplib* to manipulate mib entries that are octetstring values representing bitmaps.
 
@@ -71,10 +70,6 @@ unicode strings for all internal data representations. Pysnmplib is a pure pytho
 that does not have these problems. However, it is significantly slower, so we only use
 it only where absolutely needed. (Note: *pysnmplib* is a continuation of the original *pysnmp*; that
 library is no longer developed.)
-
-Note that *pysnmplib* does NOT support Python 3.12, due to some synchronous library support being removed
-in that version. This will require a move to the *pysnmp-lextudio* library, and some re-writing of the way
-we use pysnmp.
 
 
 **Aruba AOS-CX**
@@ -86,7 +81,7 @@ See *requirements.txt* for more.
 
 **Juniper Devices**
 
-Juniper devices are managed with the Junos PyEZ library.
+Juniper devices are managed with `the Junos PyEZ library. <https://github.com/Juniper/py-junos-eznc>`_
 
 
 **Netmiko**
