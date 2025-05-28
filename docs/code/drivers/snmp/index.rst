@@ -25,6 +25,7 @@ for additional data.
    snmp-discover-interface.rst
    snmp-discover-mac-arp.rst
    snmp-interface-ip.rst
+   snmp-discover-lldp.rst
    snmp-discover-vrf.rst
    snmp-transceiver-type
    snmp-vlan-add-del.rst
