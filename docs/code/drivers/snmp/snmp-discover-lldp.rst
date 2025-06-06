@@ -60,25 +60,25 @@ If Q-BRIDGE is NOT implemented, <port-id> = *ifIndex*, ie without the mapping.
 Entry Attributes
 ----------------
 
-Each entry is sequence of attributes, all indexed as described above. We read and store the following:
+Each *lldpRemEntry* entry is a sequence of attributes, all indexed as described above. We read and store the following:
 
-**lldpRemPortId** - a value describing the remote connected port name. Interpretation of this field depends on the value of lldpRemPortIdSubType.
+**lldpRemPortId** is *lldpRemEntry.7* - a value describing the remote connected port name. Interpretation of this field depends on the value of lldpRemPortIdSubType.
 
-**lldpRemPortIdSubtype** - a value indicating how the interpret lldpRemPortId. We think we can interpret these as strings:
+**lldpRemPortIdSubtype** is *lldpRemEntry.6* - a value indicating how the interpret lldpRemPortId. We think we can interpret these as strings:
     LLDP_PORT_SUBTYPE_INTERFACE_ALIAS, LLDP_PORT_SUBTYPE_MAC_ADDRESS, LLDP_PORT_SUBTYPE_NETWORK_ADDRESS, LLDP_PORT_SUBTYPE_INTERFACE_NAME
     For all other values, we set the remote port name field to empty ""
 
-**lldpRemPortDesc** - the remote port's description
+**lldpRemPortDesc** is *lldpRemEntry.8* - the remote port's description
 
-**lldpRemSysName** - the remote system name
+**lldpRemSysName** is *lldpRemEntry.9* - the remote system name
 
-**lldpRemSysDesc** - the remote system description, frequently the firmware version or OS info.
+**lldpRemSysDesc** is *lldpRemEntry.10* - the remote system description, frequently the firmware version or OS info.
 
-**lldpRemSysCapEnabled** - a bit-mapped field showing the current enabled capabilities of the remote device. E.g. wifi, telephone, router/switch, etc.
+**lldpRemSysCapEnabled** is *lldpRemEntry.12* - a bit-mapped field showing the current enabled capabilities of the remote device. E.g. wifi, telephone, router/switch, etc.
 
-**lldpRemChassisIdSubtype** - what the chassis id means, ie how to interpret the data, eg as a string, ethernet address, ipv4/6 address.
+**lldpRemChassisIdSubtype** is *lldpRemEntry.4* - what the chassis id means, ie how to interpret the data, eg as a string, ethernet address, ipv4/6 address.
 
-**lldpRemChassisId** - the remote chassis id.(see above)
+**lldpRemChassisId** is *lldpRemEntry.5* - the remote chassis id.(see above)
 
 
 Attribute Parsing
@@ -103,7 +103,8 @@ This parsing is implemented for all attributes listed above.
 Management Address
 ------------------
 
-We may be able to read a device management address from **lldpRemManAddrIfSubtype** (.1.0.8802.1.1.2.1.4.2.1.3)
+We may be able to read a device management address from **lldpRemManAddrIfSubtype** (.1.0.8802.1.1.2.1.4.2.1.3),
+i.e. this is *lldpRemManAddrEntry.3*
 
 This entry is parsed in *_parse_mibs_lldp_management()*. This OID returned is a long entry starting with *lldpRemManAddrIfSubtype*,
 followed by the 3 digits "lldp index".
@@ -111,9 +112,11 @@ followed by the 3 digits "lldp index".
 This lldp-index then is followed by the OID representation of the management IP address. This consists of <address-type>.<length>.<ip address in dotted-decimal format>,
 identical to how this is encoded in the ARP/ND tables at *ipNetToPhysicalPhysAddress*
 
-Example: we read the OID *.1.0.8802.1.1.2.1.4.2.1.3.0.142.1.1.4.10.128.8.66* = 2
+**Example:**
 
-This is lldpRemManAddrIfSubtype.<0.142.1>.<1>.<4>.<10.128.8.66>
+We read the OID *.1.0.8802.1.1.2.1.4.2.1.3.0.142.1.1.4.10.128.8.66* = 2
+
+This is **lldpRemManAddrIfSubtype** . **<0.142.1>** . **<1>** . **<4>** . **<10.128.8.66>**
 
 Ie. the device with lldp-index "0.142.1" has an IPv4 (1) address of length 4, and value "10.128.8.66"
 

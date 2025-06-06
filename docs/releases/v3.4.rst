@@ -37,6 +37,20 @@ Neighbor Graph Options:
   MM_GRAPH_EXPANDED = False
 
 
+
+Version 3.4.4
+-------------
+
+Release Date: TBD
+
+* add VRF ip interface info to Arista SNMP driver.
+* upgrade to Django v5.2
+* developer snmp driver documentation updates.
+
+Bug fixes:
+
+* fix lldp mib counter errors
+
 Version 3.4.3
 -------------
 

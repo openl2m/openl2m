@@ -4,12 +4,14 @@
 Discover interface IP addresses
 ===============================
 
-We call _get_my_ip_addresses() to read the device interface IP addresses. We do this in a number of ways, as follows.
+We call _get_my_ip_addresses() to read the device interface IP addresses *in the default routing table*.
+We do this in a number of ways, as follows.
+
 
 IPv4
 ====
 
-There is an OLD and DEPRECATED MIB entry in the IP-MIB (RFC-4293 at time of writing): **ipAddrTable** (.1.3.6.1.2.1.4.20)
+There is an OLD and DEPRECATED MIB entry in the IP-MIB (RFC-4293 at time of writing, started with RFC1213): **ipAddrTable** (.1.3.6.1.2.1.4.20)
 
 This table is still supported on many devices, but can only be used to find IPv4 addresses of interfaces.
 
@@ -73,4 +75,19 @@ The returned OID is structured as shown here:
 where ipAddressPrefixOrigin = ".1.3.6.1.2.1.4.32.1.5"
 
 We parse this in *_parse_mibs_ip_address_prefix()*, and set interface IP for both v4 and v6.
+
+
+.. note::
+
+    Standard SNMP MIBs described below do not include VRF context — they typically expose only the default
+    routing table data. !
+
+The above means that if an interface is assigned to a VRF, it will not appear in the above tables by default!
+**Hence we will not know the IP address for those interfaces, unless a vendor MIB implementes this data
+and our driver supports it!**
+
+However, some vendors have implemented access to VRF-specific interface data using the 'context'
+field in an SNMP v3 query. Ie. set the context to the VRF name, and they will return **ipAddressTable** (newer)
+or **ipAddrTable** (older) data specific to that VRF. Some drivers support this (e.g. Arista Networks).
+See the vendor-specific entries for more.
 

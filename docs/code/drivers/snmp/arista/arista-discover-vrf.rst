@@ -1,20 +1,8 @@
 
 .. image:: ../../../../_static/openl2m_logo.png
 
-===============================
-Arista EOS SNMP Driver Overview
-===============================
-
-The driver is implemented in *openl2/switches/connect/snmp/arista_eos/connector.py*
-
-The Arista SNMP capabilities mostly follow the standard SNMP mibs.
-The supported mibs are documented at:
-
-https://www.arista.com/en/support/product-documentation/arista-snmp-mibs
-
-
-VRF information
----------------
+Arista VRF information
+----------------------
 
 Arista has a vendor MIB for VRF information: *ARISTA-VRF-MIB*, shown at https://www.arista.com/assets/data/docs/MIBS/ARISTA-VRF-MIB.txt
 
