@@ -142,6 +142,13 @@ class SnmpConnectorAristaEOS(SnmpConnector):
             retval = self.get_snmp_branch(
                 branch_name='aristaVrfIfMembership', parser=self._parse_mib_arista_vrf_members
             )
+            # see if we can get router IP addresses in these VRFs:
+            for vrf_name in self.vrfs:
+                dprint(f"Getting IP addresses in VRF '{vrf_name}'")
+                self._set_snmp_session(com_or_ctx=vrf_name)
+                self._get_my_ip_addresses()
+            # reset to default for the next call
+            self._set_snmp_session()
         return True
 
     def _parse_mib_arista_vrf_entries(self, oid: str, val: str) -> bool:

@@ -230,6 +230,14 @@ ipNetToMediaNetAddress = '.1.3.6.1.2.1.4.22.1.3'
 snmp_mib_variables['ipNetToMediaNetAddress'] = ipNetToMediaNetAddress
 
 #
+# IP-FORWARD-MIB - deprecated / obsoleted.
+#
+# ipCidrRouteTable = '.1.3.6.1.2.1.4.24.4'
+#
+# inetCidrRouteTable = '.1.3.6.1.2.1.4.24.7'
+#
+
+#
 # IP-MIB IPv6 interface info
 #
 # ipv6InterfaceTable = ".1.3.6.1.2.1.4.30"
@@ -435,6 +443,13 @@ L3VPN_ROUTE_DIST_PROTOCOL_OTHER_BIT = 6
 mplsL3VpnIfConfStorageType = ".1.3.6.1.2.1.10.166.11.1.2.1.1.4"
 mplsL3VpnIfConfRowStatus = ".1.3.6.1.2.1.10.166.11.1.2.1.1.5"
 
+#
+# BGP MIB
+#
+# bgp = '.1.3.6.1.2.1.15'
+# bgpVersion 		.1.3.6.1.2.1.15.1
+# bgpLocalAs 		.1.3.6.1.2.1.15.2
+# bgpIdentifier 		.1.3.6.1.2.1.15.4
 
 #
 # BRIDGE MIB RELATED
