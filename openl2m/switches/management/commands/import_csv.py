@@ -275,8 +275,14 @@ class Command(BaseCommand):
                     # now set all the values found:
                     if 'primary_ip4' in row.keys():
                         switch.primary_ip4 = row['primary_ip4']
-                    else:
-                        self.stdout.write(self.style.ERROR("Line {reader.line_num}: 'primary_ip4' field is required!"))
+                    if 'primary_ip6' in row.keys():
+                        switch.primary_ip6 = row['primary_ip6']
+                    if not switch.primary_ip4 and not switch.primary_ip6:
+                        self.stdout.write(
+                            self.style.ERROR(
+                                "Line {reader.line_num}: 'primary_ip4' or 'primary_ip6' field is required!"
+                            )
+                        )
                         sys.exit()
                     if 'description' in row.keys():
                         switch.description = row['description']
