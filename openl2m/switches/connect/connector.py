@@ -222,6 +222,7 @@ class Connector:
             'group_id': self.group.id,
             "read_only": self.read_only,
             "primary_ipv4": self.switch.primary_ip4,
+            "primary_ipv6": self.switch.primary_ip6,
             "change_admin_status": self.can_change_admin_status,
             "change_vlan": self.can_change_vlan,
             "change_poe": self.can_change_poe_status,
