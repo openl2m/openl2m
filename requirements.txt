@@ -36,13 +36,13 @@ lxml
 #mypy for typing:
 mypy
 #various Napalm support libraries:
-napalm>=4.1.0
+napalm>=5.0,<5.1
 napalm-aruba-cx
 napalm-dellos10
 napalm-procurve
 natsort>=8.4.0
 netaddr>=1.2.1
-netmiko>=4.4.0
+netmiko>=4.5,<4.6
 #improved PostGreSQL support
 psycopg2-binary
 # We are using a clone of the Aruba pyaoscx library from github.com,
