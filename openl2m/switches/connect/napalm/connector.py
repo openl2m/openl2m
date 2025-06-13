@@ -51,6 +51,7 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_STATION,
     LLDP_CAPABILITIES_OTHER,
 )
+from switches.connect.junos_pyez.utils import junos_get_real_ifname
 
 
 class NapalmConnector(Connector):
@@ -118,6 +119,7 @@ class NapalmConnector(Connector):
         # parse
         for if_name, if_data in interface_list.items():
             dprint(f"\nInterface: {if_name}")
+
             iface = Interface(if_name)
             iface.name = if_name
             iface.type = IF_TYPE_ETHERNET
@@ -217,6 +219,16 @@ class NapalmConnector(Connector):
         # get mac address table
         try:
             mac_table = self.napalm_device.get_mac_address_table()
+            dprint(f"mac_table = \n{mac_table}\n")
+            for info in mac_table:
+                if_name = info['interface']
+                if if_name:
+                    # it is possible that the 'short' form of the interface name is used,
+                    # convert to long ...
+                    if_name = interface_name_to_long(if_name)
+                    a = self.add_learned_ethernet_address(if_name, info['mac'])
+                    if a:
+                        a.set_vlan(info['vlan'])
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get arp table"
@@ -226,21 +238,20 @@ class NapalmConnector(Connector):
             )
             self.add_warning(warning="Napalm error in get_mac_address_table() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_MAC, description=f"ERROR: {self.error.details}")
-            return False
-        dprint(f"mac_table = \n{mac_table}\n")
-        for info in mac_table:
-            if_name = info['interface']
-            if if_name:
-                # it is possible that the 'short' form of the interface name is used,
-                # convert to long ...
-                if_name = interface_name_to_long(if_name)
-                a = self.add_learned_ethernet_address(if_name, info['mac'])
-                if a:
-                    a.set_vlan(info['vlan'])
 
         # get arp table
         try:
             arp_table = self.napalm_device.get_arp_table(vrf='')
+            dprint(f"arp_table = \n{arp_table}\n")
+            for info in arp_table:
+                if_name = info['interface']
+                if if_name:
+                    # it is possible that the 'short' form of the interface name is used,
+                    # convert to long ...
+                    if_name = interface_name_to_long(if_name)
+                    a = self.add_learned_ethernet_address(if_name, info['mac'])
+                    if a:
+                        a.set_ip4_address(info['ip'])
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get arp table"
@@ -248,21 +259,66 @@ class NapalmConnector(Connector):
             dprint(f"   napalm.device.get_arp_table() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning(warning="Napalm error in get_arp_table() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_ARP, description=f"ERROR: {self.error.details}")
-            return False
-        dprint(f"arp_table = \n{arp_table}\n")
-        for info in arp_table:
-            if_name = info['interface']
-            if if_name:
-                # it is possible that the 'short' form of the interface name is used,
-                # convert to long ...
-                if_name = interface_name_to_long(if_name)
-                a = self.add_learned_ethernet_address(if_name, info['mac'])
-                if a:
-                    a.set_ip4_address(info['ip'])
+
+        # get IPv6 neighbors
+        try:
+            nd_table = self.napalm_device.get_ipv6_neighbors_table()
+            dprint(f"nd_table = \n{nd_table}\n")
+            for neighbor in nd_table:
+                if_name = neighbor['interface']
+                if if_name:
+                    # if irb.xx, parse out the physical interface:
+                    if_name = junos_get_real_ifname(if_name=if_name)
+                    # it is possible that the 'short' form of the interface name is used,
+                    # convert to long ...
+                    if_name = interface_name_to_long(if_name)
+                    a = self.add_learned_ethernet_address(if_name, neighbor['mac'])
+                    if a:
+                        a.add_ip6_address(neighbor['ip'])
+        except Exception as e:
+            self.error.status = True
+            self.error.description = "Cannot get arp table"
+            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            dprint(
+                f"   napalm.device.get_ipv6_neighbors_table() Exception: {e.__class__.__name__}\n{self.error.details}\n"
+            )
+            self.add_warning(warning="Napalm error in get_ipv6_neighbors_table() - Likely not implemented!")
+            self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_ARP, description=f"ERROR: {self.error.details}")
 
         # get lldp details
         try:
             lldp_details = self.napalm_device.get_lldp_neighbors_detail()
+            dprint(f"lldp_details = \n{lldp_details}\n")
+            # parse
+            for if_name, lldp_data in lldp_details.items():
+                # dprint(f"IF {if_name}: {if_data}")
+                # lldp_data is a dict:
+                for device in lldp_data:
+                    device_id = device['remote_chassis_id']
+                    neighbor = NeighborDevice(device_id)
+                    neighbor.sys_name = device['remote_system_name']
+                    neighbor.sys_descr = device['remote_system_description']
+                    neighbor.port_name = device['remote_port']
+                    neighbor.port_descr = device['remote_port_description']
+                    # and the enabled capabilities:
+                    for cap in device['remote_system_enable_capab']:
+                        if cap == 'bridge':
+                            neighbor.capabilities += LLDP_CAPABILITIES_BRIDGE
+                        elif cap == 'repeater':
+                            neighbor.capabilities += LLDP_CAPABILITIES_REPEATER
+                        elif cap == 'wlan-access-point':
+                            neighbor.capabilities += LLDP_CAPABILITIES_WLAN
+                        elif cap == 'router':
+                            neighbor.capabilities += LLDP_CAPABILITIES_ROUTER
+                        elif cap == 'telephone':
+                            neighbor.capabilities += LLDP_CAPABILITIES_PHONE
+                        elif cap == 'docsis-cable-device':
+                            neighbor.capabilities += LLDP_CAPABILITIES_DOCSIS
+                        elif cap == 'station':
+                            neighbor.capabilities += LLDP_CAPABILITIES_STATION
+                        elif cap == 'other':
+                            neighbor.capabilities += LLDP_CAPABILITIES_OTHER
+                    self.add_neighbor_object(if_name, neighbor)
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get lldp details"
@@ -272,38 +328,6 @@ class NapalmConnector(Connector):
             )
             self.add_warning(warning="Napalm error in get_lldp_neighbors_detail() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_LLDP, description=f"ERROR: {self.error.details}")
-            return False
-        dprint(f"lldp_details = \n{lldp_details}\n")
-        # parse
-        for if_name, lldp_data in lldp_details.items():
-            # dprint(f"IF {if_name}: {if_data}")
-            # lldp_data is a dict:
-            for device in lldp_data:
-                device_id = device['remote_chassis_id']
-                neighbor = NeighborDevice(device_id)
-                neighbor.sys_name = device['remote_system_name']
-                neighbor.sys_descr = device['remote_system_description']
-                neighbor.port_name = device['remote_port']
-                neighbor.port_descr = device['remote_port_description']
-                # and the enabled capabilities:
-                for cap in device['remote_system_enable_capab']:
-                    if cap == 'bridge':
-                        neighbor.capabilities += LLDP_CAPABILITIES_BRIDGE
-                    elif cap == 'repeater':
-                        neighbor.capabilities += LLDP_CAPABILITIES_REPEATER
-                    elif cap == 'wlan-access-point':
-                        neighbor.capabilities += LLDP_CAPABILITIES_WLAN
-                    elif cap == 'router':
-                        neighbor.capabilities += LLDP_CAPABILITIES_ROUTER
-                    elif cap == 'telephone':
-                        neighbor.capabilities += LLDP_CAPABILITIES_PHONE
-                    elif cap == 'docsis-cable-device':
-                        neighbor.capabilities += LLDP_CAPABILITIES_DOCSIS
-                    elif cap == 'station':
-                        neighbor.capabilities += LLDP_CAPABILITIES_STATION
-                    elif cap == 'other':
-                        neighbor.capabilities += LLDP_CAPABILITIES_OTHER
-                self.add_neighbor_object(if_name, neighbor)
 
         return True
 
