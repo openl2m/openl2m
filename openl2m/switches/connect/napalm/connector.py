@@ -209,6 +209,54 @@ class NapalmConnector(Connector):
 
         return True
 
+    def get_my_vrfs(self) -> bool:
+        '''Fill the list of VRFs on this device, if any
+
+        Args:
+            none
+
+        Returns:
+            (bool): True on success, False on failure
+        '''
+        try:
+            vrf_table = self.napalm_device.get_network_instances()
+            dprint(f"VRF table:\n{vrf_table}")
+            for vrf_name, vrf in vrf_table.items():
+                if vrf['type'] == 'DEFAULT_INSTANCE':  # ignore, the default (ie non-VRF) routing table
+                    continue
+                # create OpenL2M Vrf() object:
+                dprint(f"  New VRF: {vrf_name}")
+                this_vrf = self.get_vrf_by_name(name=vrf_name)
+                # parse the RD
+                if 'state' in vrf and 'route_distinguisher' in vrf['state']:
+                    this_vrf.rd = vrf['state']['route_distinguisher']
+                # parse member interfaces:
+                if 'interfaces' in vrf and 'interface' in vrf['interfaces']:
+                    for if_name in vrf['interfaces']['interface']:
+                        dprint(f"    Found interface: {if_name}")
+                        # find OpenL2M Interface():
+                        iface = self.get_interface_by_key(key=if_name)
+                        if iface:
+                            # get the Interface() object:
+                            dprint("    Interface() found!")
+                            # add to the list of interfaces for this vrf
+                            if iface.name not in self.vrfs[vrf_name].interfaces:
+                                self.vrfs[vrf_name].interfaces.append(iface.name)
+                            # adding this vrf name to the interface:
+                            iface.vrf_name = vrf_name
+
+        except Exception as e:
+            self.error.status = True
+            self.error.description = "Cannot get VRF table"
+            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            dprint(
+                f"   napalm.device.get_network_instances() Exception: {e.__class__.__name__}\n{self.error.details}\n"
+            )
+            self.add_warning(warning="Napalm error in get_network_instances() - Likely not implemented!")
+            self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_MAC, description=f"ERROR: {self.error.details}")
+
+        return True
+
     def get_my_client_data(self) -> bool:
         '''
         return list of interfaces with static_egress_portlist
