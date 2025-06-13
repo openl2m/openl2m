@@ -43,13 +43,18 @@ Version 3.4.4
 
 Release Date: TBD
 
-* add VRF ip interface info to Arista SNMP driver.
 * upgrade to Django v5.2
+* add VRF ip interface info to Arista SNMP driver.
+* add ipv6 nd parsing to Napalm driver.
+* add vrf info to Napalm driver.
 * developer snmp driver documentation updates.
 
 Bug fixes:
 
-* fix lldp mib counter errors
+* fix lldp mib counter errors.
+* add ipv6 to device api output.
+* add ipv6 device address to import command.
+
 
 Version 3.4.3
 -------------
