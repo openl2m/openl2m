@@ -890,6 +890,70 @@ class Vrf:
         self.active_interfaces = 0  # number of interfaces active on this VRF
         self.interfaces = []  # list of interface names in this VRF
 
+    def set_name(self, name: str):
+        """Set the name attribute of a VRF
+        Note: does NOT do any duplicate name checking with other VRFs!
+
+        Params:
+            name (str): the name of the VRF.
+
+        Returns:
+            n/a
+        """
+        self.name = name
+
+    def set_description(self, description: str):
+        """Set the description attribute of a VRF
+
+        Params:
+            name (str): the name of the VRF.
+
+        Returns:
+                n/a
+        """
+        self.description = description
+
+    def set_rd(self, rd: str):
+        """Set the RD attribute of a VRF
+        Note: does NOT do any duplicate RD checking with other VRFs!
+
+        Params:
+            rd (str): the RD of the VRF.
+
+        Returns:
+            n/a
+        """
+        self.rd = rd
+
+    def set_ipv4(self):
+        """Set the ipv4 attribute of a VRF to True
+
+        Returns:
+            n/a
+        """
+        self.ipv4 = True
+
+    def set_ipv6(self):
+        """Set the ipv6 attribute of a VRF to True
+
+        Returns:
+            n/a
+        """
+        self.ipv6 = True
+
+    def add_interface(self, if_name: str):
+        """Add an interface by name to the list of interfaces using this VRF.
+
+        Params:
+            if_name (str): the name of the interface to add to the VRF
+
+        Returns:
+            n/a
+        """
+        # avoid duplication:
+        if if_name not in self.interfaces:
+            self.interfaces.append(if_name)
+
     def as_dict(self):
         '''
         return this Vrf() class as a dictionary for use by the API
@@ -908,6 +972,10 @@ class Vrf:
             'ipv4': self.ipv4,
             'ipv6': self.ipv6,
         }
+
+    def __str__(self) -> str:
+        memberlist = ",".join(self.interfaces)
+        return f"VRF '{self.name}'({rd}): {self.description}\nMembers: {memberlist}"
 
 
 class Interface:
