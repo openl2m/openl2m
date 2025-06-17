@@ -1,6 +1,17 @@
 {% load helpers %}
 {% load static %}
 
+{# script to handle Select-All checkbox #}
+<script>
+  function toggle_select_all() {
+    var checkboxes = document.querySelectorAll('input[name="interface_list"]');
+    for (var i = 0; i < checkboxes.length; i++) {// zero-based array!
+      // toggle setting for this checkbox:
+      checkboxes[i].checked = !checkboxes[i].checked;
+    }
+  }
+</script>
+
 <div class="container-fluid">
 <form name="bulkedit_form"
       action="{% url 'switches:switch_bulkedit' group.id switch.id %}"
@@ -40,7 +51,9 @@
                            value="SELECT_ALL"
                            name="select_all"
                            data-bs-toggle="tooltip"
-                           title="Check to select or un-select all interfaces.">&nbsp;All
+                           title="Check to select or un-select all interfaces."
+                           onclick="toggle_select_all()"
+                           >&nbsp;All
               </td>
               <td colspan="2">
                 {% if connection.can_change_admin_status %}
