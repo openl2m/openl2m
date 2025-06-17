@@ -36,8 +36,12 @@
           <tbody>
             {# the form row with the editable fields #}
             <tr>
-              <td></td> {# select column #}
-
+              <td><input type="checkbox"
+                           value="SELECT_ALL"
+                           name="select_all"
+                           data-bs-toggle="tooltip"
+                           title="Check to select or un-select all interfaces.">&nbsp;All
+              </td>
               <td colspan="2">
                 {% if connection.can_change_admin_status %}
                   Status:
