@@ -23,8 +23,8 @@ copyright = '2019-2025, Various'
 author = 'Various'
 
 # The main version and full release, including alpha/beta/rc tags
-version = '3.4.3'
-date = '2025-05-19'
+version = '3.4.4'
+date = '2025-06-18'
 release = f'{version} ({date})'
 
 # --- Running on ReadTheDocs ? ---

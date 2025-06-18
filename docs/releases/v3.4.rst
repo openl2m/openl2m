@@ -41,13 +41,14 @@ Neighbor Graph Options:
 Version 3.4.4
 -------------
 
-Release Date: TBD
+Release Date: 2025-06-18
 
 * upgrade to Django v5.2
+* add Select-All to the Bulk-Edit page.
 * add VRF ip interface info to Arista SNMP driver.
 * add ipv6 nd parsing to Napalm driver.
 * add vrf info to Napalm driver.
-* developer snmp driver documentation updates.
+* developer snmp driver and transceiver documentation updates.
 
 Bug fixes:
 
