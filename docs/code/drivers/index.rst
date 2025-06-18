@@ -27,6 +27,7 @@ which use the Connector() class.
    ethernet_info.rst
    lldp_info.rst
    vrf_info.rst
+   transceiver_info.rst
    vlan-add-del_info.rst
 
 Vendor Drivers
