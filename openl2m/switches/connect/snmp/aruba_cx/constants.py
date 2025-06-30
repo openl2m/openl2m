@@ -53,3 +53,38 @@ arubaWiredVsfv2ConfigOperationSetDestination = '.1.3.6.1.4.1.47196.4.1.1.3.20.1.
 ARUBA_CONFIG_ACTION_WRITE = 4
 ARUBA_CONFIG_TYPE_STARTUP = 2
 ARUBA_CONFIG_TYPE_RUNNING = 3
+
+#
+# Transceiver interface info, from v10.14.1000 and newer
+# see https://arubanetworking.hpe.com/techdocs/AOS-CX/10.14/HTML/snmp_mib/Content/Chp_MIB_sppt/new-mib-xcvr.htm
+#
+# from the ARUBAWIRED-PM-MIB.mib, the "arubaWiredPmXcvrTable"
+# arubaWiredPmXcvrTable = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1"
+arubaWiredPmXcvrPortIfIndex = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.1"
+arubaWiredPmXcvrPortDesc = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.2"
+arubaWiredPmXcvrDescription = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.3"
+arubaWiredPmXcvrProductNum = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.4"
+arubaWiredPmXcvrSerialNum = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.5"
+arubaWiredPmXcvrPartNum = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.6"
+arubaWiredPmXcvrType = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.7"
+arubaWiredPmXcvrConnectorType = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.8"
+arubaWiredPmXcvrConnectorStatus = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.9"
+arubaWiredPmXcvrConnectorStatusReason = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.10"
+arubaWiredPmXcvrCableType = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.11"
+arubaWiredPmXcvrWavelength = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.12"
+arubaWiredPmXcvrSmfTxDist = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.13"
+arubaWiredPmXcvrMmfOm1TxDist = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.14"
+arubaWiredPmXcvrMmfOm2TxDist = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.15"
+arubaWiredPmXcvrMmfOm3TxDist = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.16"
+arubaWiredPmXcvrMmfOm4TxDist = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.17"
+arubaWiredPmXcvrMmfOm5TxDist = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.18"
+arubaWiredPmXcvrCableLength = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.19"
+arubaWiredPmXcvrMaxSpeed = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.20"
+arubaWiredPmXcvrMaxPower = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.21"
+arubaWiredPmXcvrAdapterType = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.22"
+arubaWiredPmXcvrAdapterStatus = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.23"
+arubaWiredPmXcvrAdapterStatusReason = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.24"
+arubaWiredPmXcvrAdapterProductNum = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.25"
+arubaWiredPmXcvrAdapterSerialNum = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.26"
+arubaWiredPmXcvrThermalClass = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.27"
+arubaWiredPmXcvrDiagnostics = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.28"
