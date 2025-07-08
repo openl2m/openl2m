@@ -176,14 +176,30 @@
 
                 <td>
                   {% if connection.can_change_description and iface.can_edit_description %}
-                    <form name="descriptionchange"
+                    <!-- Add script to detect description input change and enable submit -->
+                    <script>
+                      function checkDescrChanged{{ forloop.counter }}() {
+                        const newDescr = document.getElementById('description{{ forloop.counter }}');
+                        const submitButton = document.getElementById('submit{{ forloop.counter }}');
+                        if (newDescr.value !== newDescr.defaultValue) {
+                          submitButton.disabled = false   // Input changes, enable the submit button
+                        } else {
+                          submitButton.disabled = true    // No changes from original, disable the submit button
+                        }
+                      }
+                    </script>
+                    <form name="descriptionchange{{forloop.counter}}"
+                      id="descriptionform{{ forloop.counter }}"
                       action="{% url 'switches:description_change' group.id switch.id iface.key %}"
                       method="post"
                       >
                       {% csrf_token %}
                       <input type="text" size=40 name="new_description" value="{{ iface.description }}"
-                             data-bs-toggle="tooltip" title="Type the new description here!">
-                      <input type="submit"
+                             id="description{{ forloop.counter }}"
+                             data-bs-toggle="tooltip" title="Type the new description here!"
+                             onkeyup="checkDescrChanged{{ forloop.counter }}()">
+                      <input type="submit" disabled
+                             id="submit{{ forloop.counter }}""
                              value="Change"
                              class="btn btn-primary"
                              data-bs-toggle="tooltip" title="Click here to change description!"
