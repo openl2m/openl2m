@@ -1126,8 +1126,13 @@ class SwitchVlanManage(LoginRequiredMixin, View):
     ):
         dprint("SwitchVlanManage() - POST called")
 
-        # parse form items:
-        vlan_id = int(request.POST.get("vlan_id", -1))
+        # parse form items, validate vlan id:
+        try:
+            vlan_id = int(request.POST.get("vlan_id", -1))
+        except:
+            # on any error, set vlan = -1:
+            vlan_id = -1
+        # and vlan name:
         vlan_name = str(request.POST.get("vlan_name", "")).strip()
 
         if request.POST.get("vlan_create"):
