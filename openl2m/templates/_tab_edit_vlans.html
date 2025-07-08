@@ -82,10 +82,13 @@
                     <table class="table table-hover table-headings w-auto">
                     <tbody>
                     <tr>
-                        <td class="text-end align-middle"><label for="id_update_vlan_id">VLAN:</label></td>
+                        <td class="text-end align-middle"><label for="update_vlan_id">VLAN:</label></td>
                         <td class="text-start align-middle">
                             <select data-bs-toggle="tooltip" title="Select the vlan to edit"
-                            name="vlan_id" id="id_update_vlan_id" class="form-select" aria-label="Select VLAN to edit">
+                            name="vlan_id" id="update_vlan_id" class="form-select" aria-label="Select VLAN to edit"
+                            onchange="checkEditVlanChanged()">
+                            <!-- initial value is blank, to prevent accidental delete of vlan 1 -->
+                             <option value="-1">Choose a vlan:</option>
                             {% for vlan_id, vlan in connection.allowed_vlans.items %}
                             <option value="{{ vlan_id }}">{{ vlan_id }}
                                 {% if vlan.name %} - {{ vlan.name }}{% endif %}
@@ -121,9 +124,8 @@
         {% if request.user.is_superuser %}
                             <input type="submit" name="vlan_delete"
                             data-bs-toggle="tooltip" title="Click here to delete this vlan!"
-                            class="btn btn-warning"
-                            value="DELETE !!!"
-                            id="delete"
+                            class="btn btn-warning" value="DELETE !!!"
+                            id="vlan_delete_submit" disabled
                             onclick="return confirm_change('Are you sure you want DELETE this vlan?')">
         {% endif %}
                         </td>
@@ -131,6 +133,21 @@
                     <tbody>
                     </table>
                     </form>
+                    <!-- Add script to detect vlan input change and enable delete button -->
+                    <script>
+                    // value at initial form rendering:
+                    const initialEditVlanValue = document.getElementById('update_vlan_id').value
+                    function checkEditVlanChanged{{ forloop.counter }}() {
+                        const vlanSelect = document.getElementById('update_vlan_id');
+                        const submitButton = document.getElementById('vlan_delete_submit');
+                        if (vlanSelect.value !== initialEditVlanValue) {
+                            submitButton.disabled = false   // selected vlan changed, enable the delete submit button
+                        } else {
+                            submitButton.disabled = true    // No changes from original vlan, disable the delete submit button
+                        }
+                    }
+                    </script>
+
                 </div>
             </div>{# card #}
         </div>{# col #}
