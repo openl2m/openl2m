@@ -19,8 +19,9 @@
                         <td class="text-end align-middle"><label for="id_new_vlan_id">VLAN:</label></td>
                         <td class="text-start align-middle">
                             <input data-bs-toggle="tooltip" title="Enter the new vlan ID" type="number"
-                                   class="form-control" name="vlan_id" id="id_new_vlan_id" value=""
-                                   placeholder="new vlan id" min="2" max="4094">
+                                   id="new_vlan_input" class="form-control" name="vlan_id" id="id_new_vlan_id" value=""
+                                   placeholder="new vlan id" min="2" max="4094"
+                                   onchange="checkVlanIdChanged()">
                         </td>
                     </tr>
 {% if connection.can_set_vlan_name %}
@@ -38,9 +39,8 @@
                         <td class="text-start align-middle">
                             <input type="submit" name="vlan_create"
                                 data-bs-toggle="tooltip" title="Click here to create new vlan!"
-                                class="btn btn-primary"
-                                value="Create"
-                                id="create"
+                                class="btn btn-primary" value="Create"
+                                id="new_vlan_create" disabled
                                 {% if request.user.profile.are_you_sure %}
                                 onclick="return confirm_change('Are you sure you want create this vlan?')">
                                 {% endif %}
@@ -49,6 +49,19 @@
                     <tbody>
                     </table>
                     </form>
+                    <!-- Add script to detect vlan id input change and enable submit. Note name is optional -->
+                    <script>
+                      function checkVlanIdChanged{{ forloop.counter }}() {
+                        const newVlan = document.getElementById('new_vlan_input');
+                        const submitButton = document.getElementById('new_vlan_create');
+                        if (newVlan.value !== newVlan.defaultValue) {
+                          submitButton.disabled = false   // Input changes, enable the submit button
+                        } else {
+                          submitButton.disabled = true    // No changes from original, disable the submit button
+                        }
+                      }
+                    </script>
+
                 </div>
             </div>{# card #}
         </div>{# col #}
