@@ -57,11 +57,14 @@
                   {% if iface.untagged_vlan > 0 %}
                     {% if connection.can_change_vlan and iface.lacp_type == LACP_IF_TYPE_NONE  %}
                       <form name="vlanchange_{{ iface.key }}"
+                            id="vlanform{{ forloop.counter }}"
                             action="{% url 'switches:pvid_change' group.id switch.id iface.key %}"
                             method="post"
                             >
                         {% csrf_token %}
-                        <select name="new_pvid" data-bs-toggle="tooltip" title="Select the new vlan here">
+                        <select name="new_pvid" data-bs-toggle="tooltip" title="Select the new vlan here"
+                                id="vlan_select{{ forloop.counter }}"
+                                onchange="checkVlanChanged{{ forloop.counter }}()">
                           {% for vlan_id,vlan in connection.allowed_vlans.items %}
                             <option
                             {% if vlan_id == iface.untagged_vlan %} selected {% endif %}
@@ -70,7 +73,8 @@
                             </option>
                           {% endfor %}
                         </select>
-                        <input type="submit"
+                        <input type="submit" disabled
+                               id="vlan_submit{{ forloop.counter }}"
                                value="Change"
                                class="btn btn-primary"
                                data-bs-toggle="tooltip" title="Click here to change vlan!"
@@ -79,6 +83,20 @@
                             {% endif %}
                         >
                       </form>
+                      <!-- Add script to detect vlan input change and enable submit -->
+                      <script>
+                        // value at initial form rendering:
+                        const initialVlanValue{{ forloop.counter }} = document.getElementById('vlan_select{{ forloop.counter }}').value
+                        function checkVlanChanged{{ forloop.counter }}() {
+                          const vlanSelect = document.getElementById('vlan_select{{ forloop.counter }}');
+                          const submitButton = document.getElementById('vlan_submit{{ forloop.counter }}');
+                          if (vlanSelect.value !== initialVlanValue{{ forloop.counter }}) {
+                            submitButton.disabled = false   // selected vlan changed, enable the submit button
+                          } else {
+                            submitButton.disabled = true    // No changes from original vlan, disable the submit button
+                          }
+                        }
+                      </script>
                     {% else %} {# not can_change_vlan #}
                       <span data-bs-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
                         {{ iface.untagged_vlan }}
