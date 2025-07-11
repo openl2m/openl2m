@@ -1,9 +1,9 @@
 {% load static %}
 <nav class="navbar navbar-expand-sm">
   <div class="container-fluid">
-    <h1 class="navbar-brand pb-0">
+<!-- <h1 class="navbar-brand pb-0"> -->
 {% if request.user.is_authenticated and not is_top_menu %}
-      <form class="navbar-brand"
+      <form class="navbar-brand pb-0 mb-0"
         action="{% url 'switches:groups' %}"
         method="post"
       {% if connection.save_needed %}
@@ -16,11 +16,11 @@
             data-bs-title="Go back to Devices Menu"
             alt="OpenL2M logo"
         >
-    </form>
+      </form>
 {% else %}
     <img src="{% static 'img/openl2m-logo.png' %}" alt="OpenL2M logo">
 {% endif %}
-    </h1>
+<!-- </h1> -->
 
 {% if request.user.is_authenticated %}
 
