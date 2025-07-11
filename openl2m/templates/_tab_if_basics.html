@@ -234,7 +234,7 @@
                 {% if connection.can_run_commands %}
                   {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
                     <td>
-                      <form name="command_form"
+                      <form name="interface_command_form_{{forloop.counter}}"
                             action="{% url 'switches:interface_cmd_output' group.id switch.id iface.key %}"
                             method="post">
                         {% csrf_token %}
@@ -358,7 +358,7 @@
               {% if connection.can_run_commands %}
                 {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
                   <td>
-                    <form name="command_form"
+                    <form name="interface_command_form_{{forloop.counter}}"
                           action="{% url 'switches:interface_cmd_output' group.id switch.id iface.key %}"
                           method="post">
                       {% csrf_token %}

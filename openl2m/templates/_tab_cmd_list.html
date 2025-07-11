@@ -3,7 +3,7 @@
     <strong>Show Commands</strong>
   </div>
   <div class="card-body">
-    <form name="command_form"
+    <form name="switch_show_command_form"
           action="{% url 'switches:switch_cmd_output' group.id switch.id %}"
           method="post">
       {% csrf_token %}
