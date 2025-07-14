@@ -160,13 +160,10 @@
                   // dynamically read the form elements here
                   for (let i = 0; i < thisForm.elements.length; i++) {
                     const element = thisForm.elements[i];
-                    console.log(`Element Name: ${element.name}, Type: ${element.type}, Value: ${element.value}`);
                     if (element.type === 'text' && element.value.trim() !== element.defaultValue) {
-                      console.log(`TEXT element changed!`);
                       setEnable = true   // input changes, allow submit
                     }
                     else if (element.type === 'select-one' && element.value !== "") {
-                      console.log(`SELECT element not default!`)
                       setEnable = true   // input changes, allow submit
                     }
                   }
