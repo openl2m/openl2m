@@ -613,7 +613,8 @@ def get_options_from_comma_string(csv_values):
     So we use the CSV reader to parse this.
     """
     # dprint(f"get_options_from_comma_string({csv_values})")
-    choices = ""
+    # we force a choice by adding a default invalid empty choice:
+    choices = "<option selected value=\"\">Choose one...</option>\n"
     if '"' not in csv_values:
         # dprint("Regular comma-separated...")
         # regular comma-separated
