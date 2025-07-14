@@ -138,6 +138,7 @@
                     </form>
                     {# Add script to detect vlan and description input change and enable update/delete buttons #}
                     <script>
+                    const vlanNames = { {% for vlan_id, vlan_name in connection.allowed_vlans.items %}{{ vlan_id }}: "{{ vlan_name }}", {% endfor %} };
                     function checkEditVlanChanged() {
                         const vlanSelect = document.getElementById('update_vlan_id');
                         const deleteSubmit = document.getElementById('vlan_delete_submit');
@@ -147,12 +148,12 @@
                         if (vlanSelect.value !== "-1") {
                             deleteSubmit.disabled = false   {# selected vlan changed, enable the delete submit button #}
         {% if connection.can_set_vlan_name %}
-                            const vlanName = document.getElementById('id_update_vlan_name')
-                            const vlanNameString = vlanName.value.trim();
-                            if (vlanNameString) {
+                            const newVlanName = document.getElementById('id_update_vlan_name').value.trim()
+                            // check that the name changed:
+                            if (newVlanName && newVlanName !== vlanNames[vlanSelect.value]) {
                                 updateSubmit.disabled = false   // also enable the update submit button when name is set
                             } else {
-                                updateSubmit.disabled = true    // no (new) name set, disable update
+                                updateSubmit.disabled = true    // no new name set or duplicate, disable update
                             }
         {% endif %}
                         } else {    // No changes from original vlan, disable submit buttons
