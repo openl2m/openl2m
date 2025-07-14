@@ -29,7 +29,7 @@ ifAdminStatus (ie interface up/down), and pethPsePortAdminEnable (ie. PoE enable
 from django.http.request import HttpRequest
 
 # from switches.connect.classes import PortList
-from switches.connect.classes import Interface
+from switches.connect.classes import Interface, Transceiver
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.connect.snmp.constants import dot1qPvid
 from switches.models import Switch, SwitchGroup
@@ -41,6 +41,9 @@ from switches.connect.snmp.aruba_cx.constants import (
     arubaWiredVsfv2ConfigOperationType,
     arubaWiredVsfv2ConfigOperationSetSource,
     arubaWiredVsfv2ConfigOperationSetDestination,
+    arubaWiredPmXcvrType,
+    arubaWiredPmXcvrWavelength,
+    arubaWiredPmXcvrConnectorType,
     ARUBA_CONFIG_ACTION_WRITE,
     ARUBA_CONFIG_TYPE_STARTUP,
     ARUBA_CONFIG_TYPE_RUNNING,
@@ -134,6 +137,38 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         return False
 
+    def _parse_mibs_aruba_pm(self, oid: str, val: str) -> bool:
+        """Parse the ARUBAWIRED-PM MIB for transceiver optics information"""
+        dprint(f"_parse_mibs_aruba_pm() {oid} = {val}")
+        if_index = oid_in_branch(arubaWiredPmXcvrType, oid)
+        if if_index:
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                iface.transceiver = Transceiver()
+                iface.transceiver.type = val
+            return True  # parsed
+
+        if_index = oid_in_branch(arubaWiredPmXcvrWavelength, oid)
+        if if_index:
+            iface = self.get_interface_by_key(key=if_index)
+            if iface:
+                if not iface.transceiver:  # should not happen!
+                    iface.transceiver = Transceiver()
+                iface.transceiver.wavelength = val
+            return True  # parsed
+
+        # this is currently not used in the web gui, so skip parsing...
+        # if_index = oid_in_branch(arubaWiredPmXcvrConnectorType, oid)
+        # if if_index:
+        #     iface = self.get_interface_by_key(key=if_index)
+        #     if iface:
+        #         if not iface.transceiver:   # should not happen!
+        #             iface.transceiver = Transceiver()
+        #         iface.transceiver.connector = val
+        #     return True # parsed
+
+        return False  # not parsed
+
     def _get_poe_data(self) -> int:
         """
         Aruba(HP) used both the standard PoE MIB, and their own ARUBAWIRED-POE mib.
@@ -217,6 +252,18 @@ class SnmpConnectorArubaCx(SnmpConnector):
             self.add_warning(warning="Error getting 'Aruba Vsf Product name' ('arubaWiredVsfv2MemberProductName')")
             return False
         return True
+
+    def _get_interface_transceiver_types(self) -> int:
+        """
+        Get Transceiver info from the switch. AOS-CX does not support the ifMauType MIB. It has a proprietary MIB
+        ARUBAWIRED-PM-MIB (PM = Pluggable Modules) from firmware v10.14.1000
+        This reads the transceiver type of an physical port.
+        Returns 1 on succes, -1 on failure
+        """
+        retval = self.get_snmp_branch(branch_name='arubaWiredPmXcvrEntry', parser=self._parse_mibs_aruba_pm)
+        if retval < 0:
+            self.add_warning("Error getting Transceiver data from 'arubaWiredPmXcvrEntry'")
+        return retval
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
