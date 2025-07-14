@@ -199,7 +199,7 @@
                       function checkDescrChanged{{ forloop.counter }}() {
                         const newDescr = document.getElementById('description{{ forloop.counter }}');
                         const submitButton = document.getElementById('submit{{ forloop.counter }}');
-                        if (newDescr.value !== newDescr.defaultValue) {
+                        if (newDescr.value.trim() !== newDescr.defaultValue) {
                           submitButton.disabled = false   // Input changes, enable the submit button
                         } else {
                           submitButton.disabled = true    // No changes from original, disable the submit button
