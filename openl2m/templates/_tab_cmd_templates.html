@@ -19,7 +19,7 @@
               {{ t.description }}
             </div>
             <div class="card-body">
-              <form name="command_template_{{ t.id }}_form"
+              <form name="command_template_{{ t.id }}_form" id="command_template_{{ t.id }}_form"
                     action="{% url 'switches:switch_cmd_template_output' group.id switch.id %}"
                     method="post">
                     {% csrf_token %}
@@ -29,63 +29,72 @@
                         <tr>
                           <td>{{ t.field1_name }}</td>
                           <td><input type="text" class="form-control" name="field1" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field1_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field1_description }}"
+                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
                          </tr>
                         {% endif %}
                         {% if t.field2_name %}
                         <tr>
                           <td>{{ t.field2_name }}</td>
                           <td><input type="text" class="form-control" name="field2" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field2_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field2_description }}"
+                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
                         </tr>
                         {% endif %}
                         {% if t.field3_name %}
                         <tr>
                           <td>{{ t.field3_name }}</td>
                           <td><input type="text" class="form-control" name="field3" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field3_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field3_description }}"
+                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
                         </tr>
                         {% endif %}
                         {% if t.field4_name %}
                         <tr>
                           <td>{{ t.field4_name }}</td>
                           <td><input type="text" class="form-control" name="field4" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field4_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field4_description }}"
+                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
                         </tr>
                         {% endif %}
                         {% if t.field5_name %}
                         <tr>
                           <td>{{ t.field5_name }}</td>
                           <td><input type="text" class="form-control" name="field5" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field5_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field5_description }}"
+                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
                         </tr>
                         {% endif %}
                         {% if t.field6_name %}
                         <tr>
                           <td>{{ t.field6_name }}</td>
                           <td><input type="text" class="form-control" name="field6" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field6_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field6_description }}"
+                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
                         </tr>
                         {% endif %}
                         {% if t.field7_name %}
                         <tr>
                           <td>{{ t.field7_name }}</td>
                           <td><input type="text" class="form-control" name="field7" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field7_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field7_description }}"
+                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
                         </tr>
                         {% endif %}
                         {% if t.field8_name %}
                         <tr>
                           <td>{{ t.field8_name }}</td>
                           <td><input type="text" class="form-control" name="field8" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field8_description }}"></td>
+                                   data-bs-toggle="tooltip" title="{{ t.field8_description }}"
+                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
                         </tr>
                         {% endif %}
                         {% if t.list1_name %}
                         <tr>
                           <td>{{ t.list1_name }}</td>
                           <td>
-                            <select name="list1" class="form-select" data-bs-toggle="tooltip" title="{{ t.list1_description }}">
+                            <select name="list1" class="form-select" data-bs-toggle="tooltip" title="{{ t.list1_description }}"
+                                    onchange="templateInputChanged{{ t.id }}()">
                               {{ t.list1_values | get_options_from_comma_string }}
                             </select>
                           </td>
@@ -95,7 +104,8 @@
                         <tr>
                           <td>{{ t.list2_name }}</td>
                           <td>
-                            <select name="list2" class="form-select" data-bs-toggle="tooltip" title="{{ t.list2_description }}">
+                            <select name="list2" class="form-select" data-bs-toggle="tooltip" title="{{ t.list2_description }}"
+                                    onchange="templateInputChanged{{ t.id }}()">
                               {{ t.list2_values | get_options_from_comma_string }}
                             </select>
                           </td>
@@ -105,7 +115,8 @@
                         <tr>
                           <td>{{ t.list3_name }}</td>
                           <td>
-                            <select name="list3" class="form-select" data-bs-toggle="tooltip" title="{{ t.list3_description }}">
+                            <select name="list3" class="form-select" data-bs-toggle="tooltip" title="{{ t.list3_description }}"
+                                    onchange="templateInputChanged{{ t.id }}()">
                               {{ t.list3_values | get_options_from_comma_string }}
                             </select>
                           </td>
@@ -115,7 +126,8 @@
                         <tr>
                           <td>{{ t.list4_name }}</td>
                           <td>
-                            <select name="list4" class="form-select" data-bs-toggle="tooltip" title="{{ t.list4_description }}">
+                            <select name="list4" class="form-select" data-bs-toggle="tooltip" title="{{ t.list4_description }}"
+                                    onchange="templateInputChanged{{ t.id }}()">
                               {{ t.list4_values | get_options_from_comma_string }}
                             </select>
                           </td>
@@ -125,7 +137,8 @@
                         <tr>
                           <td>{{ t.list5_name }}</td>
                           <td>
-                            <select name="list5" class="form-select" data-bs-toggle="tooltip" title="{{ t.list5_description }}">
+                            <select name="list5" class="form-select" data-bs-toggle="tooltip" title="{{ t.list5_description }}"
+                                    onchange="templateInputChanged{{ t.id }}()">
                               {{ t.list5_values | get_options_from_comma_string }}
                             </select>
                           </td>
@@ -134,8 +147,33 @@
                       </tbody>
                     </table>
                     <input type="hidden" id="id" name="template_id" value="{{ t.id }}">
-                  &nbsp;<input type="submit" value="Run" class="btn btn-primary" data-bs-toggle="tooltip" title="Click to run command template">
+                  &nbsp;<input type="submit" disabled value="Run" class="btn btn-primary" data-bs-toggle="tooltip"
+                               name="template_form_submit{{ t.id }}" id="template_form_submit{{ t.id }}"
+                               title="Click to run command template">
               </form>
+              {# add some client-side validation #}
+              <script>
+                function templateInputChanged{{ t.id }}() {
+                  const thisForm = document.getElementById('command_template_{{ t.id }}_form')
+                  const submitButton = document.getElementById('template_form_submit{{ t.id }}');
+                  var setEnable = false
+                  // dynamically read the form elements here
+                  for (let i = 0; i < thisForm.elements.length; i++) {
+                    const element = thisForm.elements[i];
+                    if (element.type === 'text' && element.value.trim() !== element.defaultValue) {
+                      setEnable = true   // input changes, allow submit
+                    }
+                    else if (element.type === 'select-one' && element.value !== "") {
+                      setEnable = true   // input changes, allow submit
+                    }
+                  }
+                  if (setEnable) {
+                    submitButton.disabled = false
+                  } else {
+                    submitButton.disabled = true
+                  }
+                }
+              </script>
             </div>{# class card-body #}
           </div> {# class card #}
         </div>{# collapse #}

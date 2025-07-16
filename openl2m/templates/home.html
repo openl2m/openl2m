@@ -56,10 +56,6 @@
 -->
 
                         {# wrap description around the menu button, set full size...#}
-                            {% if group.description %}
-                            <span class="d-grid" data-bs-toggle="tooltip" data-bs-title="{{ group.description }}">
-                            {% endif %}
-
                             {# add the button #}
                             <button class="btn btn-outline-secondary mb-2"
                                 type="button"
@@ -70,6 +66,9 @@
                                 aria-expanded="false"
                             {% endif %}
                                 aria-controls="group{{ group_id }}">
+                            {% if group.description %}
+                                <span class="d-grid" data-bs-toggle="tooltip" data-bs-title="{{ group.description }}">
+                            {% endif %}
                             {# use display name if set, else just group name #}
                             {% if group.display_name %}
                                 {{ group.display_name }}
@@ -79,14 +78,12 @@
                             {% if group.read_only %}:
                                 (r/o)
                             {% endif %}
-                            {# end button #}
-                            </button>
-
                             {% if group.description %}
                             {# end description wrapper span #}
-                            </span>
+                                </span>
                             {% endif %}
-
+                            {# end button #}
+                            </button>
                         {# end d-grip #}
                         </div>
 

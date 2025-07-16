@@ -609,6 +609,11 @@ def perform_switch_vlan_add(request: HttpRequest, group_id: int, switch_id: int,
         error.description = "Access denied!"
         return False, error
 
+    if vlan_id < 1:
+        error = Error()
+        error.description = f"Invalid new vlan id: '{vlan_id}'"
+        return False, error
+
     if connection.vlan_exists(vlan_id):
         error = Error()
         error.description = f"Vlan {vlan_id} already exists!"

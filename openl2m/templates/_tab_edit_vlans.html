@@ -16,11 +16,12 @@
                     <table class="table table-hover table-headings w-auto">
                     <tbody>
                     <tr>
-                        <td class="text-end align-middle"><label for="id_new_vlan_id">VLAN:</label></td>
+                        <td class="text-end align-middle"><label for="new_vlan_input">VLAN:</label></td>
                         <td class="text-start align-middle">
                             <input data-bs-toggle="tooltip" title="Enter the new vlan ID" type="number"
-                                   class="form-control" name="vlan_id" id="id_new_vlan_id" value=""
-                                   placeholder="new vlan id" min="2" max="4094">
+                                   id="new_vlan_input" class="form-control" name="vlan_id" value=""
+                                   placeholder="new vlan id" min="2" max="4094"
+                                   onchange="checkVlanIdChanged()">
                         </td>
                     </tr>
 {% if connection.can_set_vlan_name %}
@@ -38,17 +39,31 @@
                         <td class="text-start align-middle">
                             <input type="submit" name="vlan_create"
                                 data-bs-toggle="tooltip" title="Click here to create new vlan!"
-                                class="btn btn-primary"
-                                value="Create"
-                                id="create"
+                                class="btn btn-primary" value="Create"
+                                id="new_vlan_create" disabled
                                 {% if request.user.profile.are_you_sure %}
                                 onclick="return confirm_change('Are you sure you want create this vlan?')">
                                 {% endif %}
                         </td>
                     </tr>
-                    <tbody>
+                    </tbody>
                     </table>
                     </form>
+                    <!-- Add script to detect vlan id input change and enable submit. Note name is optional -->
+                    <script>
+                    {#- generate list of existing vlans -#}
+                      const myVlans = [{% for vlan_id in connection.allowed_vlans %}'{{ vlan_id }}',{% endfor %} ];
+                      function checkVlanIdChanged{{ forloop.counter }}() {
+                        const newVlan = document.getElementById('new_vlan_input');
+                        const submitButton = document.getElementById('new_vlan_create');
+                        if (newVlan.value !== newVlan.defaultValue && !myVlans.includes(newVlan.value)) {
+                          submitButton.disabled = false   // Input changes and new vlan, enable the submit button
+                        } else {
+                          submitButton.disabled = true    // No changes from original, disable the submit button
+                        }
+                      }
+                    </script>
+
                 </div>
             </div>{# card #}
         </div>{# col #}
@@ -69,10 +84,13 @@
                     <table class="table table-hover table-headings w-auto">
                     <tbody>
                     <tr>
-                        <td class="text-end align-middle"><label for="id_update_vlan_id">VLAN:</label></td>
+                        <td class="text-end align-middle"><label for="update_vlan_id">VLAN:</label></td>
                         <td class="text-start align-middle">
                             <select data-bs-toggle="tooltip" title="Select the vlan to edit"
-                            name="vlan_id" id="id_update_vlan_id" class="form-select" aria-label="Select VLAN to edit">
+                            name="vlan_id" id="update_vlan_id" class="form-select" aria-label="Select VLAN to edit"
+                            onchange="checkEditVlanChanged()">
+                            <!-- initial value is invalid, to prevent accidental delete of vlan 1 -->
+                             <option value="-1">Choose a vlan:</option>
                             {% for vlan_id, vlan in connection.allowed_vlans.items %}
                             <option value="{{ vlan_id }}">{{ vlan_id }}
                                 {% if vlan.name %} - {{ vlan.name }}{% endif %}
@@ -87,7 +105,8 @@
                         <td class="text-start align-middle">
                             <input type="text" data-bs-toggle="tooltip" title="Enter new name for selected vlan, or leave blank"
                             class="form-control" name="vlan_name" id="id_update_vlan_name" value=""
-                            placeholder="new vlan name">
+                            placeholder="new vlan name"
+                            onkeyup="checkEditVlanChanged()">
                         </td>
                     </tr>
         {% endif %}
@@ -98,7 +117,7 @@
                             data-bs-toggle="tooltip" title="Click here to update this vlan!"
                             class="btn btn-primary"
                             value="Update"
-                            id="change"
+                            id="vlan_update_submit" disabled
                             {% if request.user.profile.are_you_sure %}
                             onclick="return confirm_change('Are you sure you want update this vlan?')">
                             {% endif %}
@@ -108,16 +127,44 @@
         {% if request.user.is_superuser %}
                             <input type="submit" name="vlan_delete"
                             data-bs-toggle="tooltip" title="Click here to delete this vlan!"
-                            class="btn btn-warning"
-                            value="DELETE !!!"
-                            id="delete"
+                            class="btn btn-warning" value="DELETE !!!"
+                            id="vlan_delete_submit" disabled
                             onclick="return confirm_change('Are you sure you want DELETE this vlan?')">
         {% endif %}
                         </td>
                     </tr>
-                    <tbody>
+                    </tbody>
                     </table>
                     </form>
+                    {# Add script to detect vlan and description input change and enable update/delete buttons #}
+                    <script>
+                    const vlanNames = { {% for vlan_id, vlan_name in connection.allowed_vlans.items %}{{ vlan_id }}: "{{ vlan_name }}", {% endfor %} };
+                    function checkEditVlanChanged() {
+                        const vlanSelect = document.getElementById('update_vlan_id');
+                        const deleteSubmit = document.getElementById('vlan_delete_submit');
+        {% if connection.can_set_vlan_name %}
+                        const updateSubmit = document.getElementById('vlan_update_submit');
+        {% endif %}
+                        if (vlanSelect.value !== "-1") {
+                            deleteSubmit.disabled = false   {# selected vlan changed, enable the delete submit button #}
+        {% if connection.can_set_vlan_name %}
+                            const newVlanName = document.getElementById('id_update_vlan_name').value.trim()
+                            // check that the name changed:
+                            if (newVlanName && newVlanName !== vlanNames[vlanSelect.value]) {
+                                updateSubmit.disabled = false   // also enable the update submit button when name is set
+                            } else {
+                                updateSubmit.disabled = true    // no new name set or duplicate, disable update
+                            }
+        {% endif %}
+                        } else {    // No changes from original vlan, disable submit buttons
+                            deleteSubmit.disabled = true
+        {% if connection.can_set_vlan_name %}
+                            updateSubmit.disabled = true
+        {% endif %}
+                        }
+                    }
+                    </script>
+
                 </div>
             </div>{# card #}
         </div>{# col #}

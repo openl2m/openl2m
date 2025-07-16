@@ -1,9 +1,9 @@
 {% load static %}
 <nav class="navbar navbar-expand-sm">
   <div class="container-fluid">
-    <h1 class="navbar-brand pb-0">
+<!-- <h1 class="navbar-brand pb-0"> -->
 {% if request.user.is_authenticated and not is_top_menu %}
-      <form class="navbar-brand"
+      <form class="navbar-brand pb-0 mb-0"
         action="{% url 'switches:groups' %}"
         method="post"
       {% if connection.save_needed %}
@@ -16,11 +16,11 @@
             data-bs-title="Go back to Devices Menu"
             alt="OpenL2M logo"
         >
-    </form>
+      </form>
 {% else %}
     <img src="{% static 'img/openl2m-logo.png' %}" alt="OpenL2M logo">
 {% endif %}
-    </h1>
+<!-- </h1> -->
 
 {% if request.user.is_authenticated %}
 
@@ -38,8 +38,8 @@
                 placeholder="Device name or reg-ex..."
                 data-bs-toggle="tooltip"
                 title="Type the name or regular expression of the device(s) you are looking for here!"
-          >
-          <button type="submit"
+                onkeyup="validateSearch()">
+          <button type="submit" name="search_submit" id="search_submit" disabled
                 value="Search"
                 class="btn color-openl2m"
                 data-bs-toggle="tooltip"
@@ -47,6 +47,16 @@
           ><i class="fa-solid fa-search"></i></button>
         </div>
       </form>
+      <script>
+        function validateSearch() {
+          const submitButton = document.getElementById('search_submit');
+          if (document.getElementById('switchname').value.trim() !== "") {
+            submitButton.disabled = false   // Input changes, enable the search button
+          } else {
+            submitButton.disabled = true    // No changes from original, disable the search button
+          }
+        }
+      </script>
     </div>
   {% endif %}
 
