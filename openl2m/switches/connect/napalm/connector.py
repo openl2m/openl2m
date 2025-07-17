@@ -297,9 +297,9 @@ class NapalmConnector(Connector):
                     # it is possible that the 'short' form of the interface name is used,
                     # convert to long ...
                     if_name = interface_name_to_long(if_name)
-                    a = self.add_learned_ethernet_address(if_name, info['mac'])
-                    if a:
-                        a.set_ip4_address(info['ip'])
+                    a = self.add_learned_ethernet_address(
+                        if_name=if_name, eth_address=info['mac'], ip4_address=info['ip']
+                    )
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get arp table"

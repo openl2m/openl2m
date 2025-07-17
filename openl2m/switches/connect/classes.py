@@ -357,17 +357,30 @@ class EthernetAddress(netaddr.EUI):
         super().__init__(ethernet_string)
         self.vendor: str = ''
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
-        self.address_ip4: str = ""  # ipv4 address as str() from arp table, if known
+        self.address_ip4: list = []  # ipv4 address as str() from arp table, if known
         self.address_ip6: List = []  # known ipv6 addresses of this ethernet address, in list as str()
         self.address_ip6_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
-        self.hostname: str = ""  # reverse lookup for ip4 or ip6 address.
+        self.hostname: str = ""  # reverse lookup for ipv4 address.
+        self.hostname6: str = ""  # reverse lookup of ipv6 address.
 
     def set_vlan(self, vlan_id: int) -> None:
         self.vlan_id = int(vlan_id)
 
     def set_ip4_address(self, ip4_address: str) -> None:
         """Set the IPv4 address for this ethernet address."""
-        self.address_ip4 = ip4_address
+        return self.add_ip4_address(ip4_address=ip4_address)
+
+    def add_ip4_address(self, ip4_address: str) -> None:
+        """Add an IPv4 address to the list of addresses for this ethernet address.
+
+        Args:
+            ip4_address (str): string representing the IPv4 address for this ethernet address
+
+        Returns:
+            n/a
+        """
+        if ip4_address not in self.address_ip4:
+            self.address_ip4.append(ip4_address)
 
     def add_ip6_address(self, ip6_address: str) -> None:
         """Add an IPv6 address to the list of addresses for this ethernet address.
@@ -1138,25 +1151,26 @@ class Interface:
             # already known!
             e = self.eth[eth_address]
             dprint("  Eth already known!")
-            if vlan_id > 0:
-                e.set_vlan(vlan_id)
-            if ip4_address:
-                e.set_ip4_address(ip4_address)
-            if ip6_address:
-                e.add_ip6_address(ip6_address=ip6_address)
-            return e
+        # else:
+        #     if vlan_id > 0:
+        #         e.set_vlan(vlan_id)
+        #     if ip4_address:
+        #         e.add_ip4_address(ip4_address=ip4_address)
+        #     if ip6_address:
+        #         e.add_ip6_address(ip6_address=ip6_address)
+        #     return e
         else:
             # add the new ethernet address
             dprint("  New ethernet, adding.")
             e = EthernetAddress(eth_address)
-            if vlan_id > 0:
-                e.set_vlan(vlan_id)
-            if ip4_address:
-                e.set_ip4_address(ip4_address=ip4_address)
-            if ip6_address:
-                e.add_ip6_address(ip6_address=ip6_address)
             self.eth[eth_address] = e
-            return e
+        if vlan_id > 0:
+            e.set_vlan(vlan_id)
+        if ip4_address:
+            e.add_ip4_address(ip4_address=ip4_address)
+        if ip6_address:
+            e.add_ip6_address(ip6_address=ip6_address)
+        return e
 
     def add_neighbor(self, neighbor: NeighborDevice) -> None:
         '''
