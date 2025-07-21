@@ -620,12 +620,12 @@ class SwitchBulkEdit(LoginRequiredMixin, View):
         counter_increment(COUNTER_BULKEDITS)
 
         # read the submitted form data:
-        interface_change = int(request.POST.get("interface_change", INTERFACE_STATUS_NONE))
-        poe_choice = int(request.POST.get("poe_choice", BULKEDIT_POE_NONE))
-        new_pvid = int(request.POST.get("new_pvid", -1))
-        new_description = str(request.POST.get("new_description", ""))
-        new_description_type = int(request.POST.get("new_description_type", BULKEDIT_ALIAS_TYPE_REPLACE))
-        interface_list = request.POST.getlist("interface_list")
+        interface_change = int(request.POST.get("bulk_interface_change", INTERFACE_STATUS_NONE))
+        poe_choice = int(request.POST.get("bulk_poe_change", BULKEDIT_POE_NONE))
+        new_pvid = int(request.POST.get("bulk_vlan_change", -1))
+        new_description = str(request.POST.get("bulk_new_description", ""))
+        new_description_type = int(request.POST.get("bulk_new_description_type", BULKEDIT_ALIAS_TYPE_REPLACE))
+        interface_list = request.POST.getlist("bulk_interface_list")
 
         # was anything submitted?
         if len(interface_list) == 0:
