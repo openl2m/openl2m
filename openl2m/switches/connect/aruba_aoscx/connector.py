@@ -42,7 +42,7 @@ import urllib3
 
 from switches.utils import dprint, dvar
 from switches.constants import LOG_TYPE_ERROR, LOG_AOSCX_ERROR_GENERIC
-from switches.connect.classes import Interface, PoePort, NeighborDevice
+from switches.connect.classes import Interface, PoePort, NeighborDevice, Transceiver
 from switches.connect.connector import Connector
 from switches.connect.aruba_aoscx.utils import aoscx_parse_duplex
 from switches.connect.constants import (
@@ -416,6 +416,28 @@ class AosCxConnector(Connector):
                         self.vrfs[vrf_name].interfaces.append(iface.name)
                     # assing this vrf name to the interface:
                     iface.vrf_name = vrf_name
+
+            # check plugable modules for optics info
+            if 'pm_info' in aoscx_interface:
+                if 'connector' in aoscx_interface['pm_info'] and aoscx_interface['pm_info']['connector'] != 'absent':
+                    dprint(f"Optics info found:\n{aoscx_interface['pm_info']}\n")
+                    trx = Transceiver()
+                    if 'external_connector' in aoscx_interface['pm_info']:
+                        trx.connector = aoscx_interface['pm_info']['external_connector']
+
+                    if 'xcvr_desc' in aoscx_interface['pm_info']:
+                        trx.type = aoscx_interface['pm_info']['xcvr_desc']
+                    else:  # see if we can goble something from speed and connector info:
+                        if 'speed' in aoscx_interface['pm_info']:
+                            gig_speed = int(aoscx_interface['pm_info']['speed']) / 1000
+                            trx.type = f"{gig_speed}g {aoscx_interface['pm_info']['connector']}"
+
+                    if 'vendor_name' in aoscx_interface['pm_info']:
+                        trx.vendor = aoscx_interface['pm_info']['vendor_name']
+
+                    if 'wavelength' in aoscx_interface['pm_info']:
+                        trx.wavelength = aoscx_interface['pm_info']['wavelength']
+                    iface.transceiver = trx
 
             self.add_interface(iface)
 
