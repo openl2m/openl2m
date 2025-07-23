@@ -3,7 +3,7 @@
 <html lang="en" data-bs-theme="{{ request.user.profile.theme }}">
 <head>
     <title>OpenL2M - {% block title %}Home{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'bootstrap-5.3.3-dist/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-5.3.7-dist/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'materialdesignicons-6.7.96/css/materialdesignicons.min.css' %}">
     {# also change FontAwesome in neighbor_mermaid-graphic.html, and docs/conf.py ! #}
     <link rel="stylesheet" href="{% static 'fontawesome-7.0.0/css/all.css' %}">
@@ -128,7 +128,7 @@
   {% endif %}
 
   {% block javascript %}{% endblock %}
-  <script src="{% static 'bootstrap-5.3.3-dist/js/bootstrap.bundle.js' %}"></script>
+  <script src="{% static 'bootstrap-5.3.7-dist/js/bootstrap.bundle.js' %}"></script>
   <script>
     // New Bootstrap 5 tooltip activation:
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
