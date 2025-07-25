@@ -37,6 +37,23 @@ Neighbor Graph Options:
   MM_GRAPH_EXPANDED = False
 
 
+Version 3.4.5
+-------------
+
+Release Date: 2025-07-25
+
+* add (rudimentary) client/browser-side form checking on all forms.
+* add optics info for Aruba AOS-CX devices in the SNMP and REST-API drivers.
+* allow multiple IPv4 addresses per ethernet address.
+* update to Font Awesome v7.0.0 icons (from v6.7.2).
+* update to Bootstrap v5.3.7 (from v5.3.3)
+
+Bug fixes:
+
+* fix several forms with identical form element id's and names in tabbed pages.
+* fix several HTML5 compatibility errors and warnings.
+* fix not allowing invalid Vlan ID on Vlan-Create form.
+
 
 Version 3.4.4
 -------------
