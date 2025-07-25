@@ -58,6 +58,9 @@ from switches.permissions import (
     log_write_denied,
 )
 
+# Per SNMP MIB IfXTable, the ifAlias max size = 64, so limit all descriptions to that.
+MAX_INTERFACE_DESCRIPTION_SIZE = 64
+
 
 #
 # Change admin status, ie port Enable/Disable
@@ -195,6 +198,14 @@ def perform_interface_description_change(
         group=group,
         action=LOG_CHANGE_INTERFACE_ALIAS,
     )
+
+    # check size of submitted new description:
+    if len(new_description) > MAX_INTERFACE_DESCRIPTION_SIZE:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Description-Change: ERROR - new value too long (>{MAX_INTERFACE_DESCRIPTION_SIZE})"
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        return False, error
 
     interface, error = get_interface_to_change(connection=connection, interface_key=interface_key)
     if not interface:

@@ -89,7 +89,8 @@
               <td>
                 {% if connection.can_change_description and switch.edit_if_descr and group.edit_if_descr and user.profile.edit_if_descr %}
                 <label data-bs-toggle="tooltip" title="Enter a new description for all selected interfaces.">
-                  <input type="text" class="form-control" name="bulk_new_description" id="bulk_new_description" size=40
+                  <input type="text" class="form-control" name="bulk_new_description" id="bulk_new_description"
+                  size="40" maxlength="64"
                   value="" placeholder="new description here..."
                   onkeyup="enable_bulk_submit()">
                 </label>
