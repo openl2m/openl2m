@@ -511,20 +511,20 @@ def get_lldp_info(neighbor):
 #   {% endfor %}
 
 
-@register.filter
-def get_neighbor_mermaid_config(neighbor):
-    """
-    Return a string that represents the lldp neighbor for a mermaid.js graph.
-    To keep things simple, we return a single icon, even when multiple capabilities exist.
-    """
+# @register.filter
+# def get_neighbor_mermaid_config(neighbor):
+#     """
+#     Return a string that represents the lldp neighbor for a mermaid.js graph.
+#     To keep things simple, we return a single icon, even when multiple capabilities exist.
+#     """
 
-    mermaid = f"{neighbor.index}{neighbor.start_device}\"fa:{neighbor.icon} {neighbor.name}\n"
-    if neighbor.port_name:
-        mermaid = f"{mermaid}({neighbor.port_name})"
-    mermaid = f"{mermaid}\"{neighbor.stop_device}\n"
-    if neighbor.style:
-        mermaid = f"{mermaid}style {neighbor.index} {neighbor.style}\n"
-    return mark_safe(mermaid)
+#     mermaid = f"{neighbor.index}{neighbor.start_device}\"fa:{neighbor.icon} {neighbor.name}\n"
+#     if neighbor.port_name:
+#         mermaid = f"{mermaid}({neighbor.port_name})"
+#     mermaid = f"{mermaid}\"{neighbor.stop_device}\n"
+#     if neighbor.style:
+#         mermaid = f"{mermaid}style {neighbor.index} {neighbor.style}\n"
+#     return mark_safe(mermaid)
 
 
 @register.filter
@@ -533,9 +533,15 @@ def get_neighbor_mermaid_graph(connection):
     Return a string that represents the all lldp neighbors in a mermaid.js graph format.
     To keep things simple, we return a single icon, even when multiple capabilities exist.
     """
+
+    # we use Markdown coding to get auto wrap of long names
+    # see https://docs.mermaidchart.com/mermaid-oss/syntax/flowchart.html#markdown-strings
     mermaid = f"""
 ---
 title: Device connections for '{connection.switch.name}'
+config:
+  flowchart:
+    htmlLabels: false
 ---
 """
     # select horizontal (LeftRight) or vertical (TopDown)
@@ -544,8 +550,10 @@ title: Device connections for '{connection.switch.name}'
     else:
         mermaid += "flowchart TD\n"
 
+    # we use Markdown coding to get auto wrap of long names
+    # see https://docs.mermaidchart.com/mermaid-oss/syntax/flowchart.html#markdown-strings
     # start with our device:
-    mermaid += f"DEVICE[\"{connection.switch.name}\"]\n"
+    mermaid += f"DEVICE[\"\`{connection.switch.name}\`\"]\n"
 
     # now find all neighbors on all interfaces:
     num = 0
@@ -562,9 +570,11 @@ title: Device connections for '{connection.switch.name}'
                     neighbor.name = "Unknown System"
                 set_neighbor_icon_info(neighbor)
 
+                # we use Markdown coding to get auto wrap of long names
+                # see https://docs.mermaidchart.com/mermaid-oss/syntax/flowchart.html#markdown-strings
                 # add remote neighbor device
                 remote_device_object = f"REMOTE_{num}"
-                mermaid += f"{remote_device_object}{neighbor.start_device}\"fa:{neighbor.icon} {neighbor.name}\"{neighbor.stop_device}\n"
+                mermaid += f"{remote_device_object}{neighbor.start_device}\"\`fa:{neighbor.icon} {neighbor.name}\`\"{neighbor.stop_device}\n"
 
                 if not settings.MM_GRAPH_EXPANDED:
                     # simple version
