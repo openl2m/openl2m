@@ -486,6 +486,7 @@ FDB_STATUS_MGMT = 5
 
 #
 # VLAN Q-BRIDGE RELATED
+# RFC 4363 - https://datatracker.ietf.org/doc/html/rfc4363
 #
 qBridgeMIB = '.1.3.6.1.2.1.17.7'  # Expanded 802.1Q MIB, includes VLAN info, etc.
 snmp_mib_variables['qBridgeMIB'] = qBridgeMIB
@@ -982,6 +983,9 @@ syslogMsgMsg = '.1.3.6.1.2.1.192.1.2.1.11'
 # IEEE also has a Dot1Q MIB:
 # see also https://mibs.observium.org/mib/IEEE8021-Q-BRIDGE-MIB/
 # or https://www.circitor.fr/Mibs/Html/I/IEEE8021-Q-BRIDGE-MIB.php
+#
+# MIB file at https://github.com/librenms/librenms/blob/master/mibs/IEEE8021-Q-BRIDGE-MIB
+#
 ieee8021QBridgeMib = '.1.3.111.2.802.1.1.4'
 
 ieee8021QBridgeMvrpEnabledStatus = '.1.3.111.2.802.1.1.4.1.1.1.1.6'

@@ -212,7 +212,7 @@
                       method="post"
                       >
                       {% csrf_token %}
-                      <input type="text" size=40 maxlength="64" name="new_description" value="{{ iface.description }}"
+                      <input type="text" size=40 maxlength="{{ connection.max_description_size }}" name="new_description" value="{{ iface.description }}"
                              id="description{{ forloop.counter }}"
                              data-bs-toggle="tooltip" title="Type the new description here!"
                              onkeyup="checkDescrChanged{{ forloop.counter }}()">

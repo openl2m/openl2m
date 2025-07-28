@@ -197,6 +197,12 @@ class Connector:
             or (self.request and self.request.user and self.request.user.profile.read_only)
         )
 
+        # various max input sizes, depending on platform capabilities
+        # defaults are set here, drivers can override as needed:
+        self.max_description_size = 64  # defaults to SNMP max size of IfXTable.ifAlias
+        self.max_vlan_name_size = 32  # defaults to SNMP max size of
+        # Q-Bridge dot1qVlanStaticName and ieee8021QBridgeVlanStaticName
+
         # capabilities of the vendor or tech-specific driver, we assume No for all changing:
         self.can_change_admin_status = False
         self.can_change_vlan = False

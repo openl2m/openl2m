@@ -30,7 +30,7 @@
                         <td class="text-start align-middle">
                             <input data-bs-toggle="tooltip" title="Enter the name of the new vlan" type="text"
                                    class="form-control" name="vlan_name" id="id_new_vlan_name" value=""
-                                   placeholder="new vlan name">
+                                   placeholder="new vlan name" maxlength="{{ connection.max_vlan_name_size}}">
                         </td>
                     </tr>
 {% endif %}
@@ -105,7 +105,7 @@
                         <td class="text-start align-middle">
                             <input type="text" data-bs-toggle="tooltip" title="Enter new name for selected vlan, or leave blank"
                             class="form-control" name="vlan_name" id="id_update_vlan_name" value=""
-                            placeholder="new vlan name"
+                            placeholder="new vlan name" maxlength="{{ connection.max_vlan_name_size}}"
                             onkeyup="checkEditVlanChanged()">
                         </td>
                     </tr>
