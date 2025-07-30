@@ -67,8 +67,8 @@ Features Supported
    * - Juniper (Snmp) *
      -
      -
-     -
-     -
+     - (r/o)
+     - (r/o)
      - Yes
      -
      - Yes
@@ -94,7 +94,7 @@ Features Supported
      - Yes
      - Yes
      - Yes
-     -
+     - Yes
      - TBD
 
    * - Junos (PyEZ) *
@@ -113,11 +113,11 @@ Features Supported
      -
      -
      -
-     -
+     - (r/o)
      - Yes
      -
      - Yes
-     -
+     - Yes
      - No
 
    * - SSH
