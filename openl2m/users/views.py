@@ -108,7 +108,6 @@ valid_themes = [
 
 
 class ThemeView(LoginRequiredMixin, View):
-    template_name = 'users/profile.html'
 
     def get(self, request, name):
         if name not in valid_themes:
@@ -119,6 +118,20 @@ class ThemeView(LoginRequiredMixin, View):
         # set selected theme in profile
         dprint(f"THEME set to '{name}'")
         request.user.profile.theme = name
+        request.user.save()
+        # and redirect to the "menu" page
+        return HttpResponseRedirect(reverse('home'))
+
+
+#
+# Class to show or hide the device menu
+#
+class MenuView(LoginRequiredMixin, View):
+
+    def get(self, request, menu):
+        # set selected theme in profile
+        dprint(f"MENU set to '{menu}'")
+        request.user.profile.menu = menu
         request.user.save()
         # and redirect to the "menu" page
         return HttpResponseRedirect(reverse('home'))

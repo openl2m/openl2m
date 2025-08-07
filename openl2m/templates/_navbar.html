@@ -132,15 +132,20 @@
             {% if not request.user.ldap_user %}
             <li><a class="dropdown-item" href="{% url 'password_change' %}"><i class="fa-solid fa-key"></i> Change Password</a></li>
             {% endif %}
-            <!-- Choose theme menu, only on top level menu page -->
             {% if request.path == '/switches/' %}
+              {# Choose theme menu, only on top level menu page #}
               {% if request.user.profile.theme == 'light' %}
                 <li><a class="dropdown-item" href="{% url 'users:theme' 'dark' %}"><i class="fa-solid fa-clone"></i> Set Dark Mode</a></li>
               {% else %}
                 <li><a class="dropdown-item" href="{% url 'users:theme' 'light' %}"><i class="far fa-clone"></i> Set Light Mode</a></li>
               {% endif %}
+              {# Show or Hide device menu #}
+              {% if request.user.profile.menu %}
+                <li><a class="dropdown-item" href="{% url 'users:menu' '0' %}"><i class="far fa-bars"></i> Hide Menu</a></li>
+              {% else %}
+                <li><a class="dropdown-item" href="{% url 'users:menu' '1' %}"><i class="fa-solid fa-bars"></i> Show Menu</a></li>
+              {% endif %}
             {% endif %}
-            <!-- End Theme menu -->
             <li><a class="dropdown-item" href="{% url 'users:token_list' %}"><i class="fa-solid fa-user-secret"></i> API Tokens</a></li>
             <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="fa-solid fa-user-circle"></i> Profile</a></li>
             <li> <hr class="dropdown-divider"></li>
