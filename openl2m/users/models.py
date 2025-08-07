@@ -97,6 +97,11 @@ class Profile(models.Model):
         verbose_name="The Theme selected",
         help_text="Set to a valid theme name",
     )
+    menu = models.BooleanField(
+        default=True,
+        verbose_name='Show Menu',
+        help_text='If unchecked, device menu is hidden and only search bar will be displayed',
+    )
 
     class Meta:
         pass
