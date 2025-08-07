@@ -256,8 +256,8 @@ def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector):
             worksheet.write(row, COL_INTERFACE_DESCRIPTION, interface.description, spreadsheet.format_regular)
             worksheet.write(row, COL_ETHERNET, str(eth), spreadsheet.format_regular)
             worksheet.write(row, COL_VENDOR, eth.vendor, spreadsheet.format_regular)
-            worksheet.write(row, COL_IPV4, eth.address_ip4, spreadsheet.format_regular)
-            # for IPv6, we keep multiple addresses, so handle the list:
+            # for IPv4 and IPv6, we keep multiple addresses, so handle the list:
+            worksheet.write(row, COL_IPV4, ", ".join(eth.address_ip4), spreadsheet.format_regular)
             worksheet.write(row, COL_IPV6, ", ".join(eth.address_ip6), spreadsheet.format_regular)
 
         # and loop through lldp:
