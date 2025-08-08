@@ -1952,6 +1952,10 @@ class SwitchAdminActivity(LoginRequiredMixin, View):
                 filter_values["switch_id"] = int(request.GET["switch"])
             if request.GET.get("group", ""):
                 filter_values["group_id"] = int(request.GET["group"])
+            if request.GET.get("description", ""):
+                # description match is based on case-insensitive RegEx
+                # see https://docs.djangoproject.com/en/5.2/ref/models/querysets/#std-fieldlookup-regex
+                filter_values['description__iregex'] = request.GET.get("description", "")
 
         # now set the filter, if found
         if len(filter_values) > 0:
