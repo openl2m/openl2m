@@ -376,10 +376,12 @@ ipNetToPhysicalRowStatus = '.1.3.6.1.2.1.4.35.1.8'
 
 #
 # from the IEEE802.3 stats mib:
+# https://mibs.observium.org/mib/ETHERLIKE-MIB/
 #
 # interface duplex status:
 dot3StatsDuplexStatus = '.1.3.6.1.2.1.10.7.2.1.19'
 snmp_mib_variables['dot3StatsDuplexStatus'] = dot3StatsDuplexStatus
+# valid values are in switches.connect.constants.py
 
 #
 # MPLS L3VPN related, aka "VRF" data
