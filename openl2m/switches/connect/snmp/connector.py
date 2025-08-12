@@ -879,44 +879,18 @@ class SnmpConnector(Connector):
         start_oid = snmp_mib_variables[branch_name]
         # Perform an SNMP walk
         self.error.clear()
-        count = 0
         try:
             dprint(f"   Calling BulkWalk {start_oid}")
             start_time = time.time()
             items = self._snmp_session.bulkwalk(oids=start_oid, non_repeaters=0, max_repetitions=max_repetitions)
             stop_time = time.time()
-            # Each returned item can be used normally as its related type (str or int)
-            # but also has several extended attributes with SNMP-specific information
-            for item in items:
-                count = count + 1
-                oid_found = f"{item.oid}.{item.oid_index}"
-                if settings.DEBUG:
-                    # Note: with ezsnmp, the returned "item.value" is ALWAYS of type str!
-                    # the real SNMP type is indicated in item.snmp_type !!!
-                    if item.snmp_type == 'OCTETSTR':
-                        if item.value.isprintable():
-                            value = item.value
-                        else:
-                            # for non-printable octetstring, you can use this:
-                            # https://github.com/kamakazikamikaze/easysnmp/issues/91
-                            value = "CAN NOT PRINT!"
-                    else:
-                        value = item.value
-                    dprint(f"\n\n====> SNMP READ: {oid_found} {item.snmp_type} = {value}")
-
-                # call the mib parser
-                parser(oid_found, item.value)
-
-            # add to timing data, for admin use!
-            self.add_timing(branch_name, count, stop_time - start_time)
-
         except Exception as e:
             self.error.status = True
             self.error.description = "A timeout or network error occured!"
-            self.error.details = (
-                f"SNMP Error: get_snmp_branch {branch_name}, {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"SNMP Error: get_snmp_branch {branch_name} bulkwalk(), {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            dprint(
+                f"   get_snmp_branch({branch_name}).bulkwalk(): Exception: {e.__class__.__name__}\n{self.error.details}\n"
             )
-            dprint(f"   get_snmp_branch({branch_name}): Exception: {e.__class__.__name__}\n{self.error.details}\n")
             # log this as well
             self.add_log(
                 type=LOG_TYPE_ERROR,
@@ -924,6 +898,47 @@ class SnmpConnector(Connector):
                 description=f"ERROR getting '{branch_name}': {self.error.details}",
             )
             return -1
+
+        dprint(f"   Reading return items from {start_oid}")
+        # Each returned item can be used normally as its related type (str or int)
+        # but also has several extended attributes with SNMP-specific information
+        count = 0
+        for item in items:
+            count = count + 1
+            oid_found = f"{item.oid}.{item.oid_index}"
+            if settings.DEBUG:
+                # Note: with ezsnmp, the returned "item.value" is ALWAYS of type str!
+                # the real SNMP type is indicated in item.snmp_type !!!
+                if item.snmp_type == 'OCTETSTR':
+                    if item.value.isprintable():
+                        value = item.value
+                    else:
+                        # for non-printable octetstring, you can use this:
+                        # https://github.com/kamakazikamikaze/easysnmp/issues/91
+                        value = "CAN NOT PRINT!"
+                else:
+                    value = item.value
+                dprint(f"\n\n====> SNMP READ: {oid_found} {item.snmp_type} = {value}")
+
+            # call the mib parser
+            try:
+                parser(oid_found, item.value)
+            except Exception as e:
+                self.error.status = True
+                self.error.description = "A SNMP parsing error occured!"
+                self.error.details = f"SNMP Error in '{branch_name}' OID={oid_found}, value='{item.value}', error {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+                dprint(
+                    f"   Parse error in '{branch_name}' OID={oid_found}, value='{item.value}': Exception: {e.__class__.__name__}\n{self.error.details}\n"
+                )
+                # log this as well
+                self.add_log(
+                    type=LOG_TYPE_ERROR,
+                    action=LOG_SNMP_ERROR,
+                    description=f"ERROR parsing '{branch_name}' OID={oid_found}, value='{item.value}': {self.error.details}",
+                )
+
+        # add to timing data, for admin use!
+        self.add_timing(branch_name, count, stop_time - start_time)
 
         dprint(f"get_snmp_branch() returns {count}")
         return count
