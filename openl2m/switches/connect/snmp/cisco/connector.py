@@ -107,13 +107,16 @@ class SnmpConnectorCisco(SnmpConnector):
         super().__init__(request, group, switch)
         self.description = 'Cisco SNMP driver'
         self.vendor_name = "Cisco"
+
+        # capabilities of the snmp drivers:
+        self.can_edit_vlans = False
+        self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         """
         # capabilities of the Cisco snmp driver are identical to the snmp driver:
         self.can_change_admin_status = True
         self.can_change_vlan = True
         self.can_change_poe_status = True
         self.can_change_description = True
-        self.can_save_config = True    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
         """
         self.stack_port_to_if_index: Dict[int, int] = {}  # maps (Cisco) stacking port to ifIndex values
@@ -1167,3 +1170,9 @@ class SnmpConnectorCisco(SnmpConnector):
                 interface.unmanage_reason = "On Cisco SB devices, trunk interface is not manageable yet!"
                 return True
         return False
+
+
+#
+# we could implement VLAN edit according to:
+# https://www.cisco.com/c/en/us/support/docs/ip/simple-network-management-protocol-snmp/45080-vlans.html
+#
