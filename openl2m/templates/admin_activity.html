@@ -7,6 +7,63 @@
 {# see https://codepen.io/sinairv/pen/XjZyWP #}
 <div class="container-fluid">
 
+<script>
+  function enable_log_search_submit() {
+    const submitButton = document.getElementById('log_search_submit');
+
+    // check log type
+    const type = document.getElementById('type')
+    console.log("Type: '" + type.value + "'")
+    if (type.value !== "") {
+      console.log("Type changed!")
+      submitButton.disabled = false   // enable search submit
+      return
+    }
+    // check Activity type
+    const action = document.getElementById('action')
+    console.log("Action: '" + action.value + "'")
+    if (action.value !== "") {
+      console.log("Action changed!")
+      submitButton.disabled = false   // enable search submit
+      return
+    }
+    // check user
+    const user = document.getElementById('user')
+    console.log("User: '" + user.value + "'")
+    if (user.value !== "") {
+      console.log("User changed!")
+      submitButton.disabled = false   // enable search submit
+      return
+    }
+    // check log group
+    const group = document.getElementById('group')
+    console.log("Group: '" + group.value + "'")
+    if (group.value !== "") {
+      console.log("Group changed!")
+      submitButton.disabled = false   // enable search submit
+      return
+    }
+    // check log type
+    const device = document.getElementById('switch')
+    console.log("Device: '" + device.value + "'")
+    if (device.value !== "") {
+      console.log("Switch changed!")
+      submitButton.disabled = false   // enable search submit
+      return
+    }
+    // check description change (a text input element):
+    const description = document.getElementById('description');
+    console.log("Description: '" + description.value + "'")
+    if (description.value.trim() !== "") {
+      console.log("Description changed!")
+      submitButton.disabled = false   // enable search submit
+      return
+    }
+    // nothing found, disable submit
+    submitButton.disabled = true
+  }
+</script>
+
   <div class="row">
     <div class="col-10">
       {% include '_paginator.html' with paginator=paginator page=logs %}
@@ -35,7 +92,7 @@
 
           <div class="form-group">
             <label for="type">Type</label>
-            <select name="type" class="form-control" id="type">
+            <select name="type" class="form-control" id="type" onchange="enable_log_search_submit()">
               <option selected value=""> - </option>
               {% for id,type in types %}
                 <option value="{{ id }}"
@@ -49,7 +106,7 @@
 
           <div class="form-group">
             <label for="action">Activity</label>
-            <select name="action" class="form-control" id="action">
+            <select name="action" class="form-control" id="action" onchange="enable_log_search_submit()">
               <option selected value=""> - </option>
               {% for id,action in actions %}
                 <option value="{{ id }}"
@@ -63,7 +120,7 @@
 
           <div class="form-group">
             <label for="user">User</label>
-            <select name="user" class="form-control" id="user">
+            <select name="user" class="form-control" id="user" onchange="enable_log_search_submit()">
               <option selected value=""> - </option>
               {% for user in users %}
                 <option value="{{ user.id }}"
@@ -77,7 +134,7 @@
 
           <div class="form-group">
             <label for="group">Switch Group</label>
-            <select name="group" class="form-control" id="group">
+            <select name="group" class="form-control" id="group" onchange="enable_log_search_submit()">
               <option selected value=""> - </option>
               {% for group in switchgroups %}
                 <option value="{{ group.id }}"
@@ -91,7 +148,7 @@
 
           <div class="form-group">
             <label for="switch">Switch</label>
-            <select name="switch" class="form-control" id="switch">
+            <select name="switch" class="form-control" id="switch" onchange="enable_log_search_submit()">
               <option selected value=""> - </option>
               {% for switch in switches %}
                 <option value="{{ switch.id }}"
@@ -107,6 +164,7 @@
             <label for="description">Description</label>
             <input type="text" name="description" class="form-control" maxlength="40" value=""
                   id="description" placeholder="Search by string or RegEx"
+                  onkeyup="enable_log_search_submit()"
                   data-bs-toggle="tooltip" title="Match log entry description by string or RegEx">
           </div>
 
@@ -115,6 +173,7 @@
           <div class="text-right noprint">
             <div class="input-group">
               <button type="submit" class="btn btn-primary"
+                      name="log_search_submit" id="log_search_submit" disabled
                       data-bs-toggle="tooltip" data-bs-title="Click here to search logs!">
                 <span class="fa-solid fa-search" aria-hidden="true"></span> Search
               </button>
@@ -128,5 +187,4 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
