@@ -37,6 +37,28 @@ Neighbor Graph Options:
   MM_GRAPH_EXPANDED = False
 
 
+Version 3.4.6
+-------------
+
+Release Date: 2025-08-13
+
+* add admin log search by description
+* add form validation to admin log search.
+* implement device menu show/hide option (from top right menu)
+* make maximum interface description size (64) and vlan name size (32) a driver setting.
+  Defaults set according to the SNMP field definitions. Enforced in web gui forms.
+* improve snmp parsing to better error trapping and logging.
+* several documentation updates.
+
+Bug fixes:
+
+* fix regression bug allowing multiple IPv4 in neigbor spreadsheet output.
+* fix Cisco snmp device save / write mem missing.
+* fix neighbor graph for long device names.
+* update Html 500-error page to remove error info (unknown for this error!)
+
+
+
 Version 3.4.5
 -------------
 
@@ -53,6 +75,7 @@ Bug fixes:
 * fix several forms with identical form element id's and names in tabbed pages.
 * fix several HTML5 compatibility errors and warnings.
 * fix not allowing invalid Vlan ID on Vlan-Create form.
+* fix Cisco snmp device save / write mem missing.
 
 
 Version 3.4.4
