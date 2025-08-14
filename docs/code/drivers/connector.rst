@@ -36,9 +36,15 @@ is inherited by all device- or vendor-specific connectors.
 
 **Data Collection**
 
-Collecting data from the device/switch is done from two primary functions:
+Collecting data from the device/switch is done by calling these functions:
 
-*conn.get_my_basic_info()* and *conn.get_my_client_data()*
+* conn.get_my_basic_info()
+
+* conn.get_my_hardware_details()
+
+* conn.check_my_device_health()
+
+* conn.get_my_client_data()
 
 **get_my_basic_info()** is called when a switch is selected from the menu,
 and is called from the corresponding Django view.
@@ -75,7 +81,39 @@ about the device, such as serial number, model,etc. Most drivers do implemented 
 If this function exists, it is also called from the 'view' function, like 'get_my_basic_info()'.
 
 
-**get_my_client_data()** is called when the user clicks the related button when the device is shown.
+Also optionally, **check_my_device_health()**, if found in the Connector() driver, will be called to perform
+a health check on the device. Each vendor driver can implement as needed. This is called as such:
+
+.. code-block:: python
+
+  # in connector.py, Connector() class:
+  if hasattr(self, 'check_my_device_health'):
+    self.check_my_device_health()
+
+
+Drivers can implement this function to check device health and provide information to the user.
+E.g. This can be used to check stack health, power-supplies or whatevers. There is a log message
+for device health. Here is a example of skeleton code:
+
+
+.. code-block:: python
+
+    def check_my_device_health(self):
+        # do your checking...
+
+        # you can add information to the device-info tab
+        self.add_more_info(category="Category", name="Attribute", value="Value")
+
+        # or add a warning to the web ui:
+        self.add_warning(warning="The Fan is BAD", add_log=False)
+
+        # then add a log message
+        self.add_log(description="The Fan is BAD", type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE)
+
+        return
+
+
+**get_my_client_data()** is called when the user clicks the related button(ARP/LLDP) when the device is shown.
 Is it called to load information about the known ethernet addresses, arp tables, lldp neighbors,
 and more. It should load additional data structures of the Connection() object. See the specific pages
 describing these data structures in more detail.
