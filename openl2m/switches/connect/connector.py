@@ -367,6 +367,13 @@ class Connector:
                 self.add_timing('HW Info Read', 1, time.time() - start_time)
             # this is optional, so we do not warn if not found!
 
+            # see if we can get device health details from the driver:
+            if hasattr(self, 'check_my_device_health'):
+                start_time = time.time()
+                self.check_my_device_health()
+                self.add_timing('Device Health', 1, time.time() - start_time)
+            # this is optional, so we do not warn if not found!
+
             # see if the driver has VRF support:
             if hasattr(self, 'get_my_vrfs'):
                 start_time = time.time()
@@ -457,9 +464,9 @@ class Connector:
 
     '''
     placeholder for class-specific implementation to read things like:
-        self.get_known_ethernet_addresses()
-            this should add EthernetAddress() =objects to the interface.eth dict(),
-            indexed by the ethernet address in string format
+    self.get_known_ethernet_addresses()
+        this should add EthernetAddress() =objects to the interface.eth dict(),
+        indexed by the ethernet address in string format
 
         self.get_arp_data()
 
@@ -468,6 +475,23 @@ class Connector:
 
     def get_my_client_data(self):
         return True
+    '''
+
+    '''
+    Likewize, drivers can implement this function to set device health information.
+    This can be used to check stack health, power-supplies or whatevers. There is a log message
+    for device health:
+
+    def check_my_device_health(self):
+        # do your checking...
+        
+        # then add a log message
+        self.add_log(description="The Fan is BAD", type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE)
+        
+        # or add a warning to the web ui:
+        self.add_warning(warning="The Fan is BAD", add_log=False)
+
+        return
     '''
 
     def clear_client_data(self):
