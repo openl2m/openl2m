@@ -797,7 +797,10 @@ snmp_mib_variables['ifStackStatus'] = ifStackStatus
 # dot1qVlanStaticRowStatus = 1.3.6.1.2.1.17.7.1.4.3.1.5
 
 #
-# ENTITY MIB
+# ENTITY MIB (v4)
+# https://www.rfc-editor.org/rfc/rfc6933
+# or more readable at:
+# https://mibs.observium.org/mib/ENTITY-MIB/
 #
 # entityMIB = ".1.3.6.1.2.47"
 #
@@ -831,8 +834,31 @@ snmp_mib_variables['entPhysicalIndex'] = entPhysicalIndex
 entPhysicalDescr = '.1.3.6.1.2.1.47.1.1.1.1.2'
 snmp_mib_variables['entPhysicalDescr'] = entPhysicalDescr
 
+entPhysicalVendorType = '.1.3.6.1.2.1.47.1.1.1.1.3'
+snmp_mib_variables['entPhysicalVendorType'] = entPhysicalVendorType
+# the value if entPhysicalVendorType is an OID with the vendor definition of entity type.
+# if entPhysicalClass = 10 (ie port), then this could point to eg.
+# .1.3.6.1.4.1.9.12.3.1.10.169, which in the Cisco Entity VendorType MIB is GigE-SX
+
 entPhysicalClass = '.1.3.6.1.2.1.47.1.1.1.1.5'  # entPhysicalClass
 snmp_mib_variables['entPhysicalClass'] = entPhysicalClass
+# this is of type "IANAPhysicalClass":
+"""
+other(1),
+unknown(2),
+chassis(3),
+backplane(4),
+container(5),     -- e.g., chassis slot or daughter-card holder
+powerSupply(6),
+fan(7),
+sensor(8),
+module(9),        -- e.g., plug-in card or daughter-card
+port(10),
+stack(11),        -- e.g., stack of multiple chassis entities
+cpu(12)
+energyObject(13),
+battery (14)
+"""
 
 entPhysicalSerialNum = '.1.3.6.1.2.1.47.1.1.1.1.11'
 snmp_mib_variables['entPhysicalSerialNum'] = entPhysicalSerialNum
@@ -843,20 +869,6 @@ snmp_mib_variables['entPhysicalSoftwareRev'] = entPhysicalSoftwareRev
 entPhysicalModelName = '.1.3.6.1.2.1.47.1.1.1.1.13'  # entPhysicalModelName
 snmp_mib_variables['entPhysicalModelName'] = entPhysicalModelName
 
-"""
- other(1),
-       unknown(2),
-       chassis(3),
-       backplane(4),
-       container(5),     -- e.g., chassis slot or daughter-card holder
-       powerSupply(6),
-       fan(7),
-       sensor(8),
-       module(9),        -- e.g., plug-in card or daughter-card
-       port(10),
-       stack(11),        -- e.g., stack of multiple chassis entities
-       cpu(12)
-"""
 
 #
 # OLD, deprecated IPV6-MIB - 1.3.6.1.2.1.55

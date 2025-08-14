@@ -11,7 +11,8 @@ Using MAU-MIB
 -------------
 
 The MAU (Media Access Unit) MIB is the standard way of describing media types, ie. transceivers.
-See https://mibs.observium.org/mib/MAU-MIB/
+See the MIB definition at https://www.iana.org/assignments/ianamau-mib/ianamau-mib
+and the more readable version at https://mibs.observium.org/mib/MAU-MIB/
 
 This MIB defines transceiver types for interface indeces. These types are defined as 'OID' formatted strings.
 E.g. a value of ".1.3.6.1.2.1.26.4.35" means a 10GBase-LR optical transceiver.
@@ -76,6 +77,9 @@ See https://oid-base.com/get/1.3.6.1.4.1.9.12.3.1.9.76.3
 
 entPhysicalVendorType (.1.3.6.1.2.1.47.1.1.1.1.3) can also be used:
     .1.3.6.1.2.1.47.1.1.1.1.3.1006 = OID: .1.3.6.1.4.1.9.12.3.1.10.151
+        Cisco Entity VendorType OID MIB defines this as " cevPortGESFP", likely an empty SFP slot.
+
     .1.3.6.1.2.1.47.1.1.1.1.3.1007 = OID: .1.3.6.1.4.1.9.12.3.1.9.76.3
+        defined by Cisco as "cevSFP10GSR", ie 10g-SR
 
 Note that the returned value is *vendor-defined*, i.e. complex to parse!
