@@ -158,3 +158,74 @@ snmp_mib_variables['hh3cTransceiverVendorName'] = hh3cTransceiverVendorName
 
 hh3cTransceiverTransferDistance = ".1.3.6.1.4.1.25506.2.70.1.1.1.7"
 snmp_mib_variables['hh3cTransceiverTransferDistance'] = hh3cTransceiverTransferDistance
+
+#
+# IRF Stacking information from the HH3C-STACK-MIB:
+#
+# explained at https://www.h3c.com/en/d_202302/1769896_294551_0.htm
+# and easily readable mib format at
+# https://mibs.observium.org/mib/HH3C-STACK-MIB/
+
+hh3cStackGlobalConfig = ".1.3.6.1.4.1.25506.2.91.1"
+# number of members in this stack
+hh3cStackMemberNum = ".1.3.6.1.4.1.25506.2.91.1.2"
+snmp_mib_variables['hh3cStackMemberNum'] = hh3cStackMemberNum
+
+#
+# the IRF device info is here:
+#
+# hh3cStackDeviceConfigTable 		.1.3.6.1.4.1.25506.2.91.2
+# and entries are below this:
+hh3cStackDeviceConfigEntry = ".1.3.6.1.4.1.25506.2.91.2.1"
+snmp_mib_variables['hh3cStackDeviceConfigEntry'] = hh3cStackDeviceConfigEntry
+
+# stack member id's
+hh3cStackMemberID = ".1.3.6.1.4.1.25506.2.91.2.1.1"
+snmp_mib_variables['hh3cStackMemberID'] = hh3cStackMemberID
+
+# priorities for the various members
+hh3cStackPriority = ".1.3.6.1.4.1.25506.2.91.2.1.3"
+snmp_mib_variables['hh3cStackPriority'] = hh3cStackPriority
+
+# number of IRF ports enabled
+hh3cStackPortNum = ".1.3.6.1.4.1.25506.2.91.2.1.4"
+snmp_mib_variables['hh3cStackPortNum'] = hh3cStackPortNum
+
+# max number of IRF ports in device members
+hh3cStackPortMaxNum = ".1.3.6.1.4.1.25506.2.91.2.1.5"
+snmp_mib_variables['hh3cStackPortMaxNum'] = hh3cStackPortMaxNum
+
+#
+# IRF roles are here:
+#
+# hh3cStackBoardConfigTable = .1.3.6.1.4.1.25506.2.91.3
+# and entries start here:
+hh3cStackBoardConfigEntry = ".1.3.6.1.4.1.25506.2.91.3.1"
+snmp_mib_variables['hh3cStackBoardConfigEntry'] = hh3cStackBoardConfigEntry
+
+# this gives the role of a specific board id:
+hh3cStackBoardRole = ".1.3.6.1.4.1.25506.2.91.3.1.1"
+snmp_mib_variables['hh3cStackBoardRole'] = hh3cStackBoardRole
+IRF_ROLE_SLAVE = 1
+IRF_ROLE_MASTER = 2
+IRF_ROLE_LOADING = 3
+IRF_ROLE_OTHER = 4
+
+# this maps the board ID to a IRF member:
+hh3cStackBoardBelongtoMember = ".1.3.6.1.4.1.25506.2.91.3.1.2"
+snmp_mib_variables['hh3cStackBoardBelongtoMember'] = hh3cStackBoardBelongtoMember
+
+#
+# there are also MIB values about the logical and physical IRF ports
+#
+# these are currently not checked:
+#  hh3cStackPortInfoTable 		.1.3.6.1.4.1.25506.2.91.4
+#  hh3cStackPortInfoEntry 	hh3cStackMemberID hh3cStackPortIndex	.1.3.6.1.4.1.25506.2.91.4.1
+#  hh3cStackPortIndex 	Integer32	.1.3.6.1.4.1.25506.2.91.4.1.1
+#  hh3cStackPortEnable 	Enumeration	.1.3.6.1.4.1.25506.2.91.4.1.2
+#  hh3cStackPortStatus 	Enumeration	.1.3.6.1.4.1.25506.2.91.4.1.3
+#  hh3cStackNeighbor 	Integer32	.1.3.6.1.4.1.25506.2.91.4.1.4
+#  hh3cStackPortForwardingPath 	OctetString	.1.3.6.1.4.1.25506.2.91.4.1.5
+#  hh3cStackPhyPortInfoTable 		.1.3.6.1.4.1.25506.2.91.5
+#  hh3cStackPhyPortInfoEntry 	ENTITY-MIBentPhysicalIndex	.1.3.6.1.4.1.25506.2.91.5.1
+#  hh3cStackBelongtoPort 	Integer32	.1.3.6.1.4.1.25506.2.91.5.1.1

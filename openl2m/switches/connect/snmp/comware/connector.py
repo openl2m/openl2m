@@ -16,6 +16,7 @@ HPE/3Com ComWare specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
 with HH3C specific ways of doing things...
 """
+from collections import defaultdict
 import datetime
 import math
 import traceback
@@ -25,7 +26,7 @@ from django.http.request import HttpRequest
 from pysnmp.proto.rfc1902 import OctetString, Gauge32
 
 from switches.models import Switch, SwitchGroup
-from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
+from switches.constants import LOG_TYPE_ERROR, LOG_TYPE_WARNING, LOG_PORT_POE_FAULT, LOG_HEALTH_MESSAGE
 from switches.connect.classes import Interface, PortList, Transceiver
 from switches.connect.constants import IF_TYPE_ETHERNET, POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_branch
@@ -58,6 +59,14 @@ from .constants import (
     hh3cTransceiverType,
     hh3cTransceiverWaveLength,
     hh3cTransceiverVendorName,
+    hh3cStackMemberNum,
+    hh3cStackMemberID,
+    hh3cStackPriority,
+    hh3cStackPortNum,
+    hh3cStackBoardConfigEntry,
+    hh3cStackBoardRole,
+    hh3cStackBoardBelongtoMember,
+    IRF_ROLE_MASTER,
 )
 
 
@@ -99,6 +108,13 @@ class SnmpConnectorComware(SnmpConnector):
         self.can_save_config = True    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
         """
+
+        # IRF stacking related variables:
+        self.irf_member_count = 1  # default to single stand-alone device
+        self.irf_member_info = defaultdict(
+            dict
+        )  # a dict of dicts to track info about each IRF member, keyed on (int) member-id.
+        self.irf_board_role = {}  # a dict to store the mapping from board id to member id.
 
     def _get_interface_data(self) -> bool:
         """
@@ -631,4 +647,162 @@ class SnmpConnectorComware(SnmpConnector):
             self.add_warning(warning="Error saving via SNMP (hh3cCfgOperateRowStatus)")
             return False
         dprint("All OK")
+        return True
+
+    def check_my_device_health(self):
+        '''Implement a health checks for this device.
+        Here are check IRF stacking, which is typically not handled by general purpose snmp monitoring tools.
+        '''
+        dprint("ComwareSnmpConnector().check_my_device_health()")
+        # call the super class implementation of this:
+        super().check_my_device_health()
+
+        # start with check of the IRF stack
+        self._check_irf_health()
+
+        # TBD: we could check DRNI health
+
+        return
+
+    def _check_irf_health(self):
+        '''Check health of the IRF stack (if found)'''
+        # get the number of devices in the IRF stack
+        retval = self.get_snmp_branch(branch_name='hh3cStackMemberNum', parser=self._parse_mibs_irf_member_count)
+        if retval < 0:
+            self.add_warning(warning="Error reading 'IRF member count' (hh3cStackMemberNum)")
+            return False
+        if self.irf_member_count == 1:
+            # single device, no need for more checks on IRF
+            return
+        dprint("IRF stack found!")
+        self.add_more_info(category="IRF Info", name="Members", value=self.irf_member_count)
+
+        # go check if the device with highest priority is the 'master' (aka main) of the IRF stack.
+        # first read the info about the members
+        retval = self.get_snmp_branch(
+            branch_name='hh3cStackDeviceConfigEntry', parser=self._parse_mibs_irf_device_config
+        )
+        if retval < 0:
+            self.add_warning(warning="Error reading 'IRF Device Config' (hh3cStackDeviceConfigEntry)")
+            return False
+
+        # and then check the role for each board. This is an indirect read, each device can have boards with a role
+        # (see parsing below)
+        retval = self.get_snmp_branch(branch_name='hh3cStackBoardConfigEntry', parser=self._parse_mibs_irf_device_role)
+        if retval < 0:
+            self.add_warning(warning="Error reading 'IRF Device Role' (hh3cStackBoardConfigEntry)")
+            return False
+
+        # now go check the results in  self.irf_member_info{}
+        dprint(f"FINAL IRF Info:\n{self.irf_member_info}")
+        irf_status = "OK"
+
+        # walk through the IRF info, and check for problems:
+        highest_prio = {'priority': -1}
+        master_id = -1
+        for member_index, irf_info in self.irf_member_info.items():
+            # if this device has less then 2 active ports, there is a problem
+            if irf_info['ports'] < 2:
+                healthy = False
+                # then add a log message
+                self.add_log(
+                    description=f"IRF ports active = {irf_info['ports']}",
+                    type=LOG_TYPE_WARNING,
+                    action=LOG_HEALTH_MESSAGE,
+                )
+            # store the highest priority device
+            if irf_info['priority'] > highest_prio['priority']:
+                highest_prio = irf_info
+            if irf_info['role'] == IRF_ROLE_MASTER:
+                master_id = irf_info['id']
+        # now check that the MASTER id is the same as the highest priority
+        if master_id != highest_prio['id']:
+            # this means something happened to the stack, add a log message!
+            irf_status = "Unhealthy!"
+            self.add_log(
+                description=f"IRF master id = {master_id}, but member id = {highest_prio['id']} has highest priority {highest_prio['priority']}",
+                type=LOG_TYPE_WARNING,
+                action=LOG_HEALTH_MESSAGE,
+            )
+
+        self.add_more_info(category="IRF Info", name="Status", value=irf_status)
+
+        return
+
+    def _parse_mibs_irf_member_count(self, oid: str, val: str) -> bool:
+        """
+        Parse Comware IRF member count
+        return True if we parse it, False if not.
+        """
+        dprint("_parse_mibs_irf_member_count()")
+
+        ret_val = oid_in_branch(hh3cStackMemberNum, oid)
+        if ret_val:
+            # if OID found, the value is the number of IRF members in stack
+            self.irf_member_count = int(val)
+            dprint(f"IRF members: {self.irf_member_count}")
+        # we don't care if we parsed this or not...
+        return True
+
+    def _parse_mibs_irf_device_config(self, oid: str, val: str) -> bool:
+        """
+        Parse Comware IRF device configuration. This gets us member id, priority and number of IRF ports.
+        return True if we parse it, False if not.
+        """
+        dprint("_parse_mibs_irf_device_config()")
+
+        # stack member id's
+        ret_val = oid_in_branch(hh3cStackMemberID, oid)
+        if ret_val:
+            # ret_val is the member index, and val is the member ID in the IRF stack
+            dprint(f"IRF index {ret_val} = id {val}")
+            self.irf_member_info[ret_val]['id'] = int(val)
+
+        # priorities for the various members
+        ret_val = oid_in_branch(hh3cStackPriority, oid)
+        if ret_val:
+            # ret_val is the member index, and val is the member priority in the IRF stack
+            dprint(f"IRF index {ret_val} = priority {val}")
+            self.irf_member_info[ret_val]['priority'] = int(val)
+
+        # number of IRF ports enabled
+        ret_val = oid_in_branch(hh3cStackPortNum, oid)
+        if ret_val:
+            # ret_val is the member index, and val is the number of enabled IRF ports on this member
+            dprint(f"IRF index {ret_val} = active ports {val}")
+            self.irf_member_info[ret_val]['ports'] = int(val)
+
+        # we don't care if we parsed this or not...
+        return True
+
+    def _parse_mibs_irf_device_role(self, oid: str, val: str) -> bool:
+        """
+        Parse Comware IRF device role information. This is a two-step mapping from a board-id and role,
+        to the board-id and member-id
+        return True if we parse it, False if not.
+        """
+        dprint("_parse_mibs_irf_device_role()")
+
+        # this get the role for a board-id
+        ret_val = oid_in_branch(hh3cStackBoardRole, oid)
+        if ret_val:
+            # ret_val is the board id, and val is the role
+            dprint(f"IRF board id {ret_val} = role {val}")
+            self.irf_board_role[ret_val] = int(val)
+
+        # this maps the board-id to an IRF member
+        ret_val = oid_in_branch(hh3cStackBoardBelongtoMember, oid)
+        if ret_val:
+            # ret_val is the board, and val is the member id (not member index!)
+            dprint(f"IRF board id {ret_val} = member id {val}")
+            # find this board's role, and add to the member id:
+            role = self.irf_board_role[ret_val]
+            # find the member id:
+            for member_index, member_info in self.irf_member_info.items():
+                if int(val) == member_info['id']:
+                    # update this member's role
+                    member_info['role'] = role
+                    break  # no need to check more.
+
+        # we don't care if we parsed this or not...
         return True

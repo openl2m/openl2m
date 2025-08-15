@@ -475,13 +475,22 @@ class Connector:
         return True
     '''
 
-    '''
-    Likewize, drivers can implement this function to set device health information.
-    This can be used to check stack health, power-supplies or whatevers. There is a log message
-    for device health:
+    def check_my_device_health(self):
+        '''
+        Drivers can implement this function to set device health information, see below.
+        This can be used to check stack health, power-supplies or whatever.
+        '''
+        dprint("Connector().check_my_device_health()")
+        return
+
+    """
+    Vendor drivers that implement this should call the super-class version of this at some point.
 
     def check_my_device_health(self):
-        # do your checking...
+        # call the super class implementation of this:
+        super().check_my_device_health()
+
+        # do your own vendor/device specific checking...
 
         # you can add information to the device-info tab
         self.add_more_info(category="Category", name="Attribute", value="Value")
@@ -493,7 +502,7 @@ class Connector:
         self.add_log(description="The Fan is BAD", type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE)
 
         return
-    '''
+    """
 
     def clear_client_data(self):
         '''
