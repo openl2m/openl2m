@@ -123,28 +123,6 @@ class StackMember:
         }
 
 
-class VendorData:
-    """
-    Class to hold generic Vendor-specific data, represented by
-    data name and value. this can be added to any device with a call to
-    connector.add_vendor_data(self, category, name, value)
-    This gets added to connector.vendor_data{} with category as key.
-    """
-
-    def __init__(self, name: str, value: str):
-        self.name: str = name
-        self.value = value
-
-    def as_dict(self) -> dict:
-        '''
-        return this class as a dictionary for use by the API
-        '''
-        return {
-            'name': self.name,
-            'value': self.value,
-        }
-
-
 class IPNetworkHostname(netaddr.IPNetwork):
     """
     Class to add a 'hostname' attribute to an IPNetwork() object.

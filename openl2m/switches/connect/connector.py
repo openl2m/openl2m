@@ -34,7 +34,6 @@ from switches.connect.classes import (
     PoePort,
     PoePSE,
     Vlan,
-    VendorData,
     Interface,
     EthernetAddress,
     NeighborDevice,
@@ -174,7 +173,6 @@ class Connector:
         self.netmiko_output = ""  # any output from a netmiko/ssh command executed.
 
         # physical device related:
-        self.vendor_data: Dict[str, Any] = {}  # dictionary to keep vendor-specific data
         self.hardware_details_needed = True  # True if we still need to read more hardware info (eg. the Entity tables)
         self.stack_members: Dict[int, StackMember] = (
             {}
@@ -484,12 +482,15 @@ class Connector:
 
     def check_my_device_health(self):
         # do your checking...
-        
-        # then add a log message
-        self.add_log(description="The Fan is BAD", type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE)
-        
+
+        # you can add information to the device-info tab
+        self.add_more_info(category="Category", name="Attribute", value="Value")
+
         # or add a warning to the web ui:
         self.add_warning(warning="The Fan is BAD", add_log=False)
+
+        # then add a log message
+        self.add_log(description="The Fan is BAD", type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE)
 
         return
     '''
@@ -1901,25 +1902,6 @@ class Connector:
             )
         # done!
         return
-
-    def add_vendor_data(self, category: str, name: str, value: Any):
-        '''
-        This adds a vendor specific piece of information to self.vendor_data[].
-        This is shown on the "Info" tab of the device html page.
-        Items are ordered by category heading, then name/value pairs
-
-        Args:
-            category(str): a category for origanizing names
-            name(str): the named entry to add to the category
-            value: the value of the named entry
-
-        Returns:
-            none
-        '''
-        vdata = VendorData(name, value)
-        if category not in self.vendor_data.keys():
-            self.vendor_data[category] = []
-        self.vendor_data[category].append(vdata)
 
     def get_switch_vlans(self) -> dict:
         '''
