@@ -46,7 +46,10 @@ Collecting data from the device/switch is done by calling these functions:
 
 * conn.get_my_client_data()
 
-**get_my_basic_info()** is called when a switch is selected from the menu,
+get_my_basic_info()
+-------------------
+
+This is called when a switch is selected from the menu,
 and is called from the corresponding Django view.
 This function should load the necessary information about interfaces
 to produce the basic switch view.
@@ -76,19 +79,24 @@ They are:
   as only physical interfaces have port id's, and the interface index and the switchport ID can be different.
   For more details, read the SNMP driver explanations.
 
-Optionally, **get_my_hardware_details()** may be implemented by a driver to fill on more details
+get_my_hardware_details()
+-------------------------
+Optionally, this may be implemented by a driver to fill on more details
 about the device, such as serial number, model,etc. Most drivers do implemented this.
 If this function exists, it is also called from the 'view' function, like 'get_my_basic_info()'.
 
 
-Also optionally, **check_my_device_health()**, if found in the Connector() driver, will be called to perform
-a health check on the device. Each vendor driver can implement as needed. This is called as such:
+check_my_device_health()
+------------------------
+This is will be called to perform a health check on the device. In Connector(), there is a no-opt implementation.
+Each vendor driver can implement as needed.If implemented, drivers should their super class to run it as well:
 
 .. code-block:: python
 
   # in connector.py, Connector() class:
-  if hasattr(self, 'check_my_device_health'):
-    self.check_my_device_health()
+  def check_my_device_health(self):
+
+    # now do my own driver/vendor specific health checks.
 
 
 Drivers can implement this function to check device health and provide information to the user.
@@ -98,22 +106,28 @@ for device health. Here is a example of skeleton code:
 
 .. code-block:: python
 
-    def check_my_device_health(self):
-        # do your checking...
+  def check_my_device_health(self):
+    # call the super class implementation of this:
+    super().check_my_device_health()
 
-        # you can add information to the device-info tab
-        self.add_more_info(category="Category", name="Attribute", value="Value")
+    # do your own vendor/device specific checking...
 
-        # or add a warning to the web ui:
-        self.add_warning(warning="The Fan is BAD", add_log=False)
+    # you can add information to the device-info tab
+    self.add_more_info(category="Category", name="Attribute", value="Value")
 
-        # then add a log message
-        self.add_log(description="The Fan is BAD", type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE)
+    # or add a warning to the web ui:
+    self.add_warning(warning="The Fan is BAD", add_log=False)
 
-        return
+    # then add a log message
+    self.add_log(description="The Fan is BAD", type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE)
+
+    return
 
 
-**get_my_client_data()** is called when the user clicks the related button(ARP/LLDP) when the device is shown.
+get_my_client_data()
+--------------------
+
+If implemented, this is called when the user clicks the related button(ARP/LLDP) when the device is shown.
 Is it called to load information about the known ethernet addresses, arp tables, lldp neighbors,
 and more. It should load additional data structures of the Connection() object. See the specific pages
 describing these data structures in more detail.
@@ -122,7 +136,8 @@ A good example is in *switches/connect/snmp/connector.py*, where *get_my_client_
 to get information on switch tables (ethernet addresses), arp tables and neighbor devices via lldp.
 
 
-**Data Caching**
+Data Caching
+------------
 
 The current device is cached in the HTTP session cache. After the Connector() object is instantiated,
 switch data is read with *get_basic_switch_info()*. Various list, dictionaries and regular
