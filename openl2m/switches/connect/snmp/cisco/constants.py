@@ -200,10 +200,14 @@ CISCO_BRIDGE_MODE = 2
 
 #
 # Cisco new Extended POE mib
+# https://mibs.observium.org/mib/CISCO-POWER-ETHERNET-EXT-MIB/
 #
 ciscoPowerEthernetExtMIB = '.1.3.6.1.4.1.9.9.402'
 snmp_mib_variables['ciscoPowerEthernetExtMIB'] = ciscoPowerEthernetExtMIB
 
+# info about Poe Ports is here:
+# cpeExtPsePortTable 		.1.3.6.1.4.1.9.9.402.1.2
+# cpeExtPsePortEntry 		.1.3.6.1.4.1.9.9.402.1.2.1
 cpeExtPsePortPwrAllocated = '.1.3.6.1.4.1.9.9.402.1.2.1.7'
 snmp_mib_variables['cpeExtPsePortPwrAllocated'] = cpeExtPsePortPwrAllocated
 
@@ -215,7 +219,10 @@ snmp_mib_variables['cpeExtPsePortPwrConsumption'] = cpeExtPsePortPwrConsumption
 
 cpeExtPsePortMaxPwrDrawn = '.1.3.6.1.4.1.9.9.402.1.2.1.10'
 snmp_mib_variables['cpeExtPsePortMaxPwrDrawn'] = cpeExtPsePortMaxPwrDrawn
-
+#
+# there are some entries for the PSE's also, but devices that we've used don't have much useful info there:
+# cpeExtMainPseTable 		.1.3.6.1.4.1.9.9.402.1.3
+# cpeExtMainPseEntry 		.1.3.6.1.4.1.9.9.402.1.3.1
 
 # OID to "write mem" via Snmp
 ciscoWriteMem = '.1.3.6.1.4.1.9.2.1.54.0'
