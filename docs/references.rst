@@ -97,20 +97,15 @@ Python EzSNMP, using native Net-Snmp:
 See https://github.com/carlkidcrypto/ezsnmp
 and the docs at https://carlkidcrypto.github.io/ezsnmp/html/index.html
 
-This is derived from easysnmp:
-See https://easysnmp.readthedocs.io/en/latest/ and
-https://github.com/kamakazikamikaze/easysnmp
-
 PySNMPLib, a native Python SNMP stack: https://github.com/pysnmp/pysnmp
 
 MIB browser at
 http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.3.6.1.2.1
 
-SNMP Introductions
 
-While there are many, this one has a good basic explanation and includes a
-good example of the GetBulk non-repeaters and max-repetitions parameters:
-https://www.snmpsharpnet.com/?page_id=30
+Juniper SNMP: https://www.juniper.net/documentation/us/en/software/junos/network-mgmt/topics/topic-map/snmp-mibs-supported-by-junos-os-and-junos-os-evolved.html
+
+Arista SNMNP: https://www.arista.com/en/support/product-documentation/arista-snmp-mibs
 
 
 Aruba AOS-CX

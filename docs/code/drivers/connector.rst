@@ -89,7 +89,7 @@ If this function exists, it is also called from the 'view' function, like 'get_m
 check_my_device_health()
 ------------------------
 This is will be called to perform a health check on the device. In Connector(), there is a no-opt implementation.
-Each vendor driver can implement as needed.If implemented, drivers should their super class to run it as well:
+Each vendor driver can implement as needed. If implemented, drivers should their super class to run it as well:
 
 .. code-block:: python
 

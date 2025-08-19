@@ -23,6 +23,7 @@ for additional data.
    snmp-base.rst
    snmp-discover-vlan.rst
    snmp-discover-interface.rst
+   snmp-discover-vlan-membership.rst
    snmp-discover-mac-arp.rst
    snmp-interface-ip.rst
    snmp-discover-lldp.rst
@@ -30,7 +31,8 @@ for additional data.
    snmp-transceiver-type
    snmp-vlan-add-del.rst
 
-Additional vendor-specific SNMP drivers information is here, in alphabetical order:
+There are additional vendor-specific SNMP drivers. They all inherit most functionality from the base SnmpConnector().
+Only vendor-specific sections are implemented in the vendor classes. They are listed here in alphabetical order:
 
 .. toctree::
    :maxdepth: 1

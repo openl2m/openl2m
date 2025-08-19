@@ -9,4 +9,5 @@ HPE Comware SNMP Driver Overview
    :caption: The various parts of the HPE Comware SNMP driver:
 
    comware-base.rst
+   device-health.rst
 
