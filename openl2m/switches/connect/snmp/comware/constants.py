@@ -66,6 +66,7 @@ HH3C_BRIDGE_MODE = 1
 HH3C_ROUTE_MODE = 2
 
 # Whether the interface supports poe. Return TruthValue (SNMP_TRUE or SNMP_FALSE)
+# does not appear to be implemented in most Comware devices.
 hh3cIfIsPoe = '.1.3.6.1.4.1.25506.2.40.2.3.2.1.8'
 snmp_mib_variables['hh3cIfIsPoe'] = hh3cIfIsPoe
 
