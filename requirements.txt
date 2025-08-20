@@ -42,7 +42,7 @@ napalm-dellos10
 napalm-procurve
 natsort>=8.4.0
 netaddr>=1.2.1
-netmiko>=4.5,<4.6
+netmiko>=4.6,<4.7
 #improved PostGreSQL support
 psycopg2-binary
 # We are using a clone of the Aruba pyaoscx library from github.com,
