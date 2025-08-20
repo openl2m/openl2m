@@ -553,7 +553,7 @@ config:
     # we use Markdown coding to get auto wrap of long names
     # see https://docs.mermaidchart.com/mermaid-oss/syntax/flowchart.html#markdown-strings
     # start with our device:
-    mermaid += f"DEVICE[\"\`{connection.switch.name}\`\"]\n"
+    mermaid += f"DEVICE[\"\\`{connection.switch.name}\\`\"]\n"
 
     # now find all neighbors on all interfaces:
     num = 0
@@ -574,7 +574,7 @@ config:
                 # see https://docs.mermaidchart.com/mermaid-oss/syntax/flowchart.html#markdown-strings
                 # add remote neighbor device
                 remote_device_object = f"REMOTE_{num}"
-                mermaid += f"{remote_device_object}{neighbor.start_device}\"\`fa:{neighbor.icon} {neighbor.name}\`\"{neighbor.stop_device}\n"
+                mermaid += f"{remote_device_object}{neighbor.start_device}\"\\`fa:{neighbor.icon} {neighbor.name}\\`\"{neighbor.stop_device}\n"
 
                 if not settings.MM_GRAPH_EXPANDED:
                     # simple version
