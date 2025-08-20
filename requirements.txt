@@ -36,7 +36,7 @@ lxml
 #mypy for typing:
 mypy
 #various Napalm support libraries:
-napalm>=5.0,<5.1
+napalm>=5.1,<5.2
 napalm-aruba-cx
 napalm-dellos10
 napalm-procurve
