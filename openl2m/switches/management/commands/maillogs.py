@@ -50,10 +50,16 @@ class Command(BaseCommand):
 
         # optional commands
         parser.add_argument(
+            "--showtypes",
+            action="store_true",
+            help="Show all log type and activity options.",
+        )
+
+        parser.add_argument(
             "--type",
             type=str,
-            default="error",
-            help='the type of log entries. Default is "error".',
+            default="all",
+            help='the type of log entries. Default is "all".',
         )
 
         parser.add_argument(
@@ -71,10 +77,17 @@ class Command(BaseCommand):
         )
 
         parser.add_argument(
-            "--ignore",
+            "--include",
             type=str,
             default="",
-            help="comma-separated list of integers representing log actions to ignore in the output. See switches/constants.py for the numerical LOG_ action numbers.",
+            help="comma-separated list of integers representing log actions to include in the output. Mutually exclusive with --exclude. Run --showtypes or see the numerical LOG_ action numbers.",
+        )
+
+        parser.add_argument(
+            "--exclude",
+            type=str,
+            default="",
+            help="comma-separated list of integers representing log actions to exclude in the output. Mutually exclusive with --include. Run --showtypes to see the numerical LOG_ action numbers.",
         )
 
         parser.add_argument(
@@ -119,6 +132,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        if options["showtypes"]:
+            self.show_log_types()
+            return
+
         # validate a few things...
         if not settings.EMAIL_HOST:
             self.stdout.write("Error: settings.EMAIL_HOST is NOT set!", self.style.ERROR)
@@ -134,8 +151,10 @@ class Command(BaseCommand):
         # prepare some convenience dictionaries:
         log_types = {}
         log_types_by_name = {}
+        # add the 'all' type with value -1 (see later)
         log_types_by_name["all"] = -1
-        # add log types by name and key (number)
+        log_types[-1] = "all"
+        # add valid log types by name and key (number)
         for item in LOG_TYPE_CHOICES:
             # name => number
             log_types_by_name[item[1].lower()] = item[0]
@@ -160,15 +179,14 @@ class Command(BaseCommand):
         if log_type != -1:  # -1 = 'all', the default of the objects.all() below!
             filter_values["type"] = log_type
 
-        # do we ignore some log entry types?
-        excludes = []
-        if options["ignore"]:
+        # do we include only specific log entry actions?
+        includes = []
+        if options["include"]:
             try:
-                numbers = options["ignore"].split(",")
+                numbers = options["include"].split(",")
             except Exception:
-                # ignore!
                 self.stdout.write(
-                    f"Error: invalid 'ignore' format: {options['ignore']}",
+                    f"Error: invalid 'include' format: {options['include']}",
                     self.style.ERROR,
                 )
                 return
@@ -178,7 +196,38 @@ class Command(BaseCommand):
                     n = int(num)
                 except Exception:
                     self.stdout.write(
-                        f"Error: ignore option '{num}' is NOT an integer!",
+                        f"Error: include option '{num}' is NOT an integer!",
+                        self.style.ERROR,
+                    )
+                    return
+                if n in log_actions:
+                    # all seems OK, add to filter!
+                    includes.append(n)
+                    self.stdout.write(f"Including action {n}: {log_actions[n]}")
+                else:
+                    self.stdout.write(f"ERROR: Invalid action number {n}")
+                    return
+            # assign to query filter
+            filter_values['action__in'] = includes
+
+        # do we exclude some log entry types?
+        excludes = []
+        if options["exclude"]:
+            try:
+                numbers = options["exclude"].split(",")
+            except Exception:
+                self.stdout.write(
+                    f"Error: invalid 'exclude' format: {options['exclude']}",
+                    self.style.ERROR,
+                )
+                return
+            # make sure they are all integers:
+            for num in numbers:
+                try:
+                    n = int(num)
+                except Exception:
+                    self.stdout.write(
+                        f"Error: exclude option '{num}' is NOT an integer!",
                         self.style.ERROR,
                     )
                     return
@@ -190,12 +239,16 @@ class Command(BaseCommand):
                     self.stdout.write(f"ERROR: Invalid action number {n}")
                     return
 
+        # both include and exclude? Invalid!
+        if len(includes) and len(excludes):
+            self.stdout.write(f"ERROR: --include and --exclude are mutually exclusive! Please only use one...")
+            return
+
         # look for specific users only?
         if options["users"]:
             try:
                 users = options["users"].replace(" ", "").split(",")
             except Exception:
-                # ignore!
                 self.stdout.write(
                     f"Error: invalid 'users' format: {options['users']}",
                     self.style.ERROR,
@@ -210,7 +263,6 @@ class Command(BaseCommand):
             try:
                 groups = options["groups"].replace(" ", "").split(",")
             except Exception:
-                # ignore!
                 self.stdout.write(
                     f"Error: invalid 'groups' format: {options['groups']}",
                     self.style.ERROR,
@@ -225,7 +277,6 @@ class Command(BaseCommand):
             try:
                 devices = options["devices"].replace(" ", "").split(",")
             except Exception:
-                # ignore!
                 self.stdout.write(
                     f"Error: invalid 'devices' format: {options['devices']}",
                     self.style.ERROR,
@@ -247,12 +298,18 @@ class Command(BaseCommand):
 
         # looks like we are good to go!
         self.stdout.write(
-            f"Sending most recent {options['hours']} hours of log entries for '{type}' to '{options['to']}'"
+            f"Sending most recent {options['hours']} hours of log entries for type '{log_types[log_type]}' to '{options['to']}'"
         )
 
         # get log since cut-off time
         filter_values["timestamp__gt"] = cutoff_local
-        logs = Log.objects.all().exclude(action__in=excludes).filter(**filter_values).order_by("timestamp")
+
+        # and exclude as need. Note that filter() can include, but removing items is done by exclude():
+        if len(excludes):
+            logs = Log.objects.all().exclude(action__in=excludes).filter(**filter_values).order_by("timestamp")
+        else:
+            # all logs in time-range, and filtered as needed:
+            logs = Log.objects.all().filter(**filter_values).order_by("timestamp")
 
         # go output them!
         if logs:
@@ -343,3 +400,18 @@ class Command(BaseCommand):
             self.stdout.write("No log records found.")
 
         self.stdout.write("Finished.", self.style.SUCCESS)
+
+    def show_log_types(self):
+        '''Show all the log type and action numbers.'''
+        self.stdout.write("Listing all log types and actions.")
+        self.stdout.write("\nLog types:\n")
+        # start with 'all':
+        self.stdout.write("all")
+        for item in LOG_TYPE_CHOICES:
+            # name => number
+            self.stdout.write(f"{item[1].lower()}")
+
+        self.stdout.write("\nAction numbers:\n")
+        for item in LOG_ACTION_CHOICES:
+            # number => description
+            self.stdout.write(f"{item[0]} = {item[1]}")
