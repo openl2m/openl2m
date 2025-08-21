@@ -14,8 +14,7 @@ The following steps are for a full production install of OpenL2M. No containers 
 
 OpenL2M has some requirements:
 
-* Python 3.10 - 3.12 (OpenL2M is developed and tested on v3.12.)
-  Note: Python 3.13 or greater are not supported at present!
+* Python 3.10 - 3.13 (OpenL2M is developed and tested on v3.12.)
 * net-snmp v5.7 or greater, including net-snmp-devel
 * the Python "ezsnmp" package v1.0.0 or greater.
 * a web server, with the WSGI capability. We use Nginx in all our documentation.

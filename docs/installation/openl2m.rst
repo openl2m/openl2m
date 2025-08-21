@@ -23,12 +23,17 @@ Begin by installing all system packages required by OpenL2M and its dependencies
 
 .. note::
 
-  Make sure this installs either Python v3.10, v3.11 or v3.12! Other versions are NOT supported!
+  Make sure this installs either Python v3.10 - v3.13! Other versions are NOT supported!
 
-*For best performance, we recommend using Python v3.12 (Ubuntu 24.04), as it has significant improvements over v3.10*
+*For best performance, we recommend using at least Python v3.12 (Ubuntu 24.04), as it has significant improvements over v3.10*
 :doc:`See the Alternate Python Installation section for more. <alt-python>`
 
 **On MacOS:**
+
+.. note::
+
+  MacOS support is not well tested. Proceed with caution...
+
 
 .. code-block:: bash
 
