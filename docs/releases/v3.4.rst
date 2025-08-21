@@ -36,6 +36,18 @@ Neighbor Graph Options:
   # default is simple, ie. False. Set to True for slightly more interesting graph.
   MM_GRAPH_EXPANDED = False
 
+Version 3.4.7
+-------------
+
+Release Date: 2025-08-21
+
+* add high-level device health check function to be implemented by vendor drivers.
+  Initial implementation in HPE Comware/FlexFabric SNMP driver to check IRF stack health.
+* add 'include' option to 'maillogs' CLI command.
+* various documentation updates.
+* upgrades to Python ''netmiko' and 'napalm' libraries.
+* now support Python v3.10 - v3.13
+
 
 Version 3.4.6
 -------------
