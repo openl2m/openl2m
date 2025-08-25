@@ -2021,7 +2021,17 @@ class Connector:
         for interface in self.interfaces.values():
             for eth in interface.eth.values():
                 count += 1
-                eth.vendor = self._get_oui_vendor(parser=parser, ethernet_address=str(eth))
+                # eth of class EthernetAddress(netaddr.EUI),
+                # so we can use that objects internal format. The data is in words[] array:
+                # is this MultiCast? (LSB bit set)
+                if bool(eth.words[0] & 0b01):
+                    eth.vendor = "MultiCast"
+                # or Locally Administered? (2nd LSB bit set)
+                elif bool(eth.words[0] & 0b10):
+                    eth.vendor = "Locally Administered"
+                # get regular vendor
+                else:
+                    eth.vendor = self._get_oui_vendor(parser=parser, ethernet_address=str(eth))
                 dprint(f"  Vendor = {eth.vendor}")
             # also lookup vendor for Neighbors where the chassis-string is an ethernet address:
             for neighbor in interface.lldp.values():
