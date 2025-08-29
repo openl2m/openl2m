@@ -28,30 +28,30 @@ At the time of this writing, the output will look something like below. In the f
     ...
     {
         "database": {
-            "Command Lists": 6,
-            "Commands": 27,
-            "Log Entries": 616,
-            "Credentials Profiles": 9,
-            "SNMP Profiles": 10,
-            "Switch Groups": 33,
-            "Switches": 740,
-            "Vlan Groups": 18,
-            "Vlans": 292
+            "command_lists": 6,
+            "commands": 27,
+            "log_entries": 616,
+            "Credentials_profiles": 9,
+            "snmp_profiles": 10,
+            "switch_groups": 33,
+            "switches": 740,
+            "vlan_groups": 18,
+            "vlans": 292
         },
         "usage": {
-            "API calls last 31 days": 43,
-            "API calls last 7 days": 41,
-            "API calls today": 19,
-            "Changes last 31 days": 543,
-            "Changes last 7 days": 141,
-            "Changes today": 12,
-            "Commands last 31 days": 18,
-            "Commands last 7 days": 6,
-            "Commands today": 1,
-            "Devices last 31 days": 75,
-            "Devices last 7 days": 34,
-            "Devices today": 13,
-            "Total Changes": 29784,
-            "Total Commands": 1684
+            "api_calls_last_31_days": 43,
+            "api_calls_last_7_days": 41,
+            "api_calls_today": 19,
+            "changes_last 31 days": 543,
+            "changes_last 7 days": 141,
+            "changes_today": 12,
+            "commands_last_31_days": 18,
+            "commands_last_7_days": 6,
+            "commands_today": 1,
+            "devices_last_31_days": 75,
+            "devices_last_7_days": 34,
+            "devices_today": 13,
+            "total_changes": 29784,
+            "total_commands": 1684
         }
     }
