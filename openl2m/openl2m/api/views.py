@@ -20,7 +20,6 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from openl2m.utils import mangle_dict_keys
 from switches.stats import get_environment_info, get_database_info, get_usage_info
 from switches.utils import dprint
 
@@ -95,8 +94,8 @@ class APIStatsView(APIView):
         # we want to mangle the names/labels into easily parsible name with _ for space, and all lowercase
         return Response(
             {
-                "database": mangle_dict_keys(get_database_info()),
-                "usage": mangle_dict_keys(get_usage_info()),
+                "database": get_database_info(),
+                "usage": get_usage_info(),
             }
         )
 
@@ -113,4 +112,4 @@ class APIEnvironmentView(APIView):
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
         dprint("APIEnvironmentView(GET)")
-        return Response(mangle_dict_keys(get_environment_info()))
+        return Response(get_environment_info())

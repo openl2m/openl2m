@@ -14,8 +14,8 @@
             <strong>OpenL2M Statistics</strong>
         </div>
         <ul class="list-group list-group-flush">
-        {% for label,value in db_items.items %}
-          <li class="list-group-item">{{ value }} {{ label }}</li>
+        {% for attribute,data in db_items.items %}
+          <li class="list-group-item">{{ data.label }}: {{ data.value }}</li>
         {% endfor %}
         </ul>
       </div>
@@ -27,8 +27,8 @@
           <strong>Usage</strong>
         </div>
         <ul class="list-group list-group-flush">
-        {% for label,value in usage.items %}
-          <li class="list-group-item">{{ label }}: {{ value }}</li>
+        {% for attribute,data in usage.items %}
+          <li class="list-group-item">{{ data.label }}: {{ data.value }}</li>
         {% endfor %}
         </ul>
       </div>
@@ -40,8 +40,8 @@
           <strong>Environment</strong>
         </div>
         <ul class="list-group list-group-flush">
-        {% for label,value in environment.items %}
-          <li class="list-group-item">{{ label }}: {{ value }}</li>
+        {% for attribute,data in environment.items %}
+          <li class="list-group-item">{{ data.label }}: {{ data.value }}</li>
         {% endfor %}
           <li class="list-group-item">OS Time: {% now 'D, d M Y H:i:s T' %}</li>
         </ul>

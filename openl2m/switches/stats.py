@@ -54,15 +54,40 @@ from users.models import Token
 
 
 def get_environment_info() -> dict:
-    '''Get information about the runtime environment, and return in a dict().'''
-    environment = {"Python": f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"}
+    '''Get information about the runtime environment, and return in a dict().
+    The key is the "attribute name" in api format (lc with _),
+    and values are a dict of "label" and "value". eg>
+    { "attribute" = {
+         "label": "Attribute Label",  # Note: this can be Internationalized if needed!
+         "value": attribute-value,
+         }
+    }
+    '''
+    environment = {}
+    environment["python"] = {
+        "label": "Python",
+        "value": f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}",
+    }
     # OS environment information
     uname = os.uname()
-    environment["OS"] = f"{uname.sysname} ({uname.release})"
-    # environment['Version'] = uname.version
-    environment["Distro"] = f"{distro.name()} {distro.version(best=True)}"
-    environment["Hostname"] = uname.nodename
-    environment["Django"] = django.get_version()
+    environment["os"] = {
+        "label": "OS",
+        "value": f"{uname.sysname} ({uname.release})",
+    }
+    # environment["Version"] = uname.version
+    environment["distro"] = {
+        "label": "Distro",
+        "value": f"{distro.name()} {distro.version(best=True)}",
+    }
+    environment["hostname"] = {
+        "label": "Hostname",
+        "value": uname.nodename,
+    }
+    environment["django"] = {
+        "label": "Django",
+        "value": django.get_version(),
+    }
+
     # parse the PostgreSQL version (the only db we support)
     # version_main = int(db_connection.pg_version / 10000)
     # version_minor = int(db_connection.pg_version - (version_main * 10000))
@@ -76,51 +101,125 @@ def get_environment_info() -> dict:
             db_name = cursor.fetchone()[0]
             cursor.execute(f"SELECT pg_size_pretty(pg_database_size('{db_name}'))")
             db_size = cursor.fetchone()[0]
-            environment["Database"] = psql_version
-            environment["Database Name"] = db_name
-            environment["Database Size"] = db_size
+            environment["database"] = {
+                "label": "Database",
+                "value": psql_version,
+            }
+            environment["database_name"] = {
+                "label": "Database Name",
+                "value": db_name,
+            }
+            environment["database_size"] = {
+                "label": "Database Size",
+                "value": db_size,
+            }
     except (ProgrammingError, IndexError):
         pass
 
     # show the "ezsnmp" package version
-    environment["EzSnmp"] = pkg_version('ezsnmp')
+    environment["ezsnmp"] = {
+        "label": "EzSnmp",
+        "value": pkg_version('ezsnmp'),
+    }
 
-    environment["OpenL2M"] = f"{settings.VERSION} ({settings.VERSION_DATE})"
+    environment["openl2m"] = {
+        "label": "OpenL2M",
+        "value": f"{settings.VERSION} ({settings.VERSION_DATE})",
+    }
+
     if os.environ.get('IN_CONTAINER', False):
-        environment["Dockerized"] = "Yes"
+        environment["dockerized"] = {
+            "label": "Dockerized",
+            "value": "Yes",
+        }
 
     if settings.DEBUG:
-        environment['Debug'] = "Enabled"
+        environment["debug"] = {
+            "label": "Debug",
+            "value": "Enabled",
+        }
+
         try:
             repo = git.Repo(search_parent_directories=True)
             sha = repo.head.object.hexsha
             short_sha = repo.git.rev_parse(sha, short=8)
             branch = repo.active_branch
             commit_date = time.strftime("%a, %d %b %Y %H:%M UTC", time.gmtime(repo.head.object.committed_date))
-            environment["Git version"] = f"{branch} ({short_sha})"
-            environment["Git commit"] = commit_date
+            environment["git_version"] = {
+                "label": "Git version",
+                "value": f"{branch} ({short_sha})",
+            }
+            environment["git_commit"] = {
+                "label": "Git Commit",
+                "value": commit_date,
+            }
         except Exception:
-            environment["Git version"] = "Not found!"
+            environment["git_version"] = {
+                "label": "Git version",
+                "value": "Not found!",
+            }
+
     return environment
 
 
 def get_database_info() -> dict:
     '''Get information about various database items, and return as a dict().'''
-    db_items = {"Switches": Switch.objects.count()}  # database object item counts
+    db_items = {}
+    db_items["switches"] = {
+        "label": "Switches",
+        "value": Switch.objects.count(),  # database object item counts
+    }
+
     # need to calculate switchgroup count, as we count only groups with switches!
     group_count = 0
     for group in SwitchGroup.objects.all():
         if group.switches.count():
             group_count += 1
-    db_items["Switch Groups"] = group_count
-    db_items["Vlans"] = VLAN.objects.count()
-    db_items["Vlan Groups"] = VlanGroup.objects.count()
-    db_items["SNMP Profiles"] = SnmpProfile.objects.count()
-    db_items["Credentials Profiles"] = NetmikoProfile.objects.count()
-    db_items["Commands"] = Command.objects.count()
-    db_items["Command Lists"] = CommandList.objects.count()
-    db_items["API Tokens"] = Token.objects.count()
-    db_items["Log Entries"] = Log.objects.count()
+            db_items["switchgroups"] = {
+                "label": "Switch Groups",
+                "value": group_count,
+            }
+
+    db_items["vlans"] = {
+        "label": "Vlans",
+        "value": VLAN.objects.count(),
+    }
+
+    db_items["vlan_groups"] = {
+        "label": "Vlan Groups",
+        "value": VlanGroup.objects.count(),
+    }
+
+    db_items["snmp_profiles"] = {
+        "label": "SNMP Profiles",
+        "value": SnmpProfile.objects.count(),
+    }
+
+    db_items["credentials_profiles"] = {
+        "label": "Credentials Profiles",
+        "value": NetmikoProfile.objects.count(),
+    }
+
+    db_items["commands"] = {
+        "label": "Commands",
+        "value": Command.objects.count(),
+    }
+
+    db_items["command_lists"] = {
+        "label": "Command Lists",
+        "value": CommandList.objects.count(),
+    }
+
+    db_items["api_tokens"] = {
+        "label": "API Tokens",
+        "value": Token.objects.count(),
+    }
+
+    db_items["log_entries"] = {
+        "label": "Log Entries",
+        "value": Log.objects.count(),
+    }
+
     return db_items
 
 
@@ -128,74 +227,126 @@ def get_usage_info() -> dict:
     '''Get OpenL2M application usage, and return as a dict().'''
     usage = {}  # usage statistics
 
+    one_hour_ago = timezone.now() - datetime.timedelta(hours=1)
+
     # Devices accessed:
+    filter_values = {
+        "type__in": [LOG_TYPE_VIEW, LOG_TYPE_CHANGE],
+        "switch_id__isnull": False,
+        "timestamp__gte": one_hour_ago,
+    }
+    usage["devices_last_hour"] = {
+        "label": "Devices in last hour",
+        "value": Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count(),
+    }
+
     filter_values = {
         "type__in": [LOG_TYPE_VIEW, LOG_TYPE_CHANGE],
         "switch_id__isnull": False,
         "timestamp__date": datetime.date.today(),
     }
-    usage['Devices today'] = Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count()
+    usage["devices_today"] = {
+        "label": "Devices today",
+        "value": Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count(),
+    }
 
     filter_values = {
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
         "switch_id__isnull": False,
     }
-    usage['Devices last 7 days'] = (
-        Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count()
-    )
+    usage["devices_last_7_days"] = {
+        "label": "Devices last 7 days",
+        "value": Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count(),
+    }
 
     filter_values = {
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
         "switch_id__isnull": False,
     }
-    usage['Devices last 31 days'] = (
-        Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count()
-    )
+    usage["devices_last_31_days"] = {
+        "label": "Devices Last 31 Days",
+        "value": Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count(),
+    }
 
     # Changes made
     filter_values = {
         'type': int(LOG_TYPE_CHANGE),
+        'timestamp__gte': one_hour_ago,
+    }
+    usage["changes_last_hour"] = {
+        "label": "Changes in last hour",
+        "value": Log.objects.filter(**filter_values).count(),
+    }
+
+    filter_values = {
+        'type': int(LOG_TYPE_CHANGE),
         'timestamp__date': datetime.date.today(),
     }
-    usage['Changes today'] = Log.objects.filter(**filter_values).count()
+    usage["changes_today"] = {
+        "label": "Changes today",
+        "value": Log.objects.filter(**filter_values).count(),
+    }
 
     filter_values = {
         "type": int(LOG_TYPE_CHANGE),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
     }
-    usage["Changes last 7 days"] = Log.objects.filter(**filter_values).count()
+    usage["changes_last_7_days"] = {
+        "label": "Changes last 7 days",
+        "value": Log.objects.filter(**filter_values).count(),
+    }
 
     filter_values = {
         "type": int(LOG_TYPE_CHANGE),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
     }
-    usage["Changes last 31 days"] = Log.objects.filter(**filter_values).count()
+    usage["changes_last_31_days"] = {
+        "label": "Changes last 31 days",
+        "value": Log.objects.filter(**filter_values).count(),
+    }
 
     # the total change count since install from Counter()'changes') object:
-    usage["Total Changes"] = Counter.objects.get(name="changes").value
+    usage["changes_total"] = {
+        "label": "Total Changes",
+        "value": Counter.objects.get(name="changes").value,
+    }
 
     # Unique Logins
     filter_values = {
         'type': int(LOG_TYPE_LOGIN_OUT),
+        'timestamp__gte': one_hour_ago,
+    }
+    usage["users_last_hour"] = {
+        "label": "Users in last hour",
+        "value": Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count(),
+    }
+
+    filter_values = {
+        'type': int(LOG_TYPE_LOGIN_OUT),
         'timestamp__date': datetime.date.today(),
     }
-    usage['Users today'] = Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count()
+    usage["users_today"] = {
+        "label": "Users today",
+        "value": Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count(),
+    }
 
     filter_values = {
         'type': int(LOG_TYPE_LOGIN_OUT),
         'timestamp__gte': timezone.now().date() - datetime.timedelta(days=7),
     }
-    usage['Users last 7 days'] = (
-        Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count()
-    )
+    usage["users_last_7_days"] = {
+        "label": "Users last 7 days",
+        "value": Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count(),
+    }
 
     filter_values = {
         'type': int(LOG_TYPE_LOGIN_OUT),
         'timestamp__gte': timezone.now().date() - datetime.timedelta(days=31),
     }
-    usage['Users last 31 days'] = (
-        Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count()
-    )
+    usage["users_last_31_days"] = {
+        "label": "Users last 31 days",
+        "value": Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count(),
+    }
 
     # API requests:
     filter_values = {
@@ -203,40 +354,61 @@ def get_usage_info() -> dict:
         'action': int(LOG_LOGIN_REST_API),
         'timestamp__date': datetime.date.today(),
     }
-    usage['API calls today'] = Log.objects.filter(**filter_values).count()
+    usage["api_calls_today"] = {
+        "label": "API calls today",
+        "value": Log.objects.filter(**filter_values).count(),
+    }
 
     filter_values = {
         "type": int(LOG_TYPE_LOGIN_OUT),
         "action": int(LOG_LOGIN_REST_API),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
     }
-    usage["API calls last 7 days"] = Log.objects.filter(**filter_values).count()
+    usage["api_calls_last_7_days"] = {
+        "label": "API calls last 7 days",
+        "value": Log.objects.filter(**filter_values).count(),
+    }
 
     filter_values = {
         "type": int(LOG_TYPE_LOGIN_OUT),
         "action": int(LOG_LOGIN_REST_API),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
     }
-    usage["API calls last 31 days"] = Log.objects.filter(**filter_values).count()
+    usage["api_calls_last_31_days"] = {
+        "label": "API calls last 31 days",
+        "value": Log.objects.filter(**filter_values).count(),
+    }
 
     # Commands run:
     filter_values = {"type": int(LOG_TYPE_COMMAND), "timestamp__date": datetime.date.today()}
-    usage["Commands today"] = Log.objects.filter(**filter_values).count()
+    usage["commands_today"] = {
+        "label": "Commands today",
+        "value": Log.objects.filter(**filter_values).count(),
+    }
 
     filter_values = {
         "type": int(LOG_TYPE_COMMAND),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
     }
-    usage["Commands last 7 days"] = Log.objects.filter(**filter_values).count()
+    usage["commands_last_7_days"] = {
+        "label": "Commands last 7 days",
+        "value": Log.objects.filter(**filter_values).count(),
+    }
 
     filter_values = {
         "type": int(LOG_TYPE_COMMAND),
         "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
     }
-    usage["Commands last 31 days"] = Log.objects.filter(**filter_values).count()
+    usage["commands_last_31_days"] = {
+        "label": "Commands last 31 days",
+        "value": Log.objects.filter(**filter_values).count(),
+    }
 
     # total number of commands run:
-    usage["Total Commands"] = Counter.objects.get(name="commands").value
+    usage["commands_total"] = {
+        "label": "Total Commands",
+        "value": Counter.objects.get(name="commands").value,
+    }
 
     return usage
 
@@ -252,7 +424,7 @@ def get_top_n_from_dict_on_count(data: dict) -> dict:
 
     """
     # sort by descending order:
-    data_sorted = dict(sorted(data.items(), key=lambda x: x[1]['count'], reverse=True))
+    data_sorted = dict(sorted(data.items(), key=lambda x: x[1]["count"], reverse=True))
     # # and limit to TOP-N:
     top_data = {}
     num = 0
@@ -282,7 +454,7 @@ def get_top_changed_devices() -> dict:
                     'count': 1,
                 }
             else:
-                devices[log.switch.id]['count'] += 1
+                devices[log.switch.id]["count"] += 1
 
     return get_top_n_from_dict_on_count(devices)
 
@@ -305,7 +477,7 @@ def get_top_viewed_devices() -> dict:
                     'count': 1,
                 }
             else:
-                devices[log.switch.id]['count'] += 1
+                devices[log.switch.id]["count"] += 1
 
     return get_top_n_from_dict_on_count(devices)
 
@@ -327,6 +499,6 @@ def get_top_active_users() -> dict:
                     'count': 1,
                 }
             else:
-                users[log.user.id]['count'] += 1
+                users[log.user.id]["count"] += 1
 
     return get_top_n_from_dict_on_count(users)
