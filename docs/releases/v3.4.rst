@@ -36,6 +36,17 @@ Neighbor Graph Options:
   # default is simple, ie. False. Set to True for slightly more interesting graph.
   MM_GRAPH_EXPANDED = False
 
+
+Version 3.4.8
+-------------
+
+Release Date: 2025-09-09
+
+* show Ethernet address that are Locally Administered or Multicast as such.
+* api calls for 'database', 'usage' and 'environment' info return machine readable attribute names.
+  See API docs for more.
+
+
 Version 3.4.7
 -------------
 
