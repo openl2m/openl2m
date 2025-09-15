@@ -57,7 +57,7 @@ pycodestyle
 # see https://lists.openstack.org/pipermail/openstack-discuss/2022-August/030062.html
 # we are now using the maintained clone "pysnmp" by Lextudio
 # see https://pysnmp.com
-pysnmp==7.1.20
+pysnmp==7.1.21
 #PyTZ and the type library:
 pytz>=2024.1
 types-pytz
