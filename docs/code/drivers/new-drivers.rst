@@ -90,8 +90,9 @@ Call the class *YourTypeName*Connector()*. Eg. AosCxConnector()
 
 Implement the functions needed to support this device class. At a minimum, you need to create
 
-def get_my_basic_info(self) - loads interfaces, etc.
-def get_my_client_data(self) - loads ethernet and lldp neighbor data.
+*def get_my_basic_info(self)* to load interfaces, etc.
+
+Optionally, *def get_my_client_data(self)* is needed if you want to provide ethernet and lldp neighbor data.
 
 
 **Call the Customer Driver**
@@ -113,6 +114,10 @@ Driver classes are loaded from openl2m/switches/connect/connect.py
     connection = AosCxConnector(request, group, switch)
 
 
+**Validate New Devices Using This Driver**
+
+You may need to edit the *clean()* function of the *Switch(models.Model)* class in switches/models.py
+to facilitate checking for the right settings. E.g. an API driver will need a credential profile.
 
 
 Customizing the Information Tab
@@ -138,3 +143,11 @@ Here is a hard-coded example. See *snmp/procurve* and *snmp/comware* for additio
       self.add_vendor_data('Memory Stats', 'Item 1', "some data")
       self.add_vendor_data('Memory Stats', 'CPU Temp', "75.4 C")
       self.add_vendor_data('Memory Stats', 'Fan Speed', "1400rpm")
+
+Customizing SSH/CLI commands
+============================
+
+If your device needs to change how CLI commands are run (ie.,not use standard SSH),
+your driver needs to implement (override) the *Connector()._netmiko_execute_command()* function.
+
+See more at :doc:`implementing SSH<netmiko/index>`.

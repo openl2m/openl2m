@@ -135,6 +135,13 @@ describing these data structures in more detail.
 A good example is in *switches/connect/snmp/connector.py*, where *get_my_client_data()* uses snmp
 to get information on switch tables (ethernet addresses), arp tables and neighbor devices via lldp.
 
+run_command() and run_command_string()
+--------------------------------------
+
+These functions are used to run CLI commands, either predefined (run_command())
+or via form template input (run_command_string()). Both call *netmiko_execute_command()* to execute the SSH command.
+
+See :doc:`SSH Connections<netmiko/index>` for more details.
 
 Data Caching
 ------------

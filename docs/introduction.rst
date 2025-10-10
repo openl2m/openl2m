@@ -38,6 +38,7 @@ OpenL2M can manage interfaces on switches, including:
 * **change PoE** (Power-over-Ethernet) state (on/off/toggle).
 * show power drawn on interface.
 * show **Ethernet addresses** on the interfaces (i.e. MAC address, or the layer 2 switch tables).
+* show **IPv4 and IPv6 address information** from ARP and ND tables (on routers).
 * show **LLDP neighbor** information on interfaces.
 * **bulk edit** of vlan, interface state, Power-over-Ethernet state, and description on multiple interfaces at once.
 * **scheduling of bulk edits**.
@@ -46,7 +47,7 @@ OpenL2M can manage interfaces on switches, including:
 * using command templates and validated fields and pick lists, commands to run on the device can be defined with some amount of user input.
 * switch **device import via csv files**, or fully programmable import via Python scripts.
 * switches can be Read-Only.
-* support for Cisco, HP-Procurve, HP-Comware and generic switches.
+* support for Cisco, HPE-AosCx, HPE-Aruba/Procurve, HPE-Comware, Netgear, Arista, and generic switches.
 * *show recent log entries* for properly configured Cisco switches.
 * configurable links on the switch, or interfaces to external tools such as an NMS.
 * configurable menus.

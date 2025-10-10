@@ -127,8 +127,9 @@ and at https://junos-pyez.readthedocs.io/
 
 Juniper PyEZ library, at https://github.com/Juniper/py-junos-eznc and installable via pip.
 
-"Automating Junos Administration", chapter 4 "Junos PyEZ", O'Reilly books
-Ch. 4 is also at https://www.oreilly.com/library/view/automating-junos-administration/9781491928875/ch04.html
+Juniper Day-One book on PyEZ: https://www.juniper.net/documentation/en_US/day-one-books/DO_PyEZ_Cookbook.pdf
+
+"Automating Junos Administration", chapter 4 "Junos PyEZ", O'Reilly books.
 The example code for this book can be found at https://github.com/AutomatingJunosAdministration
 
 Example code at https://saidvandeklundert.net/2019-07-04-using-junos-pyez-for-information-gathering/

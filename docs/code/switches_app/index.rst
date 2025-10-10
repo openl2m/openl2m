@@ -122,9 +122,10 @@ Connections to the switch are derived from a base Connector() class.
 We currently provide several vendor-specific drivers. Each is a sub-class of the Connector() object:
 
 * several based on SNMP.
+  This supports HPE/Aruba, HPE/AOS-Cx, Arista, and some Cisco, Juniper, and Netgear and generic switches.
 * a Juniper PyEz-NC based driver.
 * a Aruba AOS-CX REST-API based drivers.
-* read-only demonstration driver based on the Napalm automation framework.
+* read-only demonstration driver based on the Napalm automation framework. Supports most Napalm-supported devices.
 * a dummy driver, mostly used to show how the Connector API can be used to fill data, and to test/debug html templates.
 
 See :doc:`Connections and Drivers <../drivers/index>` for more.

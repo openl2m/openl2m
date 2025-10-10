@@ -1,13 +1,20 @@
 .. image:: ../../../_static/openl2m_logo.png
 
-=======================
-Netmiko Driver Overview
-=======================
+================
+SSH CLI commands
+================
 
-The Netmiko driver is used to SSH into a device, and run commands.
+CLI commands are implemented in the Connector() class by using the Netmiko library.
+This provides standard SSH access into a device.
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Here is more information about the Netmiko driver:
+Predefined CLI commands are run by calling *Connector().run_command()*,
+whereas form template input commands are calling *Connector().run_command_string()*.
 
-   netmiko.rst
+Both functions then call *Connector()._netmiko_execute_command()* to execute the SSH command.
+
+
+**Note:** it is possible to implement a complete SSH interface to manage devices.
+The Napalm library attempts to do this, but lacks support for 802.1q, PoE, and more.
+This exercise is left to the reader...
+
+
