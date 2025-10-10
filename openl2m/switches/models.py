@@ -1060,12 +1060,15 @@ class Switch(models.Model):
     # see also https://docs.djangoproject.com/en/2.2/ref/models/instances/#validating-objects
     def clean(self):
         # check if IPv4 address or hostname given is valid!
-        if self.primary_ip4 and not is_valid_hostname_or_ip(self.primary_ip4):
-            raise ValidationError('Invalid Management IPv4 address or hostname.')
-        if self.primary_ip6 and not is_valid_hostname_or_ip6(self.primary_ip6):
-            raise ValidationError('Invalid Management IPv6 address or hostname.')
-        if not self.primary_ip4 and not self.primary_ip6:
-            raise ValidationError('We need a valid IPv4 or IPv6 address or hostname.')
+        # For deactivated hosts, the name may not be valid anymore, so only check if the status=active.
+        if self.status == constants.SWITCH_STATUS_ACTIVE:
+            if self.primary_ip4 and not is_valid_hostname_or_ip(self.primary_ip4):
+                raise ValidationError('Invalid Management IPv4 address or hostname.')
+            if self.primary_ip6 and not is_valid_hostname_or_ip6(self.primary_ip6):
+                raise ValidationError('Invalid Management IPv6 address or hostname.')
+            if not self.primary_ip4 and not self.primary_ip6:
+                raise ValidationError('We need a valid IPv4 or IPv6 address or hostname.')
+
         # if SNMP, we need snmp_profile
         if self.connector_type == constants.CONNECTOR_TYPE_SNMP:
             if not self.snmp_profile:
