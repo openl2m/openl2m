@@ -23,7 +23,28 @@ import requests
 import urllib3
 import traceback
 
+from switches.connect.classes import Interface, PoePort, NeighborDevice, Transceiver
 from switches.connect.connector import Connector
+from switches.connect.constants import (
+    POE_PORT_ADMIN_DISABLED,
+    POE_PORT_ADMIN_ENABLED,
+    VLAN_ADMIN_DISABLED,
+    IF_TYPE_OTHER,
+    IF_TYPE_LOOPBACK,
+    IF_TYPE_VIRTUAL,
+    IF_TYPE_ETHERNET,
+    IF_TYPE_LAGG,
+    LACP_IF_TYPE_MEMBER,
+    LACP_IF_TYPE_AGGREGATOR,
+    LLDP_CHASSIC_TYPE_ETH_ADDR,
+    LLDP_CAPABILITIES_BRIDGE,
+    LLDP_CAPABILITIES_ROUTER,
+    LLDP_CAPABILITIES_WLAN,
+    LLDP_CAPABILITIES_PHONE,
+    #   IANA_TYPE_OTHER,
+    IANA_TYPE_IPV4,
+    #   IANA_TYPE_IPV6,
+)
 from switches.models import Switch, SwitchGroup
 from switches.utils import time_duration, dprint
 
@@ -43,7 +64,8 @@ class AristaApiConnector(Connector):
         self.read_only = True
         if switch.description:
             self.add_more_info('System', 'Description', switch.description)
-        self.show_interfaces = False  # for now, do NOT show interfaces, vlans etc...
+        # options supported:
+        self.can_reload_all = True
 
     def get_my_basic_info(self) -> bool:
         """
@@ -70,9 +92,52 @@ class AristaApiConnector(Connector):
             self.add_more_info('System', 'Uptime', time_duration(int(data['uptime'])))
 
             #
+            # get vlan info
+            #
+            # command = "show vlan"
+            # json_data = self._arista_run_command(command=command)
+
+            #
             # get interface information
             #
             command = "show interfaces"
+            json_data = self._arista_run_command(command=command)
+
+            # The 'result' key will contain a list of command outputs.
+            data = json_data.get('result')[0]
+            for if_name, if_data in data["interfaces"].items():
+                dprint(f"Found interface: {if_name}")
+                iface = Interface(if_name)
+                iface.name = if_name
+                match if_data["hardware"]:
+                    case "ethernet":
+                        iface.type = IF_TYPE_ETHERNET
+                        iface.phys_addr = if_data["physicalAddress"]
+                    case "loopback":
+                        iface.type = IF_TYPE_LOOPBACK
+                    case _:
+                        iface.type = IF_TYPE_OTHER
+                iface.description = if_data["description"]
+
+                match if_data["interfaceStatus"]:
+                    case "connected":
+                        iface.admin_status = True
+                        iface.oper_status = True
+                    case "notconnect":
+                        iface.admin_status = True
+                        iface.oper_status = False
+                    case "errdisabled":
+                        iface.admin_status = True
+                        iface.oper_status = False
+
+                iface.speed = int(if_data["bandwidth"]) / 1000000  # bandwidth is in bps!
+
+                match if_data["forwardingModel"]:
+                    case "routed":
+                        iface.is_routed = True
+
+                # done, add this interface to the list...
+                self.add_interface(iface)
 
             #
             # get optical transceiver data
@@ -127,6 +192,12 @@ class AristaApiConnector(Connector):
             # get ipv6 neighbors
             #
             command = "show ipv6 neighbors vrf all"
+            json_data = self._arista_run_command(command=command)
+
+            #
+            # LLDP neighbors
+            #
+            command = "show lldp neigbors"
             json_data = self._arista_run_command(command=command)
 
         except Exception as err:
