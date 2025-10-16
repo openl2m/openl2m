@@ -23,12 +23,15 @@ import requests
 import urllib3
 import traceback
 
-from switches.connect.classes import Interface, PoePort, NeighborDevice, Transceiver
+from switches.connect.classes import Interface, PoePort, NeighborDevice, Transceiver, Vlan, EthernetAddress
 from switches.connect.connector import Connector
 from switches.connect.constants import (
+    VLAN_ADMIN_DISABLED,
     POE_PORT_ADMIN_DISABLED,
     POE_PORT_ADMIN_ENABLED,
     VLAN_ADMIN_DISABLED,
+    IF_DUPLEX_HALF,
+    IF_DUPLEX_FULL,
     IF_TYPE_OTHER,
     IF_TYPE_LOOPBACK,
     IF_TYPE_VIRTUAL,
@@ -94,15 +97,22 @@ class AristaApiConnector(Connector):
             #
             # get vlan info
             #
-            # command = "show vlan"
-            # json_data = self._arista_run_command(command=command)
+            command = "show vlan"
+            json_data = self._arista_run_command(command=command)
+            data = json_data.get('result')[0]['vlans']
+            for vlan_id, vlan_data in data.items():
+                dprint(f"Found vlan: {vlan_id}")
+                v = Vlan(id=int(vlan_id))
+                v.name = vlan_data["name"]
+                if vlan_data["status"] != "active":
+                    v.admin_status = VLAN_ADMIN_DISABLED
+                self.add_vlan(v)
 
             #
             # get interface information
             #
             command = "show interfaces"
             json_data = self._arista_run_command(command=command)
-
             # The 'result' key will contain a list of command outputs.
             data = json_data.get('result')[0]
             for if_name, if_data in data["interfaces"].items():
@@ -117,24 +127,56 @@ class AristaApiConnector(Connector):
                         iface.type = IF_TYPE_LOOPBACK
                     case _:
                         iface.type = IF_TYPE_OTHER
+
                 iface.description = if_data["description"]
 
-                match if_data["interfaceStatus"]:
-                    case "connected":
-                        iface.admin_status = True
-                        iface.oper_status = True
-                    case "notconnect":
-                        iface.admin_status = True
-                        iface.oper_status = False
-                    case "errdisabled":
-                        iface.admin_status = True
-                        iface.oper_status = False
+                if if_data["lineProtocolStatus"] == 'up':
+                    iface.admin_status = True
+                    iface.oper_status = True
+                else:
+                    iface.oper_status = False
+                    # what is admin status:
+                    # not sure this is correct ?
+                    if if_data["interfaceStatus"] == "errdisabled":
+                        iface.admin_status = False
 
                 iface.speed = int(if_data["bandwidth"]) / 1000000  # bandwidth is in bps!
 
+                if 'duplex' in if_data:
+                    match if_data["duplex"]:
+                        case "duplexFull":
+                            iface.duplex = IF_DUPLEX_FULL
+                        case "duplexHalf":
+                            iface.duplex = IF_DUPLEX_HALF
+
                 match if_data["forwardingModel"]:
                     case "routed":
-                        iface.is_routed = True
+                        if iface.type != IF_TYPE_LOOPBACK:  # loopback are always routed :-)
+                            iface.is_routed = True
+
+                iface.mtu = int(if_data["mtu"])
+
+                # parse ipv4 addresses of this interface:
+                if "interfaceAddress" in if_data:
+                    for addr in if_data["interfaceAddress"]:
+                        dprint(f"Found IPv4: {addr['primaryIp']}")
+                        iface.add_ip4_network(address=f"{addr['primaryIp']['address']}/{addr['primaryIp']['maskLen']}")
+
+                # # parse ipv6 addresses of this interface:
+                if "interfaceAddressIp6" in if_data:
+                    # "real" IPv6 addresses:
+                    for addr in if_data['interfaceAddressIp6']['globalUnicastIp6s']:
+                        dprint(f"Found IPv6: {addr}")
+                        ipv6 = addr['address']
+                        prefix_len = 64  # default for IPv6 subnets
+                        # we need to get the netmask from the subnet:
+                        netmask_pos = addr["subnet"].rfind("/")
+                        if netmask_pos > 0:
+                            # and get the mask len from that:
+                            prefix_len = int(addr["subnet"][netmask_pos + 1 : :])
+                        iface.add_ip6_network(address=ipv6, prefix_len=prefix_len)
+                    # LinkLocal:
+                    iface.add_ip6_network(address=f"{if_data['interfaceAddressIp6']['linkLocalIp6']['address']}")
 
                 # done, add this interface to the list...
                 self.add_interface(iface)
@@ -143,11 +185,44 @@ class AristaApiConnector(Connector):
             # get optical transceiver data
             #
             command = "show interfaces transceiver properties"
+            json_data = self._arista_run_command(command=command)
+            data = json_data.get('result')[0]['interfaces']
+            for if_name, trx_data in data.items():
+                dprint(f"Found TRX for: {if_name}")
+                dprint(trx_data)
+                if trx_data["mediaType"].lower() == "not present":
+                    continue
+                iface = self.get_interface_by_name(name=if_name)
+                if iface:
+                    dprint("   found Interface()")
+                    trx = Transceiver()
+                    trx.type = trx_data["mediaType"]
+                    iface.transceiver = trx
 
             #
             # read VRF info
             #
             command = "show vrf"
+            json_data = self._arista_run_command(command=command)
+            data = json_data.get('result')[0]['vrfs']
+            for name, vrf_data in data.items():
+                dprint(f"Found vrf: {name}")
+                if name == "default":  # the non-VRF or default routing table.
+                    continue
+                v = self.get_vrf_by_name(name=name)
+                v.set_rd(rd=vrf_data["routeDistinguisher"])
+                if vrf_data["protocols"]["ipv4"]["supported"]:
+                    v.set_ipv4()
+                if vrf_data["protocols"]["ipv6"]["supported"]:
+                    v.set_ipv6()
+                # see if this has member interfaces:
+                for if_name in vrf_data["interfaces"]:
+                    dprint(f"  Member interface: {if_name}")
+                    iface = self.get_interface_by_name(name=if_name)
+                    if iface:
+                        dprint("   found Interface()")
+                        v.interfaces.append(if_name)
+                        iface.vrf_name = name
 
         except Exception as err:
             dprint(f"  ERROR running '{command}': {err}")
@@ -158,6 +233,10 @@ class AristaApiConnector(Connector):
                 warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
             )
             return False
+
+        # the REST API gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
+        # sort this to the human natural order we expect:
+        self.set_interfaces_natural_sort_order()
 
         return True
 
