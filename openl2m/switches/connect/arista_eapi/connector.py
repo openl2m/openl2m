@@ -81,13 +81,23 @@ class AristaApiConnector(Connector):
             return False  # self.error already set!
 
         try:
+            # the Arista eAPI allows to bundle many commands into a single request through sending them as a list.
+            # You can then parse the responses in a list, in order of the commands given.
+            command_list = []
+            command_list.append("show version")
+            command_list.append("show vlan")
+            command_list.append("show interfaces")
+            command_list.append("show interfaces transceiver properties")
+            command_list.append("show vrf")
+
+            # run the commands:
+            json_data = self._arista_run_command(command=command_list)
+            # The 'result' key will contain a list of command outputs, in order of commands given.
+
             #
             # get device version
             #
-            command = "show version"
-            json_data = self._arista_run_command(command=command)
-
-            # The 'result' key will contain a list of command outputs.
+            # command = "show version"
             data = json_data.get('result')[0]
             self.add_more_info('System', 'Model', data['modelName'])
             self.add_more_info('System', 'Serial', data['serialNumber'])
@@ -97,9 +107,8 @@ class AristaApiConnector(Connector):
             #
             # get vlan info
             #
-            command = "show vlan"
-            json_data = self._arista_run_command(command=command)
-            data = json_data.get('result')[0]['vlans']
+            # command = "show vlan"
+            data = json_data.get('result')[1]['vlans']
             for vlan_id, vlan_data in data.items():
                 dprint(f"Found vlan: {vlan_id}")
                 v = Vlan(id=int(vlan_id))
@@ -111,10 +120,8 @@ class AristaApiConnector(Connector):
             #
             # get interface information
             #
-            command = "show interfaces"
-            json_data = self._arista_run_command(command=command)
-            # The 'result' key will contain a list of command outputs.
-            data = json_data.get('result')[0]
+            # command = "show interfaces"
+            data = json_data.get('result')[2]
             for if_name, if_data in data["interfaces"].items():
                 dprint(f"Found interface: {if_name}")
                 iface = Interface(if_name)
@@ -184,9 +191,8 @@ class AristaApiConnector(Connector):
             #
             # get optical transceiver data
             #
-            command = "show interfaces transceiver properties"
-            json_data = self._arista_run_command(command=command)
-            data = json_data.get('result')[0]['interfaces']
+            # command = "show interfaces transceiver properties"
+            data = json_data.get('result')[3]['interfaces']
             for if_name, trx_data in data.items():
                 dprint(f"Found TRX for: {if_name}")
                 dprint(trx_data)
@@ -202,9 +208,8 @@ class AristaApiConnector(Connector):
             #
             # read VRF info
             #
-            command = "show vrf"
-            json_data = self._arista_run_command(command=command)
-            data = json_data.get('result')[0]['vrfs']
+            # command = "show vrf"
+            data = json_data.get('result')[4]['vrfs']
             for name, vrf_data in data.items():
                 dprint(f"Found vrf: {name}")
                 if name == "default":  # the non-VRF or default routing table.
@@ -225,9 +230,9 @@ class AristaApiConnector(Connector):
                         iface.vrf_name = name
 
         except Exception as err:
-            dprint(f"  ERROR running '{command}': {err}")
+            dprint(f"  ERROR running '{command_list}': {err}")
             self.error.status = True
-            self.error.description = f"Error running eAPI command = '{command}'!"
+            self.error.description = f"Error running eAPI command = '{command_list}'!"
             self.error.details = f"Cannot read device information: {format(err)}"
             self.add_warning(
                 warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
@@ -323,13 +328,22 @@ class AristaApiConnector(Connector):
         dprint("Arist eAPI _close_device()")
         return True
 
-    def _arista_run_command(self, command: str, format="json", autoComplete=True):
+    def _arista_run_command(self, command, format="json", autoComplete=True):
         """Run a specifc Arista command on the router configured.
         By default, return as JSON, and allow for command auto-complete.
 
         """
         # eAPI endpoint
         url = f"https://{self.switch.primary_ip4}/command-api"
+
+        # the API needs a list format for the command or multiple commands:
+        if isinstance(command, list):
+            cmds = command
+        elif isinstance(command, str):
+            cmds = [f"{command}"]
+        else:
+            # cannot handle this!
+            raise Exception(f"Unknown command type: f{type(command)}")
 
         # JSON-RPC request payload for 'show ip route'
         payload = {
@@ -341,7 +355,7 @@ class AristaApiConnector(Connector):
                 "autoComplete": autoComplete,
                 "expandAliases": False,
                 "version": 1,
-                "cmds": [f"{command}"],
+                "cmds": cmds,
             },
             "id": 1,
         }
