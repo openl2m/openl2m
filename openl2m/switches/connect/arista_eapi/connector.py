@@ -256,38 +256,103 @@ class AristaApiConnector(Connector):
             dprint("_open_device() failed!")
             return False
 
-        if not self._open_device():
-            return False  # self.error already set!
-
         try:
-            #
-            # get layer 2 mac info
-            #
-            command = "show mac address-table"
-            json_data = self._arista_run_command(command=command)
+            # the Arista eAPI allows to bundle many commands into a single request through sending them as a list.
+            # You can then parse the responses in a list, in order of the commands given.
+            command_list = []
+            command_list.append("show lldp neighbors detail")
+            # command_list.append("show mac address-table")
+            # command_list.append("show arp vrf all")
+            # command_list.append("show ipv6 neighbors vrf all")
 
-            #
-            # get ipv4 ARP data
-            #
-            command = "show arp vrf all"
-            json_data = self._arista_run_command(command=command)
-
-            #
-            # get ipv6 neighbors
-            #
-            command = "show ipv6 neighbors vrf all"
-            json_data = self._arista_run_command(command=command)
+            # run the commands:
+            json_data = self._arista_run_command(command=command_list)
+            # The 'result' key will contain a list of command outputs, in order of commands given.
+            dprint(f"RETURN:\n{json_data}")
 
             #
             # LLDP neighbors
             #
-            command = "show lldp neigbors"
-            json_data = self._arista_run_command(command=command)
+            # command = "show lldp neigbors"
+            data = json_data.get('result')[0]['lldpNeighbors']
+            for if_name, nb_data in data.items():
+                dprint(f"LLDP on {if_name}")
+                for nb in nb_data['lldpNeighborInfo']:
+                    dprint(f" Neighbor {nb['systemName']}")
+                    # get an OpenL2M NeighborDevice()
+                    neighbor = NeighborDevice(nb["chassisId"])
+                    neighbor.set_sys_name(nb['systemName'])
+                    neighbor.set_sys_description(nb['systemDescription'])
+
+                    if nb['chassisIdType'] == 'macAddress':
+                        neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
+
+                    # management addresses?
+                    for addr in nb['managementAddresses']:
+                        dprint(f" Mgmt addr: {addr}")
+                        # Needs parsing...
+
+                    # remote device capabilities:
+                    for c, value in nb['systemCapabilities'].items():
+                        match c:
+                            case "bridge":
+                                if value:
+                                    neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
+                            case "router":
+                                if value:
+                                    neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
+                            # there are likely other values, we just have not seen those yet!
+
+                    # add to device interface:
+                    self.add_neighbor_object(if_name, neighbor)
+
+                    # # remote device port info:
+                    # neighbor.port_name = nb.port_id
+                    # neighbor.set_port_description(nb.neighbor_info['port_description'])
+                    # # remote chassis info:
+                    # neighbor.set_chassis_string(nb.chassis_id)
+                    # if nb.neighbor_info['chassis_id_subtype'] == 'link_local_addr':
+                    #     neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
+                    # # parse capabilities:
+                    # capabilities = nb.neighbor_info['chassis_capability_enabled'].lower()
+                    # dprint(f"  Capabilities: {capabilities}")
+                    # if 'bridge' in capabilities:
+                    #     neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
+                    # if 'router' in capabilities:
+                    #     neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
+                    # # Following NOT tested; we are assuming the following two are correct:
+                    # if 'wlan' in capabilities:
+                    #     neighbor.set_capability(LLDP_CAPABILITIES_WLAN)
+                    # if 'phone' in capabilities:
+                    #     neighbor.set_capability(LLDP_CAPABILITIES_PHONE)
+                    # # remote device management address, this is a list(), take first entry
+                    # if len(nb.neighbor_info['mgmt_ip_list']) > 0:
+                    #     # hardcoding to IPv4 for now...
+                    #     neighbor.set_management_address(
+                    #         address=nb.neighbor_info['mgmt_ip_list'], type=IANA_TYPE_IPV4
+                    #     )
+            # #
+            # # get layer 2 mac info
+            # #
+            # # command = "show mac address-table"
+            # data = json_data.get('result')[1]
+
+            # #
+            # # get ipv4 ARP data
+            # #
+            # # command = "show arp vrf all"
+            # data = json_data.get('result')[2]
+
+            # #
+            # # get ipv6 neighbors
+            # #
+            # # command = "show ipv6 neighbors vrf all"
+            # data = json_data.get('result')[3]
 
         except Exception as err:
-            dprint(f"  ERROR running '{command}': {err}")
+            dprint(f"  ERROR running '{command_list}': {err}")
             self.error.status = True
-            self.error.description = f"Error running eAPI command = '{command}'!"
+            self.error.description = f"Error running eAPI command = '{command_list}'!"
             self.error.details = f"Cannot read device information: {format(err)}"
             self.add_warning(
                 warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
