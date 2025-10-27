@@ -44,12 +44,19 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_ROUTER,
     LLDP_CAPABILITIES_WLAN,
     LLDP_CAPABILITIES_PHONE,
-    #   IANA_TYPE_OTHER,
+    IANA_TYPE_OTHER,
     IANA_TYPE_IPV4,
-    #   IANA_TYPE_IPV6,
+    IANA_TYPE_IPV6,
 )
+from switches.connect.arista_eapi.utils import get_vlan_and_interface_from_string
 from switches.models import Switch, SwitchGroup
 from switches.utils import time_duration, dprint
+
+#
+# you can explore the eAPI used by going to the following URL on an Arista device:
+# https://<ip-address/eapi/
+# No creds needed to look around
+#
 
 
 class AristaApiConnector(Connector):
@@ -87,6 +94,7 @@ class AristaApiConnector(Connector):
             command_list.append("show version")
             command_list.append("show vlan")
             command_list.append("show interfaces")
+            command_list.append("show interfaces vlans")
             command_list.append("show interfaces transceiver properties")
             command_list.append("show vrf")
 
@@ -189,10 +197,31 @@ class AristaApiConnector(Connector):
                 self.add_interface(iface)
 
             #
+            # get vlans on interfaces
+            #
+            # command = "show interfaces vlans"
+            # NOTE: on tagged interfaces this does NOT read the untagged vlan!
+            data = json_data.get('result')[3]['interfaces']
+            for if_name, vlan_data in data.items():
+                dprint(f"Found VLAN info for: {if_name}")
+                dprint(vlan_data)
+                iface = self.get_interface_by_name(name=if_name)
+                if iface:
+                    dprint("   found Interface()")
+                    if 'untaggedVlan' in vlan_data:
+                        iface.untagged_vlan = int(vlan_data)
+                    if 'taggedVlans' in vlan_data:
+                        iface.is_tagged = True
+                        for vlan_id in vlan_data['taggedVlans']:
+                            iface.add_tagged_vlan(vlan_id=int(vlan_id))
+
+            # we can read the switchport information to read the untagged vlans
+
+            #
             # get optical transceiver data
             #
             # command = "show interfaces transceiver properties"
-            data = json_data.get('result')[3]['interfaces']
+            data = json_data.get('result')[4]['interfaces']
             for if_name, trx_data in data.items():
                 dprint(f"Found TRX for: {if_name}")
                 dprint(trx_data)
@@ -209,7 +238,7 @@ class AristaApiConnector(Connector):
             # read VRF info
             #
             # command = "show vrf"
-            data = json_data.get('result')[4]['vrfs']
+            data = json_data.get('result')[5]['vrfs']
             for name, vrf_data in data.items():
                 dprint(f"Found vrf: {name}")
                 if name == "default":  # the non-VRF or default routing table.
@@ -260,37 +289,125 @@ class AristaApiConnector(Connector):
             # the Arista eAPI allows to bundle many commands into a single request through sending them as a list.
             # You can then parse the responses in a list, in order of the commands given.
             command_list = []
+            command_list.append("show mac address-table")
+            command_list.append("show arp vrf all")
+            command_list.append("show ipv6 neighbors vrf all")
             command_list.append("show lldp neighbors detail")
-            # command_list.append("show mac address-table")
-            # command_list.append("show arp vrf all")
-            # command_list.append("show ipv6 neighbors vrf all")
 
             # run the commands:
             json_data = self._arista_run_command(command=command_list)
             # The 'result' key will contain a list of command outputs, in order of commands given.
-            dprint(f"RETURN:\n{json_data}")
+            # dprint(f"RETURN:\n{json_data}")
+
+            #
+            # get Layer 2 MAC/ETHERNET info
+            #
+            # command = "show mac address-table"
+            dprint("\n--- ETHERNET ADDRESSES ---\n")
+            data = json_data.get('result')[0]
+            for mac in data['unicastTable']['tableEntries']:
+                dprint(f"Ethernet: {mac}")
+                # add this to the known addressess:
+                if mac['interface'] == 'Router':
+                    # internal ethernet on the Arista device
+                    dprint("  Ignored!")
+                    continue
+                self.add_learned_ethernet_address(
+                    if_name=mac['interface'], eth_address=mac['macAddress'], vlan_id=int(mac['vlanId'])
+                )
+
+            #
+            # get IPV4 ARP data
+            #
+            # command = "show arp vrf all"
+            dprint("\n--- ARP ---\n")
+            data = json_data.get('result')[1]
+            for vrf_name, vrf_arp in data['vrfs'].items():
+                dprint(f"VRF: {vrf_name}")
+                for arp in vrf_arp['ipV4Neighbors']:
+                    dprint(f"  ARP = {arp}")
+                    (vlan_id, if_name) = get_vlan_and_interface_from_string(arp['interface'])
+                    dprint(f"    Adding to if_name: {if_name}, vlan: {vlan_id}")
+                    self.add_learned_ethernet_address(
+                        if_name=if_name,
+                        eth_address=arp['hwAddress'],
+                        vlan_id=vlan_id,
+                        ip4_address=arp['address'],
+                    )
+
+            #
+            # get IPV6 Neighbors
+            #
+            # command = "show ipv6 neighbors vrf all"
+            dprint("\n--- IPV6 ND ---\n")
+            data = json_data.get('result')[2]
+            for vrf_name, vrf_nd in data['vrfs'].items():
+                dprint(f"VRF: {vrf_name}")
+                for nd in vrf_nd['ipV6Neighbors']:
+                    dprint(f"  ND = {nd}")
+                    (vlan_id, if_name) = get_vlan_and_interface_from_string(nd['interface'])
+                    dprint(f"    Adding to if_name: {if_name}, vlan_id: {vlan_id}")
+                    self.add_learned_ethernet_address(
+                        if_name=if_name,
+                        eth_address=nd['hwAddress'],
+                        vlan_id=vlan_id,
+                        ip6_address=nd['address'],
+                    )
 
             #
             # LLDP neighbors
             #
             # command = "show lldp neigbors"
-            data = json_data.get('result')[0]['lldpNeighbors']
+            dprint("\n--- LLDP NEIGHBORS ---\n")
+            data = json_data.get('result')[3]['lldpNeighbors']
             for if_name, nb_data in data.items():
                 dprint(f"LLDP on {if_name}")
                 for nb in nb_data['lldpNeighborInfo']:
-                    dprint(f" Neighbor {nb['systemName']}")
+                    dprint(f" Neighbor {nb['systemName']} = {nb}")
                     # get an OpenL2M NeighborDevice()
                     neighbor = NeighborDevice(nb["chassisId"])
                     neighbor.set_sys_name(nb['systemName'])
                     neighbor.set_sys_description(nb['systemDescription'])
+                    # parse neighbor remote interface info:
+                    if "neighborInterfaceInfo" in nb:
+                        neighbor.port_name = nb['neighborInterfaceInfo']['interfaceId_v2']
+                        neighbor.set_port_description(nb['neighborInterfaceInfo']['interfaceDescription'])
 
+                    # management addresses given?
+                    mgmt_ipv4 = ""  # used to register ethernet address.
+                    mgmt_ipv6 = ""
+                    if "managementAddresses" in nb:
+                        for addr in nb['managementAddresses']:
+                            dprint(f" Mgmt addr: {addr}")
+                            # Needs parsing...
+                            match addr["addressType"]:
+                                case "ipv4":
+                                    dprint(" is IPv4")
+                                    neighbor.management_address_type = IANA_TYPE_IPV4
+                                    neighbor.management_address = addr["address"]
+                                    mgmt_ipv4 = addr["address"]
+                                case "ipv6":
+                                    dprint(" is IPv6")
+                                    neighbor.management_address_type = IANA_TYPE_IPV6
+                                    neighbor.management_address = addr["address"]
+                                    mgmt_ipv6 = addr["address"]
+                                case _:
+                                    dprint("Unknown management address type!")
+                                    neighbor.management_address_type = IANA_TYPE_OTHER
+                                    neighbor.management_address = addr["address"]
+
+                    neighbor.set_chassis_string(nb['chassisId'])
                     if nb['chassisIdType'] == 'macAddress':
                         neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
-
-                    # management addresses?
-                    for addr in nb['managementAddresses']:
-                        dprint(f" Mgmt addr: {addr}")
-                        # Needs parsing...
+                        # add this ethernet address to our interface data
+                        # NOTE: still need to add the ipv4/v6 management addresses:
+                        self.add_learned_ethernet_address(
+                            if_name=if_name,
+                            eth_address=neighbor.chassis_string,
+                            # vlan_id = vlan_id,
+                            ip4_address=mgmt_ipv4,
+                            ip6_address=mgmt_ipv6,
+                        )
 
                     # remote device capabilities:
                     for c, value in nb['systemCapabilities'].items():
@@ -305,49 +422,6 @@ class AristaApiConnector(Connector):
 
                     # add to device interface:
                     self.add_neighbor_object(if_name, neighbor)
-
-                    # # remote device port info:
-                    # neighbor.port_name = nb.port_id
-                    # neighbor.set_port_description(nb.neighbor_info['port_description'])
-                    # # remote chassis info:
-                    # neighbor.set_chassis_string(nb.chassis_id)
-                    # if nb.neighbor_info['chassis_id_subtype'] == 'link_local_addr':
-                    #     neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
-                    # # parse capabilities:
-                    # capabilities = nb.neighbor_info['chassis_capability_enabled'].lower()
-                    # dprint(f"  Capabilities: {capabilities}")
-                    # if 'bridge' in capabilities:
-                    #     neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
-                    # if 'router' in capabilities:
-                    #     neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
-                    # # Following NOT tested; we are assuming the following two are correct:
-                    # if 'wlan' in capabilities:
-                    #     neighbor.set_capability(LLDP_CAPABILITIES_WLAN)
-                    # if 'phone' in capabilities:
-                    #     neighbor.set_capability(LLDP_CAPABILITIES_PHONE)
-                    # # remote device management address, this is a list(), take first entry
-                    # if len(nb.neighbor_info['mgmt_ip_list']) > 0:
-                    #     # hardcoding to IPv4 for now...
-                    #     neighbor.set_management_address(
-                    #         address=nb.neighbor_info['mgmt_ip_list'], type=IANA_TYPE_IPV4
-                    #     )
-            # #
-            # # get layer 2 mac info
-            # #
-            # # command = "show mac address-table"
-            # data = json_data.get('result')[1]
-
-            # #
-            # # get ipv4 ARP data
-            # #
-            # # command = "show arp vrf all"
-            # data = json_data.get('result')[2]
-
-            # #
-            # # get ipv6 neighbors
-            # #
-            # # command = "show ipv6 neighbors vrf all"
-            # data = json_data.get('result')[3]
 
         except Exception as err:
             dprint(f"  ERROR running '{command_list}': {err}")
