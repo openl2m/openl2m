@@ -39,6 +39,7 @@ We currently provide several sub-connectors (sub-classes):
 * several based on SNMP (generic, Arista, Aruba/HP-Procurve, Aruba/AOS-CX, Cisco, Juniper, Netgear).
 * a Juniper PyEz-NC API based driver.
 * a REST-API based connector for the Aruba AOS-CX line of devices.
+* a REST-API based connector for Arista devices.
 * a read-only driver based on the Napalm automation framework.
 
 Note that the SNMP driver can support several vendors that implemented their own SNMP data.
@@ -54,6 +55,7 @@ Finally, we provide an overview of how to implement a new driver.
 
    snmp/index.rst
    aos_cx_api/index.rst
+   arista_eapi/index.rst
    junos_pyez/index.rst
    napalm/index.rst
    netmiko/index.rst
