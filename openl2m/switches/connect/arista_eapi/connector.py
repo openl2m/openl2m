@@ -435,6 +435,47 @@ class AristaApiConnector(Connector):
 
         return True
 
+    #
+    # here we override the SSH command execution using Netmiko,
+    # and implement it using the eAPI.
+    #
+    def netmiko_execute_command(self, command: str) -> bool:
+        """
+        Execute a single command on the device using eAPI.
+        Save the command output to self.output
+        On error, set self.error as needed.
+
+        Args:
+            command: the string the execute as a command on the device
+
+        Returns:
+            (boolean): True if success, False on failure.
+                       On success, save the command output to self.output.
+                       On failure, set self.error as applicable.
+        """
+        dprint(f"Arista netmiko_execute_command() '{command}'")
+
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        try:
+            # run the command:
+            json_data = self._arista_run_command(command=command, format="text")
+            # The 'result' key will contain a list of command output.
+            # dprint(f"RETURN:\n{json_data}")
+            self.netmiko_output = json_data.get('result')[0]['output']
+            return True
+        except Exception as err:
+            dprint(f"  ERROR running '{command}': {err}")
+            self.error.status = True
+            self.error.description = f"Error running eAPI command = '{command}'!"
+            self.error.details = f"Cannot read device information: {format(err)}"
+            self.add_warning(
+                warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
+            )
+            return False
+
     def _open_device(self) -> bool:
         '''
         Arista API is stateless, so no need to open...
@@ -457,7 +498,7 @@ class AristaApiConnector(Connector):
             # or all warnings:
             # urllib3.disable_warnings()
 
-        dprint("  session OK!")
+        dprint("  _open_device() OK!")
         return True
 
     def _close_device(self) -> bool:
