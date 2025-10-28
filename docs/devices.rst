@@ -38,6 +38,7 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 **Arista**
 
 * Any Arista switch via SNMP, as they all support the same MIBS. Tested on 7280CR3 series.
+* The Arista eAPI is also supported, at present in Read-Only mode.
 
 **Cisco**
 
