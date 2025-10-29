@@ -439,7 +439,7 @@ class AristaApiConnector(Connector):
     # here we override the SSH command execution using Netmiko,
     # and implement it using the eAPI.
     #
-    def netmiko_execute_command(self, command: str) -> bool:
+    def _execute_command(self, command: str) -> bool:
         """
         Execute a single command on the device using eAPI.
         Save the command output to self.output
@@ -453,7 +453,7 @@ class AristaApiConnector(Connector):
                        On success, save the command output to self.output.
                        On failure, set self.error as applicable.
         """
-        dprint(f"Arista netmiko_execute_command() '{command}'")
+        dprint(f"Arista _execute_command() '{command}'")
 
         if not self._open_device():
             dprint("_open_device() failed!")

@@ -1158,7 +1158,7 @@ class Connector:
         dprint("netmiko_disable_paging() OK!")
         return True
 
-    def netmiko_execute_command(self, command: str) -> bool:
+    def _execute_command(self, command: str) -> bool:
         """
         Execute a single command on the device.
         Save the command output to self.output
@@ -1169,7 +1169,7 @@ class Connector:
         Returns:
             (boolean): True if success, False on failure.
         """
-        dprint(f"netmiko_execute_command() '{command}'")
+        dprint(f"_execute_command() '{command}'")
         self.error.clear()
         self.netmiko_output = ''
         if not self.netmiko_connection:
@@ -1206,7 +1206,7 @@ class Connector:
             self.error.description = "Error sending command!"
             self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})"
             return False
-        dprint("  netmiko_execute_command() OK!")
+        dprint("  _execute_command() OK!")
         return True
 
     def run_command(self, command_id: int, interface_name: str = '') -> dict:
@@ -1278,7 +1278,7 @@ class Connector:
         cmd['state'] = 'run'
         cmd['id'] = command_id
         # now go do it:
-        if self.netmiko_execute_command(cmd['command']):
+        if self._execute_command(cmd['command']):
             cmd['output'] = self.netmiko_output
         else:
             # error occured, pass it on
@@ -1312,7 +1312,7 @@ class Connector:
         }
         self.error.clear()
         # now go do it:
-        if self.netmiko_execute_command(command_string):
+        if self._execute_command(command_string):
             cmd['output'] = self.netmiko_output
         else:
             # error occured, pass it on
