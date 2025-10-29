@@ -1081,6 +1081,7 @@ class Switch(models.Model):
         elif self.connector_type in (
             constants.CONNECTOR_TYPE_PYEZ,
             constants.CONNECTOR_TYPE_AOSCX,
+            constants.CONNECTOR_TYPE_EAPI,
             constants.CONNECTOR_TYPE_COMMANDS_ONLY,
         ):
             if not self.netmiko_profile:

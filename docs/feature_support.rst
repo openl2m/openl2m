@@ -20,7 +20,7 @@ Features Supported
      - VRF
      - IPv6 Info
 
-   * - Arista (Snmp)
+   * - Arista (SNMP)
      - Yes
      - Yes
      -
@@ -31,7 +31,18 @@ Features Supported
      - Yes
      - Yes
 
-   * - Aruba AOS-CX (Snmp)
+   * - Arista eAPI (R/O)
+     -
+     -
+     -
+     -
+     - Yes
+     -
+     - Yes
+     - Yes
+     - Yes
+
+   * - Aruba AOS-CX (SNMP)
      - Yes
      - Yes  (>= v10.12, access ports)
      - Yes
@@ -42,7 +53,7 @@ Features Supported
      - Yes (untested)
      - Yes
 
-   * - Comware (Snmp)
+   * - Comware (SNMP)
      - Yes
      - Yes
      - Yes
@@ -53,7 +64,7 @@ Features Supported
      - Yes
      - Yes
 
-   * - Procurve (Snmp)
+   * - Procurve (SNMP)
      - Yes
      - Yes
      - Yes
@@ -64,7 +75,7 @@ Features Supported
      - Yes (untested)
      - ?
 
-   * - Juniper (Snmp) *
+   * - Juniper (SNMP R/O) *
      -
      -
      - (r/o)
@@ -133,7 +144,7 @@ Features Supported
 
 .. note::
 
-  All driver features are automatically supported by the REST API! (except for SSH commands)
+  All driver features are automatically supported by the OpenL2M REST API! (except for SSH commands)
 
 
 .. note::

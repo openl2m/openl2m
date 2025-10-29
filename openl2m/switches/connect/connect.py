@@ -26,6 +26,7 @@ from switches.utils import dprint
 from switches.constants import (
     CONNECTOR_TYPE_SNMP,
     CONNECTOR_TYPE_AOSCX,
+    CONNECTOR_TYPE_EAPI,
     CONNECTOR_TYPE_PYEZ,
     CONNECTOR_TYPE_COMMANDS_ONLY,
     CONNECTOR_TYPE_NAPALM,
@@ -57,6 +58,7 @@ from switches.connect.snmp.aruba_cx.connector import SnmpConnectorArubaCx
 from switches.connect.snmp.netgear.constants import ENTERPRISE_ID_NETGEAR
 from switches.connect.snmp.netgear.connector import SnmpConnectorNetgear
 from switches.connect.aruba_aoscx.connector import AosCxConnector
+from switches.connect.arista_eapi.connector import AristaApiConnector
 from switches.connect.junos_pyez.connector import PyEZConnector
 from switches.connect.commands_only.connector import CommandsOnlyConnector
 
@@ -128,6 +130,10 @@ def get_connection_object(request: HttpRequest, group: SwitchGroup, switch: Swit
     # This is the "custom" Aruba AOS CX connector, using the device REST API.
     elif switch.connector_type == CONNECTOR_TYPE_AOSCX:
         connection = AosCxConnector(request, group, switch)
+
+    # This is the "custom" Arista eAPI connector, using the device REST API.
+    elif switch.connector_type == CONNECTOR_TYPE_EAPI:
+        connection = AristaApiConnector(request, group, switch)
 
     # This is the "custom" Junos PyEZ connector, using the device NetConf API.
     elif switch.connector_type == CONNECTOR_TYPE_PYEZ:

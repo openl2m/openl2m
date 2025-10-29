@@ -22,6 +22,7 @@ Here is the order in which you should create the configuration items:
    Create Credential profiles<credential_profiles.rst>
    Create VLANs<vlans.rst>
    Add SNMP devices<snmp_switches.rst>
+   Add Arista eAPI devices<arista-eapi.rst>
    Add Aruba AOS-CX devices<aos_cx_switches.rst>
    Add Junos devices<junos_switches.rst>
    Create Switch Groups to add device to<switchgroups.rst>
