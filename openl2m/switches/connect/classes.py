@@ -439,8 +439,8 @@ class NeighborDevice:
         self.sys_name: str = "Unknown Device"
         self.sys_descr: str = "Unknown Device Description"
         self.hostname: str = ""  # if set, the hostname of the device, possibly resolved from chassis_string
-        self.management_address_type: int = IANA_TYPE_OTHER  # valid is either IANA_TYPE_IPV4 or IANA_TYPE_IPV6
-        self.management_address: str = ""  # IP address, either v4 or v6
+        self.management_address_v4: str = ""  # IPv4 management address, if any.
+        self.management_address_v6: str = ""  # IPv6 management address, if any.
         #
         # the entries below are for use by the mermaid.js graphing library to show neighbors in an image
         # these are assigned in switches.templatetags.helpers.get_neighbor_mermaid_config()
@@ -527,17 +527,27 @@ class NeighborDevice:
         '''
         self.chassis_string = description
 
-    def set_management_address(self, address: str, type: int) -> None:
-        """Set remote device management address.
+    def set_management_address_v4(self, address: str) -> None:
+        """Set remote device IPv4 management address.
 
         Args:
             address (str): the management address
             type (int): the address type, a valid IANA protocol number, either IANA_TYPE_IPV4, or IANA_TYPE_IPV6
 
         """
-        dprint(f"NeighborDevice().set_management_address('{address}', type {type})")
-        self.management_address = address
-        self.management_address_type = type
+        dprint(f"NeighborDevice().set_management_address_v4('{address}', type {type})")
+        self.management_address_v4 = address
+
+    def set_management_address_v6(self, address: str) -> None:
+        """Set remote device IPv6 management address.
+
+        Args:
+            address (str): the management address
+            type (int): the address type, a valid IANA protocol number, either IANA_TYPE_IPV4, or IANA_TYPE_IPV6
+
+        """
+        dprint(f"NeighborDevice().set_management_address_v6('{address}', type {type})")
+        self.management_address_v6 = address
 
     def set_capability(self, capability: int) -> None:
         '''
@@ -604,7 +614,8 @@ class NeighborDevice:
             'chassis_id': self.chassis_string,
             'chassis_type': self.chassis_type,
             'capabilities': self.capabilities_as_string(),
-            'management_address': self.management_address,
+            'management_address_v4': self.management_address_v4,
+            'management_address_v6': self.management_address_v6,
         }
 
     def display_name(self) -> str:

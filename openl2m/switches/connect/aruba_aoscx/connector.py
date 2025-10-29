@@ -547,9 +547,7 @@ class AosCxConnector(Connector):
                         # remote device management address, this is a list(), take first entry
                         if len(nb.neighbor_info['mgmt_ip_list']) > 0:
                             # hardcoding to IPv4 for now...
-                            neighbor.set_management_address(
-                                address=nb.neighbor_info['mgmt_ip_list'], type=IANA_TYPE_IPV4
-                            )
+                            neighbor.set_management_address_v4(address=nb.neighbor_info['mgmt_ip_list'])
                         # add to device interface:
                         self.add_neighbor_object(if_name, neighbor)
 

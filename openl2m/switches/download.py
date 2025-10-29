@@ -263,7 +263,8 @@ def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector):
         # and loop through lldp:
         for neighbor in interface.lldp.values():
             row += 1
-            found_ip = False
+            found_ipv4 = False
+            found_ipv6 = False
             dprint(f"LLDP: on {interface.name} - {neighbor.sys_name}")
             worksheet.write(row, COL_INTERFACE_NAME, interface.name, spreadsheet.format_regular)
             worksheet.write(row, COL_INTERFACE_VLAN, interface.untagged_vlan, spreadsheet.format_regular)
@@ -282,19 +283,15 @@ def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector):
             elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
                 if neighbor.chassis_string_type == IANA_TYPE_IPV4:
                     worksheet.write(row, COL_IPV4, neighbor.chassis_string, spreadsheet.format_regular)
-                    found_ip = True
+                    found_ipv4 = True
                 elif neighbor.chassis_string_type == IANA_TYPE_IPV6:
-                    # TBD, IPv6 not supported yet.
-                    dprint("  IPV6 chassis address: NOT supported yet")
-                    # worksheet.write(row, COL_IPV6, neighbor.chassis_string, spreadsheet.format_regular)
+                    worksheet.write(row, COL_IPV6, neighbor.chassis_string, spreadsheet.format_regular)
+                    found_ipv6 = True
             # if we don't have IP info yet, do we have management IP?
-            if not found_ip and neighbor.management_address:
-                if neighbor.management_address_type == IANA_TYPE_IPV4:
-                    worksheet.write(row, COL_IPV4, neighbor.management_address, spreadsheet.format_regular)
-                elif neighbor.management_address_type == IANA_TYPE_IPV6:
-                    # TBD, IPv6 not supported yet.
-                    dprint("  IPV6 management address: NOT supported yet")
-                    # worksheet.write(row, COL_IPV6, neighbor.management_address, spreadsheet.format_regular)
+            if not found_ipv4 and neighbor.management_address_v4:
+                worksheet.write(row, COL_IPV4, neighbor.management_address_v4, spreadsheet.format_regular)
+            if not found_ipv6 and neighbor.management_address_v6:
+                worksheet.write(row, COL_IPV6, neighbor.management_address_v6, spreadsheet.format_regular)
 
             worksheet.write(row, COL_NEIGHBOR_NAME, neighbor.sys_name, spreadsheet.format_regular)
             worksheet.write(row, COL_NEIGHBOR_TYPE, neighbor.capabilities_as_string(), spreadsheet.format_regular)

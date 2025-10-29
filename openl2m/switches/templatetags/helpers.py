@@ -484,9 +484,14 @@ def get_lldp_info(neighbor):
     else:
         chassis = ""
 
-    if neighbor.sys_descr or neighbor.management_address:
-        if neighbor.management_address:
-            mgmt = f"Mgmt IP: {neighbor.management_address}&#10;&#13;"  # lf/cr may not be supported by all browsers.
+    if neighbor.sys_descr or neighbor.management_address_v4 or neighbor.management_address_v6:
+        if neighbor.management_address_v4 or neighbor.management_address_v6:
+            mgmt = "Mgmt IP: "
+            if neighbor.management_address_v4:
+                mgmt += f" {neighbor.management_address_v4}&#10;&#13;"  # lf/cr may not be supported by all browsers.
+
+            if neighbor.management_address_v6:
+                mgmt += f" {neighbor.management_address_v6}&#10;&#13;"  # lf/cr may not be supported by all browsers.
         else:
             mgmt = ""
         info = f"{icon}<abbr data-bs-toggle=\"tooltip\" data-bs-title=\"{mgmt}{neighbor.sys_descr}\">{name}{port}{chassis}</abbr>"

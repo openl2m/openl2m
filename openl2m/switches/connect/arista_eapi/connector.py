@@ -383,18 +383,15 @@ class AristaApiConnector(Connector):
                             match addr["addressType"]:
                                 case "ipv4":
                                     dprint(" is IPv4")
-                                    neighbor.management_address_type = IANA_TYPE_IPV4
-                                    neighbor.management_address = addr["address"]
+                                    neighbor.management_address_v4 = addr["address"]
                                     mgmt_ipv4 = addr["address"]
                                 case "ipv6":
                                     dprint(" is IPv6")
-                                    neighbor.management_address_type = IANA_TYPE_IPV6
-                                    neighbor.management_address = addr["address"]
+                                    neighbor.management_address_v6 = addr["address"]
                                     mgmt_ipv6 = addr["address"]
                                 case _:
+                                    # we cannot handle this!
                                     dprint("Unknown management address type!")
-                                    neighbor.management_address_type = IANA_TYPE_OTHER
-                                    neighbor.management_address = addr["address"]
 
                     neighbor.set_chassis_string(nb['chassisId'])
                     if nb['chassisIdType'] == 'macAddress':

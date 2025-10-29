@@ -2762,7 +2762,7 @@ class SnmpConnector(Connector):
         #     if if_index in self.interfaces:
         #         if lldp_index in self.interfaces[if_index].lldp:
         #             # set management address
-        #             self.interfaces[if_index].lldp[lldp_index].management_address = val
+        #             self.interfaces[if_index].lldp[lldp_index].management_address_V4_OR_V6 = val
         #     return True
 
         sub_oid = oid_in_branch(lldpRemManAddrIfSubtype, oid)
@@ -2790,8 +2790,7 @@ class SnmpConnector(Connector):
                         # set management address
                         mgmt_ip = f"{numbers[5]}.{numbers[6]}.{numbers[7]}.{numbers[8]}"
                         dprint(f"  SETTING MGMT IPv4 = {mgmt_ip}")
-                        self.interfaces[if_index].lldp[lldp_index].management_address = mgmt_ip
-                        self.interfaces[if_index].lldp[lldp_index].management_address_type = IANA_TYPE_IPV4
+                        self.interfaces[if_index].lldp[lldp_index].management_address_v4 = mgmt_ip
             return True
         return False
 
