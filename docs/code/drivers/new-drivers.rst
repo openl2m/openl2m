@@ -147,7 +147,7 @@ Here is a hard-coded example. See *snmp/procurve* and *snmp/comware* for additio
 Customizing SSH/CLI commands
 ============================
 
-If your device needs to change how CLI commands are run (ie.,not use standard SSH),
-your driver needs to implement (override) the *Connector()._netmiko_execute_command()* function.
+If your device needs to change how CLI commands are run (ie. not use standard SSH),
+your driver needs to implement (override) the *Connector()._execute_command()* function.
 
 See more at :doc:`implementing SSH<netmiko/index>`.

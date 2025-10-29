@@ -138,8 +138,10 @@ to get information on switch tables (ethernet addresses), arp tables and neighbo
 run_command() and run_command_string()
 --------------------------------------
 
-These functions are used to run CLI commands, either predefined (run_command())
-or via form template input (run_command_string()). Both call *netmiko_execute_command()* to execute the SSH command.
+These functions are used to run CLI commands. *Connector.run_command()* is used for static commands,
+and form template input commands are handled by *Connector().run_command_string()*.
+
+Both call *self._execute_command()* to execute the resulting SSH command string.
 
 See :doc:`SSH Connections<netmiko/index>` for more details.
 
