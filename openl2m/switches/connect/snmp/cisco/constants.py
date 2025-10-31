@@ -155,6 +155,7 @@ snmp_mib_variables['vlanTrunkPortVlansEnabled4k'] = vlanTrunkPortVlansEnabled4k
 # Cisco VLAN Membership mib - on older devices only
 # https://mibs.observium.org/mib/CISCO-VLAN-MEMBERSHIP-MIB/
 # https://circitor.fr/Mibs/Html/CISCO-VLAN-MEMBERSHIP-MIB.php
+# https://raw.githubusercontent.com/cisco/cisco-mibs/main/v2/CISCO-VLAN-MEMBERSHIP-MIB.my
 #
 # ciscoVlanMembershipMIB = '.1.3.6.1.4.1.9.9.68'
 #
