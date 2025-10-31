@@ -1103,6 +1103,7 @@ snmp_mib_variables['lldpLocSysCapEnabled'] = lldpLocSysCapEnabled
 lldpLocPortTable = '.1.0.8802.1.1.2.1.3.7'
 snmp_mib_variables['lldpLocPortTable'] = lldpLocPortTable
 
+#
 # remote system data at
 # lldpRemoteSystemsData = .1.0.8802.1.1.2.1.4
 # lldpRemTable = .1.0.8802.1.1.2.1.4.1
@@ -1117,6 +1118,53 @@ snmp_mib_variables['lldpRemEntry'] = lldpRemEntry
 #            lldpRemIndex
 #     }
 #     ::= { lldpRemTable 1 }
+#
+# NOTE: this means all entries below are "indexed" by three digits after the OID:
+# <lldp-oid>.<time-stamp>.<local-port-num>.<remote-index>
+# Here are the definitions:
+# lldpRemTimeMark  OBJECT-TYPE
+#     SYNTAX      TimeFilter
+#     MAX-ACCESS  not-accessible
+#     STATUS      current
+#     DESCRIPTION
+#             "A TimeFilter for this entry.  See the TimeFilter textual
+#             convention in IETF RFC 2021 and
+#             http://www.ietf.org/IESG/Implementations/RFC2021-Implementation.txt
+#             to see how TimeFilter works."
+#     REFERENCE
+#             "IETF RFC 2021 section 6"
+#     ::= { lldpRemEntry 1 }
+
+# lldpRemLocalPortNum  OBJECT-TYPE
+#     SYNTAX      LldpPortNumber
+#     MAX-ACCESS  not-accessible
+#     STATUS      current
+#     DESCRIPTION
+#             "The index value used to identify the port component
+#             (contained in the local chassis with the LLDP agent)
+#             associated with this entry.  The lldpRemLocalPortNum
+#             identifies the port on which the remote system information
+#             is received.
+
+#             The value of this object is used as a port index to the
+#             lldpRemTable."
+#     ::= { lldpRemEntry 2 }
+
+# lldpRemIndex  OBJECT-TYPE
+#     SYNTAX      Integer32(1..2147483647)
+#     MAX-ACCESS  not-accessible
+#     STATUS      current
+#     DESCRIPTION
+#             "This object represents an arbitrary local integer value used
+#             by this agent to identify a particular connection instance,
+#             unique only for the indicated remote system.
+
+#             An agent is encouraged to assign monotonically increasing
+#             index values to new entries, starting with one, after each
+#             reboot.  It is considered unlikely that the lldpRemIndex
+#             will wrap between reboots."
+#     ::= { lldpRemEntry 3 }
+
 
 # LLDP_REM_TIMEMARK =       '.1.0.8802.1.1.2.1.4.1.1.1'  # NOT USED
 # this does not appear to be implemented in most gear.
@@ -1132,6 +1180,12 @@ lldpRemChassisIdSubtype = '.1.0.8802.1.1.2.1.4.1.1.4'
 snmp_mib_variables['lldpRemChassisIdSubtype'] = lldpRemChassisIdSubtype
 # note: the definitions of this chassis type are now in
 # switches/connect/constants.py, around line 65
+# LLDP_CHASSIS_TYPE_NONE = 0
+# LLDP_CHASSIC_TYPE_COMP = 1  # chassisComponent(1)
+# LLDP_CHASSIC_TYPE_ALIAS = 2  # interfaceAlias(2), ifAlias from IF-MIB
+# LLDP_CHASSIC_TYPE_PORT = 3  # portComponent(3)
+# LLDP_CHASSIC_TYPE_ETH_ADDR = 4  # macAddress(4), standard Ethernet address
+# LLDP_CHASSIC_TYPE_NET_ADDR = 5  # networkAddress(5), first byte is address type, next bytes are address.
 
 lldpRemChassisId = '.1.0.8802.1.1.2.1.4.1.1.5'
 snmp_mib_variables['lldpRemChassisId'] = lldpRemChassisId
@@ -1171,20 +1225,32 @@ LLDP_CAPA_BITS_PHONE = 0x04  # telephone(5)
 LLDP_CAPA_BITS_DOCSIS = 0x02  # docsisCableDevice(6),
 LLDP_CAPA_BITS_STATION = 0x01  # stationOnly(7)
 
+#
+# lldpRemManAddrTable : Management addresses of the remote system
+# lldpRemManAddrTable = '.1.0.8802.1.1.2.1.4.2'
+#
 # the management address entries of the remove device:
 # MIB base at lldpRemManAddrEntry
 lldpRemManAddrEntry = '.1.0.8802.1.1.2.1.4.2.1'
 snmp_mib_variables['lldpRemManAddrEntry'] = lldpRemManAddrEntry
 #
+# this is an sequency (array) of the following entries:
+# LldpRemManAddrEntry ::= SEQUENCE {
+#       lldpRemManAddrSubtype (.1)     AddressFamilyNumbers,
+#       lldpRemManAddr (.2)            LldpManAddress,
+#       lldpRemManAddrIfSubtype (.3)   LldpManAddrIfSubtype,
+#       lldpRemManAddrIfId (.4)        Integer32,
+#       lldpRemManAddrOID (.5)         OBJECT IDENTIFIER
+# }
 # Note: most devices do not send .1, .2 or .3
 #
 # lldpRemManAddrSubtype is either IANA_TYPE_IPV4 or IPV6
-# lldpRemManAddrSubtype = '.1.0.8802.1.1.2.1.4.2.1.1'
-# snmp_mib_variables['lldpRemManAddrSubtype'] = lldpRemManAddrSubtype
+lldpRemManAddrSubtype = '.1.0.8802.1.1.2.1.4.2.1.1'
+snmp_mib_variables['lldpRemManAddrSubtype'] = lldpRemManAddrSubtype
 #
 # a string for the address, of type indicated by above lldpRemManAddrSubtype
-# lldpRemManAddr = '.11.0.8802.1.1.2.1.4.2.1.2'
-# snmp_mib_variables['lldpRemManAddr'] = lldpRemManAddr
+lldpRemManAddr = '.11.0.8802.1.1.2.1.4.2.1.2'
+snmp_mib_variables['lldpRemManAddr'] = lldpRemManAddr
 #
 # management address interface numbering method
 lldpRemManAddrIfSubtype = '.1.0.8802.1.1.2.1.4.2.1.3'
@@ -1195,11 +1261,11 @@ LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER = 3  # systemPortNumber(3)
 #
 # these two don't add much:
 #
-# management address interface id
-# lldpRemManAddrIfId = '.11.0.8802.1.1.2.1.4.2.1.4'
+# management address interface id of the remote system
+# lldpRemManAddrIfId = '.1.0.8802.1.1.2.1.4.2.1.4'
 # snmp_mib_variables['lldpRemManAddrIfId'] = lldpRemManAddrIfId
 # management address device OID:
-# lldpRemManAddrOID = '.11.0.8802.1.1.2.1.4.2.1.5'
+# lldpRemManAddrOID = '.1.0.8802.1.1.2.1.4.2.1.5'
 # snmp_mib_variables['	lldpRemManAddrOID'] = 	lldpRemManAddrOID
 
 #
@@ -1209,6 +1275,7 @@ LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER = 3  # systemPortNumber(3)
 # and https://mibs.observium.org/mib/LLDP-V2-MIB/
 #
 # lldpV2MIB = '.1.3.111.2.802.1.1.13'
+# Note: We ignore this, as we have NOT seen many device implement this one!
 
 
 #

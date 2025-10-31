@@ -2767,31 +2767,42 @@ class SnmpConnector(Connector):
 
         sub_oid = oid_in_branch(lldpRemManAddrIfSubtype, oid)
         if sub_oid:
-            numbers = sub_oid.split('.')
-            # dprint(f"  FOUND lldpRemManAddrIfSubtype, size {len(numbers)}, val = {int(val)}")
             # some bizarre "checking" for the right OID format. It appears to be:
-            # 3 digits for LLDP index (index, port_id, extra), then "1.4", following by IP in dotted format, eg "10.1.1.1"
-            if (
-                len(numbers) == 9
-                and int(val) in (LLDP_REM_MAN_ADDR_TYPE_IFINDEX, LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER)
-                and numbers[3] == '1'
-                and numbers[4] == '4'
-            ):
-                # dprint("  LLDP FOUND MGMT IPv4 !")
-                # this appears to be an IPv4 address embedded in sub-OID
-                port_id = int(numbers[1])
-                lldp_index = f"{numbers[0]}.{numbers[1]}.{numbers[2]}"
+            # 3 digits for LLDP index (index, port_id, extra), followed by the sub-OID-encoded
+            # representation of the management address:
+            # # <IANA protocol type>.<address length in bytes>.<encoded management ip>
+            if int(val) in (LLDP_REM_MAN_ADDR_TYPE_IFINDEX, LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER):
+                # this appears to be an IP address embedded in sub-OID
+                numbers = sub_oid.split('.')
+                # dprint(f"  FOUND lldpRemManAddrIfSubtype, size {len(numbers)}, val = {int(val)}")
                 # at this point, we should have already found the lldp neighbor and created an object
-                # did we find Q-Bridge mappings?
+                port_id = int(numbers[1])
+                # get the Q-Bridge mapping port-id to interface
                 if_index = self._get_if_index_from_port_id(port_id)
                 # dprint(f"  INFO: lldp_index='{lldp_index}', port_id='{port_id}', if_index='{if_index}'")
                 if if_index in self.interfaces:
+                    lldp_index = f"{numbers[0]}.{numbers[1]}.{numbers[2]}"
                     if lldp_index in self.interfaces[if_index].lldp:
-                        # set management address
-                        mgmt_ip = f"{numbers[5]}.{numbers[6]}.{numbers[7]}.{numbers[8]}"
-                        dprint(f"  SETTING MGMT IPv4 = {mgmt_ip}")
-                        self.interfaces[if_index].lldp[lldp_index].management_address_v4 = mgmt_ip
-            return True
+                        # parse out the address type (numbers[3]) and the rest containing length,
+                        # and dotted decimal IP info, from numbers[4] and on.
+                        addr_type = int(numbers[3])
+                        mgmt_ip = get_ip_from_sub_oid(
+                            sub_oid=".".join(numbers[4:]), addr_type=addr_type, has_length=True
+                        )
+                        if mgmt_ip:
+                            if addr_type == IANA_TYPE_IPV4:
+                                dprint(f"  SETTING MGMT IPv4 = {mgmt_ip}")
+                                self.interfaces[if_index].lldp[lldp_index].management_address_v4 = mgmt_ip
+
+                            if addr_type == IANA_TYPE_IPV6:
+                                dprint(f"  SETTING MGMT IPv6 = {mgmt_ip}")
+                                self.interfaces[if_index].lldp[lldp_index].management_address_v6 = mgmt_ip
+                    else:
+                        dprint("lldp_index NOT found!")
+                else:
+                    dprint("LLDP interface NOT found!")
+
+            return True  # i.e. we parsed the OID.
         return False
 
     def _add_vlan_to_interface_by_port_id(self, port_id: int, vlan_id: int):
@@ -2911,7 +2922,7 @@ class SnmpConnector(Connector):
         port_id = int(port_id)  # make sure we have the proper type!
         # if len(self.qbridge_port_to_if_index) > 0 and port_id in self.qbridge_port_to_if_index:
         if port_id in self.qbridge_port_to_if_index:
-            dprint(f"  Found in port_to_if_index = {self.qbridge_port_to_if_index[port_id]}")
+            dprint(f"  Found if_index = {self.qbridge_port_to_if_index[port_id]}")
             return self.qbridge_port_to_if_index[port_id]
 
         # we did not find the Q-BRIDGE mib. port_id = ifIndex !
