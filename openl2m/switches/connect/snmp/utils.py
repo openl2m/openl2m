@@ -70,7 +70,7 @@ def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
     Returns:
         (str): the parsed IP address in string format, or "" if invalid.
     """
-    dprint(f"get_ip_from_sub_oid(sub_oid={sub_oid}, addr_type={addr_type}, has_length={has_length}")
+    dprint(f"get_ip_from_sub_oid(sub_oid={sub_oid}, addr_type={addr_type}, has_length={has_length})")
     if addr_type == IANA_TYPE_IPV4:
         if has_length:
             # for IPv4, encoding is simply the length (always 4) followed by IP:
