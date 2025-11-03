@@ -76,14 +76,14 @@ html_static_path = ['_static']
 # These paths are either relative to html_static_path
 # or fully qualified paths (eg. https://...)
 if on_rtd:
-    # need to use fontawesome from CDN
+    # need to use fontawesome from CDN, see https://cdnjs.com/libraries/font-awesome
     html_css_files = [
-        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css',
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css',
     ]
 else:
     # local server build
     html_css_files = [
-        '/static/fontawesome-7.0.0/css/all.css',
+        '/static/fontawesome-7.1.0/css/all.css',
     ]
 
 # html_js_files = [
