@@ -97,15 +97,16 @@ Python EzSNMP, using native Net-Snmp:
 See https://github.com/carlkidcrypto/ezsnmp
 and the docs at https://carlkidcrypto.github.io/ezsnmp/html/index.html
 
-PySNMPLib, a native Python SNMP stack: https://github.com/pysnmp/pysnmp
+PySNMP, a native Python SNMP stack: https://pysnmp.com/
 
 MIB browser at
 http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.3.6.1.2.1
 
+Cisco SNMP MIBS: https://github.com/cisco/cisco-mibs/
 
 Juniper SNMP: https://www.juniper.net/documentation/us/en/software/junos/network-mgmt/topics/topic-map/snmp-mibs-supported-by-junos-os-and-junos-os-evolved.html
 
-Arista SNMNP: https://www.arista.com/en/support/product-documentation/arista-snmp-mibs
+Arista SNMP: https://www.arista.com/en/support/product-documentation/arista-snmp-mibs
 
 
 Aruba AOS-CX

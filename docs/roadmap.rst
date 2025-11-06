@@ -36,11 +36,14 @@ Here are some other features we are considering implementing (*in no particular 
 * change user model, from standard user mode with separate profile table, to a new user class that has it all :-)
 
 * support for Arista devices via the eApi (low priority, as the SNMP driver provides all needed functionality)
+  Note: this is now available in Read-Only mode!
 
 * Tagged/Trunked ports tagged vlan management (we can do the untagged vlan now)
+  Note that is is highly complex, as even in snmp devices, this is frequently handled in a
+  vendor-specific MIB.
 
-* hide change/submit buttons until form has changes (vlan, ifalias, etc.) This is a big undertaking changing the UI framework used.
+* :strike:`hide change/submit buttons until form has changes (vlan, ifalias, etc.) This is a big undertaking changing the UI framework used.``
 
-* make vendor support dynamic (i.e. discover at runtime what vendors are supported)
+* make driver support dynamic (i.e. discover at runtime what vendor drivers are implemented)
 
 * support running production in a Docker container (work in progress!)

@@ -36,6 +36,25 @@ Neighbor Graph Options:
   # default is simple, ie. False. Set to True for slightly more interesting graph.
   MM_GRAPH_EXPANDED = False
 
+Version 3.4.9
+-------------
+
+Release Date: TBD
+
+* display LLDP/Neighbor ipv6 management address.
+* read snmp lldp ipv6 management address.
+* new Arista eAPI driver, in Read-Only mode.
+* various usage and development docs updates.
+* update to Bootstrap v5.3.8 (from v5.3.7)
+* update to FontAwesome v7.1.0 (from v7.0.0)
+
+Bug fixes:
+
+* on switch admin page, only validate ip/hostname if marked as active.
+  (non-active might no longer have dns name)
+* update djangorestframework to v3.16.1
+* update pysnmp to v7.1.22
+
 
 Version 3.4.8
 -------------
