@@ -102,7 +102,7 @@ PySNMP, a native Python SNMP stack: https://pysnmp.com/
 MIB browser at
 http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.3.6.1.2.1
 
-Cisco SNMP MIBS: https://github.com/cisco/cisco-mibs/
+Cisco SNMP MIBs: https://github.com/cisco/cisco-mibs/
 
 Juniper SNMP: https://www.juniper.net/documentation/us/en/software/junos/network-mgmt/topics/topic-map/snmp-mibs-supported-by-junos-os-and-junos-os-evolved.html
 

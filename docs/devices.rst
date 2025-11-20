@@ -17,6 +17,8 @@ tested against.
 * **AOS-CX** - this uses the 'pyaoscx' library provided by HPE. Any AOS-CX device properly configured, and running
   current firmware, should be supported.
 
+* **Arista eAPI** - this is at present a very fast Read-Only driver using the Arista REST api (aka. eAPI).
+
 * **Juniper JunOS** - this uses the 'PyEZ' library provided by Juniper. Most Juniper devices properly configured, and running
   current firmware, should be supported, barring device-specific interface names, etc.
 
@@ -37,7 +39,7 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 
 **Arista**
 
-* Any Arista switch via SNMP, as they all support the same MIBS. Tested on 7280CR3 series.
+* Any Arista switch via SNMP, as they all support the same MIBs. Tested on 7280CR3 series.
 * The Arista eAPI is also supported, at present in Read-Only mode.
 
 **Cisco**
@@ -119,6 +121,6 @@ an example of the Connector() API. See source code for more.
 
 **SSH/Command-Only devices**
 
-Any device supported by the python Netmiko library. Devices configured as such do NOT poll interfaces, but only allow
-for commands to be executed on the device.
+Any device supported by the python Netmiko library. Devices configured as such do NOT poll interfaces,
+but only allow for commands to be executed on the device.
 

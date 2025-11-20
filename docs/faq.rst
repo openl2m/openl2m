@@ -31,7 +31,8 @@ GetBulk significantly improves performance, and is extensively used in OpenL2M.
 
 * **Do you support IP v6?**
 
-Not at this time, as we have no real test environment.
+Yes, IPv6 is now fully supported. We read data from the standard SNMP MIBs for IPv6 interface addresses
+and LLPD neighbors. Various API drivers can also read IPv6 data.
 
 * **What devices are supported and tested?**
 
