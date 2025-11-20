@@ -20,7 +20,7 @@ Features Supported
      - VRF
      - IPv6 Info
 
-   * - Arista (Snmp)
+   * - Arista (SNMP)
      - Yes
      - Yes
      -
@@ -31,7 +31,7 @@ Features Supported
      - Yes
      - Yes
 
-   * - Aruba AOS-CX (Snmp)
+   * - Aruba AOS-CX (SNMP)
      - Yes
      - Yes  (>= v10.12, access ports)
      - Yes
@@ -42,7 +42,7 @@ Features Supported
      - Yes (untested)
      - Yes
 
-   * - Comware (Snmp)
+   * - Comware (SNMP)
      - Yes
      - Yes
      - Yes
@@ -53,7 +53,7 @@ Features Supported
      - Yes
      - Yes
 
-   * - Procurve (Snmp)
+   * - Procurve (SNMP)
      - Yes
      - Yes
      - Yes
@@ -64,7 +64,7 @@ Features Supported
      - Yes (untested)
      - ?
 
-   * - Juniper (Snmp) *
+   * - Juniper (SNMP) :sup:`1`
      -
      -
      - (r/o)
@@ -75,7 +75,7 @@ Features Supported
      - Yes
      - Yes
 
-   * - SNMP (Generic)
+   * - SNMP (Generic) :sup:`2`
      - Yes
      - Yes
      - Yes
@@ -97,7 +97,7 @@ Features Supported
      - Yes
      - TBD
 
-   * - Junos (PyEZ) *
+   * - Junos (PyEZ)  :sup:`3`
      - Yes
      - Yes
      - Yes
@@ -108,8 +108,18 @@ Features Supported
      - Yes
      - Yes
 
+   * - MikroTik (SNMP)  :sup:`4`
+     - Yes
+     -
+     - Read-Only
+     - Yes
+     -
+     -
+     - untested
+     -
+     - untested
 
-   * - Napalm (R/O)
+   * - Napalm (R/O) :sup:`5`
      -
      -
      -
@@ -120,7 +130,7 @@ Features Supported
      - Yes
      - No
 
-   * - SSH
+   * - SSH :sup:`6`
      -
      -
      -
@@ -135,13 +145,18 @@ Features Supported
 
   All driver features are automatically supported by the REST API! (except for SSH commands)
 
+  :sup:`1` Juniper's SNMP implementation is Read-Only!
 
-.. note::
+  :sup:`2` The generic SNMP driver supports standard MIBs only!
 
-  Juniper's SNMP implementation is Read-Only!
-
-.. note::
-
-  The Junos PyEZ driver expects a **device with "ELS" software**, ie running Enhanced Layer2 Software,
+  :sup:`3` The Junos PyEZ driver expects a **device with "ELS" software**, ie running Enhanced Layer2 Software,
   that unifies the configuration of Ethernet interfaces access the product line. **Many MX routers do
   not support this, and have not been tested!**
+
+  :sup:`4` The MikroTik driver has limited functionality. MikroTik does not support VLANs over SNMP.
+  This driver has only been tested on a single HexS (RB760iGS) device.
+
+  :sup:`5` Napalm support has been tested on a limited set of devices. You mileage may vary!
+
+  :sup:`6` SSH support is via the Netmiko library. Most devices supported by that library should work, but
+  your mileage may vary!
