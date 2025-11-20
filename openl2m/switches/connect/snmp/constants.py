@@ -30,7 +30,7 @@ ENTERPRISE_ID_UBIQUITY = 7377
 ENTERPRISE_ID_NETSNMP = 8072
 ENTERPRISE_ID_TP_LINK = 11863
 ENTERPRISE_ID_FORTINET = 12356
-ENTERPRISE_ID_MIKROTIK = 14988
+
 # a test cheap test switch used
 ENTERPRISE_ID_PLANET = 10456
 ENTERPRISE_ID_TRENDNET = 28866
@@ -49,7 +49,6 @@ enterprise_id_info[ENTERPRISE_ID_UBIQUITY] = 'Ubiquity'
 enterprise_id_info[ENTERPRISE_ID_NETSNMP] = 'Generic Net-SNMP'
 enterprise_id_info[ENTERPRISE_ID_TP_LINK] = 'TP-Link'
 enterprise_id_info[ENTERPRISE_ID_FORTINET] = 'Fortinet'
-enterprise_id_info[ENTERPRISE_ID_MIKROTIK] = 'Mikrotik'
 enterprise_id_info[ENTERPRISE_ID_PLANET] = 'PLANET Technology Corp.'
 enterprise_id_info[ENTERPRISE_ID_TRENDNET] = 'TRENDnet'
 

@@ -39,6 +39,7 @@ Begin by installing all system packages required by OpenL2M and its dependencies
 
   brew install libxml2 libxslt libffi postgresql openssl zlib
   brew install openldap cyrus-sasl net-snmp git curl
+  # replace @3.10 with your preferred version, we have tested on v3.10 - v3.13
   brew install python@3.10
 
 OpenL2M Install

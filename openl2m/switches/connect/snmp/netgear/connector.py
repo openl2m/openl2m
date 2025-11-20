@@ -12,9 +12,9 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-Dell specific implementation of the SNMP object
+Netgear-specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
-with Dell specific ways of doing things...
+with vendor specific ways of doing things...
 """
 from django.http.request import HttpRequest
 

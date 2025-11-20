@@ -94,6 +94,13 @@ Full with Junos PyEZ, R/O support with SNMP.
 * *QFX5120* series switch, running JUNOS 20.4R3-S3.4; single unit.
 * *SRX* series firewalls, with "Commands-Only" configurations to run command-templates.
 
+**MikroTik**
+
+Via SNMP.
+
+* Only one MikroTik device has been tested: HexS (RB760iGS).
+  Limited functionality, as MikroTik does not supports VLANs, LLDP, and more via SNMP.
+
 **Netgear**
 
 Via SNMP.

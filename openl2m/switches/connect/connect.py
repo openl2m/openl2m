@@ -22,6 +22,7 @@ from django.utils import timezone
 
 from rest_framework.request import Request as RESTRequest
 
+import switches
 from switches.utils import dprint
 from switches.constants import (
     CONNECTOR_TYPE_SNMP,
@@ -57,6 +58,8 @@ from switches.connect.snmp.aruba_cx.constants import ENTERPRISE_ID_HP_ENTERPRISE
 from switches.connect.snmp.aruba_cx.connector import SnmpConnectorArubaCx
 from switches.connect.snmp.netgear.constants import ENTERPRISE_ID_NETGEAR
 from switches.connect.snmp.netgear.connector import SnmpConnectorNetgear
+from switches.connect.snmp.mikrotik.constants import ENTERPRISE_ID_MIKROTIK
+from switches.connect.snmp.mikrotik.connector import SnmpConnectorMikroTik
 from switches.connect.aruba_aoscx.connector import AosCxConnector
 from switches.connect.arista_eapi.connector import AristaApiConnector
 from switches.connect.junos_pyez.connector import PyEZConnector
@@ -94,34 +97,29 @@ def get_connection_object(request: HttpRequest, group: SwitchGroup, switch: Swit
                 parts = sub_oid.split('.', 1)  # 1 means one split, two elements!
                 enterprise_id = int(parts[0])
                 # here we go:
-                if enterprise_id == ENTERPRISE_ID_CISCO:
-                    connection = SnmpConnectorCisco(request, group, switch)
-
-                elif enterprise_id == ENTERPRISE_ID_JUNIPER:
-                    connection = SnmpConnectorJuniper(request, group, switch)
-
-                elif enterprise_id == ENTERPRISE_ID_HP:
-                    connection = SnmpConnectorProcurve(request, group, switch)
-
-                elif enterprise_id == ENTERPRISE_ID_H3C:
-                    connection = SnmpConnectorComware(request, group, switch)
-
-                elif enterprise_id == ENTERPRISE_ID_HP_ENTERPRISE:
-                    connection = SnmpConnectorArubaCx(request, group, switch)
-
-                elif enterprise_id == ENTERPRISE_ID_ARISTA:
-                    connection = SnmpConnectorAristaEOS(request, group, switch)
-
-                elif enterprise_id == ENTERPRISE_ID_NETGEAR:
-                    connection = SnmpConnectorNetgear(request, group, switch)
-
-                # Dell is yet to be tested!
-                # elif enterprise_id == ENTERPRISE_ID_DELL:
-                #    connection = SnmpConnectorDell(request, group, switch)
-
-                else:
-                    # system oid found, but unknown vendor:
-                    connection = SnmpConnector(request, group, switch)
+                match enterprise_id:
+                    case switches.connect.snmp.cisco.constants.ENTERPRISE_ID_CISCO:
+                        connection = SnmpConnectorCisco(request, group, switch)
+                    case switches.connect.snmp.juniper.constants.ENTERPRISE_ID_JUNIPER:
+                        connection = SnmpConnectorJuniper(request, group, switch)
+                    case switches.connect.snmp.procurve.constants.ENTERPRISE_ID_HP:
+                        connection = SnmpConnectorProcurve(request, group, switch)
+                    case switches.connect.snmp.comware.constants.ENTERPRISE_ID_H3C:
+                        connection = SnmpConnectorComware(request, group, switch)
+                    case switches.connect.snmp.aruba_cx.constants.ENTERPRISE_ID_HP_ENTERPRISE:
+                        connection = SnmpConnectorArubaCx(request, group, switch)
+                    case switches.connect.snmp.arista_eos.constants.ENTERPRISE_ID_ARISTA:
+                        connection = SnmpConnectorAristaEOS(request, group, switch)
+                    case switches.connect.snmp.netgear.constants.ENTERPRISE_ID_NETGEAR:
+                        connection = SnmpConnectorNetgear(request, group, switch)
+                    case switches.connect.snmp.mikrotik.constants.ENTERPRISE_ID_MIKROTIK:
+                        connection = SnmpConnectorMikroTik(request, group, switch)
+                    # Dell is yet to be tested!
+                    # case ENTERPRISE_ID_DELL:
+                    #    connection = SnmpConnectorDell(request, group, switch)
+                    case _:
+                        # system oid found, but unknown vendor:
+                        connection = SnmpConnector(request, group, switch)
 
         # no system oid found, return a "generic" SNMP object
         else:
