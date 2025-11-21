@@ -41,5 +41,6 @@ Only vendor-specific sections are implemented in the vendor classes. They are li
    aruba_cx/index.rst
    cisco/index.rst
    comware/index.rst
-   procurve/index.rst
    juniper/index.rst
+   mikrotik/index.rst
+   procurve/index.rst
