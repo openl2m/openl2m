@@ -117,10 +117,10 @@ class SnmpConnectorMikroTik(SnmpConnector):
 
     def _get_poe_data(self) -> int:
         """
-        Get PoE data, first via the standard PoE MIB,
-        then by calling the MikrTik extended "mtxrPOE" entry in MIKROTIK.MIB
+        Get PoE data, by calling the MikrTik extended "mtxrPOE" entry in MIKROTIK.MIB
+        Note: we do not need to call super()._get_poe_data() to parse the standard PoE MIB,
+        as this is NOT implemented on MikroTik devices.
         """
-        super()._get_poe_data()
         # MikroTik POE to be read here:
         retval = self.get_snmp_branch(branch_name='mtxrPOEEntry', parser=self._parse_mibs_mikrotik_poe)
 
