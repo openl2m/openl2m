@@ -55,8 +55,9 @@ def build_url_string(values):
     else:
         s = "<a"
     s = s + f" href=\"{values['url']}\""
-    if 'alt' in values.keys() and values['alt']:
-        s = s + f" alt=\"{values['alt']}\""
+    # HTML A does NOT support "alt":
+    # if 'alt' in values.keys() and values['alt']:
+    #    s = s + f" alt=\"{values['alt']}\""
     if 'hint' in values.keys():
         s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{values['hint']}\""
     s = s + ">"
