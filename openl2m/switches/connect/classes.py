@@ -1032,7 +1032,8 @@ class Interface:
         self.can_change_vlan: bool = (
             True  # if set, we can change the vlan; some device types this is not implemented yet!
         )
-        self.can_edit_trunk: bool = False  # True if this is tagged/trunked interface and user can edit
+        self.can_edit_trunk: bool = False  # True if this is tagged/trunked interface and user can edit.
+        # This also means the interface mode can be change (access <-> trunk)
         self.gvrp_enabled: bool = False  # the value representing the status of MVRP/GVRP on the interface
         self.last_change: int = 0  # ifLastChange, tick count since uptime when interface last changed
         # LACP related

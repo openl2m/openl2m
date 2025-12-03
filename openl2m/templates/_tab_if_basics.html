@@ -301,6 +301,7 @@
                 {% if iface.unmanage_reason %}
                   </span>
                 {% endif %}
+                {% include "_tpl_if_trunk_icon.html" %}
                 {% include "_tpl_if_type_icons.html" %}
                 <!-- ifkey = {{ iface.key }},  ifIndex = {{ iface.index }}, type = {{ iface.type }}, port_id = {{ iface.port_id }} -->
               </td>

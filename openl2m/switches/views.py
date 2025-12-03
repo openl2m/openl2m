@@ -34,6 +34,8 @@ from switches.actions import (
     perform_interface_description_change,
     perform_interface_pvid_change,
     perform_interface_poe_change,
+    perform_interface_mode_change,
+    perform_interface_trunk_edit,
     perform_switch_save_config,
     perform_switch_vlan_add,
     perform_switch_vlan_edit,
@@ -1394,6 +1396,120 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
 
         description = "Interface PoE was toggled!"
         return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message=description)
+
+
+#
+# Change the interface mode: Access <-> 802.1q Trunk
+#
+class InterfaceModeChange(LoginRequiredMixin, View):
+    """
+    Change the tagged vlans on an interface in 802.1q "trunk" mode.
+
+    Params:
+        request:  HttpRequest() object
+        group_id: (int) the pk of the SwitchGroup()
+        switch_id: (int) the pk of the Switch()
+        interface_name: (str) the key or to the Interface() in the list of Interface()s
+
+    Returns:
+        renders either OK or Error page, depending permissions and result.
+    """
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        dprint("InterfaceModeChange() - POST called")
+
+        """ Implementation notes:
+        If we globally ALLOW_TRUNK_EDIT, then we also need to have an ability to
+        change interfaces from access to trunk and back.
+        The Connector() class has the attribute "can_set_mode=False" by default.
+        Drivers need to override this, and implement the functionality!!!
+
+        Currently, permissions are set in Connector()._set_interfaces_permissions(),
+        in switches/connect/connector.py, around line 1775
+
+        This needs to implemented in actions.py, _perform_interface_mode_change
+        """
+        # parse form parameters...
+        is_trunk = request.POST["is_trunk"]
+
+        retval, info = perform_interface_mode_change(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            interface_key=interface_name,
+            is_trunk=is_trunk,
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        message = f"DEMO ONLY: Interface '{interface_name}' MODE MODIFIED, is_trunk={is_trunk}!"
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
+
+
+#
+# Edit the vlans on an 802.1q trunk port
+#
+class InterfaceTrunkEdit(LoginRequiredMixin, View):
+    """
+    Change the tagged vlans on an interface in 802.1q "trunk" mode.
+
+    Params:
+        request:  HttpRequest() object
+        group_id: (int) the pk of the SwitchGroup()
+        switch_id: (int) the pk of the Switch()
+        interface_name: (str) the key or to the Interface() in the list of Interface()s
+
+    Returns:
+        renders either OK or Error page, depending permissions and result.
+    """
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        dprint("InterfaceTrunkEdit() - POST called")
+
+        """ Implementation notes:
+        If we allow trunk-edit for regular, non-admin users, we need to parse carefully!
+        In that case, we will allow adding/deleting vlans the user has access to,
+        and SHOULD NOT CHANGE NON-PERMITTED VLANS !!!!
+        Ie. this requires looking at the interface current tagged vlans, and mashing this up with the requested vlans...
+
+        Currently, permissions are set in Connector()._set_interfaces_permissions(),
+        in switches/connect/connector.py, around line 1775
+
+        """
+        # read the submitted form data:
+
+        # TBD !
+        tagged_vlans = {}
+        for key, value in request.POST.items():
+            dprint(f"POST: '{key}' = '{value}'")
+            if key.startswith("vlan_"):
+                tagged_vlans[key] = value
+        # can also use POST.getlist('name')
+
+        retval, info = perform_interface_trunk_edit(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            interface_key=interface_name,
+            tagged_vlans=tagged_vlans,
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        message = f"DEMO ONLY: Interface '{interface_name}' 802.1q trunk would be modified!<br />Vlans submitted: '{tagged_vlans}'"
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
 class SwitchSaveConfig(LoginRequiredMixin, MyView):

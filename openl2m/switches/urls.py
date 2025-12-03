@@ -152,6 +152,16 @@ urlpatterns = [
         views.InterfaceCmdOutput.as_view(),
         name='interface_cmd_output',
     ),
+    path(
+        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/modechange/',
+        views.InterfaceModeChange.as_view(),
+        name='mode_change',
+    ),
+    path(
+        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/trunkedit/',
+        views.InterfaceTrunkEdit.as_view(),
+        name='trunk_edit',
+    ),
 ]
 
 if settings.DEBUG:

@@ -128,6 +128,11 @@ POE_TOGGLE_DELAY = 5
 # regardless of other access to the interface
 ALWAYS_ALLOW_POE_TOGGLE = False
 
+# If enabled, we allow trunk vlan editing, if the driver implements it.
+# if drivers supports it, this will also allow switching interface mode between "access" and "802.1q trunk"
+# currently only for Admins (aka superuser)
+ALLOW_TRUNK_EDIT = False
+
 # If True, all non-ethernet interfaces are hidden from all users, including admins
 HIDE_NONE_ETHERNET_INTERFACES = False
 

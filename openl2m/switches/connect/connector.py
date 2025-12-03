@@ -206,6 +206,8 @@ class Connector:
         self.can_change_vlan = False
         self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
+        self.can_edit_trunk: bool = False  # True if this driver can edit tagged/trunked vlans on interfaces
+        self.can_set_mode: bool = False  # if True, driver can change from access mode to/from 802.1q trunk.
         self.can_change_poe_status = False
         self.can_change_description = False
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
@@ -1780,6 +1782,10 @@ class Connector:
                     iface.visible = True
                     iface.allow_poe_toggle = True
                     iface.can_edit_description = True
+                    # if the driver can edit trunks, and it is allowed:
+                    if self.can_edit_trunk and settings.ALLOW_TRUNK_EDIT:
+                        # if interface is tagged, we allow vlan edit:
+                        iface.can_edit_trunk = True
                 continue
 
             # globally allow PoE toggle:
