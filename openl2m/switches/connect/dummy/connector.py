@@ -45,6 +45,9 @@ class DummyConnector(Connector):
         self.add_more_info('System', 'Type', "Software Dummy Switch")
         self.add_more_info("System", "Hostname", self.hostname)
 
+        self.can_edit_trunk = True  # for testing
+        self.can_set_mode = True  # for testing.
+
     def get_my_basic_info(self):
         dprint("Dummy Connector get_my_basic_info()")
 
@@ -60,6 +63,9 @@ class DummyConnector(Connector):
         self.add_vlan_by_id(5, "Vlan Five")
         self.add_vlan_by_id(15, "Vlan Fifteen")
         self.add_vlan_by_id(20, "Twenty")
+        self.add_vlan_by_id(101, "OneOhOne")
+        self.add_vlan_by_id(102, "OneOhTwo")
+        self.add_vlan_by_id(103, "OneOhThree")
 
         # simulate getting switch data by hardcoding!
         # "load" some basic interface info...
@@ -112,6 +118,49 @@ class DummyConnector(Connector):
         iface.add_ip6_network(address="fc00::dead:beef")  # prefix_len is optional, default=64
         iface.add_ip6_network(address="fc00::deaa:beee")  # prefix_len is optional, default=64
         iface.add_ip6_network(address="fe80::1234:4567", prefix_len=64)  # this is a Link-Local address.
+        iface.vrf_name = "VRF-1"
+        self.add_interface(iface)
+
+        iface = Interface("eth4")
+        iface.name = "eth4"
+        iface.type = IF_TYPE_ETHERNET
+        iface.admin_status = False
+        iface.oper_status = False
+        iface.speed = 10
+        iface.description = "Interface eth4 - ALL VLANTAGGED TEST"
+        iface.untagged_vlan = 5
+        iface.add_ip4_network(address="192.168.66.1", prefix_len=24)
+        iface.add_ip6_network(address="fc00::dead:beef")  # prefix_len is optional, default=64
+        iface.add_ip6_network(address="fc00::deaa:beee")  # prefix_len is optional, default=64
+        iface.add_ip6_network(address="fe80::1234:4568", prefix_len=64)  # this is a Link-Local address.
+        iface.is_tagged = True
+        iface.vlan_count = 6
+        iface.untagged_vlan = 5
+        iface.add_tagged_vlan(vlan_id=15)
+        iface.add_tagged_vlan(vlan_id=20)
+        iface.add_tagged_vlan(vlan_id=101)
+        iface.add_tagged_vlan(vlan_id=102)
+        iface.add_tagged_vlan(vlan_id=103)
+        iface.vrf_name = "VRF-1"
+        self.add_interface(iface)
+
+        iface = Interface("eth5")
+        iface.name = "eth5"
+        iface.type = IF_TYPE_ETHERNET
+        iface.admin_status = False
+        iface.oper_status = False
+        iface.speed = 10
+        iface.description = "Interface eth5 - PARTIAL VLANTAGGED TEST"
+        iface.untagged_vlan = 5
+        iface.add_ip4_network(address="192.168.77.1", prefix_len=24)
+        iface.add_ip6_network(address="fc00::dead:beef")  # prefix_len is optional, default=64
+        iface.add_ip6_network(address="fc00::deaa:beee")  # prefix_len is optional, default=64
+        iface.add_ip6_network(address="fe80::1235:4569", prefix_len=64)  # this is a Link-Local address.
+        iface.is_tagged = True
+        iface.vlan_count = 5
+        iface.untagged_vlan = 5
+        iface.add_tagged_vlan(vlan_id=15)
+        iface.add_tagged_vlan(vlan_id=20)
         iface.vrf_name = "VRF-1"
         self.add_interface(iface)
 
