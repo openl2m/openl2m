@@ -1093,11 +1093,31 @@ class Interface:
             dprint(f"INVALID IPv6 address '{address}/{prefix_len}': {err}")
         # return True
 
+    def set_mode(self, is_tagged: int) -> bool:
+        '''Bookkeeping function to set an interface mode to tagged (802.1q trunk), or access.
+        returns the mode, True = tagged, False = access mode.
+
+        Note that a driver needs to override this to implement actual functionality.
+        It should then call this super-class function to do the bookkeeping.
+
+        Args:
+            is_tagged (bool): if True, set to tagged mode, else access.
+
+        Returns:
+            (bool):
+        '''
+        self.is_tagged = is_tagged
+        return self.is_tagged
+
     def add_tagged_vlan(self, vlan_id: int) -> None:
         '''
-        Add a Vlan() object for the vlan_id to this interface. Set tagged mode as well.
-        vlan_id = vlan to add as integer
+        Bookkeeping function to add a Vlan() object for the vlan_id to this interface.
+        Set tagged mode as well. vlan_id = vlan to add as integer
         Return True on success, False on failure and sets error variable.
+
+        Note that a driver needs to override this to implement actual functionality.
+        It should then call this super-class function to do the bookkeeping.
+
         '''
         self.is_tagged = True
         self.vlans.append(int(vlan_id))
@@ -1108,6 +1128,11 @@ class Interface:
         Remove a Vlan() object from this interface.
         vlan_id = vlan to remove as integer
         Return True on success, False on failure and sets error variable.
+
+        Note that a driver needs to override this to implement actual functionality.
+        It should then call this super-class function to do the bookkeeping.
+
+        This does NOT remove the "is_tagged" setting if last vlan is removed!
         '''
         vlan_id = int(vlan_id)
         if vlan_id in self.vlans:
