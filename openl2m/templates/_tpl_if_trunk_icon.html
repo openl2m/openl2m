@@ -81,7 +81,7 @@
                         <td class="text-end">
                           {% if connection.can_set_mode %}
                           {# THIS IS THE MODE-CHANGE BUTTON #}
-                          <input type="hidden" value="False" name="is_trunk"> {# set to Access mode, ie is_trunk=False #}
+                          <input type="hidden" value="False" name="is_tagged"> {# set to Access mode, ie is_tagged=False #}
                           <input type="submit"
                                 name="submit_mode_change_{{ iface.key }}"
                                 value="Set Access Mode"

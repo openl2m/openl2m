@@ -1426,7 +1426,7 @@ class InterfaceModeChange(LoginRequiredMixin, View):
 
         """ Implementation notes:
         If we globally ALLOW_TRUNK_EDIT, then we also need to have an ability to
-        change interfaces from access to trunk and back.
+        change interfaces from access to 802.1q tagged and back.
         The Connector() class has the attribute "can_set_mode=False" by default.
         Drivers need to override this, and implement the functionality!!!
 
@@ -1436,19 +1436,19 @@ class InterfaceModeChange(LoginRequiredMixin, View):
         This needs to implemented in actions.py, _perform_interface_mode_change
         """
         # parse form parameters...
-        is_trunk = request.POST["is_trunk"]
+        is_tagged = request.POST["is_tagged"]
 
         retval, info = perform_interface_mode_change(
             request=request,
             group_id=group_id,
             switch_id=switch_id,
             interface_key=interface_name,
-            is_trunk=is_trunk,
+            is_tagged=is_tagged,
         )
         if not retval:
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-        message = f"DEMO ONLY: Interface '{interface_name}' MODE MODIFIED, is_trunk={is_trunk}!"
+        message = f"DEMO ONLY: Interface '{interface_name}' MODE MODIFIED, is_tagged={is_tagged}!"
         return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
