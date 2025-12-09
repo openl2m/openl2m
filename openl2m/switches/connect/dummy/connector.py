@@ -45,7 +45,7 @@ class DummyConnector(Connector):
         self.add_more_info('System', 'Type', "Software Dummy Switch")
         self.add_more_info("System", "Hostname", self.hostname)
 
-        self.can_edit_trunk = True  # for testing
+        self.can_edit_tags = True  # for testing
         self.can_set_mode = True  # for testing.
 
     def get_my_basic_info(self):

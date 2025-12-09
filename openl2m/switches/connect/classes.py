@@ -1032,7 +1032,10 @@ class Interface:
         self.can_change_vlan: bool = (
             True  # if set, we can change the vlan; some device types this is not implemented yet!
         )
-        self.can_edit_trunk: bool = False  # True if this is tagged/trunked interface and user can edit.
+        self.can_edit_tags: bool = False  # True if this is 802.1q tagged ("trunk") interface and user can edit.
+        self.can_set_mode: bool = (
+            False  # True if this interface can be change from access to 802.1q tagged ("trunk") and back.
+        )
         # This also means the interface mode can be change (access <-> trunk)
         self.gvrp_enabled: bool = False  # the value representing the status of MVRP/GVRP on the interface
         self.last_change: int = 0  # ifLastChange, tick count since uptime when interface last changed
@@ -1106,6 +1109,11 @@ class Interface:
         Returns:
             (bool):
         '''
+        if not self.can_set_mode:
+            # this should not happen!
+            # add error code here!
+            return self.is_tagged
+
         self.is_tagged = is_tagged
         return self.is_tagged
 

@@ -35,7 +35,7 @@ from switches.actions import (
     perform_interface_pvid_change,
     perform_interface_poe_change,
     perform_interface_mode_change,
-    perform_interface_trunk_edit,
+    perform_interface_tag_edit,
     perform_switch_save_config,
     perform_switch_vlan_add,
     perform_switch_vlan_edit,
@@ -1263,7 +1263,7 @@ class InterfaceDescriptionChange(LoginRequiredMixin, View):
 class InterfacePvidChange(LoginRequiredMixin, View):
     """
     Change the PVID untagged vlan on an interfaces.
-    This still needs to handle dot1q trunked ports.
+    This still needs to handle dot1q tagged ("trunk") ports.
 
     Params:
         request:  HttpRequest() object
@@ -1399,11 +1399,11 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
 
 
 #
-# Change the interface mode: Access <-> 802.1q Trunk
+# Change the interface mode: Access <-> 802.1q Tagged ("trunk")
 #
 class InterfaceModeChange(LoginRequiredMixin, View):
     """
-    Change the tagged vlans on an interface in 802.1q "trunk" mode.
+    Change the tagged vlans on an interface in 802.1q tagged ("trunk") mode.
 
     Params:
         request:  HttpRequest() object
@@ -1425,7 +1425,7 @@ class InterfaceModeChange(LoginRequiredMixin, View):
         dprint("InterfaceModeChange() - POST called")
 
         """ Implementation notes:
-        If we globally ALLOW_TRUNK_EDIT, then we also need to have an ability to
+        If we globally ALLOW_TAGS_EDIT, then we also need to have an ability to
         change interfaces from access to 802.1q tagged and back.
         The Connector() class has the attribute "can_set_mode=False" by default.
         Drivers need to override this, and implement the functionality!!!
@@ -1453,11 +1453,11 @@ class InterfaceModeChange(LoginRequiredMixin, View):
 
 
 #
-# Edit the vlans on an 802.1q trunk port
+# Edit the vlans on an 802.1q tagged ("trunk") port
 #
-class InterfaceTrunkEdit(LoginRequiredMixin, View):
+class InterfaceTagsEdit(LoginRequiredMixin, View):
     """
-    Change the tagged vlans on an interface in 802.1q "trunk" mode.
+    Change the tagged vlans on an interface in 802.1q tagged ("trunk") mode.
 
     Params:
         request:  HttpRequest() object
@@ -1476,10 +1476,10 @@ class InterfaceTrunkEdit(LoginRequiredMixin, View):
         switch_id,
         interface_name,
     ):
-        dprint("InterfaceTrunkEdit() - POST called")
+        dprint("InterfaceTagsEdit() - POST called")
 
         """ Implementation notes:
-        If we allow trunk-edit for regular, non-admin users, we need to parse carefully!
+        If we allow tags-edit for regular, non-admin users, we need to parse carefully!
         In that case, we will allow adding/deleting vlans the user has access to,
         and SHOULD NOT CHANGE NON-PERMITTED VLANS !!!!
         Ie. this requires looking at the interface current tagged vlans, and mashing this up with the requested vlans...
@@ -1498,7 +1498,7 @@ class InterfaceTrunkEdit(LoginRequiredMixin, View):
                 tagged_vlans[key] = value
         # can also use POST.getlist('name')
 
-        retval, info = perform_interface_trunk_edit(
+        retval, info = perform_interface_tag_edit(
             request=request,
             group_id=group_id,
             switch_id=switch_id,
@@ -1508,7 +1508,7 @@ class InterfaceTrunkEdit(LoginRequiredMixin, View):
         if not retval:
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-        message = f"DEMO ONLY: Interface '{interface_name}' 802.1q trunk would be modified!<br />Vlans submitted: '{tagged_vlans}'"
+        message = f"DEMO ONLY: Interface '{interface_name}' 802.1q tags would be modified! Submitted tagged vlans: '{tagged_vlans}'"
         return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 

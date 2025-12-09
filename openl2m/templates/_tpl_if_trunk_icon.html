@@ -3,42 +3,42 @@
 
 {% if iface.is_tagged %}
   &nbsp;
-  {% if not iface.can_edit_trunk %}
+  {% if not iface.can_edit_tags %}
     <i class="fa-solid fa-ellipsis-v" aria-hidden="true"
         data-bs-toggle="tooltip"
-        title="Tagged/Trunked Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
+        title="Tagged (trunk) Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
     </i>
   {% else %}
-    <!-- Button trigger to open modal form for trunk edit -->
+    <!-- Button trigger to open modal form for tag edit -->
     <button type="submit"
             class="btn-link"
-            value="Edit Trunk"
+            value="Edit Tags"
             data-bs-toggle="modal"
-            data-bs-target="#trunkEditForm_{{ iface.key }}"
+            data-bs-target="#tagEditForm_{{ iface.key }}"
             data-bs-placement="top"
-            title="Tagged/Trunked Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
+            title="Tagged (trunk) Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
       <i class="fa-solid fa-ellipsis-v" aria-hidden="true"></i>
     </button>
-    <!-- Modal trunk edit form -->
-    <div class="modal fade" id="trunkEditForm_{{ iface.key }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="trunkEditForm_{{ iface.key }}_label" aria-hidden="true">
+    <!-- Modal tag edit form -->
+    <div class="modal fade" id="tagEditForm_{{ iface.key }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="tagEditForm_{{ iface.key }}_label" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h1 class="modal-title fs-5" id="trunkEditForm_{{ iface.key }}_label">Edit 802.1q trunk for interface {{ iface.name }}</h1>
+            <h1 class="modal-title fs-5" id="tagEditForm_{{ iface.key }}_label">Edit 802.1q tags for interface {{ iface.name }}</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-header">WORK-IN-PROGRESS - THIS IS A NON-FUNCTIONAL FORM!!!!</div>
           <div class="modal-header">Select the vlans on this 802.1q interface:</div>
-          <div class="modal-body">{# THIS IS THE TRUNK VLAN CHANGE FORM #}
+          <div class="modal-body">{# THIS IS THE VLAN TAGS CHANGE FORM #}
             <form
-              id="trunk_edit_{{ iface.key }}" name="trunk_edit_{{ iface.key }}"
-              action="{% url 'switches:trunk_edit' group.id switch.id iface.key %}"
+              id="tags_edit_{{ iface.key }}" name="tags_edit_{{ iface.key }}"
+              action="{% url 'switches:tags_edit' group.id switch.id iface.key %}"
               method="post"
               >
               {% csrf_token %}
               {% for vlan_id, vlan in connection.vlans.items %}
                 {% if vlan_id in connection.allowed_vlans.keys %}
-                  {# needs work to mark trunk enabled vlan with checkbox! #}
+                  {# needs work to mark tag enabled vlan with checkbox! #}
                   <div class="form-check">
                       <input class="form-check-input" type="checkbox" value="{{vlan_id}}"
                              id="vlan_{{vlan_id}}" name="vlan_{{vlan_id}}"
@@ -68,12 +68,15 @@
                     <thead>
                       <tr>
                         <td>
-                          {# TRUNK VLAN EDIT SUBMIT #}
+                          {# VLAN TAGS EDIT SUBMIT #}
                           <input type="submit"
-                                name="submit_trunk_edit_{{ iface.key }}"
-                                value="Update Trunk"
+                                name="submit_tag_edit_{{ iface.key }}"
+                                value="Update Tagged Vlans"
                                 class="btn btn-warning"
-                                data-bs-toggle="tooltip" title="Click here to change vlans on 802.1q trunk interface '{{ iface.name }}'!"
+                                data-bs-toggle="tooltip" title="Click here to change vlans on 802.1q tagged (trunk) interface '{{ iface.name }}'!"
+                                {% if request.user.profile.are_you_sure %}
+                                onclick="return confirm_change('Are you sure you want change the tagged vlans on interface {{ iface.name }}? This may disconnect attached devices!')"
+                                {% endif %}
                           >
                         </td>
                         <td>
@@ -81,13 +84,16 @@
                         <td class="text-end">
                           {% if connection.can_set_mode %}
                           {# THIS IS THE MODE-CHANGE BUTTON #}
-                          <input type="hidden" value="False" name="is_tagged"> {# set to Access mode, ie is_tagged=False #}
+                          <input type="hidden" value="False" name="is_tagged"> {# set to Access mode, i.e. is_tagged=False #}
                           <input type="submit"
                                 name="submit_mode_change_{{ iface.key }}"
                                 value="Set Access Mode"
                                 formaction="{% url 'switches:mode_change' group.id switch.id iface.key %}"
                                 class="btn btn-warning"
                                 data-bs-toggle="tooltip" title="Click here to change interface '{{ iface.name }}' to Access mode!"
+                                {% if request.user.profile.are_you_sure %}
+                                onclick="return confirm_change('Are you sure you want change interface {{ iface.name }} to Access (untagged) mode ? This may disconnect attached devices!')"
+                                {% endif %}
                           >
                           {% endif %}
                         </td>
@@ -100,6 +106,27 @@
         </div>
       </div>
     </div>
-    <!-- End modal form for trunk edit -->
+    <!-- End modal form for tag edit -->
   {% endif %}{# can edit #}
+{# access mode #}
+{% elif iface.can_set_mode %}
+  &nbsp;
+  <form
+    action="{% url 'switches:mode_change' group.id switch.id iface.key %}"
+    method="post"
+    {% if request.user.profile.are_you_sure %}
+    onclick="return confirm_change('Are you sure you want change interface {{ iface.name }} to 802.1q (tagged) mode ? This may disconnect attached devices!')"
+    {% endif %}
+    >
+    {% csrf_token %}
+    <input type="hidden" value="True" name="is_tagged"> {# set to 802.1q Tagged ("trunk") mode #}
+    <button type="submit"
+            class="btn-link"
+            value="Change Mode"
+            data-bs-toggle="tooltip"
+            data-bs-title="Click to change to 802.1q Tagged Interface"
+    >
+      <i class="fa-solid fa-ethernet" aria-hidden="true"></i>
+    </button>
+  </form>
 {% endif %}{# if_tagged #}

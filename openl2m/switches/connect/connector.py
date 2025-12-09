@@ -206,8 +206,10 @@ class Connector:
         self.can_change_vlan = False
         self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
-        self.can_edit_trunk: bool = False  # True if this driver can edit tagged/trunked vlans on interfaces
-        self.can_set_mode: bool = False  # if True, driver can change from access mode to/from 802.1q trunk.
+        self.can_edit_tags: bool = False  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_set_mode: bool = (
+            False  # if True, driver can change from access mode to/from 802.1q tagged ("trunk") mode.
+        )
         self.can_change_poe_status = False
         self.can_change_description = False
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
@@ -670,7 +672,7 @@ class Connector:
 
     def add_interface_tagged_vlan(self, interface: Interface, new_vlan: int) -> bool:
         '''
-        Add a tagged vlan to the interface trunk.
+        Add a tagged vlan to the interface.
 
         Args:
             interface = Interface() object for the requested port
@@ -685,7 +687,7 @@ class Connector:
 
     def remove_interface_tagged_vlan(self, interface: Interface, old_vlan: int) -> bool:
         '''
-        Remove a tagged vlan from the interface trunk.
+        Remove a tagged vlan from the interface.
 
         Args:
             interface = Interface() object for the requested port
@@ -1782,10 +1784,14 @@ class Connector:
                     iface.visible = True
                     iface.allow_poe_toggle = True
                     iface.can_edit_description = True
-                    # if the driver can edit trunks, and it is allowed:
-                    if self.can_edit_trunk and settings.ALLOW_TRUNK_EDIT:
+                    # if the driver can edit 802.1q vlan tags, and it is allowed:
+                    if settings.ALLOW_TAGS_EDIT and self.can_edit_tags:
                         # if interface is tagged, we allow vlan edit:
-                        iface.can_edit_trunk = True
+                        iface.can_edit_tags = True
+                    # can we change access <-> 802.1q-tagged ("trunk") ?
+                    if settings.ALLOW_MODE_SET and self.can_set_mode:
+                        iface.can_set_mode = True
+
                 continue
 
             # globally allow PoE toggle:

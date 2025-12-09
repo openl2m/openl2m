@@ -158,9 +158,9 @@ urlpatterns = [
         name='mode_change',
     ),
     path(
-        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/trunkedit/',
-        views.InterfaceTrunkEdit.as_view(),
-        name='trunk_edit',
+        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/tagsedit/',
+        views.InterfaceTagsEdit.as_view(),
+        name='tags_edit',
     ),
 ]
 
