@@ -172,7 +172,7 @@ from switches.connect.snmp.constants import (
     sysContact,
     sysDescr,
     sysLocation,
-    syslogMsgTableMaxSize,
+    # syslogMsgTableMaxSize,
     sysName,
     sysObjectID,
     sysUpTime,

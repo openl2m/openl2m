@@ -43,7 +43,7 @@ from switches.connect.snmp.aruba_cx.constants import (
     arubaWiredVsfv2ConfigOperationSetDestination,
     arubaWiredPmXcvrType,
     arubaWiredPmXcvrWavelength,
-    arubaWiredPmXcvrConnectorType,
+    # arubaWiredPmXcvrConnectorType,
     ARUBA_CONFIG_ACTION_WRITE,
     ARUBA_CONFIG_TYPE_STARTUP,
     ARUBA_CONFIG_TYPE_RUNNING,

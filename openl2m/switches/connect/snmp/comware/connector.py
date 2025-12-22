@@ -63,7 +63,7 @@ from .constants import (
     hh3cStackMemberID,
     hh3cStackPriority,
     hh3cStackPortNum,
-    hh3cStackBoardConfigEntry,
+    # hh3cStackBoardConfigEntry,
     hh3cStackBoardRole,
     hh3cStackBoardBelongtoMember,
     IRF_ROLE_MASTER,
@@ -703,7 +703,7 @@ class SnmpConnectorComware(SnmpConnector):
         for member_index, irf_info in self.irf_member_info.items():
             # if this device has less then 2 active ports, there is a problem
             if irf_info['ports'] < 2:
-                healthy = False
+                # healthy = False
                 # then add a log message
                 self.add_log(
                     description=f"IRF ports active = {irf_info['ports']}",

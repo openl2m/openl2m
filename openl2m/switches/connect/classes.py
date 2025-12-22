@@ -11,6 +11,12 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+
+#
+# Here we define all the generic classes we use to represent all parts of a "device" Connector():
+# interfaces, vlans, neighbor devices, PoE Power Supply, Poe Port, etc.
+#
+
 import array
 import netaddr
 from typing import Dict, List
@@ -20,10 +26,6 @@ from django.utils.encoding import iri_to_uri
 
 from rest_framework import status as http_status
 
-"""
-All the generic classes we use to represent
-switch vlans, switch interfaces, switch neighbor devices, etc.
-"""
 from switches.connect.constants import (
     ENTITY_CLASS_NAME,
     IF_TYPE_NONE,
@@ -36,7 +38,7 @@ from switches.connect.constants import (
     POE_PSE_STATUS_OFF,
     POE_PSE_STATUS_FAULT,
     POE_PORT_DETECT_SEARCHING,
-    IANA_TYPE_OTHER,
+    #   IANA_TYPE_OTHER,
     #   IANA_TYPE_IPV4,
     #   IANA_TYPE_IPV6,
     duplex_name,

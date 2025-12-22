@@ -40,25 +40,32 @@ from switches.connect.connector import Connector
 # this should be made dynamic at some point!
 from switches.connect.snmp.connector import SnmpConnector, SnmpProbeConnector, oid_in_branch
 from switches.connect.snmp.constants import enterprises
-from switches.connect.snmp.cisco.constants import ENTERPRISE_ID_CISCO
+
+# from switches.connect.snmp.cisco.constants import ENTERPRISE_ID_CISCO
 from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
 
 # Dell is yet to be tested!
 # from switches.connect.snmp.dell.constants import *
 # from switches.connect.snmp.dell.connector import SnmpConnectorDell
-from switches.connect.snmp.comware.constants import ENTERPRISE_ID_H3C
+# from switches.connect.snmp.comware.constants import ENTERPRISE_ID_H3C
 from switches.connect.snmp.comware.connector import SnmpConnectorComware
-from switches.connect.snmp.juniper.constants import ENTERPRISE_ID_JUNIPER
+
+# from switches.connect.snmp.juniper.constants import ENTERPRISE_ID_JUNIPER
 from switches.connect.snmp.juniper.connector import SnmpConnectorJuniper
-from switches.connect.snmp.procurve.constants import ENTERPRISE_ID_HP
+
+# from switches.connect.snmp.procurve.constants import ENTERPRISE_ID_HP
 from switches.connect.snmp.procurve.connector import SnmpConnectorProcurve
-from switches.connect.snmp.arista_eos.constants import ENTERPRISE_ID_ARISTA
+
+# from switches.connect.snmp.arista_eos.constants import ENTERPRISE_ID_ARISTA
 from switches.connect.snmp.arista_eos.connector import SnmpConnectorAristaEOS
-from switches.connect.snmp.aruba_cx.constants import ENTERPRISE_ID_HP_ENTERPRISE
+
+# from switches.connect.snmp.aruba_cx.constants import ENTERPRISE_ID_HP_ENTERPRISE
 from switches.connect.snmp.aruba_cx.connector import SnmpConnectorArubaCx
-from switches.connect.snmp.netgear.constants import ENTERPRISE_ID_NETGEAR
+
+# from switches.connect.snmp.netgear.constants import ENTERPRISE_ID_NETGEAR
 from switches.connect.snmp.netgear.connector import SnmpConnectorNetgear
-from switches.connect.snmp.mikrotik.constants import ENTERPRISE_ID_MIKROTIK
+
+# from switches.connect.snmp.mikrotik.constants import ENTERPRISE_ID_MIKROTIK
 from switches.connect.snmp.mikrotik.connector import SnmpConnectorMikroTik
 from switches.connect.aruba_aoscx.connector import AosCxConnector
 from switches.connect.arista_eapi.connector import AristaApiConnector

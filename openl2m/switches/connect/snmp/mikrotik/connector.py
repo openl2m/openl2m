@@ -19,14 +19,13 @@ with vendor specific ways of doing things...
 from django.http.request import HttpRequest
 
 import switches
-from switches.connect.classes import PoePSE, PoePort
-from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
+from switches.connect.classes import PoePort
+
+# from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
 from switches.connect.constants import (
-    POE_PORT_DETECT_DELIVERING,
-    poe_status_name,
     POE_PORT_ADMIN_ENABLED,
     POE_PORT_ADMIN_DISABLED,
-    POE_PORT_DETECT_DISABLED,
+    #    POE_PORT_DETECT_DISABLED,
     POE_PORT_DETECT_SEARCHING,
     POE_PORT_DETECT_DELIVERING,
     POE_PORT_DETECT_FAULT,
@@ -37,16 +36,8 @@ from switches.utils import dprint
 
 from switches.connect.snmp.mikrotik.constants import (
     mtxrPOEInterfaceIndex,
-    mtxrPOEInterfaceIndex,
-    mtxrPOEName,
     mtxrPOEStatus,
-    mtxrPOEVoltage,
-    mtxrPOECurrent,
     mtxrPOEPower,
-    MIKROTIK_POE_DISABLED,
-    MIKROTIK_POE_WAITINGFORLOAD,
-    MIKROTIK_POE_POWEREDON,
-    MIKROTIK_POE_ERRORS,
 )
 
 #
@@ -122,7 +113,7 @@ class SnmpConnectorMikroTik(SnmpConnector):
         as this is NOT implemented on MikroTik devices.
         """
         # MikroTik POE to be read here:
-        retval = self.get_snmp_branch(branch_name='mtxrPOEEntry', parser=self._parse_mibs_mikrotik_poe)
+        self.get_snmp_branch(branch_name='mtxrPOEEntry', parser=self._parse_mibs_mikrotik_poe)
 
         return 1
 
