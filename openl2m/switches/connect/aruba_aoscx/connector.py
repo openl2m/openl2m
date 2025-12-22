@@ -60,7 +60,7 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_WLAN,
     LLDP_CAPABILITIES_PHONE,
     #   IANA_TYPE_OTHER,
-    IANA_TYPE_IPV4,
+    #   IANA_TYPE_IPV4,
     #   IANA_TYPE_IPV6,
 )
 
@@ -315,7 +315,7 @@ class AosCxConnector(Connector):
                 if 'admin_state' in aoscx_interface and aoscx_interface['admin_state'] == 'up':
                     iface.oper_status = True
                     if 'link_speed' in aoscx_interface:  # better be :-)
-                        if not aoscx_interface['link_speed'] is None:
+                        if aoscx_interface['link_speed'] is not None:
                             # iface.speed is in 1Mbps increments:
                             iface.speed = int(int(aoscx_interface['link_speed']) / 1000000)
                 else:
