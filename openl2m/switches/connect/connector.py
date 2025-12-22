@@ -1745,6 +1745,15 @@ class Connector:
 
             # if we are showing it, check other thing as well:
 
+            # 802.1x authenticated interfaces are denied management, but shown!
+            if iface.is_dot1x:
+                iface.manageable = False
+                iface.allow_poe_toggle = False
+                iface.can_edit_description = False
+                iface.visible = True
+                iface.unmanage_reason = "Access denied: interface in 802.1x authentication mode!"
+                continue
+
             # Layer 3 (routed mode) ethernet interfaces are denied (but shown)!
             if iface.is_routed:
                 iface.manageable = False

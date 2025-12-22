@@ -1027,6 +1027,8 @@ class Interface:
         # some vendors (e.g. Comware, Cisco-SB) have a interface vlan mode:
         # Comware driver uses this for access, trunk, hybrid modes.
         # Cisco-SB devices use this for general, access, trunk modes.
+        self.is_dot1x: bool = False  # if True, this interface is configured for 802.1x port authentication
+        # we do not allow this port to be edited!
         self.if_vlan_mode: int = -1
         self.voice_vlan: int = 0  # Cisco specific "Voice Vlan"
         self.can_change_vlan: bool = (

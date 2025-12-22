@@ -79,6 +79,18 @@ They are:
   as only physical interfaces have port id's, and the interface index and the switchport ID can be different.
   For more details, read the SNMP driver explanations.
 
+_can_manage_interface(iface)
+----------------------------
+
+The connector() class has some rules about what interfaces can be managed. This is based on user rights (admin, staff, regular),
+group vlan access, etc.
+
+Additionally, drivers can provide rules for their interfaces by implementing **self.__can_manage_interface(iface=Interface())**.
+
+This functions is called from the base class. If it returns False, all interface permissions are disabled.
+In the function call, the drivers can set the attribute *iface.unmanage_reason* to a string indicating
+why this interface cannot be managed.
+
 get_my_hardware_details()
 -------------------------
 Optionally, this may be implemented by a driver to fill on more details

@@ -1,6 +1,13 @@
 {% load static %}
 {% load helpers %}
  <!--  iface.type = {{ iface.type }} -->
+{% if iface.is_dot1x %}
+  &nbsp;
+  <i class="fa-solid fa-lock" aria-hidden="true"
+       data-bs-toggle="tooltip"
+       title="802.1x Interface">
+  </i>
+{% endif %}
 {% if iface.is_routed %}
   &nbsp;
   <i class="fa-solid fa-cogs" aria-hidden="true"

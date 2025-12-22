@@ -51,10 +51,10 @@ class DummyConnector(Connector):
         self.add_poe_powersupply(1, 45)  # simulate a 45W power supply
 
         vrf = self.get_vrf_by_name(name="VRF-1")  # this will create if not exists.
-        vrf.rd = "65000:1"
-        vrf.description = "Test VRF"
-        vrf.ipv4 = True
-        vrf.ipv6 = True
+        vrf.set_rd(rd="65000:1")
+        vrf.set_description(description="Test VRF")
+        vrf.set_ipv4()
+        vrf.set_ipv6()
 
         self.add_vlan_by_id(1, "Default!")
         self.add_vlan_by_id(5, "Vlan Five")
@@ -106,13 +106,16 @@ class DummyConnector(Connector):
         iface.admin_status = False
         iface.oper_status = False
         iface.speed = 10
-        iface.description = "Interface eth3"
+        iface.description = "eth3 - Dot1X"
         iface.untagged_vlan = 5
+        iface.is_dot1x = True
+        iface.unmanage_reason = "DOT1X is enabled!"
         iface.add_ip4_network(address="192.168.55.1", prefix_len=24)
         iface.add_ip6_network(address="fc00::dead:beef")  # prefix_len is optional, default=64
         iface.add_ip6_network(address="fc00::deaa:beee")  # prefix_len is optional, default=64
         iface.add_ip6_network(address="fe80::1234:4567", prefix_len=64)  # this is a Link-Local address.
-        iface.vrf_name = "VRF-1"
+        iface.vrf_name = vrf.name
+        vrf.add_interface(iface.name)
         self.add_interface(iface)
 
         return True

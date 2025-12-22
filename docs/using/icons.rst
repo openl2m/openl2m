@@ -20,8 +20,10 @@ Here are the icons used in OpenL2M, and their meanings:
 
    * - Icon
      - Meaning
+   * - :fas:`lock;`
+     - Interface is in 802.1x authencation mode.
    * - :fas:`download;`
-     - Click to download the interface data as a spreadsheet
+     - Click to download the interface data as a spreadsheet.
    * - :fas:`cogs;`
      - A routed interface. Hover will show routed subnet information, if known.
    * - :fas:`ellipsis-v;`
