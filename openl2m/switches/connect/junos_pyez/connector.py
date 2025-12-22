@@ -570,10 +570,10 @@ class PyEZConnector(Connector):
             for nd in nd_entries:
                 mac_address = nd.find('.//ipv6-nd-neighbor-l2-address').text
                 ipv6_address = nd.find('.//ipv6-nd-neighbor-address').text
-                state = nd.find('.//ipv6-nd-state').text
-                expire = nd.find('.//ipv6-nd-expire').text
-                isrouter = nd.find('.//ipv6-nd-isrouter').text
-                issecure = nd.find('.//ipv6-nd-issecure').text
+                # state = nd.find('.//ipv6-nd-state').text
+                # expire = nd.find('.//ipv6-nd-expire').text
+                # isrouter = nd.find('.//ipv6-nd-isrouter').text
+                # issecure = nd.find('.//ipv6-nd-issecure').text
                 if_name = nd.find('.//ipv6-nd-interface-name').text
                 dprint(f"  {mac_address} = {ip_address}, on {if_name}")
                 # if found on routed interface, if_name could be formed as "irb.nnn [if_name]"
