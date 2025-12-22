@@ -977,7 +977,7 @@ class Vrf:
 
     def __str__(self) -> str:
         memberlist = ",".join(self.interfaces)
-        return f"VRF '{self.name}'({rd}): {self.description}\nMembers: {memberlist}"
+        return f"VRF '{self.name}'({self.rd}): {self.description}\nMembers: {memberlist}"
 
 
 class Interface:
