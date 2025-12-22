@@ -23,30 +23,29 @@ import requests
 import urllib3
 import traceback
 
-from switches.connect.classes import Interface, PoePort, NeighborDevice, Transceiver, Vlan, EthernetAddress
+from switches.connect.classes import Interface, NeighborDevice, Transceiver, Vlan
 from switches.connect.connector import Connector
 from switches.connect.constants import (
     VLAN_ADMIN_DISABLED,
-    POE_PORT_ADMIN_DISABLED,
-    POE_PORT_ADMIN_ENABLED,
-    VLAN_ADMIN_DISABLED,
+    #    POE_PORT_ADMIN_DISABLED,
+    #    POE_PORT_ADMIN_ENABLED,
     IF_DUPLEX_HALF,
     IF_DUPLEX_FULL,
     IF_TYPE_OTHER,
     IF_TYPE_LOOPBACK,
-    IF_TYPE_VIRTUAL,
+    #    IF_TYPE_VIRTUAL,
     IF_TYPE_ETHERNET,
-    IF_TYPE_LAGG,
-    LACP_IF_TYPE_MEMBER,
-    LACP_IF_TYPE_AGGREGATOR,
+    #    IF_TYPE_LAGG,
+    #    LACP_IF_TYPE_MEMBER,
+    #    LACP_IF_TYPE_AGGREGATOR,
     LLDP_CHASSIC_TYPE_ETH_ADDR,
     LLDP_CAPABILITIES_BRIDGE,
     LLDP_CAPABILITIES_ROUTER,
-    LLDP_CAPABILITIES_WLAN,
-    LLDP_CAPABILITIES_PHONE,
-    IANA_TYPE_OTHER,
-    IANA_TYPE_IPV4,
-    IANA_TYPE_IPV6,
+    #    LLDP_CAPABILITIES_WLAN,
+    #    LLDP_CAPABILITIES_PHONE,
+    #    IANA_TYPE_OTHER,
+    #    IANA_TYPE_IPV4,
+    #    IANA_TYPE_IPV6,
 )
 from switches.connect.arista_eapi.utils import get_vlan_and_interface_from_string
 from switches.models import Switch, SwitchGroup
