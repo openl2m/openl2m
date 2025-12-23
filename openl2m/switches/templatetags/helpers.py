@@ -55,10 +55,15 @@ def build_url_string(values):
     else:
         s = "<a"
     s = s + f" href=\"{values['url']}\""
-    if 'alt' in values.keys() and values['alt']:
-        s = s + f" alt=\"{values['alt']}\""
+    # alt is not a standard attribute for <a>:
+    # if 'alt' in values.keys() and values['alt']:
+    #     s = s + f" alt=\"{values['alt']}\""
     if 'hint' in values.keys():
-        s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{values['hint']}\""
+        # add as tooltip and aria-label for screen readers:
+        s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{values['hint']}\" aria-label=\"{values['hint']}\""
+    else:
+        # force aria-label for screen readers:
+        s = s + " aria-label=\"Click for more info\""
     s = s + ">"
     if 'fa_icon' in values.keys():
         s = s + f" <i class=\"fa-solid {values['fa_icon']}\" aria-hidden=\"false\"></i>"
