@@ -81,12 +81,14 @@ Via SNMP.
 * *HPE 5140EI* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5500* series switches, running Comware 5; single units.
 * *HPE 5510HI* series switches, running Comware 7; single units.
+* *HPE 5550HI* series switches, running Comware 9; single units.
 * *HPE 5600HI* series switches, running Comware 7; single units.
 * *HPE 5900AF* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5930* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5940* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5945* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5950* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5960* series switches, running Comware 6; single units.
 
 **Juniper Networks**
 
