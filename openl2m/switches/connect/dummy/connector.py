@@ -45,6 +45,10 @@ class DummyConnector(Connector):
         self.add_more_info('System', 'Type', "Software Dummy Switch")
         self.add_more_info("System", "Hostname", self.hostname)
 
+        self.can_change_admin_status = True
+        self.can_change_description = True
+        self.can_change_poe_status = True
+        self.can_change_vlan = True
         self.can_edit_tags = True  # for testing
         self.can_set_mode = True  # for testing.
 
@@ -61,6 +65,7 @@ class DummyConnector(Connector):
 
         self.add_vlan_by_id(1, "Default!")
         self.add_vlan_by_id(5, "Vlan Five")
+        self.add_vlan_by_id(10, "Vlan 10")
         self.add_vlan_by_id(15, "Vlan Fifteen")
         self.add_vlan_by_id(20, "Twenty")
         self.add_vlan_by_id(101, "OneOhOne")

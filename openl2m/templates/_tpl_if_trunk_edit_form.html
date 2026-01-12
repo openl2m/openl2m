@@ -1,0 +1,76 @@
+{% load helpers %}
+{% load static %}
+
+<!-- Modal untagged and taggged vlan edit form -->
+<div class="modal fade" id="tagEditForm_{{ iface.key }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="tagEditForm_{{ iface.key }}_label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="tagEditForm_{{ iface.key }}_label">Edit untagged and 802.1q tags for interface {{ iface.name }}</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">{# THIS IS THE VLAN CHANGE FORM #}
+        <div class="fw-bolder text-warning mb-3">WORK-IN-PROGRESS - THIS IS A NON-FUNCTIONAL FORM!!!!<hr /></div>
+        <form
+          id="tags_edit_{{ iface.key }}" name="tags_edit_{{ iface.key }}"
+          action="{% url 'switches:tags_edit' group.id switch.id iface.key %}"
+          method="post"
+          >
+          {% csrf_token %}
+            <div class="fw-bolder mb-2">Set the untagged (pvid) vlan on {{ iface.name }}:</div>
+            <div>
+                <select name="pvid" data-bs-toggle="tooltip"
+                        title="Set the untagged vlan here"
+                        id="new_pvid">
+                  {% for vlan_id,vlan in connection.allowed_vlans.items %}
+                  <option
+                    {% if vlan_id == iface.untagged_vlan %} selected {% endif %}
+                    value="{{ vlan_id }}">{{ vlan_id }}
+                    {% if vlan.name %} - {{ vlan.name }} {% endif %}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+          <div><hr /></div>
+          <div class="fw-bolder mb-2">Select the 802.1q tagged vlans on {{ iface.name }}:</div>
+          <div class="fst-italic">Note: not selecting any tagged vlan makes the interface an 'access' port!</div>
+          {% for vlan_id, vlan in connection.vlans.items %}
+            {% if vlan_id in connection.allowed_vlans.keys %}
+              {# needs work to mark tag enabled vlan with checkbox! #}
+                  <div><input class="form-check-input" type="checkbox" value="{{vlan_id}}"
+                              name="tagged_vlans" id="tagged_vlan_{{vlan_id}}"
+                  {% if vlan_id in iface.vlans %}
+                    checked
+                  {% endif %}
+                  >
+                  <label class="form-check-label" for="tagged_vlan_{{ vlan_id }}">
+                  {{vlan_id}}{% if vlan.name %} - {{ vlan.name }}{% endif %}
+                  </label></div>
+            {% else %}{# user does not have rights to this vlan #}
+                  <div><input class="form-check-input" type="checkbox" disabled value="{{vlan_id}}" id="vlan_{{vlan_id}}"
+                  {% if vlan_id in iface.vlans %}
+                    checked
+                  {% endif %}
+                  >
+                  <label class="form-check-label" for="vlan_{{ vlan_id }}">
+                  {{vlan_id}}{% if vlan.name %} - {{ vlan.name }}{% endif %}
+                  </label></div>
+            {% endif %}
+          {% endfor %}
+          <div class="text-end align-middle">{# VLAN TAGS EDIT SUBMIT #}
+            <input type="submit"
+                   name="submit_tag_edit_{{ iface.key }}"
+                   value="Update Vlans"
+                   class="btn btn-warning"
+                   data-bs-toggle="tooltip" title="Click here to change untagged and 802.1q-tagged vlans on interface '{{ iface.name }}'!"
+                   {% if request.user.profile.are_you_sure %}
+                   onclick="return confirm_change('Are you sure you want change the vlans on interface {{ iface.name }}? This may disconnect attached devices!')"
+                   {% endif %}
+            >
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End modal form for tags edit -->

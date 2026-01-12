@@ -499,69 +499,11 @@ def perform_interface_poe_change(
     return True, success
 
 
-def perform_interface_mode_change(
-    request: HttpRequest, group_id: int, switch_id: int, interface_key: str, is_tagged: bool
+def perform_interface_tags_edit(
+    request: HttpRequest, group_id: int, switch_id: int, interface_key: str, pvid: int, tagged_vlans: list
 ):
     """
-    Change the mode (access/802.1q-tagged) of an interfaces.
-
-    Params:
-        request: Request() object
-        group_id (int): SwitchGroup() pk
-        switch_id (int): Switch() pk
-        interface_key (str):  Interface() 'key' attribute
-        is_tagged (bool): True to set to 802.1q-tagged ("trunk") mode, False for access mode.
-
-    Returns:
-        boolean, Error() :
-            boolean: True if successful, False if error occurred.
-                    On error, Error() object will be set accordingly.
-    """
-    dprint(f"perform_interface_mode_change(g={group_id}, s={switch_id}, i={interface_key}, st={is_tagged})")
-
-    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
-    connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
-
-    if connection is None:
-        return False, error
-
-    # # implementation here. This needs a lot more work...
-
-    """ Implementation notes:
-    If we globally ALLOW_MODE_SWITCH, then this should be implemented by a drivers to perform the action.
-    The Connector() class has the attribute "can_set_mode=False" by default.
-    Drivers need to override this, and implement the functionality!!!
-
-    Currently, permissions are set in Connector()._set_interfaces_permissions(),
-    in switches/connect/connector.py, around line 1775
-
-    This needs to implemented in actions.py, _perform_interface_mode_change
-
-    LOGGING NEEDS NEW LOG TYPES!!!
-    """
-
-    # # verify we allow tagged vlan ("trunk") editing and driver can handle interface mode change:
-    # if settings.ALLOW_MODE_SWITCH and connection.can_change_mode:
-    interface, error = get_interface_to_change(connection=connection, interface_key=interface_key)
-    if not interface:
-        # log.type = LOG_TYPE_ERROR
-        # log.description = f"Admin-Change: ERROR - {error.description}"
-        # log.save()
-        counter_increment(COUNTER_ERRORS)
-        return False, error
-
-    # for now, return OK
-    success = Error()
-    success.status = False  # no error
-    success.description = f"DEMO MODE - NON-FUNCTIONAL - Interface {interface.name} MODE CHANGED!"
-    return True, success
-
-
-def perform_interface_tag_edit(
-    request: HttpRequest, group_id: int, switch_id: int, interface_key: str, tagged_vlans: bool
-):
-    """
-    Change the 802.1q (tagged/trunked) vlans on an interfaces.
+    Change the untagged pvid, and 802.1q (tagged/trunked) vlans on an interfaces.
 
     Params:
         request: Request() object
@@ -576,7 +518,7 @@ def perform_interface_tag_edit(
                     On error, Error() object will be set accordingly.
     """
     dprint(
-        f"perform_interface_tag_edit(group={group_id}, switch={switch_id}, int={interface_key}, tagged_vlans={tagged_vlans})"
+        f"perform_interface_tag_edit(group={group_id}, switch={switch_id}, int={interface_key}, pvid={pvid}, tagged_vlans={tagged_vlans})"
     )
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)

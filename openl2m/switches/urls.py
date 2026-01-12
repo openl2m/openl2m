@@ -153,11 +153,6 @@ urlpatterns = [
         name='interface_cmd_output',
     ),
     path(
-        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/modechange/',
-        views.InterfaceModeChange.as_view(),
-        name='mode_change',
-    ),
-    path(
         '<int:group_id>/<int:switch_id>/<ifname:interface_name>/tagsedit/',
         views.InterfaceTagsEdit.as_view(),
         name='tags_edit',
