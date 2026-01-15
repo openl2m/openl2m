@@ -26,6 +26,8 @@ for additional data.
    snmp-discover-vlan-membership.rst
    snmp-discover-mac-arp.rst
    snmp-interface-ip.rst
+   snmp-interface-lacp.rst
+   snmp-interface-poe.rst
    snmp-discover-lldp.rst
    snmp-discover-vrf.rst
    snmp-transceiver-type
