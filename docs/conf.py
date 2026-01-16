@@ -56,6 +56,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 rst_prolog = """
 .. role:: strike
     :class: strike
+.. role:: underline
+    :class: underline
 """
 
 # -- Options for HTML output -------------------------------------------------
