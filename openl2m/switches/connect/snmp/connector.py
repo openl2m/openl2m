@@ -2235,8 +2235,8 @@ class SnmpConnector(Connector):
                         dprint(f"   INTERFACE IPV6={ip_address} (/64)")
                         # add to the interface, assume a /64:
                         iface.add_ip6_network(address=ip_address, prefix_len=64)
-
-                dprint("INVALID empty IP!")
+                else:
+                    dprint("INVALID empty IP!")
             else:
                 # should not happen!
                 dprint(f"ERROR: Interface NOT found for key '{val}'")
