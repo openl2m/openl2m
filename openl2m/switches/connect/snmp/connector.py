@@ -2006,10 +2006,10 @@ class SnmpConnector(Connector):
     #
     # LACP MIB parsing
     #
-
-    def _parse_mibs_lacp(self, oid: str, val: str) -> bool:
+    def _parse_mibs_lacp_admin_key(self, oid: str, val: str) -> bool:
         """
-        Parse a single OID with data returned from the LACP MIBs
+        Parse a single OID with Actor Admin Key data returned from the LACP MIBs
+        This is the ifIndex that is the "aggregate interface, ie the "Bridge-Aggregation" or "Port-Channel" interface.
 
         Params:
             oid (str): the SNMP OID to parse
@@ -2028,6 +2028,11 @@ class SnmpConnector(Connector):
         # this gets the aggregator interface admin key or "index"
         # note that aggregator index is an integer according to MIB, but
         # we use it as a string value for the interfaces{} dictionary key!!!
+        #
+        # return format is
+        # <dot3adAggActorAdminKey>.<ifIndex> = <locallly-significant-value>
+        # ifIndex points to the "port-channel" or "bridge-aggregation" interface
+        #
         aggr_if_index = oid_in_branch(dot3adAggActorAdminKey, oid)
         if aggr_if_index:
             # this interface is a aggregator!
@@ -2039,6 +2044,26 @@ class SnmpConnector(Connector):
                 self.interfaces[aggr_if_index].type = IF_TYPE_LAGG
                 dprint(f"LACP MASTER FOUND: {self.interfaces[aggr_if_index].name}")
             return True
+
+        return False
+
+    def _parse_mibs_lacp_member_port(self, oid: str, val: str) -> bool:
+        """
+        Parse a single OID with data returned from the LACP MIBs
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"_parse_mibs_lacp_member_port() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+
+        #
+        # Parse a single OID with data returned from the LACP MIB
+        # Will return True if we have parsed this, and False if not.
+        #
 
         # this get the member interfaces admin key ("index"), which maps back to the aggregator interface above!
         member_if_index = oid_in_branch(dot3adAggPortActorAdminKey, oid)
@@ -3471,7 +3496,7 @@ class SnmpConnector(Connector):
         """
 
         # Get the admin key or "index" for aggregate interfaces
-        retval = self.get_snmp_branch(branch_name='dot3adAggActorAdminKey', parser=self._parse_mibs_lacp)
+        retval = self.get_snmp_branch(branch_name='dot3adAggActorAdminKey', parser=self._parse_mibs_lacp_admin_key)
         if retval < 0:
             self.add_warning("Error getting 'LACP-Aggregate-Admin-Key' (dot3adAggActorAdminKey)")
             return False
@@ -3479,7 +3504,9 @@ class SnmpConnector(Connector):
         # If there are aggregate interfaces, then get the admin key or "index" for physical member interfaces
         # this maps back to the logical or actor aggregates above in dot3adAggActorAdminKey
         if retval > 0:
-            retval = self.get_snmp_branch(branch_name='dot3adAggPortActorAdminKey', parser=self._parse_mibs_lacp)
+            retval = self.get_snmp_branch(
+                branch_name='dot3adAggPortActorAdminKey', parser=self._parse_mibs_lacp_member_port
+            )
             if retval < 0:
                 self.add_warning("Error getting 'LACP-Port-Admin-Key' (dot3adAggPortActorAdminKey)")
                 return False

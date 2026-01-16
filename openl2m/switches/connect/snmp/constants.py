@@ -1278,9 +1278,10 @@ LLDP_REM_MAN_ADDR_TYPE_SYSTEMPORTNUMBER = 3  # systemPortNumber(3)
 
 
 #
-# LAG MIB, aka LACP MIB
+# LAG MIB, aka LACP MIB, formally the 802.3ad IEEE8023-LAG-MIB (sometimes called DOT3-AD-LAB-MIB)
 #
 # see also
+# https://mibs.observium.org/mib/IEEE8023-LAG-MIB/
 # http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.2.840.10006.300.43.1.1
 # https://stackoverflow.com/questions/14960157/how-to-map-portchannel-to-interfaces-via-snmp
 #
@@ -1295,6 +1296,9 @@ dot3adAgg = '.1.2.840.10006.300.43.1.1'
 # operational Key value for the reasons discussed in 43.6.2. This is a 16-bit read-only value.
 # The meaning of particular Key values is of local significance.
 # Syntax: "LacpKey" (IEEE8023-LAG-MIB)
+# return format is
+# <dot3adAggActorAdminKey>.<ifIndex> = <locallly-significant-value>
+# ifIndex points to the "port-channel" or "bridge-aggregation" interface
 dot3adAggActorAdminKey = '.1.2.840.10006.300.43.1.1.1.1.6'
 snmp_mib_variables['dot3adAggActorAdminKey'] = dot3adAggActorAdminKey
 # operational key "index" when the aggregate interface is up (ie at least one port in "up" state!)
@@ -1303,8 +1307,14 @@ dot3adAggActorOperKey = '.1.2.840.10006.300.43.1.1.1.1.7'
 #
 # member ports information:
 #
-dot3adAggPortListEntry = '.1.2.840.10006.300.43.1.1.2.1'
+# dot3adAggPortListTable = '.1.2.840.10006.300.43.1.1.2'
+# dot3adAggPortListEntry = '.1.2.840.10006.300.43.1.1.2.1'
+#
+# This has the members of a port-channel as a port-id BitMap
+# format is
+# dot3adAggPortListPorts>.<ifIndex> = BitMap of member ports.
 dot3adAggPortListPorts = '.1.2.840.10006.300.43.1.1.2.1.1'
+
 
 # all info about LACP ports
 dot3adAggPortTable = '.1.2.840.10006.300.43.1.2.1'

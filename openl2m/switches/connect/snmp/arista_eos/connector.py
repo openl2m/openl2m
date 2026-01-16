@@ -20,12 +20,13 @@ General Arista SNMP config information is at:
 """
 from django.http.request import HttpRequest
 
-from switches.connect.constants import IF_TYPE_ETHERNET
+from switches.connect.constants import IF_TYPE_ETHERNET, LACP_IF_TYPE_AGGREGATOR, LACP_IF_TYPE_MEMBER
 from switches.connect.classes import Interface
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.connect.snmp.constants import dot1qPvid
+from switches.connect.snmp.constants import dot1qPvid, dot3adAggPortActorAdminKey
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
+
 
 from .constants import (
     aristaVrfRoutingStatus,
@@ -92,6 +93,41 @@ class SnmpConnectorAristaEOS(SnmpConnector):
                 iface.is_routed = True
         return True
 
+    def _get_lacp_data(self) -> bool:
+        """
+        Read the IEEE LACP mib (IEEE8023-LAG-MIB) for "port-channel" interfaces.
+        Note: Arista implements this incorrectly, so we have to override the standard function in SnmpConnector() !
+        Returns True on success, False on failure
+        """
+
+        # Get the admin key or "index" for aggregate interfaces - same as standard.
+        retval = self.get_snmp_branch(branch_name='dot3adAggActorAdminKey', parser=self._parse_mibs_lacp_admin_key)
+        if retval < 0:
+            self.add_warning("Error getting 'LACP-Aggregate-Admin-Key' (dot3adAggActorAdminKey)")
+            return False
+
+        # If there are aggregate interfaces, then get the admin key or "index" for physical member interfaces
+        # Normally (ie standard SNMP), this maps back to the logical or actor aggregates above in dot3adAggActorAdminKey
+        # for Arista versions we tested (4.33.4M), this gives the port-channel number, eg. for "port-channel9", returns 9
+
+        if retval > 0:
+            retval = self.get_snmp_branch(
+                branch_name='dot3adAggPortActorAdminKey', parser=self._parse_mibs_lacp_member_port_arista
+            )
+            if retval < 0:
+                self.add_warning("Error getting 'LACP-Port-Admin-Key' (dot3adAggPortActorAdminKey)")
+                return False
+
+        #
+        # # this is a shortcut to find aggregates and members all in one, but does not work for every device.
+        # retval = self.get_snmp_branch(branch_name='dot3adAggPortAttachedAggID', parser=self._parse_mibs_lacp)
+        # if retval < 0:
+        #     self.add_warning("Error getting 'LACP-Port-AttachedAggID' (dot3adAggPortAttachedAggID)")
+        #     return False
+        #
+
+        return True
+
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
         Change the VLAN via the Q-BRIDGE MIB
@@ -150,6 +186,53 @@ class SnmpConnectorAristaEOS(SnmpConnector):
             # reset to default for the next call
             self._set_snmp_session()
         return True
+
+    def _parse_mibs_lacp_member_port_arista(self, oid: str, val: str) -> bool:
+        """
+        Parse a single OID with data returned from the LACP MIBs.
+        Note: this is NON-standard. This parses the 'port-channel' that a specific ifIndex is a member of!
+
+        SNMP data parsed:   <dot3adAggPortActorAdminKey>.<member-if-index> = <val>
+        (where oid = dot3adAggPortActorAdminKey.member-if-index)
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"_parse_mibs_lacp_member_port_arista() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+
+        # this gets the port-channel number for a LACP member interface ifIndex. Note this is NON-standard!
+        member_if_index = oid_in_branch(dot3adAggPortActorAdminKey, oid)
+        # note that member_if_index is an integer according to MIB, but oid_in_branc() parsing
+        # returns a string value. This is used as the interfaces{} dictionary key!!!
+        # 'val' is the po-channel number, eg. '9' = port-channel9
+        # port-channel number is always > 0 !
+        if member_if_index and int(val) > 0:
+            # this interface is an lacp member!
+            member = self.get_interface_by_key(key=member_if_index)
+            if member:
+                # can we find an aggregate with this key value ?
+                po_name = f"Port-Channel{val}"
+                dprint(f"LACP = {po_name}, member: {member.name}")
+                port_channel = self.get_interface_by_name(name=po_name)
+                if port_channel:
+                    if port_channel.lacp_type == LACP_IF_TYPE_AGGREGATOR:
+                        dprint(f"LACP interface found: {port_channel.name}")
+                        # the current interface is a member of this aggregate iface !
+                        member.lacp_type = LACP_IF_TYPE_MEMBER
+                        member.lacp_master_index = int(val)
+                        member.lacp_master_name = port_channel.name
+                        # add our name to the member list of the aggregate interface
+                        port_channel.lacp_members[member_if_index] = member.name
+                else:
+                    dprint(f"ERROR: {po_name} Interface() NOT FOUND!!! (huh?)")
+            return True
+
+        # we did not parse the OID.
+        return False
 
     def _parse_mib_arista_vrf_entries(self, oid: str, val: str) -> bool:
         """
