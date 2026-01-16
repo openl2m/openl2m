@@ -1065,7 +1065,7 @@ class Interface:
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
         return True on success, False on failure.
         '''
-        dprint(f"add_ip4_network(): interface '{self.name}': adding '{address}' len {prefix_len}, netmask '{netmask}")
+        dprint(f"add_ip4_network(): interface '{self.name}': adding '{address}' len {prefix_len}, netmask '{netmask}'")
         if prefix_len:
             self.addresses_ip4[address] = IPNetworkHostname(f"{address}/{prefix_len}")
         elif netmask:
