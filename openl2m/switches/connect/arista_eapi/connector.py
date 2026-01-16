@@ -17,6 +17,7 @@ that is used for excuting commands only!
 """
 from django.http.request import HttpRequest
 import json
+from rangeparser import RangeParser
 import requests
 
 # used to disable unknown SSL cert warnings:
@@ -35,9 +36,9 @@ from switches.connect.constants import (
     IF_TYPE_LOOPBACK,
     #    IF_TYPE_VIRTUAL,
     IF_TYPE_ETHERNET,
-    #    IF_TYPE_LAGG,
-    #    LACP_IF_TYPE_MEMBER,
-    #    LACP_IF_TYPE_AGGREGATOR,
+    IF_TYPE_LAGG,
+    LACP_IF_TYPE_MEMBER,
+    LACP_IF_TYPE_AGGREGATOR,
     LLDP_CHASSIC_TYPE_ETH_ADDR,
     LLDP_CAPABILITIES_BRIDGE,
     LLDP_CAPABILITIES_ROUTER,
@@ -90,12 +91,14 @@ class AristaApiConnector(Connector):
             # the Arista eAPI allows to bundle many commands into a single request through sending them as a list.
             # You can then parse the responses in a list, in order of the commands given.
             command_list = []
-            command_list.append("show version")
-            command_list.append("show vlan")
-            command_list.append("show interfaces")
-            command_list.append("show interfaces vlans")
-            command_list.append("show interfaces transceiver properties")
-            command_list.append("show vrf")
+            command_list.append("show version")  # offset 0
+            command_list.append("show vlan")  # offset 1
+            command_list.append("show interfaces")  # offset 2
+            # command_list.append("show interfaces vlans")    # offset 3
+            command_list.append("show interfaces switchport")  # offset 3
+            command_list.append("show interfaces transceiver properties")  # offset 4
+            command_list.append("show port-channel")  # offset 5
+            command_list.append("show vrf")  # offset 6
 
             # run the commands:
             json_data = self._arista_run_command(command=command_list)
@@ -197,24 +200,35 @@ class AristaApiConnector(Connector):
 
             #
             # get vlans on interfaces
+            # we can read the switchport information to read the untagged and tagged vlans
             #
-            # command = "show interfaces vlans"
-            # NOTE: on tagged interfaces this does NOT read the untagged vlan!
-            data = json_data.get('result')[3]['interfaces']
-            for if_name, vlan_data in data.items():
+            # command = "show interfaces switchport"
+            # data = json_data.get('result')[3]
+            # dprint("=== SWITCHPORT DATA ===")
+            # dprint(data)
+            # dprint("============")
+            data = json_data.get('result')[3]['switchports']
+            for if_name, info in data.items():
+                switchport = info['switchportInfo']
+                dprint("===========")
                 dprint(f"Found VLAN info for: {if_name}")
-                dprint(vlan_data)
+                dprint(info)
+                dprint("===========")
                 iface = self.get_interface_by_name(name=if_name)
                 if iface:
                     dprint("   found Interface()")
-                    if 'untaggedVlan' in vlan_data:
-                        iface.untagged_vlan = int(vlan_data)
-                    if 'taggedVlans' in vlan_data:
+                    iface.untagged_vlan = int(switchport['accessVlanId'])
+                    if switchport['mode'] == 'trunk':
                         iface.is_tagged = True
-                        for vlan_id in vlan_data['taggedVlans']:
-                            iface.add_tagged_vlan(vlan_id=int(vlan_id))
-
-            # we can read the switchport information to read the untagged vlans
+                        if switchport['trunkAllowedVlans'] == 'ALL':
+                            # add all vlans
+                            for v in self.vlans.values():
+                                iface.add_tagged_vlan(vlan_id=v.id)
+                        else:
+                            parser = RangeParser()
+                            tagged_vlans = parser.parse(switchport['trunkAllowedVlans'])
+                            for vlan_id in tagged_vlans:
+                                iface.add_tagged_vlan(vlan_id=vlan_id)
 
             #
             # get optical transceiver data
@@ -234,10 +248,39 @@ class AristaApiConnector(Connector):
                     iface.transceiver = trx
 
             #
+            # get LACP port-channel interfaces
+            #
+            # command = "show port-channel"
+            #
+            # data = json_data.get('result')[5]
+            # dprint("=== Port-Channel DATA ===")
+            # dprint(data)
+            # dprint("============")
+            data = json_data.get('result')[5]['portChannels']
+            for po_name, po_info in data.items():
+                # does this port-channel exist ?
+                port_channel = self.get_interface_by_name(name=po_name)
+                if port_channel:
+                    dprint(f"Found Port-Channel Interface() for {po_name}")
+                    port_channel.type = IF_TYPE_LAGG
+                    port_channel.lacp_type = LACP_IF_TYPE_AGGREGATOR
+                    # find the member interfaces:
+                    member_type_list = ['inactivePorts', 'inactivePorts']
+                    for member_type in member_type_list:
+                        for member_name, member_info in po_info[member_type].items():
+                            member = self.get_interface_by_name(name=member_name)
+                            if member:
+                                member.lacp_type = LACP_IF_TYPE_MEMBER
+                                member.lacp_master_name = po_name
+                                member.lacp_master_index = 1
+                                # add to list of port-channel
+                                port_channel.lacp_members[member.key] = member.name
+
+            #
             # read VRF info
             #
             # command = "show vrf"
-            data = json_data.get('result')[5]['vrfs']
+            data = json_data.get('result')[6]['vrfs']
             for name, vrf_data in data.items():
                 dprint(f"Found vrf: {name}")
                 if name == "default":  # the non-VRF or default routing table.
