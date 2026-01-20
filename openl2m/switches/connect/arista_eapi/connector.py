@@ -70,12 +70,20 @@ class AristaApiConnector(Connector):
         super().__init__(request, group, switch)
         self.description = 'Arista eAPI driver'
         self.vendor_name = "Arista"
-        # force READ-ONLY for now
-        self.read_only = True
+        # can edit (most) entries
+        self.read_only = False
         if switch.description:
             self.add_more_info('System', 'Description', switch.description)
-        # options supported:
+        # capabilities supported by this eAPI driver:
         self.can_reload_all = True
+        self.can_change_admin_status = True
+        # self.can_change_vlan = False
+        # self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
+        # self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
+        # self.can_change_poe_status = False
+        # self.can_change_description = False
+        # self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        # self.can_reload_all = False  # if true, we can reload all our data (and show a button on screen for this)
 
     def get_my_basic_info(self) -> bool:
         """
@@ -134,8 +142,10 @@ class AristaApiConnector(Connector):
             data = json_data.get('result')[2]
             for if_name, if_data in data["interfaces"].items():
                 dprint(f"Found interface: {if_name}")
+                dprint(f"IF_DATA=\n{if_data}\n")
                 iface = Interface(if_name)
                 iface.name = if_name
+
                 match if_data["hardware"]:
                     case "ethernet":
                         iface.type = IF_TYPE_ETHERNET
@@ -147,15 +157,24 @@ class AristaApiConnector(Connector):
 
                 iface.description = if_data["description"]
 
-                if if_data["lineProtocolStatus"] == 'up':
-                    iface.admin_status = True
-                    iface.oper_status = True
-                else:
-                    iface.oper_status = False
-                    # what is admin status:
-                    # not sure this is correct ?
-                    if if_data["interfaceStatus"] == "errdisabled":
+                match if_data['interfaceStatus']:
+                    case 'disabled':  # Admin-DOWN
+                        # note this is default state:
                         iface.admin_status = False
+                        iface.oper_status = False
+                    case 'notconnect':  # Admin-UP but protocol-DOWN
+                        iface.admin_status = True
+                        iface.oper_status = False
+                    case 'connected':  # UP/UP
+                        iface.admin_status = True
+                        if if_data["lineProtocolStatus"] == 'up':
+                            iface.oper_status = True
+                    # not sure this is correct ?
+                    case "errdisabled":
+                        iface.error_status = True
+                    case _:
+                        # unknown state ? should not happen...
+                        self.add_warning(warning=f"Unknown state on {if_name}: {if_data['interfaceStatus']}")
 
                 iface.speed = int(if_data["bandwidth"]) / 1000000  # bandwidth is in bps!
 
@@ -472,6 +491,65 @@ class AristaApiConnector(Connector):
             )
             return False
 
+        return True
+
+    #
+    # set interface description
+    #
+    def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
+        '''
+        Set the interface to the requested state (up or down)
+
+        Args:
+            interface = Interface() object for the requested port
+            new_state = True / False  (enabled/disabled)
+
+        Returns:
+            return True on success, False on error and set self.error variables
+        '''
+        # interface.admin_status = new_state
+        dprint(f"AristaSnmpConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
+        if new_state:
+            status = "no shutdown"
+        else:
+            status = "shutdown"
+        cmds = [
+            "configure terminal",
+            f"interface {interface.name}",
+            f"{status}",
+            "end",
+        ]
+        dprint(f"Running Commands:\n{cmds}")
+        try:
+            # run the command:
+            json_data = self._arista_run_command(command=cmds, format="json")
+            # The 'result' key will contain a list of command output.
+            dprint(f"RETURN:\n{json_data}")
+            if 'error' in json_data:
+                # some error occured !
+                dprint(f"  ERROR running command!")
+                error_code = json_data['error']['code']
+                error_msg = json_data['error']['message']
+                self.error.status = True
+                self.error.description = (
+                    f"Error '{json_data['error']['code']}' running eAPI commands: '{json_data['error']['message']}'"
+                )
+                self.error.details = f"Cannot set interface admin status. Full return data: {json_data}"
+                self.add_warning(warning=f"Cannot set interface admin status: {json_data}")
+                return False
+
+        except Exception as err:
+            dprint(f"  ERROR running '{cmds}': {err}")
+            self.error.status = True
+            self.error.description = f"Error running eAPI commands = '{cmds}'!"
+            self.error.details = f"Cannot set interface admin status: {format(err)}"
+            self.add_warning(
+                warning=f"Cannot set interface admin status: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
+            )
+            return False
+
+        # call the Connector() class for bookkeeping
+        Connector.set_interface_admin_status(self=self, interface=interface, new_state=new_state)
         return True
 
     #
