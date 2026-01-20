@@ -1004,6 +1004,7 @@ class Interface:
         self.is_routed: bool = False  # if True interface is in routed mode (i.e. a layer 3 interface)
         self.admin_status: bool = False  # administrative status of the interface, True is Admin-Up (snmp ifAdminStatus)
         self.oper_status: bool = False  # operation status of interface, True is Oper-Up (snmp ifOperStatus)
+        self.error_status: bool = False  # if True, interface is in Error status
         self.mtu: int = 0  # ifMTU value, for L3 interfaces
         self.speed: int = 0  # speed counter, in 1 Mbps (ie. like ifHighSpeed data from IF-MIB)
         self.duplex: int = IF_DUPLEX_UNKNOWN  # interface duplex setting, if known.

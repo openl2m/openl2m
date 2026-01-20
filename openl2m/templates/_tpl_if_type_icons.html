@@ -1,6 +1,13 @@
 {% load static %}
 {% load helpers %}
  <!--  iface.type = {{ iface.type }} -->
+{% if iface.error_status %}
+  &nbsp;
+  <i class="fa-solid fa-triangle-exclamation"aria-hidden="true"
+       data-bs-toggle="tooltip"
+       title="Interface is in Error-Status">
+  </i>
+{% endif %}
 {% if iface.is_dot1x %}
   &nbsp;
   <i class="fa-solid fa-lock" aria-hidden="true"
