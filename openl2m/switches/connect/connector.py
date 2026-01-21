@@ -551,7 +551,7 @@ class Connector:
 
         Args:
             interface = Interface() object for the requested port
-            new_description = a string with the requested text
+            description = a string with the requested text
 
         Returns:
             return True on success, False on error and set self.error variables
