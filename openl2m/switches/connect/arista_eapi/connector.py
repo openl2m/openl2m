@@ -81,7 +81,7 @@ class AristaApiConnector(Connector):
         # self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
         # self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         # self.can_change_poe_status = False
-        # self.can_change_description = False
+        self.can_change_description = True
         # self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         # self.can_reload_all = False  # if true, we can reload all our data (and show a button on screen for this)
 
@@ -494,7 +494,7 @@ class AristaApiConnector(Connector):
         return True
 
     #
-    # set interface description
+    # set interface admin status (up/down)
     #
     def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
         '''
@@ -550,6 +550,67 @@ class AristaApiConnector(Connector):
 
         # call the Connector() class for bookkeeping
         Connector.set_interface_admin_status(self=self, interface=interface, new_state=new_state)
+        return True
+
+    #
+    # set interface description
+    #
+    def set_interface_description(self, interface: Interface, description: str) -> bool:
+        '''
+        Set the interface description (aka. description) to the string
+
+        Args:
+            interface = Interface() object for the requested port
+            description = a string with the requested text
+
+        Returns:
+            return True on success, False on error and set self.error variables
+        '''
+        # interface.admin_status = new_state
+        dprint(f"AristaSnmpConnector.set_interface_description() for {interface.name} to '{description}'")
+
+        if description:
+            description_cmd = f"description {description}"
+        else:
+            description_cmd = "no description"
+
+        cmds = [
+            "configure terminal",
+            f"interface {interface.name}",
+            description_cmd,
+            "end",
+        ]
+        dprint(f"Running Commands:\n{cmds}")
+        try:
+            # run the command:
+            json_data = self._arista_run_command(command=cmds, format="json")
+            # The 'result' key will contain a list of command output.
+            dprint(f"RETURN:\n{json_data}")
+            if 'error' in json_data:
+                # some error occured !
+                dprint(f"  ERROR running command!")
+                error_code = json_data['error']['code']
+                error_msg = json_data['error']['message']
+                self.error.status = True
+                self.error.description = (
+                    f"Error '{json_data['error']['code']}' running eAPI commands: '{json_data['error']['message']}'"
+                )
+                self.error.details = f"Cannot set interface description. Full return data: {json_data}"
+                self.add_warning(warning=f"Cannot set interface description: {json_data}")
+                return False
+
+        except Exception as err:
+            dprint(f"  ERROR running '{cmds}': {err}")
+            self.error.status = True
+            self.error.description = f"Error running eAPI commands = '{cmds}'!"
+            self.error.details = f"Cannot set interface description: {format(err)}"
+            self.add_warning(
+                warning=f"Cannot set interface description: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
+            )
+            return False
+
+        # call the Connector() class for bookkeeping
+        Connector.set_interface_description(self=self, interface=interface, description=description)
         return True
 
     #
