@@ -77,8 +77,8 @@ class AristaApiConnector(Connector):
         # capabilities supported by this eAPI driver:
         self.can_change_admin_status = True
         self.can_change_vlan = True
-        # self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
-        # self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
+        self.can_edit_vlans = True  # if true, this driver can edit (create/delete) vlans on the device!
+        self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         # self.can_change_poe_status = False - we do not have a test switch with PoE !
         self.can_change_description = True
         self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
@@ -108,7 +108,7 @@ class AristaApiConnector(Connector):
             command_list.append("show vrf")  # offset 6
 
             # run the commands:
-            json_data = self._arista_run_command(command=command_list)
+            json_data = self._eapi_run_command(command=command_list)
             # The 'result' key will contain a list of command outputs, in order of commands given.
 
             #
@@ -235,9 +235,10 @@ class AristaApiConnector(Connector):
                 iface = self.get_interface_by_name(name=if_name)
                 if iface:
                     dprint("   found Interface()")
-                    iface.untagged_vlan = int(switchport['accessVlanId'])
                     if switchport['mode'] == 'trunk':
                         iface.is_tagged = True
+                        # the PVID native untagged vlan is set in this attribute for trunks:
+                        iface.untagged_vlan = int(switchport['trunkingNativeVlanId'])
                         if switchport['trunkAllowedVlans'] == 'ALL':
                             # add all vlans
                             for v in self.vlans.values():
@@ -247,6 +248,9 @@ class AristaApiConnector(Connector):
                             tagged_vlans = parser.parse(switchport['trunkAllowedVlans'])
                             for vlan_id in tagged_vlans:
                                 iface.add_tagged_vlan(vlan_id=vlan_id)
+                    else:
+                        # access mode:
+                        iface.untagged_vlan = int(switchport['accessVlanId'])
 
             #
             # get optical transceiver data
@@ -356,7 +360,7 @@ class AristaApiConnector(Connector):
             command_list.append("show lldp neighbors detail")
 
             # run the commands:
-            json_data = self._arista_run_command(command=command_list)
+            json_data = self._eapi_run_command(command=command_list)
             # The 'result' key will contain a list of command outputs, in order of commands given.
             # dprint(f"RETURN:\n{json_data}")
 
@@ -523,7 +527,7 @@ class AristaApiConnector(Connector):
         dprint(f"Running Commands:\n{cmds}")
         try:
             # run the command:
-            json_data = self._arista_run_command(command=cmds, format="json")
+            json_data = self._eapi_run_command(command=cmds, format="json")
             # The 'result' key will contain a list of command output.
             dprint(f"RETURN:\n{json_data}")
             if 'error' in json_data:
@@ -584,7 +588,7 @@ class AristaApiConnector(Connector):
         dprint(f"Running Commands:\n{cmds}")
         try:
             # run the command:
-            json_data = self._arista_run_command(command=cmds, format="json")
+            json_data = self._eapi_run_command(command=cmds, format="json")
             # The 'result' key will contain a list of command output.
             dprint(f"RETURN:\n{json_data}")
             if 'error' in json_data:
@@ -651,7 +655,7 @@ class AristaApiConnector(Connector):
             dprint(f"Running Commands:\n{cmds}")
             try:
                 # run the command:
-                json_data = self._arista_run_command(command=cmds, format="json")
+                json_data = self._eapi_run_command(command=cmds, format="json")
                 # The 'result' key will contain a list of command output.
                 dprint(f"RETURN:\n{json_data}")
                 if 'error' in json_data:
@@ -683,48 +687,121 @@ class AristaApiConnector(Connector):
         # interface not found, return False!
         return False
 
+    def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
+        '''
+        Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id
+            name (str): the name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"AristaApiConnector.vlan_create() for vlan {vlan_id} = '{vlan_name}'")
+
+        cmds = [
+            "configure terminal",
+            f"vlan {vlan_id}",
+            f"name {vlan_name}",
+            "end",
+        ]
+
+        if self._run_commands(commands=cmds, action=f"create vlan {vlan_id}"):
+            # all OK, now do the book keeping
+            super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+            return True
+
+        return False
+
+    def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
+        '''
+        Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id to edit
+            name (str): the new name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"AristaApiConnector.vlan_edit() for vlan {vlan_id} = '{vlan_name}'")
+
+        vlan = self.get_vlan_by_id(vlan_id)
+        if not vlan:
+            self.error.status = True
+            self.error.description = f"Vlan {vlan_id} does not exist!"
+            self.error.details = ""
+            return False
+
+        if vlan_name:
+            cmds = [
+                "configure terminal",
+                f"vlan {vlan_id}",
+                f"name {vlan_name}",
+                "end",
+            ]
+        else:
+            cmds = [
+                "configure terminal",
+                f"vlan {vlan_id}",
+                f"no name",
+                "end",
+            ]
+
+        if self._run_commands(commands=cmds, action=f"rename vlan {vlan_id}"):
+            # all OK, now do the book keeping
+            super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
+            return True
+
+        return False
+
+    def vlan_delete(self, vlan_id: int) -> bool:
+        '''
+        Delete the vlan. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id to edit
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        '''
+        dprint(f"AristaApiConnector.vlan_delete() for vlan {vlan_id}")
+
+        vlan = self.get_vlan_by_id(vlan_id)
+        if not vlan:
+            self.error.status = True
+            self.error.description = f"Vlan {vlan_id} does not exist!"
+            self.error.details = ""
+            return False
+
+        cmds = [
+            "configure terminal",
+            f"no vlan {vlan_id}",
+            "end",
+        ]
+
+        if self._run_commands(commands=cmds, action=f"delete vlan {vlan_id}"):
+            # all OK, now do the book keeping
+            super().vlan_delete(vlan_id=vlan_id)
+            return True
+
+        return False
+
     def save_running_config(self) -> bool:
         """
         save the current config to startup via api.
 
-        Returns True is this succeeds, False on failure. self.error() will be set in that case
+        Returns:
+            (bool) - True if this succeeds, False on failure. self.error() will be set in that case
         """
         dprint("AristaApiConnector().save_running_config()")
 
         cmds = [
             "write memory",
         ]
-        dprint(f"Running Commands:\n{cmds}")
-        try:
-            # run the command:
-            json_data = self._arista_run_command(command=cmds, format="json")
-            # The 'result' key will contain a list of command output.
-            dprint(f"RETURN:\n{json_data}")
-            if 'error' in json_data:
-                # some error occured !
-                dprint(f"  ERROR running command!")
-                error_code = json_data['error']['code']
-                error_msg = json_data['error']['message']
-                self.error.status = True
-                self.error.description = (
-                    f"Error '{json_data['error']['code']}' running eAPI commands: '{json_data['error']['message']}'"
-                )
-                self.error.details = f"Cannot save configuration. Full return data: {json_data}"
-                self.add_warning(warning=f"Cannot save configuration: {json_data}")
-                return False
 
-        except Exception as err:
-            dprint(f"  ERROR running '{cmds}': {err}")
-            self.error.status = True
-            self.error.description = f"Error running eAPI commands = '{cmds}'!"
-            self.error.details = f"Cannot save configuration: {format(err)}"
-            self.add_warning(
-                warning=f"Cannot save configuration: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
-            )
-            return False
-
-        dprint("All OK")
-        return True
+        return self._run_commands(commands=cmds, action="save configuration")
 
     #
     # here we override the SSH command execution using Netmiko,
@@ -740,9 +817,9 @@ class AristaApiConnector(Connector):
             command: the string the execute as a command on the device
 
         Returns:
-            (boolean): True if success, False on failure.
-                       On success, save the command output to self.output.
-                       On failure, set self.error as applicable.
+            True if success, False on failure.
+            On success, save the command output to self.output.
+            On failure, set self.error as applicable.
         """
         dprint(f"Arista _execute_command() '{command}'")
 
@@ -752,7 +829,7 @@ class AristaApiConnector(Connector):
 
         try:
             # run the command:
-            json_data = self._arista_run_command(command=command, format="text")
+            json_data = self._eapi_run_command(command=command, format="text")
             # The 'result' key will contain a list of command output.
             # dprint(f"RETURN:\n{json_data}")
             self.netmiko_output = json_data.get('result')[0]['output']
@@ -799,8 +876,48 @@ class AristaApiConnector(Connector):
         dprint("Arist eAPI _close_device()")
         return True
 
-    def _arista_run_command(self, command, format="json", autoComplete=True):
-        """Run a specifc Arista command on the router configured.
+    def _run_commands(self, commands: list, action: str) -> bool:
+        """Run multiple commands using the eAPI.
+
+        Args:
+            commands: list of command string to run
+            action: description of what this tries to accomplish. Will be used if this fails.
+
+        Returns:
+            True if all goes OK.
+            False if this fails. the self.error() variable will be set with information about the failure.
+        """
+        dprint(f"AristaApiConnector().run_command:\n{commands}")
+
+        try:
+            # run the command:
+            json_data = self._eapi_run_command(command=commands)
+            # The 'result' key will contain a list of command output.
+            dprint(f"RETURN:\n{json_data}")
+            if 'error' in json_data:
+                # some error occured !
+                dprint(f"  ERROR running command!")
+                error_code = json_data['error']['code']
+                error_msg = json_data['error']['message']
+                self.error.status = True
+                self.error.description = (
+                    f"Error '{json_data['error']['code']}' running eAPI commands: '{json_data['error']['message']}'"
+                )
+                self.error.details = f"Cannot {action}. Full return data: {json_data}"
+                return False
+
+        except Exception as err:
+            dprint(f"  ERROR running '{commands}': {err}")
+            self.error.status = True
+            self.error.description = f"Error running eAPI commands = '{commands}'!"
+            self.error.details = f"Cannot {action}: {format(err)}"
+            return False
+        # all OK
+        dprint("All OK!")
+        return True
+
+    def _eapi_run_command(self, command, format="json", autoComplete=True):
+        """Run a specifc Arista eAPI command on the router configured.
         By default, return as JSON, and allow for command auto-complete.
 
         """
