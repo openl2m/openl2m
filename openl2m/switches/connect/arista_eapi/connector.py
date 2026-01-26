@@ -76,10 +76,10 @@ class AristaApiConnector(Connector):
             self.add_more_info('System', 'Description', switch.description)
         # capabilities supported by this eAPI driver:
         self.can_change_admin_status = True
-        # self.can_change_vlan = False
+        self.can_change_vlan = True
         # self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
         # self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
-        # self.can_change_poe_status = False
+        # self.can_change_poe_status = False - we do not have a test switch with PoE !
         self.can_change_description = True
         self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
@@ -550,7 +550,7 @@ class AristaApiConnector(Connector):
             return False
 
         # call the Connector() class for bookkeeping
-        Connector.set_interface_admin_status(self=self, interface=interface, new_state=new_state)
+        super().set_interface_admin_status(interface=interface, new_state=new_state)
         return True
 
     #
@@ -611,8 +611,77 @@ class AristaApiConnector(Connector):
             return False
 
         # call the Connector() class for bookkeeping
-        Connector.set_interface_description(self=self, interface=interface, description=description)
+        super().set_interface_description(interface=interface, description=description)
         return True
+
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
+        """
+        Override the VLAN change, this is done Comware specific using the Comware VLAN MIB
+        return True on success, False on error and set self.error variables
+        """
+        dprint(
+            f"AristaApiConnector().set_interface_untagged_vlan() port {interface.name} to {new_vlan_id} ({type(new_vlan_id)})"
+        )
+        new_vlan = self.get_vlan_by_id(new_vlan_id)
+        if not new_vlan:
+            self.error.status = True
+            self.error.description = f"Cannot find Vlan object for vlan {new_vlan_id} for port '{interface.name}'"
+            self.error.details = ""
+            return False
+        if interface:
+            if interface.is_tagged:
+                dprint("Tagged/Trunk Mode!")
+                # set the TRUNK_NATIVE_VLAN OID:
+                cmds = [
+                    "configure terminal",
+                    f"interface {interface.name}",
+                    f"switchport trunk native vlan {new_vlan_id}",
+                    "end",
+                ]
+            else:
+                # regular access mode untagged port:
+                dprint("Acces Mode!")
+                cmds = [
+                    "configure terminal",
+                    f"interface {interface.name}",
+                    f"switchport access vlan {new_vlan_id}",
+                    "end",
+                ]
+
+            dprint(f"Running Commands:\n{cmds}")
+            try:
+                # run the command:
+                json_data = self._arista_run_command(command=cmds, format="json")
+                # The 'result' key will contain a list of command output.
+                dprint(f"RETURN:\n{json_data}")
+                if 'error' in json_data:
+                    # some error occured !
+                    dprint(f"  ERROR running command!")
+                    error_code = json_data['error']['code']
+                    error_msg = json_data['error']['message']
+                    self.error.status = True
+                    self.error.description = (
+                        f"Error '{json_data['error']['code']}' running eAPI commands: '{json_data['error']['message']}'"
+                    )
+                    self.error.details = f"Cannot set interface vlan. Full return data: {json_data}"
+                    self.add_warning(warning=f"Cannot set interface vlan: {json_data}")
+                    return False
+
+            except Exception as err:
+                dprint(f"  ERROR running '{cmds}': {err}")
+                self.error.status = True
+                self.error.description = f"Error running eAPI commands = '{cmds}'!"
+                self.error.details = f"Cannot set interface vlan: {format(err)}"
+                self.add_warning(
+                    warning=f"Cannot set interface vlan: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
+                )
+                return False
+
+            # all OK - do bookkeeping.
+            super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
+            return True
+        # interface not found, return False!
+        return False
 
     def save_running_config(self) -> bool:
         """
