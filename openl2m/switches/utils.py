@@ -298,7 +298,7 @@ def is_valid_hostname_or_ip6(data: str) -> bool:
     except ValueError:
         # not IPv6!, so check IPv6 hostname:
         try:
-            result = socket.getaddrinfo(host=data, port=0, family=socket.AF_INET6)
+            socket.getaddrinfo(host=data, port=0, family=socket.AF_INET6)
             return True
         except Exception:
             # fail gracefully!

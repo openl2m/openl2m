@@ -1129,7 +1129,7 @@ class SwitchVlanManage(LoginRequiredMixin, View):
         # parse form items, validate vlan id:
         try:
             vlan_id = int(request.POST.get("vlan_id", -1))
-        except:
+        except Exception:
             # on any error, set vlan = -1:
             vlan_id = -1
         # and vlan name:

@@ -241,7 +241,7 @@ class Command(BaseCommand):
 
         # both include and exclude? Invalid!
         if len(includes) and len(excludes):
-            self.stdout.write(f"ERROR: --include and --exclude are mutually exclusive! Please only use one...")
+            self.stdout.write("ERROR: --include and --exclude are mutually exclusive! Please only use one...")
             return
 
         # look for specific users only?
