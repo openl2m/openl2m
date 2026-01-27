@@ -13,49 +13,37 @@
 
     // check log type
     const type = document.getElementById('type');
-    console.log("Type: '" + type.value + "'");
     if (type.value !== "") {
-      console.log("Type changed!");
       submitButton.disabled = false;  // enable search submit
       return;
     }
     // check Activity type
     const action = document.getElementById('action');
-    console.log("Action: '" + action.value + "'")
     if (action.value !== "") {
-      console.log("Action changed!");
       submitButton.disabled = false;   // enable search submit
       return;
     }
     // check user
     const user = document.getElementById('user');
-    console.log("User: '" + user.value + "'");
     if (user.value !== "") {
-      console.log("User changed!");
       submitButton.disabled = false;   // enable search submit
       return;
     }
     // check log group
     const group = document.getElementById('group');
-    console.log("Group: '" + group.value + "'");
     if (group.value !== "") {
-      console.log("Group changed!");
       submitButton.disabled = false;   // enable search submit
       return;
     }
     // check log type
     const device = document.getElementById('switch')
-    console.log("Device: '" + device.value + "'");
     if (device.value !== "") {
-      console.log("Switch changed!");
       submitButton.disabled = false;   // enable search submit
       return;
     }
     // check description change (a text input element):
     const description = document.getElementById('description');
-    console.log("Description: '" + description.value + "'");
     if (description.value.trim() !== "") {
-      console.log("Description changed!");
       submitButton.disabled = false;   // enable search submit
       return;
     }
