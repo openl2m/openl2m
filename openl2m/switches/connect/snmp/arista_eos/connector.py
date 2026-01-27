@@ -18,6 +18,7 @@ See Mibs, etc. at
 General Arista SNMP config information is at:
   https://www.arista.com/en/um-eos/eos-snmp
 """
+
 from django.http.request import HttpRequest
 
 from switches.connect.constants import IF_TYPE_ETHERNET, LACP_IF_TYPE_AGGREGATOR, LACP_IF_TYPE_MEMBER
@@ -76,6 +77,12 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         # the command that should be sent to disable screen paging
         # defaults in the netmiko library to "terminal length 0"
         # self.netmiko_disable_paging_command = "terminal length 0"  # by default EOS cli sessions have paging disabled!
+
+        # we recommend using the Arista eAPI driver, tell the user so:
+        self.add_warning(
+            warning="We recommend using the Arista eAPI driver for this device. Please contact your OpenL2M administrator!",
+            add_log=False,
+        )
 
     def get_my_basic_info(self) -> bool:
         """
