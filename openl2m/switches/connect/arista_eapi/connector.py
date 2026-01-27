@@ -15,6 +15,7 @@
 Commands-Only Connector: this implements an SSH connection to the devices
 that is used for excuting commands only!
 """
+
 from django.http.request import HttpRequest
 import json
 from rangeparser import RangeParser
@@ -391,7 +392,7 @@ class AristaApiConnector(Connector):
                 dprint(f"VRF: {vrf_name}")
                 for arp in vrf_arp['ipV4Neighbors']:
                     dprint(f"  ARP = {arp}")
-                    (vlan_id, if_name) = get_vlan_and_interface_from_string(arp['interface'])
+                    vlan_id, if_name = get_vlan_and_interface_from_string(arp['interface'])
                     dprint(f"    Adding to if_name: {if_name}, vlan: {vlan_id}")
                     self.add_learned_ethernet_address(
                         if_name=if_name,
@@ -410,7 +411,7 @@ class AristaApiConnector(Connector):
                 dprint(f"VRF: {vrf_name}")
                 for nd in vrf_nd['ipV6Neighbors']:
                     dprint(f"  ND = {nd}")
-                    (vlan_id, if_name) = get_vlan_and_interface_from_string(nd['interface'])
+                    vlan_id, if_name = get_vlan_and_interface_from_string(nd['interface'])
                     dprint(f"    Adding to if_name: {if_name}, vlan_id: {vlan_id}")
                     self.add_learned_ethernet_address(
                         if_name=if_name,
@@ -808,7 +809,7 @@ class AristaApiConnector(Connector):
             True if all goes OK.
             False if this fails. the self.error() variable will be set with information about the failure.
         """
-        dprint(f"AristaApiConnector().run_command:\n{commands}")
+        dprint(f"AristaApiConnector()._run_command:\n{commands}")
 
         try:
             # run the command:
