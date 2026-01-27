@@ -22,6 +22,8 @@ Here are the icons used in OpenL2M, and their meanings:
      - Meaning
    * - :fas:`lock;`
      - Interface is in 802.1x authencation mode.
+   * - :fas:`triangle-exclamation;`
+     - Interface is in Error-Disabled state. Sometimes this means no transceiver in SFP/QSFP/etc. slot.
    * - :fas:`download;`
      - Click to download the interface data as a spreadsheet.
    * - :fas:`cogs;`
@@ -48,6 +50,7 @@ Here are the icons used in OpenL2M, and their meanings:
      - Interface is a member of a VRF. Hover will show vrf membership.
    * - :fas:`bolt;`
      - Interface optical transceiver information. Hover will show details (e.g. 10_GBASE_LR_SFP)
+
 
 .. _Eth:
 
@@ -117,19 +120,19 @@ Here are the icons used in OpenL2M, and their meanings:
    * - :fas:`book;`
      - Go to the online documentation.
    * - :fas:`pen;`
-     - Go to OpenL2M Admin pages (admins only!.
+     - Go to OpenL2M Admin pages (admins only!).
    * - :fas:`ethernet;`
      - Go to admin page for this device (admins only!).
    * - :fas:`user-friends;`
      - Go to admin page for the group (admins only!).
    * - :fas:`list-ul;`
-     - Text describing icon use.
+     - Go to all activity logs.
    * - :fas:`chart-pie;`
-     - Text describing icon use.
+     - Go to device and usage statistics, and currently active users.
    * - :fas:`mountain;`
      - See top-N device and user activity page.
    * - :fas:`code;`
-     - Text describing icon use.
+     - Go to the OpenL2M sources on Github.
    * - :fas:`key;`
      - Change your password (if enabled.)
    * - :fas:`clone;`
