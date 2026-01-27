@@ -11,15 +11,11 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-import sys
-
-# import django
-import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
 project = 'OpenL2M'
-copyright = '2019-2025, Various'
+copyright = '2019-2026, Various'
 author = 'Various'
 
 # The main version and full release, including alpha/beta/rc tags
@@ -94,10 +90,3 @@ else:
 
 # time format for the |today| output:
 today_fmt = '%b %d %Y at %H:%M'
-
-# Our source location:
-# sys.path.append('/opt/openl2m/openl2m')
-# sys.path.append(os.path.join(os.path.dirname(__name__), '../openl2m'))
-# os.environ['DJANGO_SETTINGS_MODULE'] = 'openl2m.settings'
-#import django
-# django.setup()
