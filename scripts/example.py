@@ -94,14 +94,18 @@ def main():
                     u.is_superuser = bool(row['superuser'])
                 u.save()
                 print("   Import OK")
+                # Note: OpenL2M does NOT add the default Django Group() objects.
+                # users can be made members of SwitchGroups, as can devices (switches)
+                # See SwitchGroup assignment example below in handling of switch import
+                #
                 # now add to group. Cannot do earlier, as new user object needs to exist!
-                if 'group' in row.keys() and row['group']:
-                    try:
-                        group = Group.objects.get(name=row['group'])
-                        group.user_set.add(u)
-                    except Exception:
-                        print("   Error adding user to group '%s'" % row['group'])
-                        print("   Error details: %s" % sys.exc_info()[0])
+                # if 'group' in row.keys() and row['group']:
+                #     try:
+                #         group = Group.objects.get(name=row['group'])
+                #         group.user_set.add(u)
+                #     except Exception:
+                #         print("   Error adding user to group '%s'" % row['group'])
+                #         print("   Error details: %s" % sys.exc_info()[0])
 
     if args.switch_file:
         with open(args.switch_file, newline='') as csvfile:
@@ -163,7 +167,7 @@ def main():
                             continue
                 g = False
                 if 'group' in row.keys() and row['group']:
-                    # see if the group exists, if not, create it
+                    # see if the switch group exists, if not, create it
                     try:
                         g = SwitchGroup.objects.get(name=row['group'])
                     except Exception:
