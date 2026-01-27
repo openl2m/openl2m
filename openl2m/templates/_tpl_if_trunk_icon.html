@@ -1,0 +1,37 @@
+{% load helpers %}
+{% load static %}
+
+{% if iface.is_tagged %}
+  &nbsp;
+  {% if not iface.can_edit_tags %}
+    <i class="fa-solid fa-ellipsis-v" aria-hidden="true"
+        data-bs-toggle="tooltip"
+        title="Tagged (trunk) Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
+    </i>
+  {% else %}
+    <button type="submit"
+            class="btn-link"
+            value="Edit Tags"
+            data-bs-toggle="modal"
+            data-bs-target="#tagEditForm_{{ iface.key }}"
+            data-bs-placement="top"
+            title="Tagged (802.1q trunk) Interface, click here to edit vlans. Current vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
+    <i class="fa-solid fa-ellipsis-v" aria-hidden="true"></i>
+    </button>
+    {% include "_tpl_if_trunk_edit_form.html" %}
+  {% endif %}{# can edit #}
+{% else %}
+  {# access mode #}
+  {% if iface.can_edit_tags %}
+    <button type="submit"
+            class="btn-link"
+            value="Edit Tags"
+            data-bs-toggle="modal"
+            data-bs-target="#tagEditForm_{{ iface.key }}"
+            data-bs-placement="top"
+            title="Untagged Interface. Click here to add/edit 802.1-tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
+    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+    </button>
+    {% include "_tpl_if_trunk_edit_form.html" %}
+  {% endif %}
+{% endif %}{# if_tagged #}

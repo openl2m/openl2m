@@ -34,6 +34,7 @@ from switches.actions import (
     perform_interface_description_change,
     perform_interface_pvid_change,
     perform_interface_poe_change,
+    perform_interface_tags_edit,
     perform_switch_save_config,
     perform_switch_vlan_add,
     perform_switch_vlan_edit,
@@ -1261,7 +1262,7 @@ class InterfaceDescriptionChange(LoginRequiredMixin, View):
 class InterfacePvidChange(LoginRequiredMixin, View):
     """
     Change the PVID untagged vlan on an interfaces.
-    This still needs to handle dot1q trunked ports.
+    This still needs to handle dot1q tagged ("trunk") ports.
 
     Params:
         request:  HttpRequest() object
@@ -1394,6 +1395,83 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
 
         description = "Interface PoE was toggled!"
         return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message=description)
+
+
+#
+# Edit the untagged and 802.1q-tagged vlans on a port (interface)
+#
+class InterfaceTagsEdit(LoginRequiredMixin, View):
+    """
+    Change the untagged and tagged vlans on an interface.
+
+    Params:
+        request:  HttpRequest() object
+        group_id: (int) the pk of the SwitchGroup()
+        switch_id: (int) the pk of the Switch()
+        interface_name: (str) the key or to the Interface() in the list of Interface()s
+
+    Returns:
+        renders either OK or Error page, depending permissions and result.
+    """
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        dprint("InterfaceTagsEdit() - POST called")
+
+        """ Implementation notes:
+        If we allow untagged and tags-edit for regular, non-admin users, we need to parse carefully!
+        In that case, we will allow adding/deleting vlans the user has access to,
+        and SHOULD NOT CHANGE NON-PERMITTED VLANS !!!!
+        Ie. this requires looking at the interface current tagged vlans, and mashing this up with the requested vlans...
+
+        Currently, permissions are set in Connector()._set_interfaces_permissions(),
+        in switches/connect/connector.py, around line 1775
+
+        """
+        # read the submitted form data:
+        # untagged PVID first.
+        try:
+            pvid = int(request.POST.get('pvid'))
+        except Exception:
+            error = Error()
+            error.description = "Missing or invalid required parameter: 'new_pvid'"
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
+
+        if pvid <= 0:  # should not happen!
+            info = Error()
+            info.description = "Invalid PVID = {pvid}"
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        # TBD !
+        tagged_vlans = {}
+        tagged_vlans = request.POST.getlist('tagged_vlans')
+        # for key, value in request.POST.items():
+        #     dprint(f"POST: '{key}' = '{value}'")
+        #     if key.startswith("vlan_"):
+        #         tagged_vlans[key] = value
+        # can also use POST.getlist('name')
+
+        # if tagged_vlans = empty List(), then the interface should be in Access mode!
+        # else it should be in Trunk or Tagged mode.
+
+        retval, info = perform_interface_tags_edit(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            interface_key=interface_name,
+            pvid=pvid,
+            tagged_vlans=tagged_vlans,
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        message = f"DEMO ONLY: Interface '{interface_name}' 802.1q tags would be modified! PVID={pvid}, Submitted tagged vlans: '{tagged_vlans}'"
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
 class SwitchSaveConfig(LoginRequiredMixin, MyView):

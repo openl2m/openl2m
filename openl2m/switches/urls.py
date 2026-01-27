@@ -152,6 +152,11 @@ urlpatterns = [
         views.InterfaceCmdOutput.as_view(),
         name='interface_cmd_output',
     ),
+    path(
+        '<int:group_id>/<int:switch_id>/<ifname:interface_name>/tagsedit/',
+        views.InterfaceTagsEdit.as_view(),
+        name='tags_edit',
+    ),
 ]
 
 if settings.DEBUG:
