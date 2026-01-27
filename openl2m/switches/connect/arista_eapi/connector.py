@@ -524,38 +524,13 @@ class AristaApiConnector(Connector):
             f"{status}",
             "end",
         ]
-        dprint(f"Running Commands:\n{cmds}")
-        try:
-            # run the command:
-            json_data = self._eapi_run_command(command=cmds, format="json")
-            # The 'result' key will contain a list of command output.
-            dprint(f"RETURN:\n{json_data}")
-            if 'error' in json_data:
-                # some error occured !
-                dprint(f"  ERROR running command!")
-                error_code = json_data['error']['code']
-                error_msg = json_data['error']['message']
-                self.error.status = True
-                self.error.description = (
-                    f"Error '{json_data['error']['code']}' running eAPI commands: '{json_data['error']['message']}'"
-                )
-                self.error.details = f"Cannot set interface admin status. Full return data: {json_data}"
-                self.add_warning(warning=f"Cannot set interface admin status: {json_data}")
-                return False
 
-        except Exception as err:
-            dprint(f"  ERROR running '{cmds}': {err}")
-            self.error.status = True
-            self.error.description = f"Error running eAPI commands = '{cmds}'!"
-            self.error.details = f"Cannot set interface admin status: {format(err)}"
-            self.add_warning(
-                warning=f"Cannot set interface admin status: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
-            )
-            return False
+        if self._run_commands(commands=cmds, action="set interface admin status"):
+            # all OK, now do the book keeping
+            super().set_interface_admin_status(interface=interface, new_state=new_state)
+            return True
 
-        # call the Connector() class for bookkeeping
-        super().set_interface_admin_status(interface=interface, new_state=new_state)
-        return True
+        return False
 
     #
     # set interface description
@@ -585,38 +560,13 @@ class AristaApiConnector(Connector):
             description_cmd,
             "end",
         ]
-        dprint(f"Running Commands:\n{cmds}")
-        try:
-            # run the command:
-            json_data = self._eapi_run_command(command=cmds, format="json")
-            # The 'result' key will contain a list of command output.
-            dprint(f"RETURN:\n{json_data}")
-            if 'error' in json_data:
-                # some error occured !
-                dprint(f"  ERROR running command!")
-                error_code = json_data['error']['code']
-                error_msg = json_data['error']['message']
-                self.error.status = True
-                self.error.description = (
-                    f"Error '{json_data['error']['code']}' running eAPI commands: '{json_data['error']['message']}'"
-                )
-                self.error.details = f"Cannot set interface description. Full return data: {json_data}"
-                self.add_warning(warning=f"Cannot set interface description: {json_data}")
-                return False
 
-        except Exception as err:
-            dprint(f"  ERROR running '{cmds}': {err}")
-            self.error.status = True
-            self.error.description = f"Error running eAPI commands = '{cmds}'!"
-            self.error.details = f"Cannot set interface description: {format(err)}"
-            self.add_warning(
-                warning=f"Cannot set interface description: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
-            )
-            return False
+        if self._run_commands(commands=cmds, action="set interface description"):
+            # all OK, now do the book keeping
+            super().set_interface_description(interface=interface, description=description)
+            return True
 
-        # call the Connector() class for bookkeeping
-        super().set_interface_description(interface=interface, description=description)
-        return True
+        return False
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
@@ -632,59 +582,30 @@ class AristaApiConnector(Connector):
             self.error.description = f"Cannot find Vlan object for vlan {new_vlan_id} for port '{interface.name}'"
             self.error.details = ""
             return False
-        if interface:
-            if interface.is_tagged:
-                dprint("Tagged/Trunk Mode!")
-                # set the TRUNK_NATIVE_VLAN OID:
-                cmds = [
-                    "configure terminal",
-                    f"interface {interface.name}",
-                    f"switchport trunk native vlan {new_vlan_id}",
-                    "end",
-                ]
-            else:
-                # regular access mode untagged port:
-                dprint("Acces Mode!")
-                cmds = [
-                    "configure terminal",
-                    f"interface {interface.name}",
-                    f"switchport access vlan {new_vlan_id}",
-                    "end",
-                ]
+        if interface.is_tagged:
+            dprint("Tagged/Trunk Mode!")
+            # set the TRUNK_NATIVE_VLAN OID:
+            cmds = [
+                "configure terminal",
+                f"interface {interface.name}",
+                f"switchport trunk native vlan {new_vlan_id}",
+                "end",
+            ]
+        else:
+            # regular access mode untagged port:
+            dprint("Acces Mode!")
+            cmds = [
+                "configure terminal",
+                f"interface {interface.name}",
+                f"switchport access vlan {new_vlan_id}",
+                "end",
+            ]
 
-            dprint(f"Running Commands:\n{cmds}")
-            try:
-                # run the command:
-                json_data = self._eapi_run_command(command=cmds, format="json")
-                # The 'result' key will contain a list of command output.
-                dprint(f"RETURN:\n{json_data}")
-                if 'error' in json_data:
-                    # some error occured !
-                    dprint(f"  ERROR running command!")
-                    error_code = json_data['error']['code']
-                    error_msg = json_data['error']['message']
-                    self.error.status = True
-                    self.error.description = (
-                        f"Error '{json_data['error']['code']}' running eAPI commands: '{json_data['error']['message']}'"
-                    )
-                    self.error.details = f"Cannot set interface vlan. Full return data: {json_data}"
-                    self.add_warning(warning=f"Cannot set interface vlan: {json_data}")
-                    return False
-
-            except Exception as err:
-                dprint(f"  ERROR running '{cmds}': {err}")
-                self.error.status = True
-                self.error.description = f"Error running eAPI commands = '{cmds}'!"
-                self.error.details = f"Cannot set interface vlan: {format(err)}"
-                self.add_warning(
-                    warning=f"Cannot set interface vlan: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
-                )
-                return False
-
-            # all OK - do bookkeeping.
+        if self._run_commands(commands=cmds, action=f"set interface vlan to {new_vlan_id}"):
+            # all OK, now do the book keeping
             super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
             return True
-        # interface not found, return False!
+
         return False
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
