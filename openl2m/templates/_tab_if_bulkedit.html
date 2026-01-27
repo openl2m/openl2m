@@ -218,61 +218,61 @@
     enable_bulk_submit()
   }
 
-  const initial_interface_change_choice = document.getElementById('bulk_interface_change').value
-  const initial_vlan_change_choice = document.getElementById('bulk_vlan_change').value
-  const initial_poe_change_choice = document.getElementById('bulk_poe_change').value
+  const initial_interface_change_choice = document.getElementById('bulk_interface_change').value;
+  const initial_vlan_change_choice = document.getElementById('bulk_vlan_change').value;
+  const initial_poe_change_choice = document.getElementById('bulk_poe_change').value;
   function enable_bulk_submit() {
     // is at least one interface checked?
     var checkboxes = document.querySelectorAll('input[name="bulk_interface_list"]');
-    var oneChecked = false
+    var oneChecked = false;
     for (var i = 0; i < checkboxes.length; i++) { // zero-based array!
       // toggle setting for this checkbox:
       if (checkboxes[i].checked) {
-        oneChecked = true
+        oneChecked = true;
       }
     }
     if(!oneChecked) {
       // no interface checked, so disable submit:
-      submitButton.disabled = true
-      return
+      submitButton.disabled = true;
+      return;
     }
     // see if at least one of the change-options is filled in:
     // interface enable/disable (select elemenet):
     const interface_status_change = document.getElementById('bulk_interface_change');
-    console.log("Current Interface status: " + interface_status_change.value)
+    console.log("Current Interface status: " + interface_status_change.value);
     if (interface_status_change.value !== initial_interface_change_choice) {
-      submitButton.disabled = false   // selected vlan changed, enable the submit button
-      console.log("Status changed!")
-      return
+      submitButton.disabled = false;   // selected vlan changed, enable the submit button
+      console.log("Status changed!");
+      return;
     }
 
     // vlan changed (select elemenet):
     const vlan_change = document.getElementById('bulk_vlan_change');
-    console.log("Current vlan option: " + vlan_change.value)
+    console.log("Current vlan option: " + vlan_change.value);
     if (vlan_change.value !== initial_vlan_change_choice) {
-      console.log("Vlan choice changed!")
-      submitButton.disabled = false   // selected vlan changed, enable the submit button
-      return
+      console.log("Vlan choice changed!");
+      submitButton.disabled = false;   // selected vlan changed, enable the submit button
+      return;
     }
 
     // poe change (select elemenet):
     const poe_change = document.getElementById('bulk_poe_change');
-    console.log("Current PoE option: " + poe_change.value)
+    console.log("Current PoE option: " + poe_change.value);
     if (poe_change.value !== initial_poe_change_choice) {
-      console.log("PoE choice changed!")
-      submitButton.disabled = false   // selected vlan changed, enable the submit button
+      console.log("PoE choice changed!");
+      submitButton.disabled = false;   // selected vlan changed, enable the submit button
       return
     }
 
     // check description change (a text input element):
     const description_change = document.getElementById('bulk_new_description');
-    console.log("Description option: '" + description_change.value + "'")
+    console.log("Description option: '" + description_change.value + "'");
     if (description_change.value.trim() !== description_change.defaultValue) {
-      console.log("Description changed!")
-      submitButton.disabled = false   // description changed, enable the submit button
+      console.log("Description changed!");
+      submitButton.disabled = false;   // description changed, enable the submit button
       return
     }
     // nothing found, disable submit
-    submitButton.disabled = true
+    submitButton.disabled = true;
   }
 </script>

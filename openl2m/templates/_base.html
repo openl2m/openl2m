@@ -131,7 +131,7 @@
   <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.js' %}"></script>
   <script>
     // New Bootstrap 5 tooltip activation:
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new bootstrap.Tooltip(tooltipTriggerEl, {trigger : 'hover'});
     });

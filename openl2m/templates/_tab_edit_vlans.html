@@ -57,13 +57,13 @@
                       function checkVlanIdChanged{{ forloop.counter }}() {
                         const newVlan = document.getElementById('new_vlan_input');
                         const submitButton = document.getElementById('new_vlan_create');
-                        {% if connection.can_set_vlan_name %}
+{% if connection.can_set_vlan_name %}
                         const newVlanName = document.getElementById('id_new_vlan_name').value.trim();
-                        {% endif %}
+{% endif %}
                         if (newVlan.value !== newVlan.defaultValue && !myVlans.includes(newVlan.value)
-                            {% if connection.can_set_vlan_name %}
+{% if connection.can_set_vlan_name %}
                             && newVlanName
-                            {% endif %}
+{% endif %}
                         ) {
                           submitButton.disabled = false;   // Input changes and new vlan, enable the submit button
                         } else {

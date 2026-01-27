@@ -86,14 +86,14 @@
                       <!-- Add script to detect vlan input change and enable submit -->
                       <script>
                         // value at initial form rendering:
-                        const initialVlanValue{{ forloop.counter }} = document.getElementById('vlan_select{{ forloop.counter }}').value
+                        const initialVlanValue{{ forloop.counter }} = document.getElementById('vlan_select{{ forloop.counter }}').value;
                         function checkVlanChanged{{ forloop.counter }}() {
                           const vlanSelect = document.getElementById('vlan_select{{ forloop.counter }}');
                           const submitButton = document.getElementById('vlan_submit{{ forloop.counter }}');
                           if (vlanSelect.value !== initialVlanValue{{ forloop.counter }}) {
-                            submitButton.disabled = false   // selected vlan changed, enable the submit button
+                            submitButton.disabled = false;   // selected vlan changed, enable the submit button
                           } else {
-                            submitButton.disabled = true    // No changes from original vlan, disable the submit button
+                            submitButton.disabled = true;    // No changes from original vlan, disable the submit button
                           }
                         }
                       </script>
@@ -200,9 +200,9 @@
                         const newDescr = document.getElementById('description{{ forloop.counter }}');
                         const submitButton = document.getElementById('submit{{ forloop.counter }}');
                         if (newDescr.value.trim() !== newDescr.defaultValue) {
-                          submitButton.disabled = false   // Input changes, enable the submit button
+                          submitButton.disabled = false;   // Input changes, enable the submit button
                         } else {
-                          submitButton.disabled = true    // No changes from original, disable the submit button
+                          submitButton.disabled = true;    // No changes from original, disable the submit button
                         }
                       }
                     </script>

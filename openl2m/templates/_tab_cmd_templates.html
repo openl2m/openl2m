@@ -154,23 +154,23 @@
               {# add some client-side validation #}
               <script>
                 function templateInputChanged{{ t.id }}() {
-                  const thisForm = document.getElementById('command_template_{{ t.id }}_form')
+                  const thisForm = document.getElementById('command_template_{{ t.id }}_form');
                   const submitButton = document.getElementById('template_form_submit{{ t.id }}');
-                  var setEnable = false
+                  var setEnable = false;
                   // dynamically read the form elements here
                   for (let i = 0; i < thisForm.elements.length; i++) {
                     const element = thisForm.elements[i];
                     if (element.type === 'text' && element.value.trim() !== element.defaultValue) {
-                      setEnable = true   // input changes, allow submit
+                      setEnable = true;   // input changes, allow submit
                     }
                     else if (element.type === 'select-one' && element.value !== "") {
-                      setEnable = true   // input changes, allow submit
+                      setEnable = true;   // input changes, allow submit
                     }
                   }
                   if (setEnable) {
-                    submitButton.disabled = false
+                    submitButton.disabled = false;
                   } else {
-                    submitButton.disabled = true
+                    submitButton.disabled = true;
                   }
                 }
               </script>
