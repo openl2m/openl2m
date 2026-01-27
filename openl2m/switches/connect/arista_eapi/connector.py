@@ -666,7 +666,7 @@ class AristaApiConnector(Connector):
             cmds = [
                 "configure terminal",
                 f"vlan {vlan_id}",
-                f"no name",
+                "no name",
                 "end",
             ]
 
@@ -817,9 +817,9 @@ class AristaApiConnector(Connector):
             dprint(f"RETURN:\n{json_data}")
             if 'error' in json_data:
                 # some error occured !
-                dprint(f"  ERROR running command!")
-                error_code = json_data['error']['code']
-                error_msg = json_data['error']['message']
+                dprint("  ERROR running command!")
+                # error_code = json_data['error']['code']
+                # error_msg = json_data['error']['message']
                 self.error.status = True
                 self.error.description = (
                     f"Error '{json_data['error']['code']}' running eAPI commands: '{json_data['error']['message']}'"
