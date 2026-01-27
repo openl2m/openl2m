@@ -6,7 +6,7 @@ What's New...
 
 :doc:`Please read the release notes for more details on each release. <releases/index>`
 
-* v3.4 adds support for IPv6 for interfaces and neighbors, supports Cisco CBS devices
+* v3.4 adds support for IPv6 for interfaces and neighbors, supports Cisco CBS and MikroTik devices, Arista via eAPI,
   and can produce a graphic view of all device neighbors.
 
 * v3.3 adds support for Arista devices via SNMP. Also read MPLS VRF info via SNMP on devices

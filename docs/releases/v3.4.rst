@@ -9,7 +9,9 @@ Version 3.4
   v3.3 and up require Postgres version 13 or greater! (I.e. Ubuntu 20.04 will no longer work.)
 
 
-**Version 3.4 adds support for IPv6, Cisco CBS devices and can produce a graphic view of all device neighbors.**
+**Version 3.4 adds support for IPv6, Cisco CBS and MikroTik devices, Arista via eAPI,
+and can produce a graphic view of all device neighbors.**
+
 
 New Configuration Options
 -------------------------
@@ -36,24 +38,30 @@ Neighbor Graph Options:
   # default is simple, ie. False. Set to True for slightly more interesting graph.
   MM_GRAPH_EXPANDED = False
 
+
 Version 3.4.9
 -------------
 
-Release Date: TBD
+Release Date: 2026-01-27
 
 * display LLDP/Neighbor ipv6 management address.
 * read snmp lldp ipv6 management address.
-* new Arista eAPI driver, in Read-Only mode.
-* various usage and development docs updates.
+* new Arista eAPI driver, supporting all features except PoE (no test device :-( ).
+* add (minimal) MikroTik device snmp support. See feature support for details.
 * update to Bootstrap v5.3.8 (from v5.3.7)
 * update to FontAwesome v7.1.0 (from v7.0.0)
+* various usage documentation updates.
+* updates to the driver internals documentation.
 
 Bug fixes:
 
 * on switch admin page, only validate ip/hostname if marked as active.
   (non-active might no longer have dns name)
+* javascript vlan create form client-side fix
+* javascript console logging removed, and proper statement terminations.
 * update djangorestframework to v3.16.1
 * update pysnmp to v7.1.22
+* various Python and HTML cleanups (using Ruff, and HTML Tidy validator)
 
 
 Version 3.4.8

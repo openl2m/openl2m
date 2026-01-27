@@ -18,7 +18,7 @@ tested against.
   current firmware, should be supported.
 
 * **Arista eAPI** - this is fast driver using the Arista REST api (aka. eAPI). All features, except PoE, are supported.
-(Note that we don't have a PoE-capable device to develop and test against.)
+  (Note that we don't have a PoE-capable device to develop and test against.)
 
 * **Juniper JunOS** - this uses the 'PyEZ' library provided by Juniper. Most Juniper devices properly configured, and running
   current firmware, should be supported, barring device-specific interface names, etc.
