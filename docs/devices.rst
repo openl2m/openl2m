@@ -17,7 +17,8 @@ tested against.
 * **AOS-CX** - this uses the 'pyaoscx' library provided by HPE. Any AOS-CX device properly configured, and running
   current firmware, should be supported.
 
-* **Arista eAPI** - this is at present a very fast Read-Only driver using the Arista REST api (aka. eAPI).
+* **Arista eAPI** - this is fast driver using the Arista REST api (aka. eAPI). All features, except PoE, are supported.
+(Note that we don't have a PoE-capable device to develop and test against.)
 
 * **Juniper JunOS** - this uses the 'PyEZ' library provided by Juniper. Most Juniper devices properly configured, and running
   current firmware, should be supported, barring device-specific interface names, etc.
@@ -39,8 +40,9 @@ We have tested OpenL2M on the following hardware, with the listed limitations.
 
 **Arista**
 
-* Any Arista switch via SNMP, as they all support the same MIBs. Tested on 7280CR3 series.
-* The Arista eAPI is also supported, at present in Read-Only mode.
+* Any Arista switch via SNMP, as they all support the same MIBs. Tested on 7050SX3 and 7280CR3 series.
+  PoE may function, but is untested!
+* The Arista eAPI is also supported. Tested on 7050SX3 and 7280CR3. PoE is not support, as we don't have a PoE-capable device to develop and test against.
 
 **Cisco**
 

@@ -4,19 +4,25 @@
 Device Requirements
 ===================
 
+Arista eAPI
+-----------
+
+* any Arista device, as they all suppport the eAPI. Device access needs to be configured properly.
+* PoE not supported, as we have no PoE-capable device to develop and test against.
+
 Aruba AOS-CX
 ------------
 
 * any device that supports the Aruba AOS-CX API v10.08 is supported, via the pyaoscx library.
-  Device access needs to be configured properly.
+* Device access needs to be configured properly.
 
 
 Juniper PyEZ
 ------------
 
 * any Juniper "ELS" device that supports the XML api, via the PyEZ library.
-  Device needs to support the "ELS" (Enhanced Layer2 Software) unified command-line interface.
-  Device access needs to be configured properly for API access.
+* Device needs to support the "ELS" (Enhanced Layer2 Software) unified command-line interface.
+* Device access needs to be configured properly for API access.
 
 
 SNMP
@@ -107,4 +113,7 @@ Several vendor specific MIB are supported at this time.
 Napalm
 ------
 
-Any device supported by the Napalm library is supported in Read-Only mode.
+Any device supported by the default Napalm library is supported in Read-Only mode.
+We additionally load the Napalm vendor libraries for Aruba-CX, HP Procurve, and Dell-OS10.
+
+*Note that we do not extensively test this driver, so your mileage may vary!*
