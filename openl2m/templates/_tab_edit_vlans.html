@@ -30,7 +30,8 @@
                         <td class="text-start align-middle">
                             <input data-bs-toggle="tooltip" title="Enter the name of the new vlan" type="text"
                                    class="form-control" name="vlan_name" id="id_new_vlan_name" value=""
-                                   placeholder="new vlan name" maxlength="{{ connection.max_vlan_name_size}}">
+                                   placeholder="new vlan name" maxlength="{{ connection.max_vlan_name_size}}"
+                                   onkeyup="checkVlanIdChanged()">
                         </td>
                     </tr>
 {% endif %}
@@ -56,10 +57,17 @@
                       function checkVlanIdChanged{{ forloop.counter }}() {
                         const newVlan = document.getElementById('new_vlan_input');
                         const submitButton = document.getElementById('new_vlan_create');
-                        if (newVlan.value !== newVlan.defaultValue && !myVlans.includes(newVlan.value)) {
-                          submitButton.disabled = false   // Input changes and new vlan, enable the submit button
+                        {% if connection.can_set_vlan_name %}
+                        const newVlanName = document.getElementById('id_new_vlan_name').value.trim();
+                        {% endif %}
+                        if (newVlan.value !== newVlan.defaultValue && !myVlans.includes(newVlan.value)
+                            {% if connection.can_set_vlan_name %}
+                            && newVlanName
+                            {% endif %}
+                        ) {
+                          submitButton.disabled = false;   // Input changes and new vlan, enable the submit button
                         } else {
-                          submitButton.disabled = true    // No changes from original, disable the submit button
+                          submitButton.disabled = true;    // No changes from original, disable the submit button
                         }
                       }
                     </script>
@@ -146,20 +154,20 @@
                         const updateSubmit = document.getElementById('vlan_update_submit');
         {% endif %}
                         if (vlanSelect.value !== "-1") {
-                            deleteSubmit.disabled = false   {# selected vlan changed, enable the delete submit button #}
+                            deleteSubmit.disabled = false;   {# selected vlan changed, enable the delete submit button #}
         {% if connection.can_set_vlan_name %}
-                            const newVlanName = document.getElementById('id_update_vlan_name').value.trim()
+                            const newVlanName = document.getElementById('id_update_vlan_name').value.trim();
                             // check that the name changed:
                             if (newVlanName && newVlanName !== vlanNames[vlanSelect.value]) {
-                                updateSubmit.disabled = false   // also enable the update submit button when name is set
+                                updateSubmit.disabled = false;   // also enable the update submit button when name is set
                             } else {
-                                updateSubmit.disabled = true    // no new name set or duplicate, disable update
+                                updateSubmit.disabled = true;    // no new name set or duplicate, disable update
                             }
         {% endif %}
                         } else {    // No changes from original vlan, disable submit buttons
-                            deleteSubmit.disabled = true
+                            deleteSubmit.disabled = true;
         {% if connection.can_set_vlan_name %}
-                            updateSubmit.disabled = true
+                            updateSubmit.disabled = true;
         {% endif %}
                         }
                     }
