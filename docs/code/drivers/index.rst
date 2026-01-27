@@ -46,7 +46,7 @@ Note that the SNMP driver can support several vendors that implemented their own
 See that driver for more details.
 
 We implement the ability to run regular Command-Line Interface (CLI) commands through SSH logins.
-This uses the Netmiko library. This is also implemented as a part of the base Connector() class.
+This uses the Python Netmiko library. This is also implemented as a part of the base Connector() class.
 This allows vendor-drivers to override this functionality and implement their own mechanism to run CLI commands.
 See :doc:`SSH connections<netmiko/index>` for details.
 
