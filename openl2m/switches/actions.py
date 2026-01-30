@@ -42,6 +42,7 @@ from switches.constants import (
     LOG_CHANGE_INTERFACE_PVID,
     LOG_CHANGE_INTERFACE_POE_UP,
     LOG_CHANGE_INTERFACE_POE_DOWN,
+    LOG_CHANGE_INTERFACE_VLANS,
     LOG_VLAN_CREATE,
     LOG_VLAN_DELETE,
     LOG_VLAN_EDIT,
@@ -510,7 +511,8 @@ def perform_interface_tags_edit(
         group_id (int): SwitchGroup() pk
         switch_id (int): Switch() pk
         interface_key (str):  Interface() 'key' attribute
-        tagged_vlans (list): vlans to set on interface - THIS NEEDS DESIGN WORK!!!!!
+        pvid (int): integer vlan id to set as untagged vlan.
+        tagged_vlans (list): integer list of vlan id's to set on interface - THIS NEEDS DESIGN WORK!!!!!
 
     Returns:
         boolean, Error() :
@@ -542,20 +544,53 @@ def perform_interface_tags_edit(
     LOGGING NEEDS NEW LOG TYPES!!!
     """
 
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_CHANGE_INTERFACE_VLANS,
+    )
+
     # # verify we allow trunk editing and driver can handle interface mode change:
-    # if settings.ALLOW_TAGS_EDIT and connection.can_change_mode:
+    if not settings.ALLOW_TAGS_EDIT or not connection.can_edit_tags:
+        denied = Error()
+        denied.status = True  # error
+        denied.description = "Permission denied!"
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Permission denied to 802.1Q vlan edit!"
+        log.save()
+        return False, denied
+
     interface, error = get_interface_to_change(connection=connection, interface_key=interface_key)
     if not interface:
-        # log.type = LOG_TYPE_ERROR
-        # log.description = f"Admin-Change: ERROR - {error.description}"
-        # log.save()
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Can not get interface: ERROR - {error.description}"
+        log.save()
         counter_increment(COUNTER_ERRORS)
         return False, error
 
-    # for now, return OK
+    # call the interface vlan edit function:
+    if not connection.set_interface_vlans(interface=interface, untagged_vlan=pvid, tagged_vlans=tagged_vlans):
+        log.description = f"ERROR: {connection.error.description} - {connection.error.details}"
+        log.type = LOG_TYPE_ERROR
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        return False, connection.error
+
+    # indicate we need to save config!
+    connection.set_save_needed(True)
+
+    # and save cachable/session data
+    connection.save_cache()
+
+    log.save()
+    counter_increment(COUNTER_CHANGES)
+    switch.update_change()
+
     success = Error()
     success.status = False  # no error
-    success.description = f"DEMO MODE - NON-FUNCTIONAL - Interface {interface.name} TRUNK VLANS CHANGED!"
+    success.description = f"Interface {interface.name} vlans have been set!"
     return True, success
 
 

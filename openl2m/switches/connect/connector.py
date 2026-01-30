@@ -670,6 +670,36 @@ class Connector:
         # self.save_cache()
         return True
 
+    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List) -> bool:
+        '''
+        Set the interface to the untagged and tagged vlans.
+
+        Args:
+            interface = Interface() object for the requested port
+            untagged_vlan = an integer with the requested untagged vlan
+            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+
+        Returns:
+            True on success, False on error and set self.error variables
+        '''
+        dprint(
+            f"Connector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}"
+        )
+        interface.untagged_vlan = untagged_vlan
+        if not len(tagged_vlans):
+            # no tagged vlan, ie "access mode".
+            interface.is_tagged = False
+        else:
+            interface.is_tagged = True
+            # loop through all vlans, and see if they are allowed
+            for vid in self.vlans.keys():
+                if vid in tagged_vlans:
+                    self.add_interface_tagged_vlan(interface=interface, new_vlan=vid)
+                else:
+                    self.remove_interface_tagged_vlan(interface=interface, old_vlan=vid)
+
+        return True
+
     def add_interface_tagged_vlan(self, interface: Interface, new_vlan: int) -> bool:
         '''
         Add a tagged vlan to the interface.
@@ -681,7 +711,8 @@ class Connector:
         Returns:
             True on success, False on error and set self.error variables
         '''
-        interface.vlans.append(int(new_vlan))
+        if int(new_vlan) not in interface.vlans:
+            interface.vlans.append(int(new_vlan))
         # self.save_cache()
         return True
 
@@ -696,7 +727,8 @@ class Connector:
         Returns:
             True on success, False on error and set self.error variables
         '''
-        interface.vlans.remove(int(old_vlan))
+        if int(old_vlan) in interface.vlans:
+            interface.vlans.remove(int(old_vlan))
         # self.save_cache()
         return True
 
@@ -1583,7 +1615,7 @@ class Connector:
             none
         '''
         self.timing[name] = (count, time)
-        (total_count, total_time) = self.timing["Total"]
+        total_count, total_time = self.timing["Total"]
         total_count += count
         total_time += time
         self.timing["Total"] = (total_count, total_time)

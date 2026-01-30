@@ -1437,27 +1437,34 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
         # untagged PVID first.
         try:
             pvid = int(request.POST.get('pvid'))
-        except Exception:
-            error = Error()
-            error.description = "Missing or invalid required parameter: 'new_pvid'"
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
+        except Exception as err:
+            info = Error()
+            info.description = "Missing or invalid required parameter: 'new_pvid'"
+            info.details = err
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
         if pvid <= 0:  # should not happen!
             info = Error()
             info.description = "Invalid PVID = {pvid}"
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-        # TBD !
-        tagged_vlans = {}
-        tagged_vlans = request.POST.getlist('tagged_vlans')
-        # for key, value in request.POST.items():
-        #     dprint(f"POST: '{key}' = '{value}'")
-        #     if key.startswith("vlan_"):
-        #         tagged_vlans[key] = value
-        # can also use POST.getlist('name')
+        # get the vlans on the trunk:
+        post_vlans = request.POST.getlist('tagged_vlans')
+        # this returns vlan numbers as string. Our internal processing requires a list of integer vlan id's!
+        tagged_vlans = []
+        for vlan_str in post_vlans:
+            dprint(f"Handling tagged vlan {vlan_str}")
+            try:
+                vlan_id = int(vlan_str)
+                tagged_vlans.append(vlan_id)
+            except Exception as err:  # should not happen!
+                info = Error()
+                info.description = f"Error converting vlan to integer: {vlan_str}"
+                info.details = err
+                return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
         # if tagged_vlans = empty List(), then the interface should be in Access mode!
-        # else it should be in Trunk or Tagged mode.
+        # else it should be in Trunk or 802.1Q Tagged mode.
 
         retval, info = perform_interface_tags_edit(
             request=request,
