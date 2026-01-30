@@ -318,7 +318,7 @@ if LDAP_CONFIG is not None:
     # Check that django_auth_ldap is installed
     try:
         import ldap
-        import django_auth_ldap
+        import django_auth_ldap     # noqa: F401
     except ImportError:
         raise ImproperlyConfigured(
             "LDAP authentication has been configured, but django-auth-ldap is not installed. Remove "

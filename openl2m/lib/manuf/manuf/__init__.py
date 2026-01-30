@@ -1,2 +1,2 @@
-from . import manuf
-from .manuf import MacParser
+from . import manuf as manuf
+from .manuf import MacParser as MacParser

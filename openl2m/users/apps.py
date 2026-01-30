@@ -19,4 +19,4 @@ class UsersConfig(AppConfig):
 
     def ready(self):
         # here we handle the Django-Auth-LDAP signal to read group membership
-        import users.signals
+        import users.signals    # noqa: F401
