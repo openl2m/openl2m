@@ -34,14 +34,15 @@ sys.path.insert(0, PROJECT_DIR)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'openl2m.settings')
 django.setup()
 
-from django.conf import settings
+from django.conf import settings        # noqa: E401, E402, F401
 
 # load the User() object
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User # noqa: E402
 
 # load various OpenL2M objects
-from switches.models import Switch, SwitchGroup, SnmpProfile, NetmikoProfile, CommandList
-from switches.constants import *
+from switches.models import Switch, SwitchGroup, SnmpProfile, NetmikoProfile, CommandList   # noqa: E402
+# if you needs constants, import from the various files. eg:
+# from switches.constants import <constants-as-needed>
 
 
 def main():
