@@ -670,7 +670,7 @@ class Connector:
         # self.save_cache()
         return True
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List) -> bool:
+    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int]) -> bool:
         '''
         Set the interface to the untagged and tagged vlans.
 
@@ -688,15 +688,15 @@ class Connector:
         interface.untagged_vlan = untagged_vlan
         if not len(tagged_vlans):
             # no tagged vlan, ie "access mode".
-            interface.is_tagged = False
+            self.set_interface_untagged(interface=interface)
         else:
             interface.is_tagged = True
+            interface.vlans = []  # start with clean slate on trunk!
             # loop through all vlans, and see if they are allowed
+            # this avoids invalid vlans in 'tagged_vlans'
             for vid in self.vlans.keys():
                 if vid in tagged_vlans:
                     self.add_interface_tagged_vlan(interface=interface, new_vlan=vid)
-                else:
-                    self.remove_interface_tagged_vlan(interface=interface, old_vlan=vid)
 
         return True
 
@@ -729,6 +729,21 @@ class Connector:
         '''
         if int(old_vlan) in interface.vlans:
             interface.vlans.remove(int(old_vlan))
+        # self.save_cache()
+        return True
+
+    def set_interface_untagged(self, interface: Interface) -> bool:
+        '''
+        Remove all tagged vlans from the interface and set to untagged.
+
+        Args:
+            interface = Interface() object for the requested port
+
+        Returns:
+            True (nothing to fail!)
+        '''
+        interface.vlans = []
+        interface.is_tagged = False
         # self.save_cache()
         return True
 

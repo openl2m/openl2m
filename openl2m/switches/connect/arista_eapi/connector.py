@@ -24,6 +24,7 @@ import requests
 # used to disable unknown SSL cert warnings:
 import urllib3
 import traceback
+from typing import List
 
 from switches.connect.classes import Interface, NeighborDevice, Transceiver, Vlan
 from switches.connect.connector import Connector
@@ -84,6 +85,7 @@ class AristaApiConnector(Connector):
         self.can_change_description = True
         self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
+        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
 
     def get_my_basic_info(self) -> bool:
         """
@@ -605,6 +607,65 @@ class AristaApiConnector(Connector):
         if self._run_commands(commands=cmds, action=f"set interface vlan to {new_vlan_id}"):
             # all OK, now do the book keeping
             super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
+            return True
+
+        return False
+
+    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int]) -> bool:
+        '''
+        Set the interface to the untagged and tagged vlans.
+
+        Args:
+            interface = Interface() object for the requested port
+            untagged_vlan = an integer with the requested untagged vlan
+            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+
+        Returns:
+            True on success, False on error and set self.error variables
+        '''
+        dprint(
+            f"AristaApiConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}"
+        )
+        if not len(tagged_vlans):
+            # no tagged vlan, ie "access mode".
+            cmds = [
+                "configure terminal",
+                f"interface {interface.name}",
+                "switchport mode access",
+                f"switchport access vlan {untagged_vlan}",
+                "no switchport trunk native vlan",  # not needed, added for config clarity!
+                "no switchport trunk allowed vlan",  # not needed, added for config clarity!
+                "end",
+            ]
+        else:
+            # trunk mode, setup mode and native vlan:
+            cmds = [
+                "configure terminal",
+                f"interface {interface.name}",
+                "switchport mode trunk",
+                "no switchport access vlan",  # not needed, added for config clarity!
+                f"switchport trunk native vlan {untagged_vlan}",
+                "switchport trunk allowed vlan none",  # start with clean slate on trunk
+            ]
+            # loop through all vlans, and see if they are allowed
+            allow = []
+            for vid in self.vlans.keys():
+                if vid in tagged_vlans:
+                    # allowed!
+                    allow.append(str(vid))
+
+            # add to commands
+            cmds.append("switch trunk allowed vlan add " + ", ".join(allow))
+
+            # and finish the command list:
+            cmds.append("end")
+
+        # execute the command:
+        if self._run_commands(
+            commands=cmds, action=f"set interface vlans to untagged {untagged_vlan}, tagged={tagged_vlans}"
+        ):
+            # call the base Connector() for bookkeeping:
+            super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans)
             return True
 
         return False
