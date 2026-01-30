@@ -9,10 +9,10 @@ EXIT=0
 RED='\033[0;31m'
 NOCOLOR='\033[0m'
 
-echo "Validating 'ruff' compliance..."
-ruff check --silent openl2m/
+echo "Validating 'black' compliance..."
+black --check openl2m/
 if [ $? != 0 ]; then
-	echo "Not all files comply with ruff formatting!"
+	echo "Not all files comply with black formatting!"
 	EXIT=1
 fi
 
