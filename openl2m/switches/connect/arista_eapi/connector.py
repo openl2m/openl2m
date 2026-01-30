@@ -86,6 +86,7 @@ class AristaApiConnector(Connector):
         self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_tag_all = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
     def get_my_basic_info(self) -> bool:
         """
@@ -611,7 +612,7 @@ class AristaApiConnector(Connector):
 
         return False
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int]) -> bool:
+    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], tagged_all: bool = False) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
 
@@ -662,10 +663,10 @@ class AristaApiConnector(Connector):
 
         # execute the command:
         if self._run_commands(
-            commands=cmds, action=f"set interface vlans to untagged {untagged_vlan}, tagged={tagged_vlans}"
+            commands=cmds, action=f"set interface vlans to untagged {untagged_vlan}, tagged={tagged_vlans}, tagged_all={tagged_all}"
         ):
             # call the base Connector() for bookkeeping:
-            super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans)
+            super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, tagged_all=tagged_all)
             return True
 
         return False
