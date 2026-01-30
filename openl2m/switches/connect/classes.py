@@ -1037,10 +1037,7 @@ class Interface:
         self.can_change_vlan: bool = (
             True  # if set, we can change the vlan; some device types this is not implemented yet!
         )
-        self.can_edit_tags: bool = False  # True if this is 802.1q tagged ("trunk") interface and user can edit.
-        self.can_set_mode: bool = (
-            False  # True if this interface can be change from access to 802.1q tagged ("trunk") and back.
-        )
+        self.can_edit_tags: bool = False  # True if this is 802.1q tagged ("trunk") interface and user/driver can edit.
         # This also means the interface mode can be change (access <-> trunk)
         self.gvrp_enabled: bool = False  # the value representing the status of MVRP/GVRP on the interface
         self.last_change: int = 0  # ifLastChange, tick count since uptime when interface last changed
@@ -1100,27 +1097,6 @@ class Interface:
         except Exception as err:
             dprint(f"INVALID IPv6 address '{address}/{prefix_len}': {err}")
         # return True
-
-    def set_mode(self, is_tagged: int) -> bool:
-        """Bookkeeping function to set an interface mode to tagged (802.1q trunk), or access.
-        returns the mode, True = tagged, False = access mode.
-
-        Note that a driver needs to override this to implement actual functionality.
-        It should then call this super-class function to do the bookkeeping.
-
-        Args:
-            is_tagged (bool): if True, set to tagged mode, else access.
-
-        Returns:
-            (bool):
-        """
-        if not self.can_set_mode:
-            # this should not happen!
-            # add error code here!
-            return self.is_tagged
-
-        self.is_tagged = is_tagged
-        return self.is_tagged
 
     def add_tagged_vlan(self, vlan_id: int) -> None:
         """
