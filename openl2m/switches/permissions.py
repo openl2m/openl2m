@@ -79,11 +79,11 @@ def get_my_device_groups(request: HttpRequest) -> dict:
         if group.switches.count():
             # set this group, and the switches, in web session to track permissions
             group_info = {
-                'name': group.name,
-                'description': group.description,
-                'display_name': group.display_name,
-                'read_only': group.read_only,
-                'comments': group.comments,
+                "name": group.name,
+                "description": group.description,
+                "display_name": group.display_name,
+                "read_only": group.read_only,
+                "comments": group.comments,
             }
             members = {}
             for switch in group.switches.all():
@@ -110,7 +110,7 @@ def get_my_device_groups(request: HttpRequest) -> dict:
                         members[str(switch.id)]["nms_id"] = switch.nms_id
                     else:
                         members[str(switch.id)]["nms_id"] = ""
-            group_info['members'] = members
+            group_info["members"] = members
             permissions[str(group.id)] = group_info
     return permissions
 
@@ -301,7 +301,7 @@ def _get_group_and_switch_from_permissions(
     switch = None
     if permissions and isinstance(permissions, dict) and group_id in permissions.keys():
         devices = permissions[group_id]
-        if isinstance(devices, dict) and switch_id in devices['members'].keys():
+        if isinstance(devices, dict) and switch_id in devices["members"].keys():
             try:
                 group = SwitchGroup.objects.get(pk=group_id)
                 switch = Switch.objects.get(pk=switch_id)

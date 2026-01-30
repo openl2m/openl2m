@@ -4,35 +4,34 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('switches', '0055_alter_snmpprofile_auth_protocol_and_more'),
+        ("switches", "0055_alter_snmpprofile_auth_protocol_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='snmpprofile',
-            name='read_only',
+            model_name="snmpprofile",
+            name="read_only",
             field=models.BooleanField(
                 default=False,
-                help_text='If checked, this is read-only profile. Devices using it will be marked read-only.',
-                verbose_name='Read-Only access',
+                help_text="If checked, this is read-only profile. Devices using it will be marked read-only.",
+                verbose_name="Read-Only access",
             ),
         ),
         migrations.AlterField(
-            model_name='switch',
-            name='read_only',
+            model_name="switch",
+            name="read_only",
             field=models.BooleanField(
-                default=False, help_text='If checked, this switch will be read-only.', verbose_name='Read-Only access'
+                default=False, help_text="If checked, this switch will be read-only.", verbose_name="Read-Only access"
             ),
         ),
         migrations.AlterField(
-            model_name='switchgroup',
-            name='read_only',
+            model_name="switchgroup",
+            name="read_only",
             field=models.BooleanField(
                 default=False,
-                help_text='If checked, the devices in this group are read-only for all users.',
-                verbose_name='Read-Only access',
+                help_text="If checked, the devices in this group are read-only for all users.",
+                verbose_name="Read-Only access",
             ),
         ),
     ]

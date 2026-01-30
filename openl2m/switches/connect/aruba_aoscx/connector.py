@@ -101,7 +101,7 @@ class AosCxConnector(Connector):
 
         # this will be the pyaoscx driver session object
         self.aoscx_session = False
-        self.set_do_not_cache_attribute('aoscx_session')
+        self.set_do_not_cache_attribute("aoscx_session")
 
         # capabilities of current driver:
         self.can_change_admin_status = True
@@ -113,10 +113,10 @@ class AosCxConnector(Connector):
         self.can_reload_all = False
 
     def get_my_basic_info(self) -> bool:
-        '''
+        """
         load 'basic' list of interfaces with status.
         return True on success, False on error and set self.error variables
-        '''
+        """
         dprint("AosCxConnector().get_my_basic_info()")
         if not self._open_device():
             dprint("  _open_device() failed!")
@@ -151,38 +151,38 @@ class AosCxConnector(Connector):
         for name, subsystem in aoscx_device.subsystems.items():
             # format is 'subsys-name,unit-id'
             (subsys_name, subsys_id) = name.split(",", 1)  # split once, we want just 2 components.
-            if subsys_name == 'chassis':
-                if subsystem['product_info']['part_number']:
+            if subsys_name == "chassis":
+                if subsystem["product_info"]["part_number"]:
                     # this is an existing chassis, not an empty "data slot"
                     dprint(f"  Found CHASSIS #{subsys_id}")
                     # for the first chassis, add some info:
                     if int(subsys_id) == 1:
                         self.add_more_info(
-                            'System',
-                            'Type',
+                            "System",
+                            "Type",
                             f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})",
                         )
-                        self.add_more_info('System', 'Serial', subsystem['product_info']['serial_number'])
+                        self.add_more_info("System", "Serial", subsystem["product_info"]["serial_number"])
 
                     # we also want 'power_supplies' information for this chassis:
-                    if 'power_supplies' in subsystem:
-                        for ps_name, ps in subsystem['power_supplies'].items():
+                    if "power_supplies" in subsystem:
+                        for ps_name, ps in subsystem["power_supplies"].items():
                             dprint(f"\n  FOUND PS INFO for {ps_name}\n{ps}\n")
-                            if ps['status'] == 'ok':
+                            if ps["status"] == "ok":
                                 # get used and max power:
-                                power_used = int(ps['characteristics']['instantaneous_power'])
-                                power_max = int(ps['characteristics']['maximum_power'])
+                                power_used = int(ps["characteristics"]["instantaneous_power"])
+                                power_max = int(ps["characteristics"]["maximum_power"])
                                 dprint("  MAX: {power_max} W, used {power_used} W")
                                 new_ps = self.add_poe_powersupply(id=ps_id, power_available=power_max)
                                 new_ps.set_consumed_power(power=power_used)
                                 self.poe_power_consumed += power_used  # total value
                                 ps_id += 1
                                 # set a few more attributes, currently not displayed yet (9/2024)
-                                new_ps.name = ps['name']
-                                new_ps.description = ps['identity']['description']
-                                new_ps.model = ps['identity']['model_number']
-                                new_ps.part_number = ps['identity']['product_name']
-                                new_ps.serial = ps['identity']['serial_number']
+                                new_ps.name = ps["name"]
+                                new_ps.description = ps["identity"]["description"]
+                                new_ps.model = ps["identity"]["model_number"]
+                                new_ps.part_number = ps["identity"]["product_name"]
+                                new_ps.serial = ps["identity"]["serial_number"]
 
         # aoscx_config = AosCxConfiguration(session=self.aoscx_session)
         # dvar(var=aoscx_config, header="AosCxConfiguration:")
@@ -193,11 +193,11 @@ class AosCxConnector(Connector):
         #     self.switch.hostname = aoscx_device.hostname
         #     self.switch.save()
 
-        self.add_more_info('System', 'Firmware Version', aoscx_device.software_version)
+        self.add_more_info("System", "Firmware Version", aoscx_device.software_version)
         # this is typically the same as software_version:
         # self.add_more_info('System', 'Firmware Version', aoscx_device.firmware_version)
-        if 'build_date' in aoscx_device.software_info:
-            self.add_more_info('System', 'Firmware Info', f"Build date: {aoscx_device.software_info['build_date']}")
+        if "build_date" in aoscx_device.software_info:
+            self.add_more_info("System", "Firmware Info", f"Build date: {aoscx_device.software_info['build_date']}")
         # this same info is in 'Type' above:
         # self.add_more_info('System', 'Platform', aoscx_device.platform_name)
 
@@ -216,7 +216,7 @@ class AosCxConnector(Connector):
         # dprint(f"\nBoot time = {aoscx_device.boot_time}")
         if aoscx_device.boot_time:
             boot_time = datetime.datetime.fromtimestamp(aoscx_device.boot_time)
-            self.add_more_info('System', 'Boot Time', boot_time)
+            self.add_more_info("System", "Boot Time", boot_time)
         # dprint(f"\nOther Config = {aoscx_device.other_config}")
         # dprint(f"\nMgmt Intf Status = {aoscx_device.mgmt_intf_status}")
 
@@ -248,12 +248,12 @@ class AosCxConnector(Connector):
             dvar(var=vlan, header="VLAN():")
             # dprint(f"Vlan {vid}: {vlan['name']}")
             vlan_id = int(vid)
-            self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan['name'])
+            self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan["name"])
             # is this vlan enabled?
-            if not vlan['admin'] == 'up' and not vlan['oper_state'] == 'up':
+            if not vlan["admin"] == "up" and not vlan["oper_state"] == "up":
                 dprint("  VLAN is disabled!")
                 self.vlans[vlan_id].admin_status = VLAN_ADMIN_DISABLED
-            if 'voice' in vlan and vlan['voice']:
+            if "voice" in vlan and vlan["voice"]:
                 dprint(f"Voice Vlan = '{vlan['voice']}' {type(vlan['voice'])})")
                 self.vlans[vlan_id].voice = True
 
@@ -303,33 +303,33 @@ class AosCxConnector(Connector):
             iface = Interface(if_name)
             iface.name = if_name
             iface.type = IF_TYPE_ETHERNET
-            if aoscx_interface['description']:  # when not set, this is None, so catch that!
-                iface.description = aoscx_interface['description']
+            if aoscx_interface["description"]:  # when not set, this is None, so catch that!
+                iface.description = aoscx_interface["description"]
             # this is Admin Up/Down:
-            if 'admin' in aoscx_interface and aoscx_interface['admin'] == 'down':
+            if "admin" in aoscx_interface and aoscx_interface["admin"] == "down":
                 iface.admin_status = False
                 iface.oper_status = False
             else:
                 # Admin UP, but do we have link?
                 iface.admin_status = True
-                if 'admin_state' in aoscx_interface and aoscx_interface['admin_state'] == 'up':
+                if "admin_state" in aoscx_interface and aoscx_interface["admin_state"] == "up":
                     iface.oper_status = True
-                    if 'link_speed' in aoscx_interface:  # better be :-)
-                        if aoscx_interface['link_speed'] is not None:
+                    if "link_speed" in aoscx_interface:  # better be :-)
+                        if aoscx_interface["link_speed"] is not None:
                             # iface.speed is in 1Mbps increments:
-                            iface.speed = int(int(aoscx_interface['link_speed']) / 1000000)
+                            iface.speed = int(int(aoscx_interface["link_speed"]) / 1000000)
                 else:
                     iface.oper_status = False
-            if 'duplex' in aoscx_interface:
-                iface.duplex = aoscx_parse_duplex(aoscx_interface['duplex'])
-            if 'ip_mtu' in aoscx_interface:
-                iface.mtu = aoscx_interface['ip_mtu']
-            if 'mvrp_enable' in aoscx_interface:
-                iface.gvrp_enabled = aoscx_interface['mvrp_enable']
-            if 'routing' in aoscx_interface:
-                iface.is_routed = aoscx_interface['routing']
-            if 'type' in aoscx_interface:
-                if aoscx_interface['type'] == 'vlan':
+            if "duplex" in aoscx_interface:
+                iface.duplex = aoscx_parse_duplex(aoscx_interface["duplex"])
+            if "ip_mtu" in aoscx_interface:
+                iface.mtu = aoscx_interface["ip_mtu"]
+            if "mvrp_enable" in aoscx_interface:
+                iface.gvrp_enabled = aoscx_interface["mvrp_enable"]
+            if "routing" in aoscx_interface:
+                iface.is_routed = aoscx_interface["routing"]
+            if "type" in aoscx_interface:
+                if aoscx_interface["type"] == "vlan":
                     dprint("VLAN interface")
                     iface.type = IF_TYPE_VIRTUAL
 
@@ -337,45 +337,45 @@ class AosCxConnector(Connector):
             # Find VLAN Info for interface:
             # set in "applied_vlan_mode", "applied_vlan_tag" and "applied_vlan_trunks"
             #
-            if 'applied_vlan_tag' in aoscx_interface and aoscx_interface['applied_vlan_tag'] is not None:
+            if "applied_vlan_tag" in aoscx_interface and aoscx_interface["applied_vlan_tag"] is not None:
                 # the untagged vlan
-                for vid in aoscx_interface['applied_vlan_tag']:
+                for vid in aoscx_interface["applied_vlan_tag"]:
                     # there is only 1:
                     iface.untagged_vlan = int(vid)
-            if 'applied_vlan_mode' in aoscx_interface:
-                if aoscx_interface['applied_vlan_mode'] == 'access':
+            if "applied_vlan_mode" in aoscx_interface:
+                if aoscx_interface["applied_vlan_mode"] == "access":
                     iface.is_tagged = False
-                elif aoscx_interface['applied_vlan_mode'] == 'native-untagged':
+                elif aoscx_interface["applied_vlan_mode"] == "native-untagged":
                     iface.is_tagged = True
                     # see if there are vlans on the trunk (untagged vlan is set above)
                     # vlan_trunks = {'500': '/rest/v10.04/system/vlans/500', '504': '/rest/v10.04/system/vlans/504'}
-                    if 'applied_vlan_trunks' in aoscx_interface:
-                        for vid in aoscx_interface['applied_vlan_trunks']:
+                    if "applied_vlan_trunks" in aoscx_interface:
+                        for vid in aoscx_interface["applied_vlan_trunks"]:
                             iface.add_tagged_vlan(int(vid))
 
             # check LACP 'stuff':
-            if 'lacp' in aoscx_interface and aoscx_interface['lacp'] == 'active':
+            if "lacp" in aoscx_interface and aoscx_interface["lacp"] == "active":
                 dprint("LAG interface")
                 iface.type = IF_TYPE_LAGG
                 iface.lacp_type = LACP_IF_TYPE_AGGREGATOR
                 # get speed
-                if 'bond_status' in aoscx_interface:
+                if "bond_status" in aoscx_interface:
                     dprint(f"Bond Status found: {aoscx_interface['bond_status']['bond_speed']}")
                     # iface.speed is in 1Mbps increments:
-                    iface.speed = int(int(aoscx_interface['bond_status']['bond_speed']) / 1000000)
+                    iface.speed = int(int(aoscx_interface["bond_status"]["bond_speed"]) / 1000000)
 
-            elif 'lacp_current' in aoscx_interface and aoscx_interface['lacp_current']:
+            elif "lacp_current" in aoscx_interface and aoscx_interface["lacp_current"]:
                 # lacp member interface:
                 iface.lacp_type = LACP_IF_TYPE_MEMBER
-                lacp_actor = int(aoscx_interface['lacp_status']['actor_key'])
+                lacp_actor = int(aoscx_interface["lacp_status"]["actor_key"])
                 iface.lacp_master_index = lacp_actor
                 iface.lacp_master_name = f"lag{lacp_actor}"
 
-            if 'ip4_address' in aoscx_interface:
-                if aoscx_interface['ip4_address']:
+            if "ip4_address" in aoscx_interface:
+                if aoscx_interface["ip4_address"]:
                     dprint(f"   IPv4 = {aoscx_interface['ip4_address']}")
-                    iface.add_ip4_network(address=aoscx_interface['ip4_address'])
-                    if 'ip4_address_secondary' in aoscx_interface:
+                    iface.add_ip4_network(address=aoscx_interface["ip4_address"])
+                    if "ip4_address_secondary" in aoscx_interface:
                         dprint(f"   IPv4(2nd) = {aoscx_interface['ip4_address_secondary']}")
 
             # check if this has PoE Capabilities
@@ -384,9 +384,9 @@ class AosCxConnector(Connector):
                 aoscx_iface = AosCxInterface(session=self.aoscx_session, name=if_name)
                 aoscx_poe_iface = AosCxPoEInterface(session=self.aoscx_session, parent_interface=aoscx_iface)
                 # get both configuration data (which has poe enable/disable status)
-                aoscx_poe_iface.get(selector='status')
+                aoscx_poe_iface.get(selector="status")
                 # as well as status data, which has power usage:
-                aoscx_poe_iface.get(selector='configuration')
+                aoscx_poe_iface.get(selector="configuration")
 
                 dprint(f"   +++ POE Exists for {if_name} ===")
                 # there is probably a more 'global' system/device way to see if PoE capabilities exist:
@@ -394,14 +394,14 @@ class AosCxConnector(Connector):
                 self.poe_enabled = True
                 # assign an OpenL2M PoePort() object
                 # dprint(f"POE: config.admin_disabled={aoscx_poe.config['admin_disable']}")
-                if aoscx_poe_iface.config['admin_disable']:
+                if aoscx_poe_iface.config["admin_disable"]:
                     poe_status = POE_PORT_ADMIN_DISABLED
                 else:
                     poe_status = POE_PORT_ADMIN_ENABLED
                 poe_entry = PoePort(index=if_name, admin_status=poe_status)
                 iface.poe_entry = poe_entry
                 # get power used. Listed in watts, convert to milliwatts:
-                consumed = int(aoscx_poe_iface.measurements['power_drawn'] * 1000)
+                consumed = int(aoscx_poe_iface.measurements["power_drawn"] * 1000)
                 if consumed > 0:
                     super().set_interface_poe_consumed(iface, consumed)
 
@@ -409,34 +409,34 @@ class AosCxConnector(Connector):
                 dprint(f"   +++ NO PoE! - exception: {format(error)}")
 
             # check VRF membership
-            if 'vrf' in aoscx_interface:
-                if aoscx_interface['vrf'] is not None:
-                    vrf_name = aoscx_interface['vrf']
+            if "vrf" in aoscx_interface:
+                if aoscx_interface["vrf"] is not None:
+                    vrf_name = aoscx_interface["vrf"]
                     if iface.name not in self.vrfs[vrf_name].interfaces:
                         self.vrfs[vrf_name].interfaces.append(iface.name)
                     # assing this vrf name to the interface:
                     iface.vrf_name = vrf_name
 
             # check plugable modules for optics info
-            if 'pm_info' in aoscx_interface:
-                if 'connector' in aoscx_interface['pm_info'] and aoscx_interface['pm_info']['connector'] != 'absent':
+            if "pm_info" in aoscx_interface:
+                if "connector" in aoscx_interface["pm_info"] and aoscx_interface["pm_info"]["connector"] != "absent":
                     dprint(f"Optics info found:\n{aoscx_interface['pm_info']}\n")
                     trx = Transceiver()
-                    if 'external_connector' in aoscx_interface['pm_info']:
-                        trx.connector = aoscx_interface['pm_info']['external_connector']
+                    if "external_connector" in aoscx_interface["pm_info"]:
+                        trx.connector = aoscx_interface["pm_info"]["external_connector"]
 
-                    if 'xcvr_desc' in aoscx_interface['pm_info']:
-                        trx.type = aoscx_interface['pm_info']['xcvr_desc']
+                    if "xcvr_desc" in aoscx_interface["pm_info"]:
+                        trx.type = aoscx_interface["pm_info"]["xcvr_desc"]
                     else:  # see if we can goble something from speed and connector info:
-                        if 'speed' in aoscx_interface['pm_info']:
-                            gig_speed = int(aoscx_interface['pm_info']['speed']) / 1000
+                        if "speed" in aoscx_interface["pm_info"]:
+                            gig_speed = int(aoscx_interface["pm_info"]["speed"]) / 1000
                             trx.type = f"{gig_speed}g {aoscx_interface['pm_info']['connector']}"
 
-                    if 'vendor_name' in aoscx_interface['pm_info']:
-                        trx.vendor = aoscx_interface['pm_info']['vendor_name']
+                    if "vendor_name" in aoscx_interface["pm_info"]:
+                        trx.vendor = aoscx_interface["pm_info"]["vendor_name"]
 
-                    if 'wavelength' in aoscx_interface['pm_info']:
-                        trx.wavelength = aoscx_interface['pm_info']['wavelength']
+                    if "wavelength" in aoscx_interface["pm_info"]:
+                        trx.wavelength = aoscx_interface["pm_info"]["wavelength"]
                     iface.transceiver = trx
 
             self.add_interface(iface)
@@ -456,17 +456,17 @@ class AosCxConnector(Connector):
         return True
 
     def get_my_hardware_details(self) -> bool:
-        '''
+        """
         TBD: Placeholder to read more hardware details of the AOS-CX device.
-        '''
+        """
         return True
 
     def get_my_client_data(self) -> bool:
-        '''
+        """
         read mac addressess, and lldp neigbor info.
         Not yet fully supported in AOS-CX API.
         return True on success, False on error and set self.error variables
-        '''
+        """
 
         if not self._open_device():
             dprint("_open_device() failed!")
@@ -478,7 +478,7 @@ class AosCxConnector(Connector):
             try:
                 v = AosCxVlan(session=self.aoscx_session, vlan_id=int(vlan_id))
                 v.get()
-                if hasattr(v, 'name'):
+                if hasattr(v, "name"):
                     # vlan 1 does not typically have a name!
                     dprint(f"  VLAN {v.name}")
             except Exception as err:
@@ -523,31 +523,31 @@ class AosCxConnector(Connector):
                         #    dprint(f"  {attrib} -> {value}")
                         # get an OpenL2M NeighborDevice()
                         neighbor = NeighborDevice(nb.chassis_id)
-                        neighbor.set_sys_name(nb.neighbor_info['chassis_name'])
-                        neighbor.set_sys_description(nb.neighbor_info['chassis_description'])
+                        neighbor.set_sys_name(nb.neighbor_info["chassis_name"])
+                        neighbor.set_sys_description(nb.neighbor_info["chassis_description"])
                         # remote device port info:
                         neighbor.port_name = nb.port_id
-                        neighbor.set_port_description(nb.neighbor_info['port_description'])
+                        neighbor.set_port_description(nb.neighbor_info["port_description"])
                         # remote chassis info:
                         neighbor.set_chassis_string(nb.chassis_id)
-                        if nb.neighbor_info['chassis_id_subtype'] == 'link_local_addr':
+                        if nb.neighbor_info["chassis_id_subtype"] == "link_local_addr":
                             neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
                         # parse capabilities:
-                        capabilities = nb.neighbor_info['chassis_capability_enabled'].lower()
+                        capabilities = nb.neighbor_info["chassis_capability_enabled"].lower()
                         dprint(f"  Capabilities: {capabilities}")
-                        if 'bridge' in capabilities:
+                        if "bridge" in capabilities:
                             neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
-                        if 'router' in capabilities:
+                        if "router" in capabilities:
                             neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
                         # Following NOT tested; we are assuming the following two are correct:
-                        if 'wlan' in capabilities:
+                        if "wlan" in capabilities:
                             neighbor.set_capability(LLDP_CAPABILITIES_WLAN)
-                        if 'phone' in capabilities:
+                        if "phone" in capabilities:
                             neighbor.set_capability(LLDP_CAPABILITIES_PHONE)
                         # remote device management address, this is a list(), take first entry
-                        if len(nb.neighbor_info['mgmt_ip_list']) > 0:
+                        if len(nb.neighbor_info["mgmt_ip_list"]) > 0:
                             # hardcoding to IPv4 for now...
-                            neighbor.set_management_address_v4(address=nb.neighbor_info['mgmt_ip_list'])
+                            neighbor.set_management_address_v4(address=nb.neighbor_info["mgmt_ip_list"])
                         # add to device interface:
                         self.add_neighbor_object(if_name, neighbor)
 
@@ -806,7 +806,7 @@ class AosCxConnector(Connector):
         return False
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
-        '''
+        """
         Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
 
         Args:
@@ -815,7 +815,7 @@ class AosCxConnector(Connector):
 
         Returns:
             True on success, False on error and set self.error variables.
-        '''
+        """
         dprint(f"AosCxConnector.vlan_create() for vlan {vlan_id} = '{vlan_name}'")
         if not self._open_device():
             dprint("_open_device() failed!")
@@ -836,7 +836,7 @@ class AosCxConnector(Connector):
         return True
 
     def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
-        '''
+        """
         Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
 
         Args:
@@ -845,7 +845,7 @@ class AosCxConnector(Connector):
 
         Returns:
             True on success, False on error and set self.error variables.
-        '''
+        """
         dprint(f"AosCxConnector.vlan_edit() for vlan {vlan_id} = '{vlan_name}'")
         if not self._open_device():
             dprint("_open_device() failed!")
@@ -872,7 +872,7 @@ class AosCxConnector(Connector):
         return True
 
     def vlan_delete(self, vlan_id: int) -> bool:
-        '''
+        """
         Delete the vlan. Upon success, this then needs to call the base class for book keeping!
 
         Args:
@@ -880,7 +880,7 @@ class AosCxConnector(Connector):
 
         Returns:
             True on success, False on error and set self.error variables.
-        '''
+        """
         dprint(f"AosCxConnector.vlan_delete() for vlan {vlan_id}")
         if not self._open_device():
             dprint("_open_device() failed!")
@@ -898,10 +898,10 @@ class AosCxConnector(Connector):
         return True
 
     def _open_device(self) -> bool:
-        '''
+        """
         get a pyaoscx "driver" and open a "connection" to the device
         return True on success, False on failure, and will set self.error
-        '''
+        """
         dprint("AOS-CX _open_device()")
 
         if self.aoscx_session:
@@ -946,9 +946,9 @@ class AosCxConnector(Connector):
             return False
 
     def _close_device(self) -> bool:
-        '''
+        """
         make sure we properly close the AOS-CX REST Session
-        '''
+        """
         dprint("AOS-CX _close_device()")
         if self.aoscx_session:
             # do we want to check SSL certificates ?

@@ -5,20 +5,20 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('switches', '0023_auto_20210519_1435'),
+        ("switches", "0023_auto_20210519_1435"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='switch',
-            name='details_read_count',
+            model_name="switch",
+            name="details_read_count",
         ),
         migrations.RemoveField(
-            model_name='switch',
-            name='read_count',
+            model_name="switch",
+            name="read_count",
         ),
         migrations.RemoveField(
-            model_name='switch',
-            name='write_count',
+            model_name="switch",
+            name="write_count",
         ),
     ]

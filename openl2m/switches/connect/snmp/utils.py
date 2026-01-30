@@ -29,9 +29,9 @@ def decimal_to_hex_string_ethernet(decimals: str) -> str:
     Convert SNMP decimal ethernet string "5.12.13.78.90.100"
     to hex value and colon-string "05:0c:0d:4e:5a:64"
     """
-    bytes = decimals.split('.')
+    bytes = decimals.split(".")
     if len(bytes) == 6:
-        mac = ''
+        mac = ""
         for byte in bytes:
             h = "%02X" % int(byte)
             if not mac:
@@ -54,7 +54,7 @@ def bytes_ethernet_to_string(bytes: str) -> str:
         # make sure we use consistent string representation of this ethernet address:
         eth.dialect = settings.MAC_DIALECT
         return str(eth)
-    return ''
+    return ""
 
 
 def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
@@ -74,7 +74,7 @@ def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
     if addr_type == IANA_TYPE_IPV4:
         if has_length:
             # for IPv4, encoding is simply the length (always 4) followed by IP:
-            parts = sub_oid.split('.', 1)  # only split in 2
+            parts = sub_oid.split(".", 1)  # only split in 2
             if int(parts[0]) != 4:  # looks valid
                 # very unlikely to happen (only if bad snmp implementation on device):
                 dprint(f"  INVALID IPv4 length field, expected 4, got {int(parts[0])}")
@@ -90,7 +90,7 @@ def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
     if addr_type == IANA_TYPE_IPV6:
         # for IPv6, encoding has optional length (always 16) followed by IP:
         if has_length:
-            parts = sub_oid.split('.', 1)  # only split in 2
+            parts = sub_oid.split(".", 1)  # only split in 2
             if int(parts[0]) != 16:  # invalid
                 dprint(f"  INVALID IPv6 lenght field, expected 16, got {int(parts[0])}")
                 return ""
@@ -100,9 +100,9 @@ def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
             # no length, just use full sub-oid:
             oid_ip = sub_oid
         # move from dotted decimal to IPv6 format. Convert OID string into list of integers:
-        ipv6_list = [int(octet) for octet in oid_ip.split('.')]
+        ipv6_list = [int(octet) for octet in oid_ip.split(".")]
         # Pack the integers into a byte string
-        ipv6_bytes = struct.pack('!16B', *ipv6_list)
+        ipv6_bytes = struct.pack("!16B", *ipv6_list)
         # convert to proper format:
         try:
             ipv6 = ipaddress.ip_address(ipv6_bytes)

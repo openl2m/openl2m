@@ -20,6 +20,7 @@ The latter are supported via connect/snmp/aruba-cx/ (read-only), or connect/arub
 This re-implements some methods found in the base SNMP() class
 with Procurve/Aruba specific ways of doing things...
 """
+
 import datetime
 
 from django.http.request import HttpRequest
@@ -56,7 +57,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         # for now, just call the super class
         dprint("HP/Procurve SnmpConnector __init__")
         super().__init__(request, group, switch)
-        self.description = 'Aruba Networks (HP/ProCurve) SNMP driver'
+        self.description = "Aruba Networks (HP/ProCurve) SNMP driver"
         self.vendor_name = "Aruba Networks (HP/Procurve)"
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
@@ -83,7 +84,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         super()._get_interface_data()
 
         # now add HP data, and cache it:
-        if self.get_snmp_branch(branch_name='hpnicfIfLinkMode', parser=self._parse_mibs_hp_if_linkmode) < 0:
+        if self.get_snmp_branch(branch_name="hpnicfIfLinkMode", parser=self._parse_mibs_hp_if_linkmode) < 0:
             dprint("Comware hpnicfIfLinkMode returned error!")
             return False
 
@@ -98,7 +99,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         """
         super()._get_interface_transceiver_types()
         # now read HP data
-        retval = self.get_snmp_branch(branch_name='hpicfXcvrInfoTable', parser=self._parse_mibs_procurve_transceiver)
+        retval = self.get_snmp_branch(branch_name="hpicfXcvrInfoTable", parser=self._parse_mibs_procurve_transceiver)
         if retval < 0:
             self.add_warning("Error getting Transceiver data (hpicfXcvrInfoTable)'")
         return retval
@@ -110,7 +111,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         super().get_my_hardware_details()
 
         # now read Procurve specific data:
-        retval = self.get_snmp_branch(branch_name='hpnicfCfgLog', parser=self._parse_mibs_procurve_config)
+        retval = self.get_snmp_branch(branch_name="hpnicfCfgLog", parser=self._parse_mibs_procurve_config)
         if retval < 0:
             self.add_warning(warning="Error getting Procurve config details ('hpnicfCfgLog')")
             return False
@@ -246,12 +247,12 @@ class SnmpConnectorProcurve(SnmpConnector):
         super()._get_poe_data()
         # if we found power supplies, get HP specific info about power usage from HP-IFC-POE-MIB first
         if self.poe_capable:
-            retval = self.get_snmp_branch(branch_name='hpicfPoePethPsePortPower', parser=self._parse_mibs_hp_poe)
+            retval = self.get_snmp_branch(branch_name="hpicfPoePethPsePortPower", parser=self._parse_mibs_hp_poe)
             if retval < 0:
                 self.add_warning(warning="Error getting 'PoE-Port-Actual-Power' (hpicfPoePethPsePortActualPower)")
             if retval == 0:
                 # maybe this device supports HP-ENTITY-POWER-MIB
-                retval = self.get_snmp_branch(branch_name='hpEntPowerCurrentPowerUsage', parser=self._parse_mibs_hp_poe)
+                retval = self.get_snmp_branch(branch_name="hpEntPowerCurrentPowerUsage", parser=self._parse_mibs_hp_poe)
 
         return 1
 
@@ -267,7 +268,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         dprint("Procurve _map_poe_port_entries_to_interface()\n")
         for pe_index, port_entry in self.poe_port_entries.items():
             # we take the ending part of "5.12" as the index
-            (module, index) = port_entry.index.split('.')
+            (module, index) = port_entry.index.split(".")
             # for the SnmpConnector() class and sub-classes, the "index" is the key to the Interface()
             if index in self.interfaces:
                 iface = self.interfaces[index]

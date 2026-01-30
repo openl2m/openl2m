@@ -558,7 +558,7 @@ def perform_interface_tags_edit(
         denied.status = True  # error
         denied.description = "Permission denied!"
         log.type = LOG_TYPE_ERROR
-        log.description = f"Permission denied to 802.1Q vlan edit!"
+        log.description = "Permission denied to 802.1Q vlan edit!"
         log.save()
         return False, denied
 

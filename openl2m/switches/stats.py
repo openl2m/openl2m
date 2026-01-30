@@ -54,7 +54,7 @@ from users.models import Token
 
 
 def get_environment_info() -> dict:
-    '''Get information about the runtime environment, and return in a dict().
+    """Get information about the runtime environment, and return in a dict().
     The key is the "attribute name" in api format (lc with _),
     and values are a dict of "label" and "value". eg>
     { "attribute" = {
@@ -62,7 +62,7 @@ def get_environment_info() -> dict:
          "value": attribute-value,
          }
     }
-    '''
+    """
     environment = {}
     environment["python"] = {
         "label": "Python",
@@ -96,7 +96,7 @@ def get_environment_info() -> dict:
         with db_connection.cursor() as cursor:
             cursor.execute("SELECT version()")
             psql_version = cursor.fetchone()[0]
-            psql_version = psql_version.split('(')[0].strip()
+            psql_version = psql_version.split("(")[0].strip()
             cursor.execute("SELECT current_database()")
             db_name = cursor.fetchone()[0]
             cursor.execute(f"SELECT pg_size_pretty(pg_database_size('{db_name}'))")
@@ -119,7 +119,7 @@ def get_environment_info() -> dict:
     # show the "ezsnmp" package version
     environment["ezsnmp"] = {
         "label": "EzSnmp",
-        "value": pkg_version('ezsnmp'),
+        "value": pkg_version("ezsnmp"),
     }
 
     environment["openl2m"] = {
@@ -127,7 +127,7 @@ def get_environment_info() -> dict:
         "value": f"{settings.VERSION} ({settings.VERSION_DATE})",
     }
 
-    if os.environ.get('IN_CONTAINER', False):
+    if os.environ.get("IN_CONTAINER", False):
         environment["dockerized"] = {
             "label": "Dockerized",
             "value": "Yes",
@@ -163,7 +163,7 @@ def get_environment_info() -> dict:
 
 
 def get_database_info() -> dict:
-    '''Get information about various database items, and return as a dict().'''
+    """Get information about various database items, and return as a dict()."""
     db_items = {}
     db_items["switches"] = {
         "label": "Switches",
@@ -224,7 +224,7 @@ def get_database_info() -> dict:
 
 
 def get_usage_info() -> dict:
-    '''Get OpenL2M application usage, and return as a dict().'''
+    """Get OpenL2M application usage, and return as a dict()."""
     usage = {}  # usage statistics
 
     one_hour_ago = timezone.now() - datetime.timedelta(hours=1)
@@ -237,7 +237,7 @@ def get_usage_info() -> dict:
     }
     usage["devices_last_hour"] = {
         "label": "Devices in last hour",
-        "value": Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count(),
+        "value": Log.objects.filter(**filter_values).values_list("switch_id", flat=True).distinct().count(),
     }
 
     filter_values = {
@@ -247,7 +247,7 @@ def get_usage_info() -> dict:
     }
     usage["devices_today"] = {
         "label": "Devices today",
-        "value": Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count(),
+        "value": Log.objects.filter(**filter_values).values_list("switch_id", flat=True).distinct().count(),
     }
 
     filter_values = {
@@ -256,7 +256,7 @@ def get_usage_info() -> dict:
     }
     usage["devices_last_7_days"] = {
         "label": "Devices last 7 days",
-        "value": Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count(),
+        "value": Log.objects.filter(**filter_values).values_list("switch_id", flat=True).distinct().count(),
     }
 
     filter_values = {
@@ -265,13 +265,13 @@ def get_usage_info() -> dict:
     }
     usage["devices_last_31_days"] = {
         "label": "Devices Last 31 Days",
-        "value": Log.objects.filter(**filter_values).values_list('switch_id', flat=True).distinct().count(),
+        "value": Log.objects.filter(**filter_values).values_list("switch_id", flat=True).distinct().count(),
     }
 
     # Changes made
     filter_values = {
-        'type': int(LOG_TYPE_CHANGE),
-        'timestamp__gte': one_hour_ago,
+        "type": int(LOG_TYPE_CHANGE),
+        "timestamp__gte": one_hour_ago,
     }
     usage["changes_last_hour"] = {
         "label": "Changes in last hour",
@@ -279,8 +279,8 @@ def get_usage_info() -> dict:
     }
 
     filter_values = {
-        'type': int(LOG_TYPE_CHANGE),
-        'timestamp__date': datetime.date.today(),
+        "type": int(LOG_TYPE_CHANGE),
+        "timestamp__date": datetime.date.today(),
     }
     usage["changes_today"] = {
         "label": "Changes today",
@@ -313,46 +313,46 @@ def get_usage_info() -> dict:
 
     # Unique Logins
     filter_values = {
-        'type': int(LOG_TYPE_LOGIN_OUT),
-        'timestamp__gte': one_hour_ago,
+        "type": int(LOG_TYPE_LOGIN_OUT),
+        "timestamp__gte": one_hour_ago,
     }
     usage["users_last_hour"] = {
         "label": "Users in last hour",
-        "value": Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count(),
+        "value": Log.objects.filter(**filter_values).values_list("user_id", flat=True).distinct().count(),
     }
 
     filter_values = {
-        'type': int(LOG_TYPE_LOGIN_OUT),
-        'timestamp__date': datetime.date.today(),
+        "type": int(LOG_TYPE_LOGIN_OUT),
+        "timestamp__date": datetime.date.today(),
     }
     usage["users_today"] = {
         "label": "Users today",
-        "value": Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count(),
+        "value": Log.objects.filter(**filter_values).values_list("user_id", flat=True).distinct().count(),
     }
 
     filter_values = {
-        'type': int(LOG_TYPE_LOGIN_OUT),
-        'timestamp__gte': timezone.now().date() - datetime.timedelta(days=7),
+        "type": int(LOG_TYPE_LOGIN_OUT),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=7),
     }
     usage["users_last_7_days"] = {
         "label": "Users last 7 days",
-        "value": Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count(),
+        "value": Log.objects.filter(**filter_values).values_list("user_id", flat=True).distinct().count(),
     }
 
     filter_values = {
-        'type': int(LOG_TYPE_LOGIN_OUT),
-        'timestamp__gte': timezone.now().date() - datetime.timedelta(days=31),
+        "type": int(LOG_TYPE_LOGIN_OUT),
+        "timestamp__gte": timezone.now().date() - datetime.timedelta(days=31),
     }
     usage["users_last_31_days"] = {
         "label": "Users last 31 days",
-        "value": Log.objects.filter(**filter_values).values_list('user_id', flat=True).distinct().count(),
+        "value": Log.objects.filter(**filter_values).values_list("user_id", flat=True).distinct().count(),
     }
 
     # API requests:
     filter_values = {
-        'type': int(LOG_TYPE_LOGIN_OUT),
-        'action': int(LOG_LOGIN_REST_API),
-        'timestamp__date': datetime.date.today(),
+        "type": int(LOG_TYPE_LOGIN_OUT),
+        "action": int(LOG_LOGIN_REST_API),
+        "timestamp__date": datetime.date.today(),
     }
     usage["api_calls_today"] = {
         "label": "API calls today",
@@ -450,8 +450,8 @@ def get_top_changed_devices() -> dict:
         if log.switch is not None:
             if log.switch.id not in devices:
                 devices[log.switch.id] = {
-                    'name': log.switch.name,
-                    'count': 1,
+                    "name": log.switch.name,
+                    "count": 1,
                 }
             else:
                 devices[log.switch.id]["count"] += 1
@@ -473,8 +473,8 @@ def get_top_viewed_devices() -> dict:
         if log.switch is not None:
             if log.switch.id not in devices:
                 devices[log.switch.id] = {
-                    'name': log.switch.name,
-                    'count': 1,
+                    "name": log.switch.name,
+                    "count": 1,
                 }
             else:
                 devices[log.switch.id]["count"] += 1
@@ -495,8 +495,8 @@ def get_top_active_users() -> dict:
         if log.user is not None:
             if log.user.id not in users:
                 users[log.user.id] = {
-                    'name': log.user.username,
-                    'count': 1,
+                    "name": log.user.username,
+                    "count": 1,
                 }
             else:
                 users[log.user.id]["count"] += 1

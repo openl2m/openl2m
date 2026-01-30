@@ -50,7 +50,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         # for now, just call the super class
         dprint("Arista Networks SnmpConnector __init__")
         super().__init__(request, group, switch)
-        self.description = 'Arista Networks EOS SNMP driver'
+        self.description = "Arista Networks EOS SNMP driver"
         self.vendor_name = "Arista Networks (EOS)"
         # self.switch.read_only = False  # Arista support some mib variables as R/W
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
@@ -108,7 +108,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         """
 
         # Get the admin key or "index" for aggregate interfaces - same as standard.
-        retval = self.get_snmp_branch(branch_name='dot3adAggActorAdminKey', parser=self._parse_mibs_lacp_admin_key)
+        retval = self.get_snmp_branch(branch_name="dot3adAggActorAdminKey", parser=self._parse_mibs_lacp_admin_key)
         if retval < 0:
             self.add_warning("Error getting 'LACP-Aggregate-Admin-Key' (dot3adAggActorAdminKey)")
             return False
@@ -119,7 +119,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
 
         if retval > 0:
             retval = self.get_snmp_branch(
-                branch_name='dot3adAggPortActorAdminKey', parser=self._parse_mibs_lacp_member_port_arista
+                branch_name="dot3adAggPortActorAdminKey", parser=self._parse_mibs_lacp_member_port_arista
             )
             if retval < 0:
                 self.add_warning("Error getting 'LACP-Port-Admin-Key' (dot3adAggPortActorAdminKey)")
@@ -157,7 +157,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         if not self.set(
             oid=f"{dot1qPvid}.{interface.port_id}",
             value=int(new_vlan_id),
-            snmp_type='u',
+            snmp_type="u",
             parser=self._parse_mibs_vlan_related,
         ):
             return False
@@ -178,12 +178,12 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         """
         dprint("SnmpConnectorAristaEOS.get_my_vrfs()")
 
-        retval = self.get_snmp_branch(branch_name='aristaVrfEntry', parser=self._parse_mib_arista_vrf_entries)
+        retval = self.get_snmp_branch(branch_name="aristaVrfEntry", parser=self._parse_mib_arista_vrf_entries)
         if retval < 0:
             self.add_warning(warning="Error getting VRF info from the Arista MPLS tables (aristaVrfEntry)")
         if self.vrfs:
             retval = self.get_snmp_branch(
-                branch_name='aristaVrfIfMembership', parser=self._parse_mib_arista_vrf_members
+                branch_name="aristaVrfIfMembership", parser=self._parse_mib_arista_vrf_members
             )
             # see if we can get router IP addresses in these VRFs:
             for vrf_name in self.vrfs:

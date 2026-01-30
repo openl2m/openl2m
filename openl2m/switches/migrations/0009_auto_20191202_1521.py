@@ -5,26 +5,26 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('switches', '0008_switch_nms_id'),
+        ("switches", "0008_switch_nms_id"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='switch',
-            name='edit_if_descr',
+            model_name="switch",
+            name="edit_if_descr",
             field=models.BooleanField(
                 default=True,
-                help_text='If set, allow interface descriptions to be edited.',
-                verbose_name='Edit Port Description',
+                help_text="If set, allow interface descriptions to be edited.",
+                verbose_name="Edit Port Description",
             ),
         ),
         migrations.AlterField(
-            model_name='switchgroup',
-            name='edit_if_descr',
+            model_name="switchgroup",
+            name="edit_if_descr",
             field=models.BooleanField(
                 default=True,
-                help_text='If set, allow interface descriptions to be edited.',
-                verbose_name='Edit Port Description',
+                help_text="If set, allow interface descriptions to be edited.",
+                verbose_name="Edit Port Description",
             ),
         ),
     ]

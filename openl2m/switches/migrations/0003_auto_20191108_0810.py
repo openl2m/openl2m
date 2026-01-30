@@ -5,19 +5,19 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('switches', '0002_auto_20191016_1050'),
+        ("switches", "0002_auto_20191016_1050"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='switch',
-            name='primary_ip4',
+            model_name="switch",
+            name="primary_ip4",
             field=models.CharField(
                 blank=True,
-                help_text='IPv4 address or hostname, can be duplicate as long as name is unique.',
+                help_text="IPv4 address or hostname, can be duplicate as long as name is unique.",
                 max_length=64,
                 null=True,
-                verbose_name='Management IPv4',
+                verbose_name="Management IPv4",
             ),
         ),
     ]

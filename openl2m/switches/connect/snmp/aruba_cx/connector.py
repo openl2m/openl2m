@@ -24,6 +24,7 @@ per https://www.arubanetworks.com/techdocs/AOS-CX/10.08/PDF/snmp_mib.pdf
 on pg. 46, OIDs that support SNMP write, write is supported to
 ifAdminStatus (ie interface up/down), and pethPsePortAdminEnable (ie. PoE enable/disable)
 """
+
 # from pysnmp.proto.rfc1902 import OctetString, Gauge32
 # import traceback
 from django.http.request import HttpRequest
@@ -60,7 +61,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         # for now, just call the super class
         dprint("Aruba SnmpConnector __init__")
         super().__init__(request, group, switch)
-        self.description = 'Aruba Networks AOS-CX SNMP driver'
+        self.description = "Aruba Networks AOS-CX SNMP driver"
         self.vendor_name = "Aruba Networks (AOS-CX)"
         # self.switch.read_only = (
         #     False  # the new Aruba AOS switches support some R/W over SNMP. Full Write-access is via REST API.
@@ -178,7 +179,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         # if we found power supplies, get Aruba specific info about power usage from ARUBAWIRED-POE mib
         if self.poe_capable:
             retval = self.get_snmp_branch(
-                branch_name='arubaWiredPoePethPsePortPowerDrawn', parser=self._parse_mibs_aruba_poe
+                branch_name="arubaWiredPoePethPsePortPowerDrawn", parser=self._parse_mibs_aruba_poe
             )
             if retval < 0:
                 self.add_warning(warning="Error getting 'PoE-Port-Actual-Power' (arubaWiredPoePethPsePortPowerDrawn)")
@@ -194,14 +195,14 @@ class SnmpConnectorArubaCx(SnmpConnector):
         dprint("_get_vlan_data(ArubaAosCx)\n")
 
         # first, Aruba vlan names
-        retval = self.get_snmp_branch('ieee8021QBridgeVlanStaticName', self._parse_mibs_ieee_qbridge_vlan_static_name)
+        retval = self.get_snmp_branch("ieee8021QBridgeVlanStaticName", self._parse_mibs_ieee_qbridge_vlan_static_name)
         if retval < 0:
             return retval
         # set vlan count
         self.vlan_count = len(self.vlans)
 
         # port PVID untagged vlan
-        retval = self.get_snmp_branch(branch_name='ieee8021QBridgePvid', parser=self._parse_mibs_ieee_qbridge_pvid)
+        retval = self.get_snmp_branch(branch_name="ieee8021QBridgePvid", parser=self._parse_mibs_ieee_qbridge_pvid)
         if retval < 0:
             return retval
 
@@ -215,14 +216,14 @@ class SnmpConnectorArubaCx(SnmpConnector):
         # AOS-CX uses the ieee802.1 Q-Bridge mibs for interface vlan info on trunked ports:
         # read ports in vlans
         retval = self.get_snmp_branch(
-            branch_name='ieee8021QBridgeVlanCurrentEgressPorts',
+            branch_name="ieee8021QBridgeVlanCurrentEgressPorts",
             parser=self._parse_mibs_ieee_qbridge_vlan_current_egress_ports,
         )
         if retval < 0:
             return retval
         # and get untagged ports in those vlans:
         retval = self.get_snmp_branch(
-            branch_name='ieee8021QBridgeVlanCurrentUntaggedPorts',
+            branch_name="ieee8021QBridgeVlanCurrentUntaggedPorts",
             parser=self._parse_mibs_ieee_qbridge_vlan_current_untagged_ports,
         )
         if retval < 0:
@@ -246,7 +247,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         # now read AOS-CX specific data:
         retval = self.get_snmp_branch(
-            branch_name='arubaWiredVsfv2MemberProductName', parser=self._parse_mibs_aruba_vsf2
+            branch_name="arubaWiredVsfv2MemberProductName", parser=self._parse_mibs_aruba_vsf2
         )
         if retval < 0:
             self.add_warning(warning="Error getting 'Aruba Vsf Product name' ('arubaWiredVsfv2MemberProductName')")
@@ -260,7 +261,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         This reads the transceiver type of an physical port.
         Returns 1 on succes, -1 on failure
         """
-        retval = self.get_snmp_branch(branch_name='arubaWiredPmXcvrEntry', parser=self._parse_mibs_aruba_pm)
+        retval = self.get_snmp_branch(branch_name="arubaWiredPmXcvrEntry", parser=self._parse_mibs_aruba_pm)
         if retval < 0:
             self.add_warning("Error getting Transceiver data from 'arubaWiredPmXcvrEntry'")
         return retval
@@ -286,7 +287,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
                 if not self.set(
                     oid=f"{dot1qPvid}.{interface.index}",
                     value=int(new_vlan_id),
-                    snmp_type='u',
+                    snmp_type="u",
                     parser=self._parse_mibs_vlan_related,
                 ):
                     dprint("   ERROR!")
@@ -337,7 +338,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         if not self.set(
             oid=f"{dot1qPvid}.{interface.index}",
             value=int(new_vlan_id),
-            snmp_type='u',
+            snmp_type="u",
             parser=self._parse_mibs_vlan_related,
         ):
             dprint("   ERROR!")
@@ -358,9 +359,9 @@ class SnmpConnectorArubaCx(SnmpConnector):
         # this implementes "copy running-config startup-config" using SNMP.
         retval = self.set_multiple(
             [
-                (arubaWiredVsfv2ConfigOperationType, ARUBA_CONFIG_ACTION_WRITE, 'i'),
-                (arubaWiredVsfv2ConfigOperationSetSource, ARUBA_CONFIG_TYPE_RUNNING, 'i'),
-                (arubaWiredVsfv2ConfigOperationSetDestination, ARUBA_CONFIG_TYPE_STARTUP, 'i'),
+                (arubaWiredVsfv2ConfigOperationType, ARUBA_CONFIG_ACTION_WRITE, "i"),
+                (arubaWiredVsfv2ConfigOperationSetSource, ARUBA_CONFIG_TYPE_RUNNING, "i"),
+                (arubaWiredVsfv2ConfigOperationSetDestination, ARUBA_CONFIG_TYPE_STARTUP, "i"),
             ]
         )
         if retval < 0:

@@ -5,56 +5,55 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('switches', '0048_alter_log_action'),
+        ("switches", "0048_alter_log_action"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='switch',
-            name='access_count',
+            model_name="switch",
+            name="access_count",
             field=models.PositiveIntegerField(
-                default=0, help_text='Number of times this device was accessed over the network.'
+                default=0, help_text="Number of times this device was accessed over the network."
             ),
         ),
         migrations.AddField(
-            model_name='switch',
-            name='change_count',
+            model_name="switch",
+            name="change_count",
             field=models.PositiveIntegerField(
-                default=0, help_text='Number of configuration changes applied to this device over the network.'
+                default=0, help_text="Number of configuration changes applied to this device over the network."
             ),
         ),
         migrations.AddField(
-            model_name='switch',
-            name='created',
+            model_name="switch",
+            name="created",
             field=models.DateTimeField(
                 default=datetime.datetime(2000, 1, 1, 0, 0, tzinfo=datetime.timezone.utc),
-                help_text='Time this device was created.',
+                help_text="Time this device was created.",
             ),
         ),
         migrations.AddField(
-            model_name='switch',
-            name='last_accessed',
+            model_name="switch",
+            name="last_accessed",
             field=models.DateTimeField(
                 default=datetime.datetime(2000, 1, 1, 0, 0, tzinfo=datetime.timezone.utc),
-                help_text='Most recent time this device was accessed over the network.',
+                help_text="Most recent time this device was accessed over the network.",
             ),
         ),
         migrations.AddField(
-            model_name='switch',
-            name='last_changed',
+            model_name="switch",
+            name="last_changed",
             field=models.DateTimeField(
                 default=datetime.datetime(2000, 1, 1, 0, 0, tzinfo=datetime.timezone.utc),
-                help_text='Most recent time this device configuration was changed over the network.',
+                help_text="Most recent time this device configuration was changed over the network.",
             ),
         ),
         migrations.AddField(
-            model_name='switch',
-            name='modified',
+            model_name="switch",
+            name="modified",
             field=models.DateTimeField(
                 default=datetime.datetime(2000, 1, 1, 0, 0, tzinfo=datetime.timezone.utc),
-                help_text='Time this device config was last modified.',
+                help_text="Time this device config was last modified.",
             ),
         ),
     ]

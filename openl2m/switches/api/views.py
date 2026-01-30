@@ -61,7 +61,7 @@ class APISwitchMenuView(
         }
         data = {
             "user": user,
-            'groups': groups,
+            "groups": groups,
         }
         return Response(
             data=data,
@@ -89,17 +89,17 @@ class APISwitchSearch(
         for group_id, group in groups.items():
             dprint(f"Group ID={group_id}, group={group}")
             # find the requested device name
-            for switch_id, switch in group['members'].items():
-                if switch['name'].lower() == name.lower() or switch['hostname'].lower() == name.lower():
+            for switch_id, switch in group["members"].items():
+                if switch["name"].lower() == name.lower() or switch["hostname"].lower() == name.lower():
                     # found one, add to return
                     # add info for this group:
                     dprint(f"\n\nFOUND SWITCH: {switch}\n\n")
                     group_info = {
-                        'name': group['name'],
-                        'description': group['description'],
-                        'id': group_id,
-                        'read_only': group['read_only'],
-                        'switch_url': group['members'][switch_id]['url'],
+                        "name": group["name"],
+                        "description": group["description"],
+                        "id": group_id,
+                        "read_only": group["read_only"],
+                        "switch_url": group["members"][switch_id]["url"],
                     }
                     device_groups[group_id] = group_info
                     # and set this device info:
@@ -108,14 +108,14 @@ class APISwitchSearch(
                         device_info = switch.copy()  # copy so we can remove field!
                         # clear device url, since it is switchgroup based.
                         # if was added to group above
-                        del device_info['url']
+                        del device_info["url"]
                         # and add switch id
-                        device_info['id'] = switch_id
+                        device_info["id"] = switch_id
         # nothing found ?
         if device_id == -1:
             return respond_error(reason=f"Device '{name}' not found!")
         # return device found
-        data = {'switch': device_info, 'groups': device_groups}
+        data = {"switch": device_info, "groups": device_groups}
         return Response(
             data=data,
             status=http_status.HTTP_200_OK,
@@ -195,7 +195,7 @@ class APISwitchSaveConfig(
     ):
         dprint("APISwitchSaveConfig(POST)")
         try:
-            save = str(request.data['save'])
+            save = str(request.data["save"])
         except Exception:
             return respond_error("Missing or invalid required parameter and value: 'save=yes'")
 
@@ -224,7 +224,7 @@ class APIInterfaceSetState(
     ):
         dprint("APIInterfaceSetState(POST)")
         try:
-            state = str(request.data['state'])
+            state = str(request.data["state"])
         except Exception:
             return respond_error("Missing or invalid required parameter: 'state'")
 
@@ -259,7 +259,7 @@ class APIInterfaceSetVlan(
     ):
         dprint("APIInterfaceSetVlan(POST)")
         try:
-            new_pvid = int(request.data['vlan'])
+            new_pvid = int(request.data["vlan"])
         except Exception:
             return respond_error("Missing or invalid required numeric parameter: 'vlan'")
 
@@ -288,7 +288,7 @@ class APIInterfaceSetPoE(
     ):
         dprint("APIInterfaceSetPoE(POST)")
         try:
-            poe_state = str(request.data['poe_state'])
+            poe_state = str(request.data["poe_state"])
         except Exception:
             return respond_error("Missing or invalid required parameter: 'poe_state'")
 
@@ -323,7 +323,7 @@ class APIInterfaceSetDescription(
     ):
         dprint("APIInterfaceSetDescription(POST)")
         try:
-            description = str(request.data['description'])
+            description = str(request.data["description"])
         except Exception:
             return respond_error("Missing or invalid required parameter: 'description'")
 
@@ -354,8 +354,8 @@ class APISwitchVlanAdd(
     ):
         dprint("APISwitchVlanAdd(POST)")
         try:
-            vlan_name = str(request.data['vlan_name']).strip()
-            vlan_id = int(request.data['vlan_id'])
+            vlan_name = str(request.data["vlan_name"]).strip()
+            vlan_id = int(request.data["vlan_id"])
         except Exception:
             return respond_error("One or more missing or invalid required parameters: 'vlan_name', 'vlan_id'")
         # now go create the new vlan:
@@ -383,8 +383,8 @@ class APISwitchVlanEdit(
     ):
         dprint("APISwitchVlanEdit(POST)")
         try:
-            vlan_name = str(request.data['vlan_name']).strip()
-            vlan_id = int(request.data['vlan_id'])
+            vlan_name = str(request.data["vlan_name"]).strip()
+            vlan_id = int(request.data["vlan_id"])
         except Exception:
             return respond_error("One or more missing or invalid required parameters: 'vlan_name', 'vlan_id'")
         dprint(f"   Edit vlan: {vlan_id} = '{vlan_name}'")
@@ -411,7 +411,7 @@ class APISwitchVlanDelete(
     ):
         dprint("APISwitchVlanDelete(POST)")
         try:
-            vlan_id = int(request.data['vlan_id'])
+            vlan_id = int(request.data["vlan_id"])
         except Exception:
             return respond_error("Missing or invalid required parameter: 'vlan_id'")
         dprint(f"   Delete vlan: {vlan_id}")

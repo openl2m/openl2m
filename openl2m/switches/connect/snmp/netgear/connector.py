@@ -16,6 +16,7 @@ Netgear-specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
 with vendor specific ways of doing things...
 """
+
 from django.http.request import HttpRequest
 
 from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
@@ -71,14 +72,14 @@ class SnmpConnectorNetgear(SnmpConnector):
 
     def _get_interface_transceiver_types(self):
         """Override the SnmpConnector() function, and read the Netgear-specific entries"""
-        retval = self.get_snmp_branch(branch_name='agentPortType', parser=self._parse_mibs_netgear_agent_port_type)
+        retval = self.get_snmp_branch(branch_name="agentPortType", parser=self._parse_mibs_netgear_agent_port_type)
         if retval < 0:
             self.add_warning("Error getting Netgear 'agentPortType'")
             return retval
         if retval == 0:
             # try the older FastPath mib:
             retval = self.get_snmp_branch(
-                branch_name='agentPortTypeFp', parser=self._parse_mibs_netgear_agent_port_type_fp
+                branch_name="agentPortTypeFp", parser=self._parse_mibs_netgear_agent_port_type_fp
             )
             if retval < 0:
                 self.add_warning("Error getting Netgear 'agentPortTypeFp'")
@@ -108,7 +109,7 @@ class SnmpConnectorNetgear(SnmpConnector):
             # and the total usage:
             self.poe_power_consumed = int(self.poe_power_consumed / 1000)
             # now get Netgear specific port PoE power used
-            retval = self.get_snmp_branch(branch_name='agentPethOutputPower', parser=self._parse_mibs_netgear_poe)
+            retval = self.get_snmp_branch(branch_name="agentPethOutputPower", parser=self._parse_mibs_netgear_poe)
             if retval < 0:
                 self.add_warning(warning="Error getting 'PoE-Port-Current-Power' (agentPethOutputPower)")
         return 1
@@ -183,7 +184,7 @@ class SnmpConnectorNetgear(SnmpConnector):
         """
         dprint("_map_poe_port_entries_to_interface(Netgear)")
         for port_entry in self.poe_port_entries.values():
-            (pse_module, port) = port_entry.index.split('.')
+            (pse_module, port) = port_entry.index.split(".")
             # calculate the stack member number from PSE#
             member = int((int(pse_module) - 1) / 3)
             if_index = self._get_if_index_from_port_id(int(port))

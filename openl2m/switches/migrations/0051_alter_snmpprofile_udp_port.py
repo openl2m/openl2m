@@ -5,22 +5,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('switches', '0050_switch_command_count_switch_last_command_time'),
+        ("switches", "0050_switch_command_count_switch_last_command_time"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='snmpprofile',
-            name='udp_port',
+            model_name="snmpprofile",
+            name="udp_port",
             field=models.PositiveIntegerField(
                 default=161,
                 validators=[
                     django.core.validators.MinValueValidator(0),
                     django.core.validators.MaxValueValidator(65535),
                 ],
-                verbose_name='SNMP Udp port',
+                verbose_name="SNMP Udp port",
             ),
         ),
     ]

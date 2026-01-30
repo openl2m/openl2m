@@ -21,21 +21,21 @@ CONNECTOR_TYPE_COMMANDS_ONLY = 98
 CONNECTOR_TYPE_NAPALM = 99
 CONNECTOR_TYPE_TESTDUMMY = 100
 CONNECTOR_TYPE_CHOICES = [
-    [CONNECTOR_TYPE_SNMP, 'SNMP'],
-    [CONNECTOR_TYPE_AOSCX, 'Aruba AOS-CX'],
-    [CONNECTOR_TYPE_EAPI, 'Arista eAPI'],
-    [CONNECTOR_TYPE_COMMANDS_ONLY, 'Commands Only'],
-    [CONNECTOR_TYPE_PYEZ, 'Junos (PyEZ)'],
-    [CONNECTOR_TYPE_NAPALM, 'Napalm'],
-    [CONNECTOR_TYPE_TESTDUMMY, 'Test Dummy'],
+    [CONNECTOR_TYPE_SNMP, "SNMP"],
+    [CONNECTOR_TYPE_AOSCX, "Aruba AOS-CX"],
+    [CONNECTOR_TYPE_EAPI, "Arista eAPI"],
+    [CONNECTOR_TYPE_COMMANDS_ONLY, "Commands Only"],
+    [CONNECTOR_TYPE_PYEZ, "Junos (PyEZ)"],
+    [CONNECTOR_TYPE_NAPALM, "Napalm"],
+    [CONNECTOR_TYPE_TESTDUMMY, "Test Dummy"],
 ]
 
 # SNMP constants, v1 not supported!
 SNMP_VERSION_2C = 2
 SNMP_VERSION_3 = 3
 SNMP_VERSION_CHOICES = (
-    (SNMP_VERSION_2C, '2c'),
-    (SNMP_VERSION_3, '3'),
+    (SNMP_VERSION_2C, "2c"),
+    (SNMP_VERSION_3, "3"),
 )
 
 # for auth and priv supported by the EzSNMP library, see
@@ -50,13 +50,13 @@ SNMP_V3_AUTH_SHA384 = 5
 SNMP_V3_AUTH_SHA512 = 6
 
 SNMP_V3_AUTH_CHOICES = (
-    (SNMP_V3_AUTH_NONE, 'none'),
-    (SNMP_V3_AUTH_MD5, 'MD5'),
-    (SNMP_V3_AUTH_SHA, 'SHA'),
-    (SNMP_V3_AUTH_SHA224, 'SHA-224'),
-    (SNMP_V3_AUTH_SHA256, 'SHA-256'),
-    (SNMP_V3_AUTH_SHA384, 'SHA-385'),
-    (SNMP_V3_AUTH_SHA512, 'SHA-512'),
+    (SNMP_V3_AUTH_NONE, "none"),
+    (SNMP_V3_AUTH_MD5, "MD5"),
+    (SNMP_V3_AUTH_SHA, "SHA"),
+    (SNMP_V3_AUTH_SHA224, "SHA-224"),
+    (SNMP_V3_AUTH_SHA256, "SHA-256"),
+    (SNMP_V3_AUTH_SHA384, "SHA-385"),
+    (SNMP_V3_AUTH_SHA512, "SHA-512"),
 )
 
 SNMP_V3_PRIV_NONE = 0
@@ -69,22 +69,22 @@ SNMP_V3_PRIV_AES192C = 6  # Cisco specific AES-192
 SNMP_V3_PRIV_AES256C = 7  # Cisco specific AES-256
 
 SNMP_V3_PRIV_CHOICES = (
-    (SNMP_V3_PRIV_NONE, 'none'),
-    (SNMP_V3_PRIV_DES, 'DES'),
-    (SNMP_V3_PRIV_AES, 'AES'),
-    (SNMP_V3_PRIV_AES192, 'AES-192'),
-    (SNMP_V3_PRIV_AES256, 'AES-256'),
-    (SNMP_V3_PRIV_AES192C, 'AES-192C'),  # Cisco specific AES-192
-    (SNMP_V3_PRIV_AES256C, 'AES-256C'),  # Cisco specific AES-256
+    (SNMP_V3_PRIV_NONE, "none"),
+    (SNMP_V3_PRIV_DES, "DES"),
+    (SNMP_V3_PRIV_AES, "AES"),
+    (SNMP_V3_PRIV_AES192, "AES-192"),
+    (SNMP_V3_PRIV_AES256, "AES-256"),
+    (SNMP_V3_PRIV_AES192C, "AES-192C"),  # Cisco specific AES-192
+    (SNMP_V3_PRIV_AES256C, "AES-256C"),  # Cisco specific AES-256
 )
 
 SNMP_V3_SECURITY_NOAUTH_NOPRIV = 0
 SNMP_V3_SECURITY_AUTH_NOPRIV = 1
 SNMP_V3_SECURITY_AUTH_PRIV = 2
 SNMP_V3_SECURITY_CHOICES = (
-    (SNMP_V3_SECURITY_NOAUTH_NOPRIV, 'NoAuth-NoPriv'),
-    (SNMP_V3_SECURITY_AUTH_NOPRIV, 'Auth-NoPriv'),
-    (SNMP_V3_SECURITY_AUTH_PRIV, 'Auth-Priv'),
+    (SNMP_V3_SECURITY_NOAUTH_NOPRIV, "NoAuth-NoPriv"),
+    (SNMP_V3_SECURITY_AUTH_NOPRIV, "Auth-NoPriv"),
+    (SNMP_V3_SECURITY_AUTH_PRIV, "Auth-Priv"),
 )
 
 SNMP_TIMEOUT = 5000
@@ -95,8 +95,8 @@ SNMP_MAXREPITITIONS = 25
 SWITCH_VIEW_BASIC = 0
 SWITCH_VIEW_DETAILS = 1
 SWITCH_VIEW_CHOICES = [
-    [SWITCH_VIEW_BASIC, 'Basic'],
-    [SWITCH_VIEW_DETAILS, 'Details'],
+    [SWITCH_VIEW_BASIC, "Basic"],
+    [SWITCH_VIEW_DETAILS, "Details"],
 ]
 
 # Switch statuses
@@ -108,21 +108,21 @@ SWITCH_STATUS_FAILED = 4
 SWITCH_STATUS_INVENTORY = 5
 SWITCH_STATUS_DECOMMISSIONING = 6
 SWITCH_STATUS_CHOICES = [
-    [SWITCH_STATUS_ACTIVE, 'Active'],
-    [SWITCH_STATUS_OFFLINE, 'Offline'],
-    [SWITCH_STATUS_PLANNED, 'Planned'],
-    [SWITCH_STATUS_STAGED, 'Staged'],
-    [SWITCH_STATUS_FAILED, 'Failed'],
-    [SWITCH_STATUS_INVENTORY, 'Inventory'],
-    [SWITCH_STATUS_DECOMMISSIONING, 'Decommissioning'],
+    [SWITCH_STATUS_ACTIVE, "Active"],
+    [SWITCH_STATUS_OFFLINE, "Offline"],
+    [SWITCH_STATUS_PLANNED, "Planned"],
+    [SWITCH_STATUS_STAGED, "Staged"],
+    [SWITCH_STATUS_FAILED, "Failed"],
+    [SWITCH_STATUS_INVENTORY, "Inventory"],
+    [SWITCH_STATUS_DECOMMISSIONING, "Decommissioning"],
 ]
 
 
 CMD_TYPE_GLOBAL = 0
 CMD_TYPE_INTERFACE = 1
 CMD_TYPE_CHOICES = [
-    [CMD_TYPE_GLOBAL, 'Global'],
-    [CMD_TYPE_INTERFACE, 'Interface'],
+    [CMD_TYPE_GLOBAL, "Global"],
+    [CMD_TYPE_INTERFACE, "Interface"],
 ]
 
 BULKEDIT_POE_NONE = 0
@@ -131,11 +131,11 @@ BULKEDIT_POE_DOWN_UP = 2
 BULKEDIT_POE_DOWN = 3
 BULKEDIT_POE_UP = 4
 BULKEDIT_POE_CHOICES = [
-    [BULKEDIT_POE_NONE, 'No Change'],
-    [BULKEDIT_POE_CHANGE, 'PoE Change'],
-    [BULKEDIT_POE_DOWN_UP, 'PoE Down/Up'],
-    [BULKEDIT_POE_DOWN, 'PoE Disable'],
-    [BULKEDIT_POE_UP, 'PoE Enable'],
+    [BULKEDIT_POE_NONE, "No Change"],
+    [BULKEDIT_POE_CHANGE, "PoE Change"],
+    [BULKEDIT_POE_DOWN_UP, "PoE Down/Up"],
+    [BULKEDIT_POE_DOWN, "PoE Disable"],
+    [BULKEDIT_POE_UP, "PoE Enable"],
 ]
 
 INTERFACE_STATUS_NONE = 0
@@ -145,18 +145,18 @@ INTERFACE_STATUS_CHANGE = 1
 INTERFACE_STATUS_DOWN = 3
 INTERFACE_STATUS_UP = 4
 BULKEDIT_INTERFACE_CHOICES = [
-    [INTERFACE_STATUS_NONE, 'No Change'],
-    [INTERFACE_STATUS_CHANGE, 'Change'],
-    [INTERFACE_STATUS_DOWN, 'Down'],
-    [INTERFACE_STATUS_UP, 'Up'],
+    [INTERFACE_STATUS_NONE, "No Change"],
+    [INTERFACE_STATUS_CHANGE, "Change"],
+    [INTERFACE_STATUS_DOWN, "Down"],
+    [INTERFACE_STATUS_UP, "Up"],
 ]
 
 BULKEDIT_ALIAS_TYPE_REPLACE = 0
 BULKEDIT_ALIAS_TYPE_APPEND = 1
 BULKEDIT_ALIAS_TYPE_PREPEND = 2
 BULKEDIT_ALIAS_TYPE_CHOICES = [
-    [BULKEDIT_ALIAS_TYPE_REPLACE, 'Replace'],
-    [BULKEDIT_ALIAS_TYPE_APPEND, 'Append'],
+    [BULKEDIT_ALIAS_TYPE_REPLACE, "Replace"],
+    [BULKEDIT_ALIAS_TYPE_APPEND, "Append"],
 ]
 #    [BULKEDIT_ALIAS_TYPE_PREPEND, 'Prepend'],
 
@@ -168,12 +168,12 @@ LOG_TYPE_ERROR = 3
 LOG_TYPE_COMMAND = 4
 LOG_TYPE_LOGIN_OUT = 5
 LOG_TYPE_CHOICES = [
-    [LOG_TYPE_VIEW, 'View'],
-    [LOG_TYPE_CHANGE, 'Change'],
-    [LOG_TYPE_WARNING, 'Warning'],
-    [LOG_TYPE_ERROR, 'Error'],
-    [LOG_TYPE_COMMAND, 'Command'],
-    [LOG_TYPE_LOGIN_OUT, 'Login/out'],
+    [LOG_TYPE_VIEW, "View"],
+    [LOG_TYPE_CHANGE, "Change"],
+    [LOG_TYPE_WARNING, "Warning"],
+    [LOG_TYPE_ERROR, "Error"],
+    [LOG_TYPE_COMMAND, "Command"],
+    [LOG_TYPE_LOGIN_OUT, "Login/out"],
 ]
 
 # Actions to log
@@ -290,101 +290,101 @@ LOG_REST_API_ADMIN_NETMIKO_PROFILE_MODIFY = 624
 
 # nice descriptions of the various log entries
 LOG_ACTION_CHOICES = [
-    [LOG_VIEW_SWITCHGROUPS, 'View Switch Groups'],
-    [LOG_VIEW_SWITCH, 'View Switch'],
-    [LOG_VIEW_INTERFACE, 'View Interface'],
-    [LOG_VIEW_POE, 'View PoE'],
-    [LOG_VIEW_VLANS, 'View Vlans'],
-    [LOG_VIEW_LLDP, 'View LLDP'],
-    [LOG_VIEW_ALL_LOGS, 'Viewing All Logs'],
-    [LOG_VIEW_ADMIN_STATS, 'Viewing Site Statistics'],
-    [LOG_VIEW_TASKS, 'Viewing Tasks'],
-    [LOG_VIEW_TASK_DETAILS, 'Viewing Task Details'],
-    [LOG_VIEW_SWITCH_SEARCH, 'Searching for Switch Name'],
-    [LOG_VIEW_DOWNLOAD_ARP_LLDP, 'Download Eth/Arp/LLDP'],
-    [LOG_VIEW_DOWNLOAD_INTERFACES, 'Download Interfaces'],
-    [LOG_VIEW_TOP_ACTIVITY, 'View Top Activity'],
-    [LOG_LOGIN, 'Login'],
-    [LOG_LOGOUT, 'Logout'],
-    [LOG_LOGOUT_INACTIVE, 'Inactivity Logout'],
-    [LOG_LOGIN_FAILED, 'Login Failed'],
-    [LOG_LOGIN_LDAP, 'LDAP Login'],
-    [LOG_LOGIN_REST_API, 'API Login'],
-    [LOG_RELOAD_SWITCH, 'Reloading Switch Data'],
-    [LOG_NEW_OID_FOUND, 'New System ObjectID Found'],
-    [LOG_NEW_HOSTNAME_FOUND, 'New System Name Found'],
-    [LOG_CHANGE_INTERFACE_DOWN, 'Interface Disable'],
-    [LOG_CHANGE_INTERFACE_UP, 'Interface Enable'],
-    [LOG_CHANGE_INTERFACE_TOGGLE_DOWN_UP, 'Interface Toggle'],
-    [LOG_CHANGE_INTERFACE_POE_DOWN, 'Interface PoE Disable'],
-    [LOG_CHANGE_INTERFACE_POE_UP, 'Interface PoE Enable'],
-    [LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP, 'Interface PoE Toggle'],
-    [LOG_CHANGE_INTERFACE_PVID, 'Interface PVID Vlan Change'],
-    [LOG_CHANGE_INTERFACE_VLANS, 'Interface 802.1Q Vlan Change'],
-    [LOG_CHANGE_INTERFACE_ALIAS, 'Interface Description Change'],
-    [LOG_SAVE_SWITCH, 'Saving Configuration'],
-    [LOG_EXECUTE_COMMAND, 'Execute Command'],
-    [LOG_PORT_POE_FAULT, 'Port PoE Fault'],
-    [LOG_LDAP_CREATE_GROUP, 'LDAP New SwitchGroup'],
-    [LOG_CHANGE_BULK_EDIT, 'Bulk Edit'],
-    [LOG_BULK_EDIT_TASK_SUBMIT, 'Bulk Edit Task Submit'],
-    [LOG_BULK_EDIT_TASK_START, 'Bulk Edit Task Started'],
-    [LOG_BULK_EDIT_TASK_END_OK, 'Bulk Edit Task Ended OK'],
-    [LOG_BULK_EDIT_TASK_END_ERROR, 'Bulk Edit Task Ended With Errors'],
-    [LOG_TASK_DELETE, 'Task Deleted'],
-    [LOG_TASK_TERMINATE, 'Task Terminated'],
-    [LOG_EMAIL_SENT, 'Email Sent'],
-    [LOG_VLAN_CREATE, 'VLAN Add'],
-    [LOG_VLAN_EDIT, 'VLAN Edit'],
-    [LOG_VLAN_DELETE, 'VLAN Delete'],
-    [LOG_UNDEFINED_VLAN, 'Undefined Vlan'],
-    [LOG_VLAN_NAME_MISMATCH, 'Vlan Name Mismatch'],
-    [LOG_SNMP_ERROR, 'SNMP Error'],
-    [LOG_LDAP_ADD_USER_TO_GROUP, 'LDAP User->SwitchGroup'],
-    [LOG_LDAP_ERROR_USER_TO_GROUP, 'LDAP User->SwitchGroup Error'],
-    [LOG_LDAP_ERROR_CREATE_GROUP, 'LDAP Create SwitchGroup Error'],
-    [LOG_LDAP_ERROR_BACKEND, 'LDAP Backend Error'],
-    [LOG_BULK_EDIT_TASK_ERROR, 'Bulk Edit Job Start Error'],
-    [LOG_EMAIL_ERROR, 'Email Error'],
-    [LOG_CONNECTION_ERROR, 'Connection Error'],
-    [LOG_NAPALM_ERROR_DRIVER, 'Napalm Driver'],
-    [LOG_NAPALM_ERROR_OPEN, 'Napalm Open'],
-    [LOG_NAPALM_ERROR_FACTS, 'Napalm Facts'],
-    [LOG_NAPALM_ERROR_INTERFACES, 'Napalm Interfaces'],
-    [LOG_NAPALM_ERROR_VLANS, 'Napalm Vlans'],
-    [LOG_NAPALM_ERROR_IF_IP, 'Napalm Interface IP'],
-    [LOG_NAPALM_ERROR_MAC, 'Napalm MAC'],
-    [LOG_NAPALM_ERROR_ARP, 'Napalm ARP'],
-    [LOG_NAPALM_ERROR_LLDP, 'Napalm LLDP'],
-    [LOG_AOSCX_ERROR_GENERIC, 'AOS-Cx Error'],
-    [LOG_HEALTH_MESSAGE, 'Device Health'],
-    [LOG_REST_API_TOKEN_CREATED, 'API Token Created'],
-    [LOG_REST_API_TOKEN_DELETE, 'API Token Deleted'],
-    [LOG_REST_API_TOKEN_EDIT, 'API Token Edited'],
+    [LOG_VIEW_SWITCHGROUPS, "View Switch Groups"],
+    [LOG_VIEW_SWITCH, "View Switch"],
+    [LOG_VIEW_INTERFACE, "View Interface"],
+    [LOG_VIEW_POE, "View PoE"],
+    [LOG_VIEW_VLANS, "View Vlans"],
+    [LOG_VIEW_LLDP, "View LLDP"],
+    [LOG_VIEW_ALL_LOGS, "Viewing All Logs"],
+    [LOG_VIEW_ADMIN_STATS, "Viewing Site Statistics"],
+    [LOG_VIEW_TASKS, "Viewing Tasks"],
+    [LOG_VIEW_TASK_DETAILS, "Viewing Task Details"],
+    [LOG_VIEW_SWITCH_SEARCH, "Searching for Switch Name"],
+    [LOG_VIEW_DOWNLOAD_ARP_LLDP, "Download Eth/Arp/LLDP"],
+    [LOG_VIEW_DOWNLOAD_INTERFACES, "Download Interfaces"],
+    [LOG_VIEW_TOP_ACTIVITY, "View Top Activity"],
+    [LOG_LOGIN, "Login"],
+    [LOG_LOGOUT, "Logout"],
+    [LOG_LOGOUT_INACTIVE, "Inactivity Logout"],
+    [LOG_LOGIN_FAILED, "Login Failed"],
+    [LOG_LOGIN_LDAP, "LDAP Login"],
+    [LOG_LOGIN_REST_API, "API Login"],
+    [LOG_RELOAD_SWITCH, "Reloading Switch Data"],
+    [LOG_NEW_OID_FOUND, "New System ObjectID Found"],
+    [LOG_NEW_HOSTNAME_FOUND, "New System Name Found"],
+    [LOG_CHANGE_INTERFACE_DOWN, "Interface Disable"],
+    [LOG_CHANGE_INTERFACE_UP, "Interface Enable"],
+    [LOG_CHANGE_INTERFACE_TOGGLE_DOWN_UP, "Interface Toggle"],
+    [LOG_CHANGE_INTERFACE_POE_DOWN, "Interface PoE Disable"],
+    [LOG_CHANGE_INTERFACE_POE_UP, "Interface PoE Enable"],
+    [LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP, "Interface PoE Toggle"],
+    [LOG_CHANGE_INTERFACE_PVID, "Interface PVID Vlan Change"],
+    [LOG_CHANGE_INTERFACE_VLANS, "Interface 802.1Q Vlan Change"],
+    [LOG_CHANGE_INTERFACE_ALIAS, "Interface Description Change"],
+    [LOG_SAVE_SWITCH, "Saving Configuration"],
+    [LOG_EXECUTE_COMMAND, "Execute Command"],
+    [LOG_PORT_POE_FAULT, "Port PoE Fault"],
+    [LOG_LDAP_CREATE_GROUP, "LDAP New SwitchGroup"],
+    [LOG_CHANGE_BULK_EDIT, "Bulk Edit"],
+    [LOG_BULK_EDIT_TASK_SUBMIT, "Bulk Edit Task Submit"],
+    [LOG_BULK_EDIT_TASK_START, "Bulk Edit Task Started"],
+    [LOG_BULK_EDIT_TASK_END_OK, "Bulk Edit Task Ended OK"],
+    [LOG_BULK_EDIT_TASK_END_ERROR, "Bulk Edit Task Ended With Errors"],
+    [LOG_TASK_DELETE, "Task Deleted"],
+    [LOG_TASK_TERMINATE, "Task Terminated"],
+    [LOG_EMAIL_SENT, "Email Sent"],
+    [LOG_VLAN_CREATE, "VLAN Add"],
+    [LOG_VLAN_EDIT, "VLAN Edit"],
+    [LOG_VLAN_DELETE, "VLAN Delete"],
+    [LOG_UNDEFINED_VLAN, "Undefined Vlan"],
+    [LOG_VLAN_NAME_MISMATCH, "Vlan Name Mismatch"],
+    [LOG_SNMP_ERROR, "SNMP Error"],
+    [LOG_LDAP_ADD_USER_TO_GROUP, "LDAP User->SwitchGroup"],
+    [LOG_LDAP_ERROR_USER_TO_GROUP, "LDAP User->SwitchGroup Error"],
+    [LOG_LDAP_ERROR_CREATE_GROUP, "LDAP Create SwitchGroup Error"],
+    [LOG_LDAP_ERROR_BACKEND, "LDAP Backend Error"],
+    [LOG_BULK_EDIT_TASK_ERROR, "Bulk Edit Job Start Error"],
+    [LOG_EMAIL_ERROR, "Email Error"],
+    [LOG_CONNECTION_ERROR, "Connection Error"],
+    [LOG_NAPALM_ERROR_DRIVER, "Napalm Driver"],
+    [LOG_NAPALM_ERROR_OPEN, "Napalm Open"],
+    [LOG_NAPALM_ERROR_FACTS, "Napalm Facts"],
+    [LOG_NAPALM_ERROR_INTERFACES, "Napalm Interfaces"],
+    [LOG_NAPALM_ERROR_VLANS, "Napalm Vlans"],
+    [LOG_NAPALM_ERROR_IF_IP, "Napalm Interface IP"],
+    [LOG_NAPALM_ERROR_MAC, "Napalm MAC"],
+    [LOG_NAPALM_ERROR_ARP, "Napalm ARP"],
+    [LOG_NAPALM_ERROR_LLDP, "Napalm LLDP"],
+    [LOG_AOSCX_ERROR_GENERIC, "AOS-Cx Error"],
+    [LOG_HEALTH_MESSAGE, "Device Health"],
+    [LOG_REST_API_TOKEN_CREATED, "API Token Created"],
+    [LOG_REST_API_TOKEN_DELETE, "API Token Deleted"],
+    [LOG_REST_API_TOKEN_EDIT, "API Token Edited"],
     [LOG_INTERFACE_NOT_FOUND, "Interface Not Found"],
     [LOG_INTERFACE_DENIED, "Interface Access Denied"],
-    [LOG_ERROR, 'Generic Error'],
-    [LOG_DENIED, 'Access Denied'],
-    [LOG_REST_API_ADMIN_USER_GET_ALL, 'API Get Users'],
-    [LOG_REST_API_ADMIN_USER_CREATE, 'API New User'],
-    [LOG_REST_API_ADMIN_USER_GET, 'API Get User'],
-    [LOG_REST_API_ADMIN_USER_MODIFY, 'API Edit User'],
-    [LOG_REST_API_ADMIN_SWITCH_GET_ALL, 'API Get Switches'],
-    [LOG_REST_API_ADMIN_SWITCH_CREATE, 'API New Switch'],
-    [LOG_REST_API_ADMIN_SWITCH_GET, 'API Get Switch'],
-    [LOG_REST_API_ADMIN_SWITCH_MODIFY, 'API Edit Switch'],
-    [LOG_REST_API_ADMIN_SWITCHGROUP_GET_ALL, 'API Get SwitchGroups'],
-    [LOG_REST_API_ADMIN_SWITCHGROUP_CREATE, 'API New SwitchGroup'],
-    [LOG_REST_API_ADMIN_SWITCHGROUP_GET, 'API Get SwitchGroup'],
-    [LOG_REST_API_ADMIN_SWITCHGROUP_MODIFY, 'API Edit SwitchGroup'],
-    [LOG_REST_API_ADMIN_SNMP_PROFILE_GET_ALL, 'API Get SnmpProfiles'],
-    [LOG_REST_API_ADMIN_SNMP_PROFILE_CREATE, 'API New SnmpProfile'],
-    [LOG_REST_API_ADMIN_SNMP_PROFILE_GET, 'API Get SnmpProfile'],
-    [LOG_REST_API_ADMIN_SNMP_PROFILE_MODIFY, 'API Edit SnmpProfile'],
-    [LOG_REST_API_ADMIN_NETMIKO_PROFILE_GET_ALL, 'API Get NetmikoProfiles'],
-    [LOG_REST_API_ADMIN_NETMIKO_PROFILE_CREATE, 'API New NetmikoProfile'],
-    [LOG_REST_API_ADMIN_NETMIKO_PROFILE_GET, 'API Get NetmikoProfile'],
-    [LOG_REST_API_ADMIN_NETMIKO_PROFILE_MODIFY, 'API Edit NetmikoProfile'],
+    [LOG_ERROR, "Generic Error"],
+    [LOG_DENIED, "Access Denied"],
+    [LOG_REST_API_ADMIN_USER_GET_ALL, "API Get Users"],
+    [LOG_REST_API_ADMIN_USER_CREATE, "API New User"],
+    [LOG_REST_API_ADMIN_USER_GET, "API Get User"],
+    [LOG_REST_API_ADMIN_USER_MODIFY, "API Edit User"],
+    [LOG_REST_API_ADMIN_SWITCH_GET_ALL, "API Get Switches"],
+    [LOG_REST_API_ADMIN_SWITCH_CREATE, "API New Switch"],
+    [LOG_REST_API_ADMIN_SWITCH_GET, "API Get Switch"],
+    [LOG_REST_API_ADMIN_SWITCH_MODIFY, "API Edit Switch"],
+    [LOG_REST_API_ADMIN_SWITCHGROUP_GET_ALL, "API Get SwitchGroups"],
+    [LOG_REST_API_ADMIN_SWITCHGROUP_CREATE, "API New SwitchGroup"],
+    [LOG_REST_API_ADMIN_SWITCHGROUP_GET, "API Get SwitchGroup"],
+    [LOG_REST_API_ADMIN_SWITCHGROUP_MODIFY, "API Edit SwitchGroup"],
+    [LOG_REST_API_ADMIN_SNMP_PROFILE_GET_ALL, "API Get SnmpProfiles"],
+    [LOG_REST_API_ADMIN_SNMP_PROFILE_CREATE, "API New SnmpProfile"],
+    [LOG_REST_API_ADMIN_SNMP_PROFILE_GET, "API Get SnmpProfile"],
+    [LOG_REST_API_ADMIN_SNMP_PROFILE_MODIFY, "API Edit SnmpProfile"],
+    [LOG_REST_API_ADMIN_NETMIKO_PROFILE_GET_ALL, "API Get NetmikoProfiles"],
+    [LOG_REST_API_ADMIN_NETMIKO_PROFILE_CREATE, "API New NetmikoProfile"],
+    [LOG_REST_API_ADMIN_NETMIKO_PROFILE_GET, "API Get NetmikoProfile"],
+    [LOG_REST_API_ADMIN_NETMIKO_PROFILE_MODIFY, "API Edit NetmikoProfile"],
 ]
 
 # tasks related constants
@@ -392,8 +392,8 @@ TASK_TYPE_NONE = 0
 TASK_TYPE_BULKEDIT = 1
 
 TASK_TYPE_CHOICES = [
-    [TASK_TYPE_NONE, 'No task'],
-    [TASK_TYPE_BULKEDIT, 'Bulk Edit Task'],
+    [TASK_TYPE_NONE, "No task"],
+    [TASK_TYPE_BULKEDIT, "Bulk Edit Task"],
 ]
 
 TASK_STATUS_DELETED = 0
@@ -405,13 +405,13 @@ TASK_STATUS_ERROR = 5
 TASK_STATUS_RUNNING_RETRY = 6
 
 TASK_STATUS_CHOICES = [
-    [TASK_STATUS_DELETED, 'Deleted'],
-    [TASK_STATUS_CREATED, 'Created'],
-    [TASK_STATUS_SCHEDULED, 'Scheduled'],
-    [TASK_STATUS_RUNNING, 'Running'],
-    [TASK_STATUS_COMPLETED, 'Completed'],
-    [TASK_STATUS_ERROR, 'Errored'],
-    [TASK_STATUS_RUNNING_RETRY, 'Running(Retry)'],
+    [TASK_STATUS_DELETED, "Deleted"],
+    [TASK_STATUS_CREATED, "Created"],
+    [TASK_STATUS_SCHEDULED, "Scheduled"],
+    [TASK_STATUS_RUNNING, "Running"],
+    [TASK_STATUS_COMPLETED, "Completed"],
+    [TASK_STATUS_ERROR, "Errored"],
+    [TASK_STATUS_RUNNING_RETRY, "Running(Retry)"],
 ]
 
 

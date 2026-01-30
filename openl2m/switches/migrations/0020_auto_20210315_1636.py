@@ -5,43 +5,43 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('switches', '0019_auto_20210223_1216'),
+        ("switches", "0019_auto_20210223_1216"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='netmikoprofile',
+            name="netmikoprofile",
             options={
-                'ordering': ['name'],
-                'verbose_name': 'Netmiko/SSH Profile',
-                'verbose_name_plural': 'Netmiko/SSH Profiles',
+                "ordering": ["name"],
+                "verbose_name": "Netmiko/SSH Profile",
+                "verbose_name_plural": "Netmiko/SSH Profiles",
             },
         ),
         migrations.AddField(
-            model_name='switch',
-            name='connector_type',
+            model_name="switch",
+            name="connector_type",
             field=models.PositiveSmallIntegerField(
-                choices=[[0, 'SNMP'], [1, 'Napalm']],
+                choices=[[0, "SNMP"], [1, "Napalm"]],
                 default=0,
-                help_text='How we connect to this device.',
-                verbose_name='Connector Type',
+                help_text="How we connect to this device.",
+                verbose_name="Connector Type",
             ),
         ),
         migrations.AddField(
-            model_name='switch',
-            name='napalm_device_type',
+            model_name="switch",
+            name="napalm_device_type",
             field=models.CharField(
                 choices=[
-                    ('None', ''),
-                    ('Arista EOS', 'eos'),
-                    ('Cisco IOS', 'ios'),
-                    ('Cisco IOS-XR', 'iosxr'),
-                    ('Cisco NX-OS SSH', 'nxos_ssh'),
-                    ('Juniper JunOS', 'junos'),
+                    ("None", ""),
+                    ("Arista EOS", "eos"),
+                    ("Cisco IOS", "ios"),
+                    ("Cisco IOS-XR", "iosxr"),
+                    ("Cisco NX-OS SSH", "nxos_ssh"),
+                    ("Juniper JunOS", "junos"),
                 ],
-                default='',
+                default="",
                 max_length=64,
-                verbose_name='The device type to use if Napalm connector is used.',
+                verbose_name="The device type to use if Napalm connector is used.",
             ),
         ),
     ]

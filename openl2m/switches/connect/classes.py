@@ -111,17 +111,17 @@ class StackMember:
         self.description: str = ""  # module description
 
     def as_dict(self) -> dict:
-        '''
+        """
         return this class as a dictionary for use by the API
-        '''
+        """
         return {
-            'id': self.id,
-            'type': ENTITY_CLASS_NAME[self.type],
-            'serial': self.serial,  # this needs work to get a string return!
-            'version': self.version,
-            'model': self.model,
-            'info': self.info,
-            'description': self.description,
+            "id": self.id,
+            "type": ENTITY_CLASS_NAME[self.type],
+            "serial": self.serial,  # this needs work to get a string return!
+            "version": self.version,
+            "model": self.model,
+            "info": self.info,
+            "description": self.description,
         }
 
 
@@ -132,11 +132,11 @@ class IPNetworkHostname(netaddr.IPNetwork):
     """
 
     def __init__(self, network: netaddr.IPNetwork):
-        self.hostname: str = ''
+        self.hostname: str = ""
         super().__init__(network)
 
     def resolve_ip_address(self) -> None:
-        '''Use dns resolution to resolve the IP address to a hostname.'''
+        """Use dns resolution to resolve the IP address to a hostname."""
         # if hostname not already set:
         if not self.hostname:
             self.hostname = get_ip_dns_name(self.ip)
@@ -147,7 +147,7 @@ class Vlan:
     Class to represent a vlan found on the switch
     """
 
-    def __init__(self, id: int = 0, index: int = 0, name: str = ''):
+    def __init__(self, id: int = 0, index: int = 0, name: str = ""):
         """
         Vlan() requires passing in the vlan id
         """
@@ -177,16 +177,16 @@ class Vlan:
         return str(self.id)
 
     def as_dict(self) -> dict:
-        '''
+        """
         return this class as a dictionary for use by the API
-        '''
+        """
         return {
-            'id': self.id,
-            'name': self.name,
-            'state': vlan_admin_name[self.admin_status],
-            'status': vlan_status_name[self.status],
-            'igmp_snooping': self.igmp_snooping,
-            'vrf': self.vrf,
+            "id": self.id,
+            "name": self.name,
+            "state": vlan_admin_name[self.admin_status],
+            "status": vlan_status_name[self.status],
+            "igmp_snooping": self.igmp_snooping,
+            "vrf": self.vrf,
         }
 
     def __str__(self) -> str:
@@ -207,7 +207,7 @@ class PortList:
     """
 
     def __init__(self):
-        self.portlist = array.array('B')
+        self.portlist = array.array("B")
 
     def from_unicode(self, bitmap_string: str) -> None:
         """
@@ -335,7 +335,7 @@ class EthernetAddress(netaddr.EUI):
         """
         # initiate netaddr EUI class parent object
         super().__init__(ethernet_string)
-        self.vendor: str = ''
+        self.vendor: str = ""
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
         self.address_ip4: list = []  # ipv4 address as str() from arp table, if known
         self.address_ip6: List = []  # known ipv6 addresses of this ethernet address, in list as str()
@@ -394,16 +394,16 @@ class EthernetAddress(netaddr.EUI):
             dprint(f"EthernetAddress() object: adding INVALID IPv6 address '{ip6_address}': {err}")
 
     def as_dict(self) -> dict:
-        '''
+        """
         return this class as a dictionary for use by the API
-        '''
+        """
         return {
-            'address': self.__str__(),
-            'vlan': self.vlan_id,
-            'ipv4': self.address_ip4,
-            'ipv6': self.address_ip6,
-            'hostname': self.hostname,
-            'vendor': self.vendor,
+            "address": self.__str__(),
+            "vlan": self.vlan_id,
+            "ipv4": self.address_ip4,
+            "ipv6": self.address_ip6,
+            "hostname": self.hostname,
+            "vendor": self.vendor,
         }
 
     def __str__(self) -> str:
@@ -457,7 +457,7 @@ class NeighborDevice:
         self.stop_device = ""
 
     def set_port_name(self, port_name: str) -> None:
-        '''
+        """
         Set the name of the remote port of this device.
 
         Args:
@@ -465,11 +465,11 @@ class NeighborDevice:
 
         Returns:
             none
-        '''
+        """
         self.port_name = port_name
 
     def set_port_description(self, description: str) -> None:
-        '''
+        """
         Set the description of the remote port of this device.
 
         Args:
@@ -477,11 +477,11 @@ class NeighborDevice:
 
         Returns:
             none
-        '''
+        """
         self.port_descr = description
 
     def set_sys_name(self, name: str) -> None:
-        '''
+        """
         Set the name of the remote device.
 
         Args:
@@ -489,11 +489,11 @@ class NeighborDevice:
 
         Returns:
             none
-        '''
+        """
         self.sys_name = name
 
     def set_sys_description(self, description: str) -> None:
-        '''
+        """
         Set the description of the remote device.
 
         Args:
@@ -501,11 +501,11 @@ class NeighborDevice:
 
         Returns:
             none
-        '''
+        """
         self.sys_descr = description
 
     def set_chassis_type(self, chassis_type: int) -> None:
-        '''
+        """
         Set the name of the remote port of this device.
 
         Args:
@@ -514,11 +514,11 @@ class NeighborDevice:
 
         Returns:
             none
-        '''
+        """
         self.chassis_type = chassis_type
 
     def set_chassis_string(self, description: str) -> None:
-        '''
+        """
         Set the string type of remote chassis.
 
         Args:
@@ -526,7 +526,7 @@ class NeighborDevice:
 
         Returns:
             none
-        '''
+        """
         self.chassis_string = description
 
     def set_management_address_v4(self, address: str) -> None:
@@ -552,7 +552,7 @@ class NeighborDevice:
         self.management_address_v6 = address
 
     def set_capability(self, capability: int) -> None:
-        '''
+        """
         Add a capability to this device. These are defined in switches.connect.constants,
         see LLDP_CAPABILITIES_xxx fields. They are accumulative, as a device can have
         multiple capabilities.
@@ -562,7 +562,7 @@ class NeighborDevice:
 
         Returns:
             none
-        '''
+        """
         self.capabilities += capability
 
     def capabilities_as_string(self) -> str:
@@ -576,16 +576,16 @@ class NeighborDevice:
         """
         info = []
         if self.capabilities == LLDP_CAPABILITIES_NONE:
-            info.append('NOT Advertized')
+            info.append("NOT Advertized")
         else:
             if self.capabilities & LLDP_CAPABILITIES_WLAN:
-                info.append('Wireless AP')
+                info.append("Wireless AP")
             if self.capabilities & LLDP_CAPABILITIES_PHONE:
-                info.append('VOIP Phone')
+                info.append("VOIP Phone")
             if self.capabilities & LLDP_CAPABILITIES_ROUTER:
-                info.append('Router or Switch')
+                info.append("Router or Switch")
             if self.capabilities & LLDP_CAPABILITIES_STATION:
-                info.append('Workstation or Server')
+                info.append("Workstation or Server")
             if (
                 self.capabilities & LLDP_CAPABILITIES_BRIDGE
                 and not self.capabilities & LLDP_CAPABILITIES_ROUTER
@@ -594,30 +594,30 @@ class NeighborDevice:
                 # We only show Switch if no routing or phone capabilities listed.
                 # Most phones and routers also show switch capabilities.
                 # In those cases we only show the above Router or Phone icons!
-                info.append('Switch')
+                info.append("Switch")
             if self.capabilities & LLDP_CAPABILITIES_REPEATER:
-                info.append('Hub or Repeater')
+                info.append("Hub or Repeater")
             if self.capabilities & LLDP_CAPABILITIES_DOCSIS:
-                info.append('Cable-Modem')  # unlikely to see this!
+                info.append("Cable-Modem")  # unlikely to see this!
             if self.capabilities & LLDP_CAPABILITIES_OTHER:
-                info.append('Other')
-        return ','.join(info)
+                info.append("Other")
+        return ",".join(info)
 
     def as_dict(self) -> dict:
-        '''
+        """
         return this class as a dictionary for use by the API
-        '''
+        """
         return {
-            'port_name': self.port_name,
-            'port_description': self.port_descr,
-            'system_name': self.sys_name,
-            'system_description': self.sys_descr,
-            'hostname': self.hostname,
-            'chassis_id': self.chassis_string,
-            'chassis_type': self.chassis_type,
-            'capabilities': self.capabilities_as_string(),
-            'management_address_v4': self.management_address_v4,
-            'management_address_v6': self.management_address_v6,
+            "port_name": self.port_name,
+            "port_description": self.port_descr,
+            "system_name": self.sys_name,
+            "system_description": self.sys_descr,
+            "hostname": self.hostname,
+            "chassis_id": self.chassis_string,
+            "chassis_type": self.chassis_type,
+            "capabilities": self.capabilities_as_string(),
+            "management_address_v4": self.management_address_v4,
+            "management_address_v6": self.management_address_v6,
         }
 
     def display_name(self) -> str:
@@ -651,62 +651,62 @@ class PoePSE:
         self.serial = ""
 
     def as_dict(self) -> dict:
-        '''
+        """
         return this class as a dictionary for use by the API
-        '''
+        """
         return {
-            'id': self.index,
-            'max_power': self.max_power,
-            'status': poe_pse_status_name[self.status],
-            'power_consumed': self.power_consumed,
-            'threshold': self.threshold,
+            "id": self.index,
+            "max_power": self.max_power,
+            "status": poe_pse_status_name[self.status],
+            "power_consumed": self.power_consumed,
+            "threshold": self.threshold,
         }
 
     def set_enabled(self) -> None:
-        '''
+        """
         Set status as Enabled.
-        '''
+        """
         self.status = POE_PSE_STATUS_ON
 
     def set_disabled(self) -> None:
-        '''
+        """
         Set status as Disabled.
-        '''
+        """
         self.status = POE_PSE_STATUS_OFF
 
     def set_fault(self) -> None:
-        '''
+        """
         Set status as Faulted.
-        '''
+        """
         self.status = POE_PSE_STATUS_FAULT
 
     def set_max_power(self, power: int) -> None:
-        '''
+        """
         Set maximum power available.
-        '''
+        """
         try:
             self.max_power = int(power)
         except Exception:
             self.max_power = 0
 
     def set_consumed_power(self, power: int) -> None:
-        '''
+        """
         Set power consumed.
-        '''
+        """
         try:
             self.power_consumed = int(power)
         except Exception:
             self.consumed_power = 0
 
     def add_consumed_power(self, power: int) -> None:
-        '''
+        """
         Add to the consumed power consumed.
         Args:
             power (int): the consumed power, in WATTS!
 
         Returns:
             n/a
-        '''
+        """
         try:
             self.power_consumed += int(power)
         except Exception:
@@ -747,17 +747,17 @@ class PoePort:
         self.max_power_consumed: int = 0  # max power drawn since PoE reset, in milliWatt
 
     def as_dict(self) -> dict:
-        '''
+        """
         return this class as a dictionary for use by the API
-        '''
+        """
         return {
-            'admin_status': poe_admin_status_name[self.admin_status],
-            'detect_status': poe_status_name[self.detect_status],
+            "admin_status": poe_admin_status_name[self.admin_status],
+            "detect_status": poe_status_name[self.detect_status],
             # 'priority': poe_priority_name[self.priority]
-            'power_consumption_supported': self.power_consumption_supported,
-            'power_consumed': self.power_consumed,
-            'power_available': self.power_available,
-            'max_power_consumed': self.max_power_consumed,
+            "power_consumption_supported": self.power_consumption_supported,
+            "power_consumed": self.power_consumed,
+            "power_available": self.power_available,
+            "max_power_consumed": self.max_power_consumed,
         }
 
     def __str__(self) -> str:
@@ -788,18 +788,18 @@ class Transceiver:
         self.connector: str = ""  # 'LC', SC', etc.
 
     def as_dict(self) -> dict:
-        '''
+        """
         return this class as a dictionary for use by the API
-        '''
+        """
         return {
-            'type': self.type,
-            'vendor': self.vendor,
-            'model': self.model,
-            'description': self.description,
-            'serial': self.serial,
-            'wavelength': self.wavelength,
-            'distance': self.distance,
-            'connector': self.connector,
+            "type": self.type,
+            "vendor": self.vendor,
+            "model": self.model,
+            "description": self.description,
+            "serial": self.serial,
+            "wavelength": self.wavelength,
+            "distance": self.distance,
+            "connector": self.connector,
         }
 
     def __str__(self) -> str:
@@ -853,16 +853,16 @@ class SyslogMsg:
         self.datetime = 0
 
     def as_dict(self) -> dict:
-        '''
+        """
         return this class as a dictionary for use by the API
-        '''
+        """
         return {
-            'index': self.index,
-            'facility': self.facility,
-            'severity': self.severity,
-            'name': self.name,
-            'message': self.message,
-            'datetime': self.datetime,
+            "index": self.index,
+            "facility": self.facility,
+            "severity": self.severity,
+            "name": self.name,
+            "message": self.message,
+            "datetime": self.datetime,
         }
 
     def __str__(self) -> str:
@@ -959,7 +959,7 @@ class Vrf:
             self.interfaces.append(if_name)
 
     def as_dict(self):
-        '''
+        """
         return this Vrf() class as a dictionary for use by the API
 
         Params:
@@ -967,14 +967,14 @@ class Vrf:
 
         Returns:
             dict(): key-value pairs with information about this VRF.
-        '''
+        """
         # return just the basic data for now...
         return {
             "name": self.name,
-            'rd': self.rd,
-            'description': self.description,
-            'ipv4': self.ipv4,
-            'ipv6': self.ipv6,
+            "rd": self.rd,
+            "description": self.description,
+            "ipv4": self.ipv4,
+            "ipv6": self.ipv6,
         }
 
     def __str__(self) -> str:
@@ -1012,9 +1012,9 @@ class Interface:
         self.transceiver: Transceiver = None  # any transceiver info know for this interface
         self.description: str = ""  # the interface description, as set by the switch configuration, from IF-MIB
         self.addresses_ip4: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
-        self.addresses_ip6: Dict[str, IPNetworkHostname] = (
-            {}
-        )  # dictionary of all my (routable) ipv6 addresses on this interface
+        self.addresses_ip6: Dict[
+            str, IPNetworkHostname
+        ] = {}  # dictionary of all my (routable) ipv6 addresses on this interface
         self.address_ip6_linklocal: str = ""  # the IPv6 LinkLocal address for this interface, if any.
         self.igmp_snooping: bool = False  # if True, interface does IGMP snooping
         # vlan related
@@ -1022,9 +1022,9 @@ class Interface:
         self.untagged_vlan: int = (
             -1
         )  # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
-        self.vlans: List[int] = (
-            []
-        )  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
+        self.vlans: List[
+            int
+        ] = []  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
         self.vlan_count: int = 0
         self.is_tagged: bool = False  # if 802.1q tagging or trunking is enabled
         # some vendors (e.g. Comware, Cisco-SB) have a interface vlan mode:
@@ -1058,19 +1058,19 @@ class Interface:
         self.poe_entry: PoePort | bool = False  # if interface has PoE capabilities, will be a PoePort() object
         self.allow_poe_toggle: bool = False  # if set, any user can toggle PoE OFF-ON
         # a variety of data about what is happening on this interface:
-        self.eth: Dict[str, EthernetAddress] = (
-            {}
-        )  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
+        self.eth: Dict[
+            str, EthernetAddress
+        ] = {}  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
         self.lldp: Dict[str, NeighborDevice] = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
         # the Vrf() this interface belongs to, if any
-        self.vrf_name = ''
+        self.vrf_name = ""
 
     def add_ip4_network(self, address: str, prefix_len: int = 0, netmask: str = "") -> None:
-        '''
+        """
         Add an IPv4 address to this interface, as given by the IPv4 address and prefix_len
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
         return True on success, False on failure.
-        '''
+        """
         dprint(f"add_ip4_network(): interface '{self.name}': adding '{address}' len {prefix_len}, netmask '{netmask}'")
         if prefix_len:
             self.addresses_ip4[address] = IPNetworkHostname(f"{address}/{prefix_len}")
@@ -1083,11 +1083,11 @@ class Interface:
         # return True
 
     def add_ip6_network(self, address: str, prefix_len: int = 64) -> None:
-        '''
+        """
         Add an IPv6 address to this interface, as given by the IPv6 address and prefix_len
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
         return True on success, False on failure.
-        '''
+        """
         dprint(f"add_ip6_network(): interface '{self.name}': adding '{address}' len {prefix_len}")
         try:
             ipv6 = IPNetworkHostname(f"{address}/{prefix_len}")
@@ -1102,7 +1102,7 @@ class Interface:
         # return True
 
     def set_mode(self, is_tagged: int) -> bool:
-        '''Bookkeeping function to set an interface mode to tagged (802.1q trunk), or access.
+        """Bookkeeping function to set an interface mode to tagged (802.1q trunk), or access.
         returns the mode, True = tagged, False = access mode.
 
         Note that a driver needs to override this to implement actual functionality.
@@ -1113,7 +1113,7 @@ class Interface:
 
         Returns:
             (bool):
-        '''
+        """
         if not self.can_set_mode:
             # this should not happen!
             # add error code here!
@@ -1123,7 +1123,7 @@ class Interface:
         return self.is_tagged
 
     def add_tagged_vlan(self, vlan_id: int) -> None:
-        '''
+        """
         Bookkeeping function to add a Vlan() object for the vlan_id to this interface.
         Set tagged mode as well. vlan_id = vlan to add as integer
         Return True on success, False on failure and sets error variable.
@@ -1131,13 +1131,13 @@ class Interface:
         Note that a driver needs to override this to implement actual functionality.
         It should then call this super-class function to do the bookkeeping.
 
-        '''
+        """
         self.is_tagged = True
         self.vlans.append(int(vlan_id))
         # return True
 
     def remove_tagged_vlan(self, vlan_id: int) -> None:
-        '''
+        """
         Remove a Vlan() object from this interface.
         vlan_id = vlan to remove as integer
         Return True on success, False on failure and sets error variable.
@@ -1146,7 +1146,7 @@ class Interface:
         It should then call this super-class function to do the bookkeeping.
 
         This does NOT remove the "is_tagged" setting if last vlan is removed!
-        '''
+        """
         vlan_id = int(vlan_id)
         if vlan_id in self.vlans:
             self.vlans.remove(vlan_id)
@@ -1156,10 +1156,10 @@ class Interface:
         self,
         eth_address: str,
         vlan_id: int = -1,
-        ip4_address: str = '',
-        ip6_address: str = '',
+        ip4_address: str = "",
+        ip6_address: str = "",
     ) -> EthernetAddress:
-        '''
+        """
         Add an ethernet address to this interface, as given by the layer2 CAM/Switching tables.
         It gets stored indexed by ethernet address. Create new EthernetAddress() object if not found yet.
         If the object already exists, return it.
@@ -1172,7 +1172,7 @@ class Interface:
 
         Returns:
             EthernetAddress(), either existing or new.
-        '''
+        """
         dprint(
             f"Interface().add_learned_ethernet_address() for {eth_address}, vlan={vlan_id}, ip4='{ip4_address}', ip6='{ip6_address}'"
         )
@@ -1202,18 +1202,18 @@ class Interface:
         return e
 
     def add_neighbor(self, neighbor: NeighborDevice) -> None:
-        '''
+        """
         Add an lldp neighbor to this interface.
         neighbor = NeighborDevice() object.
         It gets stored indexed by lldp "index", mostly for snmp purposes.
         return True on success, False on failure.
-        '''
+        """
         dprint(f"add_neighbor() for {str(neighbor)}")
         self.lldp[neighbor.index] = neighbor
         # return True
 
     def as_dict(self) -> dict:
-        '''
+        """
         return this Interface() class as a dictionary for use by the API
 
         Params:
@@ -1221,7 +1221,7 @@ class Interface:
 
         Returns:
             dict(): key-value pairs with information about this interface.
-        '''
+        """
         inf = {}
         # for the id or key, we use the same encoded as django template url() function
         inf["id"] = iri_to_uri(self.key)
@@ -1230,7 +1230,7 @@ class Interface:
         if self.is_routed:
             inf["mode"] = "Routed"
         elif self.is_tagged:
-            inf['mode'] = "Tagged"
+            inf["mode"] = "Tagged"
             # need to handle tagged vlans
             inf["tagged_vlans"] = ", ".join(map(str, self.vlans))
         else:
@@ -1251,25 +1251,25 @@ class Interface:
         if self.mtu:
             inf["mtu"] = self.mtu
         # VRF info
-        inf['vrf'] = self.vrf_name
+        inf["vrf"] = self.vrf_name
         # PoE data:
         if self.poe_entry:
-            inf['poe'] = self.poe_entry.as_dict()
-        inf['manageable'] = self.manageable
+            inf["poe"] = self.poe_entry.as_dict()
+        inf["manageable"] = self.manageable
         if not self.manageable:
-            inf['unmanage_reason'] = self.unmanage_reason
+            inf["unmanage_reason"] = self.unmanage_reason
 
         # add the learned mac addresses:
         addresses = []
         for address, eth in self.eth.items():
             addresses.append(eth.as_dict())
-        inf['ethernet_addresses'] = addresses
+        inf["ethernet_addresses"] = addresses
 
         # add the heard neighbors:
         neighbors = []
         for key, neighbor in self.lldp.items():
             neighbors.append(neighbor.as_dict())
-        inf['neighbors'] = neighbors
+        inf["neighbors"] = neighbors
 
         # and return the dictionary:
         return inf
@@ -1277,7 +1277,7 @@ class Interface:
     def display_name(self) -> str:
         s = self.name  # use the IF-MIB new interface name
         if self.description:
-            s = f"{s}: \"{self.description}\""
+            s = f'{s}: "{self.description}"'
         if self.admin_status:
             s = f"{s} (UP/"
         else:

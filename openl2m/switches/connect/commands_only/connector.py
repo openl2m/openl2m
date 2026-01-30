@@ -15,6 +15,7 @@
 Commands-Only Connector: this implements an SSH connection to the devices
 that is used for excuting commands only!
 """
+
 from django.http.request import HttpRequest
 
 from switches.connect.connector import Connector
@@ -33,12 +34,12 @@ class CommandsOnlyConnector(Connector):
         # for now, just call the super class
         dprint("Commands-Only Connector __init__")
         super().__init__(request, group, switch)
-        self.description = 'Commands-Only (Netmiko) driver'
+        self.description = "Commands-Only (Netmiko) driver"
         self.vendor_name = "Netmiko (Commands-Only)"
         # force READ-ONLY
         self.read_only = True
         if switch.description:
-            self.add_more_info('System', 'Description', switch.description)
+            self.add_more_info("System", "Description", switch.description)
         self.show_interfaces = False  # do NOT show interfaces, vlans etc...
         # for Command-Only devices, we let netmiko decide the disable-paging command string
         # by setting this as empty string, the Netmiko().__init() will call disable_paging()

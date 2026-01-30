@@ -5,19 +5,19 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('switches', '0007_auto_20191127_1521'),
+        ("switches", "0007_auto_20191127_1521"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='switch',
-            name='nms_id',
+            model_name="switch",
+            name="nms_id",
             field=models.CharField(
                 blank=True,
-                help_text='ID or Label in an external Network Management System. To be used in admin-configurable links. See configuration.py',
+                help_text="ID or Label in an external Network Management System. To be used in admin-configurable links. See configuration.py",
                 max_length=64,
                 null=True,
-                verbose_name='External NMS Id',
+                verbose_name="External NMS Id",
             ),
         ),
     ]

@@ -24,7 +24,7 @@ from switches.api.admin.views import (
     APIAdminSwitchGroupDetail,
 )
 
-app_name = 'api-admin-switches'
+app_name = "api-admin-switches"
 
 urlpatterns = [
     # api token path @post only

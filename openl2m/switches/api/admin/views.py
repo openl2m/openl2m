@@ -56,22 +56,22 @@ from openl2m.api.authentication import IsSuperUser
 
 
 class APIAdminSwitches(APIView):
-    '''
+    """
     API Class to GET the details on all devices/switches,
     or create a new device/switch (POST)
-    '''
+    """
 
     permission_classes = [IsSuperUser]
 
     # get all devices (switches)
     def get(self, request):
-        '''
+        """
         Return all switches
-        '''
+        """
         dprint(f"APIAdminSwitches.get(): user={request.user.username}")
         # return all devices.
         switches = Switch.objects.all()
-        serializer = SwitchSerializer(switches, many=True, context={'request': request})
+        serializer = SwitchSerializer(switches, many=True, context={"request": request})
         log = Log(
             type=LOG_TYPE_VIEW,
             action=LOG_REST_API_ADMIN_SWITCH_GET_ALL,
@@ -84,15 +84,15 @@ class APIAdminSwitches(APIView):
 
     # create a new switch
     def post(self, request):
-        '''
+        """
         Add a new switch, and set switch group membership
-        '''
+        """
         dprint(f"APIAdminSwitches.post(): user={request.user.username}")
         serializer = SwitchSerializer(data=request.data)
         if serializer.is_valid():
             switch = serializer.save()
             dprint(f"NEW switch pk={switch.pk}")
-            if 'switchgroups' in request.data:
+            if "switchgroups" in request.data:
                 dprint("Switch created, adding to SwitchGroups!")
                 # add switch groups.
                 add_switch_to_switchgroup(request, switch)
@@ -119,9 +119,9 @@ class APIAdminSwitches(APIView):
 
 
 class APIAdminSwitchDetail(APIView):
-    '''
+    """
     API class to GET or update (POST/PATCH) the details of a switch (device).
-    '''
+    """
 
     permission_classes = [IsSuperUser]
 
@@ -162,7 +162,7 @@ class APIAdminSwitchDetail(APIView):
         )
         log.save()
 
-        serializer = SwitchSerializer(switch, context={'request': request})
+        serializer = SwitchSerializer(switch, context={"request": request})
         return Response(
             data=serializer.data,
             status=http_status.HTTP_200_OK,
@@ -200,7 +200,7 @@ class APIAdminSwitchDetail(APIView):
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = SwitchSerializer(switch, data=request.data, context={'request': request}, partial=True)
+        serializer = SwitchSerializer(switch, data=request.data, context={"request": request}, partial=True)
         if serializer.is_valid():
             serializer.save()
             add_switch_to_switchgroup(request, switch)
@@ -229,21 +229,21 @@ class APIAdminSwitchDetail(APIView):
 
 
 class APIAdminNetmikoProfiles(APIView):
-    '''
+    """
     API class to GET all Credential Profiles (NetmikoProfile objects)
     or POST to create a new one.
-    '''
+    """
 
     permission_classes = [IsSuperUser]
 
     def get(self, request):
-        '''
+        """
         Return all Credential Profiles
-        '''
+        """
         dprint("APIAdminNetmikoProfiles.get()")
         # return all credentials.
         profiles = NetmikoProfile.objects.all()
-        serializer = NetmikoProfileSerializer(profiles, many=True, context={'request': request})
+        serializer = NetmikoProfileSerializer(profiles, many=True, context={"request": request})
         log = Log(
             type=LOG_TYPE_VIEW,
             action=LOG_REST_API_ADMIN_NETMIKO_PROFILE_GET_ALL,
@@ -255,9 +255,9 @@ class APIAdminNetmikoProfiles(APIView):
         return Response(data=serializer.data, status=http_status.HTTP_200_OK)
 
     def post(self, request):
-        '''
+        """
         Add a new Credential Profile ()
-        '''
+        """
         dprint("APIAdminNetmikoProfiles.post()")
         serializer = NetmikoProfileSerializer(data=request.data)
         if serializer.is_valid():
@@ -284,19 +284,19 @@ class APIAdminNetmikoProfiles(APIView):
 
 
 class APIAdminNetmikoProfileDetail(APIView):
-    '''
+    """
     API class to read or update a specific Credential Profile (NetmikoProfile) or create a new one.
-    '''
+    """
 
     permission_classes = [IsSuperUser]
 
     def get(self, request, pk):
-        '''Return a specific Credential Profile (NetmikoProfile) object
+        """Return a specific Credential Profile (NetmikoProfile) object
 
         Params:
             pk (int): the id of the NetmikoProfile() object
 
-        '''
+        """
         dprint(f"APIAdminNetmikoProfileDetail.get() for pk={pk}")
         try:
             profile = NetmikoProfile.objects.get(pk=pk)
@@ -326,7 +326,7 @@ class APIAdminNetmikoProfileDetail(APIView):
             description=f"API Admin get credential profile for id={pk}, name={profile.name}",
         )
         log.save()
-        serializer = NetmikoProfileSerializer(profile, context={'request': request})
+        serializer = NetmikoProfileSerializer(profile, context={"request": request})
         return Response(
             data=serializer.data,
             status=http_status.HTTP_200_OK,
@@ -337,13 +337,13 @@ class APIAdminNetmikoProfileDetail(APIView):
         return self.post(request, pk)
 
     def post(self, request, pk):
-        '''Update a Credential Profile (NetmikoProfile) object
+        """Update a Credential Profile (NetmikoProfile) object
 
         Params:
             pk (int): the key of the Switch() object
 
             request.data is a Dict() with the attributes to modify.
-        '''
+        """
         dprint(f"APIAdminNetmikoProfileDetail.post() for pk={pk}")
         try:
             profile = NetmikoProfile.objects.get(pk=pk)
@@ -364,7 +364,7 @@ class APIAdminNetmikoProfileDetail(APIView):
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = NetmikoProfileSerializer(profile, data=request.data, context={'request': request}, partial=True)
+        serializer = NetmikoProfileSerializer(profile, data=request.data, context={"request": request}, partial=True)
         if serializer.is_valid():
             serializer.save()
             log = Log(
@@ -396,20 +396,20 @@ class APIAdminNetmikoProfileDetail(APIView):
 
 
 class APIAdminSnmpProfiles(APIView):
-    '''
+    """
     API class to GET all SNMP Profiles or POST to create a new one.
-    '''
+    """
 
     permission_classes = [IsSuperUser]
 
     def get(self, request):
-        '''
+        """
         Return all SnmpProfile objects
-        '''
+        """
         dprint("APIAdminSnmpProfiles.get()")
         # return all snmp profiles.
         profiles = SnmpProfile.objects.all()
-        serializer = SnmpProfileSerializer(profiles, many=True, context={'request': request})
+        serializer = SnmpProfileSerializer(profiles, many=True, context={"request": request})
         log = Log(
             type=LOG_TYPE_VIEW,
             action=LOG_REST_API_ADMIN_SNMP_PROFILE_GET_ALL,
@@ -421,9 +421,9 @@ class APIAdminSnmpProfiles(APIView):
         return Response(data=serializer.data, status=http_status.HTTP_200_OK)
 
     def post(self, request):
-        '''
+        """
         Add a new SnmpProfile object
-        '''
+        """
         dprint("APIAdminSnmpProfiles.post()")
         serializer = SnmpProfileSerializer(data=request.data)
         # dprint(repr(serializer))
@@ -452,18 +452,18 @@ class APIAdminSnmpProfiles(APIView):
 
 
 class APIAdminSnmpProfileDetail(APIView):
-    '''
+    """
     API class to read (GET) or update (POST/PATCH) a specific SNMP Profile
-    '''
+    """
 
     permission_classes = [IsSuperUser]
 
     def get(self, request, pk):
-        '''Return a specific SnmpProfile object
+        """Return a specific SnmpProfile object
 
         Params:
             pk (int): the key of the object
-        '''
+        """
 
         dprint(f"APIAdminSnmpProfileDetail.get() for pk={pk}")
         try:
@@ -493,7 +493,7 @@ class APIAdminSnmpProfileDetail(APIView):
             description=f"API Admin get SNMP profile for id={pk}, name={profile.name}",
         )
         log.save()
-        serializer = SnmpProfileSerializer(profile, context={'request': request})
+        serializer = SnmpProfileSerializer(profile, context={"request": request})
         return Response(
             data=serializer.data,
             status=http_status.HTTP_200_OK,
@@ -504,13 +504,13 @@ class APIAdminSnmpProfileDetail(APIView):
         return self.post(request, pk)
 
     def post(self, request, pk):
-        '''Update a specific SnmpProfile object
+        """Update a specific SnmpProfile object
 
         Params:
             pk (int): the key of the object
 
             request.data is a Dict() with the attributes to modify.
-        '''
+        """
         dprint("APIAdminSnmpProfileDetail.post() for pk={pk}")
         try:
             profile = SnmpProfile.objects.get(pk=pk)
@@ -531,7 +531,7 @@ class APIAdminSnmpProfileDetail(APIView):
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = SnmpProfileSerializer(profile, data=request.data, context={'request': request}, partial=True)
+        serializer = SnmpProfileSerializer(profile, data=request.data, context={"request": request}, partial=True)
         if serializer.is_valid():
             serializer.save()
             log = Log(
@@ -563,20 +563,20 @@ class APIAdminSnmpProfileDetail(APIView):
 
 
 class APIAdminSwitchGroups(APIView):
-    '''
+    """
     API class to GET all SwitchGroups or POST to create a new one.
-    '''
+    """
 
     permission_classes = [IsSuperUser]
 
     def get(self, request):
-        '''
+        """
         Return all SwitchGroup objects
-        '''
+        """
         dprint("APIAdminSwitchGroups.get()")
         # return all switchgroups.
         groups = SwitchGroup.objects.all()
-        serializer = SwitchGroupSerializer(groups, many=True, context={'request': request})
+        serializer = SwitchGroupSerializer(groups, many=True, context={"request": request})
         log = Log(
             type=LOG_TYPE_VIEW,
             action=LOG_REST_API_ADMIN_SWITCHGROUP_GET_ALL,
@@ -588,9 +588,9 @@ class APIAdminSwitchGroups(APIView):
         return Response(data=serializer.data, status=http_status.HTTP_200_OK)
 
     def post(self, request):
-        '''
+        """
         Add a new SwitchGroup object
-        '''
+        """
         dprint("APIAdminSwitchGroups.post()")
         serializer = SwitchGroupSerializer(data=request.data)
         if serializer.is_valid():
@@ -619,16 +619,16 @@ class APIAdminSwitchGroups(APIView):
 
 
 class APIAdminSwitchGroupDetail(APIView):
-    '''
+    """
     API class to read (GET) or update (POST/PATCH)a specific SwitchGroup
-    '''
+    """
 
     permission_classes = [IsSuperUser]
 
     def get(self, request, pk):
-        '''
+        """
         Return a specific SwitchGroup object
-        '''
+        """
         dprint(f"APIAdminSwitchGroupDetail.get() for pk={pk}")
         try:
             switchgroup = SwitchGroup.objects.get(pk=pk)
@@ -660,7 +660,7 @@ class APIAdminSwitchGroupDetail(APIView):
         )
         log.save()
 
-        serializer = SwitchGroupSerializer(switchgroup, context={'request': request})
+        serializer = SwitchGroupSerializer(switchgroup, context={"request": request})
         return Response(
             data=serializer.data,
             status=http_status.HTTP_200_OK,
@@ -671,13 +671,13 @@ class APIAdminSwitchGroupDetail(APIView):
         return self.post(request, pk)
 
     def post(self, request, pk):
-        '''Update a specific SwitchGroup object
+        """Update a specific SwitchGroup object
 
         Params:
             pk (int): the key of the object
 
             request.data is a Dict() with the attributes to modify.
-        '''
+        """
         dprint("APIAdminSwitchGroupDetail.post() for pk={pk}")
         try:
             switchgroup = SwitchGroup.objects.get(pk=pk)
@@ -698,7 +698,7 @@ class APIAdminSwitchGroupDetail(APIView):
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = SwitchGroupSerializer(switchgroup, data=request.data, context={'request': request}, partial=True)
+        serializer = SwitchGroupSerializer(switchgroup, data=request.data, context={"request": request}, partial=True)
         if serializer.is_valid():
             dprint(f"Valid data: {repr(serializer.validated_data)}")
             serializer.save()

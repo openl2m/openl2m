@@ -5,25 +5,25 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('switches', '0034_alter_log_action'),
+        ("switches", "0034_alter_log_action"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='switch',
-            name='connector_type',
+            model_name="switch",
+            name="connector_type",
             field=models.PositiveSmallIntegerField(
                 choices=[
-                    [0, 'SNMP'],
-                    [1, 'Aruba AOS-CX'],
-                    [98, 'Commands Only'],
-                    [2, 'Junos (PyEZ)'],
-                    [99, 'Napalm'],
-                    [100, 'Test Dummy'],
+                    [0, "SNMP"],
+                    [1, "Aruba AOS-CX"],
+                    [98, "Commands Only"],
+                    [2, "Junos (PyEZ)"],
+                    [99, "Napalm"],
+                    [100, "Test Dummy"],
                 ],
                 default=0,
-                help_text='How we connect to this device.',
-                verbose_name='Connector Type',
+                help_text="How we connect to this device.",
+                verbose_name="Connector Type",
             ),
         ),
     ]

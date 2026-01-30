@@ -46,8 +46,8 @@ from openl2m.admin import admin_site
 # Change the Switch admin display to add the list of groups where this is used:
 class SwitchInline(admin.TabularInline):
     model = SwitchGroup.switches.through
-    verbose_name = 'Switch Group membership'
-    verbose_name_plural = 'Switch Group memberships'
+    verbose_name = "Switch Group membership"
+    verbose_name_plural = "Switch Group memberships"
 
 
 # Change the Switch admin page to show horizontal listing of selected Switch Groups:
@@ -55,73 +55,73 @@ class SwitchInline(admin.TabularInline):
 class SwitchAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    list_display = ['name', 'access_count', 'last_accessed', 'change_count', 'last_changed', 'get_switchgroups']
+    list_display = ["name", "access_count", "last_accessed", "change_count", "last_changed", "get_switchgroups"]
     readonly_fields = (
-        'hostname',
-        'created',
+        "hostname",
+        "created",
         #        'modified',
-        'last_accessed',
-        'access_count',
-        'last_changed',
-        'change_count',
-        'last_command_time',
-        'command_count',
+        "last_accessed",
+        "access_count",
+        "last_changed",
+        "change_count",
+        "last_command_time",
+        "command_count",
     )
-    filter_horizontal = ('command_templates',)
-    search_fields = ['name']
+    filter_horizontal = ("command_templates",)
+    search_fields = ["name"]
     inlines = (SwitchInline,)
     fieldsets = (
-        (None, {'fields': ('name', 'description', 'primary_ip4', 'primary_ip6')}),
+        (None, {"fields": ("name", "description", "primary_ip4", "primary_ip6")}),
         (
-            'Connection Configuration',
+            "Connection Configuration",
             {
-                'fields': (
-                    'connector_type',
-                    'snmp_profile',
-                    'netmiko_profile',
+                "fields": (
+                    "connector_type",
+                    "snmp_profile",
+                    "netmiko_profile",
                 )
             },
         ),
-        ('Napalm Options', {'fields': ('napalm_device_type',)}),
+        ("Napalm Options", {"fields": ("napalm_device_type",)}),
         (
-            'Commands Configuration',
+            "Commands Configuration",
             {
-                'fields': (
-                    'command_list',
-                    'command_templates',
+                "fields": (
+                    "command_list",
+                    "command_templates",
                 )
             },
         ),
         (
-            'View Options',
-            {'fields': ('default_view',)},
+            "View Options",
+            {"fields": ("default_view",)},
         ),
         (
-            'Access Options',
+            "Access Options",
             {
-                'fields': (
-                    'status',
-                    'read_only',
-                    'bulk_edit',
-                    'allow_poe_toggle',
-                    'edit_if_descr',
+                "fields": (
+                    "status",
+                    "read_only",
+                    "bulk_edit",
+                    "allow_poe_toggle",
+                    "edit_if_descr",
                 )
             },
         ),
-        ('Other Options', {'fields': ('nms_id',)}),
-        ('Read-Only Fields', {'fields': ('hostname',)}),
+        ("Other Options", {"fields": ("nms_id",)}),
+        ("Read-Only Fields", {"fields": ("hostname",)}),
         (
-            'Stats',
+            "Stats",
             {
-                'fields': (
-                    'created',
+                "fields": (
+                    "created",
                     #                    'modified',
-                    'last_accessed',
-                    'access_count',
-                    'last_changed',
-                    'change_count',
-                    'last_command_time',
-                    'command_count',
+                    "last_accessed",
+                    "access_count",
+                    "last_changed",
+                    "change_count",
+                    "last_command_time",
+                    "command_count",
                 )
             },
         ),
@@ -132,65 +132,65 @@ class SwitchAdmin(admin.ModelAdmin):
 class SwitchGroupMembershipStackedInline(OrderedTabularInline):
     model = SwitchGroupMembership
     fields = (
-        'switch',
-        'order',
-        'move_up_down_links',
+        "switch",
+        "order",
+        "move_up_down_links",
     )
     readonly_fields = (
-        'order',
-        'move_up_down_links',
+        "order",
+        "move_up_down_links",
     )
     extra = 1
-    ordering = ('order',)
-    verbose_name = 'Switch to Group'
-    verbose_name_plural = 'Switch Group Memberships'
+    ordering = ("order",)
+    verbose_name = "Switch to Group"
+    verbose_name_plural = "Switch Group Memberships"
 
 
 # Change the SwitchGroup admin page to show horizontal listing of selected items:
 class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    search_fields = ['name']
-    filter_horizontal = ('users', 'vlan_groups', 'vlans')
-    list_display = ['name', 'switch_count', 'get_switchgroup_users']
+    search_fields = ["name"]
+    filter_horizontal = ("users", "vlan_groups", "vlans")
+    list_display = ["name", "switch_count", "get_switchgroup_users"]
     # inlines = (SwitchGroupSwitchesThroughModelTabularInline, )
     inlines = (SwitchGroupMembershipStackedInline,)
     fieldsets = (
         (
             None,
             {
-                'fields': (
-                    'name',
-                    'display_name',
-                    'description',
+                "fields": (
+                    "name",
+                    "display_name",
+                    "description",
                 )
             },
         ),
         (
-            'Users in this group',
+            "Users in this group",
             {
-                'fields': ('users',),
+                "fields": ("users",),
             },
         ),
         (
-            'VLAN Allowances',
+            "VLAN Allowances",
             {
-                'fields': (
-                    'allow_all_vlans',
-                    'vlan_groups',
-                    'vlans',
+                "fields": (
+                    "allow_all_vlans",
+                    "vlan_groups",
+                    "vlans",
                 ),
             },
         ),
         (
-            'Other options',
+            "Other options",
             {
-                'fields': (
-                    'read_only',
-                    'bulk_edit',
-                    'allow_poe_toggle',
-                    'edit_if_descr',
-                    'comments',
+                "fields": (
+                    "read_only",
+                    "bulk_edit",
+                    "allow_poe_toggle",
+                    "edit_if_descr",
+                    "comments",
                 ),
             },
         ),
@@ -204,24 +204,24 @@ class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
 # Change the VLAN() admin display to add the list of groups where this is used:
 class VlanInline(admin.TabularInline):
     model = VlanGroup.vlans.through
-    verbose_name = 'Vlan Group membership'
-    verbose_name_plural = 'Vlan Group memberships'
+    verbose_name = "Vlan Group membership"
+    verbose_name_plural = "Vlan Group memberships"
 
 
 class VlanSwitchInline(admin.TabularInline):
     model = SwitchGroup.vlans.through
-    verbose_name = 'Switch Group membership'
-    verbose_name_plural = 'Switch Group memberships'
+    verbose_name = "Switch Group membership"
+    verbose_name_plural = "Switch Group memberships"
 
 
 # Change the VLAN() admin page to show horizontal listing of selected VLAN Groups:
 class VLANAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    search_fields = ['name', 'vid']
+    search_fields = ["name", "vid"]
     # we just want all fields:
     # list_display = ['name', 'vid', 'description']
-    list_display = ['name', 'use_count']
+    list_display = ["name", "use_count"]
     inlines = (VlanInline, VlanSwitchInline)
 
     # return the number of VlanGroup() and SwitchGroups() objects that reference a given vlan (obj)
@@ -232,34 +232,34 @@ class VLANAdmin(admin.ModelAdmin):
 # Change the VlanGroup() admin display to add the list of groups where this is used:
 class VlanGroupInline(admin.TabularInline):
     model = SwitchGroup.vlan_groups.through
-    verbose_name = 'Vlan Group membership'
-    verbose_name_plural = 'Vlan Group memberships'
+    verbose_name = "Vlan Group membership"
+    verbose_name_plural = "Vlan Group memberships"
 
 
 # Change the VLAN admin page to show horizontal listing of selected VLAN Groups:
 class VlanGroupAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    search_fields = ['name']
-    filter_horizontal = ('vlans',)
+    search_fields = ["name"]
+    filter_horizontal = ("vlans",)
     # we just want all fields:
     # list_display = ['name', 'vid', 'description']
-    list_display = ['name', 'use_count']
+    list_display = ["name", "use_count"]
     inlines = (VlanGroupInline,)
     fieldsets = (
         (
             None,
             {
-                'fields': (
-                    'name',
-                    'description',
+                "fields": (
+                    "name",
+                    "description",
                 )
             },
         ),
         (
-            'VLANs Allowed',
+            "VLANs Allowed",
             {
-                'fields': ('vlans',),
+                "fields": ("vlans",),
             },
         ),
     )
@@ -272,45 +272,45 @@ class VlanGroupAdmin(admin.ModelAdmin):
 class SnmpProfileAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    search_fields = ['name']
-    list_display = ['name', 'switch_count']
+    search_fields = ["name"]
+    list_display = ["name", "switch_count"]
     fieldsets = (
         (
             None,
             {
-                'fields': (
-                    'name',
-                    'description',
-                    'version',
-                    'read_only',
+                "fields": (
+                    "name",
+                    "description",
+                    "version",
+                    "read_only",
                 )
             },
         ),
         (
-            'Version 2 options',
+            "Version 2 options",
             {
-                'fields': ('community',),
+                "fields": ("community",),
             },
         ),
         (
-            'Version 3 options',
+            "Version 3 options",
             {
-                'fields': (
-                    'sec_level',
-                    'auth_protocol',
-                    'username',
-                    'passphrase',
-                    'priv_protocol',
-                    'priv_passphrase',
-                    'context_name',
-                    'context_engine_id',
+                "fields": (
+                    "sec_level",
+                    "auth_protocol",
+                    "username",
+                    "passphrase",
+                    "priv_protocol",
+                    "priv_passphrase",
+                    "context_name",
+                    "context_engine_id",
                 ),
             },
         ),
         (
-            'Other options',
+            "Other options",
             {
-                'fields': ('udp_port',),
+                "fields": ("udp_port",),
             },
         ),
     )
@@ -323,46 +323,46 @@ class SnmpProfileAdmin(admin.ModelAdmin):
 class NetmikoProfileAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    search_fields = ['name']
-    list_display = ['name', 'switch_count']
+    search_fields = ["name"]
+    list_display = ["name", "switch_count"]
     fieldsets = (
         (
             None,
             {
-                'fields': (
-                    'name',
-                    'description',
+                "fields": (
+                    "name",
+                    "description",
                 ),
             },
         ),
         (
-            'SSH/REST/API Account settings',
+            "SSH/REST/API Account settings",
             {
-                'fields': (
-                    'username',
-                    'password',
+                "fields": (
+                    "username",
+                    "password",
                 ),
             },
         ),
         (
-            'Netmiko/SSH Options',
+            "Netmiko/SSH Options",
             {
-                'fields': (
-                    'tcp_port',
-                    'device_type',
+                "fields": (
+                    "tcp_port",
+                    "device_type",
                 ),
             },
         ),
         (
-            'Security Options',
+            "Security Options",
             {
-                'fields': ('verify_hostkey',),
+                "fields": ("verify_hostkey",),
             },
         ),
         (
-            'Cisco-Specific Options',
+            "Cisco-Specific Options",
             {
-                'fields': ('enable_password',),
+                "fields": ("enable_password",),
             },
         ),
     )
@@ -375,8 +375,8 @@ class NetmikoProfileAdmin(admin.ModelAdmin):
 class CommandAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    search_fields = ['name']
-    list_display = ['name', 'os', 'command_list_count']
+    search_fields = ["name"]
+    list_display = ["name", "os", "command_list_count"]
 
     # return the number of commandlist() objects that reference a given command (obj)
     # this can be in 4 difference ManyToManyField relationships:
@@ -392,39 +392,39 @@ class CommandAdmin(admin.ModelAdmin):
 class CommandListAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    search_fields = ['name']
-    list_display = ['name', 'switch_count']
+    search_fields = ["name"]
+    list_display = ["name", "switch_count"]
     filter_horizontal = (
-        'global_commands',
-        'interface_commands',
-        'global_commands_staff',
-        'interface_commands_staff',
+        "global_commands",
+        "interface_commands",
+        "global_commands_staff",
+        "interface_commands_staff",
     )
     fieldsets = (
         (
             None,
             {
-                'fields': (
-                    'name',
-                    'description',
+                "fields": (
+                    "name",
+                    "description",
                 )
             },
         ),
         (
-            'Global System Commands',
+            "Global System Commands",
             {
-                'fields': (
-                    'global_commands',
-                    'global_commands_staff',
+                "fields": (
+                    "global_commands",
+                    "global_commands_staff",
                 ),
             },
         ),
         (
-            'Interface Level Commands',
+            "Interface Level Commands",
             {
-                'fields': (
-                    'interface_commands',
-                    'interface_commands_staff',
+                "fields": (
+                    "interface_commands",
+                    "interface_commands_staff",
                 ),
             },
         ),
@@ -438,86 +438,86 @@ class CommandListAdmin(admin.ModelAdmin):
 class CommandTemplateAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
-    search_fields = ['name']
-    list_display = ['name', 'switch_count']
+    search_fields = ["name"]
+    list_display = ["name", "switch_count"]
     fieldsets = (
-        (None, {'fields': ('name', 'os', 'description', 'template')}),
+        (None, {"fields": ("name", "os", "description", "template")}),
         (
-            'Output Matching',
+            "Output Matching",
             {
-                'fields': ('output_match_regex', 'output_match_text', 'output_fail_text', 'output_lines_keep_regex'),
+                "fields": ("output_match_regex", "output_match_text", "output_fail_text", "output_lines_keep_regex"),
             },
         ),
         (
-            'Field 1 (free form)',
+            "Field 1 (free form)",
             {
-                'fields': ('field1_name', 'field1_description', 'field1_regex'),
+                "fields": ("field1_name", "field1_description", "field1_regex"),
             },
         ),
         (
-            'Field 2 (free form)',
+            "Field 2 (free form)",
             {
-                'fields': ('field2_name', 'field2_description', 'field2_regex'),
+                "fields": ("field2_name", "field2_description", "field2_regex"),
             },
         ),
         (
-            'Field 3 (free form)',
+            "Field 3 (free form)",
             {
-                'fields': ('field3_name', 'field3_description', 'field3_regex'),
+                "fields": ("field3_name", "field3_description", "field3_regex"),
             },
         ),
         (
-            'Field 4 (free form)',
+            "Field 4 (free form)",
             {
-                'fields': ('field4_name', 'field4_description', 'field4_regex'),
+                "fields": ("field4_name", "field4_description", "field4_regex"),
             },
         ),
         (
-            'Field 5 (free form)',
+            "Field 5 (free form)",
             {
-                'fields': ('field5_name', 'field5_description', 'field5_regex'),
+                "fields": ("field5_name", "field5_description", "field5_regex"),
             },
         ),
         (
-            'Field 6 (free form)',
+            "Field 6 (free form)",
             {
-                'fields': ('field6_name', 'field6_description', 'field6_regex'),
+                "fields": ("field6_name", "field6_description", "field6_regex"),
             },
         ),
         (
-            'Field 7 (free form)',
+            "Field 7 (free form)",
             {
-                'fields': ('field7_name', 'field7_description', 'field7_regex'),
+                "fields": ("field7_name", "field7_description", "field7_regex"),
             },
         ),
         (
-            'Field 8 (free form)',
+            "Field 8 (free form)",
             {
-                'fields': ('field8_name', 'field8_description', 'field8_regex'),
+                "fields": ("field8_name", "field8_description", "field8_regex"),
             },
         ),
         (
-            'List 1',
+            "List 1",
             {
-                'fields': ('list1_name', 'list1_description', 'list1_values'),
+                "fields": ("list1_name", "list1_description", "list1_values"),
             },
         ),
         (
-            'List 2',
+            "List 2",
             {
-                'fields': ('list2_name', 'list2_description', 'list2_values'),
+                "fields": ("list2_name", "list2_description", "list2_values"),
             },
         ),
         (
-            'List 3',
+            "List 3",
             {
-                'fields': ('list3_name', 'list3_description', 'list3_values'),
+                "fields": ("list3_name", "list3_description", "list3_values"),
             },
         ),
         (
-            'List 4',
+            "List 4",
             {
-                'fields': ('list4_name', 'list4_description', 'list4_values'),
+                "fields": ("list4_name", "list4_description", "list4_values"),
             },
         ),
     )
@@ -530,20 +530,20 @@ class CommandTemplateAdmin(admin.ModelAdmin):
 # add a class to show the built-in admin pages LogEntry objects:
 class LogEntryAdmin(admin.ModelAdmin):
     # to have a date-based drilldown navigation in the admin page
-    date_hierarchy = 'action_time'
+    date_hierarchy = "action_time"
 
     # to filter the resultes by users, content types and action flags
-    list_filter = ['user', 'content_type', 'action_flag']
+    list_filter = ["user", "content_type", "action_flag"]
 
     # when searching the user will be able to search in both object_repr and change_message
-    search_fields = ['object_repr', 'change_message']
+    search_fields = ["object_repr", "change_message"]
 
     list_display = [
-        'action_time',
-        'user',
-        'content_type',
-        'object_repr',
-        'action_flag',
+        "action_time",
+        "user",
+        "content_type",
+        "object_repr",
+        "action_flag",
     ]
 
     def has_add_permission(self, request):
@@ -564,7 +564,7 @@ class LogEntryAdmin(admin.ModelAdmin):
         else:
             ct = obj.content_type
             link = '<a href="%s">%s</a>' % (
-                reverse('admin:%s_%s_change' % (ct.app_label, ct.model), args=[obj.object_id]),
+                reverse("admin:%s_%s_change" % (ct.app_label, ct.model), args=[obj.object_id]),
                 escape(obj.object_repr),
             )
         return mark_safe(link)

@@ -16,7 +16,7 @@ from switches.utils import dprint
 
 
 def add_switch_to_switchgroup(request, switch):
-    '''
+    """
     Add a given switch to a list of switchgroups in the request data.
     The switchgroups parameter should contain *all* group memberships!!!
     Any other existing group membership will be removed.
@@ -28,16 +28,16 @@ def add_switch_to_switchgroup(request, switch):
 
     Returns:
         True
-    '''
+    """
     dprint(f"add_switch_to_switchgroup() switch={switch.name}")
-    if 'switchgroups' not in request.data:
+    if "switchgroups" not in request.data:
         dprint("  No switchgroups found!")
         return False
 
     dprint(f"  Groups: {request.data['switchgroups']}")
     group_list = []  # the requested group memberships
     # get group ID's out of CSV string.
-    for pk in request.data['switchgroups'].split(","):
+    for pk in request.data["switchgroups"].split(","):
         try:
             pk = int(pk)
             group_list.append(pk)

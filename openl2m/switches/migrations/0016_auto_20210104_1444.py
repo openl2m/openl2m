@@ -5,13 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('switches', '0015_log_if_name'),
+        ("switches", "0015_log_if_name"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='switch',
-            old_name='snmp_hostname',
-            new_name='hostname',
+            model_name="switch",
+            old_name="snmp_hostname",
+            new_name="hostname",
         ),
     ]

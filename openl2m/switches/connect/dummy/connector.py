@@ -38,12 +38,12 @@ class DummyConnector(Connector):
         # for now, just call the super class
         dprint("Dummy Connector __init__")
         super().__init__(request, group, switch)
-        self.description = 'Dummy Test driver'
+        self.description = "Dummy Test driver"
         self.vendor_name = "Dummy Test Device"
         self.hostname = "dummy.example.org"
         # We allow write, this will call base class bookkeeping functions in Connector()
         # self.read_only = False
-        self.add_more_info('System', 'Type', "Software Dummy Switch")
+        self.add_more_info("System", "Type", "Software Dummy Switch")
         self.add_more_info("System", "Hostname", self.hostname)
 
         self.can_change_admin_status = True
@@ -228,11 +228,11 @@ class DummyConnector(Connector):
         """
         dprint("Dummy Connector get_my_hardware_details()")
 
-        self.add_more_info('Dummy Heading', 'Element 1', 'Value 1')
-        self.add_more_info('Dummy Heading', 'Element 2', 'Value 2')
-        self.add_more_info('Dummy Heading', 'Element 3', 'Value 3')
-        self.add_more_info('Dummy Heading', 'Element 4', 'Value 4')
-        self.add_more_info('Some Other Heading', 'Element 1', 'Value 1')
+        self.add_more_info("Dummy Heading", "Element 1", "Value 1")
+        self.add_more_info("Dummy Heading", "Element 2", "Value 2")
+        self.add_more_info("Dummy Heading", "Element 3", "Value 3")
+        self.add_more_info("Dummy Heading", "Element 4", "Value 4")
+        self.add_more_info("Some Other Heading", "Element 1", "Value 1")
         return True
 
     def can_run_commands(self):
