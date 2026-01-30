@@ -16,6 +16,7 @@
 """
 Dummy Connector
 """
+
 from django.http.request import HttpRequest
 
 from switches.connect.constants import IF_TYPE_ETHERNET
@@ -49,8 +50,7 @@ class DummyConnector(Connector):
         self.can_change_description = True
         self.can_change_poe_status = True
         self.can_change_vlan = True
-        self.can_edit_tags = True  # for testing
-        self.can_set_mode = True  # for testing.
+        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
 
     def get_my_basic_info(self):
         dprint("Dummy Connector get_my_basic_info()")
