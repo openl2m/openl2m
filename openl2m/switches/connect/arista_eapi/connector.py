@@ -625,7 +625,7 @@ class AristaApiConnector(Connector):
             True on success, False on error and set self.error variables
         """
         dprint(
-            f"AristaApiConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}"
+            f"AristaApiConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
         )
         if not len(tagged_vlans):
             # no tagged vlan, ie "access mode".
@@ -646,17 +646,22 @@ class AristaApiConnector(Connector):
                 "switchport mode trunk",
                 "no switchport access vlan",  # not needed, added for config clarity!
                 f"switchport trunk native vlan {untagged_vlan}",
-                "switchport trunk allowed vlan none",  # start with clean slate on trunk
             ]
-            # loop through all vlans, and see if they are allowed
-            allow = []
-            for vid in self.vlans.keys():
-                if vid in tagged_vlans:
-                    # allowed!
-                    allow.append(str(vid))
-
-            # add to commands
-            cmds.append("switch trunk allowed vlan add " + ", ".join(allow))
+            # allow all vlans?
+            if allow_all:
+                cmds.append("switchport trunk allow vlan all")
+            # or just some specific vlans:
+            else:
+                # start with clean slate on trunk
+                cmds.append("switchport trunk allowed vlan none")
+                # loop through all vlans, and see if they are allowed
+                allow = []
+                for vid in self.vlans.keys():
+                    if vid in tagged_vlans:
+                        # allowed!
+                        allow.append(str(vid))
+                # add allowed vlans to commands
+                cmds.append("switch trunk allowed vlan add " + ", ".join(allow))
 
             # and finish the command list:
             cmds.append("end")
