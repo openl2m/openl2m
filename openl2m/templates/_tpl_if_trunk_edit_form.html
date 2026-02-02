@@ -6,41 +6,53 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="tagEditForm_{{ iface.key }}_label">Edit untagged and 802.1q tags for interface {{ iface.name }}</h1>
+        <h1 class="modal-title fs-3" id="tagEditForm_{{ iface.key }}_label">Edit vlans on interface {{ iface.name }}</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">{# THIS IS THE VLAN CHANGE FORM #}
-        <div class="fw-bolder text-warning mb-3">WORK-IN-PROGRESS - THIS IS A NON-FUNCTIONAL FORM!!!!<hr /></div>
+        <!-- <div class="fw-bolder text-warning mb-3">WORK-IN-PROGRESS - THIS IS A NON-FUNCTIONAL FORM!!!!<hr /></div> -->
         <form
           id="tags_edit_{{ iface.key }}" name="tags_edit_{{ iface.key }}"
           action="{% url 'switches:tags_edit' group.id switch.id iface.key %}"
           method="post"
           >
           {% csrf_token %}
-            <div class="fw-bolder mb-2">Set the untagged (pvid) vlan on {{ iface.name }}:</div>
-            <div>
-                <select name="pvid" data-bs-toggle="tooltip"
-                        title="Set the untagged vlan here"
-                        id="new_pvid">
-                  {% for vlan_id,vlan in connection.allowed_vlans.items %}
-                  <option
-                    {% if vlan_id == iface.untagged_vlan %} selected {% endif %}
-                    value="{{ vlan_id }}">{{ vlan_id }}
-                    {% if vlan.name %} - {{ vlan.name }} {% endif %}
-                  </option>
-                  {% endfor %}
-                </select>
-              </div>
-          <div><hr /></div>
-          <div class="fw-bolder mb-2">Select the 802.1q tagged vlans on {{ iface.name }}:</div>
-          <div class="fst-italic">Note: not selecting any tagged vlan makes the interface an 'access' port!</div>
+          <div class="fw-bolder mb-2">Set the untagged (pvid) vlan:</div>
+          <div class="mb-2">
+            <select name="pvid" data-bs-toggle="tooltip"
+                    title="Set the untagged vlan here"
+                    id="new_pvid">
+              {% for vlan_id,vlan in connection.allowed_vlans.items %}
+              <option
+                {% if vlan_id == iface.untagged_vlan %} selected {% endif %}
+                value="{{ vlan_id }}">{{ vlan_id }}
+                {% if vlan.name %} - {{ vlan.name }} {% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="fw-bolder mb-2">Select the 802.1q tagged vlans:</div>
+          <div class="fst-italic mb-2">Note: not selecting any tagged vlan makes the interface an 'access' port!</div>
+          {# ALLOW ALL checkbox #}
+          {% if connection.can_allow_all %}
+          <div class="mb-2">
+            <input class="form-check-input" type="checkbox" value="yes"
+                   name="allow_all" id="allow_all" onclick="allow_all_clicked(this)">
+                  <label class="form-check-label" for="allow_all">Allow ALL vlans as tagged.</label>
+          </div>
+          <div class="fst-italic mb-2">Or select specific vlans to allow:</div>
+          {% endif %}
+          {# VLANS TO ALLOW #}
           {% for vlan_id, vlan in connection.vlans.items %}
             {% if vlan_id in connection.allowed_vlans.keys %}
               {# needs work to mark tag enabled vlan with checkbox! #}
                   <div><input class="form-check-input" type="checkbox" value="{{vlan_id}}"
                               name="tagged_vlans" id="tagged_vlan_{{vlan_id}}"
                   {% if vlan_id in iface.vlans %}
-                    checked
+                              checked
+                  {% endif %}
+                  {% if connection.can_allow_all %}
+                              onclick="tagged_vlan_clicked(this)"
                   {% endif %}
                   >
                   <label class="form-check-label" for="tagged_vlan_{{ vlan_id }}">
@@ -57,7 +69,8 @@
                   </label></div>
             {% endif %}
           {% endfor %}
-          <div class="text-end align-middle">{# VLAN TAGS EDIT SUBMIT #}
+          {# SUBMIT BUTTON #}
+          <div class="text-end align-middle mt-2">
             <input type="submit"
                    name="submit_tag_edit_{{ iface.key }}"
                    value="Update Vlans"
@@ -68,6 +81,26 @@
                    {% endif %}
             >
           </div>
+          {% if connection.can_allow_all %}
+          <script>
+            function allow_all_clicked(allow_all) {
+              if (allow_all.checked) {
+                // uncheck all individual vlans
+                var vlan_checkboxes = document.querySelectorAll('input[name="tagged_vlans"]');
+                for (var i = 0; i < vlan_checkboxes.length; i++) { // zero-based array!
+                  vlan_checkboxes[i].checked = false;
+                }
+              }
+            }
+            function tagged_vlan_clicked(tagged_vlan) {
+              // uncheck 'Allow All'
+              if (tagged_vlan.checked ) {
+                var allow_all = document.getElementById(id="allow_all")
+                allow_all.checked = false
+              }
+            }
+          </script>
+          {% endif %}
         </form>
       </div>
     </div>

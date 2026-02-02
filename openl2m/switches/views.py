@@ -1448,6 +1448,10 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
             info.description = "Invalid PVID = {pvid}"
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
+        # see if "Allow All Vlans" is selected (if present)
+        allow_all = request.POST.get("allow_all", "") == "yes"    # form checkbox value="yes" if checked.
+        dprint(f"allow_all = {allow_all}")
+
         # get the vlans on the trunk:
         post_vlans = request.POST.getlist("tagged_vlans")
         # this returns vlan numbers as string. Our internal processing requires a list of integer vlan id's!
@@ -1473,11 +1477,12 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
             interface_key=interface_name,
             pvid=pvid,
             tagged_vlans=tagged_vlans,
+            allow_all=allow_all,
         )
         if not retval:
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-        message = f"DEMO ONLY: Interface '{interface_name}' 802.1q tags would be modified! PVID={pvid}, Submitted tagged vlans: '{tagged_vlans}'"
+        message = f"DEMO ONLY: Interface '{interface_name}' 802.1q tags would be modified! PVID={pvid}, Allow All={allow_all}, Submitted tagged vlans: '{tagged_vlans}'"
         return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 

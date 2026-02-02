@@ -501,8 +501,7 @@ def perform_interface_poe_change(
 
 
 def perform_interface_tags_edit(
-    request: HttpRequest, group_id: int, switch_id: int, interface_key: str, pvid: int, tagged_vlans: list
-):
+    request: HttpRequest, group_id: int, switch_id: int, interface_key: str, pvid: int, tagged_vlans: list, allow_all: bool = False):
     """
     Change the untagged pvid, and 802.1q (tagged/trunked) vlans on an interfaces.
 
@@ -513,6 +512,8 @@ def perform_interface_tags_edit(
         interface_key (str):  Interface() 'key' attribute
         pvid (int): integer vlan id to set as untagged vlan.
         tagged_vlans (list): integer list of vlan id's to set on interface - THIS NEEDS DESIGN WORK!!!!!
+        allow_all (bool): if set, all vlans are allow on trunk.
+                        Mostly passed in if driver support "trunk vlan allow all" type of command.
 
     Returns:
         boolean, Error() :
@@ -520,7 +521,7 @@ def perform_interface_tags_edit(
                     On error, Error() object will be set accordingly.
     """
     dprint(
-        f"perform_interface_tag_edit(group={group_id}, switch={switch_id}, int={interface_key}, pvid={pvid}, tagged_vlans={tagged_vlans})"
+        f"perform_interface_tag_edit(group={group_id}, switch={switch_id}, int={interface_key}, pvid={pvid}, tagged_vlans={tagged_vlans}, allow_all={allow_all})"
     )
 
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
@@ -571,7 +572,7 @@ def perform_interface_tags_edit(
         return False, error
 
     # call the interface vlan edit function:
-    if not connection.set_interface_vlans(interface=interface, untagged_vlan=pvid, tagged_vlans=tagged_vlans):
+    if not connection.set_interface_vlans(interface=interface, untagged_vlan=pvid, tagged_vlans=tagged_vlans, allow_all=allow_all):
         log.description = f"ERROR: {connection.error.description} - {connection.error.details}"
         log.type = LOG_TYPE_ERROR
         log.save()

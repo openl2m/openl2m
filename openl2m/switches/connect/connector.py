@@ -207,7 +207,7 @@ class Connector:
         self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         self.can_edit_tags: bool = False  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_tag_all: bool = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+        self.can_allow_all: bool = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
         self.can_change_poe_status = False
         self.can_change_description = False
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
@@ -668,7 +668,7 @@ class Connector:
         # self.save_cache()
         return True
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], tagged_all: bool = False) -> bool:
+    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
 
@@ -681,7 +681,7 @@ class Connector:
             True on success, False on error and set self.error variables
         """
         dprint(
-            f"Connector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}"
+            f"Connector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
         )
         interface.untagged_vlan = untagged_vlan
         if not len(tagged_vlans):
@@ -694,7 +694,7 @@ class Connector:
             # loop through all vlans, and see if they are allowed
             # this avoids invalid vlans in 'tagged_vlans'
             for vid in self.vlans.keys():
-                if tagged_all or vid in tagged_vlans:
+                if allow_all or vid in tagged_vlans:
                     self.add_interface_tagged_vlan(interface=interface, new_vlan=vid)
 
         return True
