@@ -29,6 +29,23 @@ which use the Connector() class.
    vrf_info.rst
    transceiver_info.rst
    vlan-add-del_info.rst
+   permissions.rst
+
+Interface Operations
+--------------------
+
+The following sections describe how actions on the interfaces or ports of a device are
+implemented and should be used in vendor drivers.
+
+.. toctree::
+   :maxdepth: 1
+
+   interface_up_down.rst
+   interface_vlan_change.rst
+   interface_poe_change.rst
+   interface_description.rst
+   interface_trunk_edit.rst
+
 
 Vendor Drivers
 --------------

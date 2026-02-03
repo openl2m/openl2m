@@ -13,49 +13,6 @@ The *Interface()* class is used to store interface information.
 See the definition in openl2m/switches/connect/classes.py
 
 
-Storing Interface Objects
--------------------------
-
-To be written
-
-
-Disable / Enable
-----------------
-
-To be written
-
-
-PoE
----
-
-To be written
-
-
-Description
------------
-
-To be written
-
-
-Vlan
-----
-
-To be written
-
-
-IP Address
-----------
-
-To be written
-
-
-Link-Aggregation
-----------------
-
-To be written
-
-
-
 Where It Shows
 --------------
 
