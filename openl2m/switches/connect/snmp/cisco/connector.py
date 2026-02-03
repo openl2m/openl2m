@@ -1151,7 +1151,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # return error status
         return False
 
-    def _disable_interface_management_not_needed(self, interface: Interface):
+    def _can_manage_interface_not_needed(self, interface: Interface):
         """Function that can be implemented by other drivers to disable management of an interface
         Params:
             iface (Interface): the Interface() object to check management of.
