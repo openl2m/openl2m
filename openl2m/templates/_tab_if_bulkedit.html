@@ -26,7 +26,9 @@
               <th>Select</th>
               <th>Interface Name</th>
               <th>Link</th>
+              {% if connection.vlan_count %}
               <th>Vlan</th>
+              {% endif %}
               {% if connection.poe_capable %}
               <th>PoE</th>
               {% endif %}
@@ -57,6 +59,7 @@
                 {% endif %}
               </td>
 
+              {% if connection.vlan_count %}
               <td>
                 {% if connection.can_change_vlan %}
                   <select name="bulk_vlan_change" id="bulk_vlan_change" data-bs-toggle="tooltip"
@@ -71,6 +74,7 @@
                   </select>
                 {% endif %}
               </td>
+              {% endif %}
 
               {% if connection.poe_capable %}
               <td>
@@ -135,6 +139,7 @@
 
                 {# only show vlan, poe, description and command capabilities for Ethernet interfaces #}
                 {% if iface.type == IF_TYPE_ETHERNET %}
+                  {% if connection.vlan_count %}
                   <td>
                     {% if iface.untagged_vlan > 0 %}
                       <span data-bs-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
@@ -144,6 +149,7 @@
                       <span data-bs-toggle="tooltip" title="Configured vlan is not defined on this switch. See warnings tab!">Not defined!</span>
                     {% endif %}
                   </td>
+                  {% endif %}
 
                   {% if connection.poe_capable %}
                   <td>
@@ -181,7 +187,9 @@
                   </td>
                   {% endif %}
                 {% else %}{# not ethernet #}
+                  {% if connection.vlan_count %}
                   <td></td>{# vlan #}
+                  {% endif %}
                   <td></td>{# poe #}
                 {% endif %}{# if ethernet #}
                   <td>
@@ -219,7 +227,9 @@
   }
 
   const initial_interface_change_choice = document.getElementById('bulk_interface_change').value;
+{% if connection.vlan_count %}
   const initial_vlan_change_choice = document.getElementById('bulk_vlan_change').value;
+{% endif %}
   const initial_poe_change_choice = document.getElementById('bulk_poe_change').value;
   function enable_bulk_submit() {
     // is at least one interface checked?
@@ -244,12 +254,14 @@
       return;
     }
 
+{% if connection.vlan_count %}
     // vlan changed (select elemenet):
     const vlan_change = document.getElementById('bulk_vlan_change');
     if (vlan_change.value !== initial_vlan_change_choice) {
       submitButton.disabled = false;   // selected vlan changed, enable the submit button
       return;
     }
+{% endif %}
 
     // poe change (select elemenet):
     const poe_change = document.getElementById('bulk_poe_change');
