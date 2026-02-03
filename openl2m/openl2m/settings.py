@@ -112,7 +112,7 @@ ALWAYS_ALLOW_POE_TOGGLE = getattr(configuration, "ALWAYS_ALLOW_POE_TOGGLE", Fals
 HIDE_NONE_ETHERNET_INTERFACES = getattr(configuration, "HIDE_NONE_ETHERNET_INTERFACES", False)
 
 ALLOW_TAGS_EDIT = getattr(configuration, "ALLOW_TAGS_EDIT", False)
-ALLOW_MODE_SET = getattr(configuration, "ALLOW_MODE_SET", False)
+STAFF_ALLOW_TAGS_EDIT = getattr(configuration, "STAFF_ALLOW_TAGS_EDIT", False)
 
 CSRF_COOKIE_NAME = getattr(configuration, "CSRF_COOKIE_NAME", "csrftoken")
 CSRF_TRUSTED_ORIGINS = getattr(configuration, "CSRF_TRUSTED_ORIGINS", [])

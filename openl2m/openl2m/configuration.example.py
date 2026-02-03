@@ -132,6 +132,9 @@ ALWAYS_ALLOW_POE_TOGGLE = False
 # currently only for Admins (aka superuser)
 ALLOW_TAGS_EDIT = False
 
+# if ALLOW_TAGS_EDIT= True, we can delegate this to STAFF if this is set
+STAFF_ALLOW_TAGS_EDIT = False
+
 # if enabled, and the drivers suports it, this allows an access mode port to be switched to
 # 802.1q-tagged ("trunk") mode or the reverse.
 # currently only for Admins (aka superuser)

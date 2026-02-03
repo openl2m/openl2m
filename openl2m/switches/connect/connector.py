@@ -1844,11 +1844,14 @@ class Connector:
                     iface.allow_poe_toggle = True
                     iface.can_edit_description = True
                     # if the driver can edit 802.1q vlan tags, and it is allowed:
-                    if settings.ALLOW_TAGS_EDIT and self.can_edit_tags:
+                    if self.can_edit_tags and settings.ALLOW_TAGS_EDIT:
                         # if interface is tagged, we allow vlan edit:
                         iface.can_edit_tags = True
-
                 continue
+
+            # staff 802.1q tag editing allowed?
+            if self.can_edit_tags and user.is_staff and settings.ALLOW_TAGS_EDIT and settings.STAFF_ALLOW_TAGS_EDIT:
+                iface.can_edit_tags = True
 
             # globally allow PoE toggle:
             # we can also enable PoE toggle globally, per user, group or switch, if allowed somewhere:
