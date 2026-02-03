@@ -11,6 +11,7 @@
       {% endif %}
       )</strong>
   </div>
+  {% connection.vlan_count %}
   <div class="card-body">
     <table class="table table-striped table-hover table-headings w-auto">
       <thead>
@@ -69,4 +70,5 @@
       </tbody>
     </table>
   </div>
+  {% endif %}{# vlan_count #}
 </div>
