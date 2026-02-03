@@ -355,6 +355,9 @@ class Connector:
                     # All OK, now set the permissions to the interfaces:
                     self._set_interfaces_permissions()
 
+                if not self.vlan_count: # driver likely did not set it!
+                    # set the vlan count
+                    self.vlan_count = len(self.vlans)
             else:
                 self.add_warning("WARNING: device driver does not support 'get_my_basic_info()' !")
 
@@ -752,6 +755,7 @@ class Connector:
         # update allowed vlans as well:
         if vlan_id in self.allowed_vlans:
             self.allowed_vlans.pop(vlan_id)
+            self.vlan_count = len(self.vlans)
         return True
 
     #############################
@@ -775,6 +779,7 @@ class Connector:
         self.vlans[vlan_id] = v
         # sort ordered by vlan id; this is needed for vlans added by users.
         self.vlans = dict(sorted(self.vlans.items()))  # note: sorted() returns a list of tuples(key, value), NOT dict!
+        self.vlan_count = len(self.vlans)
         return True
 
     def add_vlan(self, vlan: Vlan) -> bool:
@@ -789,6 +794,7 @@ class Connector:
             True
         '''
         self.vlans[vlan.id] = vlan
+        self.vlan_count = len(self.vlans)
         return True
 
     def add_interface(self, interface: Interface) -> bool:
