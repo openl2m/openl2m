@@ -1482,7 +1482,7 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
         if not retval:
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
-        message = f"DEMO ONLY: Interface '{interface_name}' 802.1q tags would be modified! PVID={pvid}, Allow All={allow_all}, Submitted tagged vlans: '{tagged_vlans}'"
+        message = f"Interface '{interface_name}' vlan and 802.1q tags were modified!"
         return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 

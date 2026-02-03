@@ -744,3 +744,11 @@ def as_percentage_of(part, whole):
         return "%d%%" % (float(part) / whole * 100)
     except (ValueError, ZeroDivisionError):
         return "0%"
+
+@register.filter
+def underscore(name):
+    # replace these characters with _
+    s = ['/', '.', '=', ';', ':']
+    for c in s:
+        name = name.replace(c, "_")
+    return name

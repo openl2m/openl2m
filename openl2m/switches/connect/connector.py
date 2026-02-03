@@ -684,17 +684,21 @@ class Connector:
             f"Connector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
         )
         interface.untagged_vlan = untagged_vlan
-        if not len(tagged_vlans):
+        if not len(tagged_vlans) and not allow_all:
+            dprint("  Access Mode!")
             # no tagged vlan, ie "access mode".
             self.set_interface_untagged(interface=interface)
         else:
+            dprint("  Trunk Mode!")
             # trunk aka. 802.1q tagged mode
             interface.is_tagged = True
             interface.vlans = []  # start with clean slate on trunk!
             # loop through all vlans, and see if they are allowed
             # this avoids invalid vlans in 'tagged_vlans'
             for vid in self.vlans.keys():
+                dprint(f"  Trunk vlan {vid}")
                 if allow_all or vid in tagged_vlans:
+                    dprint("    calling add_to_interface()")
                     self.add_interface_tagged_vlan(interface=interface, new_vlan=vid)
 
         return True

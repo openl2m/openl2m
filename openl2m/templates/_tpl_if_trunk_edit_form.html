@@ -6,13 +6,13 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-4" id="tagEditForm_{{ iface.key }}_label">Edit vlans on interface {{ iface.name }}</h1>
+        <h1 class="modal-title fs-4" id="tagEditForm_{{ iface.key|underscore }}_label">Edit vlans on interface {{ iface.name }}</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">{# THIS IS THE VLAN CHANGE FORM #}
         <!-- <div class="fw-bolder text-warning mb-3">WORK-IN-PROGRESS - THIS IS A NON-FUNCTIONAL FORM!!!!<hr /></div> -->
         <form
-          id="tags_edit_{{ iface.key }}" name="tags_edit_{{ iface.key }}"
+          id="tags_edit_{{ iface.key|underscore }}" name="tags_edit_{{ iface.key|underscore }}"
           action="{% url 'switches:tags_edit' group.id switch.id iface.key %}"
           method="post"
           >
@@ -37,7 +37,7 @@
           {% if connection.can_allow_all %}
           <div class="mb-2">
             <input class="form-check-input" type="checkbox" value="yes"
-                   name="allow_all" id="allow_all_{{ iface.key }}" onclick="allow_all_clicked_{{ iface.key }}(this)">
+                   name="allow_all" id="allow_all_{{ iface.key|underscore }}" onclick="allow_all_clicked_{{ iface.key|underscore }}(this)">
                   <label class="form-check-label" for="allow_all">Allow ALL vlans as tagged.</label>
           </div>
           <div class="fst-italic mb-2">Or select specific vlans to allow:</div>
@@ -52,7 +52,7 @@
                               checked
                   {% endif %}
                   {% if connection.can_allow_all %}
-                              onclick="tagged_vlan_clicked_{{ iface.key }}(this)"
+                              onclick="tagged_vlan_clicked_{{ iface.key|underscore }}(this)"
                   {% endif %}
                   >
                   <label class="form-check-label" for="tagged_vlan_{{ vlan_id }}">
@@ -72,7 +72,7 @@
           {# SUBMIT BUTTON #}
           <div class="text-end align-middle mt-2">
             <input type="submit"
-                   name="submit_tag_edit_{{ iface.key }}"
+                   name="submit_tag_edit_{{ iface.key|underscore }}"
                    value="Update Vlans"
                    class="btn btn-warning"
                    data-bs-toggle="tooltip" title="Click here to change untagged and 802.1q-tagged vlans on interface '{{ iface.name }}'!"
@@ -83,7 +83,7 @@
           </div>
           {% if connection.can_allow_all %}
           <script>
-            function allow_all_clicked_{{ iface.key }}(allow_all) {
+            function allow_all_clicked_{{ iface.key|underscore }}(allow_all) {
               if (allow_all.checked) {
                 // uncheck all individual vlans
                 var vlan_checkboxes = document.querySelectorAll('input[name="tagged_vlans"]');
@@ -92,10 +92,10 @@
                 }
               }
             }
-            function tagged_vlan_clicked_{{ iface.key }}(tagged_vlan) {
+            function tagged_vlan_clicked_{{ iface.key|underscore }}(tagged_vlan) {
               // uncheck 'Allow All'
               if (tagged_vlan.checked ) {
-                var allow_all = document.getElementById(id="allow_all_{{ iface.key }}")
+                var allow_all = document.getElementById(id="allow_all_{{ iface.key|underscore }}")
                 allow_all.checked = false
               }
             }
