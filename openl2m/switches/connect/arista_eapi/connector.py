@@ -627,7 +627,7 @@ class AristaApiConnector(Connector):
         dprint(
             f"AristaApiConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
         )
-        if not len(tagged_vlans):
+        if not len(tagged_vlans) and not allow_all:
             # no tagged vlan, ie "access mode".
             cmds = [
                 "configure terminal",
