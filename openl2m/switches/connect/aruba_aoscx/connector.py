@@ -13,7 +13,7 @@
 #
 import datetime
 import traceback
-
+from typing import List
 
 #
 # Basic Aruba AOS-CX connector. This uses the documented REST API, and allows us to handle
@@ -34,7 +34,6 @@ from pyaoscx.interface import Interface as AosCxInterface
 from pyaoscx.poe_interface import PoEInterface as AosCxPoEInterface
 from pyaoscx.lldp_neighbor import LLDPNeighbor as AosCxLLDPNeighbor
 from pyaoscx.vrf import Vrf as AosCxVrf
-
 
 # used to disable unknown SSL cert warnings:
 import urllib3
@@ -63,7 +62,6 @@ from switches.connect.constants import (
     #   IANA_TYPE_IPV4,
     #   IANA_TYPE_IPV6,
 )
-
 
 # devices support up to v10.12, but pyaoscx currently supports 10.09 as highest,
 # see https://github.com/aruba/pyaoscx/tree/master/pyaoscx/rest
@@ -111,6 +109,10 @@ class AosCxConnector(Connector):
         self.can_change_description = True
         self.can_save_config = False  # not needed.
         self.can_reload_all = False
+        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_allow_all = (
+            True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+        )
 
     def get_my_basic_info(self) -> bool:
         """
@@ -118,6 +120,7 @@ class AosCxConnector(Connector):
         return True on success, False on error and set self.error variables
         """
         dprint("AosCxConnector().get_my_basic_info()")
+
         if not self._open_device():
             dprint("  _open_device() failed!")
             # self.error already set!
@@ -150,7 +153,7 @@ class AosCxConnector(Connector):
         ps_id = 1  # power supply ID, starting at 1
         for name, subsystem in aoscx_device.subsystems.items():
             # format is 'subsys-name,unit-id'
-            (subsys_name, subsys_id) = name.split(",", 1)  # split once, we want just 2 components.
+            subsys_name, subsys_id = name.split(",", 1)  # split once, we want just 2 components.
             if subsys_name == "chassis":
                 if subsystem["product_info"]["part_number"]:
                     # this is an existing chassis, not an empty "data slot"
@@ -467,10 +470,12 @@ class AosCxConnector(Connector):
         Not yet fully supported in AOS-CX API.
         return True on success, False on error and set self.error variables
         """
+        dprint("AosCxConnector.get_my_client_data()")
 
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+
         # get mac address table, this is based on vlans:
         dprint("Getting MAC table per VLAN:")
         for vlan_id in self.vlans:
@@ -575,9 +580,11 @@ class AosCxConnector(Connector):
         """
         # interface.admin_status = new_state
         dprint(f"AosCxConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
+
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+
         try:
             aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
             aoscx_interface.get()
@@ -617,9 +624,11 @@ class AosCxConnector(Connector):
         return True on success, False on error and set self.error variables
         """
         dprint(f"AosCxConnector.set_interface_description() for {interface.name} to '{description}'")
+
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+
         try:
             aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
             aoscx_interface.get()
@@ -659,10 +668,12 @@ class AosCxConnector(Connector):
             True on success, False on error and set self.error variables
         """
         dprint(f"AosCxConnector.set_interface_poe_status() for {interface.name} to {new_state}")
+
         if interface.poe_entry:
             if not self._open_device():
                 dprint("_open_device() failed!")
                 return False
+
             # go get PoE info:
             try:
                 aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
@@ -711,9 +722,11 @@ class AosCxConnector(Connector):
         return True on success, False on error and set self.error variables
         """
         dprint(f"AosCxConnector.set_interface_untagged_vlan() for {interface.name} to vlan {new_vlan_id}")
+
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+
         # get AosCxInterface:
         try:
             aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
@@ -728,21 +741,12 @@ class AosCxConnector(Connector):
             self.error.details = f"Cannot read device interface: {format(err)}\n{traceback.format_exc()}"
             self._close_device()
             return False
-        # get new vlan object:
-        dprint("  Get AosCxVlan()")
-        try:
-            aoscx_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=new_vlan_id)
-        except Exception as err:
-            dprint(f"ERROR getting AosCxVlan() object: {err}")
-            self.error.status = True
-            self.error.description = "Error establishing connection!"
-            self.error.details = f"ERROR getting AosCxVlan() object: {format(err)}"
-            self._close_device()
-            return False
-        # tagged or untagged?
+
+        # 802.1q-tagged or untagged?
         if interface.is_tagged:
             # this needs to set the native vlan!
             dprint("  tagged port: calling aoscx.set_native_vlan()")
+
             try:
                 # Note:
                 # here we work around a possible bug in the pyaoscx module,
@@ -782,7 +786,7 @@ class AosCxConnector(Connector):
         # untagged, ie set access mode vlan
         dprint("  access mode port: calling aoscx.set_untagged_vlan()")
         try:
-            changed = aoscx_interface.set_untagged_vlan(vlan=aoscx_vlan)
+            changed = aoscx_interface.set_untagged_vlan(vlan=int(new_vlan_id))
         except Exception as err:
             dprint(f"ERROR in aoscx_interface.set_untagged_vlan() object: {err}")
             self.error.status = True
@@ -804,6 +808,91 @@ class AosCxConnector(Connector):
         self.error.details = "UNKNOWN ERROR in aoscx_interface.set_untagged_vlan()!"
         self._close_device()
         return False
+
+    def set_interface_vlans(
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False
+    ) -> bool:
+        """
+        Set the interface to the untagged and tagged vlans.
+
+        Args:
+            interface = Interface() object for the requested port
+            untagged_vlan = an integer with the requested untagged vlan
+            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(
+            f"AosCxConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
+        )
+
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        # get AosCxInterface:
+        try:
+            aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
+            aoscx_interface.get()  # we need a fully "populated" AosCxInterface() object
+            dprint(f"  AosCxInterface.get() OK: {aoscx_interface.name}")
+            dvar(var=aoscx_interface, header="\n\nINTERFACE:")
+            dvar(var=aoscx_interface.vlan_trunks, header="\n\n  TRUNK VLANS")
+        except Exception as err:
+            dprint(f"  set_interface_untagged_vlan(): AosCxInterface.get() failed!\n{traceback.format_exc()}")
+            self.error.status = True
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"Cannot read device interface: {format(err)}\n{traceback.format_exc()}"
+            self._close_device()
+            return False
+
+        # now set mode and vlans
+        try:
+            if not len(tagged_vlans) and not allow_all:
+                # no tagged vlan, ie "access mode".
+                dprint("  access mode.")
+                aoscx_interface.set_vlan_mode("access")
+                aoscx_interface.set_untagged_vlan(vlan=int(untagged_vlan))
+
+            else:
+                dprint("  trunk mode.")
+                # trunk mode, setup mode and native vlan:
+                aoscx_interface.set_vlan_mode("native-untagged")
+                # Note:
+                # here we work around a possible bug in the pyaoscx module,
+                # where 'trunk vlan allow all' translates into an empty aoscx_interface.vlans_trunks list
+                # this causes the new vlan to be the only one allowed on the trunk.
+                # Work around by explicityly setting the trunk allows vlans.
+                # also see https://github.com/aruba/pyaoscx/issues/36
+
+                # loop through all vlans, and see if they are allowed
+                allow = []  # list of AosCx Vlan() objects!
+                for vid in self.vlans.keys():
+                    if allow_all or vid in tagged_vlans:
+                        # allowed!
+                        v = AosCxVlan(session=self.aoscx_session, vlan_id=vid)
+                        allow.append(v)
+                # add these to the trunk config
+                aoscx_interface.vlan_trunks = allow
+                # set the new native vlan
+                aoscx_interface.set_native_vlan(vlan=int(untagged_vlan), tagged=False)
+
+        except Exception as err:
+            # some error triggered
+            dprint(f"ERROR in aoscx_interface() setting mode and vlans: {err}")
+            self.error.status = True
+            self.error.description = "Error setting vlans!"
+            self.error.details = f"ERROR in aoscx_interface.set_interface_vlans(): {format(err)}"
+            self._close_device()
+            return False
+
+        dprint("ALL OK!")
+
+        # call the base Connector() for bookkeeping:
+        super().set_interface_vlans(
+            interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
+        )
+        return True
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
         """
