@@ -38,7 +38,7 @@ Click here to :doc:`See What Is New <what_is_new>`!
    :caption: Contents:
 
    introduction.rst
-   using/index.rst
+   Using OpenL2M <using/index.rst>
    installation/index.rst
    configuration/index.rst
    device_requirements.rst

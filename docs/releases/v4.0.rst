@@ -1,0 +1,29 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 4.0
+===========
+
+.. note::
+
+  v and up require Postgres version 13 or greater! (I.e. Ubuntu 20.04 will no longer work.)
+
+
+**Version 4.0 adds support for editing 802.1Q tagged/trunk interfaces.**
+
+
+New Configuration Options
+-------------------------
+
+
+Version 4.0
+-----------
+
+Release Date: TBD
+
+* add support for editing 802.1Q interfaces or changing interfaces from access to trunk/tagged, and back.
+* updates to the driver internals documentation.
+
+Bug fixes:
+
+* TBD

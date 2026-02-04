@@ -12,6 +12,7 @@ Features Supported
    * - Features
      - Up/Down
      - VLAN Change
+     - Trunk Edit
      - PoE
      - Descr.
      - Neighbor Info
@@ -23,6 +24,7 @@ Features Supported
    * - SNMP (Generic) :sup:`1`
      - Yes
      - Yes
+     - NO
      - Yes
      - Yes
      - Yes
@@ -34,6 +36,7 @@ Features Supported
    * - Arista (SNMP) :sup:`2`
      - Yes
      - Yes
+     - NO
      - untested
      - Yes
      - Yes
@@ -45,6 +48,7 @@ Features Supported
    * - Aruba AOS-CX (SNMP) :sup:`3`
      - Yes
      - Yes
+     - NO
      - Yes
      - Yes
      - Yes
@@ -56,6 +60,7 @@ Features Supported
    * - Comware (SNMP)
      - Yes
      - Yes
+     - NO
      - Yes
      - Yes
      - Yes
@@ -67,6 +72,7 @@ Features Supported
    * - Procurve (SNMP)
      - Yes
      - Yes
+     - NO
      - Yes
      - Yes
      - Yes
@@ -80,6 +86,7 @@ Features Supported
      -
      - (r/o)
      - (r/o)
+     - (r/o)
      - Yes
      -
      - Yes
@@ -89,6 +96,7 @@ Features Supported
    * - MikroTik (SNMP)  :sup:`5`
      - Yes
      -
+     - NO
      - R/O
      - Yes
      -
@@ -98,6 +106,7 @@ Features Supported
      - untested
 
    * - Arista eAPI
+     - Yes
      - Yes
      - Yes
      - NO
@@ -117,11 +126,13 @@ Features Supported
      - Yes
      - Yes
      - Yes
+     - Yes
      - TBD
 
    * - Junos (PyEZ)  :sup:`6`
      - Yes
      - Yes
+     - NO
      - Yes
      - Yes
      - Yes
@@ -137,13 +148,15 @@ Features Supported
      -
      -
      -
+     -
      - Yes
      - n/a
      - n/a
 
-   * - Napalm (R/O) :sup:`6`
+   * - Napalm (R/O) :sup:`8`
      -
      -
+     - (r/o)
      -
      - (r/o)
      - Yes

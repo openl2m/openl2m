@@ -69,14 +69,24 @@ Note that the interface name can be preceded by one or more images.
 If so, these are links to external systems, such as your Network Management
 System. This is configured by the admin.
 
-Interface names can also have several icons behind them. They are:
+Interface names may have icons behind them. They indicate various features.
+
+**The possible interface icons are:**
 
 .. raw:: html
 
   <i class="fa-solid fa-ellipsis-v" aria-hidden="true"></i>
 
 This means the interface is in trunking or 802.1Q tagged mode.
-Hovering over the icon will show the tagged Vlans on this port.
+Hovering over the icon will show the tagged Vlans on this port. If enabled and user has permissions,
+clicking this will show the Edit Vlan Tags form.
+
+.. raw:: html
+
+  <i class="fa-solid fa-plus" aria-hidden="true"></i>
+
+This means the interface is in access mode, and the user has permissions to edit 802.1q tags.
+Clicking this will show the Edit Vlan Tags form.
 
 .. raw:: html
 
@@ -100,6 +110,20 @@ show the Voice Vlan.
 
 This means the interface is in routed mode (i.e. layer 3).
 Routed Mode interfaces can not be managed.
+
+
+**Editing the untagged and 802.1q tagged vlans of an interface**
+
+If enabled by the OpenL2M administrator, and your current device (switch) is supported, Admins can edit untagged and 802.1q-tagged
+vlans on interfaces. Select the untagged (aka 'pvid') vlan, and select either All vlans (if supported), or individual vlans that
+will be allowed through 802.1q 'trunk' encapsulation. Click 'Update Vlans' to submit.
+
+Note that not selecting tagged vlans will set the interface to so-called 'access' untagged mode.
+
+|interface_tag_edit|
+
+.. |interface_tag_edit| image:: ../_static/interface-tag-edit.png
+
 
 **Enabling or Disabling the Interface**
 
