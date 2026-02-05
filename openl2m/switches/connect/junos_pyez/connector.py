@@ -107,7 +107,7 @@ class PyEZConnector(Connector):
         self.set_do_not_cache_attribute("device")
         if not self._open_device():
             dprint("  _open_device() failed! Raising exception")
-            raise Exception("PyEZ connection failed! Please check the device configuration!")
+            raise Exception(f"PyEZ connection failed! Please check the device configuration! ({self.error.details})")
 
     def _parse_address_family(self, iface: Interface, xml_data) -> bool:
         """Parse the <address-family> output of an interface from the XML data in "intf"
@@ -1053,7 +1053,7 @@ class PyEZConnector(Connector):
             self.error.status = True
             self.error.description = "Error establishing connection!"
             self.error.details = f"Cannot open Junos PyEZ NetConf session: {format(error)}"
-            dprint("  _open_device: Device.open() failed!")
+            dprint(f"  _open_device: Device.open() failed: {format(error)}")
             return False
 
         return True
