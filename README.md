@@ -51,7 +51,8 @@ __What's New:__
 
 Highlights:
 
-v4.0 adds support for editing 802.1Q tagged/trunk interfaces. Initially implemented for Arista eAPI and Aruba AOS-CX API devices.
+v4.0 adds support for editing 802.1Q tagged/trunk interfaces. Initially implemented for Arista eAPI, Aruba AOS-CX API
+and Juniper PyEz NetConf devices.
 
 v3.4 adds support for IPv6 ND and interface IPv6 info. Also supports Cisco CBS devices. And we can graph neighbor devices.
 

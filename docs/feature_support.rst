@@ -132,7 +132,7 @@ Features Supported
    * - Junos (PyEZ)  :sup:`6`
      - Yes
      - Yes
-     - NO
+     - Yes
      - Yes
      - Yes
      - Yes
