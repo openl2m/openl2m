@@ -4,25 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('switches', '0056_snmpprofile_read_only_alter_switch_read_only_and_more'),
+        ("switches", "0056_snmpprofile_read_only_alter_switch_read_only_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='switch',
-            name='indent_level',
+            model_name="switch",
+            name="indent_level",
         ),
         migrations.AddField(
-            model_name='switch',
-            name='primary_ip6',
+            model_name="switch",
+            name="primary_ip6",
             field=models.CharField(
                 blank=True,
-                help_text='IPv6 address or hostname, can be duplicate as long as device name is unique.',
+                help_text="IPv6 address or hostname, can be duplicate as long as device name is unique.",
                 max_length=64,
                 null=True,
-                verbose_name='Management IPv6',
+                verbose_name="Management IPv6",
             ),
         ),
     ]

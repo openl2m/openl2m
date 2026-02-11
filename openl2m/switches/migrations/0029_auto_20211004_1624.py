@@ -5,48 +5,48 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('switches', '0028_auto_20211001_1427'),
+        ("switches", "0028_auto_20211001_1427"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='commandtemplate',
-            name='output_fail_text',
+            model_name="commandtemplate",
+            name="output_fail_text",
             field=models.CharField(
                 blank=True,
-                help_text='Text to show (instead of output) if output does not match the regular expression.',
+                help_text="Text to show (instead of output) if output does not match the regular expression.",
                 max_length=100,
-                verbose_name='Fail Text',
+                verbose_name="Fail Text",
             ),
         ),
         migrations.AddField(
-            model_name='commandtemplate',
-            name='output_lines_keep_regex',
+            model_name="commandtemplate",
+            name="output_lines_keep_regex",
             field=models.CharField(
                 blank=True,
-                help_text='If an output line matches this regular expression, the line will be shown. Otherwize, it will be removed from the output. If blank, all output is shown.',
+                help_text="If an output line matches this regular expression, the line will be shown. Otherwize, it will be removed from the output. If blank, all output is shown.",
                 max_length=100,
-                verbose_name='Output Lines Filter',
+                verbose_name="Output Lines Filter",
             ),
         ),
         migrations.AddField(
-            model_name='commandtemplate',
-            name='output_match_regex',
+            model_name="commandtemplate",
+            name="output_match_regex",
             field=models.CharField(
                 blank=True,
                 help_text="If command template output matches this regular expression, the 'match text' will be shown, instead of output.",
                 max_length=100,
-                verbose_name='Match Regex',
+                verbose_name="Match Regex",
             ),
         ),
         migrations.AddField(
-            model_name='commandtemplate',
-            name='output_match_text',
+            model_name="commandtemplate",
+            name="output_match_text",
             field=models.CharField(
                 blank=True,
-                help_text='Text to show (instead of output) if output matches the regular expression.',
+                help_text="Text to show (instead of output) if output matches the regular expression.",
                 max_length=100,
-                verbose_name='Match Text',
+                verbose_name="Match Text",
             ),
         ),
     ]

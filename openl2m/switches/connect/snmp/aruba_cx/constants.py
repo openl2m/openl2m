@@ -13,7 +13,6 @@
 #
 """constants.py defines Aruba AOS-CX-specific SNMP-related variables. These are mostly MIB OIDs and their value definitions."""
 
-
 from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_info
 
 #
@@ -22,7 +21,7 @@ from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_in
 ENTERPRISE_ID_HP_ENTERPRISE = 47196
 # Note: this is registered as 'Hewlett Packard Enterprise',
 # but now doing business as Aruba.
-enterprise_id_info[ENTERPRISE_ID_HP_ENTERPRISE] = 'Aruba (HPE)'
+enterprise_id_info[ENTERPRISE_ID_HP_ENTERPRISE] = "Aruba (HPE)"
 
 # AOS-CX uses the ieee QBridge Mibs for vlan info (ieee8021QBridgeVlan)
 # defind in switches.connect.snmp.constants.*
@@ -35,21 +34,21 @@ enterprise_id_info[ENTERPRISE_ID_HP_ENTERPRISE] = 'Aruba (HPE)'
 # see http://www.circitor.fr/Mibs/Html/A/ARUBAWIRED-POE-MIB.php
 
 # the power drawn, in milliwatts:
-arubaWiredPoePethPsePortPowerDrawn = '.1.3.6.1.4.1.47196.4.1.1.3.8.1.1.1.7'
-snmp_mib_variables['arubaWiredPoePethPsePortPowerDrawn'] = arubaWiredPoePethPsePortPowerDrawn
+arubaWiredPoePethPsePortPowerDrawn = ".1.3.6.1.4.1.47196.4.1.1.3.8.1.1.1.7"
+snmp_mib_variables["arubaWiredPoePethPsePortPowerDrawn"] = arubaWiredPoePethPsePortPowerDrawn
 
 # from ARUBAWIRED-VSFv2-MIB
 # https://mibs.observium.org/mib/ARUBAWIRED-VSFv2-MIB/
-arubaWiredVsfv2MemberPartNumber = '.1.3.6.1.4.1.47196.4.1.1.3.15.1.2.1.4'
-snmp_mib_variables['arubaWiredVsfv2MemberPartNumber'] = arubaWiredVsfv2MemberPartNumber
+arubaWiredVsfv2MemberPartNumber = ".1.3.6.1.4.1.47196.4.1.1.3.15.1.2.1.4"
+snmp_mib_variables["arubaWiredVsfv2MemberPartNumber"] = arubaWiredVsfv2MemberPartNumber
 
-arubaWiredVsfv2MemberProductName = '.1.3.6.1.4.1.47196.4.1.1.3.15.1.2.1.6'
-snmp_mib_variables['arubaWiredVsfv2MemberProductName'] = arubaWiredVsfv2MemberProductName
+arubaWiredVsfv2MemberProductName = ".1.3.6.1.4.1.47196.4.1.1.3.15.1.2.1.6"
+snmp_mib_variables["arubaWiredVsfv2MemberProductName"] = arubaWiredVsfv2MemberProductName
 
 # the OIDs for "write mem"
-arubaWiredVsfv2ConfigOperationType = '.1.3.6.1.4.1.47196.4.1.1.3.20.1.0.1.1.18.5'
-arubaWiredVsfv2ConfigOperationSetSource = '.1.3.6.1.4.1.47196.4.1.1.3.20.1.0.1.1.2.5'
-arubaWiredVsfv2ConfigOperationSetDestination = '.1.3.6.1.4.1.47196.4.1.1.3.20.1.0.1.1.3.5'
+arubaWiredVsfv2ConfigOperationType = ".1.3.6.1.4.1.47196.4.1.1.3.20.1.0.1.1.18.5"
+arubaWiredVsfv2ConfigOperationSetSource = ".1.3.6.1.4.1.47196.4.1.1.3.20.1.0.1.1.2.5"
+arubaWiredVsfv2ConfigOperationSetDestination = ".1.3.6.1.4.1.47196.4.1.1.3.20.1.0.1.1.3.5"
 ARUBA_CONFIG_ACTION_WRITE = 4
 ARUBA_CONFIG_TYPE_STARTUP = 2
 ARUBA_CONFIG_TYPE_RUNNING = 3
@@ -67,7 +66,7 @@ ARUBA_CONFIG_TYPE_RUNNING = 3
 # arubaWiredPmXcvrTable = arubaWiredPmXcvrInfo 1  = 27.1.1.1
 # arubaWiredPmXcvrEntry = arubaWiredPmXcvrTable 1 = 27.1.1.1.1
 arubaWiredPmXcvrEntry = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.1"
-snmp_mib_variables['arubaWiredPmXcvrEntry'] = arubaWiredPmXcvrEntry
+snmp_mib_variables["arubaWiredPmXcvrEntry"] = arubaWiredPmXcvrEntry
 # entries:
 arubaWiredPmXcvrPortIfIndex = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.1.1"
 arubaWiredPmXcvrPortDesc = ".1.3.6.1.4.1.47196.4.1.1.3.27.1.1.1.1.2"

@@ -65,21 +65,21 @@ class NapalmConnector(Connector):
         """
         dprint("NapalmConnector() __init__")
         super().__init__(request, group, switch)
-        self.description = 'Napalm library (R/O) driver'
+        self.description = "Napalm library (R/O) driver"
         self.vendor_name = "Napalm Library"
         # force READ-ONLY for now! We have not implemented changing settings.
         self.read_only = True
 
-        self.add_more_info('Connection', 'Type', f"Napalm Connector for '{self.switch.napalm_device_type}'")
+        self.add_more_info("Connection", "Type", f"Napalm Connector for '{self.switch.napalm_device_type}'")
         self.napalm_device = False  # this will be the Napalm driver connection
         # and we dont want to cache this:
-        self.set_do_not_cache_attribute('napalm_device')
+        self.set_do_not_cache_attribute("napalm_device")
 
     def get_my_basic_info(self) -> bool:
-        '''
+        """
         load 'basic' list of interfaces with status.
         return True on success, False on error and set self.error variables
-        '''
+        """
         if not self._open_device():
             return False
         # get facts of device first, ie OS, model, etc.!
@@ -95,12 +95,12 @@ class NapalmConnector(Connector):
             return False
         dprint(f"facts = \n{facts}\n")
 
-        self.hostname = facts['hostname']
-        self.add_more_info('System', 'Hostname', self.hostname)
-        self.add_more_info('System', 'Vendor', facts['vendor'])
-        self.add_more_info('System', 'OS', facts['os_version'])
-        self.add_more_info('System', 'Model', facts['model'])
-        self.add_more_info('System', 'Uptime', uptime_to_string(int(facts['uptime'])))
+        self.hostname = facts["hostname"]
+        self.add_more_info("System", "Hostname", self.hostname)
+        self.add_more_info("System", "Vendor", facts["vendor"])
+        self.add_more_info("System", "OS", facts["os_version"])
+        self.add_more_info("System", "Model", facts["model"])
+        self.add_more_info("System", "Uptime", uptime_to_string(int(facts["uptime"])))
 
         # now load the interfaces:
         try:
@@ -123,11 +123,11 @@ class NapalmConnector(Connector):
             iface = Interface(if_name)
             iface.name = if_name
             iface.type = IF_TYPE_ETHERNET
-            iface.admin_status = if_data['is_enabled']
-            iface.oper_status = if_data['is_up']
-            iface.description = if_data['description']
-            iface.speed = if_data['speed']
-            iface.mtu = if_data['mtu']
+            iface.admin_status = if_data["is_enabled"]
+            iface.oper_status = if_data["is_up"]
+            iface.description = if_data["description"]
+            iface.speed = if_data["speed"]
+            iface.mtu = if_data["mtu"]
             # iface.mac_address = interface_list[if_name]['mac_address']
             # iface.last_flapped = interface_list[if_name]['last_flapped']
             self.add_interface(iface)
@@ -147,9 +147,9 @@ class NapalmConnector(Connector):
         # parse
         for vlan_id, vlan_data in vlan_list.items():
             dprint(f"\nVlan {vlan_id}: {vlan_data}")
-            self.add_vlan_by_id(vlan_id, vlan_data['name'])
+            self.add_vlan_by_id(vlan_id, vlan_data["name"])
             # add this vlan to the specified interfaces:
-            for if_name in vlan_data['interfaces']:
+            for if_name in vlan_data["interfaces"]:
                 dprint(f"\nInterface {if_name} = vlan {vlan_id}")
                 iface = self.get_interface_by_key(if_name)
                 if iface.untagged_vlan > -1:
@@ -196,43 +196,43 @@ class NapalmConnector(Connector):
             # dprint(f"IF {if_name}: {if_data}")
             iface = self.get_interface_by_key(if_name)
             # get the IP's for this interface
-            if 'ipv4' in if_data.keys():
-                for ipv4, values in if_data['ipv4'].items():
-                    prefix_len = values['prefix_length']
+            if "ipv4" in if_data.keys():
+                for ipv4, values in if_data["ipv4"].items():
+                    prefix_len = values["prefix_length"]
                     # dprint(f"IP: {ipv4}/{prefix_len}")
                     iface.add_ip4_network(address=ipv4, prefix_len=prefix_len)
-            if 'ipv6' in if_data.keys():
-                for ipv6, values in if_data['ipv6'].items():
-                    prefix_len = values['prefix_length']
+            if "ipv6" in if_data.keys():
+                for ipv6, values in if_data["ipv6"].items():
+                    prefix_len = values["prefix_length"]
                     # dprint(f"IP: {ipv6}/{prefix_len}")
                     iface.add_ip6_network(address=ipv6, prefix_len=prefix_len)
 
         return True
 
     def get_my_vrfs(self) -> bool:
-        '''Fill the list of VRFs on this device, if any
+        """Fill the list of VRFs on this device, if any
 
         Args:
             none
 
         Returns:
             (bool): True on success, False on failure
-        '''
+        """
         try:
             vrf_table = self.napalm_device.get_network_instances()
             dprint(f"VRF table:\n{vrf_table}")
             for vrf_name, vrf in vrf_table.items():
-                if vrf['type'] == 'DEFAULT_INSTANCE':  # ignore, the default (ie non-VRF) routing table
+                if vrf["type"] == "DEFAULT_INSTANCE":  # ignore, the default (ie non-VRF) routing table
                     continue
                 # create OpenL2M Vrf() object:
                 dprint(f"  New VRF: {vrf_name}")
                 this_vrf = self.get_vrf_by_name(name=vrf_name)
                 # parse the RD
-                if 'state' in vrf and 'route_distinguisher' in vrf['state']:
-                    this_vrf.rd = vrf['state']['route_distinguisher']
+                if "state" in vrf and "route_distinguisher" in vrf["state"]:
+                    this_vrf.rd = vrf["state"]["route_distinguisher"]
                 # parse member interfaces:
-                if 'interfaces' in vrf and 'interface' in vrf['interfaces']:
-                    for if_name in vrf['interfaces']['interface']:
+                if "interfaces" in vrf and "interface" in vrf["interfaces"]:
+                    for if_name in vrf["interfaces"]["interface"]:
                         dprint(f"    Found interface: {if_name}")
                         # find OpenL2M Interface():
                         iface = self.get_interface_by_key(key=if_name)
@@ -258,10 +258,10 @@ class NapalmConnector(Connector):
         return True
 
     def get_my_client_data(self) -> bool:
-        '''
+        """
         return list of interfaces with static_egress_portlist
         return True on success, False on error and set self.error variables
-        '''
+        """
         if not self._open_device():
             return False
         # get mac address table
@@ -269,14 +269,14 @@ class NapalmConnector(Connector):
             mac_table = self.napalm_device.get_mac_address_table()
             dprint(f"mac_table = \n{mac_table}\n")
             for info in mac_table:
-                if_name = info['interface']
+                if_name = info["interface"]
                 if if_name:
                     # it is possible that the 'short' form of the interface name is used,
                     # convert to long ...
                     if_name = interface_name_to_long(if_name)
-                    a = self.add_learned_ethernet_address(if_name, info['mac'])
+                    a = self.add_learned_ethernet_address(if_name, info["mac"])
                     if a:
-                        a.set_vlan(info['vlan'])
+                        a.set_vlan(info["vlan"])
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get arp table"
@@ -289,16 +289,16 @@ class NapalmConnector(Connector):
 
         # get arp table
         try:
-            arp_table = self.napalm_device.get_arp_table(vrf='')
+            arp_table = self.napalm_device.get_arp_table(vrf="")
             dprint(f"arp_table = \n{arp_table}\n")
             for info in arp_table:
-                if_name = info['interface']
+                if_name = info["interface"]
                 if if_name:
                     # it is possible that the 'short' form of the interface name is used,
                     # convert to long ...
                     if_name = interface_name_to_long(if_name)
                     a = self.add_learned_ethernet_address(
-                        if_name=if_name, eth_address=info['mac'], ip4_address=info['ip']
+                        if_name=if_name, eth_address=info["mac"], ip4_address=info["ip"]
                     )
         except Exception as e:
             self.error.status = True
@@ -313,16 +313,16 @@ class NapalmConnector(Connector):
             nd_table = self.napalm_device.get_ipv6_neighbors_table()
             dprint(f"nd_table = \n{nd_table}\n")
             for neighbor in nd_table:
-                if_name = neighbor['interface']
+                if_name = neighbor["interface"]
                 if if_name:
                     # if irb.xx, parse out the physical interface:
                     if_name = junos_get_real_ifname(if_name=if_name)
                     # it is possible that the 'short' form of the interface name is used,
                     # convert to long ...
                     if_name = interface_name_to_long(if_name)
-                    a = self.add_learned_ethernet_address(if_name, neighbor['mac'])
+                    a = self.add_learned_ethernet_address(if_name, neighbor["mac"])
                     if a:
-                        a.add_ip6_address(neighbor['ip'])
+                        a.add_ip6_address(neighbor["ip"])
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get arp table"
@@ -342,29 +342,29 @@ class NapalmConnector(Connector):
                 # dprint(f"IF {if_name}: {if_data}")
                 # lldp_data is a dict:
                 for device in lldp_data:
-                    device_id = device['remote_chassis_id']
+                    device_id = device["remote_chassis_id"]
                     neighbor = NeighborDevice(device_id)
-                    neighbor.sys_name = device['remote_system_name']
-                    neighbor.sys_descr = device['remote_system_description']
-                    neighbor.port_name = device['remote_port']
-                    neighbor.port_descr = device['remote_port_description']
+                    neighbor.sys_name = device["remote_system_name"]
+                    neighbor.sys_descr = device["remote_system_description"]
+                    neighbor.port_name = device["remote_port"]
+                    neighbor.port_descr = device["remote_port_description"]
                     # and the enabled capabilities:
-                    for cap in device['remote_system_enable_capab']:
-                        if cap == 'bridge':
+                    for cap in device["remote_system_enable_capab"]:
+                        if cap == "bridge":
                             neighbor.capabilities += LLDP_CAPABILITIES_BRIDGE
-                        elif cap == 'repeater':
+                        elif cap == "repeater":
                             neighbor.capabilities += LLDP_CAPABILITIES_REPEATER
-                        elif cap == 'wlan-access-point':
+                        elif cap == "wlan-access-point":
                             neighbor.capabilities += LLDP_CAPABILITIES_WLAN
-                        elif cap == 'router':
+                        elif cap == "router":
                             neighbor.capabilities += LLDP_CAPABILITIES_ROUTER
-                        elif cap == 'telephone':
+                        elif cap == "telephone":
                             neighbor.capabilities += LLDP_CAPABILITIES_PHONE
-                        elif cap == 'docsis-cable-device':
+                        elif cap == "docsis-cable-device":
                             neighbor.capabilities += LLDP_CAPABILITIES_DOCSIS
-                        elif cap == 'station':
+                        elif cap == "station":
                             neighbor.capabilities += LLDP_CAPABILITIES_STATION
-                        elif cap == 'other':
+                        elif cap == "other":
                             neighbor.capabilities += LLDP_CAPABILITIES_OTHER
                     self.add_neighbor_object(if_name, neighbor)
         except Exception as e:
@@ -380,10 +380,10 @@ class NapalmConnector(Connector):
         return True
 
     def _open_device(self) -> bool:
-        '''
+        """
         get a Napalm 'driver' and open connection to the device
         return True on success, False on failure, and will set self.error
-        '''
+        """
         # first, get the proper driver
         driver = False
         try:

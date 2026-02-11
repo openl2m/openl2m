@@ -53,8 +53,8 @@ class SnmpProfile(models.Model):
     )
     read_only = models.BooleanField(
         default=False,
-        verbose_name='Read-Only access',
-        help_text='If checked, this is read-only profile. Devices using it will be marked read-only.',
+        verbose_name="Read-Only access",
+        help_text="If checked, this is read-only profile. Devices using it will be marked read-only.",
     )
     version = models.PositiveSmallIntegerField(
         choices=constants.SNMP_VERSION_CHOICES,
@@ -65,26 +65,26 @@ class SnmpProfile(models.Model):
         max_length=64,
         blank=True,
         null=True,
-        verbose_name='v2c Community name',
+        verbose_name="v2c Community name",
     )
     # v3 settings:
     username = models.CharField(
         max_length=32,
         blank=True,
         null=True,
-        verbose_name='v3 Username',
+        verbose_name="v3 Username",
     )
     passphrase = models.CharField(
         max_length=64,
         blank=True,
         null=True,
-        verbose_name='v3 Authentication passphrase',
+        verbose_name="v3 Authentication passphrase",
     )
     priv_passphrase = models.CharField(
         max_length=64,
         blank=True,
         null=True,
-        verbose_name='v3 Privacy passphrase',
+        verbose_name="v3 Privacy passphrase",
     )
     auth_protocol = models.PositiveSmallIntegerField(
         choices=constants.SNMP_V3_AUTH_CHOICES,
@@ -97,26 +97,26 @@ class SnmpProfile(models.Model):
     sec_level = models.PositiveSmallIntegerField(
         choices=constants.SNMP_V3_SECURITY_CHOICES,
         default=constants.SNMP_V3_SECURITY_AUTH_PRIV,
-        verbose_name='Security level',
+        verbose_name="Security level",
     )
     context_name = models.CharField(
         max_length=256,
         blank=True,
         null=True,
-        verbose_name='v3 Context Name',
+        verbose_name="v3 Context Name",
         help_text="SNMP v3 contextName field. Mostly left blank. Only set if you know what this is! (not used yet)",
     )
     context_engine_id = models.CharField(
         max_length=256,
         blank=True,
         null=True,
-        verbose_name='v3 Context EngineID',
+        verbose_name="v3 Context EngineID",
         help_text="SNMP v3 contextEngineID field. Mostly left blank. Only set if you know what this is! (not used yet)",
     )
     udp_port = models.PositiveIntegerField(
         default=161,
         validators=[MinValueValidator(0), MaxValueValidator(65535)],
-        verbose_name='SNMP Udp port',
+        verbose_name="SNMP Udp port",
     )
 
     # basic validation
@@ -135,7 +135,7 @@ class SnmpProfile(models.Model):
             self.context_engine_id = ""
             # make sure there is a community set:
             if not self.community:
-                raise ValidationError('SNMP v2c requires a community string!')
+                raise ValidationError("SNMP v2c requires a community string!")
 
         # validate v3 settings:
         if self.version == constants.SNMP_VERSION_3:
@@ -172,9 +172,9 @@ class SnmpProfile(models.Model):
                     )
 
     class Meta:
-        ordering = ['name']
-        verbose_name = 'SNMP Profile'
-        verbose_name_plural = 'SNMP Profiles'
+        ordering = ["name"]
+        verbose_name = "SNMP Profile"
+        verbose_name_plural = "SNMP Profiles"
 
     def display_name(self):
         """
@@ -209,40 +209,40 @@ class NetmikoProfile(models.Model):
     )
     username = models.CharField(
         max_length=32,
-        default='username',
+        default="username",
         # blank=True,
         # null=True,
-        verbose_name='Username',
+        verbose_name="Username",
     )
     password = models.CharField(
         max_length=64,
-        default='password',
+        default="password",
         # blank=True,
         # null=True,
-        verbose_name='Password',
+        verbose_name="Password",
     )
     device_type = models.CharField(
         max_length=64,
         choices=NETMIKO_DEVICE_TYPES,
-        default='hp_comware',
-        verbose_name='Netmiko device_type field',
+        default="hp_comware",
+        verbose_name="Netmiko device_type field",
     )
     enable_password = models.CharField(
         max_length=64,
         blank=True,
         null=True,
-        verbose_name='Netmiko/SSH enable password, e.g. for Cisco devices (optional)',
+        verbose_name="Netmiko/SSH enable password, e.g. for Cisco devices (optional)",
     )
     # SSH connection option
     tcp_port = models.PositiveIntegerField(
         default=22,
-        verbose_name='Tcp port',
+        verbose_name="Tcp port",
         validators=[MinValueValidator(0), MaxValueValidator(65535)],
     )
     # security/encryption options
     verify_hostkey = models.BooleanField(
         default=False,
-        verbose_name='Verify the host key',
+        verbose_name="Verify the host key",
     )
 
     # validate choices
@@ -250,9 +250,9 @@ class NetmikoProfile(models.Model):
     # NOT needed, as username and password cannot be blank!
 
     class Meta:
-        ordering = ['name']
-        verbose_name = 'Credentials Profile'
-        verbose_name_plural = 'Credentials Profiles'
+        ordering = ["name"]
+        verbose_name = "Credentials Profile"
+        verbose_name_plural = "Credentials Profiles"
 
     def display_name(self):
         """
@@ -286,20 +286,20 @@ class Command(models.Model):
     type = models.PositiveSmallIntegerField(
         choices=constants.CMD_TYPE_CHOICES,
         default=constants.CMD_TYPE_INTERFACE,
-        verbose_name='Command type',
-        help_text='Type of command, i.e. for the switch (global), or on chosen interface',
+        verbose_name="Command type",
+        help_text="Type of command, i.e. for the switch (global), or on chosen interface",
     )
     command = models.CharField(
         max_length=64,
-        verbose_name='Command',
-        help_text='The command. Use %s for interface name',
+        verbose_name="Command",
+        help_text="The command. Use %s for interface name",
     )
 
     class Meta:
-        ordering = ['type', 'name', 'os']
-        unique_together = ['name', 'type', 'os']
-        verbose_name = 'Command'
-        verbose_name_plural = 'Commands'
+        ordering = ["type", "name", "os"]
+        unique_together = ["name", "type", "os"]
+        verbose_name = "Command"
+        verbose_name_plural = "Commands"
 
     def display_name(self):
         """
@@ -334,46 +334,46 @@ class CommandList(models.Model):
         blank=True,
     )
     global_commands = models.ManyToManyField(
-        to='Command',
-        limit_choices_to={'type': constants.CMD_TYPE_GLOBAL},
+        to="Command",
+        limit_choices_to={"type": constants.CMD_TYPE_GLOBAL},
         blank=True,  # we don't require to have a command
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='global_commands',  # from Commands object, we can now reference "Command.global_commands"
-        verbose_name='Global commands to send to switch.',
+        related_name="global_commands",  # from Commands object, we can now reference "Command.global_commands"
+        verbose_name="Global commands to send to switch.",
         help_text='List of global "show" commands user can send to switch.',
     )
     interface_commands = models.ManyToManyField(
-        to='Command',
-        limit_choices_to={'type': constants.CMD_TYPE_INTERFACE},
+        to="Command",
+        limit_choices_to={"type": constants.CMD_TYPE_INTERFACE},
         blank=True,
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='interface_commands',  # from Commands object, we can now reference "Command.interface_commands"
-        verbose_name='Interface commands to send to switch.',
+        related_name="interface_commands",  # from Commands object, we can now reference "Command.interface_commands"
+        verbose_name="Interface commands to send to switch.",
         help_text='List of contextual "show interface" commands user can send to switch. %s will be replaced with interface name.',
     )
     global_commands_staff = models.ManyToManyField(
-        to='Command',
-        limit_choices_to={'type': constants.CMD_TYPE_GLOBAL},
+        to="Command",
+        limit_choices_to={"type": constants.CMD_TYPE_GLOBAL},
         blank=True,  # we don't require to have a vlan
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='global_commands_staff',  # from Commands object, we can now reference "Command.global_commands_staff"
-        verbose_name='Global commands for Staff.',
+        related_name="global_commands_staff",  # from Commands object, we can now reference "Command.global_commands_staff"
+        verbose_name="Global commands for Staff.",
         help_text='List of global "show" commands Staff users can send to switch.',
     )
     interface_commands_staff = models.ManyToManyField(
-        to='Command',
-        limit_choices_to={'type': constants.CMD_TYPE_INTERFACE},
+        to="Command",
+        limit_choices_to={"type": constants.CMD_TYPE_INTERFACE},
         blank=True,
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='interface_commands_staff',  # from Commands object, we can now reference "Command.interface_commands_staff"
-        verbose_name='Interface commands for Staff.',
+        related_name="interface_commands_staff",  # from Commands object, we can now reference "Command.interface_commands_staff"
+        verbose_name="Interface commands for Staff.",
         help_text='List of contextual "show interface" commands Staff users can send to switch. %s will be replaced with interface name.',
     )
 
     class Meta:
-        ordering = ['name']
-        verbose_name = 'Commands List'
-        verbose_name_plural = 'Commands Lists'
+        ordering = ["name"]
+        verbose_name = "Commands List"
+        verbose_name_plural = "Commands Lists"
 
     def display_name(self):
         """
@@ -407,273 +407,273 @@ class CommandTemplate(models.Model):
     )
     template = models.CharField(
         max_length=512,
-        verbose_name='Command Template',
-        help_text='The command template. Use {{field[1-8]}} or {{list[1-5]}} as needed.',
+        verbose_name="Command Template",
+        help_text="The command template. Use {{field[1-8]}} or {{list[1-5]}} as needed.",
     )
     field1_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template field 1 name.',
+        verbose_name="Name",
+        help_text="Command template field 1 name.",
     )
     field1_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template field 1 description.',
+        verbose_name="Description",
+        help_text="Command template field 1 description.",
     )
     field1_regex = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Regex',
-        help_text='Command template field 1 validation regular expression.',
+        verbose_name="Regex",
+        help_text="Command template field 1 validation regular expression.",
     )
     field2_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template field 2 name.',
+        verbose_name="Name",
+        help_text="Command template field 2 name.",
     )
     field2_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template field 2 description.',
+        verbose_name="Description",
+        help_text="Command template field 2 description.",
     )
     field2_regex = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Regex',
-        help_text='Command template field 2 validation regular expression.',
+        verbose_name="Regex",
+        help_text="Command template field 2 validation regular expression.",
     )
     field3_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template field 3 name.',
+        verbose_name="Name",
+        help_text="Command template field 3 name.",
     )
     field3_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template field 3 description.',
+        verbose_name="Description",
+        help_text="Command template field 3 description.",
     )
     field3_regex = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Regex',
-        help_text='Command template field 3 validation regular expression.',
+        verbose_name="Regex",
+        help_text="Command template field 3 validation regular expression.",
     )
     field4_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template field 4 name.',
+        verbose_name="Name",
+        help_text="Command template field 4 name.",
     )
     field4_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template field41 description.',
+        verbose_name="Description",
+        help_text="Command template field41 description.",
     )
     field4_regex = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Regex',
-        help_text='Command template field 4 validation regular expression.',
+        verbose_name="Regex",
+        help_text="Command template field 4 validation regular expression.",
     )
     field5_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template field 5 name.',
+        verbose_name="Name",
+        help_text="Command template field 5 name.",
     )
     field5_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template field 5 description.',
+        verbose_name="Description",
+        help_text="Command template field 5 description.",
     )
     field5_regex = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Regex',
-        help_text='Command template field 5 validation regular expression.',
+        verbose_name="Regex",
+        help_text="Command template field 5 validation regular expression.",
     )
     field6_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template field 6 name.',
+        verbose_name="Name",
+        help_text="Command template field 6 name.",
     )
     field6_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template field 6 description.',
+        verbose_name="Description",
+        help_text="Command template field 6 description.",
     )
     field6_regex = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Regex',
-        help_text='Command template field 6 validation regular expression.',
+        verbose_name="Regex",
+        help_text="Command template field 6 validation regular expression.",
     )
     field7_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template field 7 name.',
+        verbose_name="Name",
+        help_text="Command template field 7 name.",
     )
     field7_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template field 7 description.',
+        verbose_name="Description",
+        help_text="Command template field 7 description.",
     )
     field7_regex = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Regex',
-        help_text='Command template field 7 validation regular expression.',
+        verbose_name="Regex",
+        help_text="Command template field 7 validation regular expression.",
     )
     field8_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template field 8 name.',
+        verbose_name="Name",
+        help_text="Command template field 8 name.",
     )
     field8_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template field 8 description.',
+        verbose_name="Description",
+        help_text="Command template field 8 description.",
     )
     field8_regex = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Regex',
-        help_text='Command template field 8 validation regular expression.',
+        verbose_name="Regex",
+        help_text="Command template field 8 validation regular expression.",
     )
     list1_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template pick list 1 name.',
+        verbose_name="Name",
+        help_text="Command template pick list 1 name.",
     )
     list1_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template pick list 1 description.',
+        verbose_name="Description",
+        help_text="Command template pick list 1 description.",
     )
     list1_values = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Values',
-        help_text='Command template pick list 1 comma-separated values.',
+        verbose_name="Values",
+        help_text="Command template pick list 1 comma-separated values.",
     )
     list2_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template pick list 2 name.',
+        verbose_name="Name",
+        help_text="Command template pick list 2 name.",
     )
     list2_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template pick list 2 description.',
+        verbose_name="Description",
+        help_text="Command template pick list 2 description.",
     )
     list2_values = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Values',
-        help_text='Command template pick list 2 comma-separated values.',
+        verbose_name="Values",
+        help_text="Command template pick list 2 comma-separated values.",
     )
     list3_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template pick list 3 name.',
+        verbose_name="Name",
+        help_text="Command template pick list 3 name.",
     )
     list3_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template pick list 3 description.',
+        verbose_name="Description",
+        help_text="Command template pick list 3 description.",
     )
     list3_values = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Values',
-        help_text='Command template pick list 3 comma-separated values.',
+        verbose_name="Values",
+        help_text="Command template pick list 3 comma-separated values.",
     )
     list4_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template pick list 4 name.',
+        verbose_name="Name",
+        help_text="Command template pick list 4 name.",
     )
     list4_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template pick list 4 description.',
+        verbose_name="Description",
+        help_text="Command template pick list 4 description.",
     )
     list4_values = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Values',
-        help_text='Command template pick list 4 comma-separated values.',
+        verbose_name="Values",
+        help_text="Command template pick list 4 comma-separated values.",
     )
     list5_name = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Name',
-        help_text='Command template pick list 5 name.',
+        verbose_name="Name",
+        help_text="Command template pick list 5 name.",
     )
     list5_description = models.CharField(
         max_length=64,
         blank=True,
-        verbose_name='Description',
-        help_text='Command template pick list 5 description.',
+        verbose_name="Description",
+        help_text="Command template pick list 5 description.",
     )
     list5_values = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Values',
-        help_text='Command template pick list 5 comma-separated values.',
+        verbose_name="Values",
+        help_text="Command template pick list 5 comma-separated values.",
     )
     output_match_regex = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Match Regex',
-        help_text='If command template output matches this regular expression, the \'match text\' will be shown, instead of output.',
+        verbose_name="Match Regex",
+        help_text="If command template output matches this regular expression, the 'match text' will be shown, instead of output.",
     )
     output_match_text = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Match Text',
-        help_text='Text to show (instead of output) if output matches the regular expression.',
+        verbose_name="Match Text",
+        help_text="Text to show (instead of output) if output matches the regular expression.",
     )
     output_fail_text = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Fail Text',
-        help_text='Text to show (instead of output) if output does not match the regular expression.',
+        verbose_name="Fail Text",
+        help_text="Text to show (instead of output) if output does not match the regular expression.",
     )
     output_lines_keep_regex = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name='Output Lines Filter',
-        help_text='If an output line matches this regular expression, the line will be shown. Otherwize, it will be removed from the output. If blank, all output is shown.',
+        verbose_name="Output Lines Filter",
+        help_text="If an output line matches this regular expression, the line will be shown. Otherwize, it will be removed from the output. If blank, all output is shown.",
     )
 
     class Meta:
-        ordering = ['name', 'os']
-        unique_together = ['name', 'os']
-        verbose_name = 'Command Template'
-        verbose_name_plural = 'Command Templates'
+        ordering = ["name", "os"]
+        unique_together = ["name", "os"]
+        verbose_name = "Command Template"
+        verbose_name_plural = "Command Templates"
 
     def display_name(self):
         """
@@ -701,7 +701,7 @@ class VLAN(models.Model):
         max_length=64,
     )
     vid = models.SmallIntegerField(
-        verbose_name='ID',
+        verbose_name="ID",
         validators=[MinValueValidator(1), MaxValueValidator(4094)],
     )
     description = models.CharField(
@@ -714,12 +714,12 @@ class VLAN(models.Model):
     )
 
     class Meta:
-        ordering = ['vid', 'name']
+        ordering = ["vid", "name"]
         unique_together = [
-            ['vid', 'name'],
+            ["vid", "name"],
         ]
-        verbose_name = 'VLAN'
-        verbose_name_plural = 'VLANs'
+        verbose_name = "VLAN"
+        verbose_name_plural = "VLANs"
 
     def display_name(self):
         """
@@ -749,18 +749,18 @@ class VlanGroup(models.Model):
         blank=True,
     )
     vlans = models.ManyToManyField(
-        to='VLAN',
+        to="VLAN",
         blank=True,  # we don't require to have a vlan
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='vlangroups',  # from VLAN object, we can now reference "VLAN.vlangroups"
-        verbose_name='VLANs in group',
+        related_name="vlangroups",  # from VLAN object, we can now reference "VLAN.vlangroups"
+        verbose_name="VLANs in group",
         help_text="A grouping of VLANs, e.g. by department",
     )
 
     class Meta:
-        ordering = ['name']
-        verbose_name = 'VLAN Group'
-        verbose_name_plural = 'VLAN Groups'
+        ordering = ["name"]
+        verbose_name = "VLAN Group"
+        verbose_name_plural = "VLAN Groups"
 
     def display_name(self):
         """
@@ -798,83 +798,83 @@ class Switch(models.Model):
     connector_type = models.PositiveSmallIntegerField(
         choices=constants.CONNECTOR_TYPE_CHOICES,
         default=constants.CONNECTOR_TYPE_SNMP,
-        verbose_name='Connector Type',
-        help_text='How we connect to this device.',
+        verbose_name="Connector Type",
+        help_text="How we connect to this device.",
     )
     napalm_device_type = models.CharField(
         max_length=64,
         choices=NAPALM_DEVICE_TYPES,
-        default='',
+        default="",
         blank=True,
         null=True,
-        verbose_name='Napalm Device Type',
-        help_text='The device type to use if Napalm connector is used.',
+        verbose_name="Napalm Device Type",
+        help_text="The device type to use if Napalm connector is used.",
     )
     snmp_profile = models.ForeignKey(
-        to='SnmpProfile',
+        to="SnmpProfile",
         on_delete=models.SET_NULL,
-        related_name='snmp_profile',
+        related_name="snmp_profile",
         blank=True,
         null=True,
-        verbose_name='SNMP Profile',
-        help_text='The SNMP Profile has all the settings to read/write data on the switch. Not used for Napalm.',
+        verbose_name="SNMP Profile",
+        help_text="The SNMP Profile has all the settings to read/write data on the switch. Not used for Napalm.",
     )
     netmiko_profile = models.ForeignKey(
-        to='NetmikoProfile',
+        to="NetmikoProfile",
         on_delete=models.SET_NULL,
-        related_name='netmiko_profile',
+        related_name="netmiko_profile",
         blank=True,
         null=True,
-        verbose_name='Credentials Profile',
-        help_text='The Credentials Profile has all the settings to access the switch via Netmiko/SSH/REST/API/Napalm.',
+        verbose_name="Credentials Profile",
+        help_text="The Credentials Profile has all the settings to access the switch via Netmiko/SSH/REST/API/Napalm.",
     )
     command_list = models.ForeignKey(
-        to='CommandList',
+        to="CommandList",
         on_delete=models.SET_NULL,
-        related_name='command_list',
+        related_name="command_list",
         blank=True,
         null=True,
-        help_text='This is the list of commands (if any) that can be executed on the switch. Requires a Netmike/SSH profile.',
+        help_text="This is the list of commands (if any) that can be executed on the switch. Requires a Netmike/SSH profile.",
     )
     command_templates = models.ManyToManyField(
-        to='CommandTemplate',
+        to="CommandTemplate",
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='command_templates',
+        related_name="command_templates",
         blank=True,  # we don't require to have them
-        verbose_name='Assigned Command Templates',
+        verbose_name="Assigned Command Templates",
         help_text="These are the command templates assigned. Users in a group this device belongs to "
         "can run these command templates.",
     )
     read_only = models.BooleanField(
         default=False,
-        verbose_name='Read-Only access',
-        help_text='If checked, this switch will be read-only.',
+        verbose_name="Read-Only access",
+        help_text="If checked, this switch will be read-only.",
     )
     bulk_edit = models.BooleanField(
         default=True,
-        verbose_name='Bulk-editing of interfaces',
-        help_text='If Bulk Edit is set, we allow multiple interfaces on this switch to be edited at once.',
+        verbose_name="Bulk-editing of interfaces",
+        help_text="If Bulk Edit is set, we allow multiple interfaces on this switch to be edited at once.",
     )
     default_view = models.PositiveSmallIntegerField(
         choices=constants.SWITCH_VIEW_CHOICES,
         default=constants.SWITCH_VIEW_BASIC,
-        verbose_name='Default View',
-        help_text='Default view. Details shows Ethernet, ARP, LLDP immediately.',
+        verbose_name="Default View",
+        help_text="Default view. Details shows Ethernet, ARP, LLDP immediately.",
     )
     allow_poe_toggle = models.BooleanField(
         default=False,
-        verbose_name='Poe Toggle All',
-        help_text='If set, allow PoE toggle on all interfaces',
+        verbose_name="Poe Toggle All",
+        help_text="If set, allow PoE toggle on all interfaces",
     )
     edit_if_descr = models.BooleanField(
         default=True,
-        verbose_name='Edit Port Description',
-        help_text='If set, allow interface descriptions to be edited.',
+        verbose_name="Edit Port Description",
+        help_text="If set, allow interface descriptions to be edited.",
     )
     status = models.PositiveSmallIntegerField(
         choices=constants.SWITCH_STATUS_CHOICES,
         default=constants.SWITCH_STATUS_ACTIVE,
-        verbose_name='Status',
+        verbose_name="Status",
     )
     primary_ip4 = models.CharField(
         max_length=64,
@@ -882,8 +882,8 @@ class Switch(models.Model):
         blank=True,
         null=True,
         unique=False,  # allow duplicates so we can enter same switch with different snmp profile
-        verbose_name='Management IPv4',
-        help_text='IPv4 address or hostname, can be duplicate as long as name is unique.',
+        verbose_name="Management IPv4",
+        help_text="IPv4 address or hostname, can be duplicate as long as name is unique.",
     )
     primary_ip6 = models.CharField(
         max_length=64,
@@ -891,12 +891,12 @@ class Switch(models.Model):
         blank=True,
         null=True,
         unique=False,  # we allow duplication, but combination of IP and SnmpProfile should be unique!
-        verbose_name='Management IPv6',
-        help_text='IPv6 address or hostname, can be duplicate as long as device name is unique.',
+        verbose_name="Management IPv6",
+        help_text="IPv6 address or hostname, can be duplicate as long as device name is unique.",
     )
     comments = models.TextField(
         blank=True,
-        help_text='Add any additional information about this switch.',
+        help_text="Add any additional information about this switch.",
     )
     nms_id = models.CharField(
         max_length=64,
@@ -904,17 +904,17 @@ class Switch(models.Model):
         blank=True,
         null=True,
         unique=False,
-        verbose_name='External NMS Id',
-        help_text='ID or Label in an external Network Management System. To be used in admin-configurable links. See configuration.py',
+        verbose_name="External NMS Id",
+        help_text="ID or Label in an external Network Management System. To be used in admin-configurable links. See configuration.py",
     )
     # some fields that are set by the proper connector class:
     hostname = models.CharField(
         max_length=64,
-        default='',
+        default="",
         blank=True,
         null=True,
-        verbose_name='Hostname',
-        help_text='The switch hostname as reported via snmp, ssh, etc.',
+        verbose_name="Hostname",
+        help_text="The switch hostname as reported via snmp, ssh, etc.",
     )
     # dont_show_interfaces = models.BooleanField(
     #    default=False,
@@ -969,40 +969,40 @@ class Switch(models.Model):
     )
 
     class Meta:
-        ordering = ['name']
-        verbose_name_plural = 'Switches'
+        ordering = ["name"]
+        verbose_name_plural = "Switches"
         # unique_together = [
         #     ['primary_ip4', 'snmp_profile'],
         # ]
 
     def save(self, *args, **kwargs):
-        '''On save, update timestamps'''
+        """On save, update timestamps"""
         if not self.id:
             self.created = timezone.now()
         self.modified = timezone.now()
         return super(Switch, self).save(*args, **kwargs)
 
     def update_access(self):
-        '''
+        """
         Update the last accessed timestamp, and increment access counter
-        '''
+        """
         self.last_accessed = timezone.now()
         self.access_count += 1
         # call super.save(), instead of calling our own save (which sets modified as well!)
         super(Switch, self).save()
 
     def update_change(self):
-        '''
+        """
         Increment the change counter and update last_changed timestamp
-        '''
+        """
         self.change_count += 1
         self.last_changed = timezone.now()
         self.save()
 
     def update_command(self):
-        '''
+        """
         Increment the command counter and update last_command_time timestamp
-        '''
+        """
         self.command_count += 1
         self.last_command_time = timezone.now()
         self.save()
@@ -1063,20 +1063,20 @@ class Switch(models.Model):
         # For deactivated hosts, the name may not be valid anymore, so only check if the status=active.
         if self.status == constants.SWITCH_STATUS_ACTIVE:
             if self.primary_ip4 and not is_valid_hostname_or_ip(self.primary_ip4):
-                raise ValidationError('Invalid Management IPv4 address or hostname.')
+                raise ValidationError("Invalid Management IPv4 address or hostname.")
             if self.primary_ip6 and not is_valid_hostname_or_ip6(self.primary_ip6):
-                raise ValidationError('Invalid Management IPv6 address or hostname.')
+                raise ValidationError("Invalid Management IPv6 address or hostname.")
             if not self.primary_ip4 and not self.primary_ip6:
-                raise ValidationError('We need a valid IPv4 or IPv6 address or hostname.')
+                raise ValidationError("We need a valid IPv4 or IPv6 address or hostname.")
 
         # if SNMP, we need snmp_profile
         if self.connector_type == constants.CONNECTOR_TYPE_SNMP:
             if not self.snmp_profile:
-                raise ValidationError('SNMP Connector needs an SNMP Profile!')
+                raise ValidationError("SNMP Connector needs an SNMP Profile!")
 
         elif self.connector_type == constants.CONNECTOR_TYPE_NAPALM:
             if not self.napalm_device_type or not self.netmiko_profile:
-                raise ValidationError('Napalm Connector needs a Credentials Profile and a Napalm device type!')
+                raise ValidationError("Napalm Connector needs a Credentials Profile and a Napalm device type!")
 
         elif self.connector_type in (
             constants.CONNECTOR_TYPE_PYEZ,
@@ -1085,7 +1085,7 @@ class Switch(models.Model):
             constants.CONNECTOR_TYPE_COMMANDS_ONLY,
         ):
             if not self.netmiko_profile:
-                raise ValidationError('This Connector needs a Credentials Profile!')
+                raise ValidationError("This Connector needs a Credentials Profile!")
 
     # this needs to be accessed from templates:
     @property
@@ -1128,42 +1128,42 @@ class SwitchGroup(models.Model):
     users = models.ManyToManyField(
         User,
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='switchgroups',  # from User object, we can now reference "User.switchgroups"
+        related_name="switchgroups",  # from User object, we can now reference "User.switchgroups"
         blank=True,  # we don't require to have a vlan
-        verbose_name='Group Users',
+        verbose_name="Group Users",
         help_text="Users add to this group have access to the switches in this group,"
         " and the ports on the vlans in this group.",
     )
     # now add additional fields
     read_only = models.BooleanField(
         default=False,
-        verbose_name='Read-Only access',
+        verbose_name="Read-Only access",
         help_text="If checked, the devices in this group are read-only for all users.",
     )
     bulk_edit = models.BooleanField(
         default=True,
-        verbose_name='Bulk-editing of interfaces',
-        help_text='If Bulk Edit is set, we can edit multiple interfaces at once on the switches in this group.',
+        verbose_name="Bulk-editing of interfaces",
+        help_text="If Bulk Edit is set, we can edit multiple interfaces at once on the switches in this group.",
     )
     allow_poe_toggle = models.BooleanField(
         default=False,
-        verbose_name='Poe Toggle All',
-        help_text='If set, allow PoE toggle on all interfaces',
+        verbose_name="Poe Toggle All",
+        help_text="If set, allow PoE toggle on all interfaces",
     )
     edit_if_descr = models.BooleanField(
         default=True,
-        verbose_name='Edit Port Description',
-        help_text='If set, allow interface descriptions to be edited.',
+        verbose_name="Edit Port Description",
+        help_text="If set, allow interface descriptions to be edited.",
     )
     switches = models.ManyToManyField(
-        to='Switch',
+        to="Switch",
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='switchgroups',  # from switch object, we can now reference "Switch.switchgroups"
+        related_name="switchgroups",  # from switch object, we can now reference "Switch.switchgroups"
         # see https://docs.djangoproject.com/en/2.2/topics/db/models/#intermediary-manytomany
         # and https://www.revsys.com/tidbits/tips-using-djangos-manytomanyfield/
-        through='SwitchGroupMembership',
+        through="SwitchGroupMembership",
         blank=True,  # we don't require to have a switch
-        verbose_name='Member Switches',
+        verbose_name="Member Switches",
         help_text="For all the switches in this group, group users can manage any "
         "interface with a PVID in this list of VLANs. "
         "Other interfaces can not be managed.",
@@ -1175,25 +1175,25 @@ class SwitchGroup(models.Model):
     # def sorted_switches(self):
     #    return self.switches.order_by("order")
     allow_all_vlans = models.BooleanField(
-        default=False, verbose_name='Allow All Vlans', help_text='If set, allow access to all vlans.'
+        default=False, verbose_name="Allow All Vlans", help_text="If set, allow access to all vlans."
     )
     vlan_groups = models.ManyToManyField(
-        to='VlanGroup',
+        to="VlanGroup",
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='vlangroups',
+        related_name="vlangroups",
         blank=True,  # we don't require to have vlans from the start!
-        verbose_name='Allowed VLAN Groups',
+        verbose_name="Allowed VLAN Groups",
         help_text="For all the switches in this group, users in this group can "
         "manage any interface with a PVID in these VLAN Groups. "
         "Interfaces on VLANs not listed in these groups or "
         "the individual vlans below cannot be managed.",
     )
     vlans = models.ManyToManyField(
-        to='VLAN',
+        to="VLAN",
         # see https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.ForeignKey.related_name
-        related_name='vlans',
+        related_name="vlans",
         blank=True,  # we don't require to have vlans from the start!
-        verbose_name='Allowed VLANs',
+        verbose_name="Allowed VLANs",
         help_text="For all the switches in this group, users in this group can "
         "manage any interface with a PVID on these VLANs. "
         "Interfaces on VLANs not listed here or in the Vlan Groups "
@@ -1206,9 +1206,9 @@ class SwitchGroup(models.Model):
     )
 
     class Meta:
-        ordering = ['name']
-        verbose_name = 'Switch Group'
-        verbose_name_plural = 'Switch Groups'
+        ordering = ["name"]
+        verbose_name = "Switch Group"
+        verbose_name_plural = "Switch Groups"
 
     def __str__(self):
         return self.name
@@ -1226,14 +1226,14 @@ class SwitchesManager(OrderedModelManager):
 class SwitchGroupMembership(OrderedModel):
     switchgroup = models.ForeignKey(SwitchGroup, on_delete=models.CASCADE)
     switch = models.ForeignKey(Switch, on_delete=models.CASCADE)
-    order_with_respect_to = 'switchgroup'
+    order_with_respect_to = "switchgroup"
     objects = SwitchesManager()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     class Meta:
-        ordering = ('switchgroup', 'order')
+        ordering = ("switchgroup", "order")
 
 
 #
@@ -1261,22 +1261,22 @@ class Log(models.Model):
         null=True,  # we don't require to have a user
     )
     group = models.ForeignKey(
-        to='SwitchGroup',
+        to="SwitchGroup",
         on_delete=models.CASCADE,
-        related_name='logs',
+        related_name="logs",
         blank=True,
         null=True,  # we don't require to have a group
     )
     switch = models.ForeignKey(
-        to='Switch',
+        to="Switch",
         on_delete=models.CASCADE,
-        related_name='logs',
+        related_name="logs",
         blank=True,
         null=True,  # we don't require to have a switch
     )
     if_index = models.PositiveSmallIntegerField(
         default=0,
-        verbose_name='SNMP interface index',
+        verbose_name="SNMP interface index",
     )
     if_name = models.CharField(
         max_length=64,
@@ -1285,8 +1285,8 @@ class Log(models.Model):
     )
     ip_address = models.TextField(
         max_length=20,
-        default='0.0.0.0',
-        help_text='The user IP address that created the log entry',
+        default="0.0.0.0",
+        help_text="The user IP address that created the log entry",
     )
     """
     see constants.py for defined log values and their meanings
@@ -1294,12 +1294,12 @@ class Log(models.Model):
     type = models.PositiveSmallIntegerField(
         choices=constants.LOG_TYPE_CHOICES,
         default=constants.LOG_TYPE_VIEW,
-        verbose_name='Type of Log Entry',
+        verbose_name="Type of Log Entry",
     )
     action = models.PositiveSmallIntegerField(
         choices=constants.LOG_ACTION_CHOICES,
         default=constants.LOG_VIEW_SWITCH,
-        verbose_name='Activity or Action to log',
+        verbose_name="Activity or Action to log",
     )
     description = models.TextField(
         blank=True,
@@ -1325,7 +1325,7 @@ class Log(models.Model):
             # we are defining a logger, and then check if it has a handler.
             # each time you create a named logger, python will add handler to existing,
             # even if you delete the object. this is a 'globally' defined logger in apps.py :
-            syslogger = logging.getLogger('log_to_syslog')
+            syslogger = logging.getLogger("log_to_syslog")
             if not syslogger.hasHandlers():
                 handler = logging.handlers.SysLogHandler(address=(settings.SYSLOG_HOST, settings.SYSLOG_PORT))
                 syslogger.addHandler(handler)
@@ -1339,10 +1339,10 @@ class Log(models.Model):
         """
         return all the details of this log entry as a string
         """
-        info = 'OpenL2M Log: '
+        info = "OpenL2M Log: "
         if self.user:
-            info += f'User={self.user.username}, '
-        info += f'IP={self.ip_address}, Type={self.get_type_display()}, Action={self.get_action_display()}, '
+            info += f"User={self.user.username}, "
+        info += f"IP={self.ip_address}, Type={self.get_type_display()}, Action={self.get_action_display()}, "
         if self.switch:
             info = info + f"Switch={self.switch.name}, ifIndex={self.if_index}, Interface={self.if_name}, "
         info = info + f"Descr={self.description}"
@@ -1353,22 +1353,22 @@ class Log(models.Model):
         return all the details of this log entry as a JSON formatted string
         """
         log_dict = {}
-        log_dict['application'] = f'OpenL2M v{settings.VERSION}'
+        log_dict["application"] = f"OpenL2M v{settings.VERSION}"
         if self.user:
-            log_dict['username'] = self.user.username
-        log_dict['ip'] = self.ip_address
-        log_dict['type_id'] = self.type
-        log_dict['type'] = self.get_type_display()
-        log_dict['action_id'] = self.action
-        log_dict['action'] = self.get_action_display()
+            log_dict["username"] = self.user.username
+        log_dict["ip"] = self.ip_address
+        log_dict["type_id"] = self.type
+        log_dict["type"] = self.get_type_display()
+        log_dict["action_id"] = self.action
+        log_dict["action"] = self.get_action_display()
         if self.switch:
-            log_dict['switch'] = self.switch.name
-            log_dict['switch_id'] = self.switch.id
+            log_dict["switch"] = self.switch.name
+            log_dict["switch_id"] = self.switch.id
             if self.if_index:
-                log_dict['if_index'] = self.if_index
+                log_dict["if_index"] = self.if_index
             if self.if_name:
-                log_dict['interface'] = self.if_name
-        log_dict['description'] = self.description
+                log_dict["interface"] = self.if_name
+        log_dict["description"] = self.description
         return json.dumps(log_dict)
 
     def display_name(self):
@@ -1381,5 +1381,5 @@ class Log(models.Model):
         return self.display_name()
 
     class Meta:
-        ordering = ['timestamp']
-        verbose_name_plural = 'Activity Logs'
+        ordering = ["timestamp"]
+        verbose_name_plural = "Activity Logs"

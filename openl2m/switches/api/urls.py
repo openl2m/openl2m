@@ -28,7 +28,7 @@ from switches.api.views import (
     APIInterfaceSetDescription,
 )
 
-app_name = 'switches-api'
+app_name = "switches-api"
 
 # api switch views
 urlpatterns = [

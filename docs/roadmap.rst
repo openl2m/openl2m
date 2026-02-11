@@ -4,13 +4,18 @@
 Roadmap / To Do
 ===============
 
+Planned Drivers:
+----------------
+
+* ArubaOS switches via the REST API.
+* HPE Comware via NetConf API.
+* :strike:`Arista devices via the eApi`
+
 Planned Improvements:
 ---------------------
 
 *In no particular order:*
 
-* simplify the Juniper PyEX driver by using pyez operational tables and views.
-* :strike:`add MPLS L3VPN info and interface members on Juniper routers in the Junos PyEZ driver.`
 * add reading of VSF interfaces (from ArubaWired-VSFv2 mib) to the Aruba AOS-CX SNMP driver.
 * add reading of VSF interfaces to the Aruba AOS-CX API driver.
 * :strike:`add VRF interface membership to Arista SNMP driver (uses private Mib)`
@@ -24,6 +29,7 @@ Planned Improvements:
 * :strike:`add Python 3.12 and 3.13 compability: requires reworking of 'pysnmp' code.`
 * :strike:`IPv6 support, both for switch snmp access, and other informational tables.`
 * :strike:`test support for AES-192 and up. This will require Net-SNMP v5.8`
+* :strike:`add MPLS L3VPN info and interface members on Juniper routers in the Junos PyEZ driver.`
 
 Features Being Considered
 -------------------------
@@ -35,12 +41,8 @@ Here are some other features we are considering implementing (*in no particular 
 
 * change user model, from standard user mode with separate profile table, to a new user class that has it all :-)
 
-* support for Arista devices via the eApi (low priority, as the SNMP driver provides all needed functionality)
-  Note: this is now available in Read-Only mode!
-
-* Tagged/Trunked ports tagged vlan management (we can do the untagged vlan now)
-  Note that is is highly complex, as even in snmp devices, this is frequently handled in a
-  vendor-specific MIB.
+* Tagged/Trunked ports tagged vlan management - *in progress, now implemented for API drivers!*
+  Note this is complex for snmp devices, this is frequently handled in a vendor-specific MIB.
 
 * :strike:`hide change/submit buttons until form has changes (vlan, ifalias, etc.) This is a big undertaking changing the UI framework used.``
 

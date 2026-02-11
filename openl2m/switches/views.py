@@ -34,6 +34,7 @@ from switches.actions import (
     perform_interface_description_change,
     perform_interface_pvid_change,
     perform_interface_poe_change,
+    perform_interface_tags_edit,
     perform_switch_save_config,
     perform_switch_vlan_add,
     perform_switch_vlan_edit,
@@ -150,11 +151,11 @@ def close_device(request):
     """
 
     # if we came here from a previous switch, call _close_device() to clear out old session as needed.
-    if 'switch_id' in request.session.keys():
+    if "switch_id" in request.session.keys():
         dprint(f"CLOSING DEVICE: id={request.session['switch_id']}")
         # instantiate the previous device Connector() one more time to proper close sessions...
         try:
-            switch = get_object_or_404(Switch, pk=request.session['switch_id'])
+            switch = get_object_or_404(Switch, pk=request.session["switch_id"])
             conn = get_connection_object(request=request, group=False, switch=switch)
             conn._close_device()
             del conn
@@ -290,12 +291,12 @@ class SwitchSearch(LoginRequiredMixin, View):
         if permissions and isinstance(permissions, dict):
             for group_id, group in permissions.items():
                 if isinstance(group, dict):
-                    group_name = group['name']
-                    for switch_id, switch in group['members'].items():
-                        name = switch['name']
-                        hostname = switch['hostname']
-                        description = switch['description']
-                        default_view = switch['default_view']
+                    group_name = group["name"]
+                    for switch_id, switch in group["members"].items():
+                        name = switch["name"]
+                        hostname = switch["hostname"]
+                        description = switch["description"]
+                        default_view = switch["default_view"]
                         # now check the name, hostname for the search pattern:
                         try:
                             if re.search(search, name, re.IGNORECASE) or re.search(search, hostname, re.IGNORECASE):
@@ -314,11 +315,11 @@ class SwitchSearch(LoginRequiredMixin, View):
             request,
             template_name,
             {
-                'warning': warning,
-                'search': search,
-                'results': results,
-                'results_count': len(results),
-                'group_count': len(result_groups),
+                "warning": warning,
+                "search": search,
+                "results": results,
+                "results_count": len(results),
+                "group_count": len(result_groups),
             },
         )
 
@@ -1236,7 +1237,7 @@ class InterfaceDescriptionChange(LoginRequiredMixin, View):
         # read the submitted form data:
         # new_description = str(request.POST.get("new_description", ""))
         try:
-            description = request.POST['new_description']
+            description = request.POST["new_description"]
         except Exception:
             error = Error()
             error.description = "Missing required parameter: 'new_description'"
@@ -1261,7 +1262,7 @@ class InterfaceDescriptionChange(LoginRequiredMixin, View):
 class InterfacePvidChange(LoginRequiredMixin, View):
     """
     Change the PVID untagged vlan on an interfaces.
-    This still needs to handle dot1q trunked ports.
+    This still needs to handle dot1q tagged ("trunk") ports.
 
     Params:
         request:  HttpRequest() object
@@ -1284,7 +1285,7 @@ class InterfacePvidChange(LoginRequiredMixin, View):
 
         # read the submitted form data:
         try:
-            new_pvid = int(request.POST.get('new_pvid'))
+            new_pvid = int(request.POST.get("new_pvid"))
         except Exception:
             error = Error()
             error.description = "Missing required parameter: 'new_pvid'"
@@ -1394,6 +1395,95 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
 
         description = "Interface PoE was toggled!"
         return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message=description)
+
+
+#
+# Edit the untagged and 802.1q-tagged vlans on a port (interface)
+#
+class InterfaceTagsEdit(LoginRequiredMixin, View):
+    """
+    Change the untagged and tagged vlans on an interface.
+
+    Params:
+        request:  HttpRequest() object
+        group_id: (int) the pk of the SwitchGroup()
+        switch_id: (int) the pk of the Switch()
+        interface_name: (str) the key or to the Interface() in the list of Interface()s
+
+    Returns:
+        renders either OK or Error page, depending permissions and result.
+    """
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        dprint("InterfaceTagsEdit() - POST called")
+
+        """ Implementation notes:
+        If we allow untagged and tags-edit for regular, non-admin users, we need to parse carefully!
+        In that case, we will allow adding/deleting vlans the user has access to,
+        and SHOULD NOT CHANGE NON-PERMITTED VLANS !!!!
+        Ie. this requires looking at the interface current tagged vlans, and mashing this up with the requested vlans...
+
+        Currently, permissions are set in Connector()._set_interfaces_permissions(),
+        in switches/connect/connector.py, around line 1775
+
+        """
+        # read the submitted form data:
+        # untagged PVID first.
+        try:
+            pvid = int(request.POST.get("pvid"))
+        except Exception as err:
+            info = Error()
+            info.description = "Missing or invalid required parameter: 'new_pvid'"
+            info.details = err
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        if pvid <= 0:  # should not happen!
+            info = Error()
+            info.description = "Invalid PVID = {pvid}"
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        # see if "Allow All Vlans" is selected (if present)
+        allow_all = request.POST.get("allow_all", "") == "yes"    # form checkbox value="yes" if checked.
+        dprint(f"allow_all = {allow_all}")
+
+        # get the vlans on the trunk:
+        post_vlans = request.POST.getlist("tagged_vlans")
+        # this returns vlan numbers as string. Our internal processing requires a list of integer vlan id's!
+        tagged_vlans = []
+        for vlan_str in post_vlans:
+            dprint(f"Handling tagged vlan {vlan_str}")
+            try:
+                vlan_id = int(vlan_str)
+                tagged_vlans.append(vlan_id)
+            except Exception as err:  # should not happen!
+                info = Error()
+                info.description = f"Error converting vlan to integer: {vlan_str}"
+                info.details = err
+                return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        # if tagged_vlans = empty List(), then the interface should be in Access mode!
+        # else it should be in Trunk or 802.1Q Tagged mode.
+
+        retval, info = perform_interface_tags_edit(
+            request=request,
+            group_id=group_id,
+            switch_id=switch_id,
+            interface_key=interface_name,
+            pvid=pvid,
+            tagged_vlans=tagged_vlans,
+            allow_all=allow_all,
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        message = f"Interface '{interface_name}' vlan and 802.1q tags were modified!"
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
 class SwitchSaveConfig(LoginRequiredMixin, MyView):
@@ -1955,7 +2045,7 @@ class SwitchAdminActivity(LoginRequiredMixin, View):
             if request.GET.get("description", ""):
                 # description match is based on case-insensitive RegEx
                 # see https://docs.djangoproject.com/en/5.2/ref/models/querysets/#std-fieldlookup-regex
-                filter_values['description__iregex'] = request.GET.get("description", "")
+                filter_values["description__iregex"] = request.GET.get("description", "")
 
         # now set the filter, if found
         if len(filter_values) > 0:
@@ -2092,7 +2182,7 @@ class SwitchDownloadInterfaces(LoginRequiredMixin, MyView):
 
 
 class TestPage(LoginRequiredMixin, View):
-    '''create a page to test html templates'''
+    """create a page to test html templates"""
 
     def get(
         self,

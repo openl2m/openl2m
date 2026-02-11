@@ -128,6 +128,18 @@ POE_TOGGLE_DELAY = 5
 # regardless of other access to the interface
 ALWAYS_ALLOW_POE_TOGGLE = False
 
+# If enabled, we allow 802.1q tags ("trunk") vlan editing, if the driver implements it.
+# currently only for Admins (aka superuser)
+ALLOW_TAGS_EDIT = False
+
+# if ALLOW_TAGS_EDIT = True, we can delegate this to STAFF if this is set
+STAFF_ALLOW_TAGS_EDIT = False
+
+# if enabled, and the drivers suports it, this allows an access mode port to be switched to
+# 802.1q-tagged ("trunk") mode or the reverse.
+# currently only for Admins (aka superuser)
+ALLOW_MODE_SET = False
+
 # If True, all non-ethernet interfaces are hidden from all users, including admins
 HIDE_NONE_ETHERNET_INTERFACES = False
 
@@ -541,6 +553,8 @@ SSH_COMMAND_TIMEOUT = 15
 
 # connect timeout for Junos devices via the Netconf interface
 JUNOS_PYEZ_CONN_TIMEOUT = 10
+# connect timeout for Junos devices via the Netconf interface
+JUNOS_PYEZ_CMD_TIMEOUT = 120
 
 # perform hostname lookup from IP addresses found in ARP info, Admin pages, etc.
 # Note this could have impact on page rendering, depending on how fast your

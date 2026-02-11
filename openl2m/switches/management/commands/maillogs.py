@@ -208,7 +208,7 @@ class Command(BaseCommand):
                     self.stdout.write(f"ERROR: Invalid action number {n}")
                     return
             # assign to query filter
-            filter_values['action__in'] = includes
+            filter_values["action__in"] = includes
 
         # do we exclude some log entry types?
         excludes = []
@@ -325,8 +325,8 @@ class Command(BaseCommand):
                     if options["verbosity"] > 1:
                         self.stdout.write(f"Attachment filename: {tmp_file}")
                     workbook = xlsxwriter.Workbook(tmp_file)
-                    format_bold = workbook.add_format({'bold': True, 'font_name': 'Calibri', 'font_size': 14})
-                    format_regular = workbook.add_format({'font_name': 'Calibri', 'font_size': 12})
+                    format_bold = workbook.add_format({"bold": True, "font_name": "Calibri", "font_size": 14})
+                    format_regular = workbook.add_format({"font_name": "Calibri", "font_size": 12})
 
                     worksheet = workbook.add_worksheet()
 
@@ -402,7 +402,7 @@ class Command(BaseCommand):
         self.stdout.write("Finished.", self.style.SUCCESS)
 
     def show_log_types(self):
-        '''Show all the log type and action numbers.'''
+        """Show all the log type and action numbers."""
         self.stdout.write("Listing all log types and actions.")
         self.stdout.write("\nLog types:\n")
         # start with 'all':

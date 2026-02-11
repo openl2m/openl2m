@@ -5,15 +5,15 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('switches', '0031_alter_log_action'),
+        ("switches", "0031_alter_log_action"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='switchgroup',
-            name='allow_all_vlans',
+            model_name="switchgroup",
+            name="allow_all_vlans",
             field=models.BooleanField(
-                default=False, help_text='If set, allow access to all vlans.', verbose_name='Allow All Vlans'
+                default=False, help_text="If set, allow access to all vlans.", verbose_name="Allow All Vlans"
             ),
         ),
     ]

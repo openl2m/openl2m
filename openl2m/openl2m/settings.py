@@ -47,8 +47,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = "3.4.9"
-VERSION_DATE = "2026-01-27"
+VERSION = "4.0-alpha"
+VERSION_DATE = "2026-02-04"
 
 # Hostname
 HOSTNAME = platform.node()
@@ -110,6 +110,9 @@ POE_TOGGLE_DELAY = getattr(configuration, "POE_TOGGLE_DELAY", 5)
 ALWAYS_ALLOW_POE_TOGGLE = getattr(configuration, "ALWAYS_ALLOW_POE_TOGGLE", False)
 
 HIDE_NONE_ETHERNET_INTERFACES = getattr(configuration, "HIDE_NONE_ETHERNET_INTERFACES", False)
+
+ALLOW_TAGS_EDIT = getattr(configuration, "ALLOW_TAGS_EDIT", False)
+STAFF_ALLOW_TAGS_EDIT = getattr(configuration, "STAFF_ALLOW_TAGS_EDIT", False)
 
 CSRF_COOKIE_NAME = getattr(configuration, "CSRF_COOKIE_NAME", "csrftoken")
 CSRF_TRUSTED_ORIGINS = getattr(configuration, "CSRF_TRUSTED_ORIGINS", [])
@@ -315,7 +318,7 @@ if LDAP_CONFIG is not None:
     # Check that django_auth_ldap is installed
     try:
         import ldap
-        import django_auth_ldap
+        import django_auth_ldap     # noqa: F401
     except ImportError:
         raise ImproperlyConfigured(
             "LDAP authentication has been configured, but django-auth-ldap is not installed. Remove "
@@ -448,6 +451,8 @@ SSH_COMMAND_TIMEOUT = getattr(configuration, 'SSH_COMMAND_TIMEOUT', 15)
 
 # connect timeout for Junos devices via the Netconf interface
 JUNOS_PYEZ_CONN_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CONN_TIMEOUT', 10)
+# command timeout for Junos devices via the Netconf interface
+JUNOS_PYEZ_CMD_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CMD_TIMEOUT', 120)
 
 # REST API Settings
 API_ENABLED = getattr(configuration, 'API_ENABLED', True)

@@ -1,8 +1,8 @@
 .. image:: ../_static/openl2m_logo.png
 
-=============
-Using OpenL2M
-=============
+=======================
+Using OpenL2M |version|
+=======================
 
 .. toctree::
    :maxdepth: 2

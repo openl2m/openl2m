@@ -1,0 +1,63 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 4.0
+===========
+
+.. note::
+
+  v3.3 and up require Postgres version 13 or greater! (I.e. Ubuntu 20.04 will no longer work.)
+
+
+**Version 4.0 adds support for editing 802.1Q tagged/trunk interfaces.**
+
+This is initially support for the following drivers/devices:
+- Arista devices via the eAPI
+- Aruba AOS-CX via the API
+- Juniper devices via the PyEZ API
+
+See the documentation for more details.
+
+
+New Configuration Options
+-------------------------
+
+.. code-block:: python
+
+  # If enabled, we allow 802.1q tags ("trunk") vlan editing, if the driver implements it.
+  # currently only for Admins (aka superuser)
+  ALLOW_TAGS_EDIT = True
+
+  # if ALLOW_TAGS_EDIT = True, we can delegate this to STAFF if this is set
+  STAFF_ALLOW_TAGS_EDIT = False
+
+  # connect timeout for Junos devices via the Netconf interface
+  JUNOS_PYEZ_CMD_TIMEOUT = 120
+
+
+Version 4.0.1
+-------------
+
+Release Date: TBD
+
+* add Junos PyEZ Netconf driver command timeout, defaults to 120 seconds
+
+Bug fixes:
+
+* fix javascript problem in trunk edit form.
+
+
+Version 4.0
+-----------
+
+Release Date: 2026-02-09
+
+* add support for editing 802.1Q interfaces or changing interfaces from access to trunk/tagged, and back.
+  by default, allowed for Admins. Can be enabled for Staff via configuration setting.
+
+* updates to the driver internals documentation.
+
+Bug fixes:
+
+* fix PyEZ driver to recognize 'special' Junos 'virtual' interfaces, and mark as such. (E.g. pip,esi, etc.)
+

@@ -21,7 +21,6 @@ from switches.utils import dprint
 # Class MyView() extends Django's View() class to add a better "unknown method" handler.
 #
 class MyView(View):
-
     # we only override this handler, which throws an Exception in the View() class.
     def http_method_not_allowed(self, request, **args):
         # return HttpResponse(

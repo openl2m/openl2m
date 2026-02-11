@@ -24,6 +24,7 @@ import requests
 # used to disable unknown SSL cert warnings:
 import urllib3
 import traceback
+from typing import List
 
 from switches.connect.classes import Interface, NeighborDevice, Transceiver, Vlan
 from switches.connect.connector import Connector
@@ -69,12 +70,12 @@ class AristaApiConnector(Connector):
         # call the super class
         dprint("AristaApiConnector __init__")
         super().__init__(request, group, switch)
-        self.description = 'Arista eAPI driver'
+        self.description = "Arista eAPI driver"
         self.vendor_name = "Arista"
         # can edit (most) entries
         self.read_only = False
         if switch.description:
-            self.add_more_info('System', 'Description', switch.description)
+            self.add_more_info("System", "Description", switch.description)
         # capabilities supported by this eAPI driver:
         self.can_change_admin_status = True
         self.can_change_vlan = True
@@ -84,6 +85,8 @@ class AristaApiConnector(Connector):
         self.can_change_description = True
         self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
+        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_allow_all = True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
     def get_my_basic_info(self) -> bool:
         """
@@ -116,17 +119,17 @@ class AristaApiConnector(Connector):
             # get device version
             #
             # command = "show version"
-            data = json_data.get('result')[0]
-            self.add_more_info('System', 'Model', data['modelName'])
-            self.add_more_info('System', 'Serial', data['serialNumber'])
-            self.add_more_info('System', 'OS Version', data['version'])
-            self.add_more_info('System', 'Uptime', time_duration(int(data['uptime'])))
+            data = json_data.get("result")[0]
+            self.add_more_info("System", "Model", data["modelName"])
+            self.add_more_info("System", "Serial", data["serialNumber"])
+            self.add_more_info("System", "OS Version", data["version"])
+            self.add_more_info("System", "Uptime", time_duration(int(data["uptime"])))
 
             #
             # get vlan info
             #
             # command = "show vlan"
-            data = json_data.get('result')[1]['vlans']
+            data = json_data.get("result")[1]["vlans"]
             for vlan_id, vlan_data in data.items():
                 dprint(f"Found vlan: {vlan_id}")
                 v = Vlan(id=int(vlan_id))
@@ -139,7 +142,7 @@ class AristaApiConnector(Connector):
             # get interface information
             #
             # command = "show interfaces"
-            data = json_data.get('result')[2]
+            data = json_data.get("result")[2]
             for if_name, if_data in data["interfaces"].items():
                 dprint(f"Found interface: {if_name}")
                 dprint(f"IF_DATA=\n{if_data}\n")
@@ -157,17 +160,17 @@ class AristaApiConnector(Connector):
 
                 iface.description = if_data["description"]
 
-                match if_data['interfaceStatus']:
-                    case 'disabled':  # Admin-DOWN
+                match if_data["interfaceStatus"]:
+                    case "disabled":  # Admin-DOWN
                         # note this is default state:
                         iface.admin_status = False
                         iface.oper_status = False
-                    case 'notconnect':  # Admin-UP but protocol-DOWN
+                    case "notconnect":  # Admin-UP but protocol-DOWN
                         iface.admin_status = True
                         iface.oper_status = False
-                    case 'connected':  # UP/UP
+                    case "connected":  # UP/UP
                         iface.admin_status = True
-                        if if_data["lineProtocolStatus"] == 'up':
+                        if if_data["lineProtocolStatus"] == "up":
                             iface.oper_status = True
                     # not sure this is correct ?
                     case "errdisabled":
@@ -178,7 +181,7 @@ class AristaApiConnector(Connector):
 
                 iface.speed = int(if_data["bandwidth"]) / 1000000  # bandwidth is in bps!
 
-                if 'duplex' in if_data:
+                if "duplex" in if_data:
                     match if_data["duplex"]:
                         case "duplexFull":
                             iface.duplex = IF_DUPLEX_FULL
@@ -201,9 +204,9 @@ class AristaApiConnector(Connector):
                 # # parse ipv6 addresses of this interface:
                 if "interfaceAddressIp6" in if_data:
                     # "real" IPv6 addresses:
-                    for addr in if_data['interfaceAddressIp6']['globalUnicastIp6s']:
+                    for addr in if_data["interfaceAddressIp6"]["globalUnicastIp6s"]:
                         dprint(f"Found IPv6: {addr}")
-                        ipv6 = addr['address']
+                        ipv6 = addr["address"]
                         prefix_len = 64  # default for IPv6 subnets
                         # we need to get the netmask from the subnet:
                         netmask_pos = addr["subnet"].rfind("/")
@@ -226,9 +229,9 @@ class AristaApiConnector(Connector):
             # dprint("=== SWITCHPORT DATA ===")
             # dprint(data)
             # dprint("============")
-            data = json_data.get('result')[3]['switchports']
+            data = json_data.get("result")[3]["switchports"]
             for if_name, info in data.items():
-                switchport = info['switchportInfo']
+                switchport = info["switchportInfo"]
                 dprint("===========")
                 dprint(f"Found VLAN info for: {if_name}")
                 dprint(info)
@@ -236,28 +239,28 @@ class AristaApiConnector(Connector):
                 iface = self.get_interface_by_name(name=if_name)
                 if iface:
                     dprint("   found Interface()")
-                    if switchport['mode'] == 'trunk':
+                    if switchport["mode"] == "trunk":
                         iface.is_tagged = True
                         # the PVID native untagged vlan is set in this attribute for trunks:
-                        iface.untagged_vlan = int(switchport['trunkingNativeVlanId'])
-                        if switchport['trunkAllowedVlans'] == 'ALL':
+                        iface.untagged_vlan = int(switchport["trunkingNativeVlanId"])
+                        if switchport["trunkAllowedVlans"] == "ALL":
                             # add all vlans
                             for v in self.vlans.values():
                                 iface.add_tagged_vlan(vlan_id=v.id)
                         else:
                             parser = RangeParser()
-                            tagged_vlans = parser.parse(switchport['trunkAllowedVlans'])
+                            tagged_vlans = parser.parse(switchport["trunkAllowedVlans"])
                             for vlan_id in tagged_vlans:
                                 iface.add_tagged_vlan(vlan_id=vlan_id)
                     else:
                         # access mode:
-                        iface.untagged_vlan = int(switchport['accessVlanId'])
+                        iface.untagged_vlan = int(switchport["accessVlanId"])
 
             #
             # get optical transceiver data
             #
             # command = "show interfaces transceiver properties"
-            data = json_data.get('result')[4]['interfaces']
+            data = json_data.get("result")[4]["interfaces"]
             for if_name, trx_data in data.items():
                 dprint(f"Found TRX for: {if_name}")
                 dprint(trx_data)
@@ -279,7 +282,7 @@ class AristaApiConnector(Connector):
             # dprint("=== Port-Channel DATA ===")
             # dprint(data)
             # dprint("============")
-            data = json_data.get('result')[5]['portChannels']
+            data = json_data.get("result")[5]["portChannels"]
             for po_name, po_info in data.items():
                 # does this port-channel exist ?
                 port_channel = self.get_interface_by_name(name=po_name)
@@ -288,7 +291,7 @@ class AristaApiConnector(Connector):
                     port_channel.type = IF_TYPE_LAGG
                     port_channel.lacp_type = LACP_IF_TYPE_AGGREGATOR
                     # find the member interfaces:
-                    member_type_list = ['inactivePorts', 'inactivePorts']
+                    member_type_list = ["inactivePorts", "inactivePorts"]
                     for member_type in member_type_list:
                         for member_name, member_info in po_info[member_type].items():
                             member = self.get_interface_by_name(name=member_name)
@@ -303,7 +306,7 @@ class AristaApiConnector(Connector):
             # read VRF info
             #
             # command = "show vrf"
-            data = json_data.get('result')[6]['vrfs']
+            data = json_data.get("result")[6]["vrfs"]
             for name, vrf_data in data.items():
                 dprint(f"Found vrf: {name}")
                 if name == "default":  # the non-VRF or default routing table.
@@ -340,11 +343,11 @@ class AristaApiConnector(Connector):
         return True
 
     def get_my_client_data(self) -> bool:
-        '''
+        """
         read mac addressess, and lldp neigbor info.
         Not yet fully supported in AOS-CX API.
         return True on success, False on error and set self.error variables
-        '''
+        """
         dprint("AristaApiConnector.get_my_client_data()")
 
         if not self._open_device():
@@ -370,16 +373,16 @@ class AristaApiConnector(Connector):
             #
             # command = "show mac address-table"
             dprint("\n--- ETHERNET ADDRESSES ---\n")
-            data = json_data.get('result')[0]
-            for mac in data['unicastTable']['tableEntries']:
+            data = json_data.get("result")[0]
+            for mac in data["unicastTable"]["tableEntries"]:
                 dprint(f"Ethernet: {mac}")
                 # add this to the known addressess:
-                if mac['interface'] == 'Router':
+                if mac["interface"] == "Router":
                     # internal ethernet on the Arista device
                     dprint("  Ignored!")
                     continue
                 self.add_learned_ethernet_address(
-                    if_name=mac['interface'], eth_address=mac['macAddress'], vlan_id=int(mac['vlanId'])
+                    if_name=mac["interface"], eth_address=mac["macAddress"], vlan_id=int(mac["vlanId"])
                 )
 
             #
@@ -387,18 +390,18 @@ class AristaApiConnector(Connector):
             #
             # command = "show arp vrf all"
             dprint("\n--- ARP ---\n")
-            data = json_data.get('result')[1]
-            for vrf_name, vrf_arp in data['vrfs'].items():
+            data = json_data.get("result")[1]
+            for vrf_name, vrf_arp in data["vrfs"].items():
                 dprint(f"VRF: {vrf_name}")
-                for arp in vrf_arp['ipV4Neighbors']:
+                for arp in vrf_arp["ipV4Neighbors"]:
                     dprint(f"  ARP = {arp}")
-                    vlan_id, if_name = get_vlan_and_interface_from_string(arp['interface'])
+                    vlan_id, if_name = get_vlan_and_interface_from_string(arp["interface"])
                     dprint(f"    Adding to if_name: {if_name}, vlan: {vlan_id}")
                     self.add_learned_ethernet_address(
                         if_name=if_name,
-                        eth_address=arp['hwAddress'],
+                        eth_address=arp["hwAddress"],
                         vlan_id=vlan_id,
-                        ip4_address=arp['address'],
+                        ip4_address=arp["address"],
                     )
 
             #
@@ -406,18 +409,18 @@ class AristaApiConnector(Connector):
             #
             # command = "show ipv6 neighbors vrf all"
             dprint("\n--- IPV6 ND ---\n")
-            data = json_data.get('result')[2]
-            for vrf_name, vrf_nd in data['vrfs'].items():
+            data = json_data.get("result")[2]
+            for vrf_name, vrf_nd in data["vrfs"].items():
                 dprint(f"VRF: {vrf_name}")
-                for nd in vrf_nd['ipV6Neighbors']:
+                for nd in vrf_nd["ipV6Neighbors"]:
                     dprint(f"  ND = {nd}")
-                    vlan_id, if_name = get_vlan_and_interface_from_string(nd['interface'])
+                    vlan_id, if_name = get_vlan_and_interface_from_string(nd["interface"])
                     dprint(f"    Adding to if_name: {if_name}, vlan_id: {vlan_id}")
                     self.add_learned_ethernet_address(
                         if_name=if_name,
-                        eth_address=nd['hwAddress'],
+                        eth_address=nd["hwAddress"],
                         vlan_id=vlan_id,
-                        ip6_address=nd['address'],
+                        ip6_address=nd["address"],
                     )
 
             #
@@ -425,25 +428,25 @@ class AristaApiConnector(Connector):
             #
             # command = "show lldp neigbors"
             dprint("\n--- LLDP NEIGHBORS ---\n")
-            data = json_data.get('result')[3]['lldpNeighbors']
+            data = json_data.get("result")[3]["lldpNeighbors"]
             for if_name, nb_data in data.items():
                 dprint(f"LLDP on {if_name}")
-                for nb in nb_data['lldpNeighborInfo']:
+                for nb in nb_data["lldpNeighborInfo"]:
                     dprint(f" Neighbor {nb['systemName']} = {nb}")
                     # get an OpenL2M NeighborDevice()
                     neighbor = NeighborDevice(nb["chassisId"])
-                    neighbor.set_sys_name(nb['systemName'])
-                    neighbor.set_sys_description(nb['systemDescription'])
+                    neighbor.set_sys_name(nb["systemName"])
+                    neighbor.set_sys_description(nb["systemDescription"])
                     # parse neighbor remote interface info:
                     if "neighborInterfaceInfo" in nb:
-                        neighbor.port_name = nb['neighborInterfaceInfo']['interfaceId_v2']
-                        neighbor.set_port_description(nb['neighborInterfaceInfo']['interfaceDescription'])
+                        neighbor.port_name = nb["neighborInterfaceInfo"]["interfaceId_v2"]
+                        neighbor.set_port_description(nb["neighborInterfaceInfo"]["interfaceDescription"])
 
                     # management addresses given?
                     mgmt_ipv4 = ""  # used to register ethernet address.
                     mgmt_ipv6 = ""
                     if "managementAddresses" in nb:
-                        for addr in nb['managementAddresses']:
+                        for addr in nb["managementAddresses"]:
                             dprint(f" Mgmt addr: {addr}")
                             # Needs parsing...
                             match addr["addressType"]:
@@ -459,8 +462,8 @@ class AristaApiConnector(Connector):
                                     # we cannot handle this!
                                     dprint("Unknown management address type!")
 
-                    neighbor.set_chassis_string(nb['chassisId'])
-                    if nb['chassisIdType'] == 'macAddress':
+                    neighbor.set_chassis_string(nb["chassisId"])
+                    if nb["chassisIdType"] == "macAddress":
                         neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
                         # add this ethernet address to our interface data
                         # NOTE: still need to add the ipv4/v6 management addresses:
@@ -473,7 +476,7 @@ class AristaApiConnector(Connector):
                         )
 
                     # remote device capabilities:
-                    for c, value in nb['systemCapabilities'].items():
+                    for c, value in nb["systemCapabilities"].items():
                         match c:
                             case "bridge":
                                 if value:
@@ -502,7 +505,7 @@ class AristaApiConnector(Connector):
     # set interface admin status (up/down)
     #
     def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
-        '''
+        """
         Set the interface to the requested state (up or down)
 
         Args:
@@ -511,7 +514,7 @@ class AristaApiConnector(Connector):
 
         Returns:
             return True on success, False on error and set self.error variables
-        '''
+        """
         # interface.admin_status = new_state
         dprint(f"AristaApiConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
 
@@ -537,7 +540,7 @@ class AristaApiConnector(Connector):
     # set interface description
     #
     def set_interface_description(self, interface: Interface, description: str) -> bool:
-        '''
+        """
         Set the interface description (aka. description) to the string
 
         Args:
@@ -546,7 +549,7 @@ class AristaApiConnector(Connector):
 
         Returns:
             return True on success, False on error and set self.error variables
-        '''
+        """
         # interface.admin_status = new_state
         dprint(f"AristaApiConnector.set_interface_description() for {interface.name} to '{description}'")
 
@@ -609,8 +612,72 @@ class AristaApiConnector(Connector):
 
         return False
 
+    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
+        """
+        Set the interface to the untagged and tagged vlans.
+
+        Args:
+            interface = Interface() object for the requested port
+            untagged_vlan = an integer with the requested untagged vlan
+            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(
+            f"AristaApiConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
+        )
+        if not len(tagged_vlans) and not allow_all:
+            # no tagged vlan, ie "access mode".
+            cmds = [
+                "configure terminal",
+                f"interface {interface.name}",
+                "switchport mode access",
+                f"switchport access vlan {untagged_vlan}",
+                "no switchport trunk native vlan",  # not needed, added for config clarity!
+                "no switchport trunk allowed vlan",  # not needed, added for config clarity!
+                "end",
+            ]
+        else:
+            # trunk mode, setup mode and native vlan:
+            cmds = [
+                "configure terminal",
+                f"interface {interface.name}",
+                "switchport mode trunk",
+                "no switchport access vlan",  # not needed, added for config clarity!
+                f"switchport trunk native vlan {untagged_vlan}",
+            ]
+            # allow all vlans?
+            if allow_all:
+                cmds.append("switchport trunk allow vlan all")
+            # or just some specific vlans:
+            else:
+                # start with clean slate on trunk
+                cmds.append("switchport trunk allowed vlan none")
+                # loop through all vlans, and see if they are allowed
+                allow = []
+                for vid in self.vlans.keys():
+                    if vid in tagged_vlans:
+                        # allowed!
+                        allow.append(str(vid))
+                # add allowed vlans to commands
+                cmds.append("switch trunk allowed vlan add " + ", ".join(allow))
+
+            # and finish the command list:
+            cmds.append("end")
+
+        # execute the command:
+        if self._run_commands(
+            commands=cmds, action=f"set interface vlans to untagged {untagged_vlan}, tagged={tagged_vlans}, allow_all={allow_all}"
+        ):
+            # call the base Connector() for bookkeeping:
+            super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
+            return True
+
+        return False
+
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
-        '''
+        """
         Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
 
         Args:
@@ -619,7 +686,7 @@ class AristaApiConnector(Connector):
 
         Returns:
             True on success, False on error and set self.error variables.
-        '''
+        """
         dprint(f"AristaApiConnector.vlan_create() for vlan {vlan_id} = '{vlan_name}'")
 
         cmds = [
@@ -637,7 +704,7 @@ class AristaApiConnector(Connector):
         return False
 
     def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
-        '''
+        """
         Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
 
         Args:
@@ -646,7 +713,7 @@ class AristaApiConnector(Connector):
 
         Returns:
             True on success, False on error and set self.error variables.
-        '''
+        """
         dprint(f"AristaApiConnector.vlan_edit() for vlan {vlan_id} = '{vlan_name}'")
 
         vlan = self.get_vlan_by_id(vlan_id)
@@ -679,7 +746,7 @@ class AristaApiConnector(Connector):
         return False
 
     def vlan_delete(self, vlan_id: int) -> bool:
-        '''
+        """
         Delete the vlan. Upon success, this then needs to call the base class for book keeping!
 
         Args:
@@ -687,7 +754,7 @@ class AristaApiConnector(Connector):
 
         Returns:
             True on success, False on error and set self.error variables.
-        '''
+        """
         dprint(f"AristaApiConnector.vlan_delete() for vlan {vlan_id}")
 
         vlan = self.get_vlan_by_id(vlan_id)
@@ -754,7 +821,7 @@ class AristaApiConnector(Connector):
             json_data = self._eapi_run_command(command=command, format="text")
             # The 'result' key will contain a list of command output.
             # dprint(f"RETURN:\n{json_data}")
-            self.netmiko_output = json_data.get('result')[0]['output']
+            self.netmiko_output = json_data.get("result")[0]["output"]
             return True
         except Exception as err:
             dprint(f"  ERROR running '{command}': {err}")
@@ -767,10 +834,10 @@ class AristaApiConnector(Connector):
             return False
 
     def _open_device(self) -> bool:
-        '''
+        """
         Arista API is stateless, so no need to open...
         return True on success, False on failure, and will set self.error
-        '''
+        """
         dprint("Arista eAPI _open_device()")
 
         # do we have creds set?
@@ -792,9 +859,9 @@ class AristaApiConnector(Connector):
         return True
 
     def _close_device(self) -> bool:
-        '''
+        """
         eAPI is stateless, so close is not needed!
-        '''
+        """
         dprint("Arist eAPI _close_device()")
         return True
 
@@ -816,7 +883,7 @@ class AristaApiConnector(Connector):
             json_data = self._eapi_run_command(command=commands)
             # The 'result' key will contain a list of command output.
             dprint(f"RETURN:\n{json_data}")
-            if 'error' in json_data:
+            if "error" in json_data:
                 # some error occured !
                 dprint("  ERROR running command!")
                 # error_code = json_data['error']['code']

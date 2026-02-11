@@ -50,28 +50,25 @@ def build_url_string(values):
     Build a external url string from the url values dict() given
     Used to build custom links from "settings" variables
     """
-    if 'target' in values.keys() and values['target']:
+    if "target" in values.keys() and values["target"]:
         s = '<a target="_blank"'
     else:
         s = "<a"
-    s = s + f" href=\"{values['url']}\""
+    s = s + f' href="{values["url"]}"'
     # alt is not a standard attribute for <a>:
     # if 'alt' in values.keys() and values['alt']:
     #     s = s + f" alt=\"{values['alt']}\""
-    if 'hint' in values.keys():
+    if "hint" in values.keys():
         # add as tooltip and aria-label for screen readers:
-        s = s + f" data-bs-toggle=\"tooltip\" data-bs-title=\"{values['hint']}\" aria-label=\"{values['hint']}\""
+        s = s + f' data-bs-toggle="tooltip" data-bs-title="{values["hint"]}" aria-label="{values["hint"]}"'
     else:
         # force aria-label for screen readers:
-        s = s + " aria-label=\"Click for more info\""
+        s = s + ' aria-label="Click for more info"'
     s = s + ">"
-    if 'fa_icon' in values.keys():
-        s = s + f" <i class=\"fa-solid {values['fa_icon']}\" aria-hidden=\"false\"></i>"
-    elif 'icon' in values.keys():
-        s = (
-            s
-            + f" <img src=\"{values['icon']}\" aria-hidden=\"false\" alt=\"{values['alt']}\" height=\"24\" width=\"24\">"
-        )
+    if "fa_icon" in values.keys():
+        s = s + f' <i class="fa-solid {values["fa_icon"]}" aria-hidden="false"></i>'
+    elif "icon" in values.keys():
+        s = s + f' <img src="{values["icon"]}" aria-hidden="false" alt="{values["alt"]}" height="24" width="24">'
     s = s + "</a> "
     return s
 
@@ -144,17 +141,17 @@ def validate_info_url_fields(info_url, switch, interface=False):
     Currently checks nms_id and hostname, since those are not always defined.
     """
 
-    if 'url' not in info_url.keys():
+    if "url" not in info_url.keys():
         return False
     # not check fields in the url:
     # the switch.nms_id field is optional. If used in URL, check that it is set!
-    if info_url['url'].find('switch.nms_id') > -1:
+    if info_url["url"].find("switch.nms_id") > -1:
         # found it, but is the value set:
         if not switch.nms_id:
             # nms_id not set, skipping this url
             return False
     # the switch.hostname field is optional. If used in URL, check that it is set!
-    if info_url['url'].find('switch.hostname') > -1:
+    if info_url["url"].find("switch.hostname") > -1:
         # found it, but is the value set:
         if not switch.hostname:
             # skipping the url
@@ -171,14 +168,14 @@ def get_switch_info_url_links(switch, user):
     """
     Get the info url(s) for the switch expanded from the settings file variable
     """
-    links = ''
+    links = ""
     if settings.SWITCH_INFO_URLS:
         for info_url in settings.SWITCH_INFO_URLS:
             # if we have a url defined, make sure used fields are set:
             if not validate_info_url_fields(info_url, switch):
                 continue
             tpl = Template(build_url_string(info_url))
-            context = Context({'switch': switch})
+            context = Context({"switch": switch})
             links += tpl.render(context)
 
     if user.is_superuser or user.is_staff:
@@ -188,7 +185,7 @@ def get_switch_info_url_links(switch, user):
                 if not validate_info_url_fields(info_url, switch):
                     continue
                 tpl = Template(build_url_string(info_url))
-                context = Context({'switch': switch})
+                context = Context({"switch": switch})
                 links += tpl.render(context)
 
     if user.is_superuser and settings.SWITCH_INFO_URLS_ADMINS:
@@ -197,7 +194,7 @@ def get_switch_info_url_links(switch, user):
             if not validate_info_url_fields(info_url, switch):
                 continue
             tpl = Template(build_url_string(info_url))
-            context = Context({'switch': switch})
+            context = Context({"switch": switch})
             links += tpl.render(context)
 
     return mark_safe(links)
@@ -208,13 +205,13 @@ def get_interface_info_links(switch, iface):
     """
     Get the info url(s) for the interface expanded from the settings file variable
     """
-    links = ''
+    links = ""
     if settings.INTERFACE_INFO_URLS:
         for info_url in settings.INTERFACE_INFO_URLS:
             if not validate_info_url_fields(info_url, switch, iface):
                 continue
             tpl = Template(build_url_string(info_url))
-            context = Context({'switch': switch, 'iface': iface})
+            context = Context({"switch": switch, "iface": iface})
             links += tpl.render(context)
     return mark_safe(links)
 
@@ -224,14 +221,14 @@ def get_vlan_info_links(vlan):
     """
     Get the info url(s) for the Vlan() expanded from the settings file variable
     """
-    links = ''
+    links = ""
     if settings.VLAN_INFO_URLS:
         # do this for all URLs listed:
         for info_url in settings.VLAN_INFO_URLS:
             tpl = Template(build_url_string(info_url))
             context = Context(
                 {
-                    'vlan': vlan,
+                    "vlan": vlan,
                 }
             )
             links += tpl.render(context)
@@ -243,14 +240,14 @@ def get_ethernet_info_links(ethernet):
     """
     Get the info url(s) for the EthernetAddress() expanded from the settings file variable
     """
-    links = ''
+    links = ""
     if settings.ETHERNET_INFO_URLS:
         # do this for all URLs listed:
         for info_url in settings.ETHERNET_INFO_URLS:
             tpl = Template(build_url_string(info_url))
             context = Context(
                 {
-                    'ethernet': ethernet,
+                    "ethernet": ethernet,
                 }
             )
             links += tpl.render(context)
@@ -262,14 +259,14 @@ def get_ip4_info_links(ip4_address):
     """
     Get the info url(s) for the ipv4 address (string format) expanded from the settings file variable
     """
-    links = ''
+    links = ""
     if settings.IP4_INFO_URLS:
         # do this for all URLs listed:
         for info_url in settings.IP4_INFO_URLS:
             tpl = Template(build_url_string(info_url))
             context = Context(
                 {
-                    'ip4': ip4_address,
+                    "ip4": ip4_address,
                 }
             )
             links += tpl.render(context)
@@ -281,14 +278,14 @@ def get_ip6_info_links(ip6_address):
     """
     Get the info url(s) for the ipv6 address (string format) expanded from the settings file variable
     """
-    links = ''
+    links = ""
     if settings.IP6_INFO_URLS:
         # do this for all URLs listed:
         for info_url in settings.IP6_INFO_URLS:
             tpl = Template(build_url_string(info_url))
             context = Context(
                 {
-                    'ip6': ip6_address,
+                    "ip6": ip6_address,
                 }
             )
             links += tpl.render(context)
@@ -302,9 +299,9 @@ def get_interface_link(switch, iface):
     """
     # start with up/down color for interface
     if iface.admin_status:
-        info = f" bgcolor=\"{settings.BGCOLOR_IF_ADMIN_UP}\" "
+        info = f' bgcolor="{settings.BGCOLOR_IF_ADMIN_UP}" '
     else:
-        info = f" bgcolor=\"{settings.BGCOLOR_IF_ADMIN_DOWN}\" "
+        info = f' bgcolor="{settings.BGCOLOR_IF_ADMIN_DOWN}" '
     # next add the NMS link for this interface
     info += get_interface_info_links(switch, iface)
     # next make linkable if we can manage it
@@ -312,16 +309,16 @@ def get_interface_link(switch, iface):
         if iface.admin_status:
             info = (
                 info
-                + f"<a onclick=\"return confirm_change('Are you sure you want to DISABLE {iface.name} ?')\" \
-                     href=\"/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/0/\" \
-                     data-bs-toggle=\"tooltip\" data-bs-title=\"Click here to Disable {iface.name}\">{iface.name}</a>"
+                + f'<a onclick="return confirm_change(\'Are you sure you want to DISABLE {iface.name} ?\')" \
+                     href="/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/0/" \
+                     data-bs-toggle="tooltip" data-bs-title="Click here to Disable {iface.name}">{iface.name}</a>'
             )
         else:
             info = (
                 info
-                + f"<a onclick=\"return confirm_change('Are you sure you want to ENABLE {iface.name} ?')\" \
-                     href=\"/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/1/\" \
-                     data-bs-toggle=\"tooltip\" data-bs-title=\"Click here to Enable {iface.name}\">{iface.name}</a>"
+                + f'<a onclick="return confirm_change(\'Are you sure you want to ENABLE {iface.name} ?\')" \
+                     href="/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/1/" \
+                     data-bs-toggle="tooltip" data-bs-title="Click here to Enable {iface.name}">{iface.name}</a>'
             )
 
     else:
@@ -331,28 +328,28 @@ def get_interface_link(switch, iface):
     if iface.admin_status:
         info = (
             info
-            + "&nbsp;&nbsp;<img src=\"/static/img/enabled.png\" \
-                 alt=\"Interface Enabled\" data-bs-toggle=\"tooltip\" data-bs-title=\"Interface is Enabled\">"
+            + '&nbsp;&nbsp;<img src="/static/img/enabled.png" \
+                 alt="Interface Enabled" data-bs-toggle="tooltip" data-bs-title="Interface is Enabled">'
         )
     else:
         info = (
             info
-            + "&nbsp;&nbsp;<img src=\"/static/img/disabled.png\" \
-                 alt=\"Interface Disabled\" data-bs-toggle=\"tooltip\" data-bs-title=\"Interface is Disabled\">"
+            + '&nbsp;&nbsp;<img src="/static/img/disabled.png" \
+                 alt="Interface Disabled" data-bs-toggle="tooltip" data-bs-title="Interface is Disabled">'
         )
 
     # finally, add icons representing interface 'features'
     if iface.is_tagged:
         info = (
             info
-            + "&nbsp;&nbsp;<i class=\"fa-solid fa-ellipsis-v\" aria-hidden=\"true\" \
-                 alt=\"Tagged/Trunked Interface\" data-bs-toggle=\"tooltip\" data-bs-title=\"Tagged/Trunked Interface\"></i>"
+            + '&nbsp;&nbsp;<i class="fa-solid fa-ellipsis-v" aria-hidden="true" \
+                 alt="Tagged/Trunked Interface" data-bs-toggle="tooltip" data-bs-title="Tagged/Trunked Interface"></i>'
         )
     if iface.voice_vlan:
         info = (
             info
-            + f"&nbsp;&nbsp;<i class=\"fa-solid fa-phone\" aria-hidden=\"true\" \
-                 alt=\"Voice VLAN\" data-bs-toggle=\"tooltip\" data-bs-title=\"Voice VLAN {iface.voice_vlan}>\""
+            + f'&nbsp;&nbsp;<i class="fa-solid fa-phone" aria-hidden="true" \
+                 alt="Voice VLAN" data-bs-toggle="tooltip" data-bs-title="Voice VLAN {iface.voice_vlan}>"'
         )
 
     return mark_safe(info)
@@ -373,37 +370,37 @@ def set_neighbor_icon_info(neighbor):
     if capabilities == LLDP_CAPABILITIES_NONE:
         neighbor.icon = settings.NB_ICON_NONE
         neighbor.style = settings.MM_NB_STYLE_NONE
-        neighbor.start_device = '{{'
-        neighbor.stop_device = '}}'
-        neighbor.description = 'Capabilities NOT Advertized'
+        neighbor.start_device = "{{"
+        neighbor.stop_device = "}}"
+        neighbor.description = "Capabilities NOT Advertized"
         return
     if capabilities & LLDP_CAPABILITIES_WLAN:
         neighbor.icon = settings.NB_ICON_WLAN
         neighbor.style = settings.MM_NB_STYLE_WLAN
-        neighbor.start_device = '(['
-        neighbor.stop_device = '])'
-        neighbor.description = 'Wireless AP'
+        neighbor.start_device = "(["
+        neighbor.stop_device = "])"
+        neighbor.description = "Wireless AP"
         return
     if capabilities & LLDP_CAPABILITIES_PHONE:
         neighbor.icon = settings.NB_ICON_PHONE
         neighbor.style = settings.MM_NB_STYLE_PHONE
-        neighbor.start_device = '('
-        neighbor.stop_device = ')'
-        neighbor.description = 'VOIP Phone'
+        neighbor.start_device = "("
+        neighbor.stop_device = ")"
+        neighbor.description = "VOIP Phone"
         return
     if capabilities & LLDP_CAPABILITIES_ROUTER:
         neighbor.icon = settings.NB_ICON_ROUTER
         neighbor.style = settings.MM_NB_STYLE_ROUTER
-        neighbor.start_device = '['
-        neighbor.stop_device = ']'
-        neighbor.description = 'Router or Switch'
+        neighbor.start_device = "["
+        neighbor.stop_device = "]"
+        neighbor.description = "Router or Switch"
         return
     if capabilities & LLDP_CAPABILITIES_STATION:
         neighbor.icon = settings.NB_ICON_STATION
         neighbor.style = settings.MM_NB_STYLE_STATION
-        neighbor.start_device = '('
-        neighbor.stop_device = ')'
-        neighbor.description = 'Workstation or Server'
+        neighbor.start_device = "("
+        neighbor.stop_device = ")"
+        neighbor.description = "Workstation or Server"
         return
     if capabilities & LLDP_CAPABILITIES_BRIDGE:
         # We only show Switch if no routing or phone capabilities listed.
@@ -411,16 +408,16 @@ def set_neighbor_icon_info(neighbor):
         # In those cases we only show the above Router or Phone icons!
         neighbor.icon = settings.NB_ICON_BRIDGE
         neighbor.style = settings.MM_NB_STYLE_BRIDGE
-        neighbor.start_device = '['
-        neighbor.stop_device = ']'
-        neighbor.description = 'Switch'
+        neighbor.start_device = "["
+        neighbor.stop_device = "]"
+        neighbor.description = "Switch"
         return
     if capabilities & LLDP_CAPABILITIES_REPEATER:
         neighbor.icon = settings.NB_ICON_REPEATER
         neighbor.style = settings.MM_NB_STYLE_REPEATER
-        neighbor.start_device = '['
-        neighbor.stop_device = ']'
-        neighbor.description = 'Hub or Repeater'
+        neighbor.start_device = "["
+        neighbor.stop_device = "]"
+        neighbor.description = "Hub or Repeater"
         return
     # unlikely to see this!
     # elif capabilities & LLDP_CAPABILITIES_DOCSIS:
@@ -428,9 +425,9 @@ def set_neighbor_icon_info(neighbor):
     if capabilities & LLDP_CAPABILITIES_OTHER:
         neighbor.icon = settings.NB_ICON_OTHER
         neighbor.style = settings.MM_NB_STYLE_OTHER
-        neighbor.start_device = '('
-        neighbor.stop_device = ')'
-        neighbor.description = 'Other Capabilities'
+        neighbor.start_device = "("
+        neighbor.stop_device = ")"
+        neighbor.description = "Other Capabilities"
         return
 
 
@@ -440,21 +437,21 @@ def get_lldp_info(neighbor):
     Return an hmtl img string that represents the lldp neighbor device and capabilities
     """
 
-    icon = ''
+    icon = ""
     # add an image for the capabilities
-    icon_format = "<i class=\"fa-solid %s\" data-bs-toggle=\"tooltip\" data-bs-title=\"%s\"></i>&nbsp;"
+    icon_format = '<i class="fa-solid %s" data-bs-toggle="tooltip" data-bs-title="%s"></i>&nbsp;'
     capabilities = neighbor.capabilities
     if capabilities == LLDP_CAPABILITIES_NONE:
-        icon = icon_format % ('fa-question', 'Capabilities NOT Advertized')
+        icon = icon_format % ("fa-question", "Capabilities NOT Advertized")
     else:
         if capabilities & LLDP_CAPABILITIES_WLAN:
-            icon += icon_format % ('fa-wifi', 'Wireless AP')
+            icon += icon_format % ("fa-wifi", "Wireless AP")
         if capabilities & LLDP_CAPABILITIES_PHONE:
-            icon += icon_format % ('fa-phone', 'VOIP Phone')
+            icon += icon_format % ("fa-phone", "VOIP Phone")
         if capabilities & LLDP_CAPABILITIES_ROUTER:
-            icon += icon_format % ('fa-cogs', 'Router or Switch')
+            icon += icon_format % ("fa-cogs", "Router or Switch")
         if capabilities & LLDP_CAPABILITIES_STATION:
-            icon += icon_format % ('fa-desktop', 'Workstation or Server')
+            icon += icon_format % ("fa-desktop", "Workstation or Server")
         if (
             capabilities & LLDP_CAPABILITIES_BRIDGE
             and not capabilities & LLDP_CAPABILITIES_ROUTER
@@ -463,14 +460,14 @@ def get_lldp_info(neighbor):
             # We only show Switch if no routing or phone capabilities listed.
             # Most phones and routers also show switch capabilities.
             # In those cases we only show the above Router or Phone icons!
-            icon += icon_format % ('fa-ethernet', 'Switch')
+            icon += icon_format % ("fa-ethernet", "Switch")
         if capabilities & LLDP_CAPABILITIES_REPEATER:
-            icon += icon_format % ('fa-ethernet', 'Hub or Repeater')
+            icon += icon_format % ("fa-ethernet", "Hub or Repeater")
         # elif capabilities & LLDP_CAPABILITIES_DOCSIS:
         # unlikely to see this!
         #    icon = "unknown"
         if capabilities & LLDP_CAPABILITIES_OTHER:
-            icon += icon_format % ('fa-question', 'Other Capabilities')
+            icon += icon_format % ("fa-question", "Other Capabilities")
 
     if neighbor.hostname:
         name = f"{neighbor.hostname} "
@@ -499,7 +496,7 @@ def get_lldp_info(neighbor):
                 mgmt += f" {neighbor.management_address_v6}&#10;&#13;"  # lf/cr may not be supported by all browsers.
         else:
             mgmt = ""
-        info = f"{icon}<abbr data-bs-toggle=\"tooltip\" data-bs-title=\"{mgmt}{neighbor.sys_descr}\">{name}{port}{chassis}</abbr>"
+        info = f'{icon}<abbr data-bs-toggle="tooltip" data-bs-title="{mgmt}{neighbor.sys_descr}">{name}{port}{chassis}</abbr>'
     else:
         info = f"{icon}{name}{port}{chassis}"
 
@@ -563,7 +560,7 @@ config:
     # we use Markdown coding to get auto wrap of long names
     # see https://docs.mermaidchart.com/mermaid-oss/syntax/flowchart.html#markdown-strings
     # start with our device:
-    mermaid += f"DEVICE[\"\\`{connection.switch.name}\\`\"]\n"
+    mermaid += f'DEVICE["\\`{connection.switch.name}\\`"]\n'
 
     # now find all neighbors on all interfaces:
     num = 0
@@ -584,7 +581,7 @@ config:
                 # see https://docs.mermaidchart.com/mermaid-oss/syntax/flowchart.html#markdown-strings
                 # add remote neighbor device
                 remote_device_object = f"REMOTE_{num}"
-                mermaid += f"{remote_device_object}{neighbor.start_device}\"\\`fa:{neighbor.icon} {neighbor.name}\\`\"{neighbor.stop_device}\n"
+                mermaid += f'{remote_device_object}{neighbor.start_device}"\\`fa:{neighbor.icon} {neighbor.name}\\`"{neighbor.stop_device}\n'
 
                 if not settings.MM_GRAPH_EXPANDED:
                     # simple version
@@ -592,7 +589,7 @@ config:
                 else:
                     # expanded graphic, first add local interface device
                     local_interface_object = f"DEVICE_INTERFACE_{num}"
-                    mermaid += f"{local_interface_object}(\"{iface.name}\")\n"
+                    mermaid += f'{local_interface_object}("{iface.name}")\n'
 
                     # and add remote device interface
                     remote_interface_object = f"REMOTE_INTERFACE_{num}"
@@ -600,7 +597,7 @@ config:
                         port_name = "?"
                     else:
                         port_name = neighbor.port_name
-                    mermaid += f"{remote_interface_object}(\"{port_name}\")\n"
+                    mermaid += f'{remote_interface_object}("{port_name}")\n'
 
                     # connect it all together
                     mermaid += f"DEVICE --- {local_interface_object}\n"
@@ -616,12 +613,12 @@ def get_poe_pse_status(status):
     Return the string representing the PSE STATUS
     """
     if status == POE_PSE_STATUS_ON:
-        return 'On'
+        return "On"
     if status == POE_PSE_STATUS_OFF:
-        return 'Off'
+        return "Off"
     if status == POE_PSE_STATUS_FAULT:
-        return 'Faulty'
-    return 'Unknown'
+        return "Faulty"
+    return "Unknown"
 
 
 @register.filter
@@ -634,14 +631,14 @@ def get_options_from_comma_string(csv_values):
     """
     # dprint(f"get_options_from_comma_string({csv_values})")
     # we force a choice by adding a default invalid empty choice:
-    choices = "<option selected value=\"\">Choose one...</option>\n"
+    choices = '<option selected value="">Choose one...</option>\n'
     if '"' not in csv_values:
         # dprint("Regular comma-separated...")
         # regular comma-separated
-        options = csv_values.split(',')
+        options = csv_values.split(",")
         for item in options:
             # dprint(f"ITEM={item}")
-            choices += f"<option value=\"{item}\">{item}</option>\n"
+            choices += f'<option value="{item}">{item}</option>\n'
     else:
         # parse with CSV reader:
         # dprint("Quoted string")
@@ -651,7 +648,7 @@ def get_options_from_comma_string(csv_values):
             for item in row:
                 if item:
                     # dprint(f"ITEM={item}")
-                    choices += f"<option value=\"{item}\">{item}</option>\n"
+                    choices += f'<option value="{item}">{item}</option>\n'
     return mark_safe(choices)
 
 
@@ -660,7 +657,7 @@ def list_ip_addresses(iface: Interface) -> str:
     """List all IP address associated with an Interface()
     iface (Interface)
     """
-    s = ''
+    s = ""
     if iface.addresses_ip4:
         for addr in iface.addresses_ip4.values():
             s += f" {addr.ip}/"
@@ -686,11 +683,11 @@ def querystring(request, **kwargs):
             querydict[k] = str(v)
         elif k in querydict:
             querydict.pop(k)
-    query = querydict.urlencode(safe='/')
+    query = querydict.urlencode(safe="/")
     if query:
-        return '?' + query
+        return "?" + query
 
-    return ''
+    return ""
 
 
 # adopted from Netbox!
@@ -704,24 +701,24 @@ def humanize_speed(iface):
         10000 => "10 Gbps"
     """
     if not iface.speed:
-        return ''
+        return ""
     speed = iface.speed
     if iface.duplex == IF_DUPLEX_FULL:
-        duplex = '/Full'
+        duplex = "/Full"
     elif iface.duplex == IF_DUPLEX_HALF:
-        duplex = '/Half'
+        duplex = "/Half"
     else:
-        duplex = ''
+        duplex = ""
     if speed >= 1000000000 and speed % 1000000000 == 0:
-        return f'{int(speed / 1000000000)} Pbps{duplex}'
+        return f"{int(speed / 1000000000)} Pbps{duplex}"
     if speed >= 1000000 and speed % 1000000 == 0:
-        return f'{format(int(speed / 1000000))} Tbps{duplex}'
+        return f"{format(int(speed / 1000000))} Tbps{duplex}"
     if speed >= 1000 and speed % 1000 == 0:
-        return f'{format(int(speed / 1000))} Gbps{duplex}'
+        return f"{format(int(speed / 1000))} Gbps{duplex}"
     if speed >= 1000:
-        return f'{format(float(speed) / 1000)} Gbps{duplex}'
+        return f"{format(float(speed) / 1000)} Gbps{duplex}"
 
-    return f'{format(speed)} Mbps{duplex}'
+    return f"{format(speed)} Mbps{duplex}"
 
 
 # adopted from Netbox!
@@ -733,9 +730,9 @@ def humanize_power(power):
         400 => "0.4W"
     """
     if not power:
-        return ''
+        return ""
     # return '{:.1f}W'.format(power / 1000)
-    return f'{power/1000:.1f}W'
+    return f"{power / 1000:.1f}W"
 
 
 # from https://stackoverflow.com/questions/2751319/is-there-a-django-template-filter-to-display-percentages
@@ -747,3 +744,11 @@ def as_percentage_of(part, whole):
         return "%d%%" % (float(part) / whole * 100)
     except (ValueError, ZeroDivisionError):
         return "0%"
+
+@register.filter
+def underscore(name):
+    # replace these characters with _
+    s = ['-', '/', '.', '=', ';', ':']
+    for c in s:
+        name = name.replace(c, "_")
+    return name

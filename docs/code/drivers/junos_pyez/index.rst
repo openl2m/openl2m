@@ -9,6 +9,9 @@ class in *switches.connect/junos_pyez/connector.py*.
 
 The *junos-eznc* library from PyPI is available at https://github.com/Juniper/py-junos-eznc
 
+Developer and usage documentation is located at
+https://www.juniper.net/documentation/us/en/software/junos-pyez/junos-pyez-developer/index.html
+
 .. note::
 
    The current drivers supports Junos "ELS" device, ie. devices with Enhanced Layer2 Software.

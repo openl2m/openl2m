@@ -101,7 +101,7 @@ def get_connection_object(request: HttpRequest, group: SwitchGroup, switch: Swit
             dprint(f"   Checking device type for {snmp_oid}")
             sub_oid = oid_in_branch(enterprises, snmp_oid)
             if sub_oid:
-                parts = sub_oid.split('.', 1)  # 1 means one split, two elements!
+                parts = sub_oid.split(".", 1)  # 1 means one split, two elements!
                 enterprise_id = int(parts[0])
                 # here we go:
                 match enterprise_id:

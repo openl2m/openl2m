@@ -13,14 +13,13 @@
 #
 """constants.py defines Netgear-specific SNMP-related variables. These are mostly MIB OIDs and their value definitions."""
 
-
 from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_info
 
 #
 # Netgear
 #
 ENTERPRISE_ID_NETGEAR = 4526
-enterprise_id_info[ENTERPRISE_ID_NETGEAR] = 'Netgear'
+enterprise_id_info[ENTERPRISE_ID_NETGEAR] = "Netgear"
 
 # https://kb.netgear.com/24352/MIBs-for-Smart-switches
 # All netgear mibs browsable:
@@ -47,8 +46,8 @@ enterprise_id_info[ENTERPRISE_ID_NETGEAR] = 'Netgear'
 #  agentPethPowerUpMode 		        .1.3.6.1.4.1.4526.10.15.1.1.1.11
 #  agentPethClassificationMode 		    .1.3.6.1.4.1.4526.10.15.1.1.1.12
 
-agentPethOutputPower = '.1.3.6.1.4.1.4526.10.15.1.1.1.2'  # in milliWatts
-snmp_mib_variables['agentPethOutputPower'] = agentPethOutputPower
+agentPethOutputPower = ".1.3.6.1.4.1.4526.10.15.1.1.1.2"  # in milliWatts
+snmp_mib_variables["agentPethOutputPower"] = agentPethOutputPower
 
 # Power Supply objects
 #  agentPethMainPseObjects		.1.3.6.1.4.1.4526.10.15.1.2
@@ -86,9 +85,9 @@ snmp_mib_variables['agentPethOutputPower'] = agentPethOutputPower
 # this is from the newer NETGEAR-SWITCHING-MIB:
 agentPortType = ".1.3.6.1.4.1.4526.10.1.2.13.1.12"
 ".1.3.6.1.4.1.4526.10.1.2.13.1.12"
-snmp_mib_variables['agentPortType'] = agentPortType
+snmp_mib_variables["agentPortType"] = agentPortType
 #
 # and this is the same from the older "fastPath" NG700-SWITCHING-MIB
 # that is supported in older devices:
 agentPortTypeFp = ".1.3.6.1.4.1.4526.11.1.2.13.1.12"
-snmp_mib_variables['agentPortTypeFp'] = agentPortTypeFp
+snmp_mib_variables["agentPortTypeFp"] = agentPortTypeFp

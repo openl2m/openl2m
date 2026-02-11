@@ -16,6 +16,7 @@ HPE/3Com ComWare specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
 with HH3C specific ways of doing things...
 """
+
 from collections import defaultdict
 import datetime
 import math
@@ -81,7 +82,7 @@ class SnmpConnectorComware(SnmpConnector):
         # for now, just call the super class
         dprint("Comware SnmpConnector __init__")
         super().__init__(request, group, switch)
-        self.description = 'HPE Comware SNMP driver'
+        self.description = "HPE Comware SNMP driver"
         self.vendor_name = "HPE (Comware)"
         self.can_save_config = True
         # needed for saving config file:
@@ -125,12 +126,12 @@ class SnmpConnectorComware(SnmpConnector):
         super()._get_interface_data()
 
         # now add Comware data:
-        if self.get_snmp_branch(branch_name='hh3cIfLinkMode', parser=self._parse_mibs_comware_if_linkmode) < 0:
+        if self.get_snmp_branch(branch_name="hh3cIfLinkMode", parser=self._parse_mibs_comware_if_linkmode) < 0:
             dprint("Comware hh3cIfLinkMode returned error!")
             return False
         # and the Tranceiver data as well:
         # for now, just run hh3cTransceiverType, instead of full hh3cTransceiverInfoEntry
-        if self.get_snmp_branch(branch_name='hh3cTransceiverType', parser=self._parse_mibs_comware_transceiver) < 0:
+        if self.get_snmp_branch(branch_name="hh3cTransceiverType", parser=self._parse_mibs_comware_transceiver) < 0:
             dprint("Comware hh3cTransceiverType returned error!")
             return False
 
@@ -158,7 +159,7 @@ class SnmpConnectorComware(SnmpConnector):
         # read some Comware specific items.
         # some Comware switches do not report vlan names in Q-Bridge mib
         # so read HH3C version
-        if self.get_snmp_branch(branch_name='hh3cdot1qVlanName', parser=self._parse_mibs_comware_vlan) < 0:
+        if self.get_snmp_branch(branch_name="hh3cdot1qVlanName", parser=self._parse_mibs_comware_vlan) < 0:
             dprint("Comware hh3cdot1qVlanName returned error!")
             self.add_warning(warning="Error getting 'HH3C-Vlan-Names' (hh3cdot1qVlanName)")
 
@@ -166,7 +167,7 @@ class SnmpConnectorComware(SnmpConnector):
         super()._get_vlan_data()
 
         # read the Comware port type:
-        if self.get_snmp_branch(branch_name='hh3cifVLANType', parser=self._parse_mibs_comware_if_type) < 0:
+        if self.get_snmp_branch(branch_name="hh3cifVLANType", parser=self._parse_mibs_comware_if_type) < 0:
             dprint("Comware hh3cifVLANType returned error!")
             self.add_warning(warning="Error getting 'HH3C-Vlan-Types' (hh3cifVLANType)")
 
@@ -187,7 +188,7 @@ class SnmpConnectorComware(SnmpConnector):
 
         # read IGMP-snooping for vlans:
         if (
-            self.get_snmp_branch(branch_name='hh3cIgmpSnoopingVlanEnabled', parser=self._parse_mibs_comware_vlan_igmp)
+            self.get_snmp_branch(branch_name="hh3cIgmpSnoopingVlanEnabled", parser=self._parse_mibs_comware_vlan_igmp)
             < 0
         ):
             dprint("hh3cIgmpSnoopingVlanEnabled returned error!")
@@ -204,7 +205,7 @@ class SnmpConnectorComware(SnmpConnector):
         super().get_my_hardware_details()
 
         # now read Comware specific data:
-        retval = self.get_snmp_branch(branch_name='hh3cCfgLog', parser=self._parse_mibs_comware_config)
+        retval = self.get_snmp_branch(branch_name="hh3cCfgLog", parser=self._parse_mibs_comware_config)
         if retval < 0:
             self.add_warning(warning="Error getting Comware log details ('hh3cCfgLog')")
             return False
@@ -461,7 +462,7 @@ class SnmpConnectorComware(SnmpConnector):
                 # define vlan:
                 self.add_vlan_by_id(vlan_id)
             # some Comware switches only report "VLAN xxxx", skip that!
-            if not val.startswith('VLAN '):
+            if not val.startswith("VLAN "):
                 self.vlans[vlan_id].name = val
             return True
         return False
@@ -576,7 +577,7 @@ class SnmpConnectorComware(SnmpConnector):
         super()._get_poe_data()
         if self.poe_capable:  # we found PoE power supplies!
             # now get HP specific info from HP-IFC-POE-MIB first
-            retval = self.get_snmp_branch(branch_name='hh3cPsePortCurrentPower', parser=self._parse_mibs_comware_poe)
+            retval = self.get_snmp_branch(branch_name="hh3cPsePortCurrentPower", parser=self._parse_mibs_comware_poe)
             if retval < 0:
                 self.add_warning(warning="Error getting 'PoE-Port-Current-Power' (hh3cPsePortCurrentPower)")
         return 1
@@ -594,7 +595,7 @@ class SnmpConnectorComware(SnmpConnector):
         dprint("_map_poe_port_entries_to_interface(Comware)")
         for port_entry in self.poe_port_entries.values():
             # we take the ending part of "7.12", where 7=PSE#, and 12=port!
-            (pse_module, port) = port_entry.index.split('.')
+            (pse_module, port) = port_entry.index.split(".")
             # calculate the stack member number from PSE#
             member = int((int(pse_module) - 1) / 3)
             if_index = self._get_if_index_from_port_id(int(port))
@@ -627,7 +628,7 @@ class SnmpConnectorComware(SnmpConnector):
 
         # According to the
         # run the Operations row status to find free slot to write to:
-        retval = self.get_snmp_branch(branch_name='hh3cCfgOperateRowStatus', parser=self._parse_mibs_comware_configfile)
+        retval = self.get_snmp_branch(branch_name="hh3cCfgOperateRowStatus", parser=self._parse_mibs_comware_configfile)
         if retval < 0:
             self.add_warning(warning="Error reading 'Config File MIB' (hh3cCfgOperateRowStatus)")
             return False
@@ -638,8 +639,8 @@ class SnmpConnectorComware(SnmpConnector):
         dprint(f"row_place = {row_place}")
         retval = self.set_multiple(
             [
-                (f"{hh3cCfgOperateType}.{row_place}", HH3C_running2Startup, 'i'),
-                (f"{hh3cCfgOperateRowStatus}.{row_place}", HH3C_createAndGo, 'i'),
+                (f"{hh3cCfgOperateType}.{row_place}", HH3C_running2Startup, "i"),
+                (f"{hh3cCfgOperateRowStatus}.{row_place}", HH3C_createAndGo, "i"),
             ]
         )
         if retval < 0:
@@ -650,9 +651,9 @@ class SnmpConnectorComware(SnmpConnector):
         return True
 
     def check_my_device_health(self):
-        '''Implement a health checks for this device.
+        """Implement a health checks for this device.
         Here are check IRF stacking, which is typically not handled by general purpose snmp monitoring tools.
-        '''
+        """
         dprint("ComwareSnmpConnector().check_my_device_health()")
         # call the super class implementation of this:
         super().check_my_device_health()
@@ -665,9 +666,9 @@ class SnmpConnectorComware(SnmpConnector):
         return
 
     def _check_irf_health(self):
-        '''Check health of the IRF stack (if found)'''
+        """Check health of the IRF stack (if found)"""
         # get the number of devices in the IRF stack
-        retval = self.get_snmp_branch(branch_name='hh3cStackMemberNum', parser=self._parse_mibs_irf_member_count)
+        retval = self.get_snmp_branch(branch_name="hh3cStackMemberNum", parser=self._parse_mibs_irf_member_count)
         if retval < 0:
             self.add_warning(warning="Error reading 'IRF member count' (hh3cStackMemberNum)")
             return False
@@ -680,7 +681,7 @@ class SnmpConnectorComware(SnmpConnector):
         # go check if the device with highest priority is the 'master' (aka main) of the IRF stack.
         # first read the info about the members
         retval = self.get_snmp_branch(
-            branch_name='hh3cStackDeviceConfigEntry', parser=self._parse_mibs_irf_device_config
+            branch_name="hh3cStackDeviceConfigEntry", parser=self._parse_mibs_irf_device_config
         )
         if retval < 0:
             self.add_warning(warning="Error reading 'IRF Device Config' (hh3cStackDeviceConfigEntry)")
@@ -688,7 +689,7 @@ class SnmpConnectorComware(SnmpConnector):
 
         # and then check the role for each board. This is an indirect read, each device can have boards with a role
         # (see parsing below)
-        retval = self.get_snmp_branch(branch_name='hh3cStackBoardConfigEntry', parser=self._parse_mibs_irf_device_role)
+        retval = self.get_snmp_branch(branch_name="hh3cStackBoardConfigEntry", parser=self._parse_mibs_irf_device_role)
         if retval < 0:
             self.add_warning(warning="Error reading 'IRF Device Role' (hh3cStackBoardConfigEntry)")
             return False
@@ -698,11 +699,11 @@ class SnmpConnectorComware(SnmpConnector):
         irf_status = "OK"
 
         # walk through the IRF info, and check for problems:
-        highest_prio = {'priority': -1}
+        highest_prio = {"priority": -1}
         master_id = -1
         for member_index, irf_info in self.irf_member_info.items():
             # if this device has less then 2 active ports, there is a problem
-            if irf_info['ports'] < 2:
+            if irf_info["ports"] < 2:
                 # healthy = False
                 # then add a log message
                 self.add_log(
@@ -711,12 +712,12 @@ class SnmpConnectorComware(SnmpConnector):
                     action=LOG_HEALTH_MESSAGE,
                 )
             # store the highest priority device
-            if irf_info['priority'] > highest_prio['priority']:
+            if irf_info["priority"] > highest_prio["priority"]:
                 highest_prio = irf_info
-            if irf_info['role'] == IRF_ROLE_MASTER:
-                master_id = irf_info['id']
+            if irf_info["role"] == IRF_ROLE_MASTER:
+                master_id = irf_info["id"]
         # now check that the MASTER id is the same as the highest priority
-        if master_id != highest_prio['id']:
+        if master_id != highest_prio["id"]:
             # this means something happened to the stack, add a log message!
             irf_status = "Unhealthy!"
             self.add_log(
@@ -756,21 +757,21 @@ class SnmpConnectorComware(SnmpConnector):
         if ret_val:
             # ret_val is the member index, and val is the member ID in the IRF stack
             dprint(f"IRF index {ret_val} = id {val}")
-            self.irf_member_info[ret_val]['id'] = int(val)
+            self.irf_member_info[ret_val]["id"] = int(val)
 
         # priorities for the various members
         ret_val = oid_in_branch(hh3cStackPriority, oid)
         if ret_val:
             # ret_val is the member index, and val is the member priority in the IRF stack
             dprint(f"IRF index {ret_val} = priority {val}")
-            self.irf_member_info[ret_val]['priority'] = int(val)
+            self.irf_member_info[ret_val]["priority"] = int(val)
 
         # number of IRF ports enabled
         ret_val = oid_in_branch(hh3cStackPortNum, oid)
         if ret_val:
             # ret_val is the member index, and val is the number of enabled IRF ports on this member
             dprint(f"IRF index {ret_val} = active ports {val}")
-            self.irf_member_info[ret_val]['ports'] = int(val)
+            self.irf_member_info[ret_val]["ports"] = int(val)
 
         # we don't care if we parsed this or not...
         return True
@@ -799,9 +800,9 @@ class SnmpConnectorComware(SnmpConnector):
             role = self.irf_board_role[ret_val]
             # find the member id:
             for member_index, member_info in self.irf_member_info.items():
-                if int(val) == member_info['id']:
+                if int(val) == member_info["id"]:
                     # update this member's role
-                    member_info['role'] = role
+                    member_info["role"] = role
                     break  # no need to check more.
 
         # we don't care if we parsed this or not...

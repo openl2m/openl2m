@@ -16,6 +16,7 @@ MikroTik-specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
 with vendor specific ways of doing things...
 """
+
 from django.http.request import HttpRequest
 
 import switches
@@ -113,7 +114,7 @@ class SnmpConnectorMikroTik(SnmpConnector):
         as this is NOT implemented on MikroTik devices.
         """
         # MikroTik POE to be read here:
-        self.get_snmp_branch(branch_name='mtxrPOEEntry', parser=self._parse_mibs_mikrotik_poe)
+        self.get_snmp_branch(branch_name="mtxrPOEEntry", parser=self._parse_mibs_mikrotik_poe)
 
         return 1
 

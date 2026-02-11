@@ -39,8 +39,8 @@ class Spreadsheet:
         self.workbook = xlsxwriter.Workbook(self.fh)
 
         # Add some formats to use to highlight cells.
-        self.format_bold = self.workbook.add_format({'bold': True, 'font_name': 'Calibri', 'font_size': 14})
-        self.format_regular = self.workbook.add_format({'font_name': 'Calibri', 'font_size': 12})
+        self.format_bold = self.workbook.add_format({"bold": True, "font_name": "Calibri", "font_size": 14})
+        self.format_regular = self.workbook.add_format({"font_name": "Calibri", "font_size": 12})
 
 
 def create_workbook():
@@ -75,7 +75,7 @@ def create_interfaces_worksheet(spreadsheet: Spreadsheet(), connection: Connecto
     """
     dprint("create_interfaces_worksheet()")
     # add a tab to workbook
-    worksheet = spreadsheet.workbook.add_worksheet('Interfaces')
+    worksheet = spreadsheet.workbook.add_worksheet("Interfaces")
 
     COL_INTERFACE_NAME = 0
     COL_INTERFACE_MODE = 1
@@ -96,25 +96,25 @@ def create_interfaces_worksheet(spreadsheet: Spreadsheet(), connection: Connecto
 
     # write header row
     row += 1
-    worksheet.write(row, COL_INTERFACE_NAME, 'Interface', spreadsheet.format_bold)
+    worksheet.write(row, COL_INTERFACE_NAME, "Interface", spreadsheet.format_bold)
     worksheet.set_column(COL_INTERFACE_NAME, COL_INTERFACE_NAME, 30)  # Adjust the column width.
 
-    worksheet.write(row, COL_INTERFACE_MODE, 'Mode', spreadsheet.format_bold)
+    worksheet.write(row, COL_INTERFACE_MODE, "Mode", spreadsheet.format_bold)
     worksheet.set_column(COL_INTERFACE_MODE, COL_INTERFACE_MODE, 20)
 
-    worksheet.write(row, COL_INTERFACE_STATE, 'State', spreadsheet.format_bold)
+    worksheet.write(row, COL_INTERFACE_STATE, "State", spreadsheet.format_bold)
     worksheet.set_column(COL_INTERFACE_STATE, COL_INTERFACE_STATE, 10)
 
-    worksheet.write(row, COL_INTERFACE_VLAN, 'Untagged VLAN', spreadsheet.format_bold)
+    worksheet.write(row, COL_INTERFACE_VLAN, "Untagged VLAN", spreadsheet.format_bold)
     worksheet.set_column(COL_INTERFACE_VLAN, COL_INTERFACE_VLAN, 20)
 
-    worksheet.write(row, COL_INTERFACE_POE, 'PoE Status', spreadsheet.format_bold)
+    worksheet.write(row, COL_INTERFACE_POE, "PoE Status", spreadsheet.format_bold)
     worksheet.set_column(COL_INTERFACE_POE, COL_INTERFACE_POE, 15)
 
-    worksheet.write(row, COL_INTERFACE_POE_DRAW, 'Power (mW)', spreadsheet.format_bold)
+    worksheet.write(row, COL_INTERFACE_POE_DRAW, "Power (mW)", spreadsheet.format_bold)
     worksheet.set_column(COL_INTERFACE_POE_DRAW, COL_INTERFACE_POE_DRAW, 15)
 
-    worksheet.write(row, COL_INTERFACE_DESCRIPTION, 'Description', spreadsheet.format_bold)
+    worksheet.write(row, COL_INTERFACE_DESCRIPTION, "Description", spreadsheet.format_bold)
     worksheet.set_column(COL_INTERFACE_DESCRIPTION, COL_INTERFACE_DESCRIPTION, 50)
 
     # freeze top 2 rows to easy scrolling
@@ -176,7 +176,7 @@ def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector):
     """
     dprint("create_neighbors_worksheet()")
     # add a tab to workbook
-    worksheet = spreadsheet.workbook.add_worksheet('Ethernet-Arp-LLDP')
+    worksheet = spreadsheet.workbook.add_worksheet("Ethernet-Arp-LLDP")
     # if we render this worksheet (ie tab), this will always be the active tab:
     worksheet.activate()
 
@@ -203,37 +203,37 @@ def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector):
 
     # write header row
     row += 1
-    worksheet.write(row, COL_INTERFACE_NAME, 'Interface', spreadsheet.format_bold)
+    worksheet.write(row, COL_INTERFACE_NAME, "Interface", spreadsheet.format_bold)
     worksheet.set_column(COL_INTERFACE_NAME, COL_INTERFACE_NAME, 30)  # Adjust the column width.
 
-    worksheet.write(row, COL_INTERFACE_VLAN, 'Untagged VLAN', spreadsheet.format_bold)
+    worksheet.write(row, COL_INTERFACE_VLAN, "Untagged VLAN", spreadsheet.format_bold)
     worksheet.set_column(COL_INTERFACE_VLAN, COL_INTERFACE_VLAN, 20)
 
-    worksheet.write(row, COL_INTERFACE_POE_DRAW, 'Power (mW)', spreadsheet.format_bold)
+    worksheet.write(row, COL_INTERFACE_POE_DRAW, "Power (mW)", spreadsheet.format_bold)
     worksheet.set_column(COL_INTERFACE_POE_DRAW, COL_INTERFACE_POE_DRAW, 15)
 
-    worksheet.write(row, COL_INTERFACE_DESCRIPTION, 'Description', spreadsheet.format_bold)
+    worksheet.write(row, COL_INTERFACE_DESCRIPTION, "Description", spreadsheet.format_bold)
     worksheet.set_column(COL_INTERFACE_DESCRIPTION, COL_INTERFACE_DESCRIPTION, 50)
 
-    worksheet.write(row, COL_ETHERNET, 'Ethernet Heard', spreadsheet.format_bold)
+    worksheet.write(row, COL_ETHERNET, "Ethernet Heard", spreadsheet.format_bold)
     worksheet.set_column(COL_ETHERNET, COL_ETHERNET, 20)
 
-    worksheet.write(row, COL_IPV4, 'IPv4 Address', spreadsheet.format_bold)
+    worksheet.write(row, COL_IPV4, "IPv4 Address", spreadsheet.format_bold)
     worksheet.set_column(COL_IPV4, COL_IPV4, 20)
 
-    worksheet.write(row, COL_IPV6, 'IPv6 Address', spreadsheet.format_bold)
+    worksheet.write(row, COL_IPV6, "IPv6 Address", spreadsheet.format_bold)
     worksheet.set_column(COL_IPV6, COL_IPV6, 25)
 
-    worksheet.write(row, COL_VENDOR, 'Vendor', spreadsheet.format_bold)
+    worksheet.write(row, COL_VENDOR, "Vendor", spreadsheet.format_bold)
     worksheet.set_column(COL_VENDOR, COL_VENDOR, 25)
 
-    worksheet.write(row, COL_NEIGHBOR_NAME, 'Neighbor Name', spreadsheet.format_bold)
+    worksheet.write(row, COL_NEIGHBOR_NAME, "Neighbor Name", spreadsheet.format_bold)
     worksheet.set_column(COL_NEIGHBOR_NAME, COL_NEIGHBOR_NAME, 20)
 
-    worksheet.write(row, COL_NEIGHBOR_TYPE, 'Neighbor Type', spreadsheet.format_bold)
+    worksheet.write(row, COL_NEIGHBOR_TYPE, "Neighbor Type", spreadsheet.format_bold)
     worksheet.set_column(COL_NEIGHBOR_TYPE, COL_NEIGHBOR_TYPE, 20)
 
-    worksheet.write(row, COL_NEIGHBOR_DESCRIPTION, 'Neighbor Description', spreadsheet.format_bold)
+    worksheet.write(row, COL_NEIGHBOR_DESCRIPTION, "Neighbor Description", spreadsheet.format_bold)
     worksheet.set_column(COL_NEIGHBOR_DESCRIPTION, COL_NEIGHBOR_DESCRIPTION, 50)
 
     # freeze top 2 rows to easy scrolling

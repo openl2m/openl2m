@@ -19,6 +19,7 @@ __Features:__
 * Light or Dark theme.
 * enable/disable interface, or PoE state
 * change vlan or description on interface
+* edit 802.1q tags on interface (as supported, see feature support details)
 * see ethernet addresses, lldp neighbors, and download to spreadsheet or graph
 * on routers, show IPv4/v6 interface info, and IPv4 ARP and IPv6 ND (Neighbor Discovery) information.
 * add, edit or delete vlans on devices
@@ -33,7 +34,7 @@ __Devices Supported:__
 
 In alphabetical order:
 
-* Arista devices (via SNMP)
+* Arista devices (eAPI preferred, or SNMP)
 * Cisco switches (Catalyst, CBS, via SNMP)
 * Aruba AOS-CX switches (REST API(preferred), or SNMP)
 * HP/Aruba Procurve switches (via SNMP)
@@ -49,6 +50,9 @@ See the documentation for more information about device compatibility and specif
 __What's New:__
 
 Highlights:
+
+v4.0 adds support for editing 802.1Q tagged/trunk interfaces. Initially implemented for Arista eAPI, Aruba AOS-CX API
+and Juniper PyEz NetConf devices.
 
 v3.4 adds support for IPv6 ND and interface IPv6 info. Also supports Cisco CBS devices. And we can graph neighbor devices.
 
@@ -140,6 +144,11 @@ __Dark Mode Devices Menu:__ Dark Mode view of the groups and devices you can acc
 __Interfaces Menu:__ Edit a single interface at a time
 
 <kbd><img src= "docs/_static/interfaces-menu.png" alt="Interface Menu"></kbd>
+
+
+__Interfaces Tag/Trunk Edit Form:__ Edit untagged and 802.1q-tagged vlans on an interface
+
+<kbd><img src= "docs/_static/interface-tag-edit.png" alt="Interface Tag Edit Menu"></kbd>
 
 
 __Bulk-Edit Menu:__ Edit multiple interfaces at once

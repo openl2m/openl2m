@@ -16,6 +16,7 @@ Dell specific implementation of the SNMP object
 This re-implements some methods found in the base SNMP() class
 with Dell specific ways of doing things...
 """
+
 from django.http.request import HttpRequest
 
 from switches.connect.classes import Interface
@@ -54,7 +55,7 @@ class SnmpConnectorDell(SnmpConnector):
         # if set, will be a value that will override (ie. hardcode) values from the
         # "Credentials Profile" (aka the NetmikoProfile() object)
         self.netmiko_device_type = ""
-        self.netmiko_valid_device_types = ['dell_force10', 'dell_os9', 'dell_os10']
+        self.netmiko_valid_device_types = ["dell_force10", "dell_os9", "dell_os10"]
         # the command that should be sent to disable screen paging
         # let Netmiko decide...
         # self.netmiko_disable_paging_command = "terminal length 0"
@@ -75,7 +76,7 @@ class SnmpConnectorDell(SnmpConnector):
                 if not self.set(
                     oid=f"{agentPortNativeVlanID}.{interface.port_id}",
                     value=int(new_vlan_id),
-                    snmp_type='i',
+                    snmp_type="i",
                     parser=False,
                 ):
                     return False
@@ -84,7 +85,7 @@ class SnmpConnectorDell(SnmpConnector):
                 if not self.set(
                     oid=f"{agentPortAccessVlanID}.{interface.port_id}",
                     value=int(new_vlan_id),
-                    snmp_type='i',
+                    snmp_type="i",
                     parser=False,
                 ):
                     return False
@@ -99,7 +100,7 @@ class SnmpConnectorDell(SnmpConnector):
         """
         dprint("save_running_config(Dell)")
 
-        retval = self.set(oid=f"{agentSaveConfig}.0", value=DELL_SAVE_ENABLE, snmp_type='i', parser=False)
+        retval = self.set(oid=f"{agentSaveConfig}.0", value=DELL_SAVE_ENABLE, snmp_type="i", parser=False)
         if retval < 0:
             dprint(f"return = {retval}")
             self.add_warning(warning="Error saving via SNMP (agentSaveConfig)")

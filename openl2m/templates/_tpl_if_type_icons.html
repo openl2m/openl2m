@@ -24,13 +24,6 @@
        ">
   </i>
 {% endif %}
-{% if iface.is_tagged %}
-  &nbsp;
-  <i class="fa-solid fa-ellipsis-v" aria-hidden="true"
-       data-bs-toggle="tooltip"
-       title="Tagged/Trunked Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
-  </i>
-{% endif %}
 {% if iface.igmp_snooping %}
   &nbsp;
   <i class="fa-solid fa-project-diagram" aria-hidden="true"

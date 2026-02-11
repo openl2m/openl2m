@@ -25,20 +25,20 @@ def interface_name_to_long(name: str) -> str:
     # to their equivalent long names GigabitEthernet0/1, TenGigabitEthernet1/0/1, etc.
     dprint(f"interface_name_to_long() for {name}")
     # regex to get all characters before the first number
-    match = re.search(r'^([a-zA-Z ]*)(\d.*)$', name)
+    match = re.search(r"^([a-zA-Z ]*)(\d.*)$", name)
     if match:
         dprint("   match found")
-        if match.group(1).lower() == 'fa':
+        if match.group(1).lower() == "fa":
             newname = f"FastEthernet{match.group(2)}"
-        elif match.group(1).lower() == 'gi':
+        elif match.group(1).lower() == "gi":
             newname = f"GigabitEthernet{match.group(2)}"
-        elif match.group(1).lower() == 'te':
+        elif match.group(1).lower() == "te":
             newname = f"TenGigabitEthernet{match.group(2)}"
-        elif match.group(1).lower() == 'fo':
+        elif match.group(1).lower() == "fo":
             newname = f"FourtyGigabitEthernet{match.group(2)}"
-        elif match.group(1).lower() == 'hu':
+        elif match.group(1).lower() == "hu":
             newname = f"HundredGigabitEthernet{match.group(2)}"
-        elif match.group(1).lower() == 'po':
+        elif match.group(1).lower() == "po":
             newname = f"Port-channel{match.group(2)}"
         # Hmm, some unknow interface format? return name again?
         else:

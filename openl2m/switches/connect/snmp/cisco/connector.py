@@ -16,6 +16,7 @@ Cisco specific implementation of the SNMP Connection object.
 This augments/re-implements some methods found in the base SNMP() class
 with Cisco specific ways of doing things...
 """
+
 import datetime
 import random
 import time
@@ -105,7 +106,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # for now, just call the super class
         dprint("SnmpConnectorCisco __init__")
         super().__init__(request, group, switch)
-        self.description = 'Cisco SNMP driver'
+        self.description = "Cisco SNMP driver"
         self.vendor_name = "Cisco"
 
         # capabilities of the snmp drivers:
@@ -130,7 +131,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # if netmiko_device_type is not set, the netmiko_valid_device_types is a  list()
         # with the valid device_type choices a driver should allow in the
         # "Credentials Profile". Any other value will trigger an error, and fail the SSH connection.
-        self.netmiko_valid_device_types = ['cisco_asa', 'cisco_ios', 'cisco_nxos', 'cisco_xe', 'cisco_xr']
+        self.netmiko_valid_device_types = ["cisco_asa", "cisco_ios", "cisco_nxos", "cisco_xe", "cisco_xr"]
         # the command that should be sent to disable screen paging
         # let Netmiko decide this...
         # self.netmiko_disable_paging_command = "terminal length 0"
@@ -163,13 +164,13 @@ class SnmpConnectorCisco(SnmpConnector):
             int: MIB type discovered.
         """
         # first, probe the old proprietary VTP mibs:
-        retval = self.get_snmp_branch(branch_name='vtpVersion', parser=self._parse_mibs_vtp_version)
+        retval = self.get_snmp_branch(branch_name="vtpVersion", parser=self._parse_mibs_vtp_version)
         if retval > 0:
             # found VTP mib entries
             return CISCO_DEVICE_TYPE_VTP_MIB
 
         # next, probe for the CiscoSB-VLAN mib
-        retval = self.get_snmp_branch(branch_name='vlanMibVersion', parser=self._parse_mibs_sb_version)
+        retval = self.get_snmp_branch(branch_name="vlanMibVersion", parser=self._parse_mibs_sb_version)
         if retval > 0:  # found the SB mib.
             return CISCO_DEVICE_TYPE_SB_MIB
 
@@ -185,7 +186,7 @@ class SnmpConnectorCisco(SnmpConnector):
         super()._get_interface_data()
 
         # now add Cisco data, and cache it:
-        if self.get_snmp_branch(branch_name='cL2L3IfModeOper', parser=self._parse_mibs_cisco_if_opermode) < 0:
+        if self.get_snmp_branch(branch_name="cL2L3IfModeOper", parser=self._parse_mibs_cisco_if_opermode) < 0:
             dprint("Cisco cL2L3IfModeOper returned error!")
             return False
 
@@ -216,22 +217,22 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint("_get_vlan_data_vtp(Cisco)\n")
 
         # first, read existing vlan id's according to the old proprietary Cisco mibs:
-        retval = self.get_snmp_branch(branch_name='vtpVlanState', parser=self._parse_mibs_cisco_vtp)
+        retval = self.get_snmp_branch(branch_name="vtpVlanState", parser=self._parse_mibs_cisco_vtp)
         if retval < 0:  # this indicates an error, should not happen!
             return retval
 
         # vlan types are next
-        retval = self.get_snmp_branch(branch_name='vtpVlanType', parser=self._parse_mibs_cisco_vtp)
+        retval = self.get_snmp_branch(branch_name="vtpVlanType", parser=self._parse_mibs_cisco_vtp)
         if retval < 0:
             return retval
 
         # next, read vlan names
-        retval = self.get_snmp_branch(branch_name='vtpVlanName', parser=self._parse_mibs_cisco_vtp)
+        retval = self.get_snmp_branch(branch_name="vtpVlanName", parser=self._parse_mibs_cisco_vtp)
         if retval < 0:
             return retval
 
         # find out if a port is configured as trunk or not, read port trunk(802.1q tagged) status
-        retval = self.get_snmp_branch('vlanTrunkPortDynamicState', self._parse_mibs_cisco_vtp)
+        retval = self.get_snmp_branch("vlanTrunkPortDynamicState", self._parse_mibs_cisco_vtp)
         if retval < 0:
             return retval
 
@@ -241,35 +242,35 @@ class SnmpConnectorCisco(SnmpConnector):
         #    dprint("Cisco PORT TRUNK STATUS data FALSE")
         #    return False
         # and read the native vlan for trunked ports
-        retval = self.get_snmp_branch(branch_name='vlanTrunkPortNativeVlan', parser=self._parse_mibs_cisco_vtp)
+        retval = self.get_snmp_branch(branch_name="vlanTrunkPortNativeVlan", parser=self._parse_mibs_cisco_vtp)
         if retval < 0:
             return retval
 
         # also read the vlans on all trunk interfaces:
-        retval = self.get_snmp_branch(branch_name='vlanTrunkPortVlansEnabled', parser=self._parse_mibs_cisco_vtp)
+        retval = self.get_snmp_branch(branch_name="vlanTrunkPortVlansEnabled", parser=self._parse_mibs_cisco_vtp)
         if retval < 0:
             return retval
 
         # now read 2k, 3k and 4k vlans as well:
-        retval = self.get_snmp_branch(branch_name='vlanTrunkPortVlansEnabled2k', parser=self._parse_mibs_cisco_vtp)
+        retval = self.get_snmp_branch(branch_name="vlanTrunkPortVlansEnabled2k", parser=self._parse_mibs_cisco_vtp)
         if retval < 0:
             return retval
 
         # if the 2k vlan mibs exist, then also read 3k & 4k vlans
         if retval > 0:
-            retval = self.get_snmp_branch(branch_name='vlanTrunkPortVlansEnabled3k', parser=self._parse_mibs_cisco_vtp)
+            retval = self.get_snmp_branch(branch_name="vlanTrunkPortVlansEnabled3k", parser=self._parse_mibs_cisco_vtp)
             if retval > 0:
                 retval = self.get_snmp_branch(
-                    branch_name='vlanTrunkPortVlansEnabled4k', parser=self._parse_mibs_cisco_vtp
+                    branch_name="vlanTrunkPortVlansEnabled4k", parser=self._parse_mibs_cisco_vtp
                 )
 
         # finally, if not trunked, read untagged interfaces vlan membership
-        retval = self.get_snmp_branch(branch_name='vmVlan', parser=self._parse_mibs_cisco_vlan)
+        retval = self.get_snmp_branch(branch_name="vmVlan", parser=self._parse_mibs_cisco_vlan)
         if retval < 0:
             return retval
 
         # and just for giggles, read Voice vlan
-        retval = self.get_snmp_branch(branch_name='vmVoiceVlanId', parser=self._parse_mibs_cisco_voice_vlan)
+        retval = self.get_snmp_branch(branch_name="vmVoiceVlanId", parser=self._parse_mibs_cisco_voice_vlan)
         if retval < 0:
             return retval
 
@@ -286,13 +287,13 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint("_get_vlan_data_sb(Cisco)\n")
 
         # go probe the CiscoSB-VLAN mib
-        retval = self.get_snmp_branch(branch_name='vlanPortModeState', parser=self._parse_mibs_sb_vlan_port_mode)
+        retval = self.get_snmp_branch(branch_name="vlanPortModeState", parser=self._parse_mibs_sb_vlan_port_mode)
         if retval < 0:
             return retval
 
         # and parse the transceiver type, if any
         retval = self.get_snmp_branch(
-            branch_name='swIfTransceiverType', parser=self._parse_mibs_sb_port_transceiver_type
+            branch_name="swIfTransceiverType", parser=self._parse_mibs_sb_port_transceiver_type
         )
         if retval < 0:
             return retval
@@ -302,12 +303,12 @@ class SnmpConnectorCisco(SnmpConnector):
         super()._get_vlan_data()
 
         # and finally read the vlanAccessPortModeVlanId, this reads access mode vlan id's
-        retval = self.get_snmp_branch(branch_name='vlanAccessPortModeVlanId', parser=self._parse_mibs_sb_access_vlan)
+        retval = self.get_snmp_branch(branch_name="vlanAccessPortModeVlanId", parser=self._parse_mibs_sb_access_vlan)
         if retval < 0:
             return retval
 
         # and read trunk mode PVID as well:
-        return self.get_snmp_branch(branch_name='vlanTrunkPortModeNativeVlanId', parser=self._parse_mibs_sb_trunk_vlan)
+        return self.get_snmp_branch(branch_name="vlanTrunkPortModeNativeVlanId", parser=self._parse_mibs_sb_trunk_vlan)
 
     def _get_interface_transceiver_types(self) -> int:
         """
@@ -322,7 +323,7 @@ class SnmpConnectorCisco(SnmpConnector):
         # only load portType if we found stack-id mappings.
         if len(self.stack_port_to_if_index) > 0:
             # now read Cisco data, first the "portType" branch to find interesting types by 'stack id'
-            retval = self.get_snmp_branch(branch_name='ciscoPortType', parser=self._parse_mibs_cisco_port_type)
+            retval = self.get_snmp_branch(branch_name="ciscoPortType", parser=self._parse_mibs_cisco_port_type)
             if retval < 0:
                 self.add_warning("Error getting Transceiver data (ciscoPortType)'")
                 return retval
@@ -351,7 +352,7 @@ class SnmpConnectorCisco(SnmpConnector):
         for vlan_id in self.vlans:
             # little hack for Cisco devices, to see various vlan-specific tables:
             self.vlan_id_context = int(vlan_id)
-            com_or_ctx = ''
+            com_or_ctx = ""
             if self.switch.snmp_profile.version == SNMP_VERSION_2C:
                 # for v2, set community string to "Cisco format"
                 com_or_ctx = f"{self.switch.snmp_profile.community}@{vlan_id}"
@@ -360,12 +361,12 @@ class SnmpConnectorCisco(SnmpConnector):
                 com_or_ctx = f"vlan-{vlan_id}"
             self._set_snmp_session(com_or_ctx)
             # first map Q-Bridge ports to ifIndexes:
-            retval = self.get_snmp_branch(branch_name='dot1dBasePortIfIndex', parser=self._parse_mibs_vlan_related)
+            retval = self.get_snmp_branch(branch_name="dot1dBasePortIfIndex", parser=self._parse_mibs_vlan_related)
             if retval < 0:
                 # probably an error, stop here!
                 return False
             # next, read the known ethernet addresses, and add to the Interfaces
-            retval = self.get_snmp_branch(branch_name='dot1dTpFdbPort', parser=self._parse_mibs_dot1d_bridge_eth)
+            retval = self.get_snmp_branch(branch_name="dot1dTpFdbPort", parser=self._parse_mibs_dot1d_bridge_eth)
             if retval < 0:
                 # probably an error, stop here!
                 return False
@@ -384,7 +385,7 @@ class SnmpConnectorCisco(SnmpConnector):
 
         # get Cisco Stack MIB port to ifIndex map first
         # this may be used to find the POE port index
-        retval = self.get_snmp_branch(branch_name='portIfIndex', parser=self._parse_mibs_cisco_poe)
+        retval = self.get_snmp_branch(branch_name="portIfIndex", parser=self._parse_mibs_cisco_poe)
         if retval < 0:
             return retval
 
@@ -395,22 +396,22 @@ class SnmpConnectorCisco(SnmpConnector):
 
         # probe Cisco specific Extended POE mibs to add data
         # this is what is shown via "show power inline" command:
-        retval = self.get_snmp_branch(branch_name='cpeExtPsePortPwrAvailable', parser=self._parse_mibs_cisco_poe)
+        retval = self.get_snmp_branch(branch_name="cpeExtPsePortPwrAvailable", parser=self._parse_mibs_cisco_poe)
         if retval < 0:
             return retval
         # this is the consumed power, shown in 'show power inline <name> detail'
-        retval = self.get_snmp_branch(branch_name='cpeExtPsePortPwrConsumption', parser=self._parse_mibs_cisco_poe)
+        retval = self.get_snmp_branch(branch_name="cpeExtPsePortPwrConsumption", parser=self._parse_mibs_cisco_poe)
         if retval < 0:
             return retval
         # max power consumed since interface power reset
-        retval = self.get_snmp_branch(branch_name='cpeExtPsePortMaxPwrDrawn', parser=self._parse_mibs_cisco_poe)
+        retval = self.get_snmp_branch(branch_name="cpeExtPsePortMaxPwrDrawn", parser=self._parse_mibs_cisco_poe)
         return retval
 
     def _get_syslog_msgs(self):
         """
         Read the CISCO-SYSLOG-MSG-MIB
         """
-        retval = self.get_snmp_branch(branch_name='ciscoSyslogMIBObjects', parser=self._parse_mibs_cisco_syslog_msg)
+        retval = self.get_snmp_branch(branch_name="ciscoSyslogMIBObjects", parser=self._parse_mibs_cisco_syslog_msg)
         if retval < 0:
             # something bad happened
             self.add_warning(warning="Error getting Cisco Syslog Messages (ciscoSyslogMIBObjects)")
@@ -443,7 +444,7 @@ class SnmpConnectorCisco(SnmpConnector):
 
             else:
                 # map "mod.port" to "mod/port"
-                end = port_entry.index.replace('.', '/')
+                end = port_entry.index.replace(".", "/")
                 count = len(end)
                 for if_index, iface in self.interfaces.items():
                     if iface.name[-count:] == end:
@@ -531,7 +532,7 @@ class SnmpConnectorCisco(SnmpConnector):
             if not self.set(
                 oid=f"{dot1qPvid}.{interface.port_id}",
                 value=int(new_vlan_id),
-                snmp_type='u',
+                snmp_type="u",
                 parser=self._parse_mibs_vlan_related,
             ):
                 return False
@@ -543,7 +544,7 @@ class SnmpConnectorCisco(SnmpConnector):
             if not self.set(
                 oid=f"{vlanAccessPortModeVlanId}.{interface.port_id}",
                 value=int(new_vlan_id),
-                snmp_type='u',
+                snmp_type="u",
                 parser=self._parse_mibs_sb_access_vlan,
             ):
                 interface.untagged_vlan = new_vlan_id
@@ -557,7 +558,7 @@ class SnmpConnectorCisco(SnmpConnector):
             if not self.set(
                 oid=f"{vlanTrunkPortModeNativeVlanId}.{interface.port_id}",
                 value=int(new_vlan_id),
-                snmp_type='u',
+                snmp_type="u",
                 parser=self._parse_mibs_sb_trunk_vlan,
             ):
                 interface.untagged_vlan = new_vlan_id
@@ -581,7 +582,7 @@ class SnmpConnectorCisco(SnmpConnector):
         super().get_my_hardware_details()
 
         # now read Cisco specific data:
-        retval = self.get_snmp_branch(branch_name='ccmHistory', parser=self._parse_mibs_cisco_config)
+        retval = self.get_snmp_branch(branch_name="ccmHistory", parser=self._parse_mibs_cisco_config)
         if retval < 0:
             self.add_warning(warning="Error getting Cisco log details ('ccmHistory')")
             return False
@@ -1110,7 +1111,7 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint("\nCISCO save_running_config()\n")
         # first try old method, prios to IOS 12. This work on older 29xx and similar switches
         # set this OID, but do not update local cache.
-        if self.set(oid=ciscoWriteMem, value=int(1), snmp_type='i', parser=self._parse_mibs_cisco_vlan) == 1:
+        if self.set(oid=ciscoWriteMem, value=int(1), snmp_type="i", parser=self._parse_mibs_cisco_vlan) == 1:
             # the original old-style write-mem worked.
             return True
 
@@ -1118,11 +1119,11 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint("   Trying CONFIG-COPY method")
         some_number = random.randint(1, 254)
         # first, set source to running config
-        self.set(oid=f"{ccCopySourceFileType}.{some_number}", value=int(runningConfig), snmp_type='i', parser=False)
+        self.set(oid=f"{ccCopySourceFileType}.{some_number}", value=int(runningConfig), snmp_type="i", parser=False)
         # next, set destination to startup co -=nfig
-        self.set(oid=f"{ccCopyDestFileType}.{some_number}", value=int(startupConfig), snmp_type='i', parser=False)
+        self.set(oid=f"{ccCopyDestFileType}.{some_number}", value=int(startupConfig), snmp_type="i", parser=False)
         # and then activate the copy:
-        self.set(oid=f"{ccCopyEntryRowStatus}.{some_number}", value=int(rowStatusActive), snmp_type='i', parser=False)
+        self.set(oid=f"{ccCopyEntryRowStatus}.{some_number}", value=int(rowStatusActive), snmp_type="i", parser=False)
         # now wait for this row to return success or fail:
         waittime = settings.CISCO_WRITE_MEM_MAX_WAIT
         while waittime:

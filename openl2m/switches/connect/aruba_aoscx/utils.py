@@ -16,7 +16,7 @@ from switches.connect.constants import IF_DUPLEX_UNKNOWN, IF_DUPLEX_HALF, IF_DUP
 
 
 def aoscx_parse_duplex(duplex: str) -> int:
-    '''
+    """
     Convert a duplex string to an integer with the proper duplex meaning.
 
     Args:
@@ -24,15 +24,15 @@ def aoscx_parse_duplex(duplex: str) -> int:
 
     Returns:
         (int) duplex value as IF_DUPLEX_UNKNOWN, IF_DUPLEX_FULL or IF_DUPLEX_HALF
-    '''
+    """
     if not isinstance(duplex, str):
         return IF_DUPLEX_UNKNOWN
 
-    full_duplex = ['full']
+    full_duplex = ["full"]
     if duplex.lower() in full_duplex:
         return IF_DUPLEX_FULL
 
-    half_duplex = ['half']
+    half_duplex = ["half"]
     if duplex.lower() in half_duplex:
         return IF_DUPLEX_HALF
 

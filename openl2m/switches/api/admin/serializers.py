@@ -22,7 +22,7 @@ class SwitchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Switch
-        fields = '__all__'
+        fields = "__all__"
         # fields = [
         #     'id',
         #     'name',
@@ -34,7 +34,7 @@ class SwitchSerializer(serializers.ModelSerializer):
 class NetmikoProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = NetmikoProfile
-        fields = '__all__'
+        fields = "__all__"
         # we exclude the password fields!
         # exclude = ['password', 'enable_password']
 
@@ -42,7 +42,7 @@ class NetmikoProfileSerializer(serializers.ModelSerializer):
 class SnmpProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = SnmpProfile
-        fields = '__all__'
+        fields = "__all__"
         # we exclude all 'password' like fields:
         # exclude = ['community', 'passphrase', 'priv_passphrase']
 
@@ -53,4 +53,4 @@ class SwitchGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SwitchGroup
-        fields = '__all__'
+        fields = "__all__"

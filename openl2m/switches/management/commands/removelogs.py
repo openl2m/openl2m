@@ -40,7 +40,7 @@ class Command(BaseCommand):
         self.stdout.write("Checking for old log entries to remove:")
         if settings.LOG_MAX_AGE:
             cutoff = timezone.now() - timedelta(days=settings.LOG_MAX_AGE)
-            if options['verbosity'] > 1:
+            if options["verbosity"] > 1:
                 self.stdout.write(f"\tRetention period: {settings.LOG_MAX_AGE} days")
                 self.stdout.write(f"\tCut-off time: {cutoff}")
             expired_records = Log.objects.filter(timestamp__lt=cutoff).count()

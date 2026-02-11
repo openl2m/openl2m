@@ -17,6 +17,7 @@ This re-implements some methods found in the base SNMP() class
 with Juniper specific ways of doing things...
 Note: JUNOS devices are Read-Only for SNMP! See the PyEZ driver for R/W capabilities!
 """
+
 from django.http.request import HttpRequest
 
 from switches.models import Switch, SwitchGroup
@@ -84,7 +85,7 @@ class SnmpConnectorJuniper(SnmpConnector):
         dprint("Juniper _map_poe_port_entries_to_interface()")
         for port_entry in self.poe_port_entries.values():
             # we take the ending part of "1.5" as the index
-            (module, port) = port_entry.index.split('.')
+            (module, port) = port_entry.index.split(".")
             module = int(module) - 1  # 0-based!
             port = int(port) - 1  # 0-based!
             # find the matching interface:
@@ -112,7 +113,7 @@ class SnmpConnectorJuniper(SnmpConnector):
         # first generic, using MAU-MIB
         super()._get_interface_transceiver_types()
         # See what we can get from Juniper-specific data.
-        retval = self.get_snmp_branch(branch_name='ifJnxMediaType', parser=self._parse_mibs_juniper_if_media_type)
+        retval = self.get_snmp_branch(branch_name="ifJnxMediaType", parser=self._parse_mibs_juniper_if_media_type)
         if retval < 0:
             self.add_warning("Error getting Juniper 'ifJnxMediaType'")
             return retval
@@ -129,17 +130,17 @@ class SnmpConnectorJuniper(SnmpConnector):
         super()._get_vlan_data()
 
         # try the Juniper L2 entries. FIrst the "tag" or index to vlan_id mapping:
-        retval = self.get_snmp_branch(branch_name='jnxL2aldVlanTag', parser=self._parse_mibs_juniper_l2ald_vlans)
+        retval = self.get_snmp_branch(branch_name="jnxL2aldVlanTag", parser=self._parse_mibs_juniper_l2ald_vlans)
         if retval < 0:  # error
             return retval
         if retval > 0:  # we found something, read the rest
-            retval = self.get_snmp_branch(branch_name='jnxL2aldVlanName', parser=self._parse_mibs_juniper_l2ald_vlans)
+            retval = self.get_snmp_branch(branch_name="jnxL2aldVlanName", parser=self._parse_mibs_juniper_l2ald_vlans)
             if retval < 0:  # error
                 return retval
-            retval = self.get_snmp_branch(branch_name='jnxL2aldVlanType', parser=self._parse_mibs_juniper_l2ald_vlans)
+            retval = self.get_snmp_branch(branch_name="jnxL2aldVlanType", parser=self._parse_mibs_juniper_l2ald_vlans)
             if retval < 0:  # error
                 return retval
-            retval = self.get_snmp_branch(branch_name='jnxL2aldVlanFdbId', parser=self._parse_mibs_juniper_l2ald_vlans)
+            retval = self.get_snmp_branch(branch_name="jnxL2aldVlanFdbId", parser=self._parse_mibs_juniper_l2ald_vlans)
             if retval < 0:  # error
                 return retval
             return 1

@@ -42,6 +42,7 @@ from switches.constants import (
     LOG_CHANGE_INTERFACE_PVID,
     LOG_CHANGE_INTERFACE_POE_UP,
     LOG_CHANGE_INTERFACE_POE_DOWN,
+    LOG_CHANGE_INTERFACE_VLANS,
     LOG_VLAN_CREATE,
     LOG_VLAN_DELETE,
     LOG_VLAN_EDIT,
@@ -291,7 +292,7 @@ def perform_interface_pvid_change(
 ):
     """
     Change the PVID untagged vlan on an interfaces.
-    This still needs to handle dot1q trunked ports.
+    This still needs to handle dot1q tagged ("trunk") ports.
 
     Params:
         request: Request() object
@@ -496,6 +497,101 @@ def perform_interface_poe_change(
     success = Error()
     success.status = False  # no error
     success.description = f"Interface {interface.name} PoE is now {state}"
+    return True, success
+
+
+def perform_interface_tags_edit(
+    request: HttpRequest, group_id: int, switch_id: int, interface_key: str, pvid: int, tagged_vlans: list, allow_all: bool = False):
+    """
+    Change the untagged pvid, and 802.1q (tagged/trunked) vlans on an interfaces.
+
+    Params:
+        request: Request() object
+        group_id (int): SwitchGroup() pk
+        switch_id (int): Switch() pk
+        interface_key (str):  Interface() 'key' attribute
+        pvid (int): integer vlan id to set as untagged vlan.
+        tagged_vlans (list): integer list of vlan id's to set on interface - THIS NEEDS DESIGN WORK!!!!!
+        allow_all (bool): if set, all vlans are allow on trunk.
+                        Mostly passed in if driver support "trunk vlan allow all" type of command.
+
+    Returns:
+        boolean, Error() :
+            boolean: True if successful, False if error occurred.
+                    On error, Error() object will be set accordingly.
+    """
+    dprint(
+        f"perform_interface_tag_edit(group={group_id}, switch={switch_id}, int={interface_key}, pvid={pvid}, tagged_vlans={tagged_vlans}, allow_all={allow_all})"
+    )
+
+    group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+    connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
+
+    if connection is None:
+        return False, error
+
+    # # implementation here. This needs a lot more work...
+
+    """ Implementation notes:
+    If we allow tags-edit for regular, non-admin users, we need to parse carefully!
+    In that case, we will allow adding/deleting vlans the user has access to,
+    and SHOULD NOT CHANGE NON-PERMITTED VLANS !!!!
+    Ie. this requires looking at the interface current tagged vlans,
+    and mashing this up with the requested vlans...
+
+    Currently, permissions are set in Connector()._set_interfaces_permissions(),
+    in switches/connect/connector.py, around line 1775
+
+    LOGGING NEEDS NEW LOG TYPES!!!
+    """
+
+    log = Log(
+        user=request.user,
+        ip_address=get_remote_ip(request),
+        switch=switch,
+        group=group,
+        action=LOG_CHANGE_INTERFACE_VLANS,
+    )
+
+    # # verify we allow trunk editing and driver can handle interface mode change:
+    if not settings.ALLOW_TAGS_EDIT or not connection.can_edit_tags:
+        denied = Error()
+        denied.status = True  # error
+        denied.description = "Permission denied!"
+        log.type = LOG_TYPE_ERROR
+        log.description = "Permission denied to 802.1Q vlan edit!"
+        log.save()
+        return False, denied
+
+    interface, error = get_interface_to_change(connection=connection, interface_key=interface_key)
+    if not interface:
+        log.type = LOG_TYPE_ERROR
+        log.description = f"Can not get interface: ERROR - {error.description}"
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        return False, error
+
+    # call the interface vlan edit function:
+    if not connection.set_interface_vlans(interface=interface, untagged_vlan=pvid, tagged_vlans=tagged_vlans, allow_all=allow_all):
+        log.description = f"ERROR: {connection.error.description} - {connection.error.details}"
+        log.type = LOG_TYPE_ERROR
+        log.save()
+        counter_increment(COUNTER_ERRORS)
+        return False, connection.error
+
+    # indicate we need to save config!
+    connection.set_save_needed(True)
+
+    # and save cachable/session data
+    connection.save_cache()
+
+    log.save()
+    counter_increment(COUNTER_CHANGES)
+    switch.update_change()
+
+    success = Error()
+    success.status = False  # no error
+    success.description = f"Interface {interface.name} vlans have been set!"
     return True, success
 
 

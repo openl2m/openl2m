@@ -14,6 +14,7 @@
 """
 Various utility functions
 """
+
 import datetime
 import inspect
 import ipaddress
@@ -45,11 +46,11 @@ def success_page(request: HttpRequest, group, switch, description: str) -> HttpR
     """
     return render(
         request,
-        'success_page.html',
+        "success_page.html",
         {
-            'group': group,
-            'switch': switch,
-            'description': description,
+            "group": group,
+            "switch": switch,
+            "description": description,
         },
     )
 
@@ -69,11 +70,11 @@ def success_page_by_id(request: HttpRequest, group_id: int, switch_id: int, mess
     """
     return render(
         request,
-        'success_page_by_id.html',
+        "success_page_by_id.html",
         {
-            'group_id': group_id,
-            'switch_id': switch_id,
-            'message': message,
+            "group_id": group_id,
+            "switch_id": switch_id,
+            "message": message,
         },
     )
 
@@ -86,11 +87,11 @@ def warning_page(request: HttpRequest, group, switch, description: str) -> HttpR
     """
     return render(
         request,
-        'warning_page.html',
+        "warning_page.html",
         {
-            'group': group,
-            'switch': switch,
-            'description': description,
+            "group": group,
+            "switch": switch,
+            "description": description,
         },
     )
 
@@ -110,11 +111,11 @@ def warning_page_by_id(request: HttpRequest, group_id: int, switch_id: int, mess
     """
     return render(
         request,
-        'warning_page_by_id.html',
+        "warning_page_by_id.html",
         {
-            'group_id': group_id,
-            'switch_id': switch_id,
-            'message': message,
+            "group_id": group_id,
+            "switch_id": switch_id,
+            "message": message,
         },
     )
 
@@ -126,11 +127,11 @@ def error_page(request: HttpRequest, group, switch, error) -> HttpResponse:
     """
     return render(
         request,
-        'error_page.html',
+        "error_page.html",
         {
-            'group': group,
-            'switch': switch,
-            'error': error,
+            "group": group,
+            "switch": switch,
+            "error": error,
         },
     )
 
@@ -151,11 +152,11 @@ def error_page_by_id(request: HttpRequest, group_id: int, switch_id: int, error)
     """
     return render(
         request,
-        'error_page_by_id.html',
+        "error_page_by_id.html",
         {
-            'group_id': group_id,
-            'switch_id': switch_id,
-            'error': error,
+            "group_id": group_id,
+            "switch_id": switch_id,
+            "error": error,
         },
     )
 
@@ -198,7 +199,7 @@ def time_duration(seconds: int) -> str:
     """
     show a nice string with the time duration from the seconds given
     """
-    return str(datetime.timedelta(seconds=seconds)).rsplit('.', 2)[0]
+    return str(datetime.timedelta(seconds=seconds)).rsplit(".", 2)[0]
 
 
 def uptime_to_string(uptime: int) -> str:
@@ -219,7 +220,7 @@ def get_local_timezone_offset() -> str:
     Get the offset as <-+00:00> of our local timezone
     This uses the settings.TIME_ZONE variable, if set.
     """
-    return datetime.datetime.now(pytz.timezone(str(get_default_timezone()))).strftime('%z')
+    return datetime.datetime.now(pytz.timezone(str(get_default_timezone()))).strftime("%z")
 
 
 def save_to_http_session(request: HttpRequest, name: str, data):
@@ -256,7 +257,7 @@ def get_remote_ip(request: HttpRequest) -> str:
         # see: https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django
         (ip, routable) = get_client_ip(request)  # we need the request variable from the view!
         if ip is None:
-            return '0.0.0.0'
+            return "0.0.0.0"
         return str(ip)
     # not in web server context, return "0"
     return "0.0.0.0"
@@ -359,7 +360,7 @@ def get_ip_dns_name(ip: str) -> str:
         # we use 'name required' to force an exception if reverse lookup not found:
         (hostname, port_name) = socket.getnameinfo((str(ip), 0), socket.NI_NAMEREQD)
     except Exception:
-        hostname = ''
+        hostname = ""
     return hostname
 
 

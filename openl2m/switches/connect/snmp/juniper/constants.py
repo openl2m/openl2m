@@ -13,57 +13,56 @@
 #
 """constants.py defines Juniper-specific SNMP-related variables. These are mostly MIB OIDs and their value definitions."""
 
-
 from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_info
 
 #
 # Juniper Networks
 #
 ENTERPRISE_ID_JUNIPER = 2636
-enterprise_id_info[ENTERPRISE_ID_JUNIPER] = 'Juniper Networks'
+enterprise_id_info[ENTERPRISE_ID_JUNIPER] = "Juniper Networks"
 
 
 # Juniper specific VLAN related entries:
 # http://www.circitor.fr/Mibs/Html/J/JUNIPER-L2ALD-MIB.php
-jnxL2aldVlanEntry = '.1.3.6.1.4.1.2636.3.48.1.3.1.1'
-snmp_mib_variables['jnxL2aldVlanEntry'] = jnxL2aldVlanEntry
+jnxL2aldVlanEntry = ".1.3.6.1.4.1.2636.3.48.1.3.1.1"
+snmp_mib_variables["jnxL2aldVlanEntry"] = jnxL2aldVlanEntry
 
-jnxL2aldVlanID = '.1.3.6.1.4.1.2636.3.48.1.3.1.1.1'
-snmp_mib_variables['jnxL2aldVlanID'] = jnxL2aldVlanID
+jnxL2aldVlanID = ".1.3.6.1.4.1.2636.3.48.1.3.1.1.1"
+snmp_mib_variables["jnxL2aldVlanID"] = jnxL2aldVlanID
 
-jnxL2aldVlanName = '.1.3.6.1.4.1.2636.3.48.1.3.1.1.2'
-snmp_mib_variables['jnxL2aldVlanName'] = jnxL2aldVlanName
+jnxL2aldVlanName = ".1.3.6.1.4.1.2636.3.48.1.3.1.1.2"
+snmp_mib_variables["jnxL2aldVlanName"] = jnxL2aldVlanName
 
-jnxL2aldVlanTag = '.1.3.6.1.4.1.2636.3.48.1.3.1.1.3'
-snmp_mib_variables['jnxL2aldVlanTag'] = jnxL2aldVlanTag
+jnxL2aldVlanTag = ".1.3.6.1.4.1.2636.3.48.1.3.1.1.3"
+snmp_mib_variables["jnxL2aldVlanTag"] = jnxL2aldVlanTag
 
-jnxL2aldVlanType = '.1.3.6.1.4.1.2636.3.48.1.3.1.1.4'
-snmp_mib_variables['jnxL2aldVlanType'] = jnxL2aldVlanType
+jnxL2aldVlanType = ".1.3.6.1.4.1.2636.3.48.1.3.1.1.4"
+snmp_mib_variables["jnxL2aldVlanType"] = jnxL2aldVlanType
 JNX_VLAN_TYPE_STATIC = 1
 JNX_VLAN_TYPE_DYNAMIC = 2
 
-jnxL2aldVlanType = '.1.3.6.1.4.1.2636.3.48.1.3.1.1.4'
-snmp_mib_variables['jnxL2aldVlanType'] = jnxL2aldVlanType
+jnxL2aldVlanType = ".1.3.6.1.4.1.2636.3.48.1.3.1.1.4"
+snmp_mib_variables["jnxL2aldVlanType"] = jnxL2aldVlanType
 # see above for static/dynamic
 
 # see https://kb.juniper.net/InfoCenter/index?page=content&id=KB32532&actp=METADATA
 # this is the filter database for a specific vlan.
 #  jnxL2aldVlanFdbId.VLAN-INDEX = Filter-DB-Index
-jnxL2aldVlanFdbId = '.1.3.6.1.4.1.2636.3.48.1.3.1.1.5'
-snmp_mib_variables['jnxL2aldVlanFdbId'] = jnxL2aldVlanFdbId
+jnxL2aldVlanFdbId = ".1.3.6.1.4.1.2636.3.48.1.3.1.1.5"
+snmp_mib_variables["jnxL2aldVlanFdbId"] = jnxL2aldVlanFdbId
 
 # THESE ARE OBSOLETE!!!
 # https://circitor.fr/Mibs/Html/J/JUNIPER-VLAN-MIB.php
 # Layer 2:
-jnxVlanTable = '.1.3.6.1.4.1.2636.3.40.1.5.1.1'
+jnxVlanTable = ".1.3.6.1.4.1.2636.3.40.1.5.1.1"
 # Layer 3 is below this:
-jnxVlanInterfaceTable = '.1.3.6.1.4.1.2636.3.40.1.5.1.2'
+jnxVlanInterfaceTable = ".1.3.6.1.4.1.2636.3.40.1.5.1.2"
 
 #
 # JUNIPER-IF-MIB has additional data about interfaces
 #
 ifJnxMediaType = ".1.3.6.1.4.1.2636.3.3.5.1.1"
-snmp_mib_variables['ifJnxMediaType'] = ifJnxMediaType
+snmp_mib_variables["ifJnxMediaType"] = ifJnxMediaType
 JNX_IF_TYPE_COPPER = 1
 JNX_IF_TYPE_FIBER = 2
 JNX_IF_TYPE_OTHER = 3

@@ -19,14 +19,14 @@
 
 
 def get_vlan_and_interface_from_string(if_string: str):
-    '''Parse the Arista "Vlan, Interface" format into vlan id and interface.
+    """Parse the Arista "Vlan, Interface" format into vlan id and interface.
 
     Args:
         if_string (str): the string with vlan and interface info.
 
     Returns:
         (vlan_id, if_name): vlan ID(int) and interface name (str)
-    '''
+    """
     # parse "Vlxxxx, Interface"
     # note: the IPv4 arp by vrf info starts with "Vlanxxxx",
     # whereasthe Ipv6 ND info starts with "Vlxxxx"

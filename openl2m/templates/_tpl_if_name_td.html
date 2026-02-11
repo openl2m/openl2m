@@ -2,10 +2,10 @@
 {% load static %}
 
 <td
-  {% if iface.admin_status %}
-    {% if iface.oper_status %}
+  {% if iface.admin_status %}{# admin-UP #}
+    {% if iface.oper_status %}{# state-UP}
       class="color_if_up">
-    {% else %}
+    {% else %}{# state-DOWN #}
       class="color_if_down">
     {% endif %}
     {{ switch|get_interface_info_links:iface }}
@@ -22,13 +22,11 @@
         onclick="return confirm_change('Are you sure you want to DISABLE {{ iface.name }}?')"
       {% endif %}
         >{{ iface.name }}</button>
-        {% include "_tpl_if_type_icons.html" %}
       </form>
-    {% else %}
+    {% else %}{# cannot change #}
       {{ iface.name }}
-      {% include "_tpl_if_type_icons.html" %}
     {% endif %}
-  {% else %}
+  {% else %}{# admin-DOWN #}
     class="color_if_shutdown">
     {{ switch|get_interface_info_links:iface }}
     {% if connection.can_change_admin_status %}
@@ -38,18 +36,18 @@
         method="post">
         {% csrf_token %}
         <button type="submit" name="NAME" value="VALUE" class="btn-link"
-        data-bs-toggle="tooltip"
-        data-bs-title="Click here to Enable {{ iface.name }}"
-      {% if request.user.profile.are_you_sure %}
-        onclick="return confirm_change('Are you sure you want to ENABLE {{ iface.name }}?')"
-      {% endif %}
-      >{{ iface.name }}</button>
-      {% include "_tpl_if_type_icons.html" %}
+                data-bs-toggle="tooltip"
+                data-bs-title="Click here to Enable {{ iface.name }}"
+          {% if request.user.profile.are_you_sure %}
+                onclick="return confirm_change('Are you sure you want to ENABLE {{ iface.name }}?')"
+          {% endif %}
+        >{{ iface.name }}</button>
       </form>
-    {% else %}
+    {% else %}{# cannot change #}
       {{ iface.name }}
-      {% include "_tpl_if_type_icons.html" %}
     {% endif %}
   {% endif %}
+  {% include "_tpl_if_trunk_icon.html" %}
+  {% include "_tpl_if_type_icons.html" %}
   <!-- ifkey = {{ iface.key }}, ifIndex = {{ iface.index }}, port_id = {{ iface.port_id }} -->
 </td>
