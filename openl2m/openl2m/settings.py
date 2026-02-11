@@ -451,6 +451,8 @@ SSH_COMMAND_TIMEOUT = getattr(configuration, 'SSH_COMMAND_TIMEOUT', 15)
 
 # connect timeout for Junos devices via the Netconf interface
 JUNOS_PYEZ_CONN_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CONN_TIMEOUT', 10)
+# command timeout for Junos devices via the Netconf interface
+JUNOS_PYEZ_CMD_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CMD_TIMEOUT', 120)
 
 # REST API Settings
 API_ENABLED = getattr(configuration, 'API_ENABLED', True)

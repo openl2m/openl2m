@@ -1045,14 +1045,13 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
-    def pyez_execute_commands(self, commands: list, format: str = "set", timeout=120) -> bool:
+    def pyez_execute_commands(self, commands: list, format: str = "set") -> bool:
         """
         Execute a list of command string(s) on the device. Defaults to 'set' format.
 
         Args:
             commands(list): the command list of strings to execute.
             format(str): the command format, default = 'set'
-            timeout (int): the timeout in seconds to run a command on the remote device
 
         Returns:
             (boolean) True on success, False on error and set self.error variables
@@ -1066,7 +1065,7 @@ class PyEZConnector(Connector):
             dprint(f"Config Diff: {conf.diff()}")
             if conf.commit_check():
                 dprint("commit_check() OK")
-                conf.commit(timeout=timeout)
+                conf.commit(timeout=settings.JUNOS_PYEZ_CMD_TIMEOUT)
                 dprint("conf.commit() succeeded")
                 ret_val = True
             else:
