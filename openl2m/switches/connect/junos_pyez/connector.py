@@ -21,6 +21,7 @@ from jnpr.junos.utils.config import Config
 from jnpr.junos.exception import RpcError, ConfigLoadError, CommitError, LockError, UnlockError
 
 from netaddr import IPNetwork
+from typing import List
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -31,6 +32,7 @@ from switches.connect.constants import (
     IF_DUPLEX_FULL,
     IF_TYPE_ETHERNET,
     IF_TYPE_LAGG,
+    IF_TYPE_VIRTUAL,
     POE_PORT_ADMIN_DISABLED,
     POE_PORT_ADMIN_ENABLED,
     POE_PORT_DETECT_SEARCHING,
@@ -53,6 +55,9 @@ from switches.connect.junos_pyez.utils import (
 )
 from switches.connect.utils import standardize_ipv4_subnet
 
+# special interfaces starting with these names are NOT managable.
+# mark as Virtual if still marked as "IF_TYPE_ETHERNET" at end of interface parsing:
+special_interface_names = [ "bme", "cbp", "dsc", "esi", "gre", "ipip", "jsrv", "lsi", "mtun", "pimd", "pime", "pip", "tap", "vme","vtep", ]
 
 class PyEZConnector(Connector):
     """
@@ -85,6 +90,8 @@ class PyEZConnector(Connector):
         self.can_change_description = True
         self.can_save_config = False  # save not needed after commit in Junos!
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
+        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_allow_all = True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         #
@@ -120,7 +127,7 @@ class PyEZConnector(Connector):
         Returns:
             (bool): True if success, False on failure.
         """
-        dprint(f"_parse_address_family() for '{iface.name}")
+        dprint(f"_parse_address_family() for '{iface.name}'")
         # look at all Address Families:
         for af in xml_data.findall(".//address-family"):
             af_name = af.find(".//address-family-name").text
@@ -234,7 +241,7 @@ class PyEZConnector(Connector):
         interfaces = intf_data.findall(".//physical-interface")
         for intf in interfaces:
             name = intf.find(".//name").text
-            dprint(f"\n  Name: {name}")
+            dprint(f"\n  Name: '{name}'")
             # create new OpenL2M Interface() object
             iface = Interface(name)
             iface.name = name
@@ -284,9 +291,12 @@ class PyEZConnector(Connector):
                     # actual speed, convert to mbps:
                     iface.speed = junos_speed_to_mbps(speed)
                 else:  # auto-negotiate interface
+                    dprint("Auto speed, parsing <ethernet-autonegotiation>")
                     try:
-                        # now look at the  <ethernet-autonegotiation><local-info><local-link-speed> field.
-                        speed = intf.findtext("ethernet-autonegotiation/link-partner-speed")
+                        # now look at the  <ethernet-autonegotiation><local-info><local-link-speed> field
+                        # or <ethernet-autonegotiation/link-partner-speed>
+                        # speed = intf.findtext("ethernet-autonegotiation/link-partner-speed")
+                        speed = intf.findtext("ethernet-autonegotiation/local-info/local-link-speed")
                         dprint(f"  Local link speed = {speed}")
                         # actual speed, convert to mbps:
                         iface.speed = junos_speed_to_mbps(speed)
@@ -318,6 +328,8 @@ class PyEZConnector(Connector):
             if name == "irb":
                 dprint("IRB: looking for VLAN Interfaces...")
                 # this is the special 'placeholder' interface that has all the vlan interfaces below it
+                # set as virtual !
+                iface.type = IF_TYPE_VIRTUAL
                 # as "logical interfaces". Parse this:
                 logicals = intf.findall(".//logical-interface")
                 for logical in logicals:
@@ -351,6 +363,15 @@ class PyEZConnector(Connector):
             except Exception:
                 dprint("  not an aggregate.")
             dprint(f"  Final type = {iface.type}")
+
+            # see if this is a 'special' interface
+            if iface.type == IF_TYPE_ETHERNET:
+                for special in special_interface_names:
+                    if iface.name.startswith(special):
+                        iface.type = IF_TYPE_VIRTUAL
+                        break
+
+            # finally we can add this interface!
             self.add_interface(iface)
 
         #
@@ -406,6 +427,7 @@ class PyEZConnector(Connector):
                 name = v.find(".//l2ng-l2rtb-vlan-name").text
                 vid = v.find(".//l2ng-l2rtb-vlan-tag").text
                 self.add_vlan_by_id(int(vid), name)
+                # if there is a routed instance of this vlan this tag exists: <l2ng-l2rtb-vlan-l3-interface>
                 # and parse the interfaces on this vlan:
                 members = v.findall(".//l2ng-l2rtb-vlan-member")
                 for member in members:
@@ -502,7 +524,6 @@ class PyEZConnector(Connector):
 
         # done with PyEZ connection:
         self._close_device()
-
         return True
 
     def get_my_client_data(self) -> bool:
@@ -673,8 +694,10 @@ class PyEZConnector(Connector):
         iface = self.get_interface_by_key(name)
         available = junos_parse_power(intf.find(".//interface-power-limit").text, milliwatts=True)
         dprint(f"    available: {available} mW")
+
         # call base class for bookkeeping.
         super().set_interface_poe_available(iface, available)
+
         if intf.find(".//interface-status").text == "Disabled":
             dprint("    Admin Disabled!")
             # call base class for bookkeeping.
@@ -704,21 +727,25 @@ class PyEZConnector(Connector):
         Returns:
             (boolean) True on success, False on error and set self.error variables
         """
-        dprint(f"PyEZCOnnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
+        dprint(f"PyEZConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
+
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+
         commands = []
         if new_state:
             commands.append(f"delete interfaces {interface.name} disable")
         else:
             commands.append(f"set interfaces {interface.name} disable")
+
         if self.pyez_execute_commands(commands=commands):
             # now do the bookkeeping:
             super().set_interface_admin_status(interface=interface, new_state=new_state)
             self._close_device()
             dprint("  change OK!")
             return True
+
         self._close_device()
         dprint("  change FAILED!")
         return False
@@ -734,21 +761,25 @@ class PyEZConnector(Connector):
         Returns:
             (boolean) True on success, False on error and set self.error variables
         """
-        dprint(f"PyEZCOnnector.set_interface_poe_status() for {interface.name} to {new_state}")
+        dprint(f"PyEZConnector.set_interface_poe_status() for {interface.name} to {new_state}")
+
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+
         commands = []
         if new_state == POE_PORT_ADMIN_ENABLED:  # "on"
             commands.append(f"delete poe interface {interface.name} disable")
         else:  # "off"
             commands.append(f"set poe interface {interface.name} disable")
+
         if self.pyez_execute_commands(commands=commands):
             # call the super class for bookkeeping.
             super().set_interface_poe_status(interface, new_state)
             self._close_device()
             dprint("  change OK!")
             return True
+
         self._close_device()
         dprint("  change FAILED!")
         return False
@@ -764,7 +795,7 @@ class PyEZConnector(Connector):
         Returns:
             (boolean) True on success, False on error and set self.error variables
         """
-        dprint(f"PyEZCOnnector.set_interface_untagged_vlan() for {interface.name} to vlan {new_vlan_id}")
+        dprint(f"PyEZConnector.set_interface_untagged_vlan() for {interface.name} to vlan {new_vlan_id}")
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
@@ -789,6 +820,84 @@ class PyEZConnector(Connector):
             self._close_device()
             dprint("  change OK!")
             return True
+
+        self._close_device()
+        dprint("  change FAILED!")
+        return False
+
+    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
+        """
+        Set the interface to the untagged and tagged vlans.
+
+        Args:
+            interface = Interface() object for the requested port
+            untagged_vlan = an integer with the requested untagged vlan
+            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(
+            f"PyEZConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
+        )
+
+        if not len(tagged_vlans) and not allow_all:
+            # no tagged vlan, ie "access mode".
+            if not interface.is_tagged: # already access mode
+                commands = [
+                    f"set interfaces {interface.name} unit 0 family ethernet-switching interface-mode access",  # to be clear...
+                    f"delete interfaces {interface.name} unit 0 family ethernet-switching vlan",
+                    f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {untagged_vlan}",
+                ]
+            else:
+                # currently tagged, setting to access mode:
+                commands = [
+                    # reset port config
+                    f"delete interfaces {interface.name} unit 0 family ethernet-switching interface-mode trunk",
+                    f"delete interfaces {interface.name} unit 0 family ethernet-switching vlan members",
+                    f"delete interfaces {interface.name} native-vlan-id",
+                    # set to access mode:
+                    f"set interfaces {interface.name} unit 0 family ethernet-switching interface-mode access",
+                    f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {untagged_vlan}",
+                ]
+
+        else:
+            # trunk mode, setup mode and native vlan:
+            # set interfaces ge-0/0/10 native-vlan-id 1
+            # set interfaces ge-0/0/10 unit 0 family ethernet-switching interface-mode trunk
+            commands = [
+                f"delete interfaces {interface.name} unit 0 family ethernet-switching",     # reset port config
+                f"set interfaces {interface.name} unit 0 family ethernet-switching interface-mode trunk",
+            ]
+            # allow all vlans?
+            if allow_all:
+                # set interfaces ge-0/0/10 unit 0 family ethernet-switching vlan members all
+                commands.append(f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members all")
+
+            # or just some specific vlans:
+            else:
+                # loop through all vlans, see if they are allowed.
+                # note that we add the <untagged-vlan> as tagged, since otherwize it does not show!
+                allow = []
+                for vid in self.vlans.keys():
+                    if vid in tagged_vlans or vid == untagged_vlan:
+                        # allowed!
+                        allow.append(vid)
+                # now add allowed vlans:
+                for vid in allow:
+                    commands.append(f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {vid}")
+
+            # add native untagged vlan
+            commands.append(f"set interfaces {interface.name} native-vlan-id {untagged_vlan}")
+
+        # execute the commands:
+        if self.pyez_execute_commands(commands=commands):
+            # call the base Connector() for bookkeeping:
+            super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
+            self._close_device()
+            dprint("  change OK!")
+            return True
+
         self._close_device()
         dprint("  change FAILED!")
         return False
@@ -936,13 +1045,14 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
-    def pyez_execute_commands(self, commands: list, format: str = "set") -> bool:
+    def pyez_execute_commands(self, commands: list, format: str = "set", timeout=120) -> bool:
         """
         Execute a list of command string(s) on the device. Defaults to 'set' format.
 
         Args:
             commands(list): the command list of strings to execute.
             format(str): the command format, default = 'set'
+            timeout (int): the timeout in seconds to run a command on the remote device
 
         Returns:
             (boolean) True on success, False on error and set self.error variables
@@ -956,7 +1066,7 @@ class PyEZConnector(Connector):
             dprint(f"Config Diff: {conf.diff()}")
             if conf.commit_check():
                 dprint("commit_check() OK")
-                conf.commit()
+                conf.commit(timeout=timeout)
                 dprint("conf.commit() succeeded")
                 ret_val = True
             else:
