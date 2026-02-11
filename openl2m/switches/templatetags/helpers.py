@@ -748,7 +748,7 @@ def as_percentage_of(part, whole):
 @register.filter
 def underscore(name):
     # replace these characters with _
-    s = ['/', '.', '=', ';', ':']
+    s = ['-', '/', '.', '=', ';', ':']
     for c in s:
         name = name.replace(c, "_")
     return name

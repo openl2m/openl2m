@@ -13,7 +13,7 @@
             class="btn-link"
             value="Edit Tags"
             data-bs-toggle="modal"
-            data-bs-target="#tagEditForm_{{ iface.key }}"
+            data-bs-target="#tagEditForm_{{ iface.key|underscore }}"
             data-bs-placement="top"
             title="Tagged (802.1q trunk) Interface, click here to edit vlans. Current vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
     <i class="fa-solid fa-ellipsis-v" aria-hidden="true"></i>
@@ -27,7 +27,7 @@
             class="btn-link"
             value="Edit Tags"
             data-bs-toggle="modal"
-            data-bs-target="#tagEditForm_{{ iface.key }}"
+            data-bs-target="#tagEditForm_{{ iface.key|underscore }}"
             data-bs-placement="top"
             title="Untagged Interface. Click here to add/edit 802.1-tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
     <i class="fa-solid fa-plus" aria-hidden="true"></i>

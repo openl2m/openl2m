@@ -2,7 +2,7 @@
 {% load static %}
 
 <!-- Modal untagged and taggged vlan edit form -->
-<div class="modal fade" id="tagEditForm_{{ iface.key }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="tagEditForm_{{ iface.key }}_label" aria-hidden="true">
+<div class="modal fade" id="tagEditForm_{{ iface.key|underscore }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="tagEditForm_{{ iface.key|underscore }}_label" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -10,7 +10,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">{# THIS IS THE VLAN CHANGE FORM #}
-        <!-- <div class="fw-bolder text-warning mb-3">WORK-IN-PROGRESS - THIS IS A NON-FUNCTIONAL FORM!!!!<hr /></div> -->
         <form
           id="tags_edit_{{ iface.key|underscore }}" name="tags_edit_{{ iface.key|underscore }}"
           action="{% url 'switches:tags_edit' group.id switch.id iface.key %}"
