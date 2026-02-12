@@ -541,8 +541,6 @@ def perform_interface_tags_edit(
 
     Currently, permissions are set in Connector()._set_interfaces_permissions(),
     in switches/connect/connector.py, around line 1775
-
-    LOGGING NEEDS NEW LOG TYPES!!!
     """
 
     log = Log(
@@ -571,6 +569,8 @@ def perform_interface_tags_edit(
         counter_increment(COUNTER_ERRORS)
         return False, error
 
+    log.if_name = interface.name
+
     # call the interface vlan edit function:
     if not connection.set_interface_vlans(interface=interface, untagged_vlan=pvid, tagged_vlans=tagged_vlans, allow_all=allow_all):
         log.description = f"ERROR: {connection.error.description} - {connection.error.details}"
@@ -584,6 +584,9 @@ def perform_interface_tags_edit(
 
     # and save cachable/session data
     connection.save_cache()
+
+    log.type = LOG_TYPE_CHANGE
+    log.description = f"Interface {interface.name} vlans set to untagged={pvid}, tagged={tagged_vlans} with allow_all={allow_all}"
 
     log.save()
     counter_increment(COUNTER_CHANGES)
