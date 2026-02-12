@@ -3,7 +3,8 @@
     <strong>Show Commands</strong>
   </div>
   <div class="card-body">
-    <form name="switch_show_command_form"
+    <form id="switch_show_command_form"
+          name="switch_show_command_form"
           action="{% url 'switches:switch_cmd_output' group.id switch.id %}"
           method="post">
       {% csrf_token %}
@@ -23,7 +24,25 @@
           {% endif %}
         {% endif %}
       </select>
-      &nbsp;<input type="submit" value="Run" class="btn btn-primary" data-bs-toggle="tooltip" title="Click here to run command!">
+      &nbsp;
+      <button type="submit" id="button_run" name="button_run" class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_run"></span>
+        <span id="spinner_button_run_text" data-bs-toggle="tooltip" title="Click here to run command!">Run</span>
+      </button>
+<script>
+  document.getElementById('switch_show_command_form').addEventListener('submit', function(event) {
+    const submitButton = document.getElementById('button_run');
+    const spinner = submitButton.querySelector('.spinner-border');
+    const spanText = document.getElementById('spinner_button_run_text')
+    // Disable the button
+    submitButton.disabled = true;
+    // Show the spinner
+    spinner.classList.remove('d-none');
+    // Update text on button
+    spanText.textContent = 'Processing...';
+  });
+</script>
+
     </form>
   </div>
 </div>
