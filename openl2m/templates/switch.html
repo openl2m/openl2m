@@ -34,37 +34,38 @@
 
           {% if connection.can_get_client_data %}
           <td>
-<!--
-            <a href="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
-               class="btn btn-primary" data-bs-toggle="tooltip"
-               data-bs-title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time..."
-               >
-              {% if view == 'arp_lldp' %}
-                <i class="fa-solid fa-sync" aria-hidden="true"></i>
-                Refresh
-              {% else %}
-              <i class="fa-solid fa-sitemap" aria-hidden="true"></i>
-                Read
-              {% endif %} Eth/Arp/LLDP
-            </a>
--->
             <form
               action="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
-              method="post">
-              {% csrf_token %}
-              <button type="submit" name="Arp_Lldp" value="SUBMIT"
-                class="btn btn-primary"
-                data-bs-toggle="tooltip"
-                data-bs-title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time..."
+              method="post"
+              id="form_arp_lldp"
+              name="form_arp_lldp"
               >
-              {% if view == 'arp_lldp' %}
-                <i class="fa-solid fa-sync" aria-hidden="true"></i> Refresh
-              {% else %}
-                <i class="fa-solid fa-sitemap" aria-hidden="true"></i> Read
-              {% endif %} Eth/Arp/LLDP
+              {% csrf_token %}
+              <button type="submit" name="button_arp_lldp" id="button_arp_lldp" value="SUBMIT" class="btn btn-primary">
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_arp_lldp"></span>
+                <span id="spinner_arp_lldp_text"
+                    data-bs-toggle="tooltip" title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time...">
+                {% if view == 'arp_lldp' %}
+                  <i class="fa-solid fa-sync" aria-hidden="true"></i> Refresh
+                {% else %}
+                  <i class="fa-solid fa-sitemap" aria-hidden="true"></i> Read
+                {% endif %} Eth/Arp/LLDP
+                </span>
               </button>
-          </form>
-
+<script>
+  document.getElementById('form_arp_lldp').addEventListener('submit', function(event) {
+    const submitButton = document.getElementById('button_arp_lldp');
+    const spinner = submitButton.querySelector('.spinner-border');
+    const spanText = document.getElementById('spinner_arp_lldp_text')
+    // Disable the button
+    submitButton.disabled = true;
+    // Show the spinner
+    spinner.classList.remove('d-none');
+    // Update text on button
+    spanText.textContent = 'Processing...';
+  });
+</script>
+            </form>
           </td>
           {% endif %}
 
