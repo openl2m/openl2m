@@ -70,18 +70,33 @@
           {% endfor %}
           {# SUBMIT BUTTON #}
           <div class="text-end align-middle mt-2">
-            <input type="submit"
-                   name="submit_tag_edit_{{ iface.key|underscore }}"
-                   value="Update Vlans"
-                   class="btn btn-warning"
-                   data-bs-toggle="tooltip" title="Click here to change untagged and 802.1q-tagged vlans on interface '{{ iface.name }}'!"
-                   {% if request.user.profile.are_you_sure %}
-                   onclick="return confirm_change('Are you sure you want change the vlans on interface {{ iface.name }}? This may disconnect attached devices!')"
-                   {% endif %}
+            {# add spinner once submit is clicked #}
+            <button type="submit" class="btn btn-warning" id="spinnerSubmitButton_{{ iface.key|underscore }}"
+              {% if request.user.profile.are_you_sure %}
+              onclick="return confirm_change('Are you sure you want change the vlans on interface {{ iface.name }}? This may disconnect attached devices!')"
+              {% endif %}
             >
+              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_{{ iface.key|underscore }}"></span>
+              <span id="spinnerSubmitText_{{ iface.key|underscore }}"
+                    data-bs-toggle="tooltip" title="Click here to change untagged and 802.1q-tagged vlans on interface '{{ iface.name }}'!">
+                Update Vlans</span>
+            </button>
           </div>
-          {% if connection.can_allow_all %}
+          {# submit click spinner processing #}
           <script>
+            document.getElementById('tags_edit_{{ iface.key|underscore }}').addEventListener('submit', function(event) {
+              const submitButton = document.getElementById('spinnerSubmitButton_{{ iface.key|underscore }}');
+              const spinner = submitButton.querySelector('.spinner-border');
+              const spanText = document.getElementById('spinnerSubmitText_{{ iface.key|underscore }}')
+              // Disable the button
+              submitButton.disabled = true;
+              // Show the spinner
+              spinner.classList.remove('d-none');
+              // Update text on button
+              spanText.textContent = 'Processing...';
+            });
+
+          {% if connection.can_allow_all %}
             function allow_all_clicked_{{ iface.key|underscore }}(allow_all) {
               if (allow_all.checked) {
                 // uncheck all individual vlans
@@ -98,8 +113,8 @@
                 allow_all.checked = false
               }
             }
-          </script>
           {% endif %}
+          </script>
         </form>
       </div>
     </div>
