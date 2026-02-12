@@ -105,25 +105,34 @@
 
           {% if connection.can_reload_all %}
           <td>
-            <!--
-            <a href="{% url 'switches:switch_reload' group.id switch.id view %}"
-               data-bs-toggle="tooltip"
-               data-bs-title="Click here to fully reload all data for this switch! This may take some time..."
-               class="btn btn-primary">
-              <i class="fa-solid fa-sync" aria-hidden="true"></i> Reload All
-            </a>
-          -->
             <form
               action="{% url 'switches:switch_reload' group.id switch.id view %}"
-              method="post">
+              method="post"
+              id="form_reload"
+              name="form_reload">
               {% csrf_token %}
-              <button type="submit" name="Reload" value="SUBMIT"
+              <button type="submit" id="button_reload" name="button_reload" value="SUBMIT"
                 class="btn btn-primary"
-                data-bs-toggle="tooltip"
-                data-bs-title="Click here to fully reload all data for this switch! This may take some time..."
               >
-                <i class="fa-solid fa-sync" aria-hidden="true"></i> Reload All
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save"></span>
+                <span id="spinner_reload_text"
+                      data-bs-toggle="tooltip" title="Click here to fully reload all data for this switch! This may take some time...">
+                  <i class="fa-solid fa-sync" aria-hidden="true"></i> Reload All
+                </span>
               </button>
+<script>
+  document.getElementById('form_reload').addEventListener('submit', function(event) {
+    const submitButton = document.getElementById('button_reload');
+    const spinner = submitButton.querySelector('.spinner-border');
+    const spanText = document.getElementById('spinner_reload_text')
+    // Disable the button
+    submitButton.disabled = true;
+    // Show the spinner
+    spinner.classList.remove('d-none');
+    // Update text on button
+    spanText.textContent = 'Reloading...';
+  });
+</script>
             </form>
           </td>
           {% endif %}
