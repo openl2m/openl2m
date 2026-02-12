@@ -2,7 +2,7 @@
 {% load static %}
 
 <div class="container-fluid">
-<form name="bulkedit_form"
+<form id="bulkedit_form" name="bulkedit_form"
       action="{% url 'switches:switch_bulkedit' group.id switch.id %}"
       method="post">
 {% csrf_token %}
@@ -10,13 +10,38 @@
   <div class="card border-default">
 
     <div class="card-header bg-default">
+<!--
       <input type="submit" id="bulk_submit" name="bulk_submit" disabled
             class="btn btn-primary"
             value="Change Selected Interfaces NOW"
             onclick="return confirm_change('Are you sure you want change the selected interfaces?')"
             data-bs-toggle="tooltip"
             title="Click to submit changes to the selected interfaces now!">
+-->
+      <button type="submit" id="bulk_submit" name="bulk_submit" disabled
+            class="btn btn-primary"
+            onclick="return confirm_change('Are you sure you want change the selected interfaces?')">
+        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_bulkedit"></span>
+        <span id="spinner_bulkedit_text"
+                      data-bs-toggle="tooltip" title="Click to submit changes to the selected interfaces now! This may take some time...">
+          Change All Selected Interfaces
+        </span>
+      </button>
+
     </div>
+<script>
+  document.getElementById('bulkedit_form').addEventListener('submit', function(event) {
+    const submitButton = document.getElementById('bulk_submit');
+    const spinner = submitButton.querySelector('.spinner-border');
+    const spanText = document.getElementById('spinner_bulkedit_text')
+    // Disable the button
+    submitButton.disabled = true;
+    // Show the spinner
+    spinner.classList.remove('d-none');
+    // Update text on button
+    spanText.textContent = 'Processing...';
+  });
+</script>
 
     <div class="card-body">
       <div class="table-responsive">
