@@ -71,31 +71,35 @@
 
           {% if connection.save_needed %}
           <td>
-<!--
-            <a href="{% url 'switches:switch_save_config' group.id switch.id %}"
-               data-bs-toggle="tooltip"
-               data-bs-title="Click here to save changes to the startup config of the switch!"
-               class="btn btn-warning">
-              <i class="fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
-                Save Changes
-              <i class="fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
-            </a>
--->
             <form
               action="{% url 'switches:switch_save_config' group.id switch.id %}"
-              method="post">
+              method="post"
+              id="form_save_config"
+              name="form_save_config">
               {% csrf_token %}
-              <button type="submit" name="Reload" value="SUBMIT"
-                class="btn btn-warning"
-                data-bs-toggle="tooltip"
-                data-bs-title="Click here to save changes to the startup config of the switch!"
-              >
-                <i class="fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
-                Save Changes
-                <i class="fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
+              <button type="submit" id="button_save" name="button_save" value="SUBMIT" class="btn btn-warning">
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save"></span>
+                <span id="spinner_save_text"
+                      data-bs-toggle="tooltip" title="Click here to save changes to the startup config of the switch! This may take some time...">
+                  <i class="fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
+                  Save Changes
+                  <i class="fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
+                </span>
               </button>
+<script>
+  document.getElementById('form_save_config').addEventListener('submit', function(event) {
+    const submitButton = document.getElementById('button_save');
+    const spinner = submitButton.querySelector('.spinner-border');
+    const spanText = document.getElementById('spinner_save_text')
+    // Disable the button
+    submitButton.disabled = true;
+    // Show the spinner
+    spinner.classList.remove('d-none');
+    // Update text on button
+    spanText.textContent = 'Processing...';
+  });
+</script>
             </form>
-
           </td>
           {% endif %}
 
