@@ -144,36 +144,57 @@
                           </td>
                         </tr>
                         {% endif %}
+                        <tr>
+                          <td colspan="2">
+                            <input type="hidden" id="id" name="template_id" value="{{ t.id }}">
+                            &nbsp;
+                            <button type="submit" name="template_form_submit{{ t.id }}" id="template_form_submit{{ t.id }}"
+                                    disabled class="btn btn-primary">
+                              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_template_form_{{ t.id }}"></span>
+                              <span id="spinner_template_form_{{ t.id }}_text"
+                                    data-bs-toggle="tooltip" title="Click to run command template! This may take some time...">Run</span>
+                            </button>
+                          </td>
+                        </tr>
                       </tbody>
                     </table>
-                    <input type="hidden" id="id" name="template_id" value="{{ t.id }}">
-                  &nbsp;<input type="submit" disabled value="Run" class="btn btn-primary" data-bs-toggle="tooltip"
-                               name="template_form_submit{{ t.id }}" id="template_form_submit{{ t.id }}"
-                               title="Click to run command template">
-              </form>
-              {# add some client-side validation #}
-              <script>
-                function templateInputChanged{{ t.id }}() {
-                  const thisForm = document.getElementById('command_template_{{ t.id }}_form');
-                  const submitButton = document.getElementById('template_form_submit{{ t.id }}');
-                  var setEnable = false;
-                  // dynamically read the form elements here
-                  for (let i = 0; i < thisForm.elements.length; i++) {
-                    const element = thisForm.elements[i];
-                    if (element.type === 'text' && element.value.trim() !== element.defaultValue) {
-                      setEnable = true;   // input changes, allow submit
-                    }
-                    else if (element.type === 'select-one' && element.value !== "") {
-                      setEnable = true;   // input changes, allow submit
-                    }
-                  }
-                  if (setEnable) {
-                    submitButton.disabled = false;
-                  } else {
+                {# add some client-side validation #}
+                <script>
+                  // submit spinner handling
+                  document.getElementById('command_template_{{ t.id }}_form').addEventListener('submit', function(event) {
+                    const submitButton = document.getElementById('template_form_submit{{ t.id }}');
+                    const spinner = submitButton.querySelector('.spinner-border');
+                    const spanText = document.getElementById('spinner_template_form_{{ t.id }}_text')
+                    // Disable the button
                     submitButton.disabled = true;
+                    // Show the spinner
+                    spinner.classList.remove('d-none');
+                    // Update text on button
+                    spanText.textContent = 'Processing...';
+                  });
+                  // check if input has been selected
+                  function templateInputChanged{{ t.id }}() {
+                    const thisForm = document.getElementById('command_template_{{ t.id }}_form');
+                    const submitButton = document.getElementById('template_form_submit{{ t.id }}');
+                    var setEnable = false;
+                    // dynamically read the form elements here
+                    for (let i = 0; i < thisForm.elements.length; i++) {
+                      const element = thisForm.elements[i];
+                      if (element.type === 'text' && element.value.trim() !== element.defaultValue) {
+                        setEnable = true;   // input changes, allow submit
+                      }
+                      else if (element.type === 'select-one' && element.value !== "") {
+                        setEnable = true;   // input changes, allow submit
+                      }
+                    }
+                    if (setEnable) {
+                      submitButton.disabled = false;
+                    } else {
+                      submitButton.disabled = true;
+                    }
                   }
-                }
-              </script>
+                </script>
+              </form>
             </div>{# class card-body #}
           </div> {# class card #}
         </div>{# collapse #}
