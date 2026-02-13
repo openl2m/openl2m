@@ -164,7 +164,7 @@
                   document.getElementById('command_template_{{ t.id }}_form').addEventListener('submit', function(event) {
                     const submitButton = document.getElementById('template_form_submit{{ t.id }}');
                     const spinner = submitButton.querySelector('.spinner-border');
-                    const spanText = document.getElementById('spinner_template_form_{{ t.id }}_text')
+                    const spanText = document.getElementById('spinner_template_form_{{ t.id }}_text');
                     // Disable the button
                     submitButton.disabled = true;
                     // Show the spinner

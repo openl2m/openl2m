@@ -87,7 +87,7 @@
             document.getElementById('tags_edit_{{ iface.key|underscore }}').addEventListener('submit', function(event) {
               const submitButton = document.getElementById('spinnerSubmitButton_{{ iface.key|underscore }}');
               const spinner = submitButton.querySelector('.spinner-border');
-              const spanText = document.getElementById('spinnerSubmitText_{{ iface.key|underscore }}')
+              const spanText = document.getElementById('spinnerSubmitText_{{ iface.key|underscore }}');
               // Disable the button
               submitButton.disabled = true;
               // Show the spinner

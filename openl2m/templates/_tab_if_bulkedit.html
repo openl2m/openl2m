@@ -33,7 +33,7 @@
   document.getElementById('bulkedit_form').addEventListener('submit', function(event) {
     const submitButton = document.getElementById('bulk_submit');
     const spinner = submitButton.querySelector('.spinner-border');
-    const spanText = document.getElementById('spinner_bulkedit_text')
+    const spanText = document.getElementById('spinner_bulkedit_text');
     // Disable the button
     submitButton.disabled = true;
     // Show the spinner
@@ -255,7 +255,9 @@
 {% if connection.vlan_count %}
   const initial_vlan_change_choice = document.getElementById('bulk_vlan_change').value;
 {% endif %}
+{% if connection.poe_capable %}
   const initial_poe_change_choice = document.getElementById('bulk_poe_change').value;
+{% endif %}
   function enable_bulk_submit() {
     // is at least one interface checked?
     var checkboxes = document.querySelectorAll('input[name="bulk_interface_list"]');
@@ -288,12 +290,14 @@
     }
 {% endif %}
 
+{% if connection.poe_capable %}
     // poe change (select elemenet):
     const poe_change = document.getElementById('bulk_poe_change');
     if (poe_change.value !== initial_poe_change_choice) {
       submitButton.disabled = false;   // selected vlan changed, enable the submit button
       return
     }
+{% endif %}
 
     // check description change (a text input element):
     const description_change = document.getElementById('bulk_new_description');
