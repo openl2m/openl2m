@@ -59,8 +59,8 @@
                 <td>
                   {% if iface.untagged_vlan > 0 %}
                     {% if connection.can_change_vlan and iface.lacp_type == LACP_IF_TYPE_NONE  %}
-                      <form name="vlanform{{ forloop.counter }}"
-                            id="vlanform{{ forloop.counter }}"
+                      <form name="vlan_form_{{ forloop.counter }}"
+                            id="vlan_form_{{ forloop.counter }}"
                             action="{% url 'switches:pvid_change' group.id switch.id iface.key %}"
                             method="post"
                             >
@@ -89,7 +89,7 @@
                         </button>
 <script>
   // add listener to form submit
-  document.getElementById('vlanform{{ forloop.counter }}').addEventListener('submit', function(event) {
+  document.getElementById('vlan_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
     const submitButton = document.getElementById('vlan_submit{{ forloop.counter }}');
     const spinner = submitButton.querySelector('.spinner-border');
     const spanText = document.getElementById('spinner_vlan_submit{{ forloop.counter }}_text');
