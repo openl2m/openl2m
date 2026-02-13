@@ -76,15 +76,31 @@
                             </option>
                           {% endfor %}
                         </select>
-                        <input type="submit" disabled
-                               id="vlan_submit{{ forloop.counter }}"
-                               value="Change"
-                               class="btn btn-primary"
-                               data-bs-toggle="tooltip" title="Click here to change vlan!"
+                        <button type="submit" id="vlan_submit{{ forloop.counter }}" class="btn btn-primary" disabled
                             {% if request.user.profile.are_you_sure %}
-                               onclick="return confirm_change('Are you sure you want change VLAN on interface {{ iface.name }}?')"
+                                onclick="return confirm_change('Are you sure you want change VLAN on interface {{ iface.name }}?')"
                             {% endif %}
                         >
+                          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save"></span>
+                          <span id="spinner_vlan_submit{{ forloop.counter }}_text"
+                                data-bs-toggle="tooltip" title="Click here to change vlan!">
+                            <i class="fa-solid fa-sync" aria-hidden="true"></i>Change
+                          </span>
+                        </button>
+<script>
+  // add listener to form submit
+  document.getElementById('vlanform{{ forloop.counter }}').addEventListener('submit', function(event) {
+    const submitButton = document.getElementById('vlan_submit{{ forloop.counter }}');
+    const spinner = submitButton.querySelector('.spinner-border');
+    const spanText = document.getElementById('spinner_vlan_submit{{ forloop.counter }}_text');
+    // Disable the button
+    submitButton.disabled = true;
+    // Show the spinner
+    spinner.classList.remove('d-none');
+    // Update text on button
+    spanText.textContent = 'Updating...';
+  });
+</script>
                       </form>
                       <!-- Add script to detect vlan input change and enable submit -->
                       <script>
