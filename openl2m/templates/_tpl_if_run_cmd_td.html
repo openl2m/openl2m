@@ -1,0 +1,54 @@
+{% load helpers %}
+{% load static %}
+
+<td>
+  <form id="interface_command_form_{{forloop.counter}}"
+        name="interface_command_form_{{forloop.counter}}"
+        action="{% url 'switches:interface_cmd_output' group.id switch.id iface.key %}"
+        method="post">
+    {% csrf_token %}
+    <input type="hidden" name="if_name" value="{{ iface.name }}">
+    <select name="command_id" data-bs-toggle="tooltip" title="Select a command run!">
+      <optgroup label="Commands available:">
+      {% for c in switch.command_list.interface_commands.all %}
+        <option value="{{ c.id }}">{{ c.name }}</option>
+      {% endfor %}
+      </optgroup>
+      {% if request.user.is_superuser or request.user.is_staff %}
+        {% if switch.command_list.interface_commands_staff.count %}
+          <optgroup label="Staff commands:">
+          {% for c in switch.command_list.interface_commands_staff.all %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+          </optgroup>
+        {% endif %}
+      {% endif %}
+    </select>
+    &nbsp;
+    <button type="submit" id="interface_command_submit_{{ forloop.counter }}" class="btn btn-primary"
+        {% if request.user.profile.are_you_sure %}
+            onclick="return confirm_change('Are you sure you want run this command on interface {{ iface.name }}?')"
+        {% endif %}
+    >
+      <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save"></span>
+      <span id="spinner_interface_command_submit_{{ forloop.counter }}_text"
+            data-bs-toggle="tooltip" title="Click here to run this command!">
+        <i class="fa-solid fa-sync" aria-hidden="true"></i>Run
+      </span>
+    </button>
+    <script>
+      // add listener to form submit
+      document.getElementById('interface_command_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
+        const submitButton = document.getElementById('interface_command_submit_{{ forloop.counter }}');
+        const spinner = submitButton.querySelector('.spinner-border');
+        const spanText = document.getElementById('spinner_interface_command_submit_{{ forloop.counter }}_text');
+        // Disable the button
+        submitButton.disabled = true;
+        // Show the spinner
+        spinner.classList.remove('d-none');
+        // Update text on button
+        spanText.textContent = 'Running...';
+      });
+    </script>
+  </form>
+</td>

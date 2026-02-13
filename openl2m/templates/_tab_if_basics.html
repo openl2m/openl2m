@@ -227,9 +227,9 @@
                       }
                     </script>
                     <form name="description_form_{{ forloop.counter }}"
-                      id="description_form_{{ forloop.counter }}"
-                      action="{% url 'switches:description_change' group.id switch.id iface.key %}"
-                      method="post"
+                          id="description_form_{{ forloop.counter }}"
+                          action="{% url 'switches:description_change' group.id switch.id iface.key %}"
+                          method="post"
                       >
                       {% csrf_token %}
                       <input type="text" size=40 maxlength="{{ connection.max_description_size }}" name="new_description" value="{{ iface.description }}"
@@ -269,32 +269,7 @@
 
                 {% if connection.can_run_commands %}
                   {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
-                    <td>
-                      <form name="interface_command_form_{{forloop.counter}}"
-                            action="{% url 'switches:interface_cmd_output' group.id switch.id iface.key %}"
-                            method="post">
-                        {% csrf_token %}
-                        <select name="command_id" data-bs-toggle="tooltip" title="Select a command run!">
-                          <optgroup label="Commands available:">
-                          {% for c in switch.command_list.interface_commands.all %}
-                            <option value="{{ c.id }}">{{ c.name }}</option>
-                          {% endfor %}
-                          </optgroup>
-                          {% if request.user.is_superuser or request.user.is_staff %}
-                            {% if switch.command_list.interface_commands_staff.count %}
-                              <optgroup label="Staff commands:">
-                              {% for c in switch.command_list.interface_commands_staff.all %}
-                                <option value="{{ c.id }}">{{ c.name }}</option>
-                              {% endfor %}
-                              </optgroup>
-                            {% endif %}
-                          {% endif %}
-                        </select>
-                        <input type="hidden" name="if_name" value="{{ iface.name }}">
-                        &nbsp;<input type="submit" value="Run" class="btn btn-primary"
-                                     data-bs-toggle="tooltip" title="Click here to run command!">
-                      </form>
-                    </td>
+                    {% include "_tpl_if_run_cmd_td.html" %}
                   {% endif %} {# can_run_commands #}
                 {% endif %}
 
@@ -394,31 +369,7 @@
 
               {% if connection.can_run_commands %}
                 {% if switch.command_list.interface_commands.count or switch.command_list.interface_commands_staff.count %}
-                  <td>
-                    <form name="interface_command_form_{{forloop.counter}}"
-                          action="{% url 'switches:interface_cmd_output' group.id switch.id iface.key %}"
-                          method="post">
-                      {% csrf_token %}
-                      <select name="command_id" data-bs-toggle="tooltip" title="Select command to run">
-                        <optgroup label="Commands available:">
-                        {% for c in switch.command_list.interface_commands.all %}
-                          <option value="{{ c.id }}">{{ c.name }}</option>
-                        {% endfor %}
-                        </optgroup>
-                        {% if request.user.is_superuser or request.user.is_staff %}
-                          {% if switch.command_list.interface_commands_staff.count %}
-                            <optgroup label="Staff commands:">
-                            {% for c in switch.command_list.interface_commands_staff.all %}
-                              <option value="{{ c.id }}">{{ c.name }}</option>
-                            {% endfor %}
-                            </optgroup>
-                          {% endif %}
-                        {% endif %}
-                      </select>
-                      <input type="hidden" name="if_name" value="{{ iface.name }}">
-                      &nbsp;<input type="submit" value="Run" class="btn btn-primary" data-bs-toggle="tooltip" title="Click here to run command!">
-                    </form>
-                  </td>
+                  {% include "_tpl_if_run_cmd_td.html" %}
                 {% endif %}
               {% endif %} {# can_run_commands #}
             {% endif %} {# not manageable #}
