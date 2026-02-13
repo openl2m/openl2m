@@ -83,9 +83,19 @@ urlpatterns = [
         name="switch_bulkedit",
     ),
     path(
-        "<int:group_id>/<int:switch_id>/vlan_manage/",
-        views.SwitchVlanManage.as_view(),
-        name="switch_vlan_manage",
+        "<int:group_id>/<int:switch_id>/vlan_create/",
+        views.SwitchVlanCreate.as_view(),
+        name="switch_vlan_create",
+    ),
+    path(
+        "<int:group_id>/<int:switch_id>/vlan_update/",
+        views.SwitchVlanUpdate.as_view(),
+        name="switch_vlan_update",
+    ),
+    path(
+        "<int:group_id>/<int:switch_id>/vlan_delete/",
+        views.SwitchVlanDelete.as_view(),
+        name="switch_vlan_delete",
     ),
     path(
         "<int:group_id>/<int:switch_id>/command/",

@@ -1102,11 +1102,92 @@ def bulkedit_processor(
     }
     return results
 
+def parse_vlan_form_info(request):
+
+    # parse form items, validate vlan id:
+    try:
+        vlan_id = int(request.POST.get("vlan_id", -1))
+    except Exception:
+        # on any error, set vlan = -1:
+        vlan_id = -1
+    # and vlan name:
+    vlan_name = str(request.POST.get("vlan_name", "")).strip()
+
+    return (vlan_id, vlan_name)
 
 #
-# Manage vlans on a device
+# Create a new vlan on a device
 #
-class SwitchVlanManage(LoginRequiredMixin, View):
+class SwitchVlanCreate(LoginRequiredMixin, View):
+    """
+    Create a vlan on a device. Form data will be POST-ed.
+
+    Params:
+        request:    HttpRequest() object
+        group_id (int): SwitchGroup() pk
+        switch_id (int): Switch() pk
+
+    Returns:
+        render() via success_page or error_page with appropriate success or failure info.
+    """
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchVlanCreate() - POST called")
+
+        # parse form items, validate vlan id:
+        (vlan_id, vlan_name) = parse_vlan_form_info(request)
+
+        retval, info = perform_switch_vlan_add(
+            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+
+
+#
+# Update a vlan on a device
+#
+class SwitchVlanUpdate(LoginRequiredMixin, View):
+    """
+    Update a vlan on a device. Form data will be POST-ed.
+
+    Params:
+        request:    HttpRequest() object
+        group_id (int): SwitchGroup() pk
+        switch_id (int): Switch() pk
+
+    Returns:
+        render() via success_page or error_page with appropriate success or failure info.
+    """
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+    ):
+        dprint("SwitchVlanUpdate() - POST called")
+
+        # parse form items, validate vlan id:
+        (vlan_id, vlan_name) = parse_vlan_form_info(request)
+
+        retval, info = perform_switch_vlan_edit(
+            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+
+#
+# Delete a vlan on a device
+#
+class SwitchVlanDelete(LoginRequiredMixin, View):
     """
     Manage vlan to a device. Form data will be POST-ed.
 
@@ -1125,49 +1206,17 @@ class SwitchVlanManage(LoginRequiredMixin, View):
         group_id,
         switch_id,
     ):
-        dprint("SwitchVlanManage() - POST called")
+        dprint("SwitchVlanDelete() - POST called")
 
         # parse form items, validate vlan id:
-        try:
-            vlan_id = int(request.POST.get("vlan_id", -1))
-        except Exception:
-            # on any error, set vlan = -1:
-            vlan_id = -1
-        # and vlan name:
-        vlan_name = str(request.POST.get("vlan_name", "")).strip()
+        (vlan_id, vlan_name) = parse_vlan_form_info(request)
 
-        if request.POST.get("vlan_create"):
-            dprint("switch_vlan_manage(create)")
-            retval, info = perform_switch_vlan_add(
-                request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
-            )
-            if not retval:
-                return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-            return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
-
-        if request.POST.get("vlan_edit"):
-            dprint("switch_vlan_manage(edit)")
-            retval, info = perform_switch_vlan_edit(
-                request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
-            )
-            if not retval:
-                return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-            return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
-
-        if request.POST.get("vlan_delete"):
-            dprint("switch_vlan_manage(delete)")
-            retval, info = perform_switch_vlan_delete(
-                request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id
-            )
-            if not retval:
-                return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-            return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
-
-        error = Error()
-        error.status = True
-        error.description = f"UNKNOWN vlan management action: POST={dict(request.POST.items())}"
-        return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
-
+        retval, info = perform_switch_vlan_delete(
+            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 #
 # Change admin status, ie port Enable/Disable
