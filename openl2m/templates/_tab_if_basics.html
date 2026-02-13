@@ -83,7 +83,7 @@
                         >
                           <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save"></span>
                           <span id="spinner_vlan_submit{{ forloop.counter }}_text"
-                                data-bs-toggle="tooltip" title="Click here to change vlan!">
+                                data-bs-toggle="tooltip" title="Click here to change the untagged vlan!">
                             <i class="fa-solid fa-sync" aria-hidden="true"></i>Change
                           </span>
                         </button>
@@ -218,7 +218,7 @@
                     <script>
                       function checkDescrChanged{{ forloop.counter }}() {
                         const newDescr = document.getElementById('description{{ forloop.counter }}');
-                        const submitButton = document.getElementById('submit{{ forloop.counter }}');
+                        const submitButton = document.getElementById('description_submit_{{ forloop.counter }}');
                         if (newDescr.value.trim() !== newDescr.defaultValue) {
                           submitButton.disabled = false;   // Input changes, enable the submit button
                         } else {
@@ -226,8 +226,8 @@
                         }
                       }
                     </script>
-                    <form name="descriptionform{{ forloop.counter }}"
-                      id="descriptionform{{ forloop.counter }}"
+                    <form name="description_form_{{ forloop.counter }}"
+                      id="description_form_{{ forloop.counter }}"
                       action="{% url 'switches:description_change' group.id switch.id iface.key %}"
                       method="post"
                       >
@@ -236,15 +236,31 @@
                              id="description{{ forloop.counter }}"
                              data-bs-toggle="tooltip" title="Type the new description here!"
                              onkeyup="checkDescrChanged{{ forloop.counter }}()">
-                      <input type="submit" disabled
-                             id="submit{{ forloop.counter }}"
-                             value="Change"
-                             class="btn btn-primary"
-                             data-bs-toggle="tooltip" title="Click here to change description!"
+                      <button type="submit" id="description_submit_{{ forloop.counter }}" class="btn btn-primary" disabled
                           {% if request.user.profile.are_you_sure %}
-                             onclick="return confirm_change('Are you sure you want change the description on interface {{ iface.name }}?')"
+                              onclick="return confirm_change('Are you sure you want change the description on interface {{ iface.name }}?')"
                           {% endif %}
                       >
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save"></span>
+                        <span id="spinner_description_submit_{{ forloop.counter }}_text"
+                              data-bs-toggle="tooltip" title="Click here to change the description!">
+                          <i class="fa-solid fa-sync" aria-hidden="true"></i>Change
+                        </span>
+                      </button>
+<script>
+  // add listener to form submit
+  document.getElementById('description_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
+    const submitButton = document.getElementById('description_submit_{{ forloop.counter }}');
+    const spinner = submitButton.querySelector('.spinner-border');
+    const spanText = document.getElementById('spinner_description_submit_{{ forloop.counter }}_text');
+    // Disable the button
+    submitButton.disabled = true;
+    // Show the spinner
+    spinner.classList.remove('d-none');
+    // Update text on button
+    spanText.textContent = 'Updating...';
+  });
+</script>
                     </form>
                   {% else %}
                     {{ iface.description }}
