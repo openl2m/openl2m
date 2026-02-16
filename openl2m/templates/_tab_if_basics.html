@@ -81,7 +81,7 @@
                                 onclick="return confirm_change('Are you sure you want change VLAN on interface {{ iface.name }}?')"
                             {% endif %}
                         >
-                          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save"></span>
+                          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save_{{ forloop.counter }}"></span>
                           <span id="spinner_vlan_submit{{ forloop.counter }}_text"
                                 data-bs-toggle="tooltip" title="Click here to change the untagged vlan!">
                             <i class="fa-solid fa-sync" aria-hidden="true"></i>Change
@@ -128,7 +128,7 @@
                 {% endif %} {# vlan_count #}
 
                 {% if connection.poe_capable %}
-                  <td>
+                  <td class="m-0">
                   {% if iface.poe_entry %}
                     {% if connection.can_change_poe_status %}
                       {% if iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED %}
@@ -140,25 +140,60 @@
                           {% if request.user.profile.are_you_sure %}
                           onclick="return confirm_change('Are you sure you want to DISABLE POWER on interface {{ iface.name }}?')"
                           {% endif %}
-                          data-bs-toggle="tooltip"
+                        >
+                          {% csrf_token %}
                           {% if iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING %}
-                          {# fault or something like that #}
-                          title="PoE Enabled with FAULT! Click here to Disable PoE on interface {{ iface.name }}"
-                        >
-                          <input type="image" name="submit" src="{% static 'img/poe-fault.png' %}" alt="PoE Fault!">
+                            {# fault or something like that #}
+                            <!-- <input type="image" name="submit" src="{% static 'img/poe-fault.png' %}" alt="PoE Fault!"> -->
+                            <button type="submit" class="btn m-0 text-start" id="button_poe_change_{{forloop.counter}}" name="button_poe_change_{{forloop.counter}}">
+                              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_poe_change_{{ forloop.counter }}"></span>
+                              <span id="spinner_poe_change_{{forloop.counter}}_text"
+                                  data-bs-toggle="tooltip" title="PoE Enabled with FAULT! Click here to Disable PoE on interface {{ iface.name }}">
+                                <img class="m-0" src="{% static 'img/poe-fault.png' %}" alt="PoE Fault!" />
+                              </span>
+                            </button>
+
                           {% elif iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
-                          title="PoE Enabled and DELIVERING! Click here to Disable PoE on interface {{ iface.name }}"
-                        >
-                          <input type="image" name="submit" src="{% static 'img/poe-serving.png' %}" alt="PoE Delivering!">
+                            <!-- <input type="image" name="submit" src="{% static 'img/poe-serving.png' %}" alt="PoE Delivering!"> -->
+                            <button type="submit" class="btn m-0 text-start" id="button_poe_change_{{forloop.counter}}" name="button_poe_change_{{forloop.counter}}">
+                              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_poe_change_{{ forloop.counter }}"></span>
+                              <span id="spinner_poe_change_{{forloop.counter}}_text"
+                                  data-bs-toggle="tooltip" title="PoE Enabled and DELIVERING! Click here to Disable PoE on interface {{ iface.name }}">
+                                <img class="m-0" src="{% static 'img/poe-serving.png' %}" alt="PoE Delivering!" />
+                              </span>
+                            </button>
+
                             {% if iface.poe_entry.power_consumption_supported %}
                               {{ iface.poe_entry.power_consumed|humanize_power }}
                             {% endif %}
+
                           {% else %}
-                          title="PoE Enabled, NOT delivering! Click here to Disable PoE on interface {{ iface.name }}"
-                        >
-                          <input type="image" name="submit" src="{% static 'img/poe-enabled.png' %}" alt="PoE Enabled">
+                            <!-- <input type="image" name="submit" src="{% static 'img/poe-enabled.png' %}" alt="PoE Enabled"> -->
+                            <button type="submit" class="btn m-0 text-start" id="button_poe_change_{{forloop.counter}}" name="button_poe_change_{{forloop.counter}}">
+                              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_poe_change_{{ forloop.counter }}"></span>
+                              <span id="spinner_poe_change_{{forloop.counter}}_text"
+                                  data-bs-toggle="tooltip" title="PoE Enabled, NOT delivering! Click here to Disable PoE on interface {{ iface.name }}">
+                                <img class="m-0" src="{% static 'img/poe-enabled.png' %}" alt="PoE Enabled!" />
+                              </span>
+                            </button>
+
                           {% endif %}
-                          {% csrf_token %}
+<script>
+  // add listener to form submit
+  document.getElementById('poe_change_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
+    const submitButton = document.getElementById('button_poe_change_{{ forloop.counter }}');
+    const spinner = submitButton.querySelector('.spinner-border');
+    const spanText = document.getElementById('spinner_poe_change_{{ forloop.counter }}_text');
+    // for testing:
+    // event.preventDefault()
+    // Disable the button
+    submitButton.disabled = true;
+    // Show the spinner
+    spinner.classList.remove('d-none');
+    // Update text on button
+    spanText.textContent = 'Disabling...';
+  });
+</script>
                         </form>
 
                         {% if iface.allow_poe_toggle and iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING %}
@@ -171,15 +206,34 @@
                             {% if request.user.profile.are_you_sure %}
                             onclick="return confirm_change('Are you sure you want to TOGGLE POWER OFF/ON on interface {{ iface.name }}?')"
                             {% endif %}
-                            data-bs-toggle="tooltip"
-                            title="Toggle PoE Off and then On on interface {{ iface.name }}"
                             >
-                            <input type="image" name="submit" src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle">
                             {% csrf_token %}
+                            <!-- <input type="image" name="submit" src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle"> -->
+                            <button type="submit" class="btn m-0 text-start" id="button_poe_up_down_{{forloop.counter}}" name="button_poe_up_down_{{forloop.counter}}">
+                              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_poe_up_down_{{ forloop.counter }}"></span>
+                              <span id="spinner_poe_up_down_{{forloop.counter}}_text"
+                                  data-bs-toggle="tooltip" title="Toggle PoE Off and then On on interface {{ iface.name }}">
+                                <img class="m-0" src="{% static 'img/down-up.png' %}" alt="PoE Down/Up Toggle" />
+                              </span>
+                            </button>
+<script>
+  // add listener to form submit
+  document.getElementById('poe_up_down_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
+    const submitButton = document.getElementById('button_poe_up_down_{{ forloop.counter }}');
+    const spinner = submitButton.querySelector('.spinner-border');
+    const spanText = document.getElementById('spinner_poe_up_down_{{ forloop.counter }}_text');
+    // Disable the button
+    submitButton.disabled = true;
+    // Show the spinner
+    spinner.classList.remove('d-none');
+    // Update text on button
+    spanText.textContent = 'Toggling...';
+  });
+</script>
                           </form>
                         {% endif %}
 
-                      {% else %}{# PoE is down #}
+                      {% else %}{# PoE is admin-disabled #}
                         <form
                           id="poe_change_form_{{forloop.counter}}"
                           name="poe_change_form_{{forloop.counter}}"
@@ -188,11 +242,30 @@
                           {% if request.user.profile.are_you_sure %}
                           onclick="return confirm_change('Are you sure you want to ENABLE POWER on interface {{ iface.name }}?')"
                           {% endif %}
-                          data-bs-toggle="tooltip"
-                          title="PoE Disabled! Click here to Enable PoE on interface {{ iface.name }}"
                         >
-                        <input type="image" name="submit" src="{% static 'img/poe-disabled-0.png' %}" alt="PoE Disabled">
-                        {% csrf_token %}
+                          {% csrf_token %}
+                          <!-- <input type="image" name="submit" src="{% static 'img/poe-disabled-0.png' %}" alt="PoE Disabled"> -->
+                          <button type="submit" class="btn m-0 text-start" id="button_poe_change_{{forloop.counter}}" name="button_poe_change_{{forloop.counter}}">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_poe_change_{{ forloop.counter }}"></span>
+                            <span id="spinner_poe_change_{{forloop.counter}}_text"
+                                data-bs-toggle="tooltip" title="PoE Disabled! Click here to Enable PoE on interface {{ iface.name }}">
+                              <img class="m-0" src="{% static 'img/poe-disabled-0.png' %}" alt="PoE Disabled" />
+                            </span>
+                          </button>
+<script>
+  // add listener to form submit
+  document.getElementById('poe_change_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
+    const submitButton = document.getElementById('button_poe_change_{{ forloop.counter }}');
+    const spinner = submitButton.querySelector('.spinner-border');
+    const spanText = document.getElementById('spinner_poe_change_{{ forloop.counter }}_text');
+    // Disable the button
+    submitButton.disabled = true;
+    // Show the spinner
+    spinner.classList.remove('d-none');
+    // Update text on button
+    spanText.textContent = 'Enabling...';
+  });
+</script>
                         </form>
                       {% endif %}
                     {% else %}  {# driver or user cannot change poe #}
@@ -247,7 +320,7 @@
                               onclick="return confirm_change('Are you sure you want change the description on interface {{ iface.name }}?')"
                           {% endif %}
                       >
-                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save"></span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_description_{{ forloop.counter }}"></span>
                         <span id="spinner_description_submit_{{ forloop.counter }}_text"
                               data-bs-toggle="tooltip" title="Click here to change the description!">
                           <i class="fa-solid fa-sync" aria-hidden="true"></i>Change
