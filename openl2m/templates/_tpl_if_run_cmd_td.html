@@ -30,7 +30,7 @@
             onclick="return confirm_change('Are you sure you want run this command on interface {{ iface.name }}?')"
         {% endif %}
     >
-      <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save"></span>
+      <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_run_{{ forloop.counter }}"></span>
       <span id="spinner_interface_command_submit_{{ forloop.counter }}_text"
             data-bs-toggle="tooltip" title="Click here to run this command!">
         <i class="fa-solid fa-sync" aria-hidden="true"></i>Run
