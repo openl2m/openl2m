@@ -95,7 +95,8 @@
                             {% for switch_id, switch in group.members.items %}
                                 <form
                                     method="post"
-                                    id="{{ group_id }}_{{ switch_id}}"
+                                    id="device_{{ group_id }}_{{ switch_id}}"
+                                    name="device_{{ group_id }}_{{ switch_id}}"
                                     style="cursor: pointer;"
                                     class="list-group-item list-group-item-action"
                                     {% if switch.default_view == SWITCH_VIEW_BASIC %}
@@ -104,12 +105,37 @@
                                         action="{% url 'switches:switch_arp_lldp' group_id switch_id %}"
                                     {% endif %}>
                                     {% csrf_token %}
+                                    <!--
                                     <span onclick="submit_{{ group_id }}_{{ switch_id}}()">{{ switch.name }}</span>
                                     <script>
                                         function submit_{{ group_id }}_{{ switch_id}}() {
                                         let form = document.getElementById("{{ group_id }}_{{ switch_id}}");
                                         form.submit();
                                         }
+                                    </script>
+                                    -->
+                                    <button type="submit" value="SUBMIT" class="btn border-0"
+                                            id="button_submit_{{ group_id }}_{{ switch_id}}"
+                                            name="button_submit_{{ group_id }}_{{ switch_id}}">
+                                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_submit_{{ group_id }}_{{ switch_id}}"></span>
+                                        <span id="spinner_submit_{{ group_id }}_{{ switch_id}}_text"
+                                              data-bs-toggle="tooltip"
+                                              title="Click to connect to '{{ switch.name }}'">
+                                            {{ switch.name }}
+                                        </span>
+                                    </button>
+                                    <script>
+                                    document.getElementById('device_{{ group_id }}_{{ switch_id}}').addEventListener('submit', function(event) {
+                                        const submitButton = document.getElementById('button_submit_{{ group_id }}_{{ switch_id}}');
+                                        const spinner = submitButton.querySelector('.spinner-border');
+                                        const spanText = document.getElementById('spinner_submit_{{ group_id }}_{{ switch_id}}_text');
+                                        // Disable the button
+                                        submitButton.disabled = true;
+                                        // Show the spinner
+                                        spinner.classList.remove('d-none');
+                                        // Update text on button
+                                        spanText.textContent = 'Connecting to {{ switch.name }}...';
+                                    });
                                     </script>
                                 </form>
                             {% endfor %}
