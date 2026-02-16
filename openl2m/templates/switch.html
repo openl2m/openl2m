@@ -78,8 +78,8 @@
               name="form_save_config">
               {% csrf_token %}
               <button type="submit" id="button_save" name="button_save" value="SUBMIT" class="btn btn-warning">
-                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save"></span>
-                <span id="spinner_save_text"
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save_config"></span>
+                <span id="spinner_save_config_text"
                       data-bs-toggle="tooltip" title="Click here to save changes to the startup config of the switch! This may take some time...">
                   <i class="fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
                   Save Changes
@@ -90,7 +90,7 @@
   document.getElementById('form_save_config').addEventListener('submit', function(event) {
     const submitButton = document.getElementById('button_save');
     const spinner = submitButton.querySelector('.spinner-border');
-    const spanText = document.getElementById('spinner_save_text');
+    const spanText = document.getElementById('spinner_save_config_text');
     // Disable the button
     submitButton.disabled = true;
     // Show the spinner
@@ -114,7 +114,7 @@
               <button type="submit" id="button_reload" name="button_reload" value="SUBMIT"
                 class="btn btn-primary"
               >
-                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save"></span>
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_reload"></span>
                 <span id="spinner_reload_text"
                       data-bs-toggle="tooltip" title="Click here to fully reload all data for this switch! This may take some time...">
                   <i class="fa-solid fa-sync" aria-hidden="true"></i> Reload All
