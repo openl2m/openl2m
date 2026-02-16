@@ -12,7 +12,13 @@ of a shared distributed layer 2 ("switching") network.
 While primarily intended to manage network switches, OpenL2M can handle any device that has some
 sort of network API (e.g. SSH, Netconf, REST, etc.)
 
+
+__Note__: all features have been tested in a limited environment. You should validate functionality in a test environment
+with your specific devices, before using this in a Production setup! See License section below!
+
+
 __For Quick Testing:__ download the __Docker Compose__ test config at https://github.com/openl2m/docker-test
+
 
 __Features:__
 
@@ -30,6 +36,7 @@ __Features:__
 * pluggable backend to support new vendor devices, allowing easy development
 * and more...
 
+
 __Devices Supported:__
 
 In alphabetical order:
@@ -46,6 +53,7 @@ In alphabetical order:
 * Most devices supported by Napalm (read-only)
 
 See the documentation for more information about device compatibility and specific devices tested.
+
 
 __What's New:__
 
@@ -80,6 +88,7 @@ whether the interface is SSH, REST, NetConf, or other methods.
 See the documentation for more information. We now support Aruba AOS-CX and Juniper devices
 through custom drivers.
 
+
 __Why OpenL2M__:
 
 OpenL2M was developed in an attempt to learn
@@ -87,6 +96,7 @@ Django, and in the hope that it may some day provide a possibly useful
 application for distributed "basic" network switch management.
 It is developed to address the needs of distributed IT groups managing parts
 of a distributed layer 2 ("switching") network.
+
 
 __Requirements__:
 
@@ -96,6 +106,7 @@ This is minimal list of requirements. Read the documentation for more details.
 * Python v3.10 - v3.13 (v3.14 is not yet supported).
 * Postgres version 14 or higher (for Django 5.2).
 * NetSNMP packages on your Linux server, and ability to install and run python EzSNMP package.
+
 
 __License__:
 
@@ -112,6 +123,7 @@ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 more details.  You should have received a copy of the GNU General Public
 License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
+
 
 __Documentation__:
 
@@ -174,6 +186,11 @@ __VLAN Edit Menu:__ Add, Rename, or Delete vlans
 __Device Connections Graph:__
 
 <kbd><img src= "docs/_static/device-connections-graph.png" alt="Device Connections Graph"></kbd>
+
+
+__In-Progress Spinners:__ Many submit buttons have 'in progress' indications by way of showing 'spinners'
+
+<kbd><img src= "docs/_static/processing.png" alt="In-Progress spinner"></kbd>
 
 
 __Downloads__:

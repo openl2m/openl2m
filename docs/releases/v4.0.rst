@@ -18,6 +18,10 @@ This is initially support for the following drivers/devices:
 
 See the documentation for more details.
 
+.. note::
+
+  **As always, TEST before you use on Production devices !!!**
+
 
 New Configuration Options
 -------------------------
@@ -40,7 +44,8 @@ Version 4.0.1
 
 Release Date: TBD
 
-* add Junos PyEZ Netconf driver command timeout, defaults to 120 seconds
+* add 'in progress' spinners on submit buttons.
+* add Junos PyEZ Netconf driver command timeout, defaults to 120 seconds.
 
 Bug fixes:
 

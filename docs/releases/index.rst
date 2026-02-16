@@ -4,6 +4,10 @@
 Release Notes
 =============
 
+.. note::
+
+   **As always, TEST before you use OpenL2M on Production devices !!!**
+
 .. toctree::
    :maxdepth: 2
    :caption: Releases:
