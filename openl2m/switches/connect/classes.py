@@ -155,6 +155,7 @@ class Vlan:
         self.index: int = index  # the internal vlan index, used by some MIBs
         self.fdb_index: int = 0  # the Forward-DB index, from maps switch database to vlan index
         self.name: str = name
+        self.description: str = ""
         self.type: int = VLAN_TYPE_NORMAL  # mostly used for Cisco vlans, to avoid the 1000-1003 range
         self.admin_status: int = VLAN_ADMIN_ENABLED  # ENABLED or DISABLED
         self.status: int = VLAN_STATUS_OTHER  # 1-other-0, 2-permanent, 3-dynamic(gvrp)

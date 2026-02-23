@@ -21,15 +21,15 @@ and code at https://github.com/vincentbernat/pyhpecw7
 
 from django.http.request import HttpRequest
 from pyhpecw7.comware import HPCOM7
-#from pyhpecw7.features.vlan import Vlan as CwVlan
+from pyhpecw7.features.vlan import Vlan as CwVlan
 
 # used to disable unknown SSL cert warnings:
 import urllib3
 import traceback
 from typing import List
 
-from switches.connect.classes import Interface
-# NeighborDevice, Transceiver, Vlan
+from switches.connect.classes import Interface, Vlan
+# NeighborDevice, Transceiver
 from switches.connect.connector import Connector
 # from switches.connect.constants import (
 #     VLAN_ADMIN_DISABLED,
@@ -86,7 +86,7 @@ class HPECw7NcConnector(Connector):
         # self.can_change_poe_status = False - we do not have a test switch with PoE !
         self.can_change_description= False
         self.can_save_config= False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
-        self.can_reload_all= False  # if true, we can reload all our data (and show a button on screen for this)
+        self.can_reload_all= True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_tags= False  # True if this driver can edit 802.1q tagged vlans on interfaces
         self.can_allow_all= False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
@@ -107,23 +107,32 @@ class HPECw7NcConnector(Connector):
         self.add_more_info("System", "OS Version", self.nc_device.facts["os"])
         self.add_more_info("System", "Uptime", self.nc_device.facts["uptime"])
 
-        # try:
+        try:
             #
             # get vlan info
             #
+            command = "vlan.get_vlan_list()"
 
-            # for vlan_id, vlan_data in data.items():
-            #     dprint(f"Found vlan: {vlan_id}")
-            #     v = Vlan(id=int(vlan_id))
-            #     v.name = vlan_data["name"]
-            #     if vlan_data["status"] != "active":
-            #         v.admin_status = VLAN_ADMIN_DISABLED
-            #     self.add_vlan(v)
+            vlan_list = CwVlan(device=self.nc_device).get_vlan_list()
+            dprint(f"Vlans found:\n{vlan_list}")
+            for vlan_id in vlan_list:
+                dprint(f"Found vlan: {vlan_id}")
+
+                # get the Comware vlan:
+                cwv = CwVlan(device=self.nc_device, vlanid=vlan_id).get_config()
+                dprint(f"CWVlan = {cwv}")
+
+                # get OpenL2M Vlan() object!
+                v = Vlan(id=int(vlan_id))
+                v.name = cwv["name"]
+                v.description = cwv["descr"]
+
+                self.add_vlan(v)
 
             #
             # get interface information
             #
-            # for if_name, if_data in data["interfaces"].items():
+            # for if_name in self.nc_device.facts["interface_list"]:
             #     dprint(f"Found interface: {if_name}")
             #     dprint(f"IF_DATA=\n{if_data}\n")
             #     iface = Interface(if_name)
@@ -289,15 +298,15 @@ class HPECw7NcConnector(Connector):
             #             v.interfaces.append(if_name)
             #             iface.vrf_name = name
 
-        # except Exception as err:
-        #     dprint("  ERROR: {err}")
-        #     self.error.status = True
-        #     # self.error.description = f"Error running eAPI command = '{command_list}'!"
-        #     self.error.details = f"Cannot read device information: {format(err)}"
-        #     self.add_warning(
-        #         warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
-        #     )
-        #     return False
+        except Exception as err:
+            dprint(f"  ERROR in {command}: {format(err)}")
+            self.error.status = True
+            self.error.description = f"Error running '{command}'!"
+            self.error.details = f"Cannot read device information: {format(err)}"
+            self.add_warning(
+                warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
+            )
+            return False
 
         # NetConf gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
         # sort this to the human natural order we expect:
@@ -305,7 +314,7 @@ class HPECw7NcConnector(Connector):
 
         return True
 
-    def get_my_client_data(self) -> bool:
+    def get_my_client_data_NOT_USED_YET(self) -> bool:
         """
         read mac addressess, and lldp neigbor info.
         return True on success, False on error and set self.error variables
@@ -821,11 +830,18 @@ class HPECw7NcConnector(Connector):
     def _close_device(self) -> bool:
         """
         HPECw7NcConnector() close NetConf.
+        This is already done at the end if the Connector() class above.
         """
         dprint("HPECw7NcConnector()._close_device()")
 
+        if not self.nc_device:
+            dprint("  NOT needed!")
+            return True
+
+        # we still have a NetConf connection, close it.
         try:
             self.nc_device.close()
+            dprint("  OK")
             return True
         except Exception as err:
             dprint(f"ERROR: closing NetConf connection - {err}")
