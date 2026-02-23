@@ -27,6 +27,7 @@ from switches.utils import dprint
 from switches.constants import (
     CONNECTOR_TYPE_SNMP,
     CONNECTOR_TYPE_AOSCX,
+    CONNECTOR_TYPE_HPE_CW7_NC,
     CONNECTOR_TYPE_EAPI,
     CONNECTOR_TYPE_PYEZ,
     CONNECTOR_TYPE_COMMANDS_ONLY,
@@ -67,8 +68,10 @@ from switches.connect.snmp.netgear.connector import SnmpConnectorNetgear
 
 # from switches.connect.snmp.mikrotik.constants import ENTERPRISE_ID_MIKROTIK
 from switches.connect.snmp.mikrotik.connector import SnmpConnectorMikroTik
+
 from switches.connect.aruba_aoscx.connector import AosCxConnector
 from switches.connect.arista_eapi.connector import AristaApiConnector
+from switches.connect.hpe_cw7_nc.connector import HPECw7NcConnector
 from switches.connect.junos_pyez.connector import PyEZConnector
 from switches.connect.commands_only.connector import CommandsOnlyConnector
 
@@ -139,6 +142,10 @@ def get_connection_object(request: HttpRequest, group: SwitchGroup, switch: Swit
     # This is the "custom" Arista eAPI connector, using the device REST API.
     elif switch.connector_type == CONNECTOR_TYPE_EAPI:
         connection = AristaApiConnector(request, group, switch)
+
+    # This is the "custom" HPE Comware7 NetConf connector, using the device NetConf API.
+    elif switch.connector_type == CONNECTOR_TYPE_HPE_CW7_NC:
+        connection = HPECw7NcConnector(request, group, switch)
 
     # This is the "custom" Junos PyEZ connector, using the device NetConf API.
     elif switch.connector_type == CONNECTOR_TYPE_PYEZ:

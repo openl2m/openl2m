@@ -45,6 +45,8 @@ netaddr>=1.2.1
 netmiko>=4.6,<4.7
 #improved PostGreSQL support
 psycopg2-binary
+# Python 3 library for HPE Comware 7 NetConf drivers.
+py3hpecw7
 # We are using a clone of the Aruba pyaoscx library from github.com,
 # as there always seems to be some fix in there that we need that has
 # not been released yet to PyPi! :-(
