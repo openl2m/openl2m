@@ -21,6 +21,7 @@ and code at https://github.com/vincentbernat/pyhpecw7
 
 from django.http.request import HttpRequest
 from pyhpecw7.comware import HPCOM7
+#from pyhpecw7.features.vlan import Vlan as CwVlan
 
 # used to disable unknown SSL cert warnings:
 import urllib3
@@ -72,8 +73,11 @@ class HPECw7NcConnector(Connector):
         self.read_only = True
         if switch.description:
             self.add_more_info("System", "Description", switch.description)
-        # this holds the NetConf device connection:
-        self.device = None
+
+        # this holds the NetConf device connection.This cannot be cached:
+        self.nc_device = None
+        self.set_do_not_cache_attribute("nc_device")
+
         # capabilities supported by this eAPI driver:
         self.can_change_admin_status= False
         self.can_change_vlan= False
@@ -96,18 +100,18 @@ class HPECw7NcConnector(Connector):
         if not self._open_device():
             return False  # self.error already set!
 
-        # try:
-            #
-            # get device version
-            #
-            # self.add_more_info("System", "Model", data["modelName"])
-            # self.add_more_info("System", "Serial", data["serialNumber"])
-            # self.add_more_info("System", "OS Version", data["version"])
-            # self.add_more_info("System", "Uptime", time_duration(int(data["uptime"])))
+        dprint(f"Device facts = {self.nc_device.facts}")
+        self.add_more_info("System", "Hostname", self.nc_device.facts["hostname"])
+        self.add_more_info("System", "Model", self.nc_device.facts["model"])
+        self.add_more_info("System", "Serial", self.nc_device.facts["serial_number"])
+        self.add_more_info("System", "OS Version", self.nc_device.facts["os"])
+        self.add_more_info("System", "Uptime", self.nc_device.facts["uptime"])
 
+        # try:
             #
             # get vlan info
             #
+
             # for vlan_id, vlan_data in data.items():
             #     dprint(f"Found vlan: {vlan_id}")
             #     v = Vlan(id=int(vlan_id))
@@ -321,7 +325,7 @@ class HPECw7NcConnector(Connector):
             #     dprint(f"Ethernet: {mac}")
             #     # add this to the known addressess:
             #     if mac["interface"] == "Router":
-            #         # internal ethernet on the Arista device
+            #         # internal ethernet on the device
             #         dprint("  Ignored!")
             #         continue
             #     self.add_learned_ethernet_address(
@@ -735,47 +739,47 @@ class HPECw7NcConnector(Connector):
     # here we override the SSH command execution using Netmiko,
     # and implement it using the eAPI.
     #
-    def _execute_command(self, command: str) -> bool:
-        """
-        Execute a single command on the device using eAPI.
-        Save the command output to self.output
-        On error, set self.error as needed.
+    # def _execute_command(self, command: str) -> bool:
+    #     """
+    #     Execute a single command on the device using eAPI.
+    #     Save the command output to self.output
+    #     On error, set self.error as needed.
 
-        Args:
-            command: the string the execute as a command on the device
+    #     Args:
+    #         command: the string the execute as a command on the device
 
-        Returns:
-            True if success, False on failure.
-            On success, save the command output to self.output.
-            On failure, set self.error as applicable.
-        """
-        dprint(f"HPECw7NcConnector()._execute_command() '{command}'")
+    #     Returns:
+    #         True if success, False on failure.
+    #         On success, save the command output to self.output.
+    #         On failure, set self.error as applicable.
+    #     """
+    #     dprint(f"HPECw7NcConnector()._execute_command() '{command}'")
 
-        if not self._open_device():
-            dprint("_open_device() failed!")
-            return False
+    #     if not self._open_device():
+    #         dprint("_open_device() failed!")
+    #         return False
 
-        # try:
-        #     # run the command:
-        #     json_data = self._eapi_run_command(command=command, format="text")
-        #     # The 'result' key will contain a list of command output.
-        #     # dprint(f"RETURN:\n{json_data}")
-        #     self.netmiko_output = json_data.get("result")[0]["output"]
-        #     return True
-        # except Exception as err:
-        #     dprint(f"  ERROR running '{command}': {err}")
-        #     self.error.status = True
-        #     self.error.description = f"Error running eAPI command = '{command}'!"
-        #     self.error.details = f"Cannot read device information: {format(err)}"
-        #     self.add_warning(
-        #         warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
-        #     )
+    #     # try:
+    #     #     # run the command:
+    #     #     json_data = self._eapi_run_command(command=command, format="text")
+    #     #     # The 'result' key will contain a list of command output.
+    #     #     # dprint(f"RETURN:\n{json_data}")
+    #     #     self.netmiko_output = json_data.get("result")[0]["output"]
+    #     #     return True
+    #     # except Exception as err:
+    #     #     dprint(f"  ERROR running '{command}': {err}")
+    #     #     self.error.status = True
+    #     #     self.error.description = f"Error running eAPI command = '{command}'!"
+    #     #     self.error.details = f"Cannot read device information: {format(err)}"
+    #     #     self.add_warning(
+    #     #         warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
+    #     #     )
 
-        return False
+    #     return False
 
     def _open_device(self) -> bool:
         """
-        Arista API is stateless, so no need to open...
+        Open the NetConf connection (stateful, tcp)
         return True on success, False on failure, and will set self.error
         """
         dprint("HPECw7NcConnector()._open_device()")
@@ -795,19 +799,19 @@ class HPECw7NcConnector(Connector):
             # or all warnings:
             # urllib3.disable_warnings()
 
-        self.device = HPCOM7(
+        self.nc_device = HPCOM7(
             host=self.switch.primary_ip4,
             username=self.switch.netmiko_profile.username,
             password=self.switch.netmiko_profile.password,
         )
         try:
-            self.device.open()
+            self.nc_device.open()
             dprint("  _open_device() OK!")
             return True
         except Exception as err:
             dprint(f"ERROR: opening NetConf connection - {err}")
             self.error.status = True
-            self.error.description = "Error connectin to this device via NetConf!"
+            self.error.description = "Error connecting to this device via NetConf!"
             self.error.details = f"ERROR: {format(err)}\n{traceback.format_exc()}"
             self.add_warning(
                 warning=f"Cannot connect via NetConf: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
@@ -820,7 +824,18 @@ class HPECw7NcConnector(Connector):
         """
         dprint("HPECw7NcConnector()._close_device()")
 
-        return False
+        try:
+            self.nc_device.close()
+            return True
+        except Exception as err:
+            dprint(f"ERROR: closing NetConf connection - {err}")
+            self.error.status = True
+            self.error.description = "Error closing connection to this device!"
+            self.error.details = f"ERROR: {format(err)}\n{traceback.format_exc()}"
+            self.add_warning(
+                warning=f"Error closing connection: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
+            )
+            return False
 
     def _run_commands(self, commands: list, action: str) -> bool:
         """Run multiple commands using the eAPI.
