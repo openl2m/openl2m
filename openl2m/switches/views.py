@@ -387,6 +387,7 @@ def switch_view(
     interface_name="",
     command_string="",
     command_template=False,
+    save_needed=False,
 ):
     """
     This shows the various data about a switch, either from a new SNMP read,
@@ -472,6 +473,10 @@ def switch_view(
             log.save()
             return error_page(request=request, group=group, switch=switch, error=conn.error)
 
+    # force save_needed if set:
+    if save_needed:
+        conn.save_needed = True
+        
     # done with reading switch data, so save cachable/session data
     conn.save_cache()
 
@@ -1878,7 +1883,8 @@ class SwitchReload(LoginRequiredMixin, MyView):
         clear_switch_cache(request)
         counter_increment(COUNTER_VIEWS)
 
-        return switch_view(request=request, group_id=group_id, switch_id=switch_id, view=view)
+        save_needed = bool(request.POST.get("save_needed", default=""))
+        return switch_view(request=request, group_id=group_id, switch_id=switch_id, view=view, save_needed=save_needed)
 
 
 class SwitchActivity(LoginRequiredMixin, View):

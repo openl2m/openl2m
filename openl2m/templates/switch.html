@@ -111,6 +111,9 @@
               id="form_reload"
               name="form_reload">
               {% csrf_token %}
+              {% if connection.save_needed %}
+              <input type="hidden" id="save_needed" name="save_needed" value="YES">
+              {% endif %}
               <button type="submit" id="button_reload" name="button_reload" value="SUBMIT"
                 class="btn btn-primary"
               >
