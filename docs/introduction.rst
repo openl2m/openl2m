@@ -91,11 +91,11 @@ matching "Trunk", or with port speeds above 9.5Gbps can be matched to be off-lim
 OpenL2M uses the `Django <https://www.djangoproject.com/>`_ framework with a `PostgreSQL <http://www.postgresql.org/>`_ database.
 It uses the `Python v3 <http://www.python.org/>`_ programming language. Most common switches are supported via SNMP v3 or v2c, and SSH.
 
-See the installation section for help with getting OpenL2M up and running quickly.
+:doc:`See the installation section <installation/index>` for help with getting OpenL2M up and running quickly.
 
-Next, see the configuration guide to learn how to configure the OpenL2M environment.
+:doc:`Next, see the configuration guide <configuration/index>` to learn how to configure the OpenL2M environment.
 
-Finally, login to your web site and start using OpenL2M. Enjoy!
+Finally, login to your web site and :doc:`start using OpenL2M.<using/index>`  Enjoy!
 
 **Warranty and License**
 

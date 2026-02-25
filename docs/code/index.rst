@@ -25,6 +25,7 @@ We also add Python type hints in many places. (Note: work in progress!)
    notices_app/index.rst
    counters_app/index.rst
    drivers/index.rst
+   drivers/new-drivers.rst
    templating.rst
    html-layouts.rst
    api/index.rst

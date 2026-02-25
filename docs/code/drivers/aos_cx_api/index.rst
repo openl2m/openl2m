@@ -4,7 +4,7 @@
 Aruba AOS-CX API Driver Overview
 ================================
 
-We implement an AOS-CX driver in the AosCxConnector() class in *switches/connect/aruba_aoscx/connect.py*.
+We implement an AOS-CX driver in the AosCxConnector() class in *switches/connect/aruba_aoscx/connector.py*.
 
 This class uses the *pyaoscx* library provided by Aruba, and available at https://github.com/aruba/pyaoscx/
 See also https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
