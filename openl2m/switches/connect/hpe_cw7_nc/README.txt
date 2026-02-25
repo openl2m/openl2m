@@ -1,0 +1,1 @@
+NOTE: this HPE Comware NetConf driver is abandoned, in favor of the HPE Comware REST API driver!

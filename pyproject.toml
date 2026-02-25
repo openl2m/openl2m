@@ -49,6 +49,8 @@ exclude = [
     "docs/_build",
     "docs/_static",
     "docs/_templates",
+    # ignore the 3rd-party pyhpecw library:
+    "openl2m/switches/connect/hpe_cw7_nc/libraries/pyhpecw7/"
 ]
 # Use extend-ignore to add to already ignored checks which are anti-patterns like W503.
 extend-ignore = [
@@ -92,6 +94,8 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
+    # ignore the 3rd-party pyhpecw library:
+    "openl2m/switches/connect/hpe_cw7_nc/libraries/pyhpecw7/"
 ]
 
 # Same as Black.

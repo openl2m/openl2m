@@ -14,14 +14,25 @@
 """
 HPE Comware 7 Connector: this implements an NetConf connection to the devices
 
-This use the "py3hpecw7" module from PyPi at https://pypi.org/project/py3hpecw7/
-Docs at https://py3hpecw7.readthedocs.io/en/latest/
-and code at https://github.com/vincentbernat/pyhpecw7
+This use the "pyhpecw7" module from the HPENetworking Ansible modules.
+Code at https://github.com/HPENetworking/hpe-cw7-ansible/tree/main/pyhpecw7
+Some applicable docs are for the old py2hpecw' module at https://py3hpecw7.readthedocs.io/en/latest/
 """
 
 from django.http.request import HttpRequest
-from pyhpecw7.comware import HPCOM7
-from pyhpecw7.features.vlan import Vlan as CwVlan
+import pprint
+from rangeparser import RangeParser
+
+from .libraries.pyhpecw7.comware import HPCOM7
+from .libraries.pyhpecw7.features.vlan import Vlan as CwVlan
+from .libraries.pyhpecw7.features.interface import Interface as CwInterface
+from .libraries.pyhpecw7.features.switchport import Switchport as CwSwitchport
+from .libraries.pyhpecw7.features.intfState import IntfState as CwIntfState
+from .libraries.pyhpecw7.features.ipinterface import IpInterface as CwIpInterface
+from .libraries.pyhpecw7.features.irf import IrfPort as CwIrfPort
+from .libraries.pyhpecw7.features.portchannel import Portchannel as CwPortchannel
+from .libraries.pyhpecw7.features.mac import MacUnicastTable
+from .libraries.pyhpecw7.features.neighbor import Neighbors
 
 # used to disable unknown SSL cert warnings:
 import urllib3
@@ -31,28 +42,29 @@ from typing import List
 from switches.connect.classes import Interface, Vlan
 # NeighborDevice, Transceiver
 from switches.connect.connector import Connector
-# from switches.connect.constants import (
-#     VLAN_ADMIN_DISABLED,
-#     #    POE_PORT_ADMIN_DISABLED,
-#     #    POE_PORT_ADMIN_ENABLED,
-#     IF_DUPLEX_HALF,
-#     IF_DUPLEX_FULL,
-#     IF_TYPE_OTHER,
-#     IF_TYPE_LOOPBACK,
-#     #    IF_TYPE_VIRTUAL,
-#     IF_TYPE_ETHERNET,
-#     IF_TYPE_LAGG,
-#     LACP_IF_TYPE_MEMBER,
-#     LACP_IF_TYPE_AGGREGATOR,
-#     LLDP_CHASSIC_TYPE_ETH_ADDR,
-#     LLDP_CAPABILITIES_BRIDGE,
-#     LLDP_CAPABILITIES_ROUTER,
-#     #    LLDP_CAPABILITIES_WLAN,
-#     #    LLDP_CAPABILITIES_PHONE,
-#     #    IANA_TYPE_OTHER,
-#     #    IANA_TYPE_IPV4,
-#     #    IANA_TYPE_IPV6,
-# )
+from switches.connect.constants import (
+    # VLAN_ADMIN_DISABLED,
+    #    POE_PORT_ADMIN_DISABLED,
+    #    POE_PORT_ADMIN_ENABLED,
+    IF_DUPLEX_UNKNOWN,
+    IF_DUPLEX_HALF,
+    IF_DUPLEX_FULL,
+    # IF_TYPE_OTHER,
+    # IF_TYPE_LOOPBACK,
+    # IF_TYPE_VIRTUAL,
+    IF_TYPE_ETHERNET,
+    IF_TYPE_LAGG,
+    LACP_IF_TYPE_MEMBER,
+    LACP_IF_TYPE_AGGREGATOR,
+    # LLDP_CHASSIC_TYPE_ETH_ADDR,
+    # LLDP_CAPABILITIES_BRIDGE,
+    # LLDP_CAPABILITIES_ROUTER,
+    # LLDP_CAPABILITIES_WLAN,
+    # LLDP_CAPABILITIES_PHONE,
+    # IANA_TYPE_OTHER,
+    # IANA_TYPE_IPV4,
+    # IANA_TYPE_IPV6,
+)
 from switches.models import Switch, SwitchGroup
 # from switches.utils import time_duration, dprint
 from switches.utils import dprint
@@ -74,9 +86,9 @@ class HPECw7NcConnector(Connector):
         if switch.description:
             self.add_more_info("System", "Description", switch.description)
 
-        # this holds the NetConf device connection.This cannot be cached:
-        self.nc_device = None
-        self.set_do_not_cache_attribute("nc_device")
+        # this holds the NetConf device connection. This cannot be cached:
+        self.device = None
+        self.set_do_not_cache_attribute("device")
 
         # capabilities supported by this eAPI driver:
         self.can_change_admin_status= False
@@ -100,26 +112,27 @@ class HPECw7NcConnector(Connector):
         if not self._open_device():
             return False  # self.error already set!
 
-        dprint(f"Device facts = {self.nc_device.facts}")
-        self.add_more_info("System", "Hostname", self.nc_device.facts["hostname"])
-        self.add_more_info("System", "Model", self.nc_device.facts["model"])
-        self.add_more_info("System", "Serial", self.nc_device.facts["serial_number"])
-        self.add_more_info("System", "OS Version", self.nc_device.facts["os"])
-        self.add_more_info("System", "Uptime", self.nc_device.facts["uptime"])
+        dprint(f"Device facts = {self.device.facts}")
+        self.add_more_info("System", "Hostname", self.device.facts["hostname"])
+        self.add_more_info("System", "Model", self.device.facts["model"])
+        self.add_more_info("System", "Serial", self.device.facts["serial_number"])
+        self.add_more_info("System", "OS Version", self.device.facts["os"])
+        self.add_more_info("System", "Uptime", self.device.facts["uptime"])
 
         try:
             #
             # get vlan info
             #
-            command = "vlan.get_vlan_list()"
-
-            vlan_list = CwVlan(device=self.nc_device).get_vlan_list()
+            command = "Vlan.get_vlan_list()"    # for error reporting below
+            vlan_list = CwVlan(device=self.device).get_vlan_list()
             dprint(f"Vlans found:\n{vlan_list}")
+
             for vlan_id in vlan_list:
                 dprint(f"Found vlan: {vlan_id}")
 
                 # get the Comware vlan:
-                cwv = CwVlan(device=self.nc_device, vlanid=vlan_id).get_config()
+                command = f"Vlan.get_config({vlan_id})"    # for error reporting below
+                cwv = CwVlan(device=self.device, vlanid=vlan_id).get_config()
                 dprint(f"CWVlan = {cwv}")
 
                 # get OpenL2M Vlan() object!
@@ -132,11 +145,101 @@ class HPECw7NcConnector(Connector):
             #
             # get interface information
             #
-            # for if_name in self.nc_device.facts["interface_list"]:
-            #     dprint(f"Found interface: {if_name}")
-            #     dprint(f"IF_DATA=\n{if_data}\n")
-            #     iface = Interface(if_name)
-            #     iface.name = if_name
+            for if_name in self.device.facts["interface_list"]:
+                dprint(f"\n-----\nFound interface: {if_name}")
+
+                command = f"Interface.get_config({if_name})"    # for error reporting below
+                if_data = CwInterface(device=self.device, interface_name=if_name).get_config()
+                dprint(f"IF_DATA=\n{if_data}\n")
+
+                iface = Interface(if_name)
+                iface.name = if_name
+
+                if if_data['admin'] == 'up':
+                    iface.admin_status = True
+                else:
+                    iface.admin_status = False
+
+                if if_data['oper'] == 'up':
+                    iface.oper_status = True
+                else:
+                    iface.oper_status = False
+
+                try:
+                    iface.speed = int(if_data['speed']) / 1000   # in Bps !
+                except Exception:
+                    dprint("Note: Invalid speed: {if_data['speed]}")
+
+                if "duplex" in if_data:
+                    match if_data["duplex"]:
+                        case "full":
+                            iface.duplex = IF_DUPLEX_FULL
+                        case "half":
+                            iface.duplex = IF_DUPLEX_HALF
+                        case "auto":
+                            iface.duplex = IF_DUPLEX_UNKNOWN
+
+                if 'description' in if_data:
+                    iface.description = if_data['description']
+
+                if 'type' in if_data:
+                    match if_data['type']:
+                        case 'bridged':
+                            iface.type = IF_TYPE_ETHERNET
+                            # get switchport layer-2 info
+                            command = f"Switchport({if_name}).get_config()"     # for error reporting below
+                            port_data = CwSwitchport(device=self.device, interface_name=if_name).get_config()
+                            dprint(f"SWITCHPORT=\n{port_data}")
+                            match port_data['link_type']:
+                                case 'access':
+                                    dprint("  Access Mode!")
+                                    iface.is_tagged = False
+                                    iface.untagged_vlan = int(port_data['untaggedvlan'])
+
+                                case 'trunk':
+                                    dprint("  Trunk Mode!")
+                                    iface.is_tagged = True
+                                    iface.untagged_vlan = int(port_data['pvid'])
+                                    # tagged vlans to be parsed from 'permitted_vlans' and 'taggedvlan':
+                                    if port_data['taggedvlan'] is not None:
+                                        parser = RangeParser()
+                                        tagged_vlans = parser.parse(port_data["taggedvlan"])
+                                        for vlan_id in tagged_vlans:
+                                            iface.add_tagged_vlan(vlan_id=vlan_id)
+
+                                case 'hybrid':
+                                    dprint("  Hybrid Mode!")
+                                    iface.manageable = False
+                                    iface.unmanage_reason = "Access denied: interface in Hybrid mode!"
+
+                                case _:
+                                    dprint(f"UNKNOWN Link-Type: {port_data['link_type']}")
+                                    iface.manageable = False
+                                    iface.unmanage_reason = f"Access denied: unknown interface mode! ({port_data['link_type']})"
+
+                        case 'routed':
+                            iface.is_routed = True
+                            iface.type = IF_TYPE_ETHERNET
+                            # get Layer-3 info for ipv4 and ipv6
+                            command = f"IpInterface({if_name}, v4)"
+                            ip4 = CwIpInterface(device=self.device, interface_name=if_name, version='v4').get_config()
+                            dprint(f"IPv4_INFO:\n{ip4}")
+                            for ip in ip4:
+                                # 'mask' attribute is true netmask format
+                                iface.add_ip4_network(address=ip['addr'], netmask=ip['mask'])
+
+                            command = f"IpInterface({if_name}, v6)"
+                            ip6 = CwIpInterface(device=self.device, interface_name=if_name, version='v6').get_config()
+                            dprint(f"IPv6_INFO:\n{ip6}")
+                            for ip in ip6:
+                                # 'mask' attribute is really prefix lenght!
+                                iface.add_ip6_network(address=ip['addr'], prefix_len=ip['mask'])
+
+                        #case _:
+                        #
+
+                # else:   # not 'bridged', likely an IRF interface:
+                #    dprint(f"{if_name} is NOT bridged, checking IRF status")
 
             #     match if_data["hardware"]:
             #         case "ethernet":
@@ -146,8 +249,6 @@ class HPECw7NcConnector(Connector):
             #             iface.type = IF_TYPE_LOOPBACK
             #         case _:
             #             iface.type = IF_TYPE_OTHER
-
-            #     iface.description = if_data["description"]
 
             #     match if_data["interfaceStatus"]:
             #         case "disabled":  # Admin-DOWN
@@ -206,38 +307,80 @@ class HPECw7NcConnector(Connector):
             #         # LinkLocal:
             #         iface.add_ip6_network(address=f"{if_data['interfaceAddressIp6']['linkLocalIp6']['address']}")
 
-            #     # done, add this interface to the list...
-            #     self.add_interface(iface)
+                # done, add this interface to the list...
+                self.add_interface(iface)
+
+
+            # get IRF ports
+            command = "IrfPort()"
+            irf = CwIrfPort(device=self.device).get_config()
+            dprint(f"\n-----\nIRF INFO:\n{irf}")
+            for id, ports in irf.items():
+                # we are interested in the ports.
+                # IRF type 1 ports
+                dprint(f"IRF id={id}, ports={ports}")
+                for port_name in ports['irf_p1']:
+                    dprint(f"FOUND IRF PORT-1 '{port_name}'")
+                    irf_iface = self.get_interface_by_name(name=port_name)
+                    if irf_iface:
+                        irf_iface.type = IF_TYPE_ETHERNET
+                        irf_iface.manageable = False
+                        irf_iface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
+                    else:
+                        dprint(f"CANNOT find '{port_name}'")
+                # IRF type 2 port
+                for port_name in ports['irf_p2']:
+                    dprint(f"FOUND IRF PORT-2 '{port_name}'")
+                    irf_iface = self.get_interface_by_name(name=port_name)
+                    if irf_iface:
+                        irf_iface.type = IF_TYPE_ETHERNET
+                        irf_iface.manageable = False
+                        irf_iface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
+                    else:
+                        dprint(f"CANNOT find '{port_name}'")
+
+
+
+            # get LACP Portchannel ports
+            command = "Portchannel()"
+            pc = CwPortchannel(device=self.device, groupid=-1, pc_type="bridged")
+
+            command = "Portchannel().get_portchannels()"
+            pc_data = pc.get_portchannels()
+            dprint(f"\n-----\nPORT-CHANNELS:\n{pc_data}\n--------")
+            for id in pc_data:
+                pc = CwPortchannel(device=self.device, groupid=int(id), pc_type="bridged").get_config()
+                dprint(f"Found PORTCHANNNEL {id}:\n{pc}")
+                # see if we can find the Bridge-Agg interface
+                lacp_if_name = f"Bridge-Aggregation{id}"
+                port_channel = self.get_interface_by_name(name=lacp_if_name)
+                if port_channel:
+                    port_channel.type = IF_TYPE_LAGG
+                    port_channel.lacp_type = LACP_IF_TYPE_AGGREGATOR
+                    # get all members
+                    for member_name in pc['members']:
+                        dprint(f"  found member '{member_name}'")
+                        member_iface = self.get_interface_by_name(name=member_name)
+                        if member_iface:
+                            dprint(f"    found Interface() for '{member_iface.name}'")
+                            member_iface.lacp_type = LACP_IF_TYPE_MEMBER
+                            member_iface.lacp_master_name = lacp_if_name
+                            member_iface.lacp_master_index = int(id)   # needs to be an integer!
+                            # add to list of port-channel
+                            port_channel.lacp_members[member_iface.key] = member_name
+                        else:
+                            dprint(f"ERROR: cannot find member interface '{member_name}' for Bridge-Aggregation{id}")
+                            self.add_warning(f"ERROR: cannot find member interface '{member_name}' for Bridge-Aggregation{id}")
+                else:
+                    dprint(f"ERROR: cannot find interface Bridge-Aggregation{id}")
+                    self.add_warning(f"ERROR: cannot find interface Bridge-Aggregation{id}")
 
             #
-            # get vlans on interfaces
-            # we can read the switchport information to read the untagged and tagged vlans
+            # read interface state
             #
-            # for if_name, info in data.items():
-            #     switchport = info["switchportInfo"]
-            #     dprint("===========")
-            #     dprint(f"Found VLAN info for: {if_name}")
-            #     dprint(info)
-            #     dprint("===========")
-            #     iface = self.get_interface_by_name(name=if_name)
-            #     if iface:
-            #         dprint("   found Interface()")
-            #         if switchport["mode"] == "trunk":
-            #             iface.is_tagged = True
-            #             # the PVID native untagged vlan is set in this attribute for trunks:
-            #             iface.untagged_vlan = int(switchport["trunkingNativeVlanId"])
-            #             if switchport["trunkAllowedVlans"] == "ALL":
-            #                 # add all vlans
-            #                 for v in self.vlans.values():
-            #                     iface.add_tagged_vlan(vlan_id=v.id)
-            #             else:
-            #                 parser = RangeParser()
-            #                 tagged_vlans = parser.parse(switchport["trunkAllowedVlans"])
-            #                 for vlan_id in tagged_vlans:
-            #                     iface.add_tagged_vlan(vlan_id=vlan_id)
-            #         else:
-            #             # access mode:
-            #             iface.untagged_vlan = int(switchport["accessVlanId"])
+            command = "IntfState().get_results()"
+            int_info = CwIntfState(device=self.device).get_result()
+            dprint(f"-----\nIntState info:\n{int_info}")
 
             #
             # get optical transceiver data
@@ -253,28 +396,6 @@ class HPECw7NcConnector(Connector):
             #         trx = Transceiver()
             #         trx.type = trx_data["mediaType"]
             #         iface.transceiver = trx
-
-            #
-            # get LACP port-channel interfaces
-            #
-            # for po_name, po_info in data.items():
-            #     # does this port-channel exist ?
-            #     port_channel = self.get_interface_by_name(name=po_name)
-            #     if port_channel:
-            #         dprint(f"Found Port-Channel Interface() for {po_name}")
-            #         port_channel.type = IF_TYPE_LAGG
-            #         port_channel.lacp_type = LACP_IF_TYPE_AGGREGATOR
-            #         # find the member interfaces:
-            #         member_type_list = ["inactivePorts", "inactivePorts"]
-            #         for member_type in member_type_list:
-            #             for member_name, member_info in po_info[member_type].items():
-            #                 member = self.get_interface_by_name(name=member_name)
-            #                 if member:
-            #                     member.lacp_type = LACP_IF_TYPE_MEMBER
-            #                     member.lacp_master_name = po_name
-            #                     member.lacp_master_index = 1
-            #                     # add to list of port-channel
-            #                     port_channel.lacp_members[member.key] = member.name
 
             #
             # read VRF info
@@ -314,7 +435,7 @@ class HPECw7NcConnector(Connector):
 
         return True
 
-    def get_my_client_data_NOT_USED_YET(self) -> bool:
+    def get_my_client_data(self) -> bool:
         """
         read mac addressess, and lldp neigbor info.
         return True on success, False on error and set self.error variables
@@ -330,6 +451,9 @@ class HPECw7NcConnector(Connector):
             # get Layer 2 MAC/ETHERNET info
             #
             dprint("\n--- ETH ---\n")
+            mac = MacUnicastTable(device=self.device).getMacList()
+            dprint(f"Found:\n{pprint.pprint(mac)}")
+
             # for mac in data["unicastTable"]["tableEntries"]:
             #     dprint(f"Ethernet: {mac}")
             #     # add this to the known addressess:
@@ -344,7 +468,7 @@ class HPECw7NcConnector(Connector):
             #
             # get IPV4 ARP data
             #
-            dprint("\n--- ARP ---\n")
+            dprint("\n--- ARP NOT SUPPORTED ---\n")
             # for vrf_name, vrf_arp in data["vrfs"].items():
             #     dprint(f"VRF: {vrf_name}")
             #     for arp in vrf_arp["ipV4Neighbors"]:
@@ -361,7 +485,7 @@ class HPECw7NcConnector(Connector):
             #
             # get IPV6 Neighbors
             #
-            dprint("\n--- IPV6 ND ---\n")
+            dprint("\n--- IPV6 ND NOT SUPPORTED ---\n")
             # for vrf_name, vrf_nd in data["vrfs"].items():
             #     dprint(f"VRF: {vrf_name}")
             #     for nd in vrf_nd["ipV6Neighbors"]:
@@ -379,6 +503,9 @@ class HPECw7NcConnector(Connector):
             # LLDP neighbors
             #
             dprint("\n--- LLDP NEIGHBORS ---\n")
+            nb = Neighbors(device=self.device)
+            dprint(f"LLDP:\n{nb.lldp}\nCDP:\n{nb.cdp}")
+
             # for if_name, nb_data in data.items():
             #     dprint(f"LLDP on {if_name}")
             #     for nb in nb_data["lldpNeighborInfo"]:
@@ -440,7 +567,7 @@ class HPECw7NcConnector(Connector):
             #         self.add_neighbor_object(if_name, neighbor)
 
         except Exception as err:
-            dprint("  ERROR: {err}")
+            dprint(f"  ERROR: {err}")
             self.error.status = True
             # self.error.description = f"Error running eAPI command = '{command_list}'!"
             self.error.details = f"Cannot read device information: {format(err)}"
@@ -808,13 +935,13 @@ class HPECw7NcConnector(Connector):
             # or all warnings:
             # urllib3.disable_warnings()
 
-        self.nc_device = HPCOM7(
+        self.device = HPCOM7(
             host=self.switch.primary_ip4,
             username=self.switch.netmiko_profile.username,
             password=self.switch.netmiko_profile.password,
         )
         try:
-            self.nc_device.open()
+            self.device.open()
             dprint("  _open_device() OK!")
             return True
         except Exception as err:
@@ -834,13 +961,13 @@ class HPECw7NcConnector(Connector):
         """
         dprint("HPECw7NcConnector()._close_device()")
 
-        if not self.nc_device:
+        if not self.device:
             dprint("  NOT needed!")
             return True
 
         # we still have a NetConf connection, close it.
         try:
-            self.nc_device.close()
+            self.device.close()
             dprint("  OK")
             return True
         except Exception as err:
