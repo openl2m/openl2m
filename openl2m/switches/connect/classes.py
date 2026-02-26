@@ -784,7 +784,7 @@ class Transceiver:
         self.model: str = ""
         self.description: str = ""
         self.serial: str = ""
-        self.wavelength: int = 0  # the wavelength in nm, ie 850, 130, 1550, etc.
+        self.wavelength: int = 0  # the wavelength in nm, ie 850, 1310, 1550, etc.
         self.distance: int = 0  # the max distance of this transceiver
         self.connector: str = ""  # 'LC', SC', etc.
 
