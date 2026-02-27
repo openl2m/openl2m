@@ -224,6 +224,7 @@ POE_PORT_DETECT_DELIVERING = 3  # ’3’ = deliveringPower
 POE_PORT_DETECT_FAULT = 4  # ’4’ = fault
 POE_PORT_DETECT_TEST = 5  # ’5’ = test
 POE_PORT_DETECT_OTHERFAULT = 6  # ’6’ = otherFault
+POE_PORT_DETECT_DISCONNECTED = 7  # ’7’ = PS Disconnected
 poe_status_name = {}
 poe_status_name[POE_PORT_DETECT_DISABLED] = "Disabled"
 poe_status_name[POE_PORT_DETECT_SEARCHING] = "Searching"
@@ -231,6 +232,7 @@ poe_status_name[POE_PORT_DETECT_DELIVERING] = "Delivering"
 poe_status_name[POE_PORT_DETECT_FAULT] = "Fault"
 poe_status_name[POE_PORT_DETECT_TEST] = "Test"
 poe_status_name[POE_PORT_DETECT_OTHERFAULT] = "Unknown Fault"
+poe_status_name[POE_PORT_DETECT_DISCONNECTED] = "PS Disconnected"
 
 POE_PORT_PRIORITY_CRITICAL = 1  # '1' = Critical
 POE_PORT_PRIORITY_HIGH = 2  # '2' = High
