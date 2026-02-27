@@ -1007,7 +1007,7 @@ class Connector:
         self.interfaces = OrderedDict({key: self.interfaces[key] for key in natsort.natsorted(self.interfaces)})
 
     def add_learned_ethernet_address(
-        self, if_name: str, eth_address: str, vlan_id: int = -1, ip4_address: str = "", ip6_address: str = ""
+        self, if_name: str, eth_address: str, vlan_id: int = -1, ip4_address: str = "", ip6_address: str = "", vrf_name: str = "",
     ) -> EthernetAddress | bool:
         """
         Add an ethernet address to an interface, as given by the layer2 CAM/Switching tables.
@@ -1028,7 +1028,7 @@ class Connector:
         iface = self.get_interface_by_key(if_name)
         if iface:
             a = iface.add_learned_ethernet_address(
-                eth_address=eth_address, vlan_id=vlan_id, ip4_address=ip4_address, ip6_address=ip6_address
+                eth_address=eth_address, vlan_id=vlan_id, ip4_address=ip4_address, ip6_address=ip6_address, vrf_name=vrf_name,
             )
             self.eth_addr_count += 1
             return a
@@ -1074,6 +1074,21 @@ class Connector:
         vrf.name = name
         self.vrfs[name] = vrf
         return vrf
+
+    def get_vrf_by_index(self, index: int) -> Vrf:
+        """Get a Vrf() object by index.
+
+        Args:
+            name(str): the name of the VRF to find, or create.
+
+        Returns:
+            (Vrf() or None): a valid Vrf() object, or None
+        """
+        dprint(f"Connector.get_vrf_by_index(index={index})")
+        for v in self.vrfs:
+            if v.index == index:
+                return v
+        return None
 
     def save_running_config(self) -> bool:
         """

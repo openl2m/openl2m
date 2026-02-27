@@ -894,6 +894,7 @@ class Vrf:
         self.ipv6 = ipv6  # True if VRF is enabled for IPv6
         self.active_interfaces = 0  # number of interfaces active on this VRF
         self.interfaces = []  # list of interface names in this VRF
+        self.index = 0      # device specific index of this vrf. Needed for some drivers
 
     def set_name(self, name: str):
         """Set the name attribute of a VRF
@@ -945,6 +946,22 @@ class Vrf:
             n/a
         """
         self.ipv6 = True
+
+    def set_active_interfaces(self, count: int):
+        """Set the active_interfaces attribute of a VRF
+
+        Returns:
+            n/a
+        """
+        self.active_interfaces = count
+
+    def set_index(self, index: int):
+        """Set the index attribute of a VRF
+
+        Returns:
+            n/a
+        """
+        self.index = index
 
     def add_interface(self, if_name: str):
         """Add an interface by name to the list of interfaces using this VRF.
@@ -1135,6 +1152,7 @@ class Interface:
         vlan_id: int = -1,
         ip4_address: str = "",
         ip6_address: str = "",
+        vrf_name: str = "",
     ) -> EthernetAddress:
         """
         Add an ethernet address to this interface, as given by the layer2 CAM/Switching tables.
@@ -1176,6 +1194,7 @@ class Interface:
             e.add_ip4_address(ip4_address=ip4_address)
         if ip6_address:
             e.add_ip6_address(ip6_address=ip6_address)
+        e.vrf_name = vrf_name
         return e
 
     def add_neighbor(self, neighbor: NeighborDevice) -> None:
