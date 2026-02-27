@@ -1,39 +1,39 @@
 .. image:: ../_static/openl2m_logo.png
 
-===================================
-Adding HPE Comware7 NetConf Devices
-===================================
+==============================
+Adding HPE Comware API Devices
+==============================
+
+This documents how to add devices using the HPE Comware REST API.
 
 Prerequisites
 -------------
 
-Create a Credential Profile with the proper username / password that will be used to access this device via NetConf.
+Create a Credential Profile with the proper username / password that will be used to access this device via the REST API.
 As needed, create Commands and Command Groups to assign to this device.
 
 Switch Configuration
 --------------------
 
-HPE Comware device using the Comware NetConf driver are managed via the NetConf protocol.
+HPE Comware devices using the Comware REST API driver are managed via the REST protocol.
 You will need to configure the device to allow this access. Something like this is needed.
 
 
 .. code-block:: bash
 
-    local-user <your_netconf_user> class manage
+    restful https enable
+    https acl <your-access-acl-number>
+
+    local-user <your_api_user> class manage
     password simple <your password here>
-    service-type ssh
+    service-type https
     authorization-attribute acl <your-access-acl-number>
     authorization-attribute user-role network-admin
     authorization-attribute user-role network-operator
 
-    netconf ssh server enable
-    netconf log source agent verbose
-    netconf log source soap verbose
-    netconf log source web verbose
 
-
-Please consult your device documentation for specific configurations. *Make sure you adhere to your company's
-security policy and secure NetConf access as needed.*
+**Please consult your device documentation for specific configurations.** *Make sure you adhere to your company's
+security policy and secure API access as needed.*
 
 
 OpenL2M Configuration
@@ -52,7 +52,7 @@ Add the IP v4 address or resolvable DNS name used to connect to the device.
 
 **Connector Type:** to
 
-* **HPE CW7 NetConf**: for HPE/Aruba Comware devices supported via the NetConf protocol. Also set the proper Credentials Profile!
+* **HPE Comware REST**: for HPE Comware devices supported via the REST protocol. Also set the proper Credentials Profile!
 
 
 **SNMP Profile:** this is a don't care field for the HPE Comware NetConf driver.
@@ -60,7 +60,7 @@ Add the IP v4 address or resolvable DNS name used to connect to the device.
 
 **Credentials Profile:**
 
-Select the proper profile that stores the NetConf credentials. Note that these same credentials are used for any Commands applied to this device.
+Select the proper profile that stores the API credentials. Note that these same credentials are used for any Commands applied to this device.
 
 
 **Group Membership section:**
@@ -98,8 +98,6 @@ from the device.
 **Status:**
 
 *Note:* switches will only show in the list if their status is *Active*.
-For SNMP devices, devices need to have an SNMP Profile applied! Likewise, if a switch does not have
-a Credentials profile, interface commands and global commands options will not show.
 
 **Read-Only:**
 

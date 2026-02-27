@@ -24,6 +24,7 @@ Here is the order in which you should create the configuration items:
    Add SNMP devices<snmp_switches.rst>
    Add Arista eAPI devices<arista-eapi.rst>
    Add Aruba AOS-CX devices<aos_cx_switches.rst>
+   Add HPE Comware API devices<hpe_comware_api.rst>
    Add Junos devices<junos_switches.rst>
    Create Switch Groups to add device to<switchgroups.rst>
    Create Users and give them access to Switch Groups<users.rst>
