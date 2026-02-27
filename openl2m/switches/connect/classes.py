@@ -1151,7 +1151,7 @@ class Interface:
             EthernetAddress(), either existing or new.
         """
         dprint(
-            f"Interface().add_learned_ethernet_address() for {eth_address}, vlan={vlan_id}, ip4='{ip4_address}', ip6='{ip6_address}'"
+            f"Interface().add_learned_ethernet_address() for interface {self.name}: {eth_address}, vlan={vlan_id}, ip4='{ip4_address}', ip6='{ip6_address}'"
         )
         if eth_address in self.eth.keys():
             # already known!

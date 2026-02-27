@@ -586,17 +586,16 @@ class HPECwRestConnector(Connector):
         macs = self.get_path(path="MAC/MacUnicastTable")
         if macs:
             dprint(pprint.pformat(macs))
-        # for mac in data["unicastTable"]["tableEntries"]:
-        #     dprint(f"Ethernet: {mac}")
-        #     # add this to the known addressess:
-        #     if mac["interface"] == "Router":
-        #         # internal ethernet on the device
-        #         dprint("  Ignored!")
-        #         continue
-        #     self.add_learned_ethernet_address(
-        #         if_name=mac["interface"], eth_address=mac["macAddress"], vlan_id=int(mac["vlanId"])
-        #     )
-
+            for mac in macs["MacUnicastTable"]:
+                dprint(f"Ethernet: {mac}")
+                # add this to the known addressess:
+                # this used PortIndex, which needs to be mapped to IfIndex
+                # FIX THIS =====>>>
+                str_index = mac["PortIndex"]
+                iface = self.get_interface_by_key(key=str_index)
+                if iface:
+                    iface.add_learned_ethernet_address(eth_address=mac["MacAddress"], vlan_id=mac["VLANID"])
+                    self.eth_addr_count += 1
 
         #
         # get IPV4 ARP data
@@ -605,19 +604,22 @@ class HPECwRestConnector(Connector):
         arps = self.get_path(path="ARP/ArpTable")
         if arps:
             dprint(pprint.pformat(arps))
-        # for vrf_name, vrf_arp in data["vrfs"].items():
-        #     dprint(f"VRF: {vrf_name}")
-        #     for arp in vrf_arp["ipV4Neighbors"]:
-        #         dprint(f"  ARP = {arp}")
-        #         vlan_id, if_name = get_vlan_and_interface_from_string(arp["interface"])
-        #         dprint(f"    Adding to if_name: {if_name}, vlan: {vlan_id}")
-        #         self.add_learned_ethernet_address(
-        #             if_name=if_name,
-        #             eth_address=arp["hwAddress"],
-        #             vlan_id=vlan_id,
-        #             ip4_address=arp["address"],
-        #         )
-
+            for arp in arps["ArpTable"]:
+                dprint(f"ARP: {arp}")
+                # some devices return an "IfName", but not all!
+                # Note: this also has "VrfIndex", not used at present.
+                if "IfName" in arp:
+                    self.add_learned_ethernet_address(
+                        if_name=arp["IfName"],
+                        eth_address=arp["MacAddress"],
+                        # vlan_id=vlan_id,
+                        ip4_address=arp["Ipv4Address"],
+                    )
+                else:
+                    # find the Interface() from the "IfIndex" field, ie. the Interface().key
+                    iface = self.get_interface_by_key(key=arp["IfIndex"])
+                    if iface:
+                        iface.add_learned_ethernet_address(eth_address=arp["MacAddress"], ip4_address=arp["Ipv4Address"])
 
         #
         # get IPV6 ND (aka Neighbors)
@@ -625,19 +627,22 @@ class HPECwRestConnector(Connector):
         dprint("\n\n--- IPv6 ND tables ---")
         ipv6nd = self.get_path(path="ND/NDTable")
         if ipv6nd:
-            dprint(pprint.pformat(ipv6nd))
-        # for vrf_name, vrf_nd in data["vrfs"].items():
-        #     dprint(f"VRF: {vrf_name}")
-        #     for nd in vrf_nd["ipV6Neighbors"]:
-        #         dprint(f"  ND = {nd}")
-        #         vlan_id, if_name = get_vlan_and_interface_from_string(nd["interface"])
-        #         dprint(f"    Adding to if_name: {if_name}, vlan_id: {vlan_id}")
-        #         self.add_learned_ethernet_address(
-        #             if_name=if_name,
-        #             eth_address=nd["hwAddress"],
-        #             vlan_id=vlan_id,
-        #             ip6_address=nd["address"],
-        #         )
+            for nd in ipv6nd["NDTable"]:
+                dprint(f"  ND = {nd}")
+                # some devices return an "IfName", but not all!
+                # Note: this also has "VrfIndex", not used at present.
+                if "IfName" in nd:
+                    self.add_learned_ethernet_address(
+                        if_name=nd["IfName"],
+                        eth_address=nd["MacAddress"],
+                        # vlan_id=vlan_id,
+                        ip6_address=nd["Ipv6Address"],
+                    )
+                else:
+                    # find the Interface() from the "IfIndex" field, ie. the Interface().key
+                    iface = self.get_interface_by_key(key=nd["IfIndex"])
+                    if iface:
+                        iface.add_learned_ethernet_address(eth_address=nd["MacAddress"], ip6_address=nd["Ipv6Address"])
 
         #
         # LLDP neighbors
