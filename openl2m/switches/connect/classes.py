@@ -1208,6 +1208,18 @@ class Interface:
         self.lldp[neighbor.index] = neighbor
         # return True
 
+    def get_neighbor(self, index:str) -> NeighborDevice:
+        """
+        Return lldp neighbor to this interface for the given lldpm index.
+        """
+        dprint(f"get_neighbor(index={index})")
+        if index in self.lldp:
+            return self.lldp[index]
+        else:
+            dprint(f"ERROR: cannot find Interface.lldp entry for index {index}")
+            return None
+        # return True
+
     def as_dict(self) -> dict:
         """
         return this Interface() class as a dictionary for use by the API
