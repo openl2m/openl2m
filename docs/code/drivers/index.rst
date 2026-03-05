@@ -77,6 +77,7 @@ Finally, we provide an overview of how to implement a new driver.
    aos_cx_api/index.rst
    arista_eapi/index.rst
    junos_pyez/index.rst
+   hpe_cw_api/index.rst
    hpe_cw7_nc/index.rst
    napalm/index.rst
    netmiko/index.rst
