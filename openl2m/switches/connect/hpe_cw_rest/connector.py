@@ -25,13 +25,13 @@ import pprint
 # used to disable unknown SSL cert warnings:
 import base64
 import json
+from rangeparser import RangeParser
 import requests
 import urllib3
 # import traceback
 from typing import Dict, List
 
-from switches.connect.classes import Interface, Vlan, Transceiver, PoePort
-# NeighborDevice,
+from switches.connect.classes import Interface, Vlan, Transceiver, PoePort, NeighborDevice
 from switches.connect.connector import Connector
 from switches.connect.constants import (
     # VLAN_ADMIN_DISABLED,
@@ -51,10 +51,14 @@ from switches.connect.constants import (
     POE_PSE_STATUS_OFF,
     POE_PSE_STATUS_FAULT,
     # LLDP_CHASSIC_TYPE_ETH_ADDR,
-    # LLDP_CAPABILITIES_BRIDGE,
-    # LLDP_CAPABILITIES_ROUTER,
-    # LLDP_CAPABILITIES_WLAN,
-    # LLDP_CAPABILITIES_PHONE,
+    LLDP_CAPABILITIES_OTHER,
+    LLDP_CAPABILITIES_REPEATER,
+    LLDP_CAPABILITIES_BRIDGE,
+    LLDP_CAPABILITIES_WLAN,
+    LLDP_CAPABILITIES_ROUTER,
+    LLDP_CAPABILITIES_PHONE,
+    LLDP_CAPABILITIES_DOCSIS,
+    LLDP_CAPABILITIES_STATION,
     # IANA_TYPE_OTHER,
     # IANA_TYPE_IPV4,
     # IANA_TYPE_IPV6,
@@ -93,7 +97,7 @@ class HPECwRestConnector(Connector):
 
         self.port_index_to_if_index: Dict[
             int, str
-        ] = {}  # this maps switchport "PortIndex" as key (str) to MIB-II IfIndex (str)
+        ] = {}  # this maps switchport "PortIndex" as key (int) to MIB-II IfIndex (str)
 
         # login and get a REST token
         if not self._open_device():
@@ -504,6 +508,25 @@ class HPECwRestConnector(Connector):
                                 dprint(err_str)
                                 self.add_warning(err_str)
 
+            # now read the tagged vlans on ports from the vlan call to "VLAN/VLANs" above:
+            # note: we have already found the untagged vlan in the interface call above,
+            # thus we don't read "AccessPortList" and "UntaggedPortList",
+            # but we are only looking at "TaggedPortList".
+            # And, this uses the switch port, NOT the InterfaceIndex!
+            dprint("--- Reading tagged vlans from 'VLAN/VLANs' api ---")
+            if vlans:
+                # vlans is a list of dict() for each vlan
+                for vlan in vlans["VLANs"]:
+                    dprint(f"\nVLAN: {pprint.pformat(vlan)}")
+                    if "TaggedPortList" in vlan:
+                        # expand the range to individual port numbers:
+                        parser = RangeParser()
+                        tagged_ports = parser.parse(vlan["TaggedPortList"])
+                        for port in tagged_ports:
+                            iface = self._get_interface_by_port_id(port_id=port)
+                            if iface:
+                                iface.add_tagged_vlan(vlan_id=int(vlan["ID"]))
+
             #
             # get IRF ports
             #
@@ -622,8 +645,8 @@ class HPECwRestConnector(Connector):
                 # this uses PortIndex, which needs to be mapped to IfIndex
                 if mac["PortIndex"] in self.port_index_to_if_index:
                     # FIX THIS =====>>>
-                    if_index = self.port_index_to_if_index[mac["PortIndex"]]
-                    iface = self.get_interface_by_key(key=if_index)
+                    # if_index = self.port_index_to_if_index[mac["PortIndex"]]
+                    iface = self._get_interface_by_port_id(port_id=mac["PortIndex"])
                     if iface:
                         iface.add_learned_ethernet_address(eth_address=mac["MacAddress"], vlan_id=mac["VLANID"])
                         self.eth_addr_count += 1
@@ -715,78 +738,166 @@ class HPECwRestConnector(Connector):
         #
         # LLDP neighbors
         #
+
+        # these 2 entries below don't have a lot of info
+        # they return the basic "NeighborIndex", which is unique per interface
+        # this string is used as a index into the Interface.lldp dictionary for each interface.
         dprint("\n\n--- LLDP - CDP Neighbors ---")
-        neighbors = self.get_path(path="LLDp/CDPNeighbors")
+        neighbors = self.get_path(path="LLDP/CDPNeighbors")
         if neighbors:
-            dprint(pprint.pformat(neighbors))
+            for nb in neighbors["CDPNeighbors"]:
+                dprint(f"\nCDP: {pprint.pformat(nb)}")
+                self.parse_neighbor(nb=nb)
 
         dprint("\n\n--- LLDP - LLDP Neighbors ---")
-        neighbors = self.get_path(path="LLDp/LLDPNeighbors")
+        neighbors = self.get_path(path="LLDP/LLDPNeighbors")
         if neighbors:
-            dprint(pprint.pformat(neighbors))
+            for nb in neighbors["LLDPNeighbors"]:
+                dprint(f"\nLLDP: {pprint.pformat(nb)}")
+                self.parse_neighbor(nb=nb)
 
+        # this call adds some more details about the ports and description of the remote system
+        # it also includes the same "NeighborIndex" as above
+        dprint("\n\n--- LLDP - LLDP Neighbor Basics ---")
+        neighbors = self.get_path(path="LLDP/NbBasicInfos")
+        if neighbors:
+            for nb in neighbors["NbBasicInfos"]:
+                dprint(f"\nLLDP: {pprint.pformat(nb)}")
+                self.parse_neighbor_basics(nb=nb)
 
-        # for if_name, nb_data in data.items():
-        #     dprint(f"LLDP on {if_name}")
-        #     for nb in nb_data["lldpNeighborInfo"]:
-        #         dprint(f" Neighbor {nb['systemName']} = {nb}")
-        #         # get an OpenL2M NeighborDevice()
-        #         neighbor = NeighborDevice(nb["chassisId"])
-        #         neighbor.set_sys_name(nb["systemName"])
-        #         neighbor.set_sys_description(nb["systemDescription"])
-        #         # parse neighbor remote interface info:
-        #         if "neighborInterfaceInfo" in nb:
-        #             neighbor.port_name = nb["neighborInterfaceInfo"]["interfaceId_v2"]
-        #             neighbor.set_port_description(nb["neighborInterfaceInfo"]["interfaceDescription"])
+        # Capabilities and Management Address endpoints also have mapping back to the entries above!
+        dprint("\n\n--- LLDP - LLDP Neighbor SysCaps ---")
+        neighbors = self.get_path(path="LLDP/NbSysCaps")
+        if neighbors:
+            for nb in neighbors["NbSysCaps"]:
+                dprint(f"\nLLDP: {pprint.pformat(nb)}")
+                self.parse_neighbor_syscaps(nb=nb)
 
-        #         # management addresses given?
-        #         mgmt_ipv4 = ""  # used to register ethernet address.
-        #         mgmt_ipv6 = ""
-        #         if "managementAddresses" in nb:
-        #             for addr in nb["managementAddresses"]:
-        #                 dprint(f" Mgmt addr: {addr}")
-        #                 # Needs parsing...
-        #                 match addr["addressType"]:
-        #                     case "ipv4":
-        #                         dprint(" is IPv4")
-        #                         neighbor.management_address_v4 = addr["address"]
-        #                         mgmt_ipv4 = addr["address"]
-        #                     case "ipv6":
-        #                         dprint(" is IPv6")
-        #                         neighbor.management_address_v6 = addr["address"]
-        #                         mgmt_ipv6 = addr["address"]
-        #                     case _:
-        #                         # we cannot handle this!
-        #                         dprint("Unknown management address type!")
-
-        #         neighbor.set_chassis_string(nb["chassisId"])
-        #         if nb["chassisIdType"] == "macAddress":
-        #             neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
-        #             # add this ethernet address to our interface data
-        #             # NOTE: still need to add the ipv4/v6 management addresses:
-        #             self.add_learned_ethernet_address(
-        #                 if_name=if_name,
-        #                 eth_address=neighbor.chassis_string,
-        #                 # vlan_id = vlan_id,
-        #                 ip4_address=mgmt_ipv4,
-        #                 ip6_address=mgmt_ipv6,
-        #             )
-
-        #         # remote device capabilities:
-        #         for c, value in nb["systemCapabilities"].items():
-        #             match c:
-        #                 case "bridge":
-        #                     if value:
-        #                         neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
-        #                 case "router":
-        #                     if value:
-        #                         neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
-        #                 # there are likely other values, we just have not seen those yet!
-
-        #         # add to device interface:
-        #         self.add_neighbor_object(if_name, neighbor)
+        dprint("\n\n--- LLDP - LLDP Neighbors Addresses ---")
+        neighbors = self.get_path(path="LLDP/NbManageAddresses")
+        if neighbors:
+            for nb in neighbors["NbManageAddresses"]:
+                dprint(f"\nLLDP: {pprint.pformat(nb)}")
+                self.parse_neighbor_management(nb=nb)
 
         return True
+
+    def parse_neighbor(self, nb):
+        #
+        # parse LLDP or CDP data, this is the initial data from /LLDPNeighbors or /CDPNeighbors
+        #
+
+        # get an OpenL2M NeighborDevice()
+        # Note: "NeighborIndex" is unique PER INTERFACE, and can be used as the index
+        # it is also the key to match with more data from "LLDP/NbBasicInfos", "LLDP/NbSysCaps" and "LLDP/NbManageAddresses"
+        neighbor = NeighborDevice(lldp_index=nb["NeighborIndex"])
+        neighbor.set_chassis_string(nb["ChassisId"])
+        neighbor.set_sys_name(nb["SystemName"])
+        neighbor.port_name = nb["PortId"]
+        # add neighbor to interface:
+        iface = self.get_interface_by_key(key=nb["IfIndex"])
+        if iface:
+            iface.add_neighbor(neighbor=neighbor)
+            self.neighbor_count += 1
+
+    def parse_neighbor_basics(self, nb):
+        #
+        # parse LLDP Basic Info data
+        # add to data from initial /LLDPNeighbors
+        #
+
+        # find existing OpenL2M NeighborDevice()
+        iface = self.get_interface_by_key(key=nb["IfIndex"])
+        if iface:
+            # now find existing NeighborDevice()
+            neighbor = iface.get_neighbor(index=nb["NeighborIndex"])
+            if neighbor:
+                # nb["ChassisId"] and SystemName were already set in /LLDPNeighbors call.
+                # neighbor.set_sys_name(nb["SystemName"])
+                neighbor.set_sys_description(nb["SystemDesc"])
+                # PortDesc is the LOCAL port description, NOT remote device!
+                # neighbor.port_name = nb["PortDesc"]
+            else:
+                dprint(f"WARNING: neighbor for index {nb['NeighborIndex']} NOT FOUND!")
+
+    def parse_neighbor_syscaps(self, nb):
+        #
+        # parse LLDP NbSysCaps data
+        # add to data from inital LLDP/LLDPNeighbors
+        #
+
+        # find existing OpenL2M NeighborDevice()
+        iface = self.get_interface_by_key(key=nb["IfIndex"])
+        if iface:
+            # now find existing NeighborDevice()
+            neighbor = iface.get_neighbor(index=nb["NeighborIndex"])
+            if neighbor:
+                # nb["ChassisId"] and SystemName were already set in /LLDPNeighbors call.
+                # neighbor.set_sys_name(nb["SystemName"])
+                for capability, enabled in nb["Enable"].items():
+                    if enabled:
+                        match capability:
+                            case 'Bridge':
+                                neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
+                            case 'CustomerBridge':
+                                neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
+                            case 'DocsisCableDevice':
+                                neighbor.set_capability(LLDP_CAPABILITIES_DOCSIS)
+                            case 'Other':
+                                neighbor.set_capability(LLDP_CAPABILITIES_OTHER)
+                            case 'Repeater':
+                                neighbor.set_capability(LLDP_CAPABILITIES_REPEATER)
+                            case 'Router':
+                                neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
+                            case 'ServiceBridge':
+                                neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
+                            case 'StationOnly':
+                                neighbor.set_capability(LLDP_CAPABILITIES_STATION)
+                            # case 'TPMR':
+                            #     neighbor.set_capability(LLDP_CAPABILITIES_???
+                            case 'Telephone':
+                                neighbor.set_capability(LLDP_CAPABILITIES_PHONE)
+                            case 'WLANAccessPoint':
+                                neighbor.set_capability(LLDP_CAPABILITIES_WLAN)
+            else:
+                dprint(f"WARNING: neighbor for index {nb['NeighborIndex']} NOT FOUND!")
+
+    def parse_neighbor_management(self, nb):
+        #
+        # parse LLDP NbManageAddresses data
+        # add to data from initial LLDP/LLDPNeighbors
+        #
+
+#
+# NOTE: address parsing is NOT functional yet...
+#
+
+        # find existing OpenL2M NeighborDevice()
+        iface = self.get_interface_by_key(key=nb["IfIndex"])
+        if iface:
+            # now find existing NeighborDevice()
+            neighbor = iface.get_neighbor(index=nb["NeighborIndex"])
+            if neighbor:
+                # the "Address" is base64 encoded
+                try:
+                    # 1. Decode the Base64 string into bytes
+                    # The input to b64decode should be a bytes-like object or a string.
+                    decoded_bytes = base64.b64decode(nb["Address"])
+                    # 2. Convert the decoded bytes into a standard string using a specific encoding (e.g., UTF-8)
+                    address = decoded_bytes.decode('cp1252')    # utf-8, ascii do not work.
+                    dprint(f"Address: {address}")
+                    # now figure out what type of address:
+                    match nb["SubType"]:
+                        # these are defined in the NetConf documentation:
+                        case 1:
+                            dprint(f"Management Address type 1 - IPv4 = {address}")
+                        case 2:
+                            dprint(f"Management Address type 2 - IPv6 = {address}")
+                        case _:
+                            # unlikely to happen:
+                            dprint(f"Unknown Management Address type {nb['SubType']} = {address}")
+                except Exception as err:
+                    dprint(f"ERROR decoding LLDP remote address {nb['Address']} - {err}")
 
     #
     # set interface admin status (up/down)
@@ -1165,3 +1276,12 @@ class HPECwRestConnector(Connector):
 
         return False
 
+    def _get_interface_by_port_id(self, port_id: int):
+        """Get an Interface() object from a given switch port id (int)"""
+        dprint(f"HPECwRestConnector._get_interface_by_port_id() for port_id={port_id}")
+
+        try:
+            return self.get_interface_by_key(key=self.port_index_to_if_index[port_id])
+        except Exception as e:
+            dprint(f"Error finding interface for port '{port_id}': {e}")
+        return None
