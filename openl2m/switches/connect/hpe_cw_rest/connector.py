@@ -16,6 +16,12 @@ HPE Comware REST API Connector
 
 This implements a REST api driver from Comware devices. This follows the API docs outlined
 in the HPE Comware NetConf documentation.
+
+TO DO:
+- read Interface IPv6 addresses
+- lldp remote device address parsing is NOT functional yet...
+- description set to empty string ''
+
 """
 
 from django.http.request import HttpRequest
@@ -36,7 +42,7 @@ from switches.connect.connector import Connector
 from switches.connect.constants import (
     # VLAN_ADMIN_DISABLED,
     # POE_PORT_ADMIN_DISABLED,
-    #POE_PORT_ADMIN_ENABLED,
+    # POE_PORT_ADMIN_ENABLED,
     IF_DUPLEX_UNKNOWN,
     IF_DUPLEX_HALF,
     IF_DUPLEX_FULL,
@@ -67,10 +73,11 @@ from switches.models import Switch, SwitchGroup
 # from switches.utils import time_duration, dprint
 from switches.utils import dprint
 
-API_VERSION=1
+API_VERSION = 1
 
-REST_DEBUG = False  # for development only. If True, lots of REST debugging will be printed!
-                    # also requires settings.DEBUG = True!
+# for development only. If True, lots of REST debugging will be printed!
+# also requires settings.DEBUG = True!
+REST_DEBUG = False
 
 class HPECwRestConnector(Connector):
     """
@@ -84,7 +91,7 @@ class HPECwRestConnector(Connector):
         self.description = "HPE Comware REST API driver"
         self.vendor_name = "HPE/Aruba"
         # can edit (most) entries
-        self.read_only = True
+        self.read_only = False
         if switch.description:
             self.add_more_info("System", "Description", switch.description)
 
@@ -104,17 +111,16 @@ class HPECwRestConnector(Connector):
             raise Exception(self.error.description)
 
         # capabilities supported by this eAPI driver:
-        self.can_change_admin_status= False
-        self.can_change_vlan= False
-        self.can_edit_vlans= False  # if true, this driver can edit (create/delete) vlans on the device!
-        self.can_set_vlan_name= False  # set to False if vlan create/delete cannot set/change vlan name!
+        self.can_change_admin_status = False
+        self.can_change_vlan = False
+        self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
+        self.can_set_vlan_name = False  # set to False if vlan create/delete cannot set/change vlan name!
         # self.can_change_poe_status = False - we do not have a test switch with PoE !
-        self.can_change_description= False
-        self.can_save_config= False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
-        self.can_reload_all= True  # if true, we can reload all our data (and show a button on screen for this)
-        self.can_edit_tags= False  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all= False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
-
+        self.can_change_description = True
+        self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
+        self.can_edit_tags = False  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_allow_all = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
     #########################################
     # Comware REST API supporting functions #
@@ -137,6 +143,7 @@ class HPECwRestConnector(Connector):
             f"Reason: {self.response.reason}\n"
             f"Headers: {self.response.headers}\n"
             f"Content (text): {self.response.text}\n"
+            "--- END ---\n"
         )
 
     def _set_headers(self, type="json"):
@@ -195,7 +202,7 @@ class HPECwRestConnector(Connector):
             # disable unknown cert warnings
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             # or all warnings:
-            # urllib3.disable_warnings()
+            urllib3.disable_warnings()
 
         return self.login()
 
@@ -223,34 +230,98 @@ class HPECwRestConnector(Connector):
 
         # and try the "get-token" url
         try:
-            self.response = self.post(path="Tokens", headers=headers)
+            self.response = requests.post(url=self.base_url + "Tokens", headers=headers, verify=self.switch.netmiko_profile.verify_hostkey)
+            self._debug_request()
+            vars = json.loads(self.response.text)
+            if "token-id" in vars:
+                self.token = vars['token-id']
+                self.token_timeout = vars['expiry-time']
+                dprint(f"  Found token: {self.token}")
+                dprint(f"  Timeout: {self.token_timeout}")
+                self._set_headers()
+                return True
         except Exception as err:
-            dprint(f"ERROR: cannot login! Info: {err}")
-            self.error.status = True
-            self.error.description = "Error getting token. Please verify your Credentials Profile!"
+            dprint(f"ERROR: cannot login! - {err}")
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"Cannot open REST session: {format(err)}"
             return False
 
-        self.token = self.response['token-id']
-        self.token_timeout = self.response['expiry-time']
-        dprint(f" Found token: {self.token} (expires {self.token_timeout})")
-        self._set_headers()
-        return True
+    #
+    # we use the request library, see https://requests.readthedocs.io/en/latest/api/
+    #
+    # POST can only be used to create new attributes, ie when they are NOT SET YET!
+    #
+    # PUT will update with value, but NOT clear out! (ie you cannot set description="")
+    # success will return code 204 - No content.
+    # You can repeatedly PUT with the same value!
 
-    def post(self, path: str, data: dict = {}, headers: str = ""):
-        #
-        # POST a specific REST endpoint and return JSON response.
-        # will raise exception on error
-        #
+    # DELETE needs to be used to remove an attribute.
+    #
+
+    def post(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}):
+        """POST a specific REST endpoint and return JSON response.
+            will raise exception on error
+
+        Args:
+            path (str) - API path (ie withouth host url)
+            params (dict) - query string parameters, as string or dict if multiple.
+            data (dict) - body data as json-encoded dict, if any.
+            headers (dict) - HTTPS headers to override default headers from login.
+
+        Note that params, data and headers can be passed to the request library as is!
+
+        Returns data as json dict, or None if empty.
+        """
         dprint("HPECwRestConnector.post()")
         if not headers:
             # set to default
             headers = self.headers
-        self.response = requests.post(url=self.base_url + path, headers=headers, data=data, verify=self.switch.netmiko_profile.verify_hostkey)
+        self.response = requests.post(url=self.base_url + path,
+                                      headers=headers,
+                                      params=params,
+                                      data=data,
+                                      verify=self.switch.netmiko_profile.verify_hostkey)
         self._debug_request()
         self.response.raise_for_status()
 
-        return json.loads(self.response.text)
+        # no errors:
+        if self.response.status_code == 200:    # valid return with content (ie. data)!
+            return json.loads(self.response.text)
+        else:
+            # likely 204 - Valid return, but No Content
+            return None
 
+    def put(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}):
+        """PUT a specific REST endpoint and return JSON response.
+        will raise exception on error
+
+        Args:
+            path (str) - API path (ie withouth host url)
+            params (dict) - query string parameters, as string or dict if multiple.
+            data (dict) - body data as json-encoded dict, if any.
+            headers (dict) - HTTPS headers to override default headers from login.
+
+        Note that params, data and headers can be passed to the request library as is!
+
+        returns data as json dict, or None if empty.
+        """
+        dprint("HPECwRestConnector.put()")
+        if not headers:
+            # set to default
+            headers = self.headers
+        self.response = requests.put(url=self.base_url + path,
+                                     headers=headers,
+                                     params=params,
+                                     data=data,
+                                     verify=self.switch.netmiko_profile.verify_hostkey)
+        self._debug_request()
+        self.response.raise_for_status()
+
+        # no errors
+        if self.response.status_code in (200, 204):
+            return True
+        # Hmm ?
+        return False
 
     ##############################
     # OpenL2M specific functions #
@@ -307,7 +378,7 @@ class HPECwRestConnector(Connector):
                 iface = Interface(i['IfIndex'])
                 iface.name = i['Name']
 
-                if int(i['AdminStatus']) == 1:
+                if int(i['AdminStatus']) == 1:  # 1=up, 2=down
                     iface.admin_status = True
                 else:
                     iface.admin_status = False
@@ -325,11 +396,11 @@ class HPECwRestConnector(Connector):
 
                 if "ConfigDuplex" in i:
                     match int(i["ConfigDuplex"]):
-                        case 1: # Full
+                        case 1:     # Full
                             iface.duplex = IF_DUPLEX_FULL
-                        case 2: # Half
+                        case 2:     # Half
                             iface.duplex = IF_DUPLEX_HALF
-                        case _: # should not happen!
+                        case _:     # should not happen!
                             iface.duplex = IF_DUPLEX_UNKNOWN
 
                 if "Description" in i:
@@ -360,7 +431,7 @@ class HPECwRestConnector(Connector):
 
                 if "LinkType" in i:
                     match int(i["LinkType"]):
-                        case 1: # access
+                        case 1:     # access
                             dprint("  Access Mode!")
                             iface.is_tagged = False
                             iface.untagged_vlan = int(i['PVID'])
@@ -386,13 +457,11 @@ class HPECwRestConnector(Connector):
                             iface.manageable = False
                             iface.unmanage_reason = f"Access denied: unknown interface mode! (LinkType {i['Linktype']})"
 
-
-                        #case _:
+                        # case _:
                         #
 
                 if "ConfigMTU" in i:
                     iface.mtu = int(i["ConfigMTU"])
-
 
                 #     # parse ipv4 addresses of this interface:
                 #     if "interfaceAddress" in if_data:
@@ -450,7 +519,7 @@ class HPECwRestConnector(Connector):
             # PoE Ports
             # Note: this API point on gives ports that are using PoE,
             # NOT ports that are capable of PoE!
-            PoEPorts= self.get_path(path="PoE/Ports")
+            PoEPorts = self.get_path(path="PoE/Ports")
             if PoEPorts:
                 for port in PoEPorts["Ports"]:
                     dprint(f"\nPOE-PORT: {pprint.pformat(port)}")
@@ -461,9 +530,9 @@ class HPECwRestConnector(Connector):
                         poe = PoePort(index=port["IfIndex"], admin_status=admin_status)
                         # set various values found:
                         poe.power_consumption_supported = True
-                        poe.power_consumed = int(port["CurrentPower"])  # power consumed in milliWatt
-                        poe.power_available = int(port["PowerLimit"]) # power available in milliWatt
-                        poe.max_power_consumed = int(port["PeakPower"])  # max power drawn since PoE reset, in milliWatt
+                        poe.power_consumed = int(port["CurrentPower"])      # power consumed in milliWatt
+                        poe.power_available = int(port["PowerLimit"])       # power available in milliWatt
+                        poe.max_power_consumed = int(port["PeakPower"])     # max power drawn since PoE reset, in milliWatt
                         # "DetectionStatus" matches the SNMP POE mib definitions
                         poe.detect_status = int(port["DetectionStatus"])
                         # and assign to interface:
@@ -659,7 +728,6 @@ class HPECwRestConnector(Connector):
                             dprint("  Ethernet adding from PortName !")
                             iface.add_learned_ethernet_address(eth_address=mac["MacAddress"], vlan_id=mac["VLANID"])
                             self.eth_addr_count += 1
-
 
         #
         # get IPV4 ARP data
@@ -868,9 +936,9 @@ class HPECwRestConnector(Connector):
         # add to data from initial LLDP/LLDPNeighbors
         #
 
-#
-# NOTE: address parsing is NOT functional yet...
-#
+        #
+        # NOTE: lldp remote device address parsing is NOT functional yet...
+        #
 
         # find existing OpenL2M NeighborDevice()
         iface = self.get_interface_by_key(key=nb["IfIndex"])
@@ -951,24 +1019,35 @@ class HPECwRestConnector(Connector):
         # interface.admin_status = new_state
         dprint(f"HPECwRestConnector.set_interface_description() for {interface.name} to '{description}'")
 
-        # if description:
-        #     description_cmd = f"description {description}"
-        # else:
-        #     description_cmd = "no description"
+        if not description:
+            # don't know yet how to handle deleting description!
+            self.error.status = True
+            self.error.description = "Clearing description is NOT implemented yet!"
+            self.error.details = ""
+            return False
 
-        # cmds = [
-        #     "configure terminal",
-        #     f"interface {interface.name}",
-        #     description_cmd,
-        #     "end",
-        # ]
-
-        # if self._run_commands(commands=cmds, action="set interface description"):
-        #     # all OK, now do the book keeping
-        #     super().set_interface_description(interface=interface, description=description)
-        #     return True
-
-        return False
+        # query string parameters
+        params = {
+            "index": f"IfIndex={interface.key}",
+        }
+        # body data
+        data = {
+            "IfIndex": int(interface.key),
+            "Description": description,
+        }
+        try:
+            resp = self.put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
+            if resp:
+                # all OK, now do the book keeping
+                super().set_interface_description(interface=interface, description=description)
+                return True
+            # error ?
+            return False
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Error setting description!"
+            self.error.details = err
+            return False
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
@@ -1194,7 +1273,7 @@ class HPECwRestConnector(Connector):
 
     #
     # here we override the SSH command execution using Netmiko,
-    # and implement it using the eAPI.
+    # and implement it using the REST API.
     #
     # def _execute_command(self, command: str) -> bool:
     #     """
@@ -1218,7 +1297,7 @@ class HPECwRestConnector(Connector):
 
     #     # try:
     #     #     # run the command:
-    #     #     json_data = self._eapi_run_command(command=command, format="text")
+    #     #     json_data = self._run_command(command=command, format="text")
     #     #     # The 'result' key will contain a list of command output.
     #     #     # dprint(f"RETURN:\n{json_data}")
     #     #     self.netmiko_output = json_data.get("result")[0]["output"]
@@ -1226,7 +1305,7 @@ class HPECwRestConnector(Connector):
     #     # except Exception as err:
     #     #     dprint(f"  ERROR running '{command}': {err}")
     #     #     self.error.status = True
-    #     #     self.error.description = f"Error running eAPI command = '{command}'!"
+    #     #     self.error.description = f"Error running REST API command = '{command}'!"
     #     #     self.error.details = f"Cannot read device information: {format(err)}"
     #     #     self.add_warning(
     #     #         warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
@@ -1235,7 +1314,7 @@ class HPECwRestConnector(Connector):
     #     return False
 
     def _run_commands(self, commands: list, action: str) -> bool:
-        """Run multiple commands using the eAPI.
+        """Run multiple commands using the REST API.
 
         Args:
             commands: list of command string to run
