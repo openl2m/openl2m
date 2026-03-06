@@ -76,8 +76,9 @@ from switches.utils import dprint
 API_VERSION = 1
 
 # for development only. If True, lots of REST debugging will be printed!
-# also requires settings.DEBUG = True!
-REST_DEBUG = False
+# also requires settings.DEBUG = True! See also self._debug_request()
+REST_DEBUG = True
+
 
 class HPECwRestConnector(Connector):
     """
@@ -111,11 +112,11 @@ class HPECwRestConnector(Connector):
             raise Exception(self.error.description)
 
         # capabilities supported by this eAPI driver:
-        self.can_change_admin_status = False
+        self.can_change_admin_status = True
         self.can_change_vlan = False
         self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = False  # set to False if vlan create/delete cannot set/change vlan name!
-        # self.can_change_poe_status = False - we do not have a test switch with PoE !
+        self.can_change_poe_status = False
         self.can_change_description = True
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
@@ -984,23 +985,37 @@ class HPECwRestConnector(Connector):
         # interface.admin_status = new_state
         dprint(f"HPECwRestConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
 
-        # if new_state:
-        #     status = "no shutdown"
-        # else:
-        #     status = "shutdown"
-        # cmds = [
-        #     "configure terminal",
-        #     f"interface {interface.name}",
-        #     f"{status}",
-        #     "end",
-        # ]
+        # status values: 1=up, 2=down
+        if new_state:
+            status = 1
+        else:
+            status = 2
 
-        # if self._run_commands(commands=cmds, action="set interface admin status"):
-        #     # all OK, now do the book keeping
-        #     super().set_interface_admin_status(interface=interface, new_state=new_state)
-        #     return True
-
-        return False
+        # query string parameters
+        params = {
+            "index": f"IfIndex={interface.key}",
+        }
+        # body data
+        data = {
+            "IfIndex": int(interface.key),
+            "AdminStatus": status,
+        }
+        try:
+            resp = self.put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
+            if resp:
+                # all OK, now do the book keeping
+                super().set_interface_admin_status(interface=interface, new_state=new_state)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = "Error changing interface state!"
+            self.error.details = "We're not sure what happened (?)"
+            return False
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Error changing interface state!"
+            self.error.details = format(err)
+            return False
 
     #
     # set interface description
@@ -1042,6 +1057,9 @@ class HPECwRestConnector(Connector):
                 super().set_interface_description(interface=interface, description=description)
                 return True
             # error ?
+            self.error.status = True
+            self.error.description = "Error setting description!"
+            self.error.details = "We're not sure what happened (?)"
             return False
         except Exception as err:
             self.error.status = True
