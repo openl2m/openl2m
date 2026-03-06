@@ -113,13 +113,13 @@ class HPECwRestConnector(Connector):
 
         # capabilities supported by this eAPI driver:
         self.can_change_admin_status = True
-        self.can_change_vlan = False
-        self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
-        self.can_set_vlan_name = False  # set to False if vlan create/delete cannot set/change vlan name!
+        self.can_change_vlan = True
         self.can_change_poe_status = False
         self.can_change_description = True
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
+        self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
+        self.can_set_vlan_name = False  # set to False if vlan create/delete cannot set/change vlan name!
         self.can_edit_tags = False  # True if this driver can edit 802.1q tagged vlans on interfaces
         self.can_allow_all = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
@@ -1064,7 +1064,7 @@ class HPECwRestConnector(Connector):
         except Exception as err:
             self.error.status = True
             self.error.description = "Error setting description!"
-            self.error.details = err
+            self.error.details = format(err)
             return False
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
@@ -1075,37 +1075,44 @@ class HPECwRestConnector(Connector):
         dprint(
             f"HPECwRestConnector().set_interface_untagged_vlan() port {interface.name} to {new_vlan_id} ({type(new_vlan_id)})"
         )
-        # new_vlan = self.get_vlan_by_id(new_vlan_id)
-        # if not new_vlan:
-        #     self.error.status = True
-        #     self.error.description = f"Cannot find Vlan object for vlan {new_vlan_id} for port '{interface.name}'"
-        #     self.error.details = ""
-        #     return False
-        # if interface.is_tagged:
-        #     dprint("Tagged/Trunk Mode!")
-        #     # set the TRUNK_NATIVE_VLAN OID:
-        #     cmds = [
-        #         "configure terminal",
-        #         f"interface {interface.name}",
-        #         f"switchport trunk native vlan {new_vlan_id}",
-        #         "end",
-        #     ]
-        # else:
-        #     # regular access mode untagged port:
-        #     dprint("Acces Mode!")
-        #     cmds = [
-        #         "configure terminal",
-        #         f"interface {interface.name}",
-        #         f"switchport access vlan {new_vlan_id}",
-        #         "end",
-        #     ]
 
-        # if self._run_commands(commands=cmds, action=f"set interface vlan to {new_vlan_id}"):
-        #     # all OK, now do the book keeping
-        #     super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
-        #     return True
+        # validate new vlan
+        new_vlan = self.get_vlan_by_id(new_vlan_id)
+        if not new_vlan:
+            self.error.status = True
+            self.error.description = f"Cannot find Vlan object for vlan {new_vlan_id} for port '{interface.name}'"
+            self.error.details = ""
+            return False
 
-        return False
+        # the REST APi does not appear to "care" wether interface is untagged or tagged. Just set PVID !
+
+        # query string parameters
+        params = {
+            "index": f"IfIndex={interface.key}",
+        }
+
+        # body data
+        data = {
+            "IfIndex": int(interface.key),
+            "PVID": new_vlan_id,     # valid vlan id's
+        }
+
+        try:
+            resp = self.put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
+            if resp:
+                # all OK, now do the book keeping
+                super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = f"Error setting vlan {new_vlan_id}!"
+            self.error.details = "We're not sure what happened (?)"
+            return False
+        except Exception as err:
+            self.error.status = True
+            self.error.description = f"Error setting vlan to {new_vlan_id}!"
+            self.error.details = format(err)
+            return False
 
     def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
         """
