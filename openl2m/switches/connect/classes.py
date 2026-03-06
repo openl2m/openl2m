@@ -741,6 +741,7 @@ class PoePort:
         self.priority = 0
         self.description = ""       # rarely used, but available in POE MIB
         """
+        self.pse_id: int = -1    # the PSE ID, ie. Power Supply ID that feeds this port. Needed for some devices PoE enable/disable
         # power consumed is not in the standard PoE MIB, but some proprietary MIBs support this (e.g. Cisco)
         self.power_consumption_supported: bool = False
         self.power_consumed: int = 0  # power consumed in milliWatt

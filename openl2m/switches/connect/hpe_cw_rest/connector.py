@@ -42,7 +42,7 @@ from switches.connect.connector import Connector
 from switches.connect.constants import (
     # VLAN_ADMIN_DISABLED,
     # POE_PORT_ADMIN_DISABLED,
-    # POE_PORT_ADMIN_ENABLED,
+    POE_PORT_ADMIN_ENABLED,
     IF_DUPLEX_UNKNOWN,
     IF_DUPLEX_HALF,
     IF_DUPLEX_FULL,
@@ -114,7 +114,7 @@ class HPECwRestConnector(Connector):
         # capabilities supported by this eAPI driver:
         self.can_change_admin_status = True
         self.can_change_vlan = True
-        self.can_change_poe_status = False
+        self.can_change_poe_status = True
         self.can_change_description = True
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
@@ -530,6 +530,7 @@ class HPECwRestConnector(Connector):
                         admin_status = port["AdminEnable"]
                         poe = PoePort(index=port["IfIndex"], admin_status=admin_status)
                         # set various values found:
+                        poe.pse_id = int(port["PSEID"])                     # need for port PoE enable/disable
                         poe.power_consumption_supported = True
                         poe.power_consumed = int(port["CurrentPower"])      # power consumed in milliWatt
                         poe.power_available = int(port["PowerLimit"])       # power available in milliWatt
@@ -1064,6 +1065,74 @@ class HPECwRestConnector(Connector):
         except Exception as err:
             self.error.status = True
             self.error.description = "Error setting description!"
+            self.error.details = format(err)
+            return False
+
+    def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
+        """
+        set the interface Power-over-Ethernet status as given
+        interface = Interface() object for the requested port
+
+        Args:
+            interface: the Interface to modify
+            new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
+
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(f"HPECwRestConnector.set_interface_poe_status() for {interface.name} to {new_state}")
+
+        if not interface.poe_entry:
+            # this should never happen!
+            dprint("PoE change requested, but interface does not support PoE!!!")
+            self.error.status = True
+            self.error.description = "PoE change requested, but interface does not support PoE!!!"
+            self.error.details = ""
+            return False
+
+        if interface.poe_entry.pse_id < 0:
+            # this should never happen!
+            dprint("PoE change requested, but invalid Power Suply ID found!")
+            self.error.status = True
+            self.error.description = "PoE change requested, but invalid Power Suply ID found!"
+            self.error.details = ""
+            return False
+
+        # query string parameters, needs 2 index parameters!
+        params = {
+            "index": f"IfIndex={interface.key};PSEID={interface.poe_entry.pse_id}",
+        }
+
+        # set status values
+        if new_state == POE_PORT_ADMIN_ENABLED:
+            status = True
+            status_name = "ON"
+        else:
+            status = False
+            status_name = "OFF"
+
+        # body data
+        data = {
+            "IfIndex": int(interface.key),
+            "PSEID": int(interface.poe_entry.pse_id),
+            "AdminEnable": status,   # True=PoE enabled, False=disabled
+        }
+
+        # go set PoE state
+        try:
+            resp = self.put(path="PoE/Ports", params=params, data=json.dumps(data))
+            if resp:
+                # all OK, now do the book keeping
+                super().set_interface_poe_status(interface, new_state)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = f"Error setting PoE state to {status_name}!"
+            self.error.details = "We're not sure what happened (?)"
+            return False
+        except Exception as err:
+            self.error.status = True
+            self.error.description = f"Error setting PoE to {status_name}!"
             self.error.details = format(err)
             return False
 
