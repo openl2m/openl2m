@@ -1300,6 +1300,7 @@ class HPECwRestConnector(Connector):
             "ID": vlan_id,
             "Name": vlan_name,
         }
+
         try:
             # create requires a HTTP POST
             success = self._post(path="VLAN/VLANs", data=json.dumps(data))
@@ -1331,34 +1332,42 @@ class HPECwRestConnector(Connector):
         """
         dprint(f"HPECwRestConnector.vlan_edit() for vlan {vlan_id} = '{vlan_name}'")
 
-        # vlan = self.get_vlan_by_id(vlan_id)
-        # if not vlan:
-        #     self.error.status = True
-        #     self.error.description = f"Vlan {vlan_id} does not exist!"
-        #     self.error.details = ""
-        #     return False
+        vlan = self.get_vlan_by_id(vlan_id)
+        if not vlan:
+            self.error.status = True
+            self.error.description = f"Vlan {vlan_id} does not exist!"
+            self.error.details = ""
+            return False
 
-        # if vlan_name:
-        #     cmds = [
-        #         "configure terminal",
-        #         f"vlan {vlan_id}",
-        #         f"name {vlan_name}",
-        #         "end",
-        #     ]
-        # else:
-        #     cmds = [
-        #         "configure terminal",
-        #         f"vlan {vlan_id}",
-        #         "no name",
-        #         "end",
-        #     ]
+        # edit is a PUT with a query string with the VLAN ID as index
+        params = {
+            "index": f"ID={vlan_id}",
+        }
 
-        # if self._run_commands(commands=cmds, action=f"rename vlan {vlan_id}"):
-        #     # all OK, now do the book keeping
-        #     super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
-        #     return True
+        # and body data with the updated values.
+        data = {
+            "ID": vlan_id,
+            "Name": vlan_name,
+            # "Description": not supported...,
+        }
 
-        return False
+        try:
+            # create requires a HTTP POST
+            success = self._put(path="VLAN/VLANs", params=params, data=json.dumps(data))
+            if success:
+                # all OK, now do the book keeping
+                super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = "Error editing vlan!"
+            self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
+            return False
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Error editing vlan!"
+            self.error.details = format(err)
+            return False
 
     def vlan_delete(self, vlan_id: int) -> bool:
         """
@@ -1379,11 +1388,10 @@ class HPECwRestConnector(Connector):
             self.error.details = ""
             return False
 
-        # this is a simple HTTP DELETE call!
+        # this is a simple HTTP DELETE call, with vlan ID as query string parameter
         params = {
             "index": f"ID={vlan_id}",
         }
-
         try:
             success = self._delete(path="VLAN/VLANs", params=params)
             if success:
