@@ -1209,7 +1209,7 @@ class Interface:
         self.lldp[neighbor.index] = neighbor
         # return True
 
-    def get_neighbor(self, index:str) -> NeighborDevice:
+    def get_neighbor(self, index: str) -> NeighborDevice:
         """
         Return lldp neighbor to this interface for the given lldpm index.
         """
