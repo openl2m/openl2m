@@ -116,7 +116,7 @@ class HPECwRestConnector(Connector):
         self.can_change_vlan = True
         self.can_change_poe_status = True
         self.can_change_description = True
-        self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_save_config = True     # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_vlans = True  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
@@ -155,29 +155,6 @@ class HPECwRestConnector(Connector):
             "X-Auth-Token": self.token,
             "Content-Type": f"application/{type}",
         }
-
-    def _get(self, path: str, headers: str = ""):
-        #
-        # GET a specific REST endpoint and return JSON response.
-        # will return response or None if error is trapped (most likely because API endpoint does not exist).
-        #
-        if not headers:
-            # set to default
-            headers = self.headers
-        # make the request:
-        self.response = requests.get(url=self.base_url + path, headers=headers, verify=self.switch.netmiko_profile.verify_hostkey)
-        self._debug_request()
-        try:
-            self.response.raise_for_status()
-        except Exception:
-            # some error occured (after we had a valid token!), return nothing!
-            return None
-
-        if self.response.status_code == 200:    # valid return!
-            return json.loads(self.response.text)
-        else:
-            # likely 204 - Valid return, but No Content
-            return None
 
     def _open_device(self) -> bool:
         """
@@ -250,14 +227,41 @@ class HPECwRestConnector(Connector):
     #
     # we use the request library, see https://requests.readthedocs.io/en/latest/api/
     #
+    # From the HPE Comware NetConf / REST API docs:
+    #
+    # GET is used to read various configurations and operational data from the device.
+    #
     # POST can only be used to create new attributes, ie when they are NOT SET YET!
     #
     # PUT will update with value, but NOT clear out! (ie you cannot set description="")
     # success will return code 204 - No content.
     # You can repeatedly PUT with the same value!
-
+    #
     # DELETE needs to be used to remove an attribute.
     #
+
+    def _get(self, path: str, headers: str = ""):
+        #
+        # GET a specific REST endpoint and return JSON response.
+        # will return response or None if error is trapped (most likely because API endpoint does not exist).
+        #
+        if not headers:
+            # set to default
+            headers = self.headers
+        # make the request:
+        self.response = requests.get(url=self.base_url + path, headers=headers, verify=self.switch.netmiko_profile.verify_hostkey)
+        self._debug_request()
+        try:
+            self.response.raise_for_status()
+        except Exception:
+            # some error occured (after we had a valid token!), return nothing!
+            return None
+
+        if self.response.status_code == 200:    # valid return!
+            return json.loads(self.response.text)
+        else:
+            # likely 204 - Valid return, but No Content
+            return None
 
     def _post(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}):
         """POST a specific REST endpoint and return JSON response.
@@ -1411,105 +1415,19 @@ class HPECwRestConnector(Connector):
 
     def save_running_config(self) -> bool:
         """
-        save the current config to startup via api.
+        save the current config to startup. Note this uses SSH (Netmiko), as this is NOT supported via the REST API.
 
         Returns:
             (bool) - True if this succeeds, False on failure. self.error() will be set in that case
         """
         dprint("HPECwRestConnector().save_running_config()")
 
-        # cmds = [
-        #     "write memory",
-        # ]
-
-        # return self._run_commands(commands=cmds, action="save configuration")
-
-        return False
+        # Not implemented in API, so run the save command with _execute_command(), which uses Netmiko / SSH
+        return self._execute_command(command="save force")
 
     #
-    # here we override the SSH command execution using Netmiko,
-    # and implement it using the REST API.
+    # support functions
     #
-    # def _execute_command(self, command: str) -> bool:
-    #     """
-    #     Execute a single command on the device using eAPI.
-    #     Save the command output to self.output
-    #     On error, set self.error as needed.
-
-    #     Args:
-    #         command: the string the execute as a command on the device
-
-    #     Returns:
-    #         True if success, False on failure.
-    #         On success, save the command output to self.output.
-    #         On failure, set self.error as applicable.
-    #     """
-    #     dprint(f"HPECwRestConnector()._execute_command() '{command}'")
-
-    #     if not self._open_device():
-    #         dprint("_open_device() failed!")
-    #         return False
-
-    #     # try:
-    #     #     # run the command:
-    #     #     json_data = self._run_command(command=command, format="text")
-    #     #     # The 'result' key will contain a list of command output.
-    #     #     # dprint(f"RETURN:\n{json_data}")
-    #     #     self.netmiko_output = json_data.get("result")[0]["output"]
-    #     #     return True
-    #     # except Exception as err:
-    #     #     dprint(f"  ERROR running '{command}': {err}")
-    #     #     self.error.status = True
-    #     #     self.error.description = f"Error running REST API command = '{command}'!"
-    #     #     self.error.details = f"Cannot read device information: {format(err)}"
-    #     #     self.add_warning(
-    #     #         warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
-    #     #     )
-
-    #     return False
-
-    def _run_commands(self, commands: list, action: str) -> bool:
-        """Run multiple commands using the REST API.
-
-        Args:
-            commands: list of command string to run
-            action: description of what this tries to accomplish. Will be used if this fails.
-
-        Returns:
-            True if all goes OK.
-            False if this fails. the self.error() variable will be set with information about the failure.
-        """
-        dprint(f"HPECwRestConnector()._run_command:\n{commands}")
-
-        # try:
-        #     # run the command:
-        #     json_data = self._eapi_run_command(command=commands)
-        #     # The 'result' key will contain a list of command output.
-        #     dprint(f"RETURN:\n{json_data}")
-        #     if "error" in json_data:
-        #         # some error occured !
-        #         dprint("  ERROR running command!")
-        #         # error_code = json_data['error']['code']
-        #         # error_msg = json_data['error']['message']
-        #         self.error.status = True
-        #         self.error.description = (
-        #             f"Error '{json_data['error']['code']}' running eAPI commands: '{json_data['error']['message']}'"
-        #         )
-        #         self.error.details = f"Cannot {action}. Full return data: {json_data}"
-        #         return False
-
-        # except Exception as err:
-        #     dprint(f"  ERROR running '{commands}': {err}")
-        #     self.error.status = True
-        #     self.error.description = f"Error running eAPI commands = '{commands}'!"
-        #     self.error.details = f"Cannot {action}: {format(err)}"
-        #     return False
-        # # all OK
-        # dprint("All OK!")
-        # return True
-
-        return False
-
     def _get_interface_by_port_id(self, port_id: int):
         """Get an Interface() object from a given switch port id (int)"""
         dprint(f"HPECwRestConnector._get_interface_by_port_id() for port_id={port_id}")
