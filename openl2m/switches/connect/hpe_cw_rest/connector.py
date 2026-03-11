@@ -1365,32 +1365,41 @@ class HPECwRestConnector(Connector):
         Delete the vlan. Upon success, this then needs to call the base class for book keeping!
 
         Args:
-            id (int): the vlan id to edit
+            id (int): the vlan id to delete
 
         Returns:
             True on success, False on error and set self.error variables.
         """
         dprint(f"HPECwRestConnector.vlan_delete() for vlan {vlan_id}")
 
-        # vlan = self.get_vlan_by_id(vlan_id)
-        # if not vlan:
-        #     self.error.status = True
-        #     self.error.description = f"Vlan {vlan_id} does not exist!"
-        #     self.error.details = ""
-        #     return False
+        vlan = self.get_vlan_by_id(vlan_id)
+        if not vlan:
+            self.error.status = True
+            self.error.description = f"Vlan {vlan_id} does not exist!"
+            self.error.details = ""
+            return False
 
-        # cmds = [
-        #     "configure terminal",
-        #     f"no vlan {vlan_id}",
-        #     "end",
-        # ]
+        # this is a simple HTTP DELETE call!
+        params = {
+            "index": f"ID={vlan_id}",
+        }
 
-        # if self._run_commands(commands=cmds, action=f"delete vlan {vlan_id}"):
-        #     # all OK, now do the book keeping
-        #     super().vlan_delete(vlan_id=vlan_id)
-        #     return True
-
-        return False
+        try:
+            success = self._delete(path="VLAN/VLANs", params=params)
+            if success:
+                # all OK, now do the book keeping
+                super().vlan_delete(vlan_id=vlan_id)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = "Error deleting vlan!"
+            self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
+            return False
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Error deleting vlan!"
+            self.error.details = format(err)
+            return False
 
     def save_running_config(self) -> bool:
         """
