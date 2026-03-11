@@ -21,9 +21,10 @@ TO DO:
 - read Interface IPv6 addresses
 - lldp remote device address parsing is NOT functional yet...
 - description set to empty string ''
+- interfaces 802.1q tag edit
 
 """
-
+from django.conf import settings
 from django.http.request import HttpRequest
 import pprint
 # from rangeparser import RangeParser
@@ -74,10 +75,6 @@ from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 
 API_VERSION = 1
-
-# for development only. If True, lots of REST debugging will be printed!
-# also requires settings.DEBUG = True! See also self._debug_request()
-REST_DEBUG = True
 
 
 class HPECwRestConnector(Connector):
@@ -131,7 +128,7 @@ class HPECwRestConnector(Connector):
         #
         # print request url response info
         #
-        if not REST_DEBUG:
+        if not settings.DEBUG_API:
             return
         dprint(
             "---REQUEST ---\n"

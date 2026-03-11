@@ -101,6 +101,7 @@ class Connector:
             "group",
             "switch",
             "error",
+            "netmiko_connection",
             "eth_addr_count",
             "neighbor_count",
         ]
@@ -357,7 +358,7 @@ class Connector:
                     # All OK, now set the permissions to the interfaces:
                     self._set_interfaces_permissions()
 
-                if not self.vlan_count: # driver likely did not set it!
+                if not self.vlan_count:  # driver likely did not set it!
                     # set the vlan count
                     self.vlan_count = len(self.vlans)
             else:
