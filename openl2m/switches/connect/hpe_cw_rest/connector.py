@@ -18,7 +18,6 @@ This implements a REST api driver from Comware devices. This follows the API doc
 in the HPE Comware NetConf documentation.
 
 TO DO:
-- read Interface IPv6 addresses
 - lldp remote device address parsing is NOT functional yet...
 - description set to empty string ''
 
@@ -441,16 +440,19 @@ class HPECwRestConnector(Connector):
                 if "Description" in i:
                     iface.description = i["Description"]
 
-                if "PortLayer" in i and int(i["PortLayer"]) == 2:     # layer 3- routed
+                if "PortLayer" in i and int(i["PortLayer"]) == 2:     # 2 = layer 3 - routed
+                    # Note: we also will read "IPV4ADDRESS/Ipv4Addresses" and "IPV6ADDRESS/Ipv6Addresses"
+                    # to get interface addresses. This reads both IPv4 and IPv6
                     dprint("  Routed Mode!")
                     iface.is_routed = True
                     if "InetAddressIPV4" in i:
-                        # get ipv4 info
+                        # set ipv4 info
                         iface.add_ip4_network(address=i["InetAddressIPV4"], netmask=i["InetAddressIPV4Mask"])
 
-                    # IPv6 not available with this call!
-                    #     # 'mask' attribute is really prefix lenght!
-                    #     iface.add_ip6_network(address=ip['addr'], prefix_len=ip['mask'])
+                    # IPv6 not available on some devices (Comware 7 - No?, Comware 9 - Yes ?) See also above.
+                    if "InetAddressIPV6" in i:
+                        # set ipv6 info
+                        iface.add_ip6_network(address=i["InetAddressIPV6"], prefix_len=i["InetAddressIPV6PrefixLength"])
 
                 if "ifType" in i:
                     iface.type = int(i["ifType"])
@@ -497,28 +499,6 @@ class HPECwRestConnector(Connector):
 
                 if "ConfigMTU" in i:
                     iface.mtu = int(i["ConfigMTU"])
-
-                #     # parse ipv4 addresses of this interface:
-                #     if "interfaceAddress" in if_data:
-                #         for addr in i["interfaceAddress"]:
-                #             dprint(f"Found IPv4: {addr['primaryIp']}")
-                #             iface.add_ip4_network(address=f"{addr['primaryIp']['address']}/{addr['primaryIp']['maskLen']}")
-
-                #     # # parse ipv6 addresses of this interface:
-                #     if "interfaceAddressIp6" in if_data:
-                #         # "real" IPv6 addresses:
-                #         for addr in i["interfaceAddressIp6"]["globalUnicastIp6s"]:
-                #             dprint(f"Found IPv6: {addr}")
-                #             ipv6 = addr["address"]
-                #             prefix_len = 64  # default for IPv6 subnets
-                #             # we need to get the netmask from the subnet:
-                #             netmask_pos = addr["subnet"].rfind("/")
-                #             if netmask_pos > 0:
-                #                 # and get the mask len from that:
-                #                 prefix_len = int(addr["subnet"][netmask_pos + 1 : :])
-                #             iface.add_ip6_network(address=ipv6, prefix_len=prefix_len)
-                #         # LinkLocal:
-                #         iface.add_ip6_network(address=f"{i['interfaceAddressIp6']['linkLocalIp6']['address']}")
 
                 # done, add this interface to the list...
                 self.add_interface(iface)
@@ -612,6 +592,27 @@ class HPECwRestConnector(Connector):
                                 err_str = f"ERROR: cannot find LACP member interface for index {member['IfIndex']} for LAGG {member['GroupId']}"
                                 dprint(err_str)
                                 self.add_warning(err_str)
+
+            #
+            # get interface IPv4 and IPv6 addresses
+            #
+            dprint("--- Reading interface IPv4 from 'IPV4ADDRESS/Ipv4Addresses' api ---")
+            addresses = self._get(path="IPV4ADDRESS/Ipv4Addresses")
+            if addresses:
+                for a in addresses["Ipv4Addresses"]:
+                    dprint(f"\nADDRESS: {pprint.pformat(a)}")
+                    iface = self.get_interface_by_key(key=a["IfIndex"])
+                    if iface:
+                        iface.add_ip4_network(address=a["Ipv4Address"], netmask=a["Ipv4Mask"])
+
+            dprint("--- Reading interface IPv6 from 'IPV6ADDRESS/Ipv6Addresses' api ---")
+            addresses = self._get(path="IPV6ADDRESS/Ipv6Addresses")
+            if addresses:
+                for a in addresses["Ipv6Addresses"]:
+                    dprint(f"\nADDRESS: {pprint.pformat(a)}")
+                    iface = self.get_interface_by_key(key=a["IfIndex"])
+                    if iface:
+                        iface.add_ip6_network(address=a["Ipv6Address"], prefix_len=a["Ipv6PrefixLength"])
 
             #
             # Deprecated - see below
