@@ -114,7 +114,7 @@ def get_vlan_id_from_l3_interface(iface: Interface) -> int:
     return -1
 
 
-def debug_request(response: Response, message: str = ""):
+def debug_response(response: Response, message: str = ""):
     #
     # debug url request/response info. For use by REST API drivers that use the requests module.
     #
@@ -135,4 +135,3 @@ def debug_request(response: Response, message: str = ""):
         f"Content (text): {response.text}\n"
         "--- END ---\n"
     )
-
