@@ -614,24 +614,43 @@ class HPECwRestConnector(Connector):
                                 dprint(err_str)
                                 self.add_warning(err_str)
 
+            #
+            # Deprecated - see below
+            #
             # now read the tagged vlans on ports from the vlan call to "VLAN/VLANs" above:
             # note: we have already found the untagged vlan in the interface call above,
             # thus we don't read "AccessPortList" and "UntaggedPortList",
             # but we are only looking at "TaggedPortList".
             # And, this uses the switch port, NOT the InterfaceIndex!
-            dprint("--- Reading tagged vlans from 'VLAN/VLANs' api ---")
-            if vlans:
-                # vlans is a list of dict() for each vlan
-                for vlan in vlans["VLANs"]:
-                    dprint(f"\nVLAN: {pprint.pformat(vlan)}")
-                    if "TaggedPortList" in vlan:
+            # dprint("--- Reading tagged vlans from 'VLAN/VLANs' api ---")
+            # if vlans:
+            #     # vlans is a list of dict() for each vlan
+            #     for vlan in vlans["VLANs"]:
+            #         dprint(f"\nVLAN: {pprint.pformat(vlan)}")
+            #         if "TaggedPortList" in vlan:
+            #             # expand the range to individual port numbers:
+            #             parser = RangeParser()
+            #             tagged_ports = parser.parse(vlan["TaggedPortList"])
+            #             for port in tagged_ports:
+            #                 iface = self._get_interface_by_port_id(port_id=port)
+            #                 if iface:
+            #                     iface.add_tagged_vlan(vlan_id=int(vlan["ID"]))
+
+            # we are reading 802.1Q Trunk/Tagged vlans from "VLAN/TrunkInterfaces",
+            # as this has more detailed info, specifically shows if the PVID is permitted as tagged.abs
+            dprint("--- Reading tagged vlans from 'VLAN/TrunkInterfaces' api ---")
+            interfaces = self._get(path="VLAN/TrunkInterfaces")
+            if interfaces:
+                for i in interfaces["TrunkInterfaces"]:
+                    dprint(f"\nINTERFACE: {pprint.pformat(i)}")
+                    if "PermitVlanList" in i:   # better be there :-)
                         # expand the range to individual port numbers:
                         parser = RangeParser()
-                        tagged_ports = parser.parse(vlan["TaggedPortList"])
-                        for port in tagged_ports:
-                            iface = self._get_interface_by_port_id(port_id=port)
-                            if iface:
-                                iface.add_tagged_vlan(vlan_id=int(vlan["ID"]))
+                        tagged_vlans = parser.parse(i["PermitVlanList"])
+                        iface = self.get_interface_by_key(key=i["IfIndex"])
+                        if iface:
+                            for vlan_id in tagged_vlans:
+                                iface.add_tagged_vlan(vlan_id=vlan_id)
 
             #
             # get IRF ports
@@ -677,11 +696,9 @@ class HPECwRestConnector(Connector):
                                 trx.wavelength = int(optics["WaveLength"])   # likely 850
                             case 4:     # copper
                                 trx.wavelength = 0
-
                         # note used:
                         # trx.description: str = ""
                         # trx.connector: str = ""  # 'LC', SC', etc.
-
                         iface.transceiver = trx
 
         # API may gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
