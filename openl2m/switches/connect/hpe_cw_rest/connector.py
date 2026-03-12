@@ -28,6 +28,7 @@ import pprint
 
 # used to disable unknown SSL cert warnings:
 import base64
+from datetime import timedelta
 import json
 from rangeparser import RangeParser
 import requests
@@ -121,26 +122,6 @@ class HPECwRestConnector(Connector):
     #########################################
     # Comware REST API supporting functions #
     #########################################
-
-    # def _debug_request(self):
-    #     #
-    #     # print request url response info
-    #     #
-    #     if not settings.DEBUG_API:
-    #         return
-    #     dprint(
-    #         "---REQUEST ---\n"
-    #         f"URL: {self.response.request.url}\n"
-    #         f"Method: {self.response.request.method}\n"
-    #         f"Headers: {self.response.request.headers}\n"
-    #         f"Body: {self.response.request.body}\n"
-    #         "--- RESPONSE ---\n"
-    #         f"Status Code: {self.response.status_code}\n"
-    #         f"Reason: {self.response.reason}\n"
-    #         f"Headers: {self.response.headers}\n"
-    #         f"Content (text): {self.response.text}\n"
-    #         "--- END ---\n"
-    #     )
 
     def _set_headers(self, type="json"):
         #
@@ -376,9 +357,22 @@ class HPECwRestConnector(Connector):
             self.add_more_info("System", "Hostname", facts["HostName"])
             self.add_more_info("System", "Model", facts["HostDescription"])
             self.add_more_info("System", "OID", facts["HostOid"])
-            # self.add_more_info("System", "Serial", facts["serial_number"])
-            # self.add_more_info("System", "OS Version", facts["os"])
-            self.add_more_info("System", "Uptime", facts["Uptime"])
+            # uptime needs to be parsed. uptime ticks are in seconds
+            self.add_more_info("System", "Uptime", str(timedelta(seconds=facts["Uptime"])))
+
+        #
+        # some hardware info
+        #
+        # not sure this adds enough to bother...
+        # hardware = self._get(path="Device/PhysicalEntities")
+        # if hardware:
+        #     dprint(f"HARDWARE: {pprint.pformat(hardware)}")
+        #     for hw in hardware["PhysicalEntities"]:
+        #         if hw["Class"] == 3:    # 3 = Frame, i.e. the whole chassis
+        #             self.add_more_info("System", "Model Short", hw["Model"])
+        #             self.add_more_info("System", "Model Name", hw["Name"])
+        #             self.add_more_info("System", "Serial", hw["SerialNumber"])
+        #             self.add_more_info("System", "OS Version", hw["SoftwareRev"])
 
         #
         # get vlan info
