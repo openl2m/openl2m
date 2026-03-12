@@ -117,8 +117,8 @@ class HPECwRestConnector(Connector):
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_vlans = True  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
-        self.can_edit_tags = False  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_allow_all = True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
     #########################################
     # Comware REST API supporting functions #
@@ -377,6 +377,7 @@ class HPECwRestConnector(Connector):
             dprint(f"FACT: {pprint.pformat(facts)}")
             self.add_more_info("System", "Hostname", facts["HostName"])
             self.add_more_info("System", "Model", facts["HostDescription"])
+            self.add_more_info("System", "OID", facts["HostOid"])
             # self.add_more_info("System", "Serial", facts["serial_number"])
             # self.add_more_info("System", "OS Version", facts["os"])
             self.add_more_info("System", "Uptime", facts["Uptime"])
@@ -1232,54 +1233,95 @@ class HPECwRestConnector(Connector):
         dprint(
             f"HPECwRestConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
         )
-        # if not len(tagged_vlans) and not allow_all:
-        #     # no tagged vlan, ie "access mode".
-        #     cmds = [
-        #         "configure terminal",
-        #         f"interface {interface.name}",
-        #         "switchport mode access",
-        #         f"switchport access vlan {untagged_vlan}",
-        #         "no switchport trunk native vlan",  # not needed, added for config clarity!
-        #         "no switchport trunk allowed vlan",  # not needed, added for config clarity!
-        #         "end",
-        #     ]
-        # else:
-        #     # trunk mode, setup mode and native vlan:
-        #     cmds = [
-        #         "configure terminal",
-        #         f"interface {interface.name}",
-        #         "switchport mode trunk",
-        #         "no switchport access vlan",  # not needed, added for config clarity!
-        #         f"switchport trunk native vlan {untagged_vlan}",
-        #     ]
-        #     # allow all vlans?
-        #     if allow_all:
-        #         cmds.append("switchport trunk allow vlan all")
-        #     # or just some specific vlans:
-        #     else:
-        #         # start with clean slate on trunk
-        #         cmds.append("switchport trunk allowed vlan none")
-        #         # loop through all vlans, and see if they are allowed
-        #         allow = []
-        #         for vid in self.vlans.keys():
-        #             if vid in tagged_vlans:
-        #                 # allowed!
-        #                 allow.append(str(vid))
-        #         # add allowed vlans to commands
-        #         cmds.append("switch trunk allowed vlan add " + ", ".join(allow))
 
-        #     # and finish the command list:
-        #     cmds.append("end")
+        # query string parameters
+        params = {
+            "index": f"IfIndex={interface.key}",
+        }
 
-        # # execute the command:
-        # if self._run_commands(
-        #     commands=cmds, action=f"set interface vlans to untagged {untagged_vlan}, tagged={tagged_vlans}, allow_all={allow_all}"
-        # ):
-        #     # call the base Connector() for bookkeeping:
-        #     super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
-        #     return True
+        # body data - the base settings
+        data = {
+            "IfIndex": int(interface.key),
+            "PVID": untagged_vlan,     # valid vlan id's
+        }
 
-        return False
+        if not len(tagged_vlans) and not allow_all:
+            # no tagged vlan, ie "access mode".
+            dprint("ACCESS mode set vlan")
+            mode = "access"
+            if interface.is_tagged:
+                # change mode as well
+                dprint("  Changing to ACCESS")
+                data['LinkType'] = 1    # 1 = Access
+            else:
+                dprint("Already Access mode!")
+        else:
+            # trunk mode, setup mode and native vlan:
+            dprint("TAGGED mode set vlans")
+            mode = "tagged"
+            if not interface.is_tagged:
+                # change mode as well
+                dprint("  Changing to TRUNK")
+                data['LinkType'] = 2    # 2 = Trunk
+            else:
+                dprint("Already Trunk mode!")
+
+        # and make the API call for the Access/Trunk setting:
+        try:
+            dprint(f"Setting Mode to {mode}")
+            resp = self._put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
+            if resp:
+                dprint("  mode set OK!")
+                # mode set OK. If tagged, add this interface to desired vlans:
+                if allow_all or len(tagged_vlans):
+                    dprint("Adding VLANs to TRUNK.")
+                    trunk_vlan_list = []
+                    for vlan_id in self.vlans:
+                        dprint(f"Checking vlan_id {vlan_id} = {type(vlan_id)}")
+                        if allow_all or vlan_id in tagged_vlans:
+                            dprint(f"CW REST TRUNK SET: TRUNK ADDING Vlan {vlan_id}")
+                            # for api call, we need a comma-separated list, created using .join(), so we need str() !
+                            trunk_vlan_list.append(str(vlan_id))
+
+                    # now use "VLAN/TrunkInterfaces" api endpoint to set trunk vlans.
+                    # query parameters has index to interface
+                    params = {
+                        "index": f"IfIndex={interface.key}",
+                    }
+
+                    # body data has the list of allowed vlans
+                    data = {
+                        "IfIndex": int(interface.key),
+                        "PermitVlanList": ','.join(trunk_vlan_list),
+                    }
+
+                    try:
+                        success = self._put(path="VLAN/TrunkInterfaces", params=params, data=json.dumps(data))
+                        if not success:
+                            # not sure what happened!
+                            self.error.status = True
+                            self.error.description = "Error adding vlans to trunk! Interface is now in UNKNOWN state!"
+                            self.error.details = ""
+                            return False
+                    except Exception as err:
+                        self.error.status = True
+                        self.error.description = "Error adding vlans to trunk! Interface is now in UNKNOWN state!"
+                        self.error.details = format(err)
+                        return False
+                # all OK, now do the book keeping
+                dprint("Calling Bookkeeping...")
+                super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = f"Error setting untagged vlan and {mode} mode!"
+            self.error.details = "We're not sure what happened (?)"
+            return False
+        except Exception as err:
+            self.error.status = True
+            self.error.description = f"Error setting untagged vlan and {mode} mode"
+            self.error.details = format(err)
+            return False
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
         """
