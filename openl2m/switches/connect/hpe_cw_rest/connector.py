@@ -21,10 +21,8 @@ TO DO:
 - read Interface IPv6 addresses
 - lldp remote device address parsing is NOT functional yet...
 - description set to empty string ''
-- interfaces 802.1q tag edit
 
 """
-from django.conf import settings
 from django.http.request import HttpRequest
 import pprint
 # from rangeparser import RangeParser
@@ -70,6 +68,7 @@ from switches.connect.constants import (
     # IANA_TYPE_IPV4,
     # IANA_TYPE_IPV6,
 )
+from switches.connect.utils import debug_response
 from switches.models import Switch, SwitchGroup
 # from switches.utils import time_duration, dprint
 from switches.utils import dprint
@@ -124,25 +123,25 @@ class HPECwRestConnector(Connector):
     # Comware REST API supporting functions #
     #########################################
 
-    def _debug_request(self):
-        #
-        # print request url response info
-        #
-        if not settings.DEBUG_API:
-            return
-        dprint(
-            "---REQUEST ---\n"
-            f"URL: {self.response.request.url}\n"
-            f"Method: {self.response.request.method}\n"
-            f"Headers: {self.response.request.headers}\n"
-            f"Body: {self.response.request.body}\n"
-            "--- RESPONSE ---\n"
-            f"Status Code: {self.response.status_code}\n"
-            f"Reason: {self.response.reason}\n"
-            f"Headers: {self.response.headers}\n"
-            f"Content (text): {self.response.text}\n"
-            "--- END ---\n"
-        )
+    # def _debug_request(self):
+    #     #
+    #     # print request url response info
+    #     #
+    #     if not settings.DEBUG_API:
+    #         return
+    #     dprint(
+    #         "---REQUEST ---\n"
+    #         f"URL: {self.response.request.url}\n"
+    #         f"Method: {self.response.request.method}\n"
+    #         f"Headers: {self.response.request.headers}\n"
+    #         f"Body: {self.response.request.body}\n"
+    #         "--- RESPONSE ---\n"
+    #         f"Status Code: {self.response.status_code}\n"
+    #         f"Reason: {self.response.reason}\n"
+    #         f"Headers: {self.response.headers}\n"
+    #         f"Content (text): {self.response.text}\n"
+    #         "--- END ---\n"
+    #     )
 
     def _set_headers(self, type="json"):
         #
@@ -206,7 +205,7 @@ class HPECwRestConnector(Connector):
         # and try the "get-token" url
         try:
             self.response = requests.post(url=self.base_url + "Tokens", headers=headers, verify=self.switch.netmiko_profile.verify_hostkey)
-            self._debug_request()
+            debug_response(response=self.response, message="TOKEN Login")
             vars = json.loads(self.response.text)
             if "token-id" in vars:
                 self.token = vars['token-id']
@@ -247,7 +246,7 @@ class HPECwRestConnector(Connector):
             headers = self.headers
         # make the request:
         self.response = requests.get(url=self.base_url + path, headers=headers, verify=self.switch.netmiko_profile.verify_hostkey)
-        self._debug_request()
+        debug_response(response=self.response, message="_GET() Call")
         try:
             self.response.raise_for_status()
         except Exception:
@@ -284,7 +283,7 @@ class HPECwRestConnector(Connector):
                                       params=params,
                                       data=data,
                                       verify=self.switch.netmiko_profile.verify_hostkey)
-        self._debug_request()
+        debug_response(response=self.response, message="_POST() Call")
         self.response.raise_for_status()
 
         # no errors:
@@ -316,7 +315,7 @@ class HPECwRestConnector(Connector):
                                      params=params,
                                      data=data,
                                      verify=self.switch.netmiko_profile.verify_hostkey)
-        self._debug_request()
+        debug_response(response=self.response, message="_PUT() Call")
         self.response.raise_for_status()
 
         # no errors
@@ -349,7 +348,7 @@ class HPECwRestConnector(Connector):
                                         params=params,
                                         data=data,
                                         verify=self.switch.netmiko_profile.verify_hostkey)
-        self._debug_request()
+        debug_response(response=self.response, message="_DELETE() Call")
         self.response.raise_for_status()
 
         # no errors
@@ -707,7 +706,7 @@ class HPECwRestConnector(Connector):
 
         return True
 
-    def get_my_vrfs(self) -> bool:
+    def get_my_vrfs(self):
         #
         # read VRF info
         #
@@ -731,18 +730,18 @@ class HPECwRestConnector(Connector):
                 # to find member interfaces, we need to store the VrfIndex field:
                 v.set_index(index=int(vrf["VrfIndex"]))
 
-        # next read the VRF-to-Interface binding table
-        vrf_members = self._get(path="L3vpn/L3vpnIf")
-        if vrf_members:
-            for member in vrf_members["L3vpnIf"]:
-                dprint(f"\nVRF Member:\n{pprint.pformat(member)}\n")
-                # find the interface and assign to VRF:
-                iface = self.get_interface_by_key(member["IfIndex"])
-                if iface:
-                    iface.vrf_name = member["VRF"]
-                    vrf = self.get_vrf_by_name(name=member["VRF"])
-                    if vrf:
-                        vrf.add_interface(if_name=iface.name)
+            # get the interfaces in the VRFs
+            vrf_members = self._get(path="L3vpn/L3vpnIf")
+            if vrf_members:
+                for member in vrf_members["L3vpnIf"]:
+                    dprint(f"\nVRF Member:\n{pprint.pformat(member)}\n")
+                    # find the interface and assign to VRF:
+                    iface = self.get_interface_by_key(member["IfIndex"])
+                    if iface:
+                        iface.vrf_name = member["VRF"]
+                        vrf = self.get_vrf_by_name(name=member["VRF"])
+                        if vrf:
+                            vrf.add_interface(if_name=iface.name)
 
     def get_my_client_data(self) -> bool:
         """
