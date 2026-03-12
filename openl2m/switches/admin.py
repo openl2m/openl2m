@@ -58,6 +58,7 @@ class SwitchAdmin(admin.ModelAdmin):
     list_display = ["name", "access_count", "last_accessed", "change_count", "last_changed", "get_switchgroups"]
     readonly_fields = (
         "hostname",
+        "driver_info",
         "created",
         #        'modified',
         "last_accessed",
@@ -71,7 +72,7 @@ class SwitchAdmin(admin.ModelAdmin):
     search_fields = ["name"]
     inlines = (SwitchInline,)
     fieldsets = (
-        (None, {"fields": ("name", "description", "primary_ip4", "primary_ip6")}),
+        (None, {"fields": ("name", "description", "primary_ip4", "primary_ip6", "comments")}),
         (
             "Connection Configuration",
             {
@@ -109,7 +110,7 @@ class SwitchAdmin(admin.ModelAdmin):
             },
         ),
         ("Other Options", {"fields": ("nms_id",)}),
-        ("Read-Only Fields", {"fields": ("hostname",)}),
+        ("Read-Only Fields", {"fields": ("hostname", "driver_info")}),
         (
             "Stats",
             {

@@ -916,6 +916,11 @@ class Switch(models.Model):
         verbose_name="Hostname",
         help_text="The switch hostname as reported via snmp, ssh, etc.",
     )
+    driver_info = models.TextField(
+        blank=True,
+        verbose_name="JSON Info",
+        help_text="JSON data provided by the driver.",
+    )
     # dont_show_interfaces = models.BooleanField(
     #    default=False,
     #    verbose_name='Do NOT Show Interfaces',
