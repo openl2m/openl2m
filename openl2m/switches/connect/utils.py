@@ -12,6 +12,9 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import re
+from requests import Response
+from django.conf import settings
+
 from switches.utils import dprint
 from switches.connect.classes import Interface
 
@@ -109,3 +112,27 @@ def get_vlan_id_from_l3_interface(iface: Interface) -> int:
         return vlan_id
     # not found
     return -1
+
+
+def debug_request(response: Response, message: str = ""):
+    #
+    # debug url request/response info. For use by REST API drivers that use the requests module.
+    #
+
+    # only print when both DEBUG and DEBUG_API are True:
+    if not settings.DEBUG or not settings.DEBUG_API:
+        return
+    dprint(
+        f"---REQUEST {message} ---\n"
+        f"URL: {response.request.url}\n"
+        f"Method: {response.request.method}\n"
+        f"Headers: {response.request.headers}\n"
+        f"Body: {response.request.body}\n"
+        "--- RESPONSE ---\n"
+        f"Status Code: {response.status_code}\n"
+        f"Reason: {response.reason}\n"
+        f"Headers: {response.headers}\n"
+        f"Content (text): {response.text}\n"
+        "--- END ---\n"
+    )
+
