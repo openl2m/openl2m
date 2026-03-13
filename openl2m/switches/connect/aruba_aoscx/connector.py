@@ -94,8 +94,9 @@ class AosCxConnector(Connector):
         # setting this to True disables prompt checking, and uses send_command_timing() calls.
         self.netmiko_ignore_prompt = True
 
-        # this is a read-write driver:
-        # self.switch.read_only = False
+        # we can override the settings calculated from switch.read_only, group.ready_only and user.profile.read_only
+        # but we should only do this to create a Read-Only driver!
+        # self.read_only = True
 
         # this will be the pyaoscx driver session object
         self.aoscx_session = False

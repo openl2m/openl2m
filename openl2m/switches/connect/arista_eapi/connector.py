@@ -72,8 +72,11 @@ class AristaApiConnector(Connector):
         super().__init__(request, group, switch)
         self.description = "Arista eAPI driver"
         self.vendor_name = "Arista"
-        # can edit (most) entries
-        self.read_only = False
+
+        # we can override the settings calculated from switch.read_only, group.ready_only and user.profile.read_only
+        # but we should only do this to create a Read-Only driver!
+        # self.read_only = True
+
         if switch.description:
             self.add_more_info("System", "Description", switch.description)
         # capabilities supported by this eAPI driver:

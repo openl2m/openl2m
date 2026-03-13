@@ -41,8 +41,11 @@ class DummyConnector(Connector):
         self.description = "Dummy Test driver"
         self.vendor_name = "Dummy Test Device"
         self.hostname = "dummy.example.org"
+        # we can override the settings calculated from switch.read_only, group.ready_only and user.profile.read_only
+        # but we should only do this to create a Read-Only driver!
         # We allow write, this will call base class bookkeeping functions in Connector()
-        # self.read_only = False
+        # self.read_only = True
+        #
         self.add_more_info("System", "Type", "Software Dummy Switch")
         self.add_more_info("System", "Hostname", self.hostname)
 

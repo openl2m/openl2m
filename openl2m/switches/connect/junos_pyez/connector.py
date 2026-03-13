@@ -97,7 +97,10 @@ class PyEZConnector(Connector):
         super().__init__(request, group, switch)
         self.description = "Junos PyEZ Netconf driver"
         self.vendor_name = "Juniper Networks"
-        # self.read_only = False
+
+        # we can override the settings calculated from switch.read_only, group.ready_only and user.profile.read_only
+        # but we should only do this to create a Read-Only driver!
+        # self.read_only = True
 
         # current capabilities of the PyEZ drivers:
         self.can_change_admin_status = True
