@@ -13,6 +13,7 @@
 #
 from collections import OrderedDict
 import datetime
+import json
 import jsonpickle
 import lib.manuf.manuf as manuf
 import natsort
@@ -148,6 +149,12 @@ class Connector:
         # set this flag is a save aka. 'write mem' is needed:
         self.save_needed = False
 
+        # device information set by drivers. A Dict() object that can be set with self.set_driver_info(name, value)
+        # and stored in the Switch().driver_info database field with self.save_driver_info().
+        # Visible from admin pages and API.
+        # Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
+        self.driver_info = {}
+
         # Netmiko is used for SSH connections to run commands. Here are some defaults a class can set.
         #
         # device_type:
@@ -223,6 +230,7 @@ class Connector:
             "hostname": self.hostname,
             "vendor": self.vendor_name,
             "driver": self.__class__.__name__,
+            "driver_info": self.driver_info,
             "name": self.switch.name,
             "id": self.switch.id,
             "group": self.group.name,
@@ -1676,6 +1684,29 @@ class Connector:
         if category not in self.more_info.keys():
             self.more_info[category] = {}
         self.more_info[category][name] = value
+
+    def set_driver_info(self, name: str, value):
+        """add to the device information set by drivers. Stored in a Dict() object
+           This can then be written to the Switch().driver_info database field with save_driver_info()
+           Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
+        """
+        try:
+            self.driver_info[name] = value
+        except Exception as err:
+            dprint(f"ERROR adding driver_info entry for '{name}': {err}")
+            self.add_warning(f"ERROR adding driver_info entry for '{name}': {err}")
+
+    def save_driver_info(self):
+        """ Save self.driver_info to the Switch.driver_info field as a JSON encoded string
+            Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
+        """
+
+        try:
+            self.switch.driver_info = json.dumps(self.driver_info)
+            self.switch.save()
+        except Exception as err:
+            dprint(f"ERROR saving driver_info field: {err}")
+            self.add_warning(f"ERROR saving driver_info field: {err}")
 
     def _can_manage_interface(self, iface: Interface):
         """
