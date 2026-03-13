@@ -456,6 +456,9 @@ JUNOS_PYEZ_CONN_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CONN_TIMEOUT', 10)
 # command timeout for Junos devices via the Netconf interface
 JUNOS_PYEZ_CMD_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CMD_TIMEOUT', 120)
 
+# HPE Comware REST timeout
+CW_REST_API_TIMEOUT = getattr(configuration, 'CW_REST_API_TIMEOUT', 5)
+
 # REST API Settings
 API_ENABLED = getattr(configuration, 'API_ENABLED', True)
 ALLOW_TOKEN_RETRIEVAL = getattr(configuration, 'ALLOW_TOKEN_RETRIEVAL', False)

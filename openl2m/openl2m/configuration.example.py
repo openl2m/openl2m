@@ -556,6 +556,9 @@ JUNOS_PYEZ_CONN_TIMEOUT = 10
 # connect timeout for Junos devices via the Netconf interface
 JUNOS_PYEZ_CMD_TIMEOUT = 120
 
+# HPE Comware REST timeout
+CW_REST_API_TIMEOUT = 5
+
 # perform hostname lookup from IP addresses found in ARP info, Admin pages, etc.
 # Note this could have impact on page rendering, depending on how fast your
 # dns resolution is and how may retries the underlying host OS is configured for.
