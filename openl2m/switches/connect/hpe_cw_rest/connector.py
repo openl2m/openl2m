@@ -22,19 +22,18 @@ TO DO:
 - description set to empty string ''
 
 """
-from django.http.request import HttpRequest
-import pprint
-# from rangeparser import RangeParser
-
-# used to disable unknown SSL cert warnings:
 import base64
 from datetime import timedelta
 import json
 from rangeparser import RangeParser
 import requests
+# used to disable unknown SSL cert warnings:
 import urllib3
-# import traceback
+# import pprint
+import time
 from typing import Dict, List
+
+from django.http.request import HttpRequest
 
 from switches.connect.classes import Interface, Vlan, Transceiver, PoePort, NeighborDevice
 from switches.connect.connector import Connector
@@ -206,14 +205,17 @@ class HPECwRestConnector(Connector):
     # From the HPE Comware NetConf / REST API docs:
     #
     # GET is used to read various configurations and operational data from the device.
+    # Data is returned in the body of the response.
     #
-    # POST can only be used to create new attributes, ie when they are NOT SET YET!
+    # POST can only be used to create new objects or attributes, ie when they are NOT SET YET!
+    # Data is sent in the body of the request.
     #
-    # PUT will update with value, but NOT clear out! (ie you cannot set description="")
-    # success will return code 204 - No content.
+    # PUT will update with value, but NOT clear out! (ie you cannot set description="").
+    # Data is send in the body of the request.
+    # Success will return code 204 - No content.
     # You can repeatedly PUT with the same value!
     #
-    # DELETE needs to be used to remove an attribute.
+    # DELETE needs to be used to remove an object. It does NOT take request body data.
     #
 
     def _get(self, path: str, headers: str = ""):
@@ -225,13 +227,17 @@ class HPECwRestConnector(Connector):
             # set to default
             headers = self.headers
         # make the request:
+        start_time = time.time()
         self.response = requests.get(url=self.base_url + path, headers=headers, verify=self.switch.netmiko_profile.verify_hostkey)
+        read_duration = time.time() - start_time
         debug_response(response=self.response, message="_GET() Call")
         try:
             self.response.raise_for_status()
         except Exception:
             # some error occured (after we had a valid token!), return nothing!
             return None
+
+        self.add_timing(path, 1, read_duration)
 
         if self.response.status_code == 200:    # valid return!
             return json.loads(self.response.text)
@@ -353,7 +359,7 @@ class HPECwRestConnector(Connector):
 
         facts = self._get(path="Device/Base")
         if facts:
-            dprint(f"FACT: {pprint.pformat(facts)}")
+            # dprint(f"FACT: {pprint.pformat(facts)}")
             self.add_more_info("System", "Hostname", facts["HostName"])
             self.add_more_info("System", "Model", facts["HostDescription"])
             self.add_more_info("System", "OID", facts["HostOid"])
@@ -369,7 +375,7 @@ class HPECwRestConnector(Connector):
         #
         hardware = self._get(path="Device/PhysicalEntities")
         if hardware:
-            dprint(f"HARDWARE: {pprint.pformat(hardware)}")
+            # dprint(f"HARDWARE: {pprint.pformat(hardware)}")
             for hw in hardware["PhysicalEntities"]:
                 if hw["Class"] == 3:    # 3 = Frame, i.e. the whole chassis
                     self.add_more_info("System", "Model Short", hw["Model"])
@@ -391,7 +397,7 @@ class HPECwRestConnector(Connector):
         if vlans:
             # vlans is a list of dict() for each vlan
             for vlan in vlans["VLANs"]:
-                dprint(f"\nVLAN: {pprint.pformat(vlan)}")
+                # dprint(f"\nVLAN: {pprint.pformat(vlan)}")
                 # create OpenL2M Vlan() object!
                 v = Vlan(id=int(vlan['ID']))
                 v.name = vlan["Name"]
@@ -406,7 +412,7 @@ class HPECwRestConnector(Connector):
         interfaces = self._get(path="Ifmgr/Interfaces")
         if interfaces:
             for i in interfaces["Interfaces"]:
-                dprint(f"\nINTERFACE: {pprint.pformat(i)}")
+                # dprint(f"\nINTERFACE: {pprint.pformat(i)}")
 
                 # as all other references in the API use the IfIndex,
                 # we use 'IfIndex' as the key to this interface, ie. NOT the name!
@@ -512,7 +518,7 @@ class HPECwRestConnector(Connector):
             PSEs = self._get(path="PoE/PSEs")
             if PSEs:
                 for pse in PSEs["PSEs"]:
-                    dprint(f"\nPOE PSE: {pprint.pformat(pse)}")
+                    # dprint(f"\nPOE PSE: {pprint.pformat(pse)}")
                     # create a PoePSE() for OpenL2M use:
                     # "PowerLimit" is in mW, ie divide by 1000 for W
                     ps = self.add_poe_powersupply(id=pse["PSEID"], power_available=int(pse["PowerLimit"]) / 1000)
@@ -538,7 +544,7 @@ class HPECwRestConnector(Connector):
             PoEPorts = self._get(path="PoE/Ports")
             if PoEPorts:
                 for port in PoEPorts["Ports"]:
-                    dprint(f"\nPOE-PORT: {pprint.pformat(port)}")
+                    # dprint(f"\nPOE-PORT: {pprint.pformat(port)}")
                     # get the interface from IfIndex:
                     iface = self.get_interface_by_key(key=port['IfIndex'])
                     if iface:
@@ -565,7 +571,7 @@ class HPECwRestConnector(Connector):
                 # build dict with type and aggregate interface info
                 lag_master_info = {}
                 for lag in laggs["LAGGGroups"]:
-                    dprint(f"\nLACP-INTERFACE: {pprint.pformat(lag)}")
+                    # dprint(f"\nLACP-INTERFACE: {pprint.pformat(lag)}")
                     lag_iface = self.get_interface_by_key(key=lag["IfIndex"])
                     if lag_iface:
                         lag_iface.type = IF_TYPE_LAGG
@@ -577,7 +583,7 @@ class HPECwRestConnector(Connector):
                 lacp_members = self._get(path="LAGG/LAGGMembers")
                 if lacp_members:
                     for member in lacp_members["LAGGMembers"]:
-                        dprint(f"\nLAGG-MEMBER: {pprint.pformat(member)}")
+                        # dprint(f"\nLAGG-MEMBER: {pprint.pformat(member)}")
                         # a possible LAGG interface ?
                         if member["GroupId"] in lag_master_info:
                             # get this interface
@@ -601,7 +607,7 @@ class HPECwRestConnector(Connector):
             addresses = self._get(path="IPV4ADDRESS/Ipv4Addresses")
             if addresses:
                 for a in addresses["Ipv4Addresses"]:
-                    dprint(f"\nADDRESS: {pprint.pformat(a)}")
+                    # dprint(f"\nADDRESS: {pprint.pformat(a)}")
                     iface = self.get_interface_by_key(key=a["IfIndex"])
                     if iface:
                         iface.add_ip4_network(address=a["Ipv4Address"], netmask=a["Ipv4Mask"])
@@ -610,7 +616,7 @@ class HPECwRestConnector(Connector):
             addresses = self._get(path="IPV6ADDRESS/Ipv6Addresses")
             if addresses:
                 for a in addresses["Ipv6Addresses"]:
-                    dprint(f"\nADDRESS: {pprint.pformat(a)}")
+                    # dprint(f"\nADDRESS: {pprint.pformat(a)}")
                     iface = self.get_interface_by_key(key=a["IfIndex"])
                     if iface:
                         iface.add_ip6_network(address=a["Ipv6Address"], prefix_len=a["Ipv6PrefixLength"])
@@ -643,7 +649,7 @@ class HPECwRestConnector(Connector):
             interfaces = self._get(path="VLAN/TrunkInterfaces")
             if interfaces:
                 for i in interfaces["TrunkInterfaces"]:
-                    dprint(f"\nINTERFACE: {pprint.pformat(i)}")
+                    # dprint(f"\nINTERFACE: {pprint.pformat(i)}")
                     if "PermitVlanList" in i:   # better be there :-)
                         # expand the range to individual port numbers:
                         parser = RangeParser()
@@ -659,11 +665,11 @@ class HPECwRestConnector(Connector):
             irf_ports = self._get("IRF/IRFPorts")
             if irf_ports:
                 for irf in irf_ports["IRFPorts"]:
-                    dprint(f"\nIRF-PORT: {pprint.pformat(irf)}")
+                    # dprint(f"\nIRF-PORT: {pprint.pformat(irf)}")
                     # are IRF interfaces defined ?
                     if "Interface" in irf:
                         if_info = irf["Interface"][0]
-                        dprint("IF_INFO=")
+                        # dprint("IF_INFO=")
                         dprint(if_info)
                         # get the interface
                         irf_iface = self.get_interface_by_name(name=if_info["IfName"])
@@ -679,10 +685,10 @@ class HPECwRestConnector(Connector):
             transceivers = self._get(path="Device/Transceivers")
             if transceivers:
                 for optics in transceivers["Transceivers"]:
-                    dprint(f"\nOPTICS: {pprint.pformat(optics)}")
+                    # dprint(f"\nOPTICS: {pprint.pformat(optics)}")
                     iface = self.get_interface_by_key(key=optics['IfIndex'])
                     if iface:
-                        dprint("   found Interface()")
+                        # dprint("   found Interface()")
                         trx = Transceiver()
                         trx.type = optics["TransceiverType"]
                         trx.vendor = optics["VendorName"]
@@ -719,7 +725,7 @@ class HPECwRestConnector(Connector):
         if vrfs:
             # dprint(f"\n\nVRFs:\n{pprint.pformat(vrfs)}\n")
             for vrf in vrfs["L3vpnVRF"]:
-                dprint(f"\nVRF: {vrf}")
+                # dprint(f"\nVRF:\n{pprint.pformat(vrf)}")
                 # Note: this does NOT return the default routing table as a vrf!
                 v = self.get_vrf_by_name(name=vrf["VRF"])
                 if "Description" in vrf:
@@ -739,7 +745,7 @@ class HPECwRestConnector(Connector):
             vrf_members = self._get(path="L3vpn/L3vpnIf")
             if vrf_members:
                 for member in vrf_members["L3vpnIf"]:
-                    dprint(f"\nVRF Member:\n{pprint.pformat(member)}\n")
+                    # dprint(f"\nVRF Member:\n{pprint.pformat(member)}\n")
                     # find the interface and assign to VRF:
                     iface = self.get_interface_by_key(member["IfIndex"])
                     if iface:
@@ -767,7 +773,7 @@ class HPECwRestConnector(Connector):
         if macs:
             # dprint(pprint.pformat(macs))
             for mac in macs["MacUnicastTable"]:
-                dprint(f"\nEthernet: {pprint.pformat(mac)}")
+                # dprint(f"\nEthernet: {pprint.pformat(mac)}")
                 # add this to the known addressess:
                 # this uses PortIndex, which needs to be mapped to IfIndex
                 if mac["PortIndex"] in self.port_index_to_if_index:
@@ -779,7 +785,7 @@ class HPECwRestConnector(Connector):
                         self.eth_addr_count += 1
                 else:
                     # this appears to happen on Aggregate interfaces:
-                    dprint(f"WARNING: ethernet PortIndex {mac['PortIndex']} unknown, trying PortName...")
+                    # dprint(f"WARNING: ethernet PortIndex {mac['PortIndex']} unknown, trying PortName...")
                     if "PortName" in mac:
                         iface = self.get_interface_by_name(name=mac["PortName"])
                         if iface:
@@ -795,7 +801,7 @@ class HPECwRestConnector(Connector):
         if arps:
             # dprint(pprint.pformat(arps))
             for arp in arps["ArpTable"]:
-                dprint(f"\nARP: {pprint.pformat(arp)}")
+                # dprint(f"\nARP: {pprint.pformat(arp)}")
                 # some devices return an "IfName", but not all!
                 # some devices ARP return a "VrfIndex", we can then map a VLAN to a VRF.
                 vrf_name = ""
@@ -845,7 +851,7 @@ class HPECwRestConnector(Connector):
         ipv6nd = self._get(path="ND/NDTable")
         if ipv6nd:
             for nd in ipv6nd["NDTable"]:
-                dprint(f"\nND = {pprint.pformat(nd)}")
+                # dprint(f"\nND = {pprint.pformat(nd)}")
                 # some devices return an "IfName", but not all!
                 # Note: this also has "VrfIndex", not used at present.
                 if "IfName" in nd:
@@ -872,14 +878,14 @@ class HPECwRestConnector(Connector):
         neighbors = self._get(path="LLDP/CDPNeighbors")
         if neighbors:
             for nb in neighbors["CDPNeighbors"]:
-                dprint(f"\nCDP: {pprint.pformat(nb)}")
+                # dprint(f"\nCDP: {pprint.pformat(nb)}")
                 self.parse_neighbor(nb=nb)
 
         dprint("\n\n--- LLDP - LLDP Neighbors ---")
         neighbors = self._get(path="LLDP/LLDPNeighbors")
         if neighbors:
             for nb in neighbors["LLDPNeighbors"]:
-                dprint(f"\nLLDP: {pprint.pformat(nb)}")
+                # dprint(f"\nLLDP: {pprint.pformat(nb)}")
                 self.parse_neighbor(nb=nb)
 
         # this call adds some more details about the ports and description of the remote system
@@ -888,7 +894,7 @@ class HPECwRestConnector(Connector):
         neighbors = self._get(path="LLDP/NbBasicInfos")
         if neighbors:
             for nb in neighbors["NbBasicInfos"]:
-                dprint(f"\nLLDP: {pprint.pformat(nb)}")
+                # dprint(f"\nLLDP: {pprint.pformat(nb)}")
                 self.parse_neighbor_basics(nb=nb)
 
         # Capabilities and Management Address endpoints also have mapping back to the entries above!
@@ -896,14 +902,14 @@ class HPECwRestConnector(Connector):
         neighbors = self._get(path="LLDP/NbSysCaps")
         if neighbors:
             for nb in neighbors["NbSysCaps"]:
-                dprint(f"\nLLDP: {pprint.pformat(nb)}")
+                # dprint(f"\nLLDP: {pprint.pformat(nb)}")
                 self.parse_neighbor_syscaps(nb=nb)
 
         dprint("\n\n--- LLDP - LLDP Neighbors Addresses ---")
         neighbors = self._get(path="LLDP/NbManageAddresses")
         if neighbors:
             for nb in neighbors["NbManageAddresses"]:
-                dprint(f"\nLLDP: {pprint.pformat(nb)}")
+                # dprint(f"\nLLDP: {pprint.pformat(nb)}")
                 self.parse_neighbor_management(nb=nb)
 
         return True
@@ -1107,6 +1113,7 @@ class HPECwRestConnector(Connector):
             "IfIndex": int(interface.key),
             "Description": description,
         }
+
         try:
             resp = self._put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
             if resp:
