@@ -16,12 +16,15 @@ disable=[
     "C0114", # Missing module docstring
     "C0115", # Missing class docstring
     "C0301",
+    "C0302", # Too many lines in module
     "C0116",
-    "C0103",    # upper-case name style
+    "C0103", # upper-case name style
+    "R0902", # Too many instance attributes
     "R0911", # Too many returns
     "R0912", # Too many branches
     "R0914", # Too many local variables
     "R0915", # Too many statements
+    "R1702", # Too many nested blocks
 ]
 
 [tool.pylint.exceptions]

@@ -55,6 +55,7 @@ py3hpecw7
 # Note: pyaoscx on PyPi appears stable now, so use the tested version:
 pyaoscx==2.6.0
 pycodestyle
+pylint
 # pysnmp (original) is no longer supported.
 # see https://lists.openstack.org/pipermail/openstack-discuss/2022-August/030062.html
 # we are now using the maintained clone "pysnmp" by Lextudio
