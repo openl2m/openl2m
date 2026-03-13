@@ -179,6 +179,9 @@ def perform_interface_description_change(
         f"perform_interface_description_change(g={group_id}, s={switch_id}, i={interface_key}, d='{new_description}')"
     )
 
+    # remove leading and trailing white space
+    new_description = new_description.strip()
+
     status, info = user_can_write(request)
     if not status:
         log_write_denied(
@@ -500,8 +503,7 @@ def perform_interface_poe_change(
     return True, success
 
 
-def perform_interface_tags_edit(
-    request: HttpRequest, group_id: int, switch_id: int, interface_key: str, pvid: int, tagged_vlans: list, allow_all: bool = False):
+def perform_interface_tags_edit(request: HttpRequest, group_id: int, switch_id: int, interface_key: str, pvid: int, tagged_vlans: list, allow_all: bool = False):
     """
     Change the untagged pvid, and 802.1q (tagged/trunked) vlans on an interfaces.
 
@@ -729,6 +731,8 @@ def perform_switch_vlan_add(request: HttpRequest, group_id: int, switch_id: int,
         error.description = f"Vlan {vlan_id} already exists!"
         return False, error
 
+    # remove leading and trailing white space
+    vlan_name = vlan_name.strip()
     if not vlan_name:
         if connection.can_set_vlan_name:
             error = Error()
