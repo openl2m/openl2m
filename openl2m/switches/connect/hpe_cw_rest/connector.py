@@ -359,20 +359,26 @@ class HPECwRestConnector(Connector):
             self.add_more_info("System", "OID", facts["HostOid"])
             # uptime needs to be parsed. uptime ticks are in seconds
             self.add_more_info("System", "Uptime", str(timedelta(seconds=facts["Uptime"])))
+            # add to database driver info:
+            self.set_driver_info(name="hostname", value=facts["HostName"])
+            self.set_driver_info(name="snmp_oid", value=facts["HostOid"])
 
         #
         # some hardware info
         #
-        # not sure this adds enough to bother...
-        # hardware = self._get(path="Device/PhysicalEntities")
-        # if hardware:
-        #     dprint(f"HARDWARE: {pprint.pformat(hardware)}")
-        #     for hw in hardware["PhysicalEntities"]:
-        #         if hw["Class"] == 3:    # 3 = Frame, i.e. the whole chassis
-        #             self.add_more_info("System", "Model Short", hw["Model"])
-        #             self.add_more_info("System", "Model Name", hw["Name"])
-        #             self.add_more_info("System", "Serial", hw["SerialNumber"])
-        #             self.add_more_info("System", "OS Version", hw["SoftwareRev"])
+        hardware = self._get(path="Device/PhysicalEntities")
+        if hardware:
+            dprint(f"HARDWARE: {pprint.pformat(hardware)}")
+            for hw in hardware["PhysicalEntities"]:
+                if hw["Class"] == 3:    # 3 = Frame, i.e. the whole chassis
+                    self.add_more_info("System", "Model Short", hw["Model"])
+                    self.add_more_info("System", "Model Name", hw["Name"])
+                    self.add_more_info("System", "Serial", hw["SerialNumber"])
+                    self.add_more_info("System", "OS Version", hw["SoftwareRev"])
+                    # add to driver info:
+                    self.set_driver_info(name="model", value=hw["Model"])
+                    self.set_driver_info(name="os_version", value=hw["SoftwareRev"])
+                    self.set_driver_info(name="serial_number", value=hw["SerialNumber"])
 
         #
         # get vlan info
@@ -698,6 +704,9 @@ class HPECwRestConnector(Connector):
         # API may gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
         # sort this to the human natural order we expect:
         self.set_interfaces_natural_sort_order()
+
+        # save driver info
+        self.save_driver_info()
 
         return True
 
