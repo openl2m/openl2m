@@ -24,16 +24,17 @@ TO DO:
 import base64
 from datetime import timedelta
 import json
-from rangeparser import RangeParser
-import requests
-# used to disable unknown SSL cert warnings:
-import urllib3
 # import pprint
 import socket
 import time
 from typing import Dict, List
 
+from django.conf import settings
 from django.http.request import HttpRequest
+import requests
+from rangeparser import RangeParser
+# used to disable unknown SSL cert warnings:
+import urllib3
 
 from switches.connect.classes import Interface, Vlan, Transceiver, PoePort, NeighborDevice
 from switches.connect.connector import Connector
@@ -86,8 +87,10 @@ class HPECwRestConnector(Connector):
         super().__init__(request, group, switch)
         self.description = "HPE Comware REST API driver"
         self.vendor_name = "HPE/Aruba"
-        # can edit (most) entries
-        self.read_only = False
+        # we can override the settings calculated from switch.read_only, group.ready_only and user.profile.read_only
+        # but we should only do this to create a Read-Only driver!
+        # self.read_only = True
+
         if switch.description:
             self.add_more_info("System", "Description", switch.description)
 
@@ -122,13 +125,13 @@ class HPECwRestConnector(Connector):
     # Comware REST API supporting functions #
     #########################################
 
-    def _set_headers(self, type="json"):
+    def _set_headers(self, data_type="json"):
         #
         # set request headers. We use JSON format as default
         #
         self.headers = {
             "X-Auth-Token": self.token,
-            "Content-Type": f"application/{type}",
+            "Content-Type": f"application/{data_type}",
         }
 
     def _open_device(self) -> bool:
@@ -183,16 +186,24 @@ class HPECwRestConnector(Connector):
 
         # and try the "get-token" url
         try:
-            self.response = requests.post(url=self.base_url + "Tokens", headers=headers, verify=self.switch.netmiko_profile.verify_hostkey)
+            self.response = requests.post(url=self.base_url + "Tokens",
+                                          headers=headers,
+                                          verify=self.switch.netmiko_profile.verify_hostkey,
+                                          timeout=settings.CW_REST_API_TIMEOUT)
             debug_response(response=self.response, message="TOKEN Login")
-            vars = json.loads(self.response.text)
-            if "token-id" in vars:
-                self.token = vars['token-id']
-                self.token_timeout = vars['expiry-time']
+            data = json.loads(self.response.text)
+            if "token-id" in data:
+                self.token = data['token-id']
+                self.token_timeout = data['expiry-time']
                 dprint(f"  Found token: {self.token}")
                 dprint(f"  Timeout: {self.token_timeout}")
                 self._set_headers()
                 return True
+            # Hmm? No token?
+            dprint("ERROR: No login token found!")
+            self.error.description = "Error getting login token!"
+            self.error.details = "We're not sure what happened!"
+            return False
         except Exception as err:
             dprint(f"ERROR: cannot login! - {err}")
             self.error.description = "Error establishing connection!"
@@ -228,7 +239,9 @@ class HPECwRestConnector(Connector):
             headers = self.headers
         # make the request:
         start_time = time.time()
-        self.response = requests.get(url=self.base_url + path, headers=headers, verify=self.switch.netmiko_profile.verify_hostkey)
+        self.response = requests.get(url=self.base_url + path, headers=headers,
+                                     verify=self.switch.netmiko_profile.verify_hostkey,
+                                     timeout=settings.CW_REST_API_TIMEOUT)
         read_duration = time.time() - start_time
         debug_response(response=self.response, message="_GET() Call")
         try:
@@ -241,9 +254,8 @@ class HPECwRestConnector(Connector):
 
         if self.response.status_code == 200:    # valid return!
             return json.loads(self.response.text)
-        else:
-            # likely 204 - Valid return, but No Content
-            return None
+        # likely 204 - Valid return, but No Content
+        return None
 
     def _post(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}):
         """POST a specific REST endpoint and return JSON response.
@@ -268,7 +280,8 @@ class HPECwRestConnector(Connector):
                                       headers=headers,
                                       params=params,
                                       data=data,
-                                      verify=self.switch.netmiko_profile.verify_hostkey)
+                                      verify=self.switch.netmiko_profile.verify_hostkey,
+                                      timeout=settings.CW_REST_API_TIMEOUT)
         debug_response(response=self.response, message="_POST() Call")
         self.response.raise_for_status()
 
@@ -300,7 +313,8 @@ class HPECwRestConnector(Connector):
                                      headers=headers,
                                      params=params,
                                      data=data,
-                                     verify=self.switch.netmiko_profile.verify_hostkey)
+                                     verify=self.switch.netmiko_profile.verify_hostkey,
+                                     timeout=settings.CW_REST_API_TIMEOUT)
         debug_response(response=self.response, message="_PUT() Call")
         self.response.raise_for_status()
 
@@ -333,7 +347,8 @@ class HPECwRestConnector(Connector):
                                         headers=headers,
                                         params=params,
                                         data=data,
-                                        verify=self.switch.netmiko_profile.verify_hostkey)
+                                        verify=self.switch.netmiko_profile.verify_hostkey,
+                                        timeout=settings.CW_REST_API_TIMEOUT)
         debug_response(response=self.response, message="_DELETE() Call")
         self.response.raise_for_status()
 
@@ -1269,7 +1284,7 @@ class HPECwRestConnector(Connector):
             "PVID": untagged_vlan,     # valid vlan id's
         }
 
-        if not len(tagged_vlans) and not allow_all:
+        if not tagged_vlans and not allow_all:
             # no tagged vlan, ie "access mode".
             dprint("ACCESS mode set vlan")
             mode = "access"

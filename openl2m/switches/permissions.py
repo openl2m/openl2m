@@ -178,10 +178,11 @@ def get_connection_if_permitted(
         error.status = True
         error.code = http_status.HTTP_403_FORBIDDEN
         error.description = "Access denied!"
-        return False, error
+        return None, error
 
     if write_access:
         if request.user.profile.read_only or group.read_only or switch.read_only:
+            dprint("READ-ONLY - access denied!")
             log.type = LOG_TYPE_ERROR
             log.action = LOG_DENIED
             log.description = "Access Denied! (group or switch is read-only)"
@@ -192,7 +193,7 @@ def get_connection_if_permitted(
             error.code = http_status.HTTP_403_FORBIDDEN
             error.description = "Access denied!"
             error.details = "User, Group or Switch is read-only!"
-            return False, error
+            return None, error
 
     try:
         connection = get_connection_object(request, group, switch)
@@ -206,7 +207,7 @@ def get_connection_if_permitted(
         error = Error()
         error.description = "Could not get connection. Please contact your administrator to make sure switch data is correct in the database!"
         error.details = "This is likely a configuration error, such as incorrect SNMP or Credentials settings!"
-        return False, error
+        return None, error
 
     return connection, None
 

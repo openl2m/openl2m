@@ -96,7 +96,7 @@ def perform_interface_admin_change(
     group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
     connection, error = get_connection_if_permitted(request=request, group=group, switch=switch, write_access=True)
 
-    if not connection:
+    if connection is None:
         return False, error
 
     log = Log(
@@ -553,6 +553,7 @@ def perform_interface_tags_edit(request: HttpRequest, group_id: int, switch_id: 
         action=LOG_CHANGE_INTERFACE_VLANS,
     )
 
+    dprint("CONNECTION type = {type(connection)}")
     # # verify we allow trunk editing and driver can handle interface mode change:
     if not settings.ALLOW_TAGS_EDIT or not connection.can_edit_tags:
         denied = Error()
