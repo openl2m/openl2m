@@ -360,6 +360,7 @@ class HPECwRestConnector(Connector):
             # uptime needs to be parsed. uptime ticks are in seconds
             self.add_more_info("System", "Uptime", str(timedelta(seconds=facts["Uptime"])))
             # add to database driver info:
+            self.switch.hostname = facts["HostName"]
             self.set_driver_info(name="hostname", value=facts["HostName"])
             self.set_driver_info(name="snmp_oid", value=facts["HostOid"])
 
