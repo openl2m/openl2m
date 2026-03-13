@@ -1053,9 +1053,14 @@ class SnmpConnector(Connector):
         """
         # call the vendor-specific data first, if implemented
         self._get_hardware_data()
+
         # # read Syslog data, if any
         if hasattr(self, "_get_syslog_msgs"):
             self._get_syslog_msgs()
+
+        # save driver info to database
+        self.save_driver_info()
+
         return True
 
     #
@@ -2909,18 +2914,27 @@ class SnmpConnector(Connector):
         if dev_id:
             if dev_id in self.stack_members:
                 self.stack_members[dev_id].description = str(val)
+                # if we found CHASSIS info, overwrite data into driver_info
+                if self.stack_members[dev_id].type == ENTITY_CLASS_CHASSIS:
+                    self.set_driver_info(name="model", value=str(val))
             return True
 
         dev_id = int(oid_in_branch(entPhysicalSerialNum, oid))
         if dev_id:
             if dev_id in self.stack_members:
                 self.stack_members[dev_id].serial = str(val)
+                # if we found CHASSIS info, overwrite data into driver_info
+                if self.stack_members[dev_id].type == ENTITY_CLASS_CHASSIS:
+                    self.set_driver_info(name="serial_number", value=str(val))
             return True
 
         dev_id = int(oid_in_branch(entPhysicalSoftwareRev, oid))
         if dev_id:
             if dev_id in self.stack_members:
                 self.stack_members[dev_id].version = str(val)
+                # if we found CHASSIS info, overwrite data into driver_info
+                if self.stack_members[dev_id].type == ENTITY_CLASS_CHASSIS:
+                    self.set_driver_info(name="os_version", value=str(val))
             return True
 
         dev_id = int(oid_in_branch(entPhysicalModelName, oid))
@@ -3001,7 +3015,8 @@ class SnmpConnector(Connector):
 
         if oid == sysName:
             self.hostname = value
-            self.add_more_info("System", "Hostname", self.hostname)
+            self.add_more_info("System", "Hostname", value)
+            self.set_driver_info(name="hostname", value=value)
             return True
         if oid == sysUpTime:
             self.sys_uptime = int(value)
@@ -3011,9 +3026,11 @@ class SnmpConnector(Connector):
         if oid == sysObjectID:
             self.object_id = value
             self.add_more_info("System", "Object ID", value)
+            self.set_driver_info(name="snmp_oid", value=value)
             return True
         if oid == sysDescr:
             self.add_more_info("System", "Model", value)
+            self.set_driver_info(name="model", value=value)     # can be overwritten by "chassis" info from entities MIB
             return True
         if oid == sysContact:
             self.add_more_info("System", "Contact", value)
