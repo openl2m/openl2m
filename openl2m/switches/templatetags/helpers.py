@@ -307,50 +307,32 @@ def get_interface_link(switch, iface):
     # next make linkable if we can manage it
     if iface.manageable:
         if iface.admin_status:
-            info = (
-                info
-                + f'<a onclick="return confirm_change(\'Are you sure you want to DISABLE {iface.name} ?\')" \
+            info = info + f'<a onclick="return confirm_change(\'Are you sure you want to DISABLE {iface.name} ?\')" \
                      href="/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/0/" \
                      data-bs-toggle="tooltip" data-bs-title="Click here to Disable {iface.name}">{iface.name}</a>'
-            )
         else:
-            info = (
-                info
-                + f'<a onclick="return confirm_change(\'Are you sure you want to ENABLE {iface.name} ?\')" \
+            info = info + f'<a onclick="return confirm_change(\'Are you sure you want to ENABLE {iface.name} ?\')" \
                      href="/switches/{switch.group.id}/{switch.id}/{iface.index}/admin/1/" \
                      data-bs-toggle="tooltip" data-bs-title="Click here to Enable {iface.name}">{iface.name}</a>'
-            )
 
     else:
         info = info + f" {iface.name} "
 
     # start with up/down color for interface
     if iface.admin_status:
-        info = (
-            info
-            + '&nbsp;&nbsp;<img src="/static/img/enabled.png" \
+        info = info + '&nbsp;&nbsp;<img src="/static/img/enabled.png" \
                  alt="Interface Enabled" data-bs-toggle="tooltip" data-bs-title="Interface is Enabled">'
-        )
     else:
-        info = (
-            info
-            + '&nbsp;&nbsp;<img src="/static/img/disabled.png" \
+        info = info + '&nbsp;&nbsp;<img src="/static/img/disabled.png" \
                  alt="Interface Disabled" data-bs-toggle="tooltip" data-bs-title="Interface is Disabled">'
-        )
 
     # finally, add icons representing interface 'features'
     if iface.is_tagged:
-        info = (
-            info
-            + '&nbsp;&nbsp;<i class="fa-solid fa-ellipsis-v" aria-hidden="true" \
+        info = info + '&nbsp;&nbsp;<i class="fa-solid fa-ellipsis-v" aria-hidden="true" \
                  alt="Tagged/Trunked Interface" data-bs-toggle="tooltip" data-bs-title="Tagged/Trunked Interface"></i>'
-        )
     if iface.voice_vlan:
-        info = (
-            info
-            + f'&nbsp;&nbsp;<i class="fa-solid fa-phone" aria-hidden="true" \
+        info = info + f'&nbsp;&nbsp;<i class="fa-solid fa-phone" aria-hidden="true" \
                  alt="Voice VLAN" data-bs-toggle="tooltip" data-bs-title="Voice VLAN {iface.voice_vlan}>"'
-        )
 
     return mark_safe(info)
 
@@ -744,6 +726,7 @@ def as_percentage_of(part, whole):
         return "%d%%" % (float(part) / whole * 100)
     except (ValueError, ZeroDivisionError):
         return "0%"
+
 
 @register.filter
 def underscore(name):

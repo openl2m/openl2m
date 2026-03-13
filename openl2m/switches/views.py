@@ -476,7 +476,7 @@ def switch_view(
     # force save_needed if set:
     if save_needed:
         conn.save_needed = True
-        
+
     # done with reading switch data, so save cachable/session data
     conn.save_cache()
 
@@ -1107,6 +1107,7 @@ def bulkedit_processor(
     }
     return results
 
+
 def parse_vlan_form_info(request):
 
     # parse form items, validate vlan id:
@@ -1119,6 +1120,7 @@ def parse_vlan_form_info(request):
     vlan_name = str(request.POST.get("vlan_name", "")).strip()
 
     return (vlan_id, vlan_name)
+
 
 #
 # Create a new vlan on a device
@@ -1145,7 +1147,7 @@ class SwitchVlanCreate(LoginRequiredMixin, View):
         dprint("SwitchVlanCreate() - POST called")
 
         # parse form items, validate vlan id:
-        (vlan_id, vlan_name) = parse_vlan_form_info(request)
+        vlan_id, vlan_name = parse_vlan_form_info(request)
 
         retval, info = perform_switch_vlan_add(
             request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
@@ -1180,7 +1182,7 @@ class SwitchVlanUpdate(LoginRequiredMixin, View):
         dprint("SwitchVlanUpdate() - POST called")
 
         # parse form items, validate vlan id:
-        (vlan_id, vlan_name) = parse_vlan_form_info(request)
+        vlan_id, vlan_name = parse_vlan_form_info(request)
 
         retval, info = perform_switch_vlan_edit(
             request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
@@ -1188,6 +1190,7 @@ class SwitchVlanUpdate(LoginRequiredMixin, View):
         if not retval:
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
         return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+
 
 #
 # Delete a vlan on a device
@@ -1214,7 +1217,7 @@ class SwitchVlanDelete(LoginRequiredMixin, View):
         dprint("SwitchVlanDelete() - POST called")
 
         # parse form items, validate vlan id:
-        (vlan_id, vlan_name) = parse_vlan_form_info(request)
+        vlan_id, vlan_name = parse_vlan_form_info(request)
 
         retval, info = perform_switch_vlan_delete(
             request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id
@@ -1222,6 +1225,7 @@ class SwitchVlanDelete(LoginRequiredMixin, View):
         if not retval:
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
         return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+
 
 #
 # Change admin status, ie port Enable/Disable
@@ -1503,7 +1507,7 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
         # see if "Allow All Vlans" is selected (if present)
-        allow_all = request.POST.get("allow_all", "") == "yes"    # form checkbox value="yes" if checked.
+        allow_all = request.POST.get("allow_all", "") == "yes"  # form checkbox value="yes" if checked.
         dprint(f"allow_all = {allow_all}")
 
         # get the vlans on the trunk:

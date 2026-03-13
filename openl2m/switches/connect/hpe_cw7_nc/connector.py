@@ -40,6 +40,7 @@ import traceback
 from typing import List
 
 from switches.connect.classes import Interface, Vlan
+
 # NeighborDevice, Transceiver
 from switches.connect.connector import Connector
 from switches.connect.constants import (
@@ -66,6 +67,7 @@ from switches.connect.constants import (
     # IANA_TYPE_IPV6,
 )
 from switches.models import Switch, SwitchGroup
+
 # from switches.utils import time_duration, dprint
 from switches.utils import dprint
 
@@ -91,16 +93,18 @@ class HPECw7NcConnector(Connector):
         self.set_do_not_cache_attribute("device")
 
         # capabilities supported by this eAPI driver:
-        self.can_change_admin_status= False
-        self.can_change_vlan= False
-        self.can_edit_vlans= False  # if true, this driver can edit (create/delete) vlans on the device!
-        self.can_set_vlan_name= False  # set to False if vlan create/delete cannot set/change vlan name!
+        self.can_change_admin_status = False
+        self.can_change_vlan = False
+        self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
+        self.can_set_vlan_name = False  # set to False if vlan create/delete cannot set/change vlan name!
         # self.can_change_poe_status = False - we do not have a test switch with PoE !
-        self.can_change_description= False
-        self.can_save_config= False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
-        self.can_reload_all= True  # if true, we can reload all our data (and show a button on screen for this)
-        self.can_edit_tags= False  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all= False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+        self.can_change_description = False
+        self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
+        self.can_edit_tags = False  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_allow_all = (
+            False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+        )
 
     def get_my_basic_info(self) -> bool:
         """
@@ -123,7 +127,7 @@ class HPECw7NcConnector(Connector):
             #
             # get vlan info
             #
-            command = "Vlan.get_vlan_list()"    # for error reporting below
+            command = "Vlan.get_vlan_list()"  # for error reporting below
             vlan_list = CwVlan(device=self.device).get_vlan_list()
             dprint(f"Vlans found:\n{vlan_list}")
 
@@ -131,7 +135,7 @@ class HPECw7NcConnector(Connector):
                 dprint(f"Found vlan: {vlan_id}")
 
                 # get the Comware vlan:
-                command = f"Vlan.get_config({vlan_id})"    # for error reporting below
+                command = f"Vlan.get_config({vlan_id})"  # for error reporting below
                 cwv = CwVlan(device=self.device, vlanid=vlan_id).get_config()
                 dprint(f"CWVlan = {cwv}")
 
@@ -148,7 +152,7 @@ class HPECw7NcConnector(Connector):
             for if_name in self.device.facts["interface_list"]:
                 dprint(f"\n-----\nFound interface: {if_name}")
 
-                command = f"Interface.get_config({if_name})"    # for error reporting below
+                command = f"Interface.get_config({if_name})"  # for error reporting below
                 if_data = CwInterface(device=self.device, interface_name=if_name).get_config()
                 dprint(f"IF_DATA=\n{if_data}\n")
 
@@ -166,7 +170,7 @@ class HPECw7NcConnector(Connector):
                     iface.oper_status = False
 
                 try:
-                    iface.speed = int(if_data['speed']) / 1000   # in Bps !
+                    iface.speed = int(if_data['speed']) / 1000  # in Bps !
                 except Exception:
                     dprint("Note: Invalid speed: {if_data['speed]}")
 
@@ -187,7 +191,7 @@ class HPECw7NcConnector(Connector):
                         case 'bridged':
                             iface.type = IF_TYPE_ETHERNET
                             # get switchport layer-2 info
-                            command = f"Switchport({if_name}).get_config()"     # for error reporting below
+                            command = f"Switchport({if_name}).get_config()"  # for error reporting below
                             port_data = CwSwitchport(device=self.device, interface_name=if_name).get_config()
                             dprint(f"SWITCHPORT=\n{port_data}")
                             match port_data['link_type']:
@@ -215,7 +219,9 @@ class HPECw7NcConnector(Connector):
                                 case _:
                                     dprint(f"UNKNOWN Link-Type: {port_data['link_type']}")
                                     iface.manageable = False
-                                    iface.unmanage_reason = f"Access denied: unknown interface mode! ({port_data['link_type']})"
+                                    iface.unmanage_reason = (
+                                        f"Access denied: unknown interface mode! ({port_data['link_type']})"
+                                    )
 
                         case 'routed':
                             iface.is_routed = True
@@ -235,81 +241,80 @@ class HPECw7NcConnector(Connector):
                                 # 'mask' attribute is really prefix lenght!
                                 iface.add_ip6_network(address=ip['addr'], prefix_len=ip['mask'])
 
-                        #case _:
+                        # case _:
                         #
 
                 # else:   # not 'bridged', likely an IRF interface:
                 #    dprint(f"{if_name} is NOT bridged, checking IRF status")
 
-            #     match if_data["hardware"]:
-            #         case "ethernet":
-            #             iface.type = IF_TYPE_ETHERNET
-            #             iface.phys_addr = if_data["physicalAddress"]
-            #         case "loopback":
-            #             iface.type = IF_TYPE_LOOPBACK
-            #         case _:
-            #             iface.type = IF_TYPE_OTHER
+                #     match if_data["hardware"]:
+                #         case "ethernet":
+                #             iface.type = IF_TYPE_ETHERNET
+                #             iface.phys_addr = if_data["physicalAddress"]
+                #         case "loopback":
+                #             iface.type = IF_TYPE_LOOPBACK
+                #         case _:
+                #             iface.type = IF_TYPE_OTHER
 
-            #     match if_data["interfaceStatus"]:
-            #         case "disabled":  # Admin-DOWN
-            #             # note this is default state:
-            #             iface.admin_status = False
-            #             iface.oper_status = False
-            #         case "notconnect":  # Admin-UP but protocol-DOWN
-            #             iface.admin_status = True
-            #             iface.oper_status = False
-            #         case "connected":  # UP/UP
-            #             iface.admin_status = True
-            #             if if_data["lineProtocolStatus"] == "up":
-            #                 iface.oper_status = True
-            #         # not sure this is correct ?
-            #         case "errdisabled":
-            #             iface.error_status = True
-            #         case _:
-            #             # unknown state ? should not happen...
-            #             self.add_warning(warning=f"Unknown state on {if_name}: {if_data['interfaceStatus']}")
+                #     match if_data["interfaceStatus"]:
+                #         case "disabled":  # Admin-DOWN
+                #             # note this is default state:
+                #             iface.admin_status = False
+                #             iface.oper_status = False
+                #         case "notconnect":  # Admin-UP but protocol-DOWN
+                #             iface.admin_status = True
+                #             iface.oper_status = False
+                #         case "connected":  # UP/UP
+                #             iface.admin_status = True
+                #             if if_data["lineProtocolStatus"] == "up":
+                #                 iface.oper_status = True
+                #         # not sure this is correct ?
+                #         case "errdisabled":
+                #             iface.error_status = True
+                #         case _:
+                #             # unknown state ? should not happen...
+                #             self.add_warning(warning=f"Unknown state on {if_name}: {if_data['interfaceStatus']}")
 
-            #     iface.speed = int(if_data["bandwidth"]) / 1000000  # bandwidth is in bps!
+                #     iface.speed = int(if_data["bandwidth"]) / 1000000  # bandwidth is in bps!
 
-            #     if "duplex" in if_data:
-            #         match if_data["duplex"]:
-            #             case "duplexFull":
-            #                 iface.duplex = IF_DUPLEX_FULL
-            #             case "duplexHalf":
-            #                 iface.duplex = IF_DUPLEX_HALF
+                #     if "duplex" in if_data:
+                #         match if_data["duplex"]:
+                #             case "duplexFull":
+                #                 iface.duplex = IF_DUPLEX_FULL
+                #             case "duplexHalf":
+                #                 iface.duplex = IF_DUPLEX_HALF
 
-            #     match if_data["forwardingModel"]:
-            #         case "routed":
-            #             if iface.type != IF_TYPE_LOOPBACK:  # loopback are always routed :-)
-            #                 iface.is_routed = True
+                #     match if_data["forwardingModel"]:
+                #         case "routed":
+                #             if iface.type != IF_TYPE_LOOPBACK:  # loopback are always routed :-)
+                #                 iface.is_routed = True
 
-            #     iface.mtu = int(if_data["mtu"])
+                #     iface.mtu = int(if_data["mtu"])
 
-            #     # parse ipv4 addresses of this interface:
-            #     if "interfaceAddress" in if_data:
-            #         for addr in if_data["interfaceAddress"]:
-            #             dprint(f"Found IPv4: {addr['primaryIp']}")
-            #             iface.add_ip4_network(address=f"{addr['primaryIp']['address']}/{addr['primaryIp']['maskLen']}")
+                #     # parse ipv4 addresses of this interface:
+                #     if "interfaceAddress" in if_data:
+                #         for addr in if_data["interfaceAddress"]:
+                #             dprint(f"Found IPv4: {addr['primaryIp']}")
+                #             iface.add_ip4_network(address=f"{addr['primaryIp']['address']}/{addr['primaryIp']['maskLen']}")
 
-            #     # # parse ipv6 addresses of this interface:
-            #     if "interfaceAddressIp6" in if_data:
-            #         # "real" IPv6 addresses:
-            #         for addr in if_data["interfaceAddressIp6"]["globalUnicastIp6s"]:
-            #             dprint(f"Found IPv6: {addr}")
-            #             ipv6 = addr["address"]
-            #             prefix_len = 64  # default for IPv6 subnets
-            #             # we need to get the netmask from the subnet:
-            #             netmask_pos = addr["subnet"].rfind("/")
-            #             if netmask_pos > 0:
-            #                 # and get the mask len from that:
-            #                 prefix_len = int(addr["subnet"][netmask_pos + 1 : :])
-            #             iface.add_ip6_network(address=ipv6, prefix_len=prefix_len)
-            #         # LinkLocal:
-            #         iface.add_ip6_network(address=f"{if_data['interfaceAddressIp6']['linkLocalIp6']['address']}")
+                #     # # parse ipv6 addresses of this interface:
+                #     if "interfaceAddressIp6" in if_data:
+                #         # "real" IPv6 addresses:
+                #         for addr in if_data["interfaceAddressIp6"]["globalUnicastIp6s"]:
+                #             dprint(f"Found IPv6: {addr}")
+                #             ipv6 = addr["address"]
+                #             prefix_len = 64  # default for IPv6 subnets
+                #             # we need to get the netmask from the subnet:
+                #             netmask_pos = addr["subnet"].rfind("/")
+                #             if netmask_pos > 0:
+                #                 # and get the mask len from that:
+                #                 prefix_len = int(addr["subnet"][netmask_pos + 1 : :])
+                #             iface.add_ip6_network(address=ipv6, prefix_len=prefix_len)
+                #         # LinkLocal:
+                #         iface.add_ip6_network(address=f"{if_data['interfaceAddressIp6']['linkLocalIp6']['address']}")
 
                 # done, add this interface to the list...
                 self.add_interface(iface)
-
 
             # get IRF ports
             command = "IrfPort()"
@@ -339,8 +344,6 @@ class HPECw7NcConnector(Connector):
                     else:
                         dprint(f"CANNOT find '{port_name}'")
 
-
-
             # get LACP Portchannel ports
             command = "Portchannel()"
             pc = CwPortchannel(device=self.device, groupid=-1, pc_type="bridged")
@@ -365,12 +368,14 @@ class HPECw7NcConnector(Connector):
                             dprint(f"    found Interface() for '{member_iface.name}'")
                             member_iface.lacp_type = LACP_IF_TYPE_MEMBER
                             member_iface.lacp_master_name = lacp_if_name
-                            member_iface.lacp_master_index = int(id)   # needs to be an integer!
+                            member_iface.lacp_master_index = int(id)  # needs to be an integer!
                             # add to list of port-channel
                             port_channel.lacp_members[member_iface.key] = member_name
                         else:
                             dprint(f"ERROR: cannot find member interface '{member_name}' for Bridge-Aggregation{id}")
-                            self.add_warning(f"ERROR: cannot find member interface '{member_name}' for Bridge-Aggregation{id}")
+                            self.add_warning(
+                                f"ERROR: cannot find member interface '{member_name}' for Bridge-Aggregation{id}"
+                            )
                 else:
                     dprint(f"ERROR: cannot find interface Bridge-Aggregation{id}")
                     self.add_warning(f"ERROR: cannot find interface Bridge-Aggregation{id}")
@@ -689,7 +694,9 @@ class HPECw7NcConnector(Connector):
 
         return False
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
+    def set_interface_vlans(
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False
+    ) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
 
@@ -1021,4 +1028,3 @@ class HPECw7NcConnector(Connector):
         # return True
 
         return False
-

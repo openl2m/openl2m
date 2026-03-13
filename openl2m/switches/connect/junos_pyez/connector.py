@@ -57,7 +57,24 @@ from switches.connect.utils import standardize_ipv4_subnet
 
 # special interfaces starting with these names are NOT managable.
 # mark as Virtual if still marked as "IF_TYPE_ETHERNET" at end of interface parsing:
-special_interface_names = [ "bme", "cbp", "dsc", "esi", "gre", "ipip", "jsrv", "lsi", "mtun", "pimd", "pime", "pip", "tap", "vme","vtep", ]
+special_interface_names = [
+    "bme",
+    "cbp",
+    "dsc",
+    "esi",
+    "gre",
+    "ipip",
+    "jsrv",
+    "lsi",
+    "mtun",
+    "pimd",
+    "pime",
+    "pip",
+    "tap",
+    "vme",
+    "vtep",
+]
+
 
 class PyEZConnector(Connector):
     """
@@ -91,7 +108,9 @@ class PyEZConnector(Connector):
         self.can_save_config = False  # save not needed after commit in Junos!
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+        self.can_allow_all = (
+            True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+        )
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         #
@@ -825,7 +844,9 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
+    def set_interface_vlans(
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False
+    ) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
 
@@ -843,7 +864,7 @@ class PyEZConnector(Connector):
 
         if not len(tagged_vlans) and not allow_all:
             # no tagged vlan, ie "access mode".
-            if not interface.is_tagged: # already access mode
+            if not interface.is_tagged:  # already access mode
                 commands = [
                     f"set interfaces {interface.name} unit 0 family ethernet-switching interface-mode access",  # to be clear...
                     f"delete interfaces {interface.name} unit 0 family ethernet-switching vlan",
@@ -866,7 +887,7 @@ class PyEZConnector(Connector):
             # set interfaces ge-0/0/10 native-vlan-id 1
             # set interfaces ge-0/0/10 unit 0 family ethernet-switching interface-mode trunk
             commands = [
-                f"delete interfaces {interface.name} unit 0 family ethernet-switching",     # reset port config
+                f"delete interfaces {interface.name} unit 0 family ethernet-switching",  # reset port config
                 f"set interfaces {interface.name} unit 0 family ethernet-switching interface-mode trunk",
             ]
             # allow all vlans?
@@ -885,7 +906,9 @@ class PyEZConnector(Connector):
                         allow.append(vid)
                 # now add allowed vlans:
                 for vid in allow:
-                    commands.append(f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {vid}")
+                    commands.append(
+                        f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {vid}"
+                    )
 
             # add native untagged vlan
             commands.append(f"set interfaces {interface.name} native-vlan-id {untagged_vlan}")
@@ -893,7 +916,9 @@ class PyEZConnector(Connector):
         # execute the commands:
         if self.pyez_execute_commands(commands=commands):
             # call the base Connector() for bookkeeping:
-            super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
+            super().set_interface_vlans(
+                interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
+            )
             self._close_device()
             dprint("  change OK!")
             return True
