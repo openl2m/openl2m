@@ -18,7 +18,6 @@ This implements a REST api driver from Comware devices. This follows the API doc
 in the HPE Comware NetConf documentation.
 
 TO DO:
-- lldp remote device address parsing is NOT functional yet...
 - description set to empty string ''
 
 """
@@ -30,6 +29,7 @@ import requests
 # used to disable unknown SSL cert warnings:
 import urllib3
 # import pprint
+import socket
 import time
 from typing import Dict, List
 
@@ -1012,22 +1012,18 @@ class HPECwRestConnector(Connector):
             if neighbor:
                 # the "Address" is base64 encoded
                 try:
-                    # 1. Decode the Base64 string into bytes
-                    # The input to b64decode should be a bytes-like object or a string.
-                    decoded_bytes = base64.b64decode(nb["Address"])
-                    # 2. Convert the decoded bytes into a standard string using a specific encoding (e.g., UTF-8)
-                    address = decoded_bytes.decode('cp1252')    # utf-8, ascii do not work.
-                    dprint(f"Address: {address}")
+                    # decode the Base64 string into bytes
+                    raw_bytes = base64.b64decode(nb["Address"])
                     # now figure out what type of address:
                     match nb["SubType"]:
                         # these are defined in the NetConf documentation:
                         case 1:
-                            dprint(f"Management Address type 1 - IPv4 = {address}")
+                            neighbor.management_address_v4 = socket.inet_ntoa(raw_bytes)
                         case 2:
-                            dprint(f"Management Address type 2 - IPv6 = {address}")
+                            neighbor.management_address_v6 = socket.inet_ntop(socket.AF_INET6, raw_bytes)
                         case _:
                             # unlikely to happen:
-                            dprint(f"Unknown Management Address type {nb['SubType']} = {address}")
+                            dprint(f"Unknown Management Address type {nb['SubType']} = base64({nb['Address']})")
                 except Exception as err:
                     dprint(f"ERROR decoding LLDP remote address {nb['Address']} - {err}")
 
