@@ -16,6 +16,11 @@ Aruba AOS-CX
 * any device that supports the Aruba AOS-CX API v10.08 is supported, via the pyaoscx library.
 * Device access needs to be configured properly.
 
+HPE/Aruba Comware REST API
+--------------------------
+
+* any Comware device is supported.
+* Device needs to configured with REST access, and have an account with proper permissions available.
 
 Juniper PyEZ
 ------------

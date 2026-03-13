@@ -120,6 +120,18 @@ AOS-CX SNMP Capabilities are documented here (for v10.14, Sept 2024):
 https://www.arubanetworks.com/techdocs/AOS-CX/10.14/HTML/snmp_mib/Content/Chp_SNMP/snm.htm
 
 
+HPE Comware REST API
+--------------------
+
+At time of writing, these are useful links:
+
+NetConf API docs, also shows REST info. Note there is a newer document only available from the HPE Networking Support site:
+https://support.hpe.com/hpesc/public/docDisplay?docId=a00127309en_us&docLocale=en_US
+
+H3C Access Controllers REST API Developers Guide:
+https://www.h3c.com/en/Support/Resource_Center/EN/Home/Public/00-Public/Technical_Documents/Developer_Documents/Developer_Guides/H3C_Access_Controllers_REST_API-28618/?CHID=1210933
+
+
 Junos PyEZ
 ----------
 

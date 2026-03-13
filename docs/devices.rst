@@ -74,13 +74,14 @@ Via AOS-CX driver, and nearly full via SNMP.
 
 **HP Enterprise (HPE)**
 
-Via SNMP.
+Via SNMP:
 
 * *HPE 1950* series switches, running Comware 7; single and IRF-stacked units.
 * HPE J3400CL-24G (J4905A)
 * *HPE 5120v3* series switches, running Comware 7; single units.
 * *HPE 5130EI* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5140EI* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5150EI* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5500* series switches, running Comware 5; single units.
 * *HPE 5510HI* series switches, running Comware 7; single units.
 * *HPE 5550HI* series switches, running Comware 9; single units.
@@ -90,7 +91,16 @@ Via SNMP.
 * *HPE 5940* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5945* series switches, running Comware 7; single and IRF-Stacked units.
 * *HPE 5950* series switches, running Comware 7; single and IRF-Stacked units.
-* *HPE 5960* series switches, running Comware 6; single units.
+* *HPE 5960* series switches, running Comware 9; single units.
+
+Via REST API:
+
+* *HPE 5130EI* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5140EI* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5150EI* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5940* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5945* series switches, running Comware 7; single and IRF-Stacked units.
+* *HPE 5960* series switches, running Comware 9; single units.
 
 **Juniper Networks**
 

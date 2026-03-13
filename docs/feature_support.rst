@@ -11,104 +11,103 @@ Features Supported
 
    * - Features
      - Up/Down
-     - VLAN Change
-     - Trunk Edit
+     - Vlan Set
      - PoE
      - Descr.
-     - Neighbor Info
-     - VLAN Edit
+     - IPv6
+     - Neighbors
+     - Vlan Edit
+     - Trunk Edit
      - SSH
      - VRF
-     - IPv6 Info
 
-   * - SNMP (Generic) :sup:`1`
+   * - SNMP :sup:`1`
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
      - Yes
      - Yes
      - NO
      - Yes
      - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
 
-   * - Arista (SNMP) :sup:`2`
+   * - Arista (snmp) :sup:`2`
      - Yes
      - Yes
-     - NO
      - untested
+     - Yes
      - Yes
      - Yes
      -
-     - Yes
+     - NO
      - Yes
      - Yes
 
-   * - Aruba AOS-CX (SNMP) :sup:`3`
+   * - Aruba AOS-CX (snmp) :sup:`3`
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
      - Yes
      - Yes
      - NO
      - Yes
+     - untested
+
+   * - HPE Comware (snmp)
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - NO
+     - Yes
+     - Yes
+
+   * - Procurve (snmp)
      - Yes
      - Yes
      - Yes
      - Yes
      - untested
      - Yes
-
-   * - Comware (SNMP)
-     - Yes
      - Yes
      - NO
      - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-
-   * - Procurve (SNMP)
-     - Yes
-     - Yes
-     - NO
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - untested
      - untested
 
-   * - Juniper (SNMP R/O) :sup:`4`
+   * - Juniper (snmp r/o) :sup:`4`
      -
      -
      - (r/o)
      - (r/o)
-     - (r/o)
+     - Yes
      - Yes
      -
-     - Yes
+     - (r/o)
      - Yes
      - Yes
 
-   * - MikroTik (SNMP)  :sup:`5`
+   * - MikroTik (snmp)  :sup:`5`
      - Yes
      -
-     - NO
      - R/O
      - Yes
-     -
-     -
      - untested
      -
+     -
+     - NO
      - untested
+     -
 
    * - Arista eAPI
      - Yes
      - Yes
-     - Yes
      - NO
      - Yes
      - Yes
@@ -116,54 +115,67 @@ Features Supported
      - Yes
      - Yes
      - Yes
+     - Yes
 
-   * - Aruba AOS-CX (API)
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
+   * - Aruba AOS-CX (api)
      - Yes
      - Yes
      - Yes
      - Yes
      - TBD
-
-   * - Junos (PyEZ)  :sup:`6`
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
      - Yes
      - Yes
      - Yes
      - Yes
      - Yes
 
-   * - SSH :sup:`7`
-     -
-     -
-     -
-     -
-     -
-     -
-     -
+   * - HPE Comware (api)  :sup:`6`
      - Yes
-     - n/a
-     - n/a
-
-   * - Napalm (R/O) :sup:`8`
-     -
-     -
-     - (r/o)
-     -
-     - (r/o)
      - Yes
-     -
+     - Yes :sup:`6`
+     - Yes :sup:`6`
      - Yes
      - Yes
      - No
+     - Yes
+     - Yes
+     - Yes
+
+   * - Junos (PyEZ)  :sup:`7`
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+
+   * - SSH :sup:`8`
+     -
+     -
+     -
+     -
+     - n/a
+     -
+     -
+     -
+     - Yes
+     - n/a
+
+   * - Napalm (r/o) :sup:`9`
+     -
+     -
+     -
+     - (r/o)
+     - No
+     - Yes
+     -
+     - (r/o)
+     - Yes
+     - Yes
 
 .. note::
 
@@ -184,11 +196,17 @@ Features Supported
   :sup:`5` The MikroTik driver has limited functionality. MikroTik does not support VLANs over SNMP.
   This driver has only been tested on a single HexS (RB760iGS) device.
 
-  :sup:`6` The Junos PyEZ driver expects a **device with "ELS" software**, ie running Enhanced Layer2 Software,
+  :sup:`6` The Comware REST API is in development. Most features are supported.
+
+  - Some older devices only return PoE info for ports with active PoE power drawn.
+    Other interfaces will show as 'n/s' (not supported), even though they may support PoE.
+  - Interface descriptions can be set, but NOT cleared at this time.
+
+  :sup:`7` The Junos PyEZ driver expects a **device with "ELS" software**, ie running Enhanced Layer2 Software,
   that unifies the configuration of Ethernet interfaces access the product line. **Many MX routers do
   not support this, and have not been tested!**
 
-  :sup:`7` SSH support is via the Netmiko library. Most devices supported by that library should work, but
+  :sup:`8` SSH support is via the Netmiko library. Most devices supported by that library should work, but
   your mileage may vary!
 
-  :sup:`8` Napalm support has been tested on a limited set of devices. Your mileage may vary!
+  :sup:`9` Napalm support has been tested on a limited set of devices. Your mileage may vary!
