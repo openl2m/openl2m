@@ -26,18 +26,15 @@ from datetime import timedelta
 import json
 # import pprint
 import socket
-import time
 from typing import Dict, List
 
-from django.conf import settings
 from django.http.request import HttpRequest
-import requests
 from rangeparser import RangeParser
 # used to disable unknown SSL cert warnings:
 import urllib3
 
 from switches.connect.classes import Interface, Vlan, Transceiver, PoePort, NeighborDevice
-from switches.connect.connector import Connector
+from switches.connect.restconnector import RESTConnector
 from switches.connect.constants import (
     # VLAN_ADMIN_DISABLED,
     # POE_PORT_ADMIN_DISABLED,
@@ -68,7 +65,6 @@ from switches.connect.constants import (
     # IANA_TYPE_IPV4,
     # IANA_TYPE_IPV6,
 )
-from switches.connect.utils import debug_response
 from switches.models import Switch, SwitchGroup
 # from switches.utils import time_duration, dprint
 from switches.utils import dprint
@@ -76,7 +72,7 @@ from switches.utils import dprint
 API_VERSION = 1
 
 
-class HPECwRestConnector(Connector):
+class HPECwRestConnector(RESTConnector):
     """
     This implements an HPE Comware REST API connector object.
     """
@@ -94,12 +90,12 @@ class HPECwRestConnector(Connector):
         if switch.description:
             self.add_more_info("System", "Description", switch.description)
 
-        # this holds the REST api attributes
-        self.base_url = f"https://{self.switch.primary_ip4}/api/v{API_VERSION}/"
+        self._set_base_url(base_url=f"https://{self.switch.primary_ip4}/api/v{API_VERSION}/")
+
+        # this holds the custom REST api attributes
         self.token: str = ""                    # REST token after username/password login
         self.token_timeout: str = ""            # time token expires
-        self.headers: dict = {}                 # contains HTTP headers for GET/POST
-        self.response = None                    # full response from request, in case user wants it!
+        self.set_do_not_cache_attribute("token")
 
         self.port_index_to_if_index: Dict[
             int, str
@@ -125,9 +121,9 @@ class HPECwRestConnector(Connector):
     # Comware REST API supporting functions #
     #########################################
 
-    def _set_headers(self, data_type="json"):
+    def _set_auth_headers(self, data_type="json"):
         #
-        # set request headers. We use JSON format as default
+        # set request headers with our API authentication token. We use JSON format as default
         #
         self.headers = {
             "X-Auth-Token": self.token,
@@ -176,7 +172,7 @@ class HPECwRestConnector(Connector):
         # login is a POST to the server to get a REST token
         #
         dprint("HPECwRestConnector.login()")
-        # set the authentication header:
+        # set the authentication header to the base64 encoded string "username:password"
         auth_plain = f"{self.switch.netmiko_profile.username}:{self.switch.netmiko_profile.password}"
         auth_base64 = base64.b64encode(auth_plain.encode("ascii")).decode("ascii")
         headers = {
@@ -186,18 +182,14 @@ class HPECwRestConnector(Connector):
 
         # and try the "get-token" url
         try:
-            self.response = requests.post(url=self.base_url + "Tokens",
-                                          headers=headers,
-                                          verify=self.switch.netmiko_profile.verify_hostkey,
-                                          timeout=settings.CW_REST_API_TIMEOUT)
-            debug_response(response=self.response, message="TOKEN Login")
+            self._post(path="Tokens", headers=headers, message="API LOGIN")
             data = json.loads(self.response.text)
             if "token-id" in data:
                 self.token = data['token-id']
                 self.token_timeout = data['expiry-time']
                 dprint(f"  Found token: {self.token}")
                 dprint(f"  Timeout: {self.token_timeout}")
-                self._set_headers()
+                self._set_auth_headers()
                 return True
             # Hmm? No token?
             dprint("ERROR: No login token found!")
@@ -210,8 +202,10 @@ class HPECwRestConnector(Connector):
             self.error.details = f"Cannot open REST session: {format(err)}"
             return False
 
-    #
-    # we use the request library, see https://requests.readthedocs.io/en/latest/api/
+    ##############################
+    # OpenL2M specific functions #
+    ##############################
+
     #
     # From the HPE Comware NetConf / REST API docs:
     #
@@ -228,139 +222,6 @@ class HPECwRestConnector(Connector):
     #
     # DELETE needs to be used to remove an object. It does NOT take request body data.
     #
-
-    def _get(self, path: str, headers: str = ""):
-        #
-        # GET a specific REST endpoint and return JSON response.
-        # will return response or None if error is trapped (most likely because API endpoint does not exist).
-        #
-        if not headers:
-            # set to default
-            headers = self.headers
-        # make the request:
-        start_time = time.time()
-        self.response = requests.get(url=self.base_url + path, headers=headers,
-                                     verify=self.switch.netmiko_profile.verify_hostkey,
-                                     timeout=settings.CW_REST_API_TIMEOUT)
-        read_duration = time.time() - start_time
-        debug_response(response=self.response, message="_GET() Call")
-        try:
-            self.response.raise_for_status()
-        except Exception:
-            # some error occured (after we had a valid token!), return nothing!
-            return None
-
-        self.add_timing(path, 1, read_duration)
-
-        if self.response.status_code == 200:    # valid return!
-            return json.loads(self.response.text)
-        # likely 204 - Valid return, but No Content
-        return None
-
-    def _post(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}):
-        """POST a specific REST endpoint and return JSON response.
-            will raise exception on error
-
-        Args:
-            path (str) - API path (ie withouth host url)
-            params (dict) - query string parameters, as string or dict if multiple.
-            data (dict) - body data as json-encoded dict, if any.
-            headers (dict) - HTTPS headers to override default headers from login.
-
-        Note that params, data and headers can be passed to the request library as is!
-
-        Returns:
-            (bool) - True on success, False otherwize. HTTP status code is in self.response.status_code, if needed.
-        """
-        dprint("HPECwRestConnector.post()")
-        if not headers:
-            # set to default
-            headers = self.headers
-        self.response = requests.post(url=self.base_url + path,
-                                      headers=headers,
-                                      params=params,
-                                      data=data,
-                                      verify=self.switch.netmiko_profile.verify_hostkey,
-                                      timeout=settings.CW_REST_API_TIMEOUT)
-        debug_response(response=self.response, message="_POST() Call")
-        self.response.raise_for_status()
-
-        # no errors:
-        if self.response.status_code in (200, 201, 204):    # valid return with content (200) or none (201 Created)
-            return True
-
-        return False
-
-    def _put(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}):
-        """PUT a specific REST endpoint and return JSON response.
-        will raise exception on error
-
-        Args:
-            path (str) - API path (ie withouth host url)
-            params (dict) - query string parameters, as string or dict if multiple.
-            data (dict) - body data as json-encoded dict, if any.
-            headers (dict) - HTTPS headers to override default headers from login.
-
-        Note that params, data and headers can be passed to the request library as is!
-
-        returns data as json dict, or None if empty.
-        """
-        dprint("HPECwRestConnector.put()")
-        if not headers:
-            # set to default
-            headers = self.headers
-        self.response = requests.put(url=self.base_url + path,
-                                     headers=headers,
-                                     params=params,
-                                     data=data,
-                                     verify=self.switch.netmiko_profile.verify_hostkey,
-                                     timeout=settings.CW_REST_API_TIMEOUT)
-        debug_response(response=self.response, message="_PUT() Call")
-        self.response.raise_for_status()
-
-        # no errors
-        if self.response.status_code in (200, 204):
-            return True
-        # Hmm ?
-        return False
-
-    def _delete(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}):
-        """DELETE a specific REST endpoint and return JSON response.
-        will raise exception on error
-
-        Args:
-            path (str) - API path (ie withouth host url)
-            params (dict) - query string parameters, as string or dict if multiple.
-            data (dict) - body data as json-encoded dict, if any.
-            headers (dict) - HTTPS headers to override default headers from login.
-
-        Note that params, data and headers can be passed to the request library as is!
-
-        Returns:
-            (bool) - True on success, False on failure. HTTP status code is in self.response.status_code, if needed.
-        """
-        dprint("HPECwRestConnector.delete()")
-        if not headers:
-            # set to default
-            headers = self.headers
-        self.response = requests.delete(url=self.base_url + path,
-                                        headers=headers,
-                                        params=params,
-                                        data=data,
-                                        verify=self.switch.netmiko_profile.verify_hostkey,
-                                        timeout=settings.CW_REST_API_TIMEOUT)
-        debug_response(response=self.response, message="_DELETE() Call")
-        self.response.raise_for_status()
-
-        # no errors
-        if self.response.status_code in (200, 204):
-            return True
-        # Hmm ?
-        return False
-
-    ##############################
-    # OpenL2M specific functions #
-    ##############################
 
     def get_my_basic_info(self) -> bool:
         """
