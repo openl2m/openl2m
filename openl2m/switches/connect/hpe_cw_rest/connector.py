@@ -33,7 +33,7 @@ from rangeparser import RangeParser
 # used to disable unknown SSL cert warnings:
 import urllib3
 
-from switches.connect.classes import Interface, Vlan, Transceiver, PoePort, NeighborDevice
+from switches.connect.classes import Interface, Vlan, Transceiver, PoePort, NeighborDevice, StackMember
 from switches.connect.restconnector import RESTConnector
 from switches.connect.constants import (
     # VLAN_ADMIN_DISABLED,
@@ -251,17 +251,44 @@ class HPECwRestConnector(RESTConnector):
         #
         hardware = self._get(path="Device/PhysicalEntities")
         if hardware:
+            found_chassis = False
             # dprint(f"HARDWARE: {pprint.pformat(hardware)}")
             for hw in hardware["PhysicalEntities"]:
-                if hw["Class"] == 3:    # 3 = Frame, i.e. the whole chassis
-                    self.add_more_info("System", "Model Short", hw["Model"])
-                    self.add_more_info("System", "Model Name", hw["Name"])
-                    self.add_more_info("System", "Serial", hw["SerialNumber"])
-                    self.add_more_info("System", "OS Version", hw["SoftwareRev"])
-                    # add to driver info:
-                    self.set_driver_info(name="model", value=hw["Model"])
-                    self.set_driver_info(name="os_version", value=hw["SoftwareRev"])
-                    self.set_driver_info(name="serial_number", value=hw["SerialNumber"])
+                match hw["Class"]:
+                    # these class numbers match the ENTITY MIB values!
+                    case 3:     # 3 = Frame, i.e. the whole chassis
+                        # IRF stacks show up as multiple chassis, add to system and hardware section:
+                        if not found_chassis:
+                            self.add_more_info("System", "Model Short", hw["Model"])
+                            self.add_more_info("System", "Model Name", hw["Name"])
+                            self.add_more_info("System", "Serial", hw["SerialNumber"])
+                            self.add_more_info("System", "OS Version", hw["SoftwareRev"])
+                            # add to driver info:
+                            self.set_driver_info(name="model", value=hw["Model"])
+                            self.set_driver_info(name="os_version", value=hw["SoftwareRev"])
+                            self.set_driver_info(name="serial_number", value=hw["SerialNumber"])
+                            found_chassis = True
+                            # and add as stack member
+                            s = StackMember(id=hw["PhysicalIndex"], type=3)
+                            s.serial = hw["SerialNumber"]
+                            s.model = hw["Name"]
+                            s.version = hw["SoftwareRev"]
+                            s.info = f"OID: {hw['VendorType']}"
+                            s.description = hw["Description"]
+                            self.stack_members[hw["PhysicalIndex"]] = s
+                        else:
+                            # IRF stacks show up as multiple chassis, add as stack member
+                            s = StackMember(id=hw["PhysicalIndex"], type=3)
+                            s.serial = hw["SerialNumber"]
+                            s.model = hw["Name"]
+                            s.version = hw["SoftwareRev"]
+                            s.info = f"OID: {hw['VendorType']}"
+                            s.description = hw["Description"]
+                            self.stack_members[hw["PhysicalIndex"]] = s
+                    case 11:    # IRF fabric indicator
+                        s = StackMember(id=hw["PhysicalIndex"], type=11)
+                        s.description = "HPE IRF"
+                        self.stack_members[hw["PhysicalIndex"]] = s
 
         #
         # get vlan info
