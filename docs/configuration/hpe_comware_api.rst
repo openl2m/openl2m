@@ -52,6 +52,7 @@ Notes On Functionality
 - Some older devices only return PoE info for ports with active PoE power drawn.
   Other interfaces will show as 'n/s' (not supported), even though they may support PoE.
 - Interface descriptions can be set, but NOT cleared at this time.
+- OpenL2M only supports https connections, not plain http!
 
 OpenL2M Configuration
 ---------------------
@@ -78,6 +79,7 @@ Add the IP v4 address or resolvable DNS name used to connect to the device.
 **Credentials Profile:**
 
 Select the proper profile that stores the API credentials. Note that these same credentials are used for any Commands applied to this device.
+Make sure you do not verify SSL/SSH if your device has a self-signed certificate.
 
 
 **Group Membership section:**
