@@ -29,6 +29,7 @@ from switches.constants import (
     CONNECTOR_TYPE_AOSCX,
     # CONNECTOR_TYPE_HPE_CW7_NC,
     CONNECTOR_TYPE_HPE_CW_REST,
+    CONNECTOR_TYPE_AOS_S_REST,
     CONNECTOR_TYPE_EAPI,
     CONNECTOR_TYPE_PYEZ,
     CONNECTOR_TYPE_COMMANDS_ONLY,
@@ -71,6 +72,7 @@ from switches.connect.snmp.netgear.connector import SnmpConnectorNetgear
 from switches.connect.snmp.mikrotik.connector import SnmpConnectorMikroTik
 
 from switches.connect.aruba_aoscx.connector import AosCxConnector
+from switches.connect.aruba_aoss_rest.connector import ArubaAOSsRestConnector
 from switches.connect.arista_eapi.connector import AristaApiConnector
 # from switches.connect.hpe_cw7_nc.connector import HPECw7NcConnector
 from switches.connect.hpe_cw_rest.connector import HPECwRestConnector
@@ -154,6 +156,10 @@ def get_connection_object(request: HttpRequest, group: SwitchGroup, switch: Swit
     # This is the "custom" HPE Comware REST API connector.
     elif switch.connector_type == CONNECTOR_TYPE_HPE_CW_REST:
         connection = HPECwRestConnector(request, group, switch)
+
+    # This is a "custom" Aruba AOS-S switches REST API connector.
+    elif switch.connector_type == CONNECTOR_TYPE_AOS_S_REST:
+        connection = ArubaAOSsRestConnector(request, group, switch)
 
     # This is the "custom" Junos PyEZ connector, using the device NetConf API.
     elif switch.connector_type == CONNECTOR_TYPE_PYEZ:
