@@ -131,7 +131,9 @@ def get_device_class(device):
     Return an html string that represent the data of the device given.
     A device is a switch, a stack, or a switch in that stack.
     """
-    return ENTITY_CLASS_NAME[device.type]
+    if device.type in ENTITY_CLASS_NAME:
+        return ENTITY_CLASS_NAME[device.type]
+    return f"Unknown Module ({device.type})!"
 
 
 def validate_info_url_fields(info_url, switch, interface=False):
