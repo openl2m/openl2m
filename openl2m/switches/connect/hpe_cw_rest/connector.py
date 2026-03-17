@@ -24,7 +24,7 @@ TO DO:
 import base64
 from datetime import timedelta
 import json
-# import pprint
+import pprint
 import socket
 from typing import Dict, List
 
@@ -424,22 +424,27 @@ class HPECwRestConnector(RESTConnector):
                     # dprint(f"\nPOE PSE: {pprint.pformat(pse)}")
                     # create a PoePSE() for OpenL2M use:
                     # "PowerLimit" is in mW, ie divide by 1000 for W
-                    ps = self.add_poe_powersupply(id=pse["PSEID"], power_available=int(pse["PowerLimit"]) / 1000)
-                    ps.power_consumed = int(pse["CurrentPower"]) / 1000
-                    match int(pse["OperStatus"]):
-                        case 1:
-                            ps.status = POE_PSE_STATUS_ON
-                        case 2:
-                            ps.status = POE_PSE_STATUS_OFF
-                        case 3:
-                            ps.status = POE_PSE_STATUS_FAULT
-                    ps.power_consumed = int(pse["AveragePower"]) / 1000
-                    # some drivers have this easily available:
-                    ps.model = pse["Model"]
-                    # ps.name = ""
-                    # ps.description = ""
-                    # ps.part_number = ""
-                    # ps.serial = ""
+                    if "PowerLimit" in pse:
+                        ps = self.add_poe_powersupply(id=pse["PSEID"], power_available=int(pse["PowerLimit"]) / 1000)
+                        ps.power_consumed = int(pse["CurrentPower"]) / 1000
+                        match int(pse["OperStatus"]):
+                            case 1:
+                                ps.status = POE_PSE_STATUS_ON
+                            case 2:
+                                ps.status = POE_PSE_STATUS_OFF
+                            case 3:
+                                ps.status = POE_PSE_STATUS_FAULT
+                        ps.power_consumed = int(pse["AveragePower"]) / 1000
+                        # some drivers have this easily available:
+                        ps.model = pse["Model"]
+                        # ps.name = ""
+                        # ps.description = ""
+                        # ps.part_number = ""
+                        # ps.serial = ""
+                    else:   # older API entry ?
+                        dprint("Unknow API data returned?")
+                        dprint(f"PSE Info: {pprint.pformat(pse)}")
+
 
             # PoE Ports
             # Note: this API point on gives ports that are using PoE,
@@ -447,20 +452,25 @@ class HPECwRestConnector(RESTConnector):
             PoEPorts = self._get(path="PoE/Ports")
             if PoEPorts:
                 for port in PoEPorts["Ports"]:
-                    # dprint(f"\nPOE-PORT: {pprint.pformat(port)}")
+                    dprint(f"\nPOE-PORT: {pprint.pformat(port)}")
                     # get the interface from IfIndex:
                     iface = self.get_interface_by_key(key=port['IfIndex'])
                     if iface:
-                        admin_status = port["AdminEnable"]
+                        if "AdminEnable" in port:
+                            admin_status = port["AdminEnable"]
+                        else:
+                            admin_status = POE_PORT_ADMIN_ENABLED
                         poe = PoePort(index=port["IfIndex"], admin_status=admin_status)
                         # set various values found:
                         poe.pse_id = int(port["PSEID"])                     # need for port PoE enable/disable
-                        poe.power_consumption_supported = True
-                        poe.power_consumed = int(port["CurrentPower"])      # power consumed in milliWatt
-                        poe.power_available = int(port["PowerLimit"])       # power available in milliWatt
-                        poe.max_power_consumed = int(port["PeakPower"])     # max power drawn since PoE reset, in milliWatt
-                        # "DetectionStatus" matches the SNMP POE mib definitions
-                        poe.detect_status = int(port["DetectionStatus"])
+                        if "CurrentPower" in port:
+                            # old style does NOT have CurrentPower if no PoE served...
+                            poe.power_consumption_supported = True
+                            poe.power_consumed = int(port["CurrentPower"])      # power consumed in milliWatt
+                            poe.power_available = int(port["PowerLimit"])       # power available in milliWatt
+                            poe.max_power_consumed = int(port["PeakPower"])     # max power drawn since PoE reset, in milliWatt
+                            # "DetectionStatus" matches the SNMP POE mib definitions
+                            poe.detect_status = int(port["DetectionStatus"])
                         # and assign to interface:
                         iface.poe_entry = poe
 
