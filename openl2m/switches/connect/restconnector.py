@@ -40,6 +40,7 @@ class RESTConnector(Connector):
         self.headers: dict = {}                 # contains HTTP headers for GET/POST
         self.response = None                    # full response from request, in case user wants it!
         self.base_url: str = ""                 # base URL of REST queries
+        self.cookies: dict = {}                 # cookies to add to the request
         # call the base connector init:
         super().__init__(request, group, switch)
 
@@ -67,13 +68,14 @@ class RESTConnector(Connector):
     # DELETE needs to be used to remove an object. It does NOT take request body data.
     #
 
-    def _get(self, path: str, headers: str = "", message: str = ""):
+    def _get(self, path: str, headers: str = "", cookies: dict = {}, message: str = ""):
         """GET a specific REST endpoint and return JSON response.
         Will return json response or None if error is trapped (most likely because API endpoint does not exist).
 
         Args:
             path (str) - API path (ie withouth host url)
             headers (dict) - HTTPS headers to override default headers from login.
+            cookies (dict) - cookied to add to the request. If not set, will use self.cookies (if set)
             message (str) - debug message added to debug_reponse()
 
         Note that headers can be passed to the request library as is!
@@ -81,12 +83,19 @@ class RESTConnector(Connector):
         Returns:
             (json) - json response or None if error is trapped (most likely because API endpoint does not exist).
         """
+        dprint("RESTConnector()._get()")
+
         if not headers:
             # set to default
             headers = self.headers
+        if not cookies:
+            cookies = self.cookies
+
         # make the request:
         start_time = time.time()
-        self.response = requests.get(url=self.base_url + path, headers=headers,
+        self.response = requests.get(url=self.base_url + path,
+                                     headers=headers,
+                                     cookies=cookies,
                                      verify=self.switch.netmiko_profile.verify_hostkey,
                                      timeout=settings.CW_REST_API_TIMEOUT)
         read_duration = time.time() - start_time
@@ -106,7 +115,7 @@ class RESTConnector(Connector):
         # likely 204 - Valid return, but No Content
         return None
 
-    def _post(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, message: str = ""):
+    def _post(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""):
         """POST a specific REST endpoint and return JSON response.
             will raise exception on error
 
@@ -115,6 +124,7 @@ class RESTConnector(Connector):
             params (dict) - query string parameters, as string or dict if multiple.
             data (dict) - body data as json-encoded dict, if any.
             headers (dict) - HTTPS headers to override default headers from login.
+            cookies (dict) - cookied to add to the request. If not set, will use self.cookies (if set)
             message (str) - debug message added to debug_reponse()
 
         Note that params, data and headers can be passed to the request library as is!
@@ -122,12 +132,17 @@ class RESTConnector(Connector):
         Returns:
             (bool) - True on success, False otherwize. HTTP status code is in self.response.status_code, if needed.
         """
-        dprint("RESTConnector.post()")
+        dprint("RESTConnector._post()")
+
         if not headers:
             # set to default
             headers = self.headers
+        if not cookies:
+            cookies = self.cookies
+
         self.response = requests.post(url=self.base_url + path,
                                       headers=headers,
+                                      cookies=cookies,
                                       params=params,
                                       data=data,
                                       verify=self.switch.netmiko_profile.verify_hostkey,
@@ -143,7 +158,7 @@ class RESTConnector(Connector):
 
         return False
 
-    def _put(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, message: str = ""):
+    def _put(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""):
         """PUT a specific REST endpoint and return JSON response.
         will raise exception on error
 
@@ -152,6 +167,7 @@ class RESTConnector(Connector):
             params (dict) - query string parameters, as string or dict if multiple.
             data (dict) - body data as json-encoded dict, if any.
             headers (dict) - HTTPS headers to override default headers from login.
+            cookies (dict) - cookied to add to the request. If not set, will use self.cookies (if set)
             message (str) - debug message added to debug_reponse()
 
         Note that params, data and headers can be passed to the request library as is!
@@ -160,11 +176,16 @@ class RESTConnector(Connector):
              data as json dict, or None if empty.
         """
         dprint("RESTConnector.put()")
+
         if not headers:
             # set to default
             headers = self.headers
+        if not cookies:
+            cookies = self.cookies
+
         self.response = requests.put(url=self.base_url + path,
                                      headers=headers,
+                                     cookies=cookies,
                                      params=params,
                                      data=data,
                                      verify=self.switch.netmiko_profile.verify_hostkey,
@@ -180,7 +201,7 @@ class RESTConnector(Connector):
         # Hmm ?
         return False
 
-    def _delete(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, message: str = ""):
+    def _delete(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""):
         """DELETE a specific REST endpoint and return JSON response.
         will raise exception on error
 
@@ -189,6 +210,7 @@ class RESTConnector(Connector):
             params (dict) - query string parameters, as string or dict if multiple.
             data (dict) - body data as json-encoded dict, if any.
             headers (dict) - HTTPS headers to override default headers from login.
+            cookies (dict) - cookied to add to the request. If not set, will use self.cookies (if set)
             message (str) - debug message added to debug_reponse()
 
         Note that params, data and headers can be passed to the request library as is!
@@ -197,11 +219,16 @@ class RESTConnector(Connector):
             (bool) - True on success, False on failure. HTTP status code is in self.response.status_code, if needed.
         """
         dprint("RESTConnector.delete()")
+
         if not headers:
             # set to default
             headers = self.headers
+        if not cookies:
+            cookies = self.cookies
+
         self.response = requests.delete(url=self.base_url + path,
                                         headers=headers,
+                                        cookies=cookies,
                                         params=params,
                                         data=data,
                                         verify=self.switch.netmiko_profile.verify_hostkey,
