@@ -47,7 +47,14 @@ class RESTConnector(Connector):
     def _set_base_url(self, base_url: str):
         """ Set the base URL for all REST queries
         """
+        dprint(f"RESTConnector()._set_base_url() = {base_url}")
         self.base_url = base_url
+
+    def _set_cookies(self, cookies: dict):
+        """ Set the cookie jar!
+        """
+        dprint(f"RESTConnector()._set_cookies() = {cookies}")
+        self.cookies = cookies
 
     #
     # we use the request library, see https://requests.readthedocs.io/en/latest/api/
@@ -97,7 +104,7 @@ class RESTConnector(Connector):
                                      headers=headers,
                                      cookies=cookies,
                                      verify=self.switch.netmiko_profile.verify_hostkey,
-                                     timeout=settings.CW_REST_API_TIMEOUT)
+                                     timeout=settings.REST_API_TIMEOUT)
         read_duration = time.time() - start_time
         if not message:
             message = "_GET() Call"
@@ -146,7 +153,7 @@ class RESTConnector(Connector):
                                       params=params,
                                       data=data,
                                       verify=self.switch.netmiko_profile.verify_hostkey,
-                                      timeout=settings.CW_REST_API_TIMEOUT)
+                                      timeout=settings.REST_API_TIMEOUT)
         if not message:
             message = "_POST() Call"
         debug_response(response=self.response, message=message)
@@ -189,7 +196,7 @@ class RESTConnector(Connector):
                                      params=params,
                                      data=data,
                                      verify=self.switch.netmiko_profile.verify_hostkey,
-                                     timeout=settings.CW_REST_API_TIMEOUT)
+                                     timeout=settings.REST_API_TIMEOUT)
         if not message:
             message = "_PUT() Call"
         debug_response(response=self.response, message=message)
@@ -232,7 +239,7 @@ class RESTConnector(Connector):
                                         params=params,
                                         data=data,
                                         verify=self.switch.netmiko_profile.verify_hostkey,
-                                        timeout=settings.CW_REST_API_TIMEOUT)
+                                        timeout=settings.REST_API_TIMEOUT)
         if not message:
             message = "_DELETE() Call"
         debug_response(response=self.response, message=message)
