@@ -11,7 +11,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
-import json
 import pprint
 import re
 from requests import Response
@@ -136,6 +135,7 @@ def debug_response(response: Response, message: str = ""):
         f"Reason: {response.reason}\n"
         f"Headers: {response.headers}\n"
         f"Content (text): {response.text}\n"
-        f"Content (pprint):\n{pprint.pformat(json.loads(response.text))}"
-        "\n--- END ---\n"
     )
+    if response.status_code == 200:
+        dprint(f"Content (JSON):\n{pprint.pformat(response.json())}")
+    dprint("\n--- END ---\n")
