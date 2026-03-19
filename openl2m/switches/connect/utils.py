@@ -11,6 +11,8 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
+import json
+import pprint
 import re
 from requests import Response
 from django.conf import settings
@@ -122,6 +124,7 @@ def debug_response(response: Response, message: str = ""):
     # only print when both DEBUG and DEBUG_API are True:
     if not settings.DEBUG or not settings.DEBUG_API:
         return
+
     dprint(
         f"---REQUEST {message} ---\n"
         f"URL: {response.request.url}\n"
@@ -133,5 +136,6 @@ def debug_response(response: Response, message: str = ""):
         f"Reason: {response.reason}\n"
         f"Headers: {response.headers}\n"
         f"Content (text): {response.text}\n"
-        "--- END ---\n"
+        f"Content (pprint):\n{pprint.pformat(json.loads(response.text))}"
+        "\n--- END ---\n"
     )
