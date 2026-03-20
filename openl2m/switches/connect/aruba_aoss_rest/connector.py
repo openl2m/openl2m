@@ -79,7 +79,7 @@ class ArubaAOSsRestConnector(RESTConnector):
         self.vendor_name = "HPE/Aruba"
         # we can override the settings calculated from switch.read_only, group.ready_only and user.profile.read_only
         # but we should only do this to create a Read-Only driver!
-        self.read_only = True
+        # self.read_only = True
 
         if switch.description:
             self.add_more_info("System", "Description", switch.description)
@@ -95,16 +95,16 @@ class ArubaAOSsRestConnector(RESTConnector):
         #     raise Exception(self.error.description)
 
         # capabilities supported by this eAPI driver:
-        self.can_change_admin_status = True
-        self.can_change_vlan = True
-        self.can_change_poe_status = True
+        self.can_change_admin_status = False
+        self.can_change_vlan = False
+        self.can_change_poe_status = False
         self.can_change_description = True
-        self.can_save_config = True     # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_save_config = False     # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
-        self.can_edit_vlans = True  # if true, this driver can edit (create/delete) vlans on the device!
-        self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
-        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+        self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
+        self.can_set_vlan_name = False  # set to False if vlan create/delete cannot set/change vlan name!
+        self.can_edit_tags = False  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_allow_all = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
     def __del__(self):
         """when we close the object, release the REST ticket, so the switch does not run out of resources!
@@ -395,35 +395,38 @@ class ArubaAOSsRestConnector(RESTConnector):
         #
         # PoE PowerSupplies
         #
-        # PSEs = self._get(path="PoE/PSEs")
-        # if PSEs:
-        #     for pse in PSEs["PSEs"]:
-        #         # dprint(f"\nPOE PSE: {pprint.pformat(pse)}")
-        #         # create a PoePSE() for OpenL2M use:
-        #         # "PowerLimit" is in mW, ie divide by 1000 for W
-        #         ps = self.add_poe_powersupply(id=pse["PSEID"], power_available=int(pse["PowerLimit"]) / 1000)
-        #         ps.power_consumed = int(pse["CurrentPower"]) / 1000
-        #         match int(pse["OperStatus"]):
-        #             case 1:
-        #                 ps.status = POE_PSE_STATUS_ON
-        #             case 2:
-        #                 ps.status = POE_PSE_STATUS_OFF
-        #             case 3:
-        #                 ps.status = POE_PSE_STATUS_FAULT
-        #         ps.power_consumed = int(pse["AveragePower"]) / 1000
-        #         # some drivers have this easily available:
-        #         ps.model = pse["Model"]
-        #         # ps.name = ""
-        #         # ps.description = ""
-        #         # ps.part_number = ""
-        #         # ps.serial = ""
+        # Note that usage is also reported in the individual power supplies, so no need for this call!
+        # consumption = self._get(path="system/status/power/consumption")
+        # {'power_consumption_element': [{'current_power_in_watts': '20',
+        #                         'psu_model_description': '2930M-24G Switch'}],
+        #                          'uri': '/system/status/power/consumption'}
+
+        supplies = self._get(path="system/status/power/supply")
+        if supplies:
+            dprint("Power Supply data found!")
+        # {'system_power_supply': [{'max_power_in_watts': 0,
+        #                           'model_info': '',
+        #                           'power_in_use_in_watts': 0,
+        #                           'power_supply_number': 1,
+        #                           'power_supply_state': 'SPSS_NOT_PRESENT',
+        #                           'serial_number': '',
+        #                           'voltage_description': '-- ---------'},
+        #                          {'max_power_in_watts': 250,
+        #                           'model_info': 'JL085A',
+        #                           'power_in_use_in_watts': 20,
+        #                           'power_supply_number': 2,
+        #                           'power_supply_state': 'SPSS_POWERED',
+        #                           'serial_number': 'CN75GZ82TG',
+        #                           'voltage_description': 'AC 120V/240V'}],
+        #  'uri': '/system/status/power/supply'}
+
 
         #
-        # PoE Ports
+        # PoE Ports - no device to test against
         #
-        poe_ports = self._get(path="poe/ports")
-        if poe_ports:
-            dprint("poe/ports to be parsed (no test hardware!)")
+        # poe_ports = self._get(path="poe/ports")
+        # if poe_ports:
+        #     dprint("poe/ports to be parsed (no test hardware!)")
 
         #
         # get interface IPv4 and IPv6 addresses
@@ -666,56 +669,51 @@ class ArubaAOSsRestConnector(RESTConnector):
     #         self.error.details = format(err)
     #         return False
 
-    # #
-    # # set interface description
-    # #
-    # def set_interface_description(self, interface: Interface, description: str) -> bool:
-    #     """
-    #     Set the interface description (aka. description) to the string
+    #
+    # set interface description
+    #
+    def set_interface_description(self, interface: Interface, description: str) -> bool:
+        """
+        Set the interface description (aka. description) to the string
 
-    #     Args:
-    #         interface = Interface() object for the requested port
-    #         description = a string with the requested text
+        Args:
+            interface = Interface() object for the requested port
+            description = a string with the requested text
 
-    #     Returns:
-    #         return True on success, False on error and set self.error variables
-    #     """
-    #     # interface.admin_status = new_state
-    #     dprint(f"Aruba_AOSS_RestConnector.set_interface_description() for {interface.name} to '{description}'")
+        Returns:
+            return True on success, False on error and set self.error variables
+        """
+        # interface.admin_status = new_state
+        dprint(f"Aruba_AOSS_RestConnector.set_interface_description() for {interface.name} to '{description}'")
 
-    #     if not description:
-    #         # don't know yet how to handle deleting description!
-    #         self.error.status = True
-    #         self.error.description = "Clearing description is NOT implemented yet!"
-    #         self.error.details = ""
-    #         return False
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-    #     # query string parameters
-    #     params = {
-    #         "index": f"IfIndex={interface.key}",
-    #     }
-    #     # body data
-    #     data = {
-    #         "IfIndex": int(interface.key),
-    #         "Description": description,
-    #     }
+        # body data
+        data = {
+            "id": interface.key,
+            "name": description,
+        }
 
-    #     try:
-    #         resp = self._put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
-    #         if resp:
-    #             # all OK, now do the book keeping
-    #             super().set_interface_description(interface=interface, description=description)
-    #             return True
-    #         # error ?
-    #         self.error.status = True
-    #         self.error.description = "Error setting description!"
-    #         self.error.details = "We're not sure what happened (?)"
-    #         return False
-    #     except Exception as err:
-    #         self.error.status = True
-    #         self.error.description = "Error setting description!"
-    #         self.error.details = format(err)
-    #         return False
+        try:
+            resp = self._put(path=f"ports/{interface.key}", data=json.dumps(data))
+            self._close_device()
+            if resp:
+                # all OK, now do the book keeping
+                super().set_interface_description(interface=interface, description=description)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = "Error setting description!"
+            self.error.details = "We're not sure what happened (?)"
+            return False
+        except Exception as err:
+            self._close_device()
+            self.error.status = True
+            self.error.description = "Error setting description!"
+            self.error.details = format(err)
+            return False
 
     # def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
     #     """
