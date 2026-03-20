@@ -101,8 +101,8 @@ class ArubaAOSsRestConnector(RESTConnector):
         self.can_change_description = True
         self.can_save_config = False     # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
-        self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
-        self.can_set_vlan_name = False  # set to False if vlan create/delete cannot set/change vlan name!
+        self.can_edit_vlans = True  # if true, this driver can edit (create/delete) vlans on the device!
+        self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         self.can_edit_tags = False  # True if this driver can edit 802.1q tagged vlans on interfaces
         self.can_allow_all = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
@@ -930,134 +930,141 @@ class ArubaAOSsRestConnector(RESTConnector):
     #         self.error.details = format(err)
     #         return False
 
-    # def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
-    #     """
-    #     Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
+    def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
+        """
+        Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
 
-    #     Args:
-    #         id (int): the vlan id
-    #         name (str): the name of the vlan
+        Args:
+            id (int): the vlan id
+            name (str): the name of the vlan
 
-    #     Returns:
-    #         True on success, False on error and set self.error variables.
-    #     """
-    #     dprint(f"Aruba_AOSS_RestConnector.vlan_create() for vlan {vlan_id} = '{vlan_name}'")
+        Returns:
+            True on success, False on error and set self.error variables.
+        """
+        dprint(f"Aruba_AOSS_RestConnector.vlan_create() for vlan {vlan_id} = '{vlan_name}'")
 
-    #     # NO query string parameters
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-    #     # new vlan attributes in POST body data
-    #     data = {
-    #         "ID": vlan_id,
-    #         "Name": vlan_name,
-    #     }
+        # new vlan attributes in POST body data
+        data = {
+            "vlan_id": vlan_id,
+            "name": vlan_name,
+        }
 
-    #     try:
-    #         # create requires a HTTP POST
-    #         success = self._post(path="VLAN/VLANs", data=json.dumps(data))
-    #         if success:
-    #             # all OK, now do the book keeping
-    #             super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
-    #             return True
-    #         # error ?
-    #         self.error.status = True
-    #         self.error.description = "Error creating vlan!"
-    #         self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
-    #         return False
-    #     except Exception as err:
-    #         self.error.status = True
-    #         self.error.description = "Error creating vlan!"
-    #         self.error.details = format(err)
-    #         return False
+        try:
+            # create requires a HTTP POST
+            success = self._post(path="vlans", data=json.dumps(data))
+            self._close_device()
+            if success:
+                # all OK, now do the book keeping
+                super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = "Error creating vlan!"
+            self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
+            return False
+        except Exception as err:
+            self._close_device()
+            self.error.status = True
+            self.error.description = "Error creating vlan!"
+            self.error.details = format(err)
+            return False
 
-    # def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
-    #     """
-    #     Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
+    def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
+        """
+        Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
 
-    #     Args:
-    #         id (int): the vlan id to edit
-    #         name (str): the new name of the vlan
+        Args:
+            id (int): the vlan id to edit
+            name (str): the new name of the vlan
 
-    #     Returns:
-    #         True on success, False on error and set self.error variables.
-    #     """
-    #     dprint(f"Aruba_AOSS_RestConnector.vlan_edit() for vlan {vlan_id} = '{vlan_name}'")
+        Returns:
+            True on success, False on error and set self.error variables.
+        """
+        dprint(f"Aruba_AOSS_RestConnector.vlan_edit() for vlan {vlan_id} = '{vlan_name}'")
 
-    #     vlan = self.get_vlan_by_id(vlan_id)
-    #     if not vlan:
-    #         self.error.status = True
-    #         self.error.description = f"Vlan {vlan_id} does not exist!"
-    #         self.error.details = ""
-    #         return False
+        vlan = self.get_vlan_by_id(vlan_id)
+        if not vlan:
+            self.error.status = True
+            self.error.description = f"Vlan {vlan_id} does not exist!"
+            self.error.details = ""
+            return False
 
-    #     # edit is a PUT with a query string with the VLAN ID as index
-    #     params = {
-    #         "index": f"ID={vlan_id}",
-    #     }
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-    #     # and body data with the updated values.
-    #     data = {
-    #         "ID": vlan_id,
-    #         "Name": vlan_name,
-    #         # "Description": not supported...,
-    #     }
+        # and body data with the updated values.
+        data = {
+            "vlan_id": vlan_id,
+            "name": vlan_name,
+        }
 
-    #     try:
-    #         # create requires a HTTP POST
-    #         success = self._put(path="VLAN/VLANs", params=params, data=json.dumps(data))
-    #         if success:
-    #             # all OK, now do the book keeping
-    #             super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
-    #             return True
-    #         # error ?
-    #         self.error.status = True
-    #         self.error.description = "Error editing vlan!"
-    #         self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
-    #         return False
-    #     except Exception as err:
-    #         self.error.status = True
-    #         self.error.description = "Error editing vlan!"
-    #         self.error.details = format(err)
-    #         return False
+        try:
+            # create requires a HTTP POST
+            success = self._put(path=f"vlans/{vlan_id}", data=json.dumps(data))
+            self._close_device()
+            if success:
+                # all OK, now do the book keeping
+                super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = "Error editing vlan!"
+            self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
+            return False
+        except Exception as err:
+            self._close_device()
+            self.error.status = True
+            self.error.description = "Error editing vlan!"
+            self.error.details = format(err)
+            return False
 
-    # def vlan_delete(self, vlan_id: int) -> bool:
-    #     """
-    #     Delete the vlan. Upon success, this then needs to call the base class for book keeping!
+    def vlan_delete(self, vlan_id: int) -> bool:
+        """
+        Delete the vlan. Upon success, this then needs to call the base class for book keeping!
 
-    #     Args:
-    #         id (int): the vlan id to delete
+        Args:
+            id (int): the vlan id to delete
 
-    #     Returns:
-    #         True on success, False on error and set self.error variables.
-    #     """
-    #     dprint(f"Aruba_AOSS_RestConnector.vlan_delete() for vlan {vlan_id}")
+        Returns:
+            True on success, False on error and set self.error variables.
+        """
+        dprint(f"Aruba_AOSS_RestConnector.vlan_delete() for vlan {vlan_id}")
 
-    #     vlan = self.get_vlan_by_id(vlan_id)
-    #     if not vlan:
-    #         self.error.status = True
-    #         self.error.description = f"Vlan {vlan_id} does not exist!"
-    #         self.error.details = ""
-    #         return False
+        vlan = self.get_vlan_by_id(vlan_id)
+        if not vlan:
+            self.error.status = True
+            self.error.description = f"Vlan {vlan_id} does not exist!"
+            self.error.details = ""
+            return False
 
-    #     # this is a simple HTTP DELETE call, with vlan ID as query string parameter
-    #     params = {
-    #         "index": f"ID={vlan_id}",
-    #     }
-    #     try:
-    #         success = self._delete(path="VLAN/VLANs", params=params)
-    #         if success:
-    #             # all OK, now do the book keeping
-    #             super().vlan_delete(vlan_id=vlan_id)
-    #             return True
-    #         # error ?
-    #         self.error.status = True
-    #         self.error.description = "Error deleting vlan!"
-    #         self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
-    #         return False
-    #     except Exception as err:
-    #         self.error.status = True
-    #         self.error.description = "Error deleting vlan!"
-    #         self.error.details = format(err)
-    #         return False
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        # this is a simple HTTP DELETE call, with vlan ID as url extension
+        try:
+            success = self._delete(path=f"vlans/{vlan_id}")
+            self._close_device()
+            if success:
+                # all OK, now do the book keeping
+                super().vlan_delete(vlan_id=vlan_id)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = "Error deleting vlan!"
+            self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
+            return False
+        except Exception as err:
+            self._close_device()
+            self.error.status = True
+            self.error.description = "Error deleting vlan!"
+            self.error.details = format(err)
+            return False
 
     # def save_running_config(self) -> bool:
     #     """
