@@ -6,6 +6,9 @@ Adding Aruba AOS-S API Devices
 
 This documents how to add devices using the Aruba AOS-S switches REST API.
 
+This has been tested on a single 2930M, using firmware v16.11.x, and REST api v4. Due to lack of test hardware,
+PoE support has not been implemented.
+
 Prerequisites
 -------------
 
@@ -24,10 +27,19 @@ Aruaba AOS-S devices using this driver are managed via the REST protocol.
 You will need to configure the device to allow this access. Something like the below example is needed,
 depending on your specific AOS-S device:
 
+You need to enable the web management interface, in SSL / HTTPS mode, with a valid certificate
+See more at https://arubanetworking.hpe.com/techdocs/AOS-S/16.11/ASG/YC/content/common%20files/sel-sig-cer.htm
+
 
 .. code-block:: bash
 
+    crypto pki enroll-self-signed certificate-name LOCAL_SSL_CERT subject /CN=your-switch-name.yourdomain.com
+    web ssl
     rest-interface
+
+    # add local user for api:
+    aaa authentication local-user <api-user> group Level-15 password plaintext  # hit CR and enter password.
+
 
 **Please consult your device documentation for specific configurations.** *Make sure you adhere to your company's
 security policy and secure API access as needed.*

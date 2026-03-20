@@ -54,7 +54,7 @@ Via SNMP.
 
 **HP/Aruba (ProCurve/ArubaOS)**
 
-Via SNMP.
+Via SNMP:
 
 * *HP 2520* series; single units.
 * *HP 2530* series; single units.
@@ -63,6 +63,12 @@ Via SNMP.
 * *HP 4200* series, specifically 4204vl (J8770A).
 * *Aruba 2930F/M* series; single units.
 * *Aruba 5400* series; chassis based, regular, zl, and zl2.
+
+Via REST api:
+
+Any device that can run v16.x of AOS-S, and has the REST api enabled (see configuration page).
+This has been tested on a single 2930M, using firmware v16.11.x, and REST api v4.
+Due to lack of test hardware, PoE support has not been implemented.
 
 **Aruba AOS-CX**
 

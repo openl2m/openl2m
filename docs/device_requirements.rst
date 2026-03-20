@@ -16,6 +16,12 @@ Aruba AOS-CX
 * any device that supports the Aruba AOS-CX API v10.08 is supported, via the pyaoscx library.
 * Device access needs to be configured properly.
 
+Aruba AOS-S
+-----------
+* any device that can run v16.x of AOS-S, and has the REST api enabled (see configuration page).
+* This has been tested on a single 2930M, using firmware v16.11.x, and REST api v4.
+* Due to lack of test hardware, PoE support has not been implemented.
+
 HPE/Aruba Comware REST API
 --------------------------
 

@@ -5,6 +5,9 @@ Features Supported
 
 **Features Supported by Drivers**
 
+**SNMP DEVICES**
+----------------
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -69,7 +72,7 @@ Features Supported
      - Yes
      - Yes
 
-   * - Procurve (snmp)
+   * - Procurve/AOS-S (snmp)
      - Yes
      - Yes
      - Yes
@@ -105,6 +108,45 @@ Features Supported
      - untested
      -
 
+.. note::
+
+  All driver features are automatically supported by the OpenL2M REST API! (except for SSH commands)
+
+  *untested* means the feature likely works, but is (clearly) untested.
+
+  :sup:`1` The generic SNMP driver supports standard MIBs only! PoE may not function for 'standard' devices,
+  as many vendors provide incorrect mapping of PoE switch-ports ID to interface index in their MIBs.
+
+  :sup:`2` Arista PoE support is untested, as no PoE-capable devices are available to develop and test.
+
+  :sup:`3` AOS-CX SNMP minimal versions:
+  VLAN edit/change - v10.12 (no name supported), Description edit - v10.09
+
+  :sup:`4` Juniper's SNMP implementation on devices is Read-Only!
+
+  :sup:`5` The MikroTik driver has limited functionality. MikroTik does not support VLANs over SNMP.
+  This driver has only been tested on a single HexS (RB760iGS) device.
+
+
+**Other API's**
+---------------
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Features
+     - Up/Down
+     - Vlan Set
+     - PoE
+     - Descr.
+     - IPv6
+     - Neighbors
+     - Vlan Edit
+     - Trunk Edit
+     - SSH
+     - VRF
+
    * - Arista eAPI
      - Yes
      - Yes
@@ -129,11 +171,23 @@ Features Supported
      - Yes
      - Yes
 
-   * - HPE Comware (api)  :sup:`6`
+   * - Aruba AOS-S (api r/o) :sup:`1`
+     - No
+     - No
+     - No
+     - No
+     - ?
+     - Yes
+     - No
+     - No
+     - Yes
+     - n/a
+
+   * - HPE Comware (api)  :sup:`2`
      - Yes
      - Yes
-     - Yes :sup:`6`
-     - Yes :sup:`6`
+     - Yes :sup:`2`
+     - Yes :sup:`2`
      - Yes
      - Yes
      - No
@@ -141,7 +195,7 @@ Features Supported
      - Yes
      - Yes
 
-   * - Junos (PyEZ)  :sup:`7`
+   * - Junos (PyEZ)  :sup:`3`
      - Yes
      - Yes
      - Yes
@@ -153,7 +207,7 @@ Features Supported
      - Yes
      - Yes
 
-   * - SSH :sup:`8`
+   * - SSH :sup:`4`
      -
      -
      -
@@ -165,7 +219,7 @@ Features Supported
      - Yes
      - n/a
 
-   * - Napalm (r/o) :sup:`9`
+   * - Napalm (r/o) :sup:`5`
      -
      -
      -
@@ -183,30 +237,21 @@ Features Supported
 
   *untested* means the feature likely works, but is (clearly) untested.
 
-  :sup:`1` The generic SNMP driver supports standard MIBs only! PoE may not function for 'standard' devices,
-  as many vendors provide incorrect mapping of PoE switch-ports ID to interface index in their MIBs.
+  :sup:`1` The AOS-S REST api driver requires firmware v16.x. This has been tested on a single 2930M,
+  using firmware v16.11.x, and REST api v4. It is currently Read-Only.
+  Due to lack of test hardware, PoE support has not been implemented.
 
-  :sup:`2` Arista PoE support is untested, as no PoE-capable devices are available to develop and test.
-
-  :sup:`3` AOS-CX SNMP minimal versions:
-  VLAN edit/change - v10.12 (no name supported), Description edit - v10.09
-
-  :sup:`4` Juniper's SNMP implementation on devices is Read-Only!
-
-  :sup:`5` The MikroTik driver has limited functionality. MikroTik does not support VLANs over SNMP.
-  This driver has only been tested on a single HexS (RB760iGS) device.
-
-  :sup:`6` The Comware REST API is in development. Most features are supported.
+  :sup:`2` The Comware REST API is in development. Most features are supported.
 
   - Some older devices only return PoE info for ports with active PoE power drawn.
     Other interfaces will show as 'n/s' (not supported), even though they may support PoE.
   - Interface descriptions can be set, but NOT cleared at this time.
 
-  :sup:`7` The Junos PyEZ driver expects a **device with "ELS" software**, ie running Enhanced Layer2 Software,
+  :sup:`3` The Junos PyEZ driver expects a **device with "ELS" software**, ie running Enhanced Layer2 Software,
   that unifies the configuration of Ethernet interfaces access the product line. **Many MX routers do
   not support this, and have not been tested!**
 
-  :sup:`8` SSH support is via the Netmiko library. Most devices supported by that library should work, but
+  :sup:`4` SSH support is via the Netmiko library. Most devices supported by that library should work, but
   your mileage may vary!
 
-  :sup:`9` Napalm support has been tested on a limited set of devices. Your mileage may vary!
+  :sup:`5` Napalm support has been tested on a limited set of devices. Your mileage may vary!
