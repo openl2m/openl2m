@@ -38,6 +38,8 @@ An example if this is the Arista eAPI driver, in switches/connect/arista_eapi/co
 the *_execute_command()* function. This uses the eAPI in "text" mode to run a command.
 Note: for this device type, this is significanly faster then the normal SSH implementation via Netmiko.
 
+Additionally, the Aruba AOS-S driver implements *_execute_command()* to implement using their REST API, instead of SSH.
+
 **Note:** it is possible to implement a complete SSH interface to manage devices.
 The Napalm library attempts to do this, but lacks support for 802.1q, PoE, and more.
 This exercise is left to the reader...
