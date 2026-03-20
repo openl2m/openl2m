@@ -425,7 +425,30 @@ class ArubaAOSsRestConnector(RESTConnector):
         # poe_ports = self._get(path="poe/ports")
         # if poe_ports:
         #     dprint("poe/ports to be parsed (no test hardware!)")
-
+        #
+        # this returns "PortPoe" element, which has the following attributes:
+        #     "uri":
+        #     "port_id":
+        #     "is_poe_enabled":
+        #         "description": "Port PoE status",
+        #         "type": "boolean",
+        #     "poe_priority":
+        #         "description": "Port PoE priority",
+        #         "default_value": "PPP_LOW"
+        #     "poe_allocation_method":
+        #         "description": "PoE allocation method",
+        #         "default_value": "PPAM_USAGE"
+        #     "allocated_power_in_watts":
+        #         "description": "Allocated power value. Default value for this param is platform dependent.",
+        #         "type": "integer"
+        #     "port_configured_type":
+        #         "description": "Port configured type",
+        #         "type": "string",
+        #         "maxLength": 256,
+        #         "minLength": 0
+        #     "pre_standard_detect_enabled":
+        #         "description": "pre_std_detect enabled/disable",
+        #         "type": "boolean"
 
         #
         # get interface IPv4 and IPv6 addresses
