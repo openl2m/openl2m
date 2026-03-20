@@ -17,8 +17,8 @@ ArubaOS Switch REST API Connector
 This implements a REST api driver from Aruba AOS-S switches.
 This follows the API docs outlined in the Aruba Networking AOS-S v16.11 REST API docs at
 https://arubanetworking.hpe.com/techdocs/AOS-Switch/16.11/Aruba%20REST%20API%20for%20AOS-S%2016.11.pdf
-
 """
+import base64
 import json
 
 from django.http.request import HttpRequest
@@ -99,12 +99,12 @@ class ArubaAOSsRestConnector(RESTConnector):
         self.can_change_vlan = True
         self.can_change_poe_status = False
         self.can_change_description = True
-        self.can_save_config = False     # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_save_config = True     # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_vlans = True  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         self.can_edit_tags = False  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+        self.can_allow_all = True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
     def __del__(self):
         """when we close the object, release the REST ticket, so the switch does not run out of resources!
@@ -1066,23 +1066,76 @@ class ArubaAOSsRestConnector(RESTConnector):
             self.error.details = format(err)
             return False
 
-    # def save_running_config(self) -> bool:
-    #     """
-    #     save the current config to startup. Note this uses SSH (Netmiko), as this is NOT supported via the REST API.
+    def save_running_config(self) -> bool:
+        """
+        save the current config to startup. Note this uses SSH (Netmiko), as this is NOT supported via the REST API.
 
-    #     Returns:
-    #         (bool) - True if this succeeds, False on failure. self.error() will be set in that case
-    #     """
-    #     dprint("Aruba_AOSS_RestConnector().save_running_config()")
+        Returns:
+            (bool) - True if this succeeds, False on failure. self.error() will be set in that case
+        """
+        dprint("Aruba_AOSS_RestConnector().save_running_config()")
 
-    #     # Not implemented in API, so run the save command with _execute_command(), which uses Netmiko / SSH
-    #     return self._execute_command(command="save force")
+        # Not implemented in API, so run the save command with _execute_command(), which uses Netmiko / SSH
+        return self._execute_command(command="write mem")
 
     #
-    # run any CLI command! -  to be implemented using similar call below
+    # here we override the SSH command execution using Netmiko,
+    # and implement it using the API.
     #
-    # see https://github.com/aruba/arubaos-switch-api-python/blob/master/src/common.py
-    # def run_any_cli(self, cmd):
+    def _execute_command(self, command: str) -> bool:
+        """
+        Execute a single command on the device using eAPI.
+        Save the command output to self.output
+        On error, set self.error as needed.
 
-    #     data = { "cmd": cmd }
-    #     response = self._post(path="cli", data=data)
+        Args:
+            command: the string the execute as a command on the device
+
+        Returns:
+            True if success, False on failure.
+            On success, save the command output to self.output.
+            On failure, set self.error as applicable.
+        """
+        dprint(f"Aruba_AOSS_RestConnector()._execute_command() '{command}'")
+
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        # see https://github.com/aruba/arubaos-switch-api-python/blob/master/src/common.py
+
+        # POST data contain the cli command to execute
+        data = {
+            "cmd": command,
+        }
+
+        try:
+            success = self._post(path="cli", data=json.dumps(data))
+            if success:
+                # Body return data looks like:
+                # {"uri":"/cli","cmd":"display interface 1","result_base64_encoded":"IDEgY3Vy..."}
+                #
+                # the base64 decoded value is a byte string, so convert that to ascii (or unicode?)
+                #
+                # set the expect return field with command text:
+                try:
+                    text = base64.b64decode(self.response.json()["result_base64_encoded"]).decode('utf-8')
+                    dprint(f"Command return text:\n{text}")
+                    self.netmiko_output = text
+                except Exception as err:
+                    self.netmiko_output = f"Error converting command text returned:\n{format(err)}"
+
+                self._close_device()
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = "Error running command!"
+            self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
+            self._close_device()
+            return False
+        except Exception as err:
+            self._close_device()
+            self.error.status = True
+            self.error.description = "Error running command!"
+            self.error.details = format(err)
+            return False
