@@ -96,7 +96,7 @@ class ArubaAOSsRestConnector(RESTConnector):
 
         # capabilities supported by this eAPI driver:
         self.can_change_admin_status = True
-        self.can_change_vlan = False
+        self.can_change_vlan = True
         self.can_change_poe_status = False
         self.can_change_description = True
         self.can_save_config = False     # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
@@ -742,29 +742,25 @@ class ArubaAOSsRestConnector(RESTConnector):
     #         self.error.details = ""
     #         return False
 
-    #     # query string parameters, needs 2 index parameters!
-    #     params = {
-    #         "index": f"IfIndex={interface.key};PSEID={interface.poe_entry.pse_id}",
-    #     }
+    #     if not self._open_device():
+    #         dprint("_open_device() failed!")
+    #         return False
 
-    #     # set status values
     #     if new_state == POE_PORT_ADMIN_ENABLED:
-    #         status = True
-    #         status_name = "ON"
+    #         state = True     # True=PoE enabled, False=disabled
     #     else:
-    #         status = False
-    #         status_name = "OFF"
+    #         state = False
 
     #     # body data
     #     data = {
-    #         "IfIndex": int(interface.key),
-    #         "PSEID": int(interface.poe_entry.pse_id),
-    #         "AdminEnable": status,   # True=PoE enabled, False=disabled
+    #         "id": interface.key,
+    #         "is_power_enabled": state,
     #     }
 
     #     # go set PoE state
     #     try:
-    #         resp = self._put(path="PoE/Ports", params=params, data=json.dumps(data))
+    #         resp = self._put(path=f"/ports/poe/{interface.key}", data=json.dumps(data))
+    #         self._close_device()
     #         if resp:
     #             # all OK, now do the book keeping
     #             super().set_interface_poe_status(interface, new_state)
@@ -775,57 +771,60 @@ class ArubaAOSsRestConnector(RESTConnector):
     #         self.error.details = "We're not sure what happened (?)"
     #         return False
     #     except Exception as err:
+    #         self._close_device()
     #         self.error.status = True
     #         self.error.description = f"Error setting PoE to {status_name}!"
     #         self.error.details = format(err)
     #         return False
 
-    # def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
-    #     """
-    #     Override the VLAN change
-    #     return True on success, False on error and set self.error variables
-    #     """
-    #     dprint(
-    #         f"Aruba_AOSS_RestConnector().set_interface_untagged_vlan() port {interface.name} to {new_vlan_id} ({type(new_vlan_id)})"
-    #     )
+    def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
+        """
+        Override the VLAN change
+        return True on success, False on error and set self.error variables
+        """
+        dprint(
+            f"Aruba_AOSS_RestConnector().set_interface_untagged_vlan() port {interface.name} to {new_vlan_id} ({type(new_vlan_id)})"
+        )
 
-    #     # validate new vlan
-    #     new_vlan = self.get_vlan_by_id(new_vlan_id)
-    #     if not new_vlan:
-    #         self.error.status = True
-    #         self.error.description = f"Cannot find Vlan object for vlan {new_vlan_id} for port '{interface.name}'"
-    #         self.error.details = ""
-    #         return False
+        # validate new vlan
+        new_vlan = self.get_vlan_by_id(new_vlan_id)
+        if not new_vlan:
+            self.error.status = True
+            self.error.description = f"Cannot find Vlan object for vlan {new_vlan_id} for port '{interface.name}'"
+            self.error.details = ""
+            return False
 
-    #     # the REST APi does not appear to "care" wether interface is untagged or tagged. Just set PVID !
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-    #     # query string parameters
-    #     params = {
-    #         "index": f"IfIndex={interface.key}",
-    #     }
+        # the REST API does not appear to "care" wether interface is untagged or tagged. Just set PVID !
 
-    #     # body data
-    #     data = {
-    #         "IfIndex": int(interface.key),
-    #         "PVID": new_vlan_id,     # valid vlan id's
-    #     }
+        # body data
+        data = {
+            "port_id": interface.key,   # note: this uses port_id, instead of id. Likely as this can only be real switch ports!
+            "vlan_id": new_vlan_id,
+            "port_mode": "POM_UNTAGGED",
+        }
 
-    #     try:
-    #         resp = self._put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
-    #         if resp:
-    #             # all OK, now do the book keeping
-    #             super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
-    #             return True
-    #         # error ?
-    #         self.error.status = True
-    #         self.error.description = f"Error setting vlan {new_vlan_id}!"
-    #         self.error.details = "We're not sure what happened (?)"
-    #         return False
-    #     except Exception as err:
-    #         self.error.status = True
-    #         self.error.description = f"Error setting vlan to {new_vlan_id}!"
-    #         self.error.details = format(err)
-    #         return False
+        try:
+            resp = self._post(path="vlans-ports", data=json.dumps(data))
+            self._close_device()
+            if resp:
+                # all OK, now do the book keeping
+                super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = f"Error setting vlan {new_vlan_id}!"
+            self.error.details = "We're not sure what happened (?)"
+            return False
+        except Exception as err:
+            self._close_device()
+            self.error.status = True
+            self.error.description = f"Error setting vlan to {new_vlan_id}!"
+            self.error.details = format(err)
+            return False
 
     # def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
     #     """
