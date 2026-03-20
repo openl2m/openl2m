@@ -404,21 +404,19 @@ class ArubaAOSsRestConnector(RESTConnector):
         supplies = self._get(path="system/status/power/supply")
         if supplies:
             dprint("Power Supply data found!")
-        # {'system_power_supply': [{'max_power_in_watts': 0,
-        #                           'model_info': '',
-        #                           'power_in_use_in_watts': 0,
-        #                           'power_supply_number': 1,
-        #                           'power_supply_state': 'SPSS_NOT_PRESENT',
-        #                           'serial_number': '',
-        #                           'voltage_description': '-- ---------'},
-        #                          {'max_power_in_watts': 250,
-        #                           'model_info': 'JL085A',
-        #                           'power_in_use_in_watts': 20,
-        #                           'power_supply_number': 2,
-        #                           'power_supply_state': 'SPSS_POWERED',
-        #                           'serial_number': 'CN75GZ82TG',
-        #                           'voltage_description': 'AC 120V/240V'}],
-        #  'uri': '/system/status/power/supply'}
+            for supply in supplies["system_power_supply"]:
+                if supply["power_supply_state"] == "SPSS_NOT_PRESENT":  # empty slot!
+                    continue
+                pse = self.add_poe_powersupply(id=supply["power_supply_number"],
+                                               power_available=int(supply["max_power_in_watts"]),
+                                            )
+                pse.set_consumed_power(supply["power_in_use_in_watts"])
+                pse.mode = supply["model_info"]
+                pse.description = supply["voltage_description"]
+                if supply["power_supply_state"] == "SPSS_POWERED":
+                    pse.set_enabled()
+                else:
+                    pse.set_disabled()
 
 
         #
@@ -427,6 +425,7 @@ class ArubaAOSsRestConnector(RESTConnector):
         # poe_ports = self._get(path="poe/ports")
         # if poe_ports:
         #     dprint("poe/ports to be parsed (no test hardware!)")
+
 
         #
         # get interface IPv4 and IPv6 addresses
