@@ -95,7 +95,7 @@ class ArubaAOSsRestConnector(RESTConnector):
         #     raise Exception(self.error.description)
 
         # capabilities supported by this eAPI driver:
-        self.can_change_admin_status = False
+        self.can_change_admin_status = True
         self.can_change_vlan = False
         self.can_change_poe_status = False
         self.can_change_description = True
@@ -620,54 +620,51 @@ class ArubaAOSsRestConnector(RESTConnector):
 
         return True
 
-    # #
-    # # set interface admin status (up/down)
-    # #
-    # def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
-    #     """
-    #     Set the interface to the requested state (up or down)
+    #
+    # set interface admin status (up/down)
+    #
+    def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
+        """
+        Set the interface to the requested state (up or down)
 
-    #     Args:
-    #         interface = Interface() object for the requested port
-    #         new_state = True / False  (enabled/disabled)
+        Args:
+            interface = Interface() object for the requested port
+            new_state = True / False  (enabled/disabled)
 
-    #     Returns:
-    #         return True on success, False on error and set self.error variables
-    #     """
-    #     # interface.admin_status = new_state
-    #     dprint(f"Aruba_AOSS_RestConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
+        Returns:
+            return True on success, False on error and set self.error variables
+        """
+        # interface.admin_status = new_state
+        dprint(f"Aruba_AOSS_RestConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
 
-    #     # status values: 1=up, 2=down
-    #     if new_state:
-    #         status = 1
-    #     else:
-    #         status = 2
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-    #     # query string parameters
-    #     params = {
-    #         "index": f"IfIndex={interface.key}",
-    #     }
-    #     # body data
-    #     data = {
-    #         "IfIndex": int(interface.key),
-    #         "AdminStatus": status,
-    #     }
-    #     try:
-    #         resp = self._put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
-    #         if resp:
-    #             # all OK, now do the book keeping
-    #             super().set_interface_admin_status(interface=interface, new_state=new_state)
-    #             return True
-    #         # error ?
-    #         self.error.status = True
-    #         self.error.description = "Error changing interface state!"
-    #         self.error.details = "We're not sure what happened (?)"
-    #         return False
-    #     except Exception as err:
-    #         self.error.status = True
-    #         self.error.description = "Error changing interface state!"
-    #         self.error.details = format(err)
-    #         return False
+        # body data
+        data = {
+            "id": interface.key,
+            "is_port_enabled": new_state,
+        }
+
+        try:
+            resp = self._put(path=f"ports/{interface.key}", data=json.dumps(data))
+            self._close_device()
+            if resp:
+                # all OK, now do the book keeping
+                super().set_interface_admin_status(interface=interface, new_state=new_state)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = "Error changing interface state!"
+            self.error.details = "We're not sure what happened (?)"
+            return False
+        except Exception as err:
+            self._close_device()
+            self.error.status = True
+            self.error.description = "Error changing interface state!"
+            self.error.details = format(err)
+            return False
 
     #
     # set interface description
