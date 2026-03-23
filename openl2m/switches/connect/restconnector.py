@@ -160,7 +160,12 @@ class RESTConnector(Connector):
         self.response.raise_for_status()
 
         # no errors:
-        if self.response.status_code in (200, 201, 204):    # valid return with content (200) or none (201 Created)
+        if self.response.status_code in (200, 201,202, 204):
+            # valid returns:
+            # 200 - Created, with content returned
+            # 201 - Created, not content
+            # 202 - Batch accepted (no content) - may still eventyally fail the batch of commands.
+            # 204 - Processed, no content returned.
             return True
 
         return False
