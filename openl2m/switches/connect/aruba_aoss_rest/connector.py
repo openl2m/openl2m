@@ -108,7 +108,7 @@ class ArubaAOSsRestConnector(RESTConnector):
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_vlans = True  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
-        self.can_edit_tags = False  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
         self.can_allow_all = (
             True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
         )
@@ -868,121 +868,47 @@ class ArubaAOSsRestConnector(RESTConnector):
             self.error.details = format(err)
             return False
 
-    # def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False) -> bool:
-    #     """
-    #     Set the interface to the untagged and tagged vlans.
+    def set_interface_vlans(
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
+    ) -> bool:
+        """
+        Set the interface to the untagged and tagged vlans.
 
-    #     Args:
-    #         interface = Interface() object for the requested port
-    #         untagged_vlan = an integer with the requested untagged vlan
-    #         tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+        Args:
+            interface = Interface() object for the requested port
+            untagged_vlan = an integer with the requested untagged vlan
+            tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
-    #     Returns:
-    #         True on success, False on error and set self.error variables
-    #     """
-    #     dprint(
-    #         f"Aruba_AOSS_RestConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
-    #     )
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(
+            f"Aruba_AOSS_RestConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
+        )
+        # as this is a real pain with untagged and tagged vlans on ports via the "vlans-ports" api endpoint,
+        # we are going to "cheat", and run this with CLI commands over the API :-)
 
-    #     if not self._open_device():
-    #         dprint("_open_device() failed!")
-    #         return False
+        # start with untagged vlan, list of commands:
+        commands = [f"interface {interface.key}", f"untagged vlan {untagged_vlan}"]
+        # now add and remove tagged vlans as directed!
+        for vlan_id in self.vlans:
+            # if untagged vlan, ignore. If set as tagged, it will remove vlan as untagged!
+            if vlan_id == untagged_vlan:
+                continue
+            if allow_all or vlan_id in tagged_vlans:
+                commands.append(f"tagged vlan {vlan_id}")
+            else:
+                commands.append(f"no tagged vlan {vlan_id}")
 
-    #     if not tagged_vlans and not allow_all:
-    #         # no tagged vlan, ie "access mode".
-    #         dprint("ACCESS mode set vlan")
-    #         # POST data to change the PVID / untagge vlan.
-    #         data = {
-    #             "id": interface.key,
-    #             "port_mode": "POM_UNTAGGED",
-    #             "vlan_id": untagged_vlan,
-    #         }
-    #         try:
-    #             resp = self._post(path="vlans-ports", data=json.dumps(data))
-    #             if resp:
-    #                 # all OK, now do the book keeping
-    #                 super().set_interface_untagged_vlan(interface=interface, new_vlan_id=untagged_vlan)
-    #         except Exception as err:
-    #             self._close_device()
-    #             dprint("ERROR setting untagged vlan: {err}")
-    #             self.error.status = True
-    #             self.error.description = "Error setting untagged vlan (pvid)! Interface is now in UNKNOWN state!"
-    #             self.error.details = format(err)
-    #             return False
-
-    #         if interface.is_tagged:
-    #             # change mode as well
-    #             dprint("  Changing to ACCESS")
-    #             data['LinkType'] = 1    # 1 = Access
-    #         else:
-    #             dprint("Already Access mode!")
-    #     else:
-    #         # trunk mode, setup mode and native vlan:
-    #         dprint("TAGGED mode set vlans")
-    #         mode = "tagged"
-    #         if not interface.is_tagged:
-    #             # change mode as well
-    #             dprint("  Changing to TRUNK")
-    #             data['LinkType'] = 2    # 2 = Trunk
-    #         else:
-    #             dprint("Already Trunk mode!")
-
-    #     # and make the API call for the Access/Trunk setting:
-    #     try:
-    #         dprint(f"Setting Mode to {mode}")
-    #         resp = self._put(path="vlans-ports", data=json.dumps(data))
-    #         if resp:
-    #             dprint("  mode set OK!")
-    #             # mode set OK. If tagged, add this interface to desired vlans:
-    #             if allow_all or len(tagged_vlans):
-    #                 dprint("Adding VLANs to TRUNK.")
-    #                 trunk_vlan_list = []
-    #                 for vlan_id in self.vlans:
-    #                     dprint(f"Checking vlan_id {vlan_id} = {type(vlan_id)}")
-    #                     if allow_all or vlan_id in tagged_vlans:
-    #                         dprint(f"CW REST TRUNK SET: TRUNK ADDING Vlan {vlan_id}")
-    #                         # for api call, we need a comma-separated list, created using .join(), so we need str() !
-    #                         trunk_vlan_list.append(str(vlan_id))
-
-    #                 # now use "VLAN/TrunkInterfaces" api endpoint to set trunk vlans.
-    #                 # query parameters has index to interface
-    #                 params = {
-    #                     "index": f"IfIndex={interface.key}",
-    #                 }
-
-    #                 # body data has the list of allowed vlans
-    #                 data = {
-    #                     "IfIndex": int(interface.key),
-    #                     "PermitVlanList": ','.join(trunk_vlan_list),
-    #                 }
-
-    #                 try:
-    #                     success = self._put(path="VLAN/TrunkInterfaces", params=params, data=json.dumps(data))
-    #                     if not success:
-    #                         # not sure what happened!
-    #                         self.error.status = True
-    #                         self.error.description = "Error adding vlans to trunk! Interface is now in UNKNOWN state!"
-    #                         self.error.details = ""
-    #                         return False
-    #                 except Exception as err:
-    #                     self.error.status = True
-    #                     self.error.description = "Error adding vlans to trunk! Interface is now in UNKNOWN state!"
-    #                     self.error.details = format(err)
-    #                     return False
-    #             # all OK, now do the book keeping
-    #             dprint("Calling Bookkeeping...")
-    #             super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
-    #             return True
-    #         # error ?
-    #         self.error.status = True
-    #         self.error.description = f"Error setting untagged vlan and {mode} mode!"
-    #         self.error.details = "We're not sure what happened (?)"
-    #         return False
-    #     except Exception as err:
-    #         self.error.status = True
-    #         self.error.description = f"Error setting untagged vlan and {mode} mode"
-    #         self.error.details = format(err)
-    #         return False
+        success = self._execute_batch_commands(commands=commands)
+        if success:
+            dprint("Calling Bookkeeping...")
+            super().set_interface_vlans(
+                interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
+            )
+            return True
+        # no need to set self.error(), already been done in _execute_batch_commands()
+        return False
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
         """
@@ -1131,6 +1057,73 @@ class ArubaAOSsRestConnector(RESTConnector):
 
         # Not implemented in API, so run the save command with _execute_command(), which uses Netmiko / SSH
         return self._execute_command(command="write mem")
+
+    #
+    # here we define batch commands execution via the API
+    #
+    def _execute_batch_commands(self, commands: list) -> bool:
+        """
+        Execute a batch of command on the device using eAPI.
+        Save the command output to self.output
+        On error, set self.error as needed.
+
+        Args:
+            commands: the list (batch) of commands execute on the device
+
+        Returns:
+            True if success, False on failure.
+            On success, save the command output to self.output.
+            On failure, set self.error as applicable.
+        """
+        dprint(f"Aruba_AOSS_RestConnector()._execute_batch_command() '{commands}'")
+
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        command_string = "\n".join(commands)
+        dprint(f"BATCH STRING={command_string}")
+        try:
+            # base64 requires encoding string into bytes
+            # and then encoding the bytes and decoding those :-)
+            cmd_b64 = base64.b64encode(command_string.encode("ascii")).decode("ascii")
+        except Exception as err:
+            dprint(f"B64-ENCODING ERROR: {err}")
+            return False
+        dprint(f"BASE64='{cmd_b64}'")
+
+        # fromn the JSON schema:
+        # "cli_batch_base64_encoded":
+        # {
+        #     "description": "Base64 encoded CLI batches. All configuration commands in non-interactive mode  are supported. exit, configure, erase, startup-config commands are supported.  crypto, show, execution and testmode commands are not supported.",
+        #     "type": "string",
+        #     "sql.not_null": true
+        # }
+
+        # POST data contain the cli command batch to execute
+        data = {
+            "cli_batch_base64_encoded": cmd_b64,
+        }
+        try:
+            success = self._post(path="cli_batch", data=json.dumps(data))
+            if success:
+                # response.status_code = 202, and body return data looks like:
+                # {"uri":"/cli_batch","status":"CBS_INITIATED"}
+                # I.e. no useful content is returned!
+                self._close_device()
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = "Error running commands!"
+            self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
+            self._close_device()
+            return False
+        except Exception as err:
+            self._close_device()
+            self.error.status = True
+            self.error.description = "Error running commands!"
+            self.error.details = format(err)
+            return False
 
     #
     # here we override the SSH command execution using Netmiko,
