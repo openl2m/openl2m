@@ -18,14 +18,17 @@ This implements a REST api driver from Aruba AOS-S switches.
 This follows the API docs outlined in the Aruba Networking AOS-S v16.11 REST API docs at
 https://arubanetworking.hpe.com/techdocs/AOS-Switch/16.11/Aruba%20REST%20API%20for%20AOS-S%2016.11.pdf
 """
+
 import base64
 import json
 
 from django.http.request import HttpRequest
+
 # used to disable unknown SSL cert warnings:
 import urllib3
 
 from switches.connect.classes import Interface, Vlan, Transceiver, NeighborDevice
+
 # from switches.connect.classes import PoePort, StackMember
 from switches.connect.restconnector import RESTConnector
 from switches.connect.constants import (
@@ -57,8 +60,10 @@ from switches.connect.constants import (
     # IANA_TYPE_OTHER,
     # IANA_TYPE_IPV4,
     # IANA_TYPE_IPV6,
+    VLAN_STATUS_PERMANENT,
 )
 from switches.models import Switch, SwitchGroup
+
 # from switches.utils import time_duration, dprint
 from switches.utils import dprint
 
@@ -99,18 +104,18 @@ class ArubaAOSsRestConnector(RESTConnector):
         self.can_change_vlan = True
         self.can_change_poe_status = False
         self.can_change_description = True
-        self.can_save_config = True     # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_vlans = True  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         self.can_edit_tags = False  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+        self.can_allow_all = (
+            True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+        )
 
     def __del__(self):
-        """when we close the object, release the REST ticket, so the switch does not run out of resources!
-        """
+        """when we close the object, release the REST ticket, so the switch does not run out of resources!"""
         self._close_device()
-
 
     #########################################
     # AOS-S REST API supporting functions #
@@ -182,7 +187,7 @@ class ArubaAOSsRestConnector(RESTConnector):
             if "cookie" in data:
                 dprint(f"  Found sessionId: {data['cookie']}")
                 session = data["cookie"].split("=")
-                cookies = { session[0]: session[1] }
+                cookies = {session[0]: session[1]}
                 dprint(f"  Setting cookies: {cookies}")
                 self._set_cookies(cookies=cookies)
                 return True
@@ -234,7 +239,7 @@ class ArubaAOSsRestConnector(RESTConnector):
             return False  # self.error already set!
 
         # Returns the host system attributes.
-        sys_info= self._get(path="system")
+        sys_info = self._get(path="system")
         if sys_info:
             self.add_more_info("System", "Hostname", sys_info["name"])
             # # add to database driver info:
@@ -243,7 +248,7 @@ class ArubaAOSsRestConnector(RESTConnector):
             # self.set_driver_info(name="snmp_oid", value=sys_info["HostOid"])
 
         # Returns the status of the host system for standalone switches.
-        system_status= self._get(path="system/status")
+        system_status = self._get(path="system/status")
         # system: {'base_ethernet_address': {'octets': '94f128-038d40', 'version': 'MAV_EUI_48'},
         #  'firmware_version': 'WC.16.10.0001',
         #  'hardware_revision': 'JL319A',
@@ -287,6 +292,8 @@ class ArubaAOSsRestConnector(RESTConnector):
                 # create OpenL2M Vlan() object!
                 v = Vlan(id=int(vlan['vlan_id']))
                 v.name = vlan["name"]
+                if vlan['type'] == 'VT_STATIC':
+                    v.status = VLAN_STATUS_PERMANENT
                 self.add_vlan(v)
                 # get the details - adds nothing new to the vlan info
                 # vlan_info = self._get(path=f"vlans/{vlan['vlan_id']}")
@@ -347,7 +354,7 @@ class ArubaAOSsRestConnector(RESTConnector):
                 iface.manageable = False
                 iface.type = IF_TYPE_LAGG
                 iface.lacp_type = LACP_IF_TYPE_AGGREGATOR
-                iface.lacp_admin_key = 1    # needs to be > 0
+                iface.lacp_admin_key = 1  # needs to be > 0
                 # add member:
                 iface.lacp_members[trunk["port_id"]] = trunk["port_id"]
                 # find member interface:
@@ -356,8 +363,8 @@ class ArubaAOSsRestConnector(RESTConnector):
                     dprint(f"    found Interface() for '{member_iface.name}'")
                     member_iface.lacp_type = LACP_IF_TYPE_MEMBER
                     member_iface.lacp_master_name = trunk_port_name
-                    member_iface.lacp_master_index = 1   # needs to be an integer!
-                else:   # should not happen.
+                    member_iface.lacp_master_index = 1  # needs to be an integer!
+                else:  # should not happen.
                     err_str = f"ERROR: cannot find {trunk_port_name} member interface for {trunk['port_id']}"
                     dprint(err_str)
                     self.add_warning(err_str)
@@ -385,7 +392,7 @@ class ArubaAOSsRestConnector(RESTConnector):
                     #                 iface.duplex = IF_DUPLEX_UNKNOWN
                     #         iface.mtu = int(i["ConfigMTU"])
 
-                else:   # should not happen:
+                else:  # should not happen:
                     dprint(f"WARNING: Interface() not found for id={pstat['id']}")
 
         # #
@@ -407,9 +414,10 @@ class ArubaAOSsRestConnector(RESTConnector):
             for supply in supplies["system_power_supply"]:
                 if supply["power_supply_state"] == "SPSS_NOT_PRESENT":  # empty slot!
                     continue
-                pse = self.add_poe_powersupply(id=supply["power_supply_number"],
-                                               power_available=int(supply["max_power_in_watts"]),
-                                            )
+                pse = self.add_poe_powersupply(
+                    id=supply["power_supply_number"],
+                    power_available=int(supply["max_power_in_watts"]),
+                )
                 pse.set_consumed_power(supply["power_in_use_in_watts"])
                 pse.mode = supply["model_info"]
                 pse.description = supply["voltage_description"]
@@ -417,7 +425,6 @@ class ArubaAOSsRestConnector(RESTConnector):
                     pse.set_enabled()
                 else:
                     pse.set_disabled()
-
 
         #
         # PoE Ports - no device to test against
@@ -507,7 +514,6 @@ class ArubaAOSsRestConnector(RESTConnector):
                             iface.add_tagged_vlan(vlan_id=port["vlan_id"])
                         case _:
                             self.add_warning(f"WARNING: unknown mode for port {port['port_id']}  = {port['port_mode']}")
-
 
         # API returns may gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
         # sort this to the human natural order we expect:
@@ -621,7 +627,9 @@ class ArubaAOSsRestConnector(RESTConnector):
                                     neighbor.set_capability(LLDP_CAPABILITIES_REPEATER)
                                 case _:
                                     neighbor.set_capability(LLDP_CAPABILITIES_OTHER)
-                                    self.add_warning(f"WARNING: Unknown neighbor capability on {iface.name} from {nb['system_name']}: {capability}")
+                                    self.add_warning(
+                                        f"WARNING: Unknown neighbor capability on {iface.name} from {nb['system_name']}: {capability}"
+                                    )
 
                     # parse remote management address:
                     for remote_addr in nb["remote_management_address"]:
@@ -631,7 +639,9 @@ class ArubaAOSsRestConnector(RESTConnector):
                             case "AFM_IP6":
                                 neighbor.management_address_v6 = remote_addr["address"]
                             case _:
-                                self.add_warning(f"WARNING: Unknown neighbor mgmt address on {iface.name} from {nb['system_name']}: {remote_addr}")
+                                self.add_warning(
+                                    f"WARNING: Unknown neighbor mgmt address on {iface.name} from {nb['system_name']}: {remote_addr}"
+                                )
 
                     # add neighbor to interface:
                     iface.add_neighbor(neighbor=neighbor)
@@ -820,15 +830,25 @@ class ArubaAOSsRestConnector(RESTConnector):
             dprint("_open_device() failed!")
             return False
 
-        # the REST API does not appear to "care" wether interface is untagged or tagged. Just set PVID !
+        # for tagged interface where the new pvid/untagged is part of the tagged vlans:
+        # first remove the tagged (new pvid) vlan!
+        if interface.is_tagged and new_vlan_id in interface.vlans:
+            dprint(f"REMOVING vlan {new_vlan_id} as TAGGED VLAN")
+            try:
+                resp = self._delete(path=f"vlans-ports/{new_vlan_id}-{interface.key}")
+            except Exception as err:
+                self._close_device()
+                self.error.status = True
+                self.error.description = f"Error removing vlan {new_vlan_id} as tagged vlan!"
+                self.error.details = format(err)
+                return False
 
-        # body data
+        # Now set the untagged vlan
         data = {
-            "port_id": interface.key,   # note: this uses port_id, instead of id. Likely as this can only be real switch ports!
+            "port_id": interface.key,  # note: this uses port_id, instead of id. Likely as this can only be real switch ports!
             "vlan_id": new_vlan_id,
             "port_mode": "POM_UNTAGGED",
         }
-
         try:
             resp = self._post(path="vlans-ports", data=json.dumps(data))
             self._close_device()
@@ -848,14 +868,14 @@ class ArubaAOSsRestConnector(RESTConnector):
             self.error.details = format(err)
             return False
 
-    # def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
+    # def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False) -> bool:
     #     """
     #     Set the interface to the untagged and tagged vlans.
 
     #     Args:
     #         interface = Interface() object for the requested port
     #         untagged_vlan = an integer with the requested untagged vlan
-    #         tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+    #         tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
     #     Returns:
     #         True on success, False on error and set self.error variables
@@ -864,21 +884,32 @@ class ArubaAOSsRestConnector(RESTConnector):
     #         f"Aruba_AOSS_RestConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
     #     )
 
-    #     # query string parameters
-    #     params = {
-    #         "index": f"IfIndex={interface.key}",
-    #     }
-
-    #     # body data - the base settings
-    #     data = {
-    #         "IfIndex": int(interface.key),
-    #         "PVID": untagged_vlan,     # valid vlan id's
-    #     }
+    #     if not self._open_device():
+    #         dprint("_open_device() failed!")
+    #         return False
 
     #     if not tagged_vlans and not allow_all:
     #         # no tagged vlan, ie "access mode".
     #         dprint("ACCESS mode set vlan")
-    #         mode = "access"
+    #         # POST data to change the PVID / untagge vlan.
+    #         data = {
+    #             "id": interface.key,
+    #             "port_mode": "POM_UNTAGGED",
+    #             "vlan_id": untagged_vlan,
+    #         }
+    #         try:
+    #             resp = self._post(path="vlans-ports", data=json.dumps(data))
+    #             if resp:
+    #                 # all OK, now do the book keeping
+    #                 super().set_interface_untagged_vlan(interface=interface, new_vlan_id=untagged_vlan)
+    #         except Exception as err:
+    #             self._close_device()
+    #             dprint("ERROR setting untagged vlan: {err}")
+    #             self.error.status = True
+    #             self.error.description = "Error setting untagged vlan (pvid)! Interface is now in UNKNOWN state!"
+    #             self.error.details = format(err)
+    #             return False
+
     #         if interface.is_tagged:
     #             # change mode as well
     #             dprint("  Changing to ACCESS")
@@ -899,7 +930,7 @@ class ArubaAOSsRestConnector(RESTConnector):
     #     # and make the API call for the Access/Trunk setting:
     #     try:
     #         dprint(f"Setting Mode to {mode}")
-    #         resp = self._put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
+    #         resp = self._put(path="vlans-ports", data=json.dumps(data))
     #         if resp:
     #             dprint("  mode set OK!")
     #             # mode set OK. If tagged, add this interface to desired vlans:
