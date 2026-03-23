@@ -19,6 +19,7 @@ disable=[
     "C0302", # Too many lines in module
     "C0116",
     "C0103", # upper-case name style
+    "R0801", # Similar lines in 2 files
     "R0902", # Too many instance attributes
     "R0911", # Too many returns
     "R0912", # Too many branches
