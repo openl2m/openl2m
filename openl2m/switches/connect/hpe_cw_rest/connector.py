@@ -174,6 +174,7 @@ class HPECwRestConnector(RESTConnector):
         dprint("HPECwRestConnector.login()")
         # set the authentication header to the base64 encoded string "username:password"
         auth_plain = f"{self.switch.netmiko_profile.username}:{self.switch.netmiko_profile.password}"
+        # should this be UTF-8 encoded ?
         auth_base64 = base64.b64encode(auth_plain.encode("ascii")).decode("ascii")
         headers = {
             "Authorization": f"Basic {auth_base64}",
