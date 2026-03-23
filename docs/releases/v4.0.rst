@@ -42,8 +42,16 @@ New Configuration Options
   # connect timeout for Junos devices via the Netconf interface
   JUNOS_PYEZ_CMD_TIMEOUT = 120
 
-  # HPE Comware REST timeout
-  CW_REST_API_TIMEOUT = 5
+  # Generic REST timeout
+  REST_API_TIMEOUT = 5
+
+
+Version 4.0.3
+-------------
+
+Release Date: 2026-03-23
+
+* add REST API driver for Aruba AOS-S switches. This is faster then snmp, and support port 802.1q vlan tag editing.
 
 
 Version 4.0.2
