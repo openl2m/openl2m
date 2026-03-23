@@ -13,13 +13,20 @@ OpenL2M Screenshots
 
 .. image:: _static/devices-menu.png
 
+
 * **Dark Mode Devices Menu:** Dark Mode view of the groups and devices you can access
 
 .. image:: _static/devices-menu-dark-mode.png
 
+
 * **Interfaces Menu:** Edit a single interface at a time
 
 .. image:: _static/interfaces-menu.png
+
+
+* **Interfaces Tag/Trunk Edit:** Edit untagged and 802.1q-tagged vlans on an interface
+
+.. image:: _static/interface-tag-edit.png
 
 
 * **Bulk-Edit Menu:** Edit multiple interfaces at once
@@ -42,10 +49,15 @@ OpenL2M Screenshots
 .. image:: _static/vlan-edit.png
 
 
+* **In-Progress Spinners:** Submit buttons have 'in progress' indications by way of showing 'spinners'
+
+.. image:: _static/processing.png
+
+
 * **Device Connections Graph:**
 
 .. mermaid::
-    
+
     ---
     title: Device connections for 'ROUTER'
     ---

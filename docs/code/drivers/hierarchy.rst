@@ -1,0 +1,54 @@
+.. image:: ../../_static/openl2m_logo.png
+
+Driver Hierarchy Overview
+-------------------------
+
+
+.. mermaid::
+
+    ---
+    title: OpenL2M Driver Inheritance Overview
+    ---
+    flowchart LR
+    CONNECTOR["Connector()"]
+
+    ARISTA_EAPI_CONNECTOR["AristaApiConnector()"]
+    ARUBA_AOSCX_CONNECTOR["AosCxConnector()"]
+    COMMMANDS_ONLY_CONNECTOR["CommandsOnlyConnector"]
+    DUMMY_CONNECTOR["DummyConnector()"]
+    JUNOS_PYEZ_CONNECTOR["PyEZConnector()"]
+    NAPALM_CONNECTOR["NapalmConnector()"]
+    REST_CONNECTOR["RestConnector()"]
+    SNMP_CONNECTOR["SNMPConnector()"]
+
+    CONNECTOR --> ARISTA_EAPI_CONNECTOR
+    CONNECTOR --> ARUBA_AOSCX_CONNECTOR
+    CONNECTOR --> COMMMANDS_ONLY_CONNECTOR
+    CONNECTOR --> DUMMY_CONNECTOR
+    CONNECTOR --> JUNOS_PYEZ_CONNECTOR
+    CONNECTOR --> NAPALM_CONNECTOR
+    CONNECTOR --> REST_CONNECTOR
+    CONNECTOR --> SNMP_CONNECTOR
+
+    ARISTA_SNMP_CONNECTOR["AristaSnmpConnector()"]
+    ARUBA_CX_SNMP_CONNECTOR["AubaCxSnmpConnector()"]
+    CISCO_SNMP_CONNECTOR["CiscoSnmpConnector()"]
+    COMWARE_SNMP_CONNECTOR["ComwareSnmpConnector()"]
+    JUNIPER_SNMP_CONNECTOR["JuniperSnmpConnector()"]
+    JUNIPER_SNMP_CONNECTOR["MikrotikSnmpConnector()"]
+    PROCURVE_SNMP_CONNECTOR["ProCurveSnmpConnector()"]
+
+    SNMP_CONNECTOR --> ARISTA_SNMP_CONNECTOR
+    SNMP_CONNECTOR --> ARUBA_CX_SNMP_CONNECTOR
+    SNMP_CONNECTOR --> CISCO_SNMP_CONNECTOR
+    SNMP_CONNECTOR --> COMWARE_SNMP_CONNECTOR
+    SNMP_CONNECTOR --> JUNIPER_SNMP_CONNECTOR
+    SNMP_CONNECTOR --> JUNIPER_SNMP_CONNECTOR
+    SNMP_CONNECTOR --> PROCURVE_SNMP_CONNECTOR
+
+    ARUBA_AOSS_REST_CONNECTOR["Aruba_AOSS_RestConnector()"]
+    HPE_CW_REST_CONNECTOR["HPECwRestConnector()"]
+
+    REST_CONNECTOR --> ARUBA_AOSS_REST_CONNECTOR
+    REST_CONNECTOR --> HPE_CW_REST_CONNECTOR
+

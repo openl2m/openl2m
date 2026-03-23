@@ -75,6 +75,7 @@ Finally, we provide an overview of how to implement a new driver.
    :maxdepth: 1
    :caption: Details about (some of) the drivers:
 
+   hierarchy.rst
    snmp/index.rst
    aos_cx_api/index.rst
    arista_eapi/index.rst
