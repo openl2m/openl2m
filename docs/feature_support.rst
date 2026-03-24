@@ -172,14 +172,14 @@ Features Supported
      - Yes
 
    * - Aruba AOS-S (api r/o) :sup:`1`
-     - No
-     - No
-     - No
-     - No
-     - ?
+     - Yes
+     - Yes
+     - NO
      - Yes
      - No
-     - No
+     - Yes
+     - Yes
+     - Yes
      - Yes
      - n/a
 
@@ -190,7 +190,7 @@ Features Supported
      - Yes :sup:`2`
      - Yes
      - Yes
-     - No
+     - Yes
      - Yes
      - Yes
      - Yes

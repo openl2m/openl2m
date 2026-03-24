@@ -46,6 +46,19 @@ New Configuration Options
   REST_API_TIMEOUT = 5
 
 
+Version 4.0.4
+-------------
+
+Release Date: TBD
+
+* Add IPv4 ARP info for device using the Aruba AOS-S REST driver.
+
+Bug fixes:
+
+* remove duplicate login/logout for AOS-S REST api driver.
+* driver support matrices are updated with valid info.
+
+
 Version 4.0.3
 -------------
 
