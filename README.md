@@ -44,10 +44,11 @@ In alphabetical order:
 * Arista devices (eAPI preferred, or SNMP)
 * Cisco switches (Catalyst, CBS, via SNMP)
 * Aruba AOS-CX switches (REST API(preferred), or SNMP)
-* HP/Aruba Procurve switches (via SNMP)
-* HPE Comware switches (via SNMP)
+* Aruba AOS-S switches (SNMP or REST API)
+* HP/Aruba Procurve (older) switches (via SNMP)
+* HPE Comware switches (SNMP or REST API)
 * Juniper "ELS" devices (via Junos PyEz API, or R/O via SNMP)
-* Netgear (newer)
+* Netgear (newer, SNMP)
 * Generic SNMP devices
 * Any device supported by the Netmiko library (see SSH devices)
 * Most devices supported by Napalm (read-only)
@@ -59,8 +60,8 @@ __What's New:__
 
 Highlights:
 
-v4.0 adds support for editing 802.1Q tagged/trunk interfaces. Initially implemented for Arista eAPI, Aruba AOS-CX API
-and Juniper PyEz NetConf devices.
+v4.0 adds support for editing 802.1Q tagged/trunk interfaces. Initially implemented for Arista eAPI,
+Aruba AOS-CX API, Aruba AOS-S REST API, Juniper PyEZ and HPE Comware REST API devices.
 
 v3.4 adds support for IPv6 ND and interface IPv6 info. Also supports Cisco CBS devices. And we can graph neighbor devices.
 
