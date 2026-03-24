@@ -21,6 +21,7 @@ https://arubanetworking.hpe.com/techdocs/AOS-Switch/16.11/Aruba%20REST%20API%20f
 
 import base64
 import json
+import re
 
 from django.http.request import HttpRequest
 
@@ -127,6 +128,11 @@ class ArubaAOSsRestConnector(RESTConnector):
         return True on success, False on failure, and will set self.error
         """
         dprint("ArubaAOSsRestConnector._open_device()")
+
+        # if we have cookies set, we have a REST session
+        if self.cookies:
+            dprint("Already logged in (cookies found!)")
+            return True
 
         # do we have creds set?
         if not self.switch.netmiko_profile:
@@ -535,7 +541,6 @@ class ArubaAOSsRestConnector(RESTConnector):
         dprint("Aruba_AOSS_RestConnector.get_my_client_data()")
 
         if not self._open_device():
-            dprint("_open_device() failed!")
             return False
 
         #
@@ -560,8 +565,25 @@ class ArubaAOSsRestConnector(RESTConnector):
                     self.eth_addr_count += 1
 
         #
-        # get IPV4 ARP data - NOT implemented
+        # get IPV4 ARP data - NOT implemented in API, so use CLI
         #
+        success = self._cli_command_api(command="show arp")
+        if success:
+            dprint("ARP INFO FOUND!")
+            # match this format: "10.128.11.65     00005e-000165     dynamic 24"
+            ip_format = re.compile("^(\d+\.\d+\.\d+\.\d+).*$")  # we assume it if starts with IP, we are good!
+            for line in self.netmiko_output.split("\n"):
+                # remove all extra white spaces
+                stripped = re.sub(r"\s+", " ", line.strip())
+                dprint(f"LINE: '{stripped}'")
+                m = ip_format.match(stripped)
+                if m:
+                    items = stripped.split(" ")
+                    dprint(f"ITEMS: {items}")
+                    # items[3] = interface, items[1]=IP, and items[0]=eth.addr
+                    iface = self.get_interface_by_key(key=items[3])
+                    if iface:
+                        iface.add_learned_ethernet_address(eth_address=items[1], ip4_address=items[0])
 
         #
         # get IPV6 ND (aka Neighbors) - NOT implemented
@@ -670,7 +692,6 @@ class ArubaAOSsRestConnector(RESTConnector):
         dprint(f"Aruba_AOSS_RestConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
 
         if not self._open_device():
-            dprint("_open_device() failed!")
             return False
 
         # body data
@@ -716,7 +737,6 @@ class ArubaAOSsRestConnector(RESTConnector):
         dprint(f"Aruba_AOSS_RestConnector.set_interface_description() for {interface.name} to '{description}'")
 
         if not self._open_device():
-            dprint("_open_device() failed!")
             return False
 
         # body data
@@ -775,7 +795,6 @@ class ArubaAOSsRestConnector(RESTConnector):
     #         return False
 
     #     if not self._open_device():
-    #         dprint("_open_device() failed!")
     #         return False
 
     #     if new_state == POE_PORT_ADMIN_ENABLED:
@@ -827,7 +846,6 @@ class ArubaAOSsRestConnector(RESTConnector):
             return False
 
         if not self._open_device():
-            dprint("_open_device() failed!")
             return False
 
         # for tagged interface where the new pvid/untagged is part of the tagged vlans:
@@ -924,7 +942,6 @@ class ArubaAOSsRestConnector(RESTConnector):
         dprint(f"Aruba_AOSS_RestConnector.vlan_create() for vlan {vlan_id} = '{vlan_name}'")
 
         if not self._open_device():
-            dprint("_open_device() failed!")
             return False
 
         # new vlan attributes in POST body data
@@ -974,7 +991,6 @@ class ArubaAOSsRestConnector(RESTConnector):
             return False
 
         if not self._open_device():
-            dprint("_open_device() failed!")
             return False
 
         # and body data with the updated values.
@@ -1023,7 +1039,6 @@ class ArubaAOSsRestConnector(RESTConnector):
             return False
 
         if not self._open_device():
-            dprint("_open_device() failed!")
             return False
 
         # this is a simple HTTP DELETE call, with vlan ID as url extension
@@ -1078,11 +1093,10 @@ class ArubaAOSsRestConnector(RESTConnector):
         dprint(f"Aruba_AOSS_RestConnector()._execute_batch_command() '{commands}'")
 
         if not self._open_device():
-            dprint("_open_device() failed!")
             return False
 
         command_string = "\n".join(commands)
-        dprint(f"BATCH STRING={command_string}")
+        # dprint(f"BATCH STRING={command_string}")
         try:
             # base64 requires encoding string into bytes
             # and then encoding the bytes and decoding those :-)
@@ -1090,7 +1104,7 @@ class ArubaAOSsRestConnector(RESTConnector):
         except Exception as err:
             dprint(f"B64-ENCODING ERROR: {err}")
             return False
-        dprint(f"BASE64='{cmd_b64}'")
+        # dprint(f"BASE64='{cmd_b64}'")
 
         # fromn the JSON schema:
         # "cli_batch_base64_encoded":
@@ -1126,14 +1140,14 @@ class ArubaAOSsRestConnector(RESTConnector):
             return False
 
     #
-    # here we override the SSH command execution using Netmiko,
-    # and implement it using the API.
+    # implement the "cli" endpoint to execute CLI commands using the API.
     #
-    def _execute_command(self, command: str) -> bool:
+    def _cli_command_api(self, command: str) -> bool:
         """
-        Execute a single command on the device using eAPI.
+        Execute a single command on the device using API.
         Save the command output to self.output
         On error, set self.error as needed.
+        Expects the 'session' to be authenticated.
 
         Args:
             command: the string the execute as a command on the device
@@ -1143,11 +1157,7 @@ class ArubaAOSsRestConnector(RESTConnector):
             On success, save the command output to self.output.
             On failure, set self.error as applicable.
         """
-        dprint(f"Aruba_AOSS_RestConnector()._execute_command() '{command}'")
-
-        if not self._open_device():
-            dprint("_open_device() failed!")
-            return False
+        dprint(f"Aruba_AOSS_RestConnector()._cli_api_cmd() '{command}'")
 
         # see https://github.com/aruba/arubaos-switch-api-python/blob/master/src/common.py
 
@@ -1171,18 +1181,44 @@ class ArubaAOSsRestConnector(RESTConnector):
                     self.netmiko_output = text
                 except Exception as err:
                     self.netmiko_output = f"Error converting command text returned:\n{format(err)}"
-
-                self._close_device()
                 return True
             # error ?
             self.error.status = True
             self.error.description = "Error running command!"
             self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
-            self._close_device()
             return False
         except Exception as err:
-            self._close_device()
             self.error.status = True
             self.error.description = "Error running command!"
             self.error.details = format(err)
             return False
+
+    #
+    # here we override the SSH command execution using Netmiko,
+    # and implement it using the API.
+    #
+    def _execute_command(self, command: str) -> bool:
+        """
+        Execute a single command on the device using the 'cli' API.
+        Save the command output to self.output
+        On error, set self.error as needed.
+
+        Args:
+            command: the string the execute as a command on the device
+
+        Returns:
+            True if success, False on failure.
+            On success, save the command output to self.output.
+            On failure, set self.error as applicable.
+        """
+        dprint(f"Aruba_AOSS_RestConnector()._execute_command() '{command}'")
+
+        if not self._open_device():
+            return False
+
+        success = self._cli_command_api(command=command)
+        # no need to set self.error(), already done in _cli_api_cmd() call!
+
+        self._close_device()
+
+        return success
