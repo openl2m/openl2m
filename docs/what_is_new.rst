@@ -7,7 +7,8 @@ What's New...
 :doc:`Please read the release notes for more details on each release. <releases/index>`
 
 * v4.0 adds support for editing 802.1Q tagged/trunk interfaces.
-  Initially implemented for Arista eAPI, Aruba AOS-CX and AOS-S REST API, and HPE Comware REST API devices.
+  Initially implemented for Arista eAPI, Aruba AOS-CX and AOS-S REST API,
+  HPE Comware REST API, and Juniper PyEZ devices.
 
 * v3.4 adds support for IPv6 for interfaces and neighbors, supports Cisco CBS and MikroTik devices, Arista via eAPI,
   and can produce a graphic view of all device neighbors.

@@ -10,14 +10,15 @@ Version 4.0
 
 
 **Version 4.0 adds:**
-- **HPE Come REST API driver** (much faster then snmp)
+- **HPE Comware REST API driver** (much faster then snmp)
 - **in-progress spinners to submit buttons.**
 - **support for editing 802.1Q tagged/trunk interfaces.**
 
 Tag editing is initially supported for the following drivers/devices:
 - Arista devices via the eAPI
-- Aruba AOS-CX via the API
-- HPE Comware via the REST API
+- Aruba AOS-CX devices via the API
+- Aruba AOS-S switches via the REST API.
+- HPE Comware devices via the REST API
 - Juniper devices via the PyEZ API
 
 See the documentation for more details.
