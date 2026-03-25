@@ -252,6 +252,14 @@ class PyEZConnector(Connector):
             # likely an MX device, not tested!
             self.add_warning(warning="This is NOT an Junos ELS device, this has NOT BEEN TESTED!")
 
+        # update database object with some info
+        self.set_driver_info(name="hostname", value=self.hostname)
+        self.set_driver_info(name="serial_number", value=self.device.facts["serialnumber"])
+        self.set_driver_info(name="os_version", value=self.device.facts["version"])
+        self.set_driver_info(name="model", value=self.device.facts["model"])
+        self.set_driver_info(name="personality", value=self.device.facts["personality"])
+        self.set_driver_info(name="switch_style", value=self.device.facts["switch_style"])
+
         # now we use rpc calls for interfaces, PoE, etc.
 
         # first get interface information:
@@ -543,6 +551,9 @@ class PyEZConnector(Connector):
             dprint(f"dev.rpc.get_instance_information() error: {error}")
             # NO warning to user - not all devices support VRF's
             # self.add_warning(warning=f"ERROR: Cannot get VRFs - {error}")
+
+        # save driver info
+        self.save_driver_info()
 
         # done with PyEZ connection:
         self._close_device()
