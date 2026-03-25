@@ -59,6 +59,11 @@ class DummyConnector(Connector):
     def get_my_basic_info(self):
         dprint("Dummy Connector get_my_basic_info()")
 
+        self.set_driver_info(name="hostname", value="Host Name!")
+        self.set_driver_info(name="serial_number", value="123ABD456")
+        self.set_driver_info(name="os_version", value="1.2.3build4")
+        self.set_driver_info(name="model", value="hal2000")
+
         self.add_poe_powersupply(1, 45)  # simulate a 45W power supply
 
         vrf = self.get_vrf_by_name(name="VRF-1")  # this will create if not exists.
@@ -175,6 +180,9 @@ class DummyConnector(Connector):
         iface.add_tagged_vlan(vlan_id=20)
         iface.vrf_name = "VRF-1"
         self.add_interface(iface)
+
+        # save driver info
+        self.save_driver_info()
 
         return True
 
