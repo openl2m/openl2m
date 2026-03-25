@@ -30,5 +30,12 @@ class NoticeAdmin(admin.ModelAdmin):
     # fields to list in admin view:
     list_display = ('title', 'priority', 'start_time', 'end_time', 'enabled')
 
+    # add action to deactive users
+    actions = ['disable_notice']
+
+    # this does the work of deactivating users
+    @admin.action(description='Disable selected notices')
+    def disable_notice(modeladmin, request, queryset):
+        queryset.update(enabled=False)
 
 admin_site.register(Notice, NoticeAdmin)
