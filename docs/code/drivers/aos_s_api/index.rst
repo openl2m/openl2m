@@ -15,3 +15,5 @@ Look at the files "services/common/service.html" and "services/wired/server.html
 for your device type (e.g. WC)
 
 Aruba has provided some insighful sample code here: https://github.com/aruba/arubaos-switch-api-python/tree/master/src
+and a client implementation at https://github.com/KennethSoelberg/AOS-SW-API
+
