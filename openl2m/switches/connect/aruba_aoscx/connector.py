@@ -167,6 +167,7 @@ class AosCxConnector(Connector):
                             f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})",
                         )
                         self.add_more_info("System", "Serial", subsystem["product_info"]["serial_number"])
+                        self.set_driver_info(name="serial_number", value=subsystem["product_info"]["serial_number"])
 
                     # we also want 'power_supplies' information for this chassis:
                     if "power_supplies" in subsystem:
@@ -198,6 +199,7 @@ class AosCxConnector(Connector):
         #     self.switch.save()
 
         self.add_more_info("System", "Firmware Version", aoscx_device.software_version)
+        self.set_driver_info(name="os_version", value=aoscx_device.software_version)
         # this is typically the same as software_version:
         # self.add_more_info('System', 'Firmware Version', aoscx_device.firmware_version)
         if "build_date" in aoscx_device.software_info:
@@ -205,8 +207,9 @@ class AosCxConnector(Connector):
         # this same info is in 'Type' above:
         # self.add_more_info('System', 'Platform', aoscx_device.platform_name)
 
-        # if aoscx_device.hostname:  # this is None when not set!
-        #     self.add_more_info('System', 'Hostname', self.hostname)
+        if aoscx_device.hostname:  # this is None when not set!
+            # self.add_more_info('System', 'Hostname', self.hostname)
+            self.set_driver_info(name="hostname", value=aoscx_device.hostname)
         # else:
         #     self.add_more_info('System', 'Hostname', '')
 
@@ -455,6 +458,9 @@ class AosCxConnector(Connector):
         # fix up some things that are not known at time of interface discovery,
         # such as LACP master interfaces:
         self._map_lacp_members_to_logical()
+
+        # save driver info
+        self.save_driver_info()
 
         self._close_device()
         return True
