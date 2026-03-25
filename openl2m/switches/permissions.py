@@ -105,6 +105,7 @@ def get_my_device_groups(request: HttpRequest) -> dict:
                         "read_only": switch.read_only,
                         "primary_ipv4": switch.primary_ip4,
                         "comments": switch.comments,
+                        "driver_info": switch.driver_info,
                     }
                     if switch.nms_id:
                         members[str(switch.id)]["nms_id"] = switch.nms_id
