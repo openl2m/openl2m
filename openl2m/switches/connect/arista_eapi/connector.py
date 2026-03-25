@@ -128,6 +128,11 @@ class AristaApiConnector(Connector):
             self.add_more_info("System", "OS Version", data["version"])
             self.add_more_info("System", "Uptime", time_duration(int(data["uptime"])))
 
+            # self.set_driver_info(name="hostname", value=data["hostname"]) # not real value!
+            self.set_driver_info(name="serial_number", value=data["serialNumber"])
+            self.set_driver_info(name="os_version", value=data["version"])
+            self.set_driver_info(name="model", value=data["modelName"])
+
             #
             # get vlan info
             #
@@ -342,6 +347,9 @@ class AristaApiConnector(Connector):
         # the REST API gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
         # sort this to the human natural order we expect:
         self.set_interfaces_natural_sort_order()
+
+        # save driver info
+        self.save_driver_info()
 
         return True
 
