@@ -100,7 +100,15 @@ class NapalmConnector(Connector):
         self.add_more_info("System", "Vendor", facts["vendor"])
         self.add_more_info("System", "OS", facts["os_version"])
         self.add_more_info("System", "Model", facts["model"])
+        self.add_more_info("System", "Serial Number", facts["serial_number"])
         self.add_more_info("System", "Uptime", uptime_to_string(int(facts["uptime"])))
+
+        # update database object with some info
+        self.set_driver_info(name="hostname", value=self.hostname)
+        self.set_driver_info(name="vendor", value=facts["vendor"])
+        self.set_driver_info(name="os_version", value=facts["os_version"])
+        self.set_driver_info(name="model", value=facts["model"])
+        self.set_driver_info(name="serial_number", value=facts["serial_number"])
 
         # now load the interfaces:
         try:
@@ -206,6 +214,9 @@ class NapalmConnector(Connector):
                     prefix_len = values["prefix_length"]
                     # dprint(f"IP: {ipv6}/{prefix_len}")
                     iface.add_ip6_network(address=ipv6, prefix_len=prefix_len)
+
+        # save driver info
+        self.save_driver_info()
 
         return True
 
