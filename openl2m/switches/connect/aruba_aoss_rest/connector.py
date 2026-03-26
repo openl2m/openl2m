@@ -521,10 +521,6 @@ class ArubaAOSsRestConnector(RESTConnector):
                         case _:
                             self.add_warning(f"WARNING: unknown mode for port {port['port_id']}  = {port['port_mode']}")
 
-        # API returns may gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
-        # sort this to the human natural order we expect:
-        self.set_interfaces_natural_sort_order()
-
         # save driver info
         self.save_driver_info()
 

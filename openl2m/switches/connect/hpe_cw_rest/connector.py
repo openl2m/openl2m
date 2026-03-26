@@ -622,10 +622,6 @@ class HPECwRestConnector(RESTConnector):
                         # trx.connector: str = ""  # 'LC', SC', etc.
                         iface.transceiver = trx
 
-        # API may gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
-        # sort this to the human natural order we expect:
-        self.set_interfaces_natural_sort_order()
-
         # save driver info
         self.save_driver_info()
 

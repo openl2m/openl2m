@@ -448,10 +448,6 @@ class AosCxConnector(Connector):
         # done with REST connection:
         # self._close_device()
 
-        # the REST API gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
-        # sort this to the human natural order we expect:
-        self.set_interfaces_natural_sort_order()
-
         # fix up some things that are not known at time of interface discovery,
         # such as LACP master interfaces:
         self._map_lacp_members_to_logical()

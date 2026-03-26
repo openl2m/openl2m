@@ -434,10 +434,6 @@ class HPECw7NcConnector(Connector):
             )
             return False
 
-        # NetConf gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
-        # sort this to the human natural order we expect:
-        # self.set_interfaces_natural_sort_order()
-
         return True
 
     def get_my_client_data(self) -> bool:
