@@ -369,6 +369,12 @@ class Connector:
                 if not self.vlan_count:  # driver likely did not set it!
                     # set the vlan count
                     self.vlan_count = len(self.vlans)
+
+                # drivers sometime load interfaces in 'strange' order
+                # E.g. virtual interfaces first, or g1/0/10 before g1/0/2 on some devices.
+                # sort this to the human natural order we expect:
+                self._set_interfaces_natural_sort_order()
+
             else:
                 self.add_warning("WARNING: device driver does not support 'get_my_basic_info()' !")
 
@@ -1002,7 +1008,7 @@ class Connector:
             iface.vlans.append(vlan_id)
             iface.is_tagged = True
 
-    def set_interfaces_natural_sort_order(self):
+    def _set_interfaces_natural_sort_order(self):
         """
         Some APIs give responses in alphabetic order, eg 1/1/10 before 1/1/2.
         Sort interfaces by their key in natural sort order.
