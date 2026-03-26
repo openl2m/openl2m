@@ -234,18 +234,31 @@ class PyEZConnector(Connector):
         self.add_more_info("System", "Model", self.device.facts["model"])
         self.add_more_info("System", "Version", self.device.facts["version"])
         self.add_more_info("System", "Serial #", self.device.facts["serialnumber"])
+
+        self.set_driver_info("hostname", self.hostname)
+        self.set_driver_info("model", self.device.facts["model"])
+        self.set_driver_info("os_version", self.device.facts["version"])
+        self.set_driver_info("serial_number", self.device.facts["serialnumber"])
+
         if self.device.facts["domain"]:  # this is None when not set!
             self.add_more_info("System", "Domain Name", self.device.facts["domain"])
         else:
             self.add_more_info("System", "Domain Name", "")
         self.add_more_info("System", "Uptime", self.device.facts["RE0"]["up_time"])
+
         self.add_more_info("System", "Personality", self.device.facts["personality"])
+        self.set_driver_info("personality", self.device.facts["personality"])
+
         if "switch_style" in self.device.facts:
             self.add_more_info("System", "Switch Style", self.device.facts["switch_style"])
+            self.set_driver_info("switch_style", self.device.facts["switch_style"])
             # see if this an ELS switch (ie unified Layer 2 commands)
             # see https://community.juniper.net/discussion/els-juniper
             if self.device.facts["switch_style"] == "VLAN_L2NG":
                 self.is_els = True
+                self.set_driver_info("ELS", "Yes")
+            else:
+                self.set_driver_info("ELS", "No")
 
         # is the an ELS (Enhanced Layer2 Software) device?
         if not self.is_els:
@@ -543,6 +556,8 @@ class PyEZConnector(Connector):
             dprint(f"dev.rpc.get_instance_information() error: {error}")
             # NO warning to user - not all devices support VRF's
             # self.add_warning(warning=f"ERROR: Cannot get VRFs - {error}")
+
+        self.save_driver_info()
 
         # done with PyEZ connection:
         self._close_device()
