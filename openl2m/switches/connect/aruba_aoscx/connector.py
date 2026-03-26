@@ -168,7 +168,7 @@ class AosCxConnector(Connector):
                         )
                         self.add_more_info("System", "Serial", subsystem["product_info"]["serial_number"])
 
-                        self.set_driver_info("type", f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})")
+                        self.set_driver_info("model", f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})")
                         self.set_driver_info("serial_number", subsystem["product_info"]["serial_number"])
 
                     # we also want 'power_supplies' information for this chassis:
