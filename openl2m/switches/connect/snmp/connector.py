@@ -24,7 +24,6 @@ import datetime
 import pprint
 import time
 import traceback
-from typing import Dict
 
 import ezsnmp
 from django.conf import settings
@@ -584,19 +583,19 @@ class SnmpConnector(Connector):
         self.object_id = ""  # SNMP system OID value, used to find type of switch
         self.sys_uptime = 0  # sysUptime is a tick count in 1/100th of seconds per tick, since boot
         self.sys_uptime_timestamp = 0  # timestamp when sysUptime was read.
-        self.qbridge_port_to_if_index: Dict[
+        self.qbridge_port_to_if_index: dict[
             int, str
         ] = {}  # this maps Q-Bridge port id as key (int) to MIB-II ifIndex (str)
-        self.dot1tp_fdb_to_vlan_index: Dict[
+        self.dot1tp_fdb_to_vlan_index: dict[
             int, int
         ] = {}  # forwarding database index to vlan index mapping. Note many switches do not use this...
-        self.ip4_to_if_index: Dict[
+        self.ip4_to_if_index: dict[
             str, str
         ] = {}  # the IPv4 addresses as keys, with stored value ifIndex (string); needed to map netmask to interface
         # self.has_connector = True   # value of IFMIB_CONNECTOR
 
         # VLAN related variables
-        self.vlan_id_by_index: Dict[
+        self.vlan_id_by_index: dict[
             int, int
         ] = {}  # list of vlan indexes and their vlan ID's. Note on many switches these two are the same!
 
@@ -604,7 +603,7 @@ class SnmpConnector(Connector):
         self.vlan_id_context = 0  # non-zero if the current function is running in the context of a specific vlan
 
         # PoE related:
-        self.poe_port_entries: Dict[
+        self.poe_port_entries: dict[
             str, PoePort
         ] = {}  # PoePort() port power entries, used to store until we can map to interface
 
