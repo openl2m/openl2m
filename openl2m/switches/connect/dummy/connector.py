@@ -17,6 +17,7 @@
 Dummy Connector
 """
 
+from django.conf import settings
 from django.http.request import HttpRequest
 
 from switches.connect.constants import IF_TYPE_ETHERNET
@@ -175,6 +176,15 @@ class DummyConnector(Connector):
         iface.add_tagged_vlan(vlan_id=20)
         iface.vrf_name = "VRF-1"
         self.add_interface(iface)
+
+        # set some variables that are written back to the device Switch() database
+        # as JSON in the "driver_info" field
+        self.set_driver_info("model", "HAL-1000b")
+        self.set_driver_info("serial_number", "19991231-1")
+        self.set_driver_info("hostname", "dummy-device")
+        self.set_driver_info("os_version", settings.VERSION)
+        self.set_driver_info("build_date", settings.VERSION_DATE)
+        self.save_driver_info()
 
         return True
 
