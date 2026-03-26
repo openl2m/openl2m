@@ -168,6 +168,9 @@ class AosCxConnector(Connector):
                         )
                         self.add_more_info("System", "Serial", subsystem["product_info"]["serial_number"])
 
+                        self.set_driver_info("type", f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})")
+                        self.set_driver_info("serial_number", subsystem["product_info"]["serial_number"])
+
                     # we also want 'power_supplies' information for this chassis:
                     if "power_supplies" in subsystem:
                         for ps_name, ps in subsystem["power_supplies"].items():
@@ -191,24 +194,22 @@ class AosCxConnector(Connector):
         # aoscx_config = AosCxConfiguration(session=self.aoscx_session)
         # dvar(var=aoscx_config, header="AosCxConfiguration:")
 
-        # self.hostname = aoscx_device.hostname
-        # # if first time for this device (or changed), update hostname
-        # if self.switch.hostname != aoscx_device.hostname:
-        #     self.switch.hostname = aoscx_device.hostname
-        #     self.switch.save()
-
         self.add_more_info("System", "Firmware Version", aoscx_device.software_version)
+        self.set_driver_info("os_version", aoscx_device.software_version)
         # this is typically the same as software_version:
         # self.add_more_info('System', 'Firmware Version', aoscx_device.firmware_version)
         if "build_date" in aoscx_device.software_info:
             self.add_more_info("System", "Firmware Info", f"Build date: {aoscx_device.software_info['build_date']}")
+
         # this same info is in 'Type' above:
         # self.add_more_info('System', 'Platform', aoscx_device.platform_name)
 
-        # if aoscx_device.hostname:  # this is None when not set!
-        #     self.add_more_info('System', 'Hostname', self.hostname)
-        # else:
-        #     self.add_more_info('System', 'Hostname', '')
+        if hasattr(aoscx_device, "hostname"):
+            self.hostname = aoscx_device.hostname
+            self.add_more_info('System', 'Hostname', aoscx_device.hostname)
+            self.set_driver_info("hostname", aoscx_device.hostname)
+        else:
+            self.add_more_info('System', 'Hostname', '<not set>')
 
         # if aoscx_device.domain_name:  # this is None when not set!
         #     self.add_more_info('System', 'Domain Name', aoscx_device.domain_name)
@@ -451,6 +452,8 @@ class AosCxConnector(Connector):
         # fix up some things that are not known at time of interface discovery,
         # such as LACP master interfaces:
         self._map_lacp_members_to_logical()
+
+        self.save_driver_info()
 
         self._close_device()
         return True
