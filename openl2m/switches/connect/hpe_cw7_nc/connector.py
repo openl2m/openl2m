@@ -123,6 +123,12 @@ class HPECw7NcConnector(Connector):
         self.add_more_info("System", "OS Version", self.device.facts["os"])
         self.add_more_info("System", "Uptime", self.device.facts["uptime"])
 
+        self.set_driver_info("hostname", self.device.facts["hostname"])
+        self.set_driver_info("model", self.device.facts["model"])
+        self.set_driver_info("serial_number", self.device.facts["serial_number"])
+        self.set_driver_info("os_version", self.device.facts["os"])
+        self.save_driver_info()
+
         try:
             #
             # get vlan info
