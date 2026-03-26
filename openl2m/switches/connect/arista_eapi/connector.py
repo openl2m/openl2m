@@ -128,6 +128,10 @@ class AristaApiConnector(Connector):
             self.add_more_info("System", "OS Version", data["version"])
             self.add_more_info("System", "Uptime", time_duration(int(data["uptime"])))
 
+            self.set_driver_info("model", data["modelName"])
+            self.set_driver_info("serial_number", data["serialNumber"])
+            self.set_driver_info("os_version", data["version"])
+
             #
             # get vlan info
             #
@@ -338,6 +342,8 @@ class AristaApiConnector(Connector):
                 warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
             )
             return False
+
+        self.save_driver_info()
 
         return True
 
