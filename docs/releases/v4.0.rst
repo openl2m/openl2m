@@ -52,6 +52,8 @@ Version 4.0.4
 
 Release Date: TBD
 
+* add 802.1Q tags (trunk) vlan editing for base SNMP and HPE/Aruba Procurve/AOS-S switches.
+  We use the standard Q-Bridge MIB for this. See supported feature notes in the documentation for more details.
 * Add IPv4 ARP info for device using the Aruba AOS-S REST driver.
 
 Bug fixes:

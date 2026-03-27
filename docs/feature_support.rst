@@ -32,7 +32,7 @@ Features Supported
      - Yes
      - Yes
      - Yes
-     - NO
+     - Yes :sup:`1`
      - Yes
      - Yes
 
@@ -80,7 +80,7 @@ Features Supported
      - untested
      - Yes
      - Yes
-     - NO
+     - Yes
      - Yes
      - untested
 
@@ -116,6 +116,11 @@ Features Supported
 
   :sup:`1` The generic SNMP driver supports standard MIBs only! PoE may not function for 'standard' devices,
   as many vendors provide incorrect mapping of PoE switch-ports ID to interface index in their MIBs.
+
+  Editing 802.1q tagged interfaces (aka trunk ports by some vendors) is performed using the standard Q-Bridge MIB.
+  We set the "dot1qpvid" entry for the untagged interface, and modify using the "dot1qVlanStaticEgressPorts" VLAN
+  port membership bitmap to add or remove tagged interfaces. This is currently only tested in Procurve and
+  Aruba AOS-S switches.
 
   :sup:`2` Arista PoE support is untested, as no PoE-capable devices are available to develop and test.
 

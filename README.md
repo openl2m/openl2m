@@ -61,7 +61,8 @@ __What's New:__
 Highlights:
 
 v4.0 adds support for editing 802.1Q tagged/trunk interfaces. Initially implemented for Arista eAPI,
-Aruba AOS-CX API, Aruba AOS-S REST API, Juniper PyEZ and HPE Comware REST API devices.
+Aruba AOS-CX API, Aruba AOS-S REST API, Juniper PyEZ and HPE Comware REST API devices. Initial SNMP support for
+Aruba Procurve and AOS-S switches, as 'generic' snmp devices.
 
 v3.4 adds support for IPv6 ND and interface IPv6 info. Also supports Cisco CBS devices. And we can graph neighbor devices.
 
