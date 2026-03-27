@@ -627,6 +627,8 @@ class SnmpConnector(Connector):
         self.can_change_description = True
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
+        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_allow_all = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
         """
         attributes to track ezsnmp library
@@ -3954,6 +3956,171 @@ class SnmpConnector(Connector):
         )
         interface.untagged_vlan = new_vlan_id
         dprint("SnmpConnector.set_interface_untagged_vlan() -> True")
+        return True
+
+    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False) -> bool:
+        """
+        Set the interface to the untagged and tagged vlans.
+
+        Args:
+            interface = Interface() object for the requested port
+            untagged_vlan = an integer with the requested untagged vlan
+            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(
+            f"SnmpConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
+        )
+
+        #
+        # get snmp helper to handle bitmapping
+        #
+        try:
+            pysnmp = pysnmpHelper(self.switch)
+        except Exception as err:
+            dprint(f"ERROR getting pysnmpHelper(): {err}")
+            self.error.status = True
+            self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+            self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            return False
+
+
+        #################################
+        # STEP 1:                       #
+        # set port untagged vlan (pvid) #
+        #################################
+        if untagged_vlan != interface.untagged_vlan:
+            dprint(f"PVID CHANGE: new vlan {untagged_vlan} (was {interface.untagged_vlan})")
+            try:
+
+                old_vlan_id = interface.untagged_vlan
+                # set this switch port on the new vlan:
+                # Q-BIRDGE mib: VlanIndex = Unsigned32
+                if not self.set(
+                    oid=f"{dot1qPvid}.{interface.port_id}",
+                    value=int(untagged_vlan),
+                    snmp_type="u",
+                    parser=self._parse_mibs_vlan_related,
+                ):
+                    # self.error already set!
+                    return False
+
+                # now clear port from OLD vlan from egress port list
+
+                # some switches need a little "settling time" here (value is in seconds)
+                time.sleep(0.5)
+
+                # Remove port from list of ports on old vlan,
+                # i.e. read current Egress PortList bitmap first:
+                dprint("Reading egress ports:")
+                (error_status, snmpval) = self.get(
+                    f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", parser=self._parse_mibs_vlan_related
+                )
+                if error_status:
+                    # Hmm, not sure what to do
+                    dprint("  ERROR: reading egress ports!")
+                    return False
+
+                # now calculate new bitmap by removing this switch port
+                old_vlan_portlist = PortList()
+                old_vlan_portlist.from_unicode(snmpval.value)
+                dprint(f"OLD VLAN Current Egress Ports = {old_vlan_portlist.to_hex_string()}")
+
+                # unset bit for port, i.e. remove from active portlist on vlan:
+                old_vlan_portlist[interface.port_id] = 0
+
+                dprint(
+                    f"Updating OLD VLAN Current Egress Ports with removed port {interface.port_id}, now  = {old_vlan_portlist.to_hex_string()}"
+                )
+
+                # now send update to switch, use PySNMP to do this work
+                octet_string = OctetString(hexValue=old_vlan_portlist.to_hex_string())
+                if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", octet_string):
+                    self.error.status = True
+                    self.error.description += "\nError in setting port (dot1qVlanStaticEgressPorts)"
+                    # copy over the error details from the call:
+                    self.error.details = pysnmp.error.details
+                    dprint("ERROR removing port from OLD vlan! -> False from pysnmp.set(dot1qVlanStaticEgressPorts)")
+                    return False
+
+            except Exception as err:
+                self.error.status = True
+                self.error.description = "Error setting untagged (pvid) vlan!"
+                self.error.details = format(err)
+                return False
+
+        ###############################################################
+        # STEP 2:                                                     #
+        # set all port tagged vlans, and remove port non-tagged vlans #
+        ###############################################################
+        try:
+            for vlan_id in self.vlans:
+                dprint(f"---\nChecking vlan {vlan_id}")
+                if vlan_id == untagged_vlan:
+                    # we can ignore this, as it will be needed on the "dot1qVlanCurrentEgressPorts" bitmap,
+                    # but will be sent as 'untagged' as it is set as PVID above!
+                    dprint("  PVID, ignoring.")
+                    continue
+
+                # do we need this vlan as 802.1q-tagged ?
+                if allow_all or vlan_id in tagged_vlans:
+                    dprint("  TRUNK ADD!")
+                    desired = 1
+                else:
+                    dprint("  TRUNK REMOVE!")
+                    desired = 0
+
+                # read the static ports active on this vlan.
+                (error_status, snmpval) = self.get(f"{dot1qVlanStaticEgressPorts}.{vlan_id}", parser=False)
+                if error_status:
+                    raise Exception(f"IGNORING Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
+
+                vlan_static_port_bitmap = PortList()
+                vlan_static_port_bitmap.from_unicode(snmpval.value)
+                dprint(f"  Static Egress Ports = {vlan_static_port_bitmap.to_hex_string()}")
+
+                # read all the ports active on this vlan. Note 0 is some kind of 'time filter'...
+                (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{vlan_id}", parser=False)
+                if error_status:
+                    raise Exception(f"Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
+
+                vlan_port_bitmap = PortList()
+                vlan_port_bitmap.from_unicode(snmpval.value)
+                dprint(f"  Current Egress Ports = {vlan_port_bitmap.to_hex_string()}")
+
+                # now check the status of this port (interface.port_id) on this vlan:
+                active = vlan_port_bitmap[interface.port_id]
+
+                dprint(f"  Port active={active}, desired={desired}")
+
+                if active != desired:
+                    dprint("  VLAN PORT CHANGE NEEDED!")
+                    # set of clear the bit for this port!
+                    vlan_port_bitmap[interface.port_id] = desired
+                    dprint(f"  NEW Egress Ports = {vlan_port_bitmap.to_hex_string()}")
+                    # and write it back to the vlan bitmap! We use PySNMP to do this work
+                    octet_string = OctetString(hexValue=vlan_port_bitmap.to_hex_string())
+                    if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{vlan_id}", octet_string):
+                        self.error.status = True
+                        self.error.description = f"Error setting port tagged vlan {vlan_id}"
+                        # copy over the error details from the call:
+                        self.error.details = pysnmp.error.details
+                        dprint(f"ERROR setting port tagged vlan {vlan_id} using dot1qVlanStaticEgressPorts")
+                        return False
+                    dprint("  CHANGE OK!")
+
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Error adding vlans to trunk! Interface is now in UNKNOWN state!"
+            self.error.details = format(err)
+            return False
+
+        # all OK, now do the book keeping
+        dprint("Calling Bookkeeping...")
+        super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
+
         return True
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
