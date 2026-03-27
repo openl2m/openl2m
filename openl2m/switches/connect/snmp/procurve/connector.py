@@ -72,6 +72,9 @@ class SnmpConnectorProcurve(SnmpConnector):
         # let Netmiko decide...
         # self.netmiko_disable_paging_command = "no page"
 
+        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
+                                   # Procurve and AOS-S devices appear to use standard snmp mibs for this!
+
         # some capabilities we cannot do:
         self.can_save_config = False  # not needed on ProCurve, it has auto-save!
 
