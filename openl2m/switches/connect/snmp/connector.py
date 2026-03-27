@@ -3986,13 +3986,13 @@ class SnmpConnector(Connector):
             self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
             return False
 
-
         #################################
         # STEP 1:                       #
         # set port untagged vlan (pvid) #
         #################################
+
         if untagged_vlan != interface.untagged_vlan:
-            dprint(f"PVID CHANGE: new vlan {untagged_vlan} (was {interface.untagged_vlan})")
+            dprint(f"---\nPVID CHANGE: new vlan {untagged_vlan} (was {interface.untagged_vlan})")
             try:
 
                 old_vlan_id = interface.untagged_vlan
@@ -4045,6 +4045,8 @@ class SnmpConnector(Connector):
                     dprint("ERROR removing port from OLD vlan! -> False from pysnmp.set(dot1qVlanStaticEgressPorts)")
                     return False
 
+                dprint("PVID SET OK!")
+
             except Exception as err:
                 self.error.status = True
                 self.error.description = "Error setting untagged (pvid) vlan!"
@@ -4055,6 +4057,7 @@ class SnmpConnector(Connector):
         # STEP 2:                                                     #
         # set all port tagged vlans, and remove port non-tagged vlans #
         ###############################################################
+
         try:
             for vlan_id in self.vlans:
                 dprint(f"---\nChecking vlan {vlan_id}")
@@ -4064,6 +4067,31 @@ class SnmpConnector(Connector):
                     dprint("  PVID, ignoring.")
                     continue
 
+                # Since we don't deal with dynamic vlans, we read and write the static port bitmap for each vlan!
+                # Note some implementations read vlan member ports from dot1qVlanCurrentEgressPorts bitmap,
+                # but this appears to result in errors for vlan 1 port membership when writing back the modified
+                # bitmpa. In our testing, using dot1qVlanStaticEgressPorts vlan port bitmap does not!
+
+                # read the static ports active on this vlan.
+                (error_status, snmpval) = self.get(f"{dot1qVlanStaticEgressPorts}.{vlan_id}", parser=False)
+                if error_status:
+                    raise Exception(f"IGNORING Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
+                vlan_port_bitmap = PortList()
+                vlan_port_bitmap.from_unicode(snmpval.value)
+                dprint(f"  Static Egress Ports = {vlan_port_bitmap.to_hex_string()}")
+
+                # # read all the static and dynamic ports active on this vlan.
+                # # Note 0 is some kind of 'time filter'...
+                # (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{vlan_id}", parser=False)
+                # if error_status:
+                #     raise Exception(f"Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
+                # vlan_port_bitmap = PortList()
+                # vlan_port_bitmap.from_unicode(snmpval.value)
+                # dprint(f"  Current Egress Ports = {vlan_port_bitmap.to_hex_string()}")
+
+                # now check the status of this port (interface.port_id) on this vlan:
+                active = vlan_port_bitmap[interface.port_id]
+
                 # do we need this vlan as 802.1q-tagged ?
                 if allow_all or vlan_id in tagged_vlans:
                     dprint("  TRUNK ADD!")
@@ -4071,27 +4099,6 @@ class SnmpConnector(Connector):
                 else:
                     dprint("  TRUNK REMOVE!")
                     desired = 0
-
-                # read the static ports active on this vlan.
-                (error_status, snmpval) = self.get(f"{dot1qVlanStaticEgressPorts}.{vlan_id}", parser=False)
-                if error_status:
-                    raise Exception(f"IGNORING Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
-
-                vlan_static_port_bitmap = PortList()
-                vlan_static_port_bitmap.from_unicode(snmpval.value)
-                dprint(f"  Static Egress Ports = {vlan_static_port_bitmap.to_hex_string()}")
-
-                # read all the ports active on this vlan. Note 0 is some kind of 'time filter'...
-                (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{vlan_id}", parser=False)
-                if error_status:
-                    raise Exception(f"Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
-
-                vlan_port_bitmap = PortList()
-                vlan_port_bitmap.from_unicode(snmpval.value)
-                dprint(f"  Current Egress Ports = {vlan_port_bitmap.to_hex_string()}")
-
-                # now check the status of this port (interface.port_id) on this vlan:
-                active = vlan_port_bitmap[interface.port_id]
 
                 dprint(f"  Port active={active}, desired={desired}")
 
@@ -4110,6 +4117,8 @@ class SnmpConnector(Connector):
                         dprint(f"ERROR setting port tagged vlan {vlan_id} using dot1qVlanStaticEgressPorts")
                         return False
                     dprint("  CHANGE OK!")
+                else:
+                    dprint("  NO CHANGE NEEDED!")
 
         except Exception as err:
             self.error.status = True
@@ -4118,7 +4127,7 @@ class SnmpConnector(Connector):
             return False
 
         # all OK, now do the book keeping
-        dprint("Calling Bookkeeping...")
+        dprint("---\nCalling Bookkeeping...")
         super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
 
         return True
