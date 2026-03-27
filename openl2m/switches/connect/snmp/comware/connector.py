@@ -109,6 +109,7 @@ class SnmpConnectorComware(SnmpConnector):
         self.can_save_config = True    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
         """
+        self.can_edit_tags = False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
 
         # IRF stacking related variables:
         self.irf_member_count = 1  # default to single stand-alone device

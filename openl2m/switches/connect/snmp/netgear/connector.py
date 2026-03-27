@@ -65,6 +65,8 @@ class SnmpConnectorNetgear(SnmpConnector):
         # let Netmiko decide...
         # self.netmiko_disable_paging_command = "terminal length 0"
 
+        self.can_edit_tags = False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+
         self.add_warning(
             warning="This Netgear driver has only been tested on a single M4250 switch, and may not work for your Netgear device!",
             add_log=False,

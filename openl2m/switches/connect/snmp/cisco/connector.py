@@ -120,6 +120,8 @@ class SnmpConnectorCisco(SnmpConnector):
         self.can_change_description = True
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
         """
+        self.can_edit_tags = False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+
         self.stack_port_to_if_index: Dict[int, int] = {}  # maps (Cisco) stacking port to ifIndex values
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.

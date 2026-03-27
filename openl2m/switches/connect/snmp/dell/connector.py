@@ -60,6 +60,8 @@ class SnmpConnectorDell(SnmpConnector):
         # let Netmiko decide...
         # self.netmiko_disable_paging_command = "terminal length 0"
 
+        self.can_edit_tags = False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
