@@ -19,6 +19,11 @@ from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_in
 ENTERPRISE_ID_CISCO = 9
 enterprise_id_info[ENTERPRISE_ID_CISCO] = "Cisco"
 
+# This Cisco device OID start indicates the Small Business 'family' of equipment:
+ciscoSB = ".1.3.6.1.4.1.9.6.1"
+# here is an OLD list of device oid's in this group:
+# https://www.cisco.com/c/en/us/support/docs/smb/switches/cisco-small-business-200-series-smart-switches/smb5512-cisco-small-business-switches-model-object-identifiers-oids.html
+
 # the various snmp driver mib types we can detect:
 CISCO_DEVICE_TYPE_UNKNOWN_MIB = 0
 CISCO_DEVICE_TYPE_VTP_MIB = 1
@@ -238,6 +243,7 @@ snmp_mib_variables["ciscoWriteMem"] = ciscoWriteMem
 # and all high-level entries at https://mibbrowser.online/mibdb_search.php?mib=CISCOSB-MIB
 
 # see if the CISCOSB-vlan-MIB exists:
+# vlan = ".1.3.6.1.4.1.9.6.1.101.48"
 vlanMibVersion = ".1.3.6.1.4.1.9.6.1.101.48.1"
 snmp_mib_variables["vlanMibVersion"] = vlanMibVersion
 
