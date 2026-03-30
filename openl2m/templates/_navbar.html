@@ -26,8 +26,7 @@
 
   {% if settings.SWITCH_SEARCH_FORM %}
     <div class="navbar-collapse ms-4">
-      <form class="d-flex"
-            name="switch_search_form"
+      <form name="switch_search_form"
             action="{% url 'switches:switch_search' %}"
             method="post"
       >
