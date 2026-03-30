@@ -33,7 +33,7 @@ New Configuration Options
 
 .. code-block:: python
 
-  # If enabled, we allow 802.1q tags ("trunk") vlan editing, if the driver implements it.
+  # If enabled (default), we allow 802.1q tags ("trunk") vlan editing, if the driver implements it.
   # currently only for Admins (aka superuser)
   ALLOW_TAGS_EDIT = True
 
@@ -55,6 +55,7 @@ Release Date: TBD
 * add 802.1Q tags (trunk) vlan editing for base SNMP and HPE/Aruba Procurve/AOS-S switches.
   We use the standard Q-Bridge MIB for this. See supported feature notes in the documentation for more details.
 * Add IPv4 ARP info for device using the Aruba AOS-S REST driver.
+* enable 802.1q tags edit for Admins by default.
 
 Bug fixes:
 

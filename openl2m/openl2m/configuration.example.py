@@ -128,9 +128,9 @@ POE_TOGGLE_DELAY = 5
 # regardless of other access to the interface
 ALWAYS_ALLOW_POE_TOGGLE = False
 
-# If enabled, we allow 802.1q tags ("trunk") vlan editing, if the driver implements it.
+# If enabled (default), we allow 802.1q tags ("trunk") vlan editing, if the driver implements it.
 # currently only for Admins (aka superuser)
-ALLOW_TAGS_EDIT = False
+ALLOW_TAGS_EDIT = True
 
 # if ALLOW_TAGS_EDIT = True, we can delegate this to STAFF if this is set
 STAFF_ALLOW_TAGS_EDIT = False
