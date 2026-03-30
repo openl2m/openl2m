@@ -2,8 +2,8 @@
 {% load static %}
 
 <!-- Modal untagged and taggged vlan edit form -->
-<div class="modal fade" id="tagEditForm_{{ iface.key|underscore }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="tagEditForm_{{ iface.key|underscore }}_label" aria-hidden="true">
-  <div class="modal-dialog">
+<div class="modal fade" id="tagEditForm_{{ iface.key|underscore }}" data-bs-keyboard="true" tabindex="-1" aria-labelledby="tagEditForm_{{ iface.key|underscore }}_label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-4" id="tagEditForm_{{ iface.key|underscore }}_label">Edit vlans on interface {{ iface.name }}</h1>
@@ -116,8 +116,8 @@
           {% endif %}
           </script>
         </form>
-      </div>
-    </div>
-  </div>
-</div>
+      </div> {# modal-body #}
+    </div> {# modal-content #}
+  </div> {# modal-dialog #}
+</div> {# modal #}
 <!-- End modal form for tags edit -->
