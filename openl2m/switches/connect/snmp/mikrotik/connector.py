@@ -97,6 +97,7 @@ class SnmpConnectorMikroTik(SnmpConnector):
         self.can_change_description = True
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
+        # Note: MikroTik does NOT support reading VLAN information via SNMP! So we cannot edit trunks!
         self.can_edit_tags = False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
 
         self.add_warning(
