@@ -963,11 +963,10 @@ class SnmpConnector(Connector):
             self.error.details = f"SNMP Set Error in {e.__class__.__name__}: oid '{oid}', value '{value}', value type '{type(value)}' snmp_type '{snmp_type}', Details: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(f"   ERROR in set() - Details:\n{self.error.details}\n")
             return False
-        dprint("SnmpConnector.set() OK!")
 
         # parse the data, just like returns from get_branch()
         if parser:
-            dprint("SnmpConnector.set() parsing return:")
+            dprint("SnmpConnector.set() OK, parser called:")
             parser(str(oid), str(value))
         else:
             dprint("SnmpConnector.set() OK, BUT Return NOT parsed!")

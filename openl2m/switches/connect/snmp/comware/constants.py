@@ -72,6 +72,8 @@ snmp_mib_variables["hh3cIfIsPoe"] = hh3cIfIsPoe
 
 # HH3C LswINF MIB - interface related information
 # See http://www.circitor.fr/Mibs/Html/H/HH3C-LswINF-MIB.php
+#
+# Note: in the HPE/Comware mib downloads, this is in "hh3c-splat-inf.mib"
 
 # Start of the Extended interface information table.
 hh3cifXXEntry = ".1.3.6.1.4.1.25506.8.35.1.1.1"
@@ -93,6 +95,8 @@ HH3C_IF_MODE_FABRIC = 4  # not used!
 # See http://www.circitor.fr/Mibs/Html/H/HH3C-LswVLAN-MIB.php
 # and the raw text at http://www.circitor.fr/Mibs/Mib/H/HH3C-LswVLAN-MIB.mib
 # This is the H3C VLan mib, similar to Q-Bridge mib.
+#
+# Note: in the HPE/Comware mib downloads, this is in "hh3c-splat-vlan.mib"
 
 hh3cdot1qVlanName = ".1.3.6.1.4.1.25506.8.35.2.1.1.1.2"
 snmp_mib_variables["hh3cdot1qVlanName"] = hh3cdot1qVlanName
