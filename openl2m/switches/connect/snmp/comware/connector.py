@@ -20,6 +20,7 @@ with HH3C specific ways of doing things...
 from collections import defaultdict
 import datetime
 import math
+import time
 import traceback
 
 from django.http.request import HttpRequest
@@ -32,11 +33,13 @@ from switches.connect.classes import Interface, PortList, Transceiver
 from switches.connect.constants import IF_TYPE_ETHERNET, POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_branch
 from switches.connect.snmp.constants import SNMP_TRUE, dot1qPvid
+from switches.connect.connector import Connector
 from switches.utils import dprint
 
 from .constants import (
     BYTES_FOR_2048_VLANS,
     HH3C_IF_MODE_INVALID,
+    HH3C_IF_MODE_ACCESS,
     HH3C_IF_MODE_TRUNK,
     HH3C_IF_MODE_HYBRID,
     HH3C_IF_MODE_FABRIC,
@@ -50,6 +53,7 @@ from .constants import (
     hh3cPsePortCurrentPower,
     hh3cdot1qVlanName,
     hh3cifVLANType,
+    # hh3cdot1qVlanUntaggedPorts,
     hh3cIfLinkMode,
     hh3cCfgOperateRowStatus,
     hh3cCfgOperateType,
@@ -109,7 +113,7 @@ class SnmpConnectorComware(SnmpConnector):
         self.can_save_config = True    # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
         """
-        self.can_edit_tags = False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_edit_tags = True  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
 
         # IRF stacking related variables:
         self.irf_member_count = 1  # default to single stand-alone device
@@ -384,6 +388,92 @@ class SnmpConnectorComware(SnmpConnector):
             return True
         # interface not found, return False!
         return False
+
+    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False) -> bool:
+        """
+        Set the interface to the untagged and tagged vlans.
+
+        Args:
+            interface = Interface() object for the requested port
+            untagged_vlan = an integer with the requested untagged vlan
+            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(
+            f"SnmpConnectorComware.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
+        )
+
+        # first call HH3C specific attribute to set port to untagged or trunk
+        if not len(tagged_vlans):
+            dprint("  Setting ACCESS mode")
+            success  = self.set(oid=f"{hh3cifVLANType}.{interface.port_id}", value=HH3C_IF_MODE_ACCESS, snmp_type="i", parser=False)
+            if success:
+                dprint("  Setting PVID")
+                #
+                # get snmp helper to handle bitmapping
+                #
+                try:
+                    pysnmp = pysnmpHelper(self.switch)
+                except Exception as err:
+                    # unlikely to happen...
+                    dprint(f"ERROR getting pysnmpHelper(): {err}")
+                    self.error.status = True
+                    self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+                    self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                    return False
+
+                #
+                # add this port to "hh3cdot1qVlanUntaggedPorts.<vlan-id>" bitmap of ports on vlan:
+                #
+                # read current ports
+                (error_status, snmpval) = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", parser=False)
+                if error_status:
+                    return False
+                # and get ready to add these ports in bitmap Portlist() format
+                vlan_port_bitmap = PortList()
+                #  We need to manipulate the returned snmp value (str() class) into a true bitmap OctectString()
+                vlan_port_bitmap.from_unicode(snmpval.value)
+                dprint(f"  VlanPorts = {vlan_port_bitmap.to_hex_string()}")
+                # now set bit to 1 for this interface (i.e. set the port_id bit!).
+                # NOTE: Comware sends (and receives) bits in opposite order inside each byte! (go figure)
+                # so we are going to reverse bits in each byte to regular order,
+                # then set the port bit, and reverse back to "comware" order
+                vlan_port_bitmap.reverse_bits_in_bytes()
+                dprint(f"  VlanPorts Reverse = {vlan_port_bitmap.to_hex_string()}")
+                # set the port-id bit to 1
+                vlan_port_bitmap[int(interface.port_id)] = 1
+                dprint(f"  Port bit set:\n  VlanPorts Reverse = {vlan_port_bitmap.to_hex_string()}")
+                # and reverse again:
+                vlan_port_bitmap.reverse_bits_in_bytes()
+                dprint(f"  VlanPorts = {vlan_port_bitmap.to_hex_string()}")
+
+                # and convert to OctetString()
+                octet_string = OctetString(hexValue=vlan_port_bitmap.to_hex_string())
+                # now write this back to switch
+                if not pysnmp.set(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", octet_string):
+                    self.error.status = True
+                    self.error.description = f"Error setting port untagged vlan {untagged_vlan}"
+                    # copy over the error details from the call:
+                    self.error.details = pysnmp.error.details
+                    dprint(f"ERROR setting port untagged vlan {untagged_vlan} using hh3cdot1qVlanPorts")
+                    return False
+
+                # do bookkeeping. Do NOT call super() as this would invoke SnmpConnector(), we need true base class:
+                Connector.set_interface_vlans(self=self, interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
+                return True
+
+            return False    # self.error() already set!
+        else:
+            dprint("  Setting TRUNK mode")
+            success  = self.set(oid=f"{hh3cifVLANType}.{interface.port_id}", value=HH3C_IF_MODE_TRUNK, snmp_type="i", parser=False)
+            if success:
+                time.sleep(0.5)
+                # we call the regular SnmpConnector() to set the various PVID and trunk bitmaps
+                return super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
+
+            return False
 
     def _can_manage_interface(self, iface: Interface) -> bool:
         """
