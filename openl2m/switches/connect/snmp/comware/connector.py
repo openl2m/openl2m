@@ -182,6 +182,10 @@ class SnmpConnectorComware(SnmpConnector):
         #     dprint("Comware hh3cdot1qVlanPorts returned error!")
         #
 
+        # can also read
+        # hh3cdot1qVlanTaggedPorts - "Tagged port list of the VLAN."
+        # hh3cdot1qVlanUntaggedPorts - "Untagged port list of the VLAN."
+
         # tagged vlan types are next
         # if not self.get_snmp_branch(branch_name='hh3cifVLANTrunkAllowListLow'):
         #    dprint("Comware Low VLAN PortList FALSE")
