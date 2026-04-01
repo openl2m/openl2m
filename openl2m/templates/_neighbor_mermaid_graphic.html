@@ -14,15 +14,20 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'fontawesome-7.1.0/css/all.css' %}">
+    <link rel="stylesheet" href="/static/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'fontawesome-7.2.0/css/all.css' %}">
     <link rel="icon" type="image/png" href="{% static 'img/openl2m.ico' %}" title="OpenL2M icon">
     <title>'{{ switch }}' Neighbor Graph</title>
   </head>
   <body>
-    <pre class="mermaid">
+    <div>
+      <pre class="mermaid">
 {{ connection|get_neighbor_mermaid_graph }}
-    </pre>
-    <h5>Generated for '{{ request.user.username }}' on {% now "Y-m-d H:i:s" %}</h5>
+      </pre>
+    </div>
+    <div>
+      <h6>Generated for '{{ request.user.username }}' on {% now "Y-m-d H:i:s" %}</h5>
+    </div>
   </body>
 </html>
 `;
