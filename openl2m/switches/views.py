@@ -2241,7 +2241,9 @@ class SwitchDownloadInterfaces(LoginRequiredMixin, MyView):
 
 
 class TestPage(LoginRequiredMixin, View):
-    """create a page to test html templates"""
+    """create a page to test html templates.
+       For development only, available when DEBUG=true (see url.py)
+    """
 
     def get(
         self,
