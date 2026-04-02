@@ -67,7 +67,8 @@
                         {% csrf_token %}
                         <select name="new_pvid" data-bs-toggle="tooltip" title="Select the new vlan here"
                                 id="vlan_select{{ forloop.counter }}"
-                                onchange="checkVlanChanged{{ forloop.counter }}()">
+                                onchange="checkVlanChanged{{ forloop.counter }}()"
+                                aria-label="Select new vlan here">
                           {% for vlan_id,vlan in connection.allowed_vlans.items %}
                             <option
                             {% if vlan_id == iface.untagged_vlan %} selected {% endif %}

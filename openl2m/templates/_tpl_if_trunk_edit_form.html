@@ -9,9 +9,10 @@
         <h1 class="modal-title fs-4" id="tagEditForm_{{ iface.key|underscore }}_label">Edit vlans on interface {{ iface.name }}</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">{# THIS IS THE VLAN CHANGE FORM #}
-        {# NOTE: "name" attributes on multiple copies of this modal form can be reused between forms,
-                 "id" MUST be unique! See views.py, class InterfaceTagsEdit(), this reads attributes by name #}
+      <div class="modal-body">
+        {# THIS IS THE VLAN CHANGE FORM #}
+        {# NOTE: "name" attributes on multiple copies of this modal form can be reused between forms, #}
+        {# but "id" MUST be unique! See views.py, class InterfaceTagsEdit(), this reads attributes by name #}
         <form
           id="tags_edit_{{ iface.key|underscore }}" name="tags_edit_{{ iface.key|underscore }}"
           action="{% url 'switches:tags_edit' group.id switch.id iface.key %}"
@@ -22,7 +23,8 @@
           <div class="mb-2">
             <select name="pvid" data-bs-toggle="tooltip"
                     title="Set the untagged vlan here"
-                    id="new_pvid_{{ iface.key|underscore }}">
+                    id="new_pvid_{{ iface.key|underscore }}"
+                    aria-label="Select untagged VLAN">
               {% for vlan_id,vlan in connection.allowed_vlans.items %}
               <option
                 {% if vlan_id == iface.untagged_vlan %} selected {% endif %}
@@ -44,6 +46,7 @@
           <div class="fst-italic mb-2">Or select specific vlans to allow:</div>
           {% endif %}
           {# VLANS TO ALLOW #}
+            <fieldset><legend>VLANS to tag on 802.1q trunk</legend>
           {% for vlan_id, vlan in connection.vlans.items %}
             {% if vlan_id in connection.allowed_vlans.keys %}
               {# needs work to mark tag enabled vlan with checkbox! #}
@@ -56,20 +59,21 @@
                               onclick="tagged_vlan_clicked_{{ iface.key|underscore }}(this)"
                   {% endif %}
                   >
-                  <label class="form-check-label" for="tagged_vlan_{{ vlan_id }}">
+                  <label class="form-check-label" for="tagged_vlan_{{ iface.key|underscore }}_{{ vlan_id }}">
                   {{vlan_id}}{% if vlan.name %} - {{ vlan.name }}{% endif %}
                   </label></div>
             {% else %}{# user does not have rights to this vlan #}
-                  <div><input class="form-check-input" type="checkbox" disabled value="{{vlan_id}}" id="vlan_{{ iface.key|underscore }}_{{vlan_id}}"
+                  <div><input class="form-check-input" type="checkbox" disabled value="{{vlan_id}}" id="disabled_tagged_vlan_{{ iface.key|underscore }}_{{vlan_id}}"
                   {% if vlan_id in iface.vlans %}
                     checked
                   {% endif %}
                   >
-                  <label class="form-check-label" for="vlan_{{ vlan_id }}">
+                  <label class="form-check-label" for="disabled_tagged_vlan_{{ iface.key|underscore }}_{{ vlan_id }}">
                   {{vlan_id}}{% if vlan.name %} - {{ vlan.name }}{% endif %}
                   </label></div>
             {% endif %}
           {% endfor %}
+            </fieldset>
           {# SUBMIT BUTTON #}
           <div class="text-end align-middle mt-2">
             {# add spinner once submit is clicked #}
