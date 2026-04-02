@@ -33,12 +33,16 @@ See more at https://arubanetworking.hpe.com/techdocs/AOS-S/16.11/ASG/YC/content/
 
 .. code-block:: bash
 
-    crypto pki enroll-self-signed certificate-name LOCAL_SSL_CERT subject /CN=your-switch-name.yourdomain.com
-    web ssl
+    crypto pki enroll-self-signed certificate-name LOCAL_SSL_CERT subject common-name your-switch-name.yourdomain.com
+    web-management ssl
+    no web-management plaintext
     rest-interface
 
     # add local user for api:
     aaa authentication local-user <api-user> group Level-15 password plaintext  # hit CR and enter password.
+
+    # if you use IP access control, you may need something like this:
+    ip authorized-managers <openl2m-server-ip> 255.255.255.255 access manager access-method web
 
 
 **Please consult your device documentation for specific configurations.** *Make sure you adhere to your company's

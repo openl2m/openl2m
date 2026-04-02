@@ -243,7 +243,9 @@ Features Supported
   *untested* means the feature likely works, but is (clearly) untested.
 
   :sup:`1` The AOS-S REST api driver requires firmware v16.x. This has been tested on a single 2930M,
-  using firmware v16.11.x, and REST api v4. It is currently Read-Only.
+  using firmware v16.11.x, and REST api v4. It should function on the 2530, 2540, 2920, 2930F, 2930M,
+  3810 and 5400R line of devices with the proper software levels.
+
   Due to lack of test hardware, PoE support has not been implemented.
 
   :sup:`2` The Comware REST API is in development. Most features are supported.

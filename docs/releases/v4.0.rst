@@ -43,7 +43,7 @@ New Configuration Options
   # connect timeout for Junos devices via the Netconf interface
   JUNOS_PYEZ_CMD_TIMEOUT = 120
 
-  # Generic REST timeout
+  # Generic REST timeout. Applies to devices using the REST API for HPE Comware and HPE/Aruba AOS-S
   REST_API_TIMEOUT = 5
 
 
@@ -56,11 +56,14 @@ Release Date: TBD
   We use the standard Q-Bridge MIB for this. See supported feature notes in the documentation for more details.
 * Add IPv4 ARP info for device using the Aruba AOS-S REST driver.
 * enable 802.1q tags edit for Admins by default.
+* update to FontAwesome v7.2.0 (from v7.1.0)
 
 Bug fixes:
 
 * remove duplicate login/logout for AOS-S REST api driver.
 * driver support matrices are updated with valid info.
+* make all id attributes unique in interface tags edit popup page.
+* remove leading blank line at start of html page.
 
 
 Version 4.0.3
