@@ -557,6 +557,7 @@ JUNOS_PYEZ_CONN_TIMEOUT = 10
 JUNOS_PYEZ_CMD_TIMEOUT = 120
 
 # for drivers that use a REST API, this is the query timeout
+# currently applies to devices using the REST API for HPE Comware and HPE/Aruba AOS-S
 REST_API_TIMEOUT = 5
 
 # perform hostname lookup from IP addresses found in ARP info, Admin pages, etc.
