@@ -14,6 +14,7 @@
 
 from switches.connect.classes import Error
 from switches.constants import LOG_TYPE_ERROR
+from switches.device_actions import DeviceActions
 from switches.models import Log
 from switches.permissions import get_group_and_switch
 from switches.utils import error_page, error_page_by_id, success_page_by_id, get_remote_ip
@@ -56,21 +57,22 @@ class SwitchPermissionMixin:
 
 class SwitchActionMixin:
     """
-    Helper for single-action POST views that call a perform_*() function and
+    Helper for single-action POST views that call a DeviceActions method and
     return either an error page or a success page.
 
     Usage::
 
         return self._dispatch_action(
             request, group_id, switch_id,
-            perform_some_action,
+            "interface_admin_change",
             message="Optional override message",  # omit to use info.description
-            kwarg1=val1, kwarg2=val2,             # forwarded to action_fn
+            interface_key=name, new_state=True,   # forwarded to action method
         )
     """
 
-    def _dispatch_action(self, request, group_id, switch_id, action_fn, message=None, **kwargs):
-        retval, info = action_fn(request=request, group_id=group_id, switch_id=switch_id, **kwargs)
+    def _dispatch_action(self, request, group_id, switch_id, action_name, message=None, **kwargs):
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = getattr(actions, action_name)(**kwargs)
         if not retval:
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
         return success_page_by_id(

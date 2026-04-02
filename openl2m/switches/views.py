@@ -29,17 +29,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 
 
-from switches.actions import (
-    perform_interface_admin_change,
-    perform_interface_description_change,
-    perform_interface_pvid_change,
-    perform_interface_poe_change,
-    perform_interface_tags_edit,
-    perform_switch_save_config,
-    perform_switch_vlan_add,
-    perform_switch_vlan_edit,
-    perform_switch_vlan_delete,
-)
+from switches.device_actions import DeviceActions
 
 from switches.connect.classes import Error
 from switches.models import (
@@ -1131,7 +1121,7 @@ class SwitchVlanCreate(LoginRequiredMixin, SwitchActionMixin, View):
         dprint("SwitchVlanCreate() - POST called")
         vlan_id, vlan_name = parse_vlan_form_info(request)
         return self._dispatch_action(
-            request, group_id, switch_id, perform_switch_vlan_add, vlan_id=vlan_id, vlan_name=vlan_name
+            request, group_id, switch_id, "switch_vlan_add", vlan_id=vlan_id, vlan_name=vlan_name
         )
 
 
@@ -1160,7 +1150,7 @@ class SwitchVlanUpdate(LoginRequiredMixin, SwitchActionMixin, View):
         dprint("SwitchVlanUpdate() - POST called")
         vlan_id, vlan_name = parse_vlan_form_info(request)
         return self._dispatch_action(
-            request, group_id, switch_id, perform_switch_vlan_edit, vlan_id=vlan_id, vlan_name=vlan_name
+            request, group_id, switch_id, "switch_vlan_edit", vlan_id=vlan_id, vlan_name=vlan_name
         )
 
 
@@ -1188,7 +1178,7 @@ class SwitchVlanDelete(LoginRequiredMixin, SwitchActionMixin, View):
     ):
         dprint("SwitchVlanDelete() - POST called")
         vlan_id, _ = parse_vlan_form_info(request)
-        return self._dispatch_action(request, group_id, switch_id, perform_switch_vlan_delete, vlan_id=vlan_id)
+        return self._dispatch_action(request, group_id, switch_id, "switch_vlan_delete", vlan_id=vlan_id)
 
 
 #
@@ -1221,7 +1211,7 @@ class InterfaceAdminChange(LoginRequiredMixin, SwitchActionMixin, MyView):
             request,
             group_id,
             switch_id,
-            perform_interface_admin_change,
+            "interface_admin_change",
             interface_key=interface_name,
             new_state=bool(new_state),
         )
@@ -1259,10 +1249,8 @@ class InterfaceDescriptionChange(LoginRequiredMixin, View):
             error.description = "Missing required parameter: 'new_description'"
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-        retval, error = perform_interface_description_change(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, error = actions.interface_description_change(
             interface_key=interface_name,
             new_description=description,
         )
@@ -1307,10 +1295,8 @@ class InterfacePvidChange(LoginRequiredMixin, View):
             error.description = "Missing required parameter: 'new_pvid'"
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-        retval, info = perform_interface_pvid_change(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.interface_pvid_change(
             interface_key=interface_name,
             new_pvid=new_pvid,
         )
@@ -1353,7 +1339,7 @@ class InterfacePoeChange(LoginRequiredMixin, SwitchActionMixin, MyView):
             request,
             group_id,
             switch_id,
-            perform_interface_poe_change,
+            "interface_poe_change",
             interface_key=interface_name,
             new_state=enable,
         )
@@ -1375,11 +1361,10 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
         interface_name,
     ):
         dprint("InterfacePoeDownUp() - POST called")
+        actions = DeviceActions(request, group_id, switch_id)
+
         # disable power first:
-        retval, info = perform_interface_poe_change(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        retval, info = actions.interface_poe_change(
             interface_key=interface_name,
             new_state=False,
         )
@@ -1390,10 +1375,7 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
         time.sleep(settings.POE_TOGGLE_DELAY)
 
         # and enable again:
-        retval, info = perform_interface_poe_change(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        retval, info = actions.interface_poe_change(
             interface_key=interface_name,
             new_state=True,
         )
@@ -1477,10 +1459,8 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
         # if tagged_vlans = empty List(), then the interface should be in Access mode!
         # else it should be in Trunk or 802.1Q Tagged mode.
 
-        retval, info = perform_interface_tags_edit(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.interface_tags_edit(
             interface_key=interface_name,
             pvid=pvid,
             tagged_vlans=tagged_vlans,
@@ -1509,7 +1489,7 @@ class SwitchSaveConfig(LoginRequiredMixin, SwitchActionMixin, MyView):
             request,
             group_id,
             switch_id,
-            perform_switch_save_config,
+            "switch_save_config",
             message="Configuration was saved.",
         )
 

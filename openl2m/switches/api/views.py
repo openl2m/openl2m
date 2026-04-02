@@ -21,16 +21,7 @@ from rest_framework import status as http_status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from switches.actions import (
-    perform_interface_description_change,
-    perform_interface_admin_change,
-    perform_interface_pvid_change,
-    perform_interface_poe_change,
-    perform_switch_save_config,
-    perform_switch_vlan_add,
-    perform_switch_vlan_edit,
-    perform_switch_vlan_delete,
-)
+from switches.device_actions import DeviceActions
 from switches.connect.connect import get_connection_object
 from switches.permissions import get_my_device_groups, get_group_and_switch
 from switches.utils import dprint
@@ -202,7 +193,8 @@ class APISwitchSaveConfig(
         if save.lower() not in on_values:
             return respond_error("No save requested (why did you call us?).")
 
-        retval, info = perform_switch_save_config(request, group_id, switch_id)
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.switch_save_config()
         if not retval:
             return respond(status=info.code, text=info.description)
         return respond_ok("Configuration saved!")
@@ -234,9 +226,8 @@ class APIInterfaceSetState(
         #     new_state = False
         new_state = state.lower() in on_values
 
-        retval, info = perform_interface_admin_change(
-            request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, new_state=new_state
-        )
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.interface_admin_change(interface_key=interface_id, new_state=new_state)
         if not retval:
             return respond(status=info.code, text=info.description)
         # on success, error.description
@@ -263,9 +254,8 @@ class APIInterfaceSetVlan(
         except Exception:
             return respond_error("Missing or invalid required numeric parameter: 'vlan'")
 
-        retval, info = perform_interface_pvid_change(
-            request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, new_pvid=new_pvid
-        )
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.interface_pvid_change(interface_key=interface_id, new_pvid=new_pvid)
         if not retval:
             return respond(status=info.code, text=info.description)
         # on success, error.description
@@ -298,9 +288,8 @@ class APIInterfaceSetPoE(
         #     new_state = False
         new_state = poe_state.lower() in on_values
 
-        retval, info = perform_interface_poe_change(
-            request=request, group_id=group_id, switch_id=switch_id, interface_key=interface_id, new_state=new_state
-        )
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.interface_poe_change(interface_key=interface_id, new_state=new_state)
         if not retval:
             return respond(status=info.code, text=info.description)
         # on success, error.description
@@ -327,10 +316,8 @@ class APIInterfaceSetDescription(
         except Exception:
             return respond_error("Missing or invalid required parameter: 'description'")
 
-        retval, info = perform_interface_description_change(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.interface_description_change(
             interface_key=interface_id,
             new_description=description,
         )
@@ -360,9 +347,8 @@ class APISwitchVlanAdd(
             return respond_error("One or more missing or invalid required parameters: 'vlan_name', 'vlan_id'")
         # now go create the new vlan:
         dprint(f"   New vlan: '{vlan_name}' = {vlan_id}")
-        retval, info = perform_switch_vlan_add(
-            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
-        )
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.switch_vlan_add(vlan_id=vlan_id, vlan_name=vlan_name)
         if not retval:
             return respond(status=info.code, text=info.description)
         return respond_ok(info.description)
@@ -388,9 +374,8 @@ class APISwitchVlanEdit(
         except Exception:
             return respond_error("One or more missing or invalid required parameters: 'vlan_name', 'vlan_id'")
         dprint(f"   Edit vlan: {vlan_id} = '{vlan_name}'")
-        retval, info = perform_switch_vlan_edit(
-            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
-        )
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.switch_vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
         if not retval:
             return respond(status=info.code, text=info.description)
         return respond_ok(info.description)
@@ -415,9 +400,8 @@ class APISwitchVlanDelete(
         except Exception:
             return respond_error("Missing or invalid required parameter: 'vlan_id'")
         dprint(f"   Delete vlan: {vlan_id}")
-        retval, info = perform_switch_vlan_delete(
-            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id
-        )
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.switch_vlan_delete(vlan_id=vlan_id)
         if not retval:
             return respond(status=info.code, text=info.description)
         return respond_ok(info.description)
