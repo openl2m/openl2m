@@ -55,6 +55,9 @@ security policy and secure API access as needed.*
     for your specific switch. At time of writing, see
     https://arubanetworking.hpe.com/techdocs/AOS-Switch/16.11/Aruba%20REST%20API%20for%20AOS-S%2016.11.pdf
 
+    Some additional information for account configuration is here:
+    https://arubanetworking.hpe.com/techdocs/AOS-S/16.10/RESTAPI/content/rest%20api/set-up-aaa-res.htm
+
 
 Notes On Functionality
 ----------------------
