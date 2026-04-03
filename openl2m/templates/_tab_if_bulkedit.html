@@ -76,6 +76,7 @@
                   Status:
                   <select name="bulk_interface_change" id="bulk_interface_change" data-bs-toggle="tooltip"
                           title="Change state of all selected interfaces."
+                          aria-label="Change state of all selected interfaces"
                           onchange="enable_bulk_submit()">
                     {% for choice,name in BULKEDIT_INTERFACE_CHOICES %}
                       <option value="{{ choice }}">{{ name }}</option>
@@ -89,6 +90,7 @@
                 {% if connection.can_change_vlan %}
                   <select name="bulk_vlan_change" id="bulk_vlan_change" data-bs-toggle="tooltip"
                           title="Select the new untagged vlan for all selected interfaces."
+                          aria-label="Select the new untagged vlan for all selected interfaces."
                           onchange="enable_bulk_submit()">
                     <option value="-1" selected>No Change</option>
                     {% for vlan_id,vlan in connection.allowed_vlans.items %}
@@ -106,6 +108,7 @@
                 {% if connection.can_change_poe_status %}
                 <select name="bulk_poe_change" id="bulk_poe_change" data-bs-toggle="tooltip"
                         title="'PoE Change' = go from Enabled to Disabled, or Disabled to Enabled (depending on current state!). 'PoE Down/Up' = If PoE Enabled, then Disable PoE, wait a while, then Enable PoE."
+                        aria-label="Togle PoE state of selected interfaces"
                         onchange="enable_bulk_submit()">
                   {% for choice,name in BULKEDIT_POE_CHOICES %}
                     <option value="{{ choice }}">{{ name }}</option>
@@ -125,7 +128,8 @@
                 </label>
                   <br>
                   <select class="mt-1" name="bulk_new_description_type" id="bulk_new_description_type" data-bs-toggle="tooltip"
-                          title="Just edit, or append to end">
+                          title="Just edit, or append to end"
+                          aira-label="Edit or Append description on selected interfaces">
                     {% for choice,name in BULKEDIT_ALIAS_TYPE_CHOICES %}
                       <option value="{{ choice }}">{{ name }}</option>
                     {% endfor %}
