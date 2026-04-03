@@ -5,6 +5,7 @@
 {% block title %}Search Results{% endblock %}
 
 {% block content %}
+<h5>Search Results for &quot;<strong>{{ search }}</strong>&quot;</h5>
 
 {% if warning %}
   <h5>Warning: {{ warning }} </h5>
@@ -15,11 +16,11 @@
     <div class="card border-default mb-2">
     {% if results_count == 0 %}
       <div class="card-header bg-warning-subtle">
-        Search for &quot;<strong>{{ search }}</strong>&quot; found no matches!
+        No matches found!
       </div>
     {% else %}
       <div class="card-header bg-success-subtle">
-        Search for &quot;<strong>{{ search }}</strong>&quot; found <strong>{{ results_count }}</strong> results:
+      Found <strong>{{ results_count }}</strong> results:
       </div>
       <div class="card-body overflow-scroll" style="max-height: 200px;">
         <div class="list-group">
