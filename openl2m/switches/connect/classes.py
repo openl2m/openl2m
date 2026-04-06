@@ -734,9 +734,10 @@ class PoePort:
         """
         Initialize the object
         """
-        self.index: str = index  # port entry is the value after the PoE OID that is the index to this interface
-        self.admin_status: int = admin_status
-        self.detect_status: int = POE_PORT_DETECT_SEARCHING
+        self.index: str = index  # poe index on SNMP is the value after the PoE OID that is the index to this interface
+                                 # on other drivers, (rest, etc.) set this as needed to unique value!
+        self.admin_status: int = admin_status   # Note: use the SNMP values POE_PORT_ADMIN_ENABLED (1), and POE_PORT_ADMIN_DISABLED (2)
+        self.detect_status: int = POE_PORT_DETECT_SEARCHING     # same, use SNMP values defined in connect/constants.py
         """ currently not used:
         self.priority = 0
         self.description = ""       # rarely used, but available in POE MIB
