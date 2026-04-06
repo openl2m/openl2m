@@ -39,14 +39,17 @@
           {# ALLOW ALL checkbox #}
           {% if connection.can_allow_all %}
           <div class="mb-2">
-            <input class="form-check-input" type="checkbox" value="yes"
-                   name="allow_all" id="allow_all_{{ iface.key|underscore }}" onclick="allow_all_clicked_{{ iface.key|underscore }}(this)">
-                  <label class="form-check-label" for="allow_all_{{ iface.key|underscore }}">Allow ALL vlans as tagged.</label>
+            <fieldset>
+              <legend class="visually-hidden">Check to allow ALL vlans as tagged</legend>
+              <input class="form-check-input" type="checkbox" value="yes"
+                     name="allow_all" id="allow_all_{{ iface.key|underscore }}" onclick="allow_all_clicked_{{ iface.key|underscore }}(this)">
+              <label class="form-check-label" for="allow_all_{{ iface.key|underscore }}">Allow ALL vlans as tagged.</label>
+            </fieldset>
           </div>
           <div class="fst-italic mb-2">Or select specific vlans to allow:</div>
           {% endif %}
           {# VLANS TO ALLOW #}
-            <fieldset><legend>VLANS to tag on 802.1q trunk</legend>
+            <fieldset><legend class="visually-hidden">VLANS to tag on 802.1q trunk</legend>
           {% for vlan_id, vlan in connection.vlans.items %}
             {% if vlan_id in connection.allowed_vlans.keys %}
               {# needs work to mark tag enabled vlan with checkbox! #}
