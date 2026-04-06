@@ -13,7 +13,6 @@
 #
 import datetime
 import traceback
-from typing import List
 
 #
 # Basic Aruba AOS-CX connector. This uses the documented REST API, and allows us to handle
@@ -810,7 +809,7 @@ class AosCxConnector(Connector):
         return False
 
     def set_interface_vlans(
-        self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
     ) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
@@ -818,7 +817,7 @@ class AosCxConnector(Connector):
         Args:
             interface = Interface() object for the requested port
             untagged_vlan = an integer with the requested untagged vlan
-            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+            tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
         Returns:
             True on success, False on error and set self.error variables

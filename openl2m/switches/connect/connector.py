@@ -21,7 +21,7 @@ import netmiko
 import re
 import time
 import traceback
-from typing import Any, Dict, List
+from typing import Any
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -112,13 +112,13 @@ class Connector:
 
         self.show_interfaces = True  # If False, do NOT show interfaces, vlans etc... for command-only devices.
         # data we collect and potentially cache:
-        self.interfaces: Dict[
+        self.interfaces: dict[
             str, Interface
         ] = {}  # Interface() objects representing the ports on this switch, key is if_name *as string!*
-        self.vlans: Dict[int, Vlan] = {}  # Vlan() objects on this switch, key is vlan id *as integer!* (not index!)
+        self.vlans: dict[int, Vlan] = {}  # Vlan() objects on this switch, key is vlan id *as integer!* (not index!)
         self.vlan_count = 0  # number of vlans defined on device
-        self.vrfs: Dict[str, Vrf] = {}  # VRFs available on this device.
-        self.ip4_to_if_index: Dict[
+        self.vrfs: dict[str, Vrf] = {}  # VRFs available on this device.
+        self.ip4_to_if_index: dict[
             str, int
         ] = {}  # the IPv4 addresses as keys, with stored value if_index; needed to map netmask to interface
         # some flags:
@@ -127,12 +127,12 @@ class Connector:
         self.basic_info_read_timestamp = 0  # when the last 'basic' read occured
 
         # data we calculate or collect without caching:
-        self.allowed_vlans: Dict[
+        self.allowed_vlans: dict[
             int, Vlan
         ] = {}  # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
         self.eth_addr_count = 0  # number of known mac/ethernet addresses
         self.neighbor_count = 0  # number of lldp neighbors
-        self.warnings: List[str] = []  # list of warning strings that may be shown to users
+        self.warnings: list[str] = []  # list of warning strings that may be shown to users
         # timing related attributes:
         self.timing = {}  # dictionary to track how long various calls take to read. Key = name, value = tuple()
         self.add_timing("Total", 0, 0)  # initialize the 'total' count to 0 entries, 0 seconds!
@@ -142,14 +142,14 @@ class Connector:
         self.poe_enabled = False  # note: this needs more work, as we do not parse "units"/stack members
         self.poe_max_power = 0  # maximum power (watts) availabe in this switch, combines all PSE units
         self.poe_power_consumed = 0  # same for power consumed, across all PSE units
-        self.poe_pse_devices: Dict[int, PoePSE] = {}  # dictionary of PoePSE() objects, key is PSE id.
+        self.poe_pse_devices: dict[int, PoePSE] = {}  # dictionary of PoePSE() objects, key is PSE id.
 
         # features that may or may not be implemented:
         self.gvrp_enabled = False
         # set this flag is a save aka. 'write mem' is needed:
         self.save_needed = False
 
-        # device information set by drivers. A Dict() object that can be set with self.set_driver_info(name, value)
+        # device information set by drivers. A dict() object that can be set with self.set_driver_info(name, value)
         # and stored in the Switch().driver_info database field with self.save_driver_info().
         # Visible from admin pages and API.
         # Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
@@ -182,14 +182,14 @@ class Connector:
 
         # physical device related:
         self.hardware_details_needed = True  # True if we still need to read more hardware info (eg. the Entity tables)
-        self.stack_members: Dict[
+        self.stack_members: dict[
             int, StackMember
         ] = {}  # StackMember() objects that are part of this switch, key is member id
         # syslog related info, if supported:
-        self.syslog_msgs: Dict[int, SyslogMsg] = {}  # list of Syslog messages, if any
+        self.syslog_msgs: dict[int, SyslogMsg] = {}  # list of Syslog messages, if any
         self.syslog_max_msgs = 0  # how many syslog msgs device will store
         # generic info for the "Switch Information" tab:
-        self.more_info: Dict[
+        self.more_info: dict[
             str, tuple
         ] = {}  # dict of categories string, each a list of tuples (name, value), to extend sytem info about this switch!
 
@@ -686,14 +686,14 @@ class Connector:
         # self.save_cache()
         return True
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
+    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
 
         Args:
             interface = Interface() object for the requested port
             untagged_vlan = an integer with the requested untagged vlan
-            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+            tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
         Returns:
             True on success, False on error and set self.error variables
@@ -1692,7 +1692,7 @@ class Connector:
         self.more_info[category][name] = value
 
     def set_driver_info(self, name: str, value):
-        """add to the device information set by drivers. Stored in a Dict() object
+        """add to the device information set by drivers. Stored in a dict() object
            This can then be written to the Switch().driver_info database field with save_driver_info()
            Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
         """

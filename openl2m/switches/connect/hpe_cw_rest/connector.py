@@ -26,7 +26,6 @@ from datetime import timedelta
 import json
 import pprint
 import socket
-from typing import Dict, List
 
 from django.http.request import HttpRequest
 from rangeparser import RangeParser
@@ -97,7 +96,7 @@ class HPECwRestConnector(RESTConnector):
         self.token_timeout: str = ""            # time token expires
         self.set_do_not_cache_attribute("token")
 
-        self.port_index_to_if_index: Dict[
+        self.port_index_to_if_index: dict[
             int, str
         ] = {}  # this maps switchport "PortIndex" as key (int) to MIB-II IfIndex (str)
 
@@ -1152,14 +1151,14 @@ class HPECwRestConnector(RESTConnector):
             self.error.details = format(err)
             return False
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
+    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
 
         Args:
             interface = Interface() object for the requested port
             untagged_vlan = an integer with the requested untagged vlan
-            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+            tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
         Returns:
             True on success, False on error and set self.error variables

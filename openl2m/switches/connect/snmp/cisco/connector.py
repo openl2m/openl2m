@@ -20,7 +20,6 @@ with Cisco specific ways of doing things...
 import datetime
 import random
 import time
-from typing import Dict
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -122,7 +121,7 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         self.can_edit_tags = False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
 
-        self.stack_port_to_if_index: Dict[int, int] = {}  # maps (Cisco) stacking port to ifIndex values
+        self.stack_port_to_if_index: dict[int, int] = {}  # maps (Cisco) stacking port to ifIndex values
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         #

@@ -21,7 +21,6 @@ from jnpr.junos.utils.config import Config
 from jnpr.junos.exception import RpcError, ConfigLoadError, CommitError, LockError, UnlockError
 
 from netaddr import IPNetwork
-from typing import List
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -863,7 +862,7 @@ class PyEZConnector(Connector):
         return False
 
     def set_interface_vlans(
-        self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
     ) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
@@ -871,7 +870,7 @@ class PyEZConnector(Connector):
         Args:
             interface = Interface() object for the requested port
             untagged_vlan = an integer with the requested untagged vlan
-            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+            tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
         Returns:
             True on success, False on error and set self.error variables
