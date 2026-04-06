@@ -30,15 +30,15 @@
         <table class="table table-hover table-headings">
           <tbody>
           <tr>
-            <th>Token</th>
+            <td>Token</td>
             {% if action == "add" %}
-                <th><input type="text" size=80 name="key" value="{{ token.key }}"
-                    data-bs-toggle="tooltip" title="This is your new token!" readonly /></th>
+                <td><input type="text" size=80 name="key" value="{{ token.key }}"
+                    data-bs-toggle="tooltip" title="This is your new token!" readonly /></td>
             {% else %}
               {% if settings.ALLOW_TOKEN_RETRIEVAL %}
-                <th>{{token.key }}</th>
+                <td>{{token.key }}</td>
               {% else %}
-                <th>{{token.partial }}</th>
+                <td>{{token.partial }}</td>
               {% endif %}
             {% endif %}
           </tr>
