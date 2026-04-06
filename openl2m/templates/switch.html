@@ -12,46 +12,43 @@
 {# this is the header "menu" bar #}
 <!-- device menu bar -->
 <div class="container-fluid">
-  <div class="table-responsive">
-    <table class="table">
-      <thead>
-        <tr>
-          <td>
-            {{ switch|get_switch_info_url_links:request.user }}
-            {% if switch.description %}
-              <span data-bs-toggle="tooltip" data-bs-title="{{ switch.description }}"><strong>{{ switch.name }}</strong></span>
-            {% else %}
-              <strong>{{ switch.name }}</strong>
-            {% endif %}
-            {% if connection.read_only %}
-              <span data-bs-toggle="tooltip" data-bs-title="This switch is set as Read-Only by the administrator. You can not make any changes!">
-                <i class="far fa-hand-point-right" aria-hidden="true"></i>&nbsp;<small>Read-Only</small>&nbsp;<i class="far fa-hand-point-left" aria-hidden="true"></i>
-              </span>
-            {% endif %}
-          </td>
+  <div class="row">
+    {# column with switch name and other misc. info #}
+    <div class="col text-start">
+      {{ switch|get_switch_info_url_links:request.user }}
+      {% if switch.description %}
+        <span data-bs-toggle="tooltip" data-bs-title="{{ switch.description }}"><strong>{{ switch.name }}</strong></span>
+      {% else %}
+        <strong>{{ switch.name }}</strong>
+      {% endif %}
+      {% if connection.read_only %}
+        <span data-bs-toggle="tooltip" data-bs-title="This switch is set as Read-Only by the administrator. You can not make any changes!">
+          <i class="far fa-hand-point-right" aria-hidden="true"></i>&nbsp;<small>Read-Only</small>&nbsp;<i class="far fa-hand-point-left" aria-hidden="true"></i>
+        </span>
+      {% endif %}
+    </div>
 
-        {% if connection.show_interfaces %}
-
-          {% if connection.can_get_client_data %}
-          <td>
-            <form
-              action="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
-              method="post"
-              id="form_arp_lldp"
-              name="form_arp_lldp"
-              >
-              {% csrf_token %}
-              <button type="submit" name="button_arp_lldp" id="button_arp_lldp" value="SUBMIT" class="btn btn-primary">
-                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_arp_lldp"></span>
-                <span id="spinner_arp_lldp_text"
-                    data-bs-toggle="tooltip" title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time...">
-                {% if view == 'arp_lldp' %}
-                  <i class="fa-solid fa-sync" aria-hidden="true"></i> Refresh
-                {% else %}
-                  <i class="fa-solid fa-sitemap" aria-hidden="true"></i> Read
-                {% endif %} Eth/Arp/LLDP
-                </span>
-              </button>
+    {% if connection.show_interfaces %}
+      {% if connection.can_get_client_data %}
+    <div class="col text-start">
+      <form
+        action="{% url 'switches:switch_arp_lldp' group.id switch.id %}"
+        method="post"
+        id="form_arp_lldp"
+        name="form_arp_lldp"
+        >
+        {% csrf_token %}
+        <button type="submit" name="button_arp_lldp" id="button_arp_lldp" value="SUBMIT" class="btn btn-primary">
+          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_arp_lldp"></span>
+          <span id="spinner_arp_lldp_text"
+              data-bs-toggle="tooltip" title="Click here to see or refresh the Ethernet/ARP/LLDP details for this switch! This may take some time...">
+          {% if view == 'arp_lldp' %}
+            <i class="fa-solid fa-sync" aria-hidden="true"></i> Refresh
+          {% else %}
+            <i class="fa-solid fa-sitemap" aria-hidden="true"></i> Read
+          {% endif %} Eth/Arp/LLDP
+          </span>
+        </button>
 <script>
   document.getElementById('form_arp_lldp').addEventListener('submit', function(event) {
     const submitButton = document.getElementById('button_arp_lldp');
@@ -65,27 +62,27 @@
     spanText.textContent = 'Reading...';
   });
 </script>
-            </form>
-          </td>
-          {% endif %}
+      </form>
+    </div>
+      {% endif %}{# get_client_data #}
 
-          {% if connection.save_needed %}
-          <td>
-            <form
-              action="{% url 'switches:switch_save_config' group.id switch.id %}"
-              method="post"
-              id="form_save_config"
-              name="form_save_config">
-              {% csrf_token %}
-              <button type="submit" id="button_save" name="button_save" value="SUBMIT" class="btn btn-warning">
-                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save_config"></span>
-                <span id="spinner_save_config_text"
-                      data-bs-toggle="tooltip" title="Click here to save changes to the startup config of the switch! This may take some time...">
-                  <i class="fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
-                  Save Changes
-                  <i class="fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
-                </span>
-              </button>
+      {% if connection.save_needed %}
+    <div class="col text-start">
+      <form
+        action="{% url 'switches:switch_save_config' group.id switch.id %}"
+        method="post"
+        id="form_save_config"
+        name="form_save_config">
+        {% csrf_token %}
+        <button type="submit" id="button_save" name="button_save" value="SUBMIT" class="btn btn-warning">
+          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save_config"></span>
+          <span id="spinner_save_config_text"
+                data-bs-toggle="tooltip" title="Click here to save changes to the startup config of the switch! This may take some time...">
+            <i class="fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
+            Save Changes
+            <i class="fa-solid fa-exclamation-triangle" aria-hidden="true"></i>
+          </span>
+        </button>
 <script>
   document.getElementById('form_save_config').addEventListener('submit', function(event) {
     const submitButton = document.getElementById('button_save');
@@ -99,30 +96,30 @@
     spanText.textContent = 'Saving...';
   });
 </script>
-            </form>
-          </td>
-          {% endif %}
+      </form>
+    </div>
+      {% endif %}{# save_needed #}
 
-          {% if connection.can_reload_all %}
-          <td>
-            <form
-              action="{% url 'switches:switch_reload' group.id switch.id view %}"
-              method="post"
-              id="form_reload"
-              name="form_reload">
-              {% csrf_token %}
-              {% if connection.save_needed %}
-              <input type="hidden" id="save_needed" name="save_needed" value="YES">
-              {% endif %}
-              <button type="submit" id="button_reload" name="button_reload" value="SUBMIT"
-                class="btn btn-primary"
-              >
-                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_reload"></span>
-                <span id="spinner_reload_text"
-                      data-bs-toggle="tooltip" title="Click here to fully reload all data for this switch! This may take some time...">
-                  <i class="fa-solid fa-sync" aria-hidden="true"></i> Reload All
-                </span>
-              </button>
+      {% if connection.can_reload_all %}
+    <div class="col text-start">
+      <form
+        action="{% url 'switches:switch_reload' group.id switch.id view %}"
+        method="post"
+        id="form_reload"
+        name="form_reload">
+        {% csrf_token %}
+        {% if connection.save_needed %}
+        <input type="hidden" id="save_needed" name="save_needed" value="YES">
+        {% endif %}
+        <button type="submit" id="button_reload" name="button_reload" value="SUBMIT"
+          class="btn btn-primary"
+        >
+          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_reload"></span>
+          <span id="spinner_reload_text"
+                data-bs-toggle="tooltip" title="Click here to fully reload all data for this switch! This may take some time...">
+            <i class="fa-solid fa-sync" aria-hidden="true"></i> Reload All
+          </span>
+        </button>
 <script>
   document.getElementById('form_reload').addEventListener('submit', function(event) {
     const submitButton = document.getElementById('button_reload');
@@ -136,17 +133,15 @@
     spanText.textContent = 'Reloading...';
   });
 </script>
-            </form>
-          </td>
-          {% endif %}
-
-        {% endif %} {# if connection.show_interfaces #}
-        </tr>
-      </thead>
-    </table>
-  </div> {# table-responsive #}
-</div> {# container-fluid #}
+      </form>
+    </div>
+      {% endif %}
+    {% endif %} {# connection.show_interfaces #}
+  </div> {# div-row #}
+  <div class="row pt-2"><hr></div>
+</div> {# div-container #}
 <!-- end device menu bar -->
+
 
 {# here are the tabs of this page, depending on "view", see https://fastbootstrap.com/components/tabs/ #}
 <!-- device tabs -->
