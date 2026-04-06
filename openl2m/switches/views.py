@@ -29,17 +29,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 
 
-from switches.actions import (
-    perform_interface_admin_change,
-    perform_interface_description_change,
-    perform_interface_pvid_change,
-    perform_interface_poe_change,
-    perform_interface_tags_edit,
-    perform_switch_save_config,
-    perform_switch_vlan_add,
-    perform_switch_vlan_edit,
-    perform_switch_vlan_delete,
-)
+from switches.device_actions import DeviceActions
 
 from switches.connect.classes import Error
 from switches.models import (
@@ -98,6 +88,7 @@ from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
 )
 from switches.download import create_eth_neighbor_xls_file, create_interfaces_xls_file
+from switches.mixins import SwitchActionMixin, SwitchPermissionMixin
 from switches.myview import MyView
 from switches.permissions import get_group_and_switch, get_connection_if_permitted, get_my_device_groups
 
@@ -589,7 +580,7 @@ def switch_view(
 #
 # Bulk Edit interfaces on a switch
 #
-class SwitchBulkEdit(LoginRequiredMixin, View):
+class SwitchBulkEdit(LoginRequiredMixin, SwitchPermissionMixin, View):
     """
     Change several interfaces at once.
     """
@@ -601,28 +592,11 @@ class SwitchBulkEdit(LoginRequiredMixin, View):
         switch_id,
     ):
         dprint("SwitchBulkEdit() - POST called")
-        group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
+        group, switch, denied = self._get_switch_or_deny(request, group_id, switch_id)
+        if denied:
+            return denied
 
         remote_ip = get_remote_ip(request)
-        log = Log(
-            user=request.user,
-            ip_address=remote_ip,
-            switch=switch,
-            group=group,
-            action=LOG_VIEW_SWITCH,
-            type=LOG_TYPE_VIEW,
-        )
-
-        if group is None or switch is None:
-            log.type = LOG_TYPE_ERROR
-            log.description = "Permission denied!"
-            log.save()
-            error = Error()
-            error.status = True
-            error.description = "Access denied!"
-            counter_increment(COUNTER_ACCESS_DENIED)
-            return error_page(request=request, group=False, switch=False, error=error)
-
         counter_increment(COUNTER_BULKEDITS)
 
         # read the submitted form data:
@@ -1125,7 +1099,7 @@ def parse_vlan_form_info(request):
 #
 # Create a new vlan on a device
 #
-class SwitchVlanCreate(LoginRequiredMixin, View):
+class SwitchVlanCreate(LoginRequiredMixin, SwitchActionMixin, View):
     """
     Create a vlan on a device. Form data will be POST-ed.
 
@@ -1145,22 +1119,16 @@ class SwitchVlanCreate(LoginRequiredMixin, View):
         switch_id,
     ):
         dprint("SwitchVlanCreate() - POST called")
-
-        # parse form items, validate vlan id:
         vlan_id, vlan_name = parse_vlan_form_info(request)
-
-        retval, info = perform_switch_vlan_add(
-            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
+        return self._dispatch_action(
+            request, group_id, switch_id, "switch_vlan_add", vlan_id=vlan_id, vlan_name=vlan_name
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 #
 # Update a vlan on a device
 #
-class SwitchVlanUpdate(LoginRequiredMixin, View):
+class SwitchVlanUpdate(LoginRequiredMixin, SwitchActionMixin, View):
     """
     Update a vlan on a device. Form data will be POST-ed.
 
@@ -1180,22 +1148,16 @@ class SwitchVlanUpdate(LoginRequiredMixin, View):
         switch_id,
     ):
         dprint("SwitchVlanUpdate() - POST called")
-
-        # parse form items, validate vlan id:
         vlan_id, vlan_name = parse_vlan_form_info(request)
-
-        retval, info = perform_switch_vlan_edit(
-            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id, vlan_name=vlan_name
+        return self._dispatch_action(
+            request, group_id, switch_id, "switch_vlan_edit", vlan_id=vlan_id, vlan_name=vlan_name
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 #
 # Delete a vlan on a device
 #
-class SwitchVlanDelete(LoginRequiredMixin, View):
+class SwitchVlanDelete(LoginRequiredMixin, SwitchActionMixin, View):
     """
     Manage vlan to a device. Form data will be POST-ed.
 
@@ -1215,22 +1177,14 @@ class SwitchVlanDelete(LoginRequiredMixin, View):
         switch_id,
     ):
         dprint("SwitchVlanDelete() - POST called")
-
-        # parse form items, validate vlan id:
-        vlan_id, vlan_name = parse_vlan_form_info(request)
-
-        retval, info = perform_switch_vlan_delete(
-            request=request, group_id=group_id, switch_id=switch_id, vlan_id=vlan_id
-        )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
+        vlan_id, _ = parse_vlan_form_info(request)
+        return self._dispatch_action(request, group_id, switch_id, "switch_vlan_delete", vlan_id=vlan_id)
 
 
 #
 # Change admin status, ie port Enable/Disable
 #
-class InterfaceAdminChange(LoginRequiredMixin, MyView):
+class InterfaceAdminChange(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Toggle the admin status of an interface, ie admin up or down.
     Params:
@@ -1253,20 +1207,14 @@ class InterfaceAdminChange(LoginRequiredMixin, MyView):
         new_state,
     ):
         dprint("InterfaceAdminChange() - POST called")
-        retval, info = perform_interface_admin_change(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        return self._dispatch_action(
+            request,
+            group_id,
+            switch_id,
+            "interface_admin_change",
             interface_key=interface_name,
             new_state=bool(new_state),
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-
-        # we don't know the name of the interface, only the key or id.
-        # message = f"Interface {interface_name} description changed"
-        # message = f"Interface description changed"
-        return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 class InterfaceDescriptionChange(LoginRequiredMixin, View):
@@ -1301,10 +1249,8 @@ class InterfaceDescriptionChange(LoginRequiredMixin, View):
             error.description = "Missing required parameter: 'new_description'"
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-        retval, error = perform_interface_description_change(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, error = actions.interface_description_change(
             interface_key=interface_name,
             new_description=description,
         )
@@ -1349,10 +1295,8 @@ class InterfacePvidChange(LoginRequiredMixin, View):
             error.description = "Missing required parameter: 'new_pvid'"
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-        retval, info = perform_interface_pvid_change(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.interface_pvid_change(
             interface_key=interface_name,
             new_pvid=new_pvid,
         )
@@ -1365,7 +1309,7 @@ class InterfacePvidChange(LoginRequiredMixin, View):
 #
 # Change PoE status, i.e. port power Enable/Disable
 #
-class InterfacePoeChange(LoginRequiredMixin, MyView):
+class InterfacePoeChange(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Change the PoE status of an interfaces.
     This still needs to be tested for propper PoE port to interface ifIndex mappings.
@@ -1390,24 +1334,15 @@ class InterfacePoeChange(LoginRequiredMixin, MyView):
         new_state,
     ):
         dprint("InterfacePoeChange() - POST called")
-
-        # if new_state == POE_PORT_ADMIN_ENABLED:
-        #     enable = True
-        # else:
-        #     enable = False
         enable = new_state == POE_PORT_ADMIN_ENABLED
-
-        retval, info = perform_interface_poe_change(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        return self._dispatch_action(
+            request,
+            group_id,
+            switch_id,
+            "interface_poe_change",
             interface_key=interface_name,
             new_state=enable,
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 #
@@ -1426,11 +1361,10 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
         interface_name,
     ):
         dprint("InterfacePoeDownUp() - POST called")
+        actions = DeviceActions(request, group_id, switch_id)
+
         # disable power first:
-        retval, info = perform_interface_poe_change(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        retval, info = actions.interface_poe_change(
             interface_key=interface_name,
             new_state=False,
         )
@@ -1441,10 +1375,7 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
         time.sleep(settings.POE_TOGGLE_DELAY)
 
         # and enable again:
-        retval, info = perform_interface_poe_change(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        retval, info = actions.interface_poe_change(
             interface_key=interface_name,
             new_state=True,
         )
@@ -1528,10 +1459,8 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
         # if tagged_vlans = empty List(), then the interface should be in Access mode!
         # else it should be in Trunk or 802.1Q Tagged mode.
 
-        retval, info = perform_interface_tags_edit(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.interface_tags_edit(
             interface_key=interface_name,
             pvid=pvid,
             tagged_vlans=tagged_vlans,
@@ -1544,7 +1473,7 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
         return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
-class SwitchSaveConfig(LoginRequiredMixin, MyView):
+class SwitchSaveConfig(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     This will save the running config to flash/startup/whatever, on supported platforms
     """
@@ -1556,15 +1485,13 @@ class SwitchSaveConfig(LoginRequiredMixin, MyView):
         switch_id,
     ):
         dprint("SwitchSaveConfig() - POST called")
-        retval, error = perform_switch_save_config(
-            request=request,
-            group_id=group_id,
-            switch_id=switch_id,
+        return self._dispatch_action(
+            request,
+            group_id,
+            switch_id,
+            "switch_save_config",
+            message="Configuration was saved.",
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
-
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message="Configuration was saved.")
 
 
 class SwitchCmdOutput(LoginRequiredMixin, View):
@@ -1590,7 +1517,7 @@ class SwitchCmdOutput(LoginRequiredMixin, View):
         )
 
 
-class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
+class SwitchCmdTemplateOutput(LoginRequiredMixin, SwitchPermissionMixin, View):
     """
     Go parse a switch command template that was submitted in the form
     """
@@ -1603,23 +1530,9 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, View):
     ):
         dprint("SwitchCmdTemplateOutput() - POST called")
 
-        group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
-
-        if group is None or switch is None:
-            log = Log(
-                user=request.user,
-                ip_address=get_remote_ip(request),
-                switch=switch,
-                group=group,
-                type=LOG_TYPE_ERROR,
-                description="Permission denied!",
-            )
-            log.save()
-            error = Error()
-            error.status = True
-            error.description = "Access denied!"
-            counter_increment(COUNTER_ACCESS_DENIED)
-            return error_page(request=request, group=False, switch=False, error=error)
+        group, switch, denied = self._get_switch_or_deny(request, group_id, switch_id)
+        if denied:
+            return denied
 
         template_id = int(request.POST.get("template_id", -1))
         t = get_object_or_404(CommandTemplate, pk=template_id)
@@ -1841,7 +1754,7 @@ class InterfaceCmdOutput(LoginRequiredMixin, View):
         )
 
 
-class SwitchReload(LoginRequiredMixin, MyView):
+class SwitchReload(LoginRequiredMixin, SwitchPermissionMixin, MyView):
     """
     This forces a new reading of device data
     """
@@ -1855,23 +1768,9 @@ class SwitchReload(LoginRequiredMixin, MyView):
     ):
         dprint("SwitchReload() - POST called")
 
-        group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
-
-        if group is None or switch is None:
-            log = Log(
-                user=request.user,
-                ip_address=get_remote_ip(request),
-                switch=switch,
-                group=group,
-                type=LOG_TYPE_ERROR,
-                description="Permission denied!",
-            )
-            log.save()
-            error = Error()
-            error.status = True
-            error.description = "Access denied!"
-            counter_increment(COUNTER_ACCESS_DENIED)
-            return error_page(request=request, group=False, switch=False, error=error)
+        group, switch, denied = self._get_switch_or_deny(request, group_id, switch_id)
+        if denied:
+            return denied
 
         log = Log(
             user=request.user,
@@ -1891,7 +1790,7 @@ class SwitchReload(LoginRequiredMixin, MyView):
         return switch_view(request=request, group_id=group_id, switch_id=switch_id, view=view, save_needed=save_needed)
 
 
-class SwitchActivity(LoginRequiredMixin, View):
+class SwitchActivity(LoginRequiredMixin, SwitchPermissionMixin, View):
     """
     This shows recent activity logs for a specific device
     """
@@ -1904,23 +1803,10 @@ class SwitchActivity(LoginRequiredMixin, View):
     ):
         dprint("SwitchActivity() - GET called")
         template_name = "switch_activity.html"
-        group, switch = get_group_and_switch(request=request, group_id=group_id, switch_id=switch_id)
 
-        if group is None or switch is None:
-            log = Log(
-                user=request.user,
-                ip_address=get_remote_ip(request),
-                switch=switch,
-                group=group,
-                type=LOG_TYPE_ERROR,
-                description="Permission denied!",
-            )
-            log.save()
-            error = Error()
-            error.status = True
-            error.description = "Access denied!"
-            counter_increment(COUNTER_ACCESS_DENIED)
-            return error_page(request=request, group=False, switch=False, error=error)
+        group, switch, denied = self._get_switch_or_deny(request, group_id, switch_id)
+        if denied:
+            return denied
 
         # only show this switch. May add more filters later...
         filter_values = {"switch_id": switch_id}
@@ -2242,7 +2128,7 @@ class SwitchDownloadInterfaces(LoginRequiredMixin, MyView):
 
 class TestPage(LoginRequiredMixin, View):
     """create a page to test html templates.
-       For development only, available when DEBUG=true (see url.py)
+    For development only, available when DEBUG=true (see url.py)
     """
 
     def get(
