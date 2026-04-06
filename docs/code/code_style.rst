@@ -6,7 +6,7 @@ Code Style
 
 We welcome code additions, via Git Pull-Requests, or email, or whatever fashion works for you!
 
-We use *black* to enforce the code style. For more details see
+We use *black* and *ruff* to enforce the code style. For more details see
 https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html
 
 To document functions and classes, we use the Google comment style, see more at
@@ -28,3 +28,6 @@ Accessibility
 -------------
 
 Accessibility should be tested by using the WAVE Web Accessibility Evaluation Tool browser extension.
+
+WAVE Results minimumm requirements are no Errors and no Contrast Error.
+Code should not have Alerts unless absolutely necessary.
