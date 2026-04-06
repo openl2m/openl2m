@@ -222,7 +222,7 @@ class VLANAdmin(admin.ModelAdmin):
     search_fields = ["name", "vid"]
     # we just want all fields:
     # list_display = ['name', 'vid', 'description']
-    list_display = ["name", "use_count"]
+    list_display = ["name", "vid", "use_count"]
     inlines = (VlanInline, VlanSwitchInline)
 
     # return the number of VlanGroup() and SwitchGroups() objects that reference a given vlan (obj)
@@ -274,7 +274,7 @@ class SnmpProfileAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
     search_fields = ["name"]
-    list_display = ["name", "switch_count"]
+    list_display = ["name", "version", "switch_count"]
     fieldsets = (
         (
             None,
@@ -325,7 +325,7 @@ class NetmikoProfileAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
     search_fields = ["name"]
-    list_display = ["name", "switch_count"]
+    list_display = ["name", "device_type", "switch_count"]
     fieldsets = (
         (
             None,
@@ -440,7 +440,7 @@ class CommandTemplateAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
     search_fields = ["name"]
-    list_display = ["name", "switch_count"]
+    list_display = ["name", "os", "switch_count"]
     fieldsets = (
         (None, {"fields": ("name", "os", "description", "template")}),
         (
