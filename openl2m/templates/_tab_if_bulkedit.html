@@ -129,7 +129,7 @@
                   <br>
                   <select class="mt-1" name="bulk_new_description_type" id="bulk_new_description_type" data-bs-toggle="tooltip"
                           title="Just edit, or append to end"
-                          aira-label="Edit or Append description on selected interfaces">
+                          aria-label="Edit or Append description on selected interfaces">
                     {% for choice,name in BULKEDIT_ALIAS_TYPE_CHOICES %}
                       <option value="{{ choice }}">{{ name }}</option>
                     {% endfor %}
