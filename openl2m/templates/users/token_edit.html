@@ -21,10 +21,10 @@
           method="post"
           >
         {% else%}
-          <form name="token_add"
-          action="{% url 'users:token_add' %}"
-          method="post"
-          >
+        <form name="token_add"
+        action="{% url 'users:token_add' %}"
+        method="post"
+        >
         {% endif %}
         {% csrf_token %}
         <table class="table table-hover table-headings">
@@ -102,11 +102,11 @@
               <td></td>
             {% endif %}
           </tr>
-        </form>
         </tbody>
         </table>
-      </div>
-    </div>
-  </div>
-</div>
+        </form>
+      </div>{# card-header #}
+    </div>{# card #}
+  </div>{# col #}
+</div>{# row #}
 {% endblock %}
