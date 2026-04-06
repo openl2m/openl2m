@@ -24,7 +24,7 @@ class CounterAdmin(admin.ModelAdmin):
     save_on_top = True
     search_fields = ['name']
     # we just want all fields:
-    list_display = ('name', 'value')
+    list_display = ('name', 'value', 'description')
 
 
 admin_site.register(Counter, CounterAdmin)
