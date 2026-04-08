@@ -105,7 +105,7 @@ class ArubaAOSsRestConnector(RESTConnector):
         # capabilities supported by this eAPI driver:
         self.can_change_admin_status = True
         self.can_change_vlan = True
-        self.can_change_poe_status = False
+        self.can_change_poe_status = True
         self.can_change_description = True
         self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
@@ -834,69 +834,61 @@ class ArubaAOSsRestConnector(RESTConnector):
             self.error.details = format(err)
             return False
 
-    # def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
-    #     """
-    #     set the interface Power-over-Ethernet status as given
-    #     interface = Interface() object for the requested port
+    def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
+        """
+        set the interface Power-over-Ethernet status as given
+        interface = Interface() object for the requested port
 
-    #     Args:
-    #         interface: the Interface to modify
-    #         new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
+        Args:
+            interface: the Interface to modify
+            new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
 
-    #     Returns:
-    #         True on success, False on error and set self.error variables
-    #     """
-    #     dprint(f"Aruba_AOSS_RestConnector.set_interface_poe_status() for {interface.name} to {new_state}")
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(f"Aruba_AOSS_RestConnector.set_interface_poe_status() for {interface.name} to {new_state}")
 
-    #     if not interface.poe_entry:
-    #         # this should never happen!
-    #         dprint("PoE change requested, but interface does not support PoE!!!")
-    #         self.error.status = True
-    #         self.error.description = "PoE change requested, but interface does not support PoE!!!"
-    #         self.error.details = ""
-    #         return False
+        if not interface.poe_entry:
+            # this should never happen!
+            dprint("PoE change requested, but interface does not support PoE!!!")
+            self.error.status = True
+            self.error.description = "PoE change requested, but interface does not support PoE!!!"
+            self.error.details = ""
+            return False
 
-    #     if interface.poe_entry.pse_id < 0:
-    #         # this should never happen!
-    #         dprint("PoE change requested, but invalid Power Suply ID found!")
-    #         self.error.status = True
-    #         self.error.description = "PoE change requested, but invalid Power Suply ID found!"
-    #         self.error.details = ""
-    #         return False
+        if not self._open_device():
+            return False
 
-    #     if not self._open_device():
-    #         return False
+        if new_state == POE_PORT_ADMIN_ENABLED:
+            state = True  # True=PoE enabled, False=disabled
+        else:
+            state = False
 
-    #     if new_state == POE_PORT_ADMIN_ENABLED:
-    #         state = True     # True=PoE enabled, False=disabled
-    #     else:
-    #         state = False
+        # body data
+        data = {
+            "port_id": interface.key,  # note: this uses port_id, instead of id. Likely as this can only be real switch ports!
+            "is_poe_enabled": state,
+        }
 
-    #     # body data
-    #     data = {
-    #         "id": interface.key,
-    #         "is_power_enabled": state,
-    #     }
-
-    #     # go set PoE state
-    #     try:
-    #         resp = self._put(path=f"/ports/poe/{interface.key}", data=json.dumps(data))
-    #         self._close_device()
-    #         if resp:
-    #             # all OK, now do the book keeping
-    #             super().set_interface_poe_status(interface, new_state)
-    #             return True
-    #         # error ?
-    #         self.error.status = True
-    #         self.error.description = f"Error setting PoE state to {status_name}!"
-    #         self.error.details = "We're not sure what happened (?)"
-    #         return False
-    #     except Exception as err:
-    #         self._close_device()
-    #         self.error.status = True
-    #         self.error.description = f"Error setting PoE to {status_name}!"
-    #         self.error.details = format(err)
-    #         return False
+        # go set PoE state
+        try:
+            resp = self._put(path=f"ports/{interface.key}/poe", data=json.dumps(data))
+            self._close_device()
+            if resp:
+                # all OK, now do the book keeping
+                super().set_interface_poe_status(interface, new_state)
+                return True
+            # error ?
+            self.error.status = True
+            self.error.description = f"Error setting PoE state to {state}!"
+            self.error.details = "We're not sure what happened (?)"
+            return False
+        except Exception as err:
+            self._close_device()
+            self.error.status = True
+            self.error.description = f"Error setting PoE to {state}!"
+            self.error.details = format(err)
+            return False
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
