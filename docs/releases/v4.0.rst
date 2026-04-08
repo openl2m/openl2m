@@ -55,8 +55,11 @@ Release Date: TBD
 * add 802.1Q tags (trunk) vlan editing for base SNMP and HPE/Aruba Procurve/AOS-S switches.
   We use the standard Q-Bridge MIB for this. See supported feature notes in the documentation for more details.
 * Add IPv4 ARP info for device using the Aruba AOS-S REST driver.
+* add PoE on-off capability for Aruba AOS-S REST driver.
 * enable 802.1q tags edit for Admins by default.
 * update to FontAwesome v7.2.0 (from v7.1.0)
+* some admin screens have improved list views.
+* various accessibility improvements.
 
 Bug fixes:
 
@@ -64,6 +67,8 @@ Bug fixes:
 * driver support matrices are updated with valid info.
 * make all id attributes unique in interface tags edit popup page.
 * remove leading blank line at start of html page.
+* several html form errors fixed.
+* code refactoring and simplications use Claude Code
 
 
 Version 4.0.3

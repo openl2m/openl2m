@@ -96,7 +96,7 @@ Features Supported
      - Yes
      - Yes
 
-   * - MikroTik (snmp)  :sup:`5`
+   * - MikroTik (snmp) :sup:`5`
      - Yes
      -
      - R/O
@@ -176,10 +176,10 @@ Features Supported
      - Yes
      - Yes
 
-   * - Aruba AOS-S (api r/o) :sup:`1`
+   * - Aruba AOS-S (api) :sup:`1`
      - Yes
      - Yes
-     - NO
+     - Yes
      - Yes
      - No
      - Yes
@@ -188,7 +188,7 @@ Features Supported
      - Yes
      - n/a
 
-   * - HPE Comware (api)  :sup:`2`
+   * - HPE Comware (api) :sup:`2`
      - Yes
      - Yes
      - Yes :sup:`2`
@@ -200,7 +200,7 @@ Features Supported
      - Yes
      - Yes
 
-   * - Junos (PyEZ)  :sup:`3`
+   * - Junos (PyEZ) :sup:`3`
      - Yes
      - Yes
      - Yes
@@ -242,11 +242,11 @@ Features Supported
 
   *untested* means the feature likely works, but is (clearly) untested.
 
-  :sup:`1` The AOS-S REST api driver requires firmware v16.x. This has been tested on a single 2930M,
-  using firmware v16.11.x, and REST api v4. It should function on the 2530, 2540, 2920, 2930F, 2930M,
-  3810 and 5400R line of devices with the proper software levels.
 
-  Due to lack of test hardware, PoE support has not been implemented.
+  :sup:`1` The AOS-S REST api driver requires firmware v16.x. This has been tested using firmware v16.11.0029, and REST api v4,
+  on the following single devices: 2530(PoE), 2940(PoE), 2930M, and 2930F(PoE). It should function on the 2530, 2540, 2920,
+  2930F, 2930M, 3810 and 5400R line of devices with the proper software levels.
+
 
   :sup:`2` The Comware REST API is in development. Most features are supported.
 
@@ -254,11 +254,14 @@ Features Supported
     Other interfaces will show as 'n/s' (not supported), even though they may support PoE.
   - Interface descriptions can be set, but NOT cleared at this time.
 
+
   :sup:`3` The Junos PyEZ driver expects a **device with "ELS" software**, ie running Enhanced Layer2 Software,
   that unifies the configuration of Ethernet interfaces access the product line. **Many MX routers do
   not support this, and have not been tested!**
 
+
   :sup:`4` SSH support is via the Netmiko library. Most devices supported by that library should work, but
   your mileage may vary!
+
 
   :sup:`5` Napalm support has been tested on a limited set of devices. Your mileage may vary!

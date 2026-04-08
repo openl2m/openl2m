@@ -58,17 +58,19 @@ Via SNMP:
 
 * *HP 2520* series; single units.
 * *HP 2530* series; single units.
-* *HP 2540* series; single units.
 * *HP 2810* series, single units.
 * *HP 4200* series, specifically 4204vl (J8770A).
+* *Aruba 2540* series; single units.
 * *Aruba 2930F/M* series; single units.
 * *Aruba 5400* series; chassis based, regular, zl, and zl2.
 
 Via REST api:
 
 Any device that can run v16.x of AOS-S, and has the REST api enabled (see configuration page).
-This has been tested on a single 2930M, using firmware v16.11.x, and REST api v4.
-Due to lack of test hardware, PoE support has not been implemented.
+We recommend firmware v16.11.0029 or newer. This was tested on:
+
+* *2930M JL319A* (WC.16.11.0029 firmware)
+* *2940 JL357A* (YC.16.11.0029 firmware )
 
 **Aruba AOS-CX**
 

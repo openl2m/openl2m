@@ -19,8 +19,8 @@ Aruba AOS-CX
 Aruba AOS-S
 -----------
 * any device that can run v16.x of AOS-S, and has the REST api enabled (see configuration page).
-* This has been tested on a single 2930M, using firmware v16.11.x, and REST api v4.
-* Due to lack of test hardware, PoE support has not been implemented.
+* This has been tested on a single 2530(PoE), 2540(PoE), 2930M, and 2930F(PoE) using firmware v16.11.0029,
+  and REST api v4.
 
 HPE/Aruba Comware REST API
 --------------------------
