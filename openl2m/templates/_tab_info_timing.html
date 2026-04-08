@@ -6,15 +6,17 @@
     <strong>Timing Info</strong>
   </div>
   <div class="card-body">
-    <table class="table table-striped table-hover table-headings w-auto">
-      <thead>
-      <tr><th>Name</th><th>Count</th><th>Time</th></tr>
-      </thead>
-      <tbody>
-      {% for name,info in connection.timing.items %}
-        <tr><td>{{ name }}</td><td>{{ info.0 }}</td><td>{{ info.1|floatformat:3 }}</td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
+    <div class="fw-bold border-bottom pb-1 mb-1 row">
+      <div class="col-5">Name</div>
+      <div class="col-2">Count</div>
+      <div class="col">Time</div>
+    </div>
+    {% for name,info in connection.timing.items %}
+      <div class="row p-1{% cycle '' ' bg-light' %}">
+        <div class="col-5">{{ name }}</div>
+        <div class="col-2">{{ info.0 }}</div>
+        <div class="col">{{ info.1|floatformat:3 }}</div>
+      </div>
+    {% endfor %}
   </div>
 </div>
