@@ -7,17 +7,19 @@
   </div>
   <div class="card-body">
   {% if connection.poe_capable %}
-    <table class="table table-striped table-hover table-headings w-auto">
-      <tbody>
-        <tr><td><strong>Total:</strong></td><td>{{ connection.poe_max_power }} Watts Available, {{ connection.poe_power_consumed }} W ({{ connection.poe_power_consumed|as_percentage_of:connection.poe_max_power }}) Used</td></tr>
-      {% for pse_index, pse in connection.poe_pse_devices.items %}
-        <tr><td><strong>PSE #{{ pse_index }}:</strong></td><td>{{ pse.status|get_poe_pse_status }},
+    <div class="row p-1">
+      <div class="col-2"><strong>Total:</strong></div>
+      <div class="col">{{ connection.poe_max_power }} Watts Available, {{ connection.poe_power_consumed }} W ({{ connection.poe_power_consumed|as_percentage_of:connection.poe_max_power }}) Used</div>
+    </div>
+    {% for pse_index, pse in connection.poe_pse_devices.items %}
+      <div class="row p-1{% cycle '' ' bg-light' %}">
+        <div class="col-2"><strong>PSE #{{ pse_index }}:</strong></div>
+        <div class="col">{{ pse.status|get_poe_pse_status }},
           Max {{ pse.max_power }} Watts, Using {{ pse.power_consumed }} W ({{ pse.power_consumed|as_percentage_of:pse.max_power }}), Threshold = {{ pse.threshold }}%.
           {% if pse.description %}<br />{{ pse.description}}{% endif %}
-        </td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
+        </div>
+      </div>
+    {% endfor %}
   {% else %}
     <div>Not found.</div>
   {% endif %}
