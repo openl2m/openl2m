@@ -28,14 +28,16 @@ from django.http.request import HttpRequest
 # used to disable unknown SSL cert warnings:
 import urllib3
 
-from switches.connect.classes import Interface, Vlan, Transceiver, NeighborDevice
+from switches.connect.classes import Interface, Vlan, Transceiver, NeighborDevice, PoePort
 
 # from switches.connect.classes import PoePort, StackMember
 from switches.connect.restconnector import RESTConnector
 from switches.connect.constants import (
     # VLAN_ADMIN_DISABLED,
-    # POE_PORT_ADMIN_DISABLED,
-    # POE_PORT_ADMIN_ENABLED,
+    POE_PORT_ADMIN_DISABLED,
+    POE_PORT_ADMIN_ENABLED,
+    POE_PORT_DETECT_DELIVERING,
+    POE_PORT_DETECT_FAULT,
     # IF_DUPLEX_UNKNOWN,
     # IF_DUPLEX_HALF,
     # IF_DUPLEX_FULL,
@@ -111,7 +113,7 @@ class ArubaAOSsRestConnector(RESTConnector):
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
         self.can_allow_all = (
-            True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
+            False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
         )
 
     def __del__(self):
@@ -270,6 +272,11 @@ class ArubaAOSsRestConnector(RESTConnector):
             self.add_more_info("System", "Model", system_status["product_model"])
             self.add_more_info("System", "Serial", system_status["serial_number"])
             self.add_more_info("System", "OS Version", system_status["firmware_version"])
+            if "total_poe_consumption" in system_status:
+                self.poe_capable = True
+                self.poe_enabled = True
+                self.add_more_info("System", "PoE Used", f"{system_status['total_poe_consumption']}W")
+
             # add to driver info:
             self.set_driver_info(name="model", value=system_status["product_model"])
             self.set_driver_info(name="os_version", value=system_status["firmware_version"])
@@ -401,9 +408,107 @@ class ArubaAOSsRestConnector(RESTConnector):
                 else:  # should not happen:
                     dprint(f"WARNING: Interface() not found for id={pstat['id']}")
 
-        # #
-        # # get PoE data
-        # #
+        #
+        # get PoE data
+        #
+        #
+        # "poe/ports? gives a few things, such as power allocated.
+        # we don't parse this at this time.
+        #
+        # poe_ports = self._get(path="poe/ports")
+        # if poe_ports:
+        #     dprint("poe/ports to be parsed (no test hardware!)")
+        #     for poe_port in poe_ports['port_poe']:
+        #         dprint(f"POE PORT: {poe_port}")
+        #         # 'port_poe': [{'allocated_power_in_watts': 15,
+        #         #            'is_poe_enabled': True,
+        #         #            'poe_allocation_method': 'PPAM_USAGE',
+        #         #            'poe_priority': 'PPP_LOW',
+        #         #            'port_configured_type': '',
+        #         #            'port_id': '1',
+        #         #            'pre_standard_detect_enabled': False,
+        #         #            'uri': '/ports/1/poe'},
+        #         #           ...
+
+        #
+        # This gives the actual state of the PoE on a port:
+        #
+        stats = self._get(path="poe/ports/stats")
+        if stats:
+            dprint("system/status/switch to be parsed...")
+            for poe_stats in stats["port_poe_stats"]:
+                # {'actual_power_drawn_in_watts': 0.0,
+                #  'actual_power_in_watts': 0,
+                #  'mps_absent_count': 0,
+                #  'over_current_count': 0,
+                #  'poe_detection_status': 'PPDS_SEARCHING',
+                #  'port_id': '3',
+                #  'port_voltage_in_volts': 0,
+                #  'power_class': 0,
+                #  'power_denied_count': 0,
+                #  'short_count': 0,
+                #  'uri': '/ports/3/poe/stats'},
+                # {'actual_power_drawn_in_watts': 4.5,
+                #  'actual_power_in_watts': 4,
+                #  'mps_absent_count': 0,
+                #  'over_current_count': 0,
+                #  'poe_detection_status': 'PPDS_DELIVERING',
+                #  'port_id': '4',
+                #  'port_voltage_in_volts': 54,
+                #  'power_class': 3,
+                #  'power_denied_count': 0,
+                #  'short_count': 0,
+                #  'uri': '/ports/4/poe/stats'},
+                iface = self.get_interface_by_key(key=poe_stats["port_id"])
+                if iface:
+                    poe_entry = PoePort(index=iface.key, admin_status=POE_PORT_ADMIN_ENABLED)
+                    match poe_stats["poe_detection_status"]:
+                        case "PPDS_DELIVERING":
+                            poe_entry.detect_status = POE_PORT_DETECT_DELIVERING
+                            poe_entry.power_consumption_supported = True
+                            poe_entry.power_consumed = (
+                                float(poe_stats["actual_power_drawn_in_watts"]) * 1000
+                            )  # in milliWatts !
+                        case "PPDS_DISABLE":
+                            poe_entry.admin_status = POE_PORT_ADMIN_DISABLED
+                        case "PPDS_FAULT":
+                            poe_entry.detect_status = POE_PORT_DETECT_FAULT
+                        # case "PPDS_SEARCHING":  # the default of a new PoePort() object
+
+                    iface.poe_entry = poe_entry
+
+        # some PoE can also be read from "system/status/switch"
+        # stats = self._get(path="system/status/switch")
+        # if stats:
+        #     dprint("system/status/switch to be parsed...")
+        #     for blade in stats["blades"]:
+        #         try:
+        #             for port in blade["data_ports"]:
+        #                 # {
+        #                 #   'adminStatus': 'ADMIN_UP',
+        #                 #   'alignment': 'PA_TOP',
+        #                 #   'is_internal': False,
+        #                 #   'is_smartrate': False,
+        #                 #   'mode': 'PCM_AUTO',
+        #                 #   'operStatus': 'OPER_UP',
+        #                 #   'oper_mode': 'OM_1000_FDX',
+        #                 #   'port_id': 49,
+        #                 #   'port_name': '49',
+        #                 #   'sub_type': '1000LX',
+        #                 #   'type': 'PT_GBIC'
+        #                 # },
+        #                 iface = self.get_interface_by_key(key=port["port_id"])
+        #                 if iface:
+        #                     if "poe_status" in port:
+        #                         if port["poe_status"] in ("POES_SEARCHING", "POES_DELIVERING"):
+        #                             poe_entry = PoePort(index=iface.key, admin_status=POE_PORT_ADMIN_ENABLED)
+        #                             if port["poe_status"] == "POES_DELIVERING":
+        #                                 poe_entry.detect_status = POE_PORT_DETECT_DELIVERING
+        #                         else:
+        #                             poe_entry = PoePort(admin_status=POE_PORT_ADMIN_DISABLED)
+        #                         iface.poe_entry = poe_entry
+        #         except Exception as err:
+        #             dprint(f"ERROR parsing system/status/switch: {err}")
 
         #
         # PoE PowerSupplies
@@ -431,37 +536,6 @@ class ArubaAOSsRestConnector(RESTConnector):
                     pse.set_enabled()
                 else:
                     pse.set_disabled()
-
-        #
-        # PoE Ports - no device to test against
-        #
-        # poe_ports = self._get(path="poe/ports")
-        # if poe_ports:
-        #     dprint("poe/ports to be parsed (no test hardware!)")
-        #
-        # this returns "PortPoe" element, which has the following attributes:
-        #     "uri":
-        #     "port_id":
-        #     "is_poe_enabled":
-        #         "description": "Port PoE status",
-        #         "type": "boolean",
-        #     "poe_priority":
-        #         "description": "Port PoE priority",
-        #         "default_value": "PPP_LOW"
-        #     "poe_allocation_method":
-        #         "description": "PoE allocation method",
-        #         "default_value": "PPAM_USAGE"
-        #     "allocated_power_in_watts":
-        #         "description": "Allocated power value. Default value for this param is platform dependent.",
-        #         "type": "integer"
-        #     "port_configured_type":
-        #         "description": "Port configured type",
-        #         "type": "string",
-        #         "maxLength": 256,
-        #         "minLength": 0
-        #     "pre_standard_detect_enabled":
-        #         "description": "pre_std_detect enabled/disable",
-        #         "type": "boolean"
 
         #
         # get interface IPv4 and IPv6 addresses
