@@ -583,29 +583,29 @@ class SnmpConnector(Connector):
         self.object_id = ""  # SNMP system OID value, used to find type of switch
         self.sys_uptime = 0  # sysUptime is a tick count in 1/100th of seconds per tick, since boot
         self.sys_uptime_timestamp = 0  # timestamp when sysUptime was read.
-        self.qbridge_port_to_if_index: dict[
-            int, str
-        ] = {}  # this maps Q-Bridge port id as key (int) to MIB-II ifIndex (str)
-        self.dot1tp_fdb_to_vlan_index: dict[
-            int, int
-        ] = {}  # forwarding database index to vlan index mapping. Note many switches do not use this...
-        self.ip4_to_if_index: dict[
-            str, str
-        ] = {}  # the IPv4 addresses as keys, with stored value ifIndex (string); needed to map netmask to interface
+        self.qbridge_port_to_if_index: dict[int, str] = (
+            {}
+        )  # this maps Q-Bridge port id as key (int) to MIB-II ifIndex (str)
+        self.dot1tp_fdb_to_vlan_index: dict[int, int] = (
+            {}
+        )  # forwarding database index to vlan index mapping. Note many switches do not use this...
+        self.ip4_to_if_index: dict[str, str] = (
+            {}
+        )  # the IPv4 addresses as keys, with stored value ifIndex (string); needed to map netmask to interface
         # self.has_connector = True   # value of IFMIB_CONNECTOR
 
         # VLAN related variables
-        self.vlan_id_by_index: dict[
-            int, int
-        ] = {}  # list of vlan indexes and their vlan ID's. Note on many switches these two are the same!
+        self.vlan_id_by_index: dict[int, int] = (
+            {}
+        )  # list of vlan indexes and their vlan ID's. Note on many switches these two are the same!
 
         # SNMP context related (used in v3 only, for most devices)
         self.vlan_id_context = 0  # non-zero if the current function is running in the context of a specific vlan
 
         # PoE related:
-        self.poe_port_entries: dict[
-            str, PoePort
-        ] = {}  # PoePort() port power entries, used to store until we can map to interface
+        self.poe_port_entries: dict[str, PoePort] = (
+            {}
+        )  # PoePort() port power entries, used to store until we can map to interface
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         # Note that for this 'generic' SNMP driver, we don't set defaults!
@@ -628,7 +628,6 @@ class SnmpConnector(Connector):
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
         """
         attributes to track ezsnmp library
@@ -1362,7 +1361,7 @@ class SnmpConnector(Connector):
         sub_oid = oid_in_branch(dot1qVlanStatus, oid)
         if sub_oid:
             dprint(f"  Found dot1qVlanStatus for sub_oid {sub_oid}")
-            (dummy, v) = sub_oid.split(".")
+            dummy, v = sub_oid.split(".")
             vlan_id = int(v)
             status = int(val)
             if vlan_id in self.vlans:
@@ -1462,7 +1461,7 @@ class SnmpConnector(Connector):
         if sub_oid:
             dprint(f"  Found dot1qVlanCurrentEgressPorts for sub_oid {sub_oid}")
             # sub oid part is dot1qVlanCurrentEgressPorts.timestamp.vlan_id = bitmap
-            (time_val, v) = sub_oid.split(".")
+            time_val, v = sub_oid.split(".")
             vlan_id = int(v)
             # check if vlan is globally defined on switch:
             if vlan_id not in self.vlans:
@@ -1727,7 +1726,7 @@ class SnmpConnector(Connector):
             # vlans with port members
             dprint(f"Found ieee8021QBridgeVlanCurrentEgressPorts, sub_oid = '{sub_oid}'")
             # sub oid part is ieee8021QBridgeVlanCurrentEgressPorts.instance.timestamp.vlan_id = bitmap
-            (ignore, time_val, v) = sub_oid.split(".")
+            ignore, time_val, v = sub_oid.split(".")
             vlan_id = int(v)
             # check if vlan is globally defined on switch:
             if vlan_id not in self.vlans:
@@ -1841,7 +1840,7 @@ class SnmpConnector(Connector):
             # decimals returned are fdb index and then 6 numbers representing the MAC address!
             # e.g.    458752.120.72.89.101.150.155
             # fdb_index maps back to the vlan id!
-            (fdb_index, eth_decimals) = fdb_eth_decimals.split(".", 1)
+            fdb_index, eth_decimals = fdb_eth_decimals.split(".", 1)
             # the last 6 decimals need to be converted to hex values with hyphens aa-bb-cc-11-22-33
             eth_string = decimal_to_hex_string_ethernet(eth_decimals)
             port_id = int(val)
@@ -2607,7 +2606,7 @@ class SnmpConnector(Connector):
 
         lldp_index = oid_in_branch(lldpRemPortId, oid)
         if lldp_index:
-            (extra_one, port_id, extra_two) = lldp_index.split(".")
+            extra_one, port_id, extra_two = lldp_index.split(".")
             # store the new lldp object, based on the string index.
             # need to find the ifIndex first.
             # did we find Q-Bridge mappings?
@@ -2626,7 +2625,7 @@ class SnmpConnector(Connector):
         # lldpRemPortIdSubType is used to indicate what the value from "lldpRemPortId" means.
         lldp_index = oid_in_branch(lldpRemPortIdSubType, oid)
         if lldp_index:
-            (extra_one, port_id, extra_two) = lldp_index.split(".")
+            extra_one, port_id, extra_two = lldp_index.split(".")
             # store the new lldp object, based on the string index.
             # need to find the ifIndex first.
             # did we find Q-Bridge mappings?
@@ -2648,7 +2647,7 @@ class SnmpConnector(Connector):
 
         lldp_index = oid_in_branch(lldpRemPortDesc, oid)
         if lldp_index:
-            (extra_one, port_id, extra_two) = lldp_index.split(".")
+            extra_one, port_id, extra_two = lldp_index.split(".")
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
@@ -2660,7 +2659,7 @@ class SnmpConnector(Connector):
 
         lldp_index = oid_in_branch(lldpRemSysName, oid)
         if lldp_index:
-            (extra_one, port_id, extra_two) = lldp_index.split(".")
+            extra_one, port_id, extra_two = lldp_index.split(".")
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
@@ -2672,7 +2671,7 @@ class SnmpConnector(Connector):
 
         lldp_index = oid_in_branch(lldpRemSysDesc, oid)
         if lldp_index:
-            (extra_one, port_id, extra_two) = lldp_index.split(".")
+            extra_one, port_id, extra_two = lldp_index.split(".")
             port_id = int(port_id)
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
@@ -2686,7 +2685,7 @@ class SnmpConnector(Connector):
         # parse enabled capabilities
         lldp_index = oid_in_branch(lldpRemSysCapEnabled, oid)
         if lldp_index:
-            (extra_one, port_id, extra_two) = lldp_index.split(".")
+            extra_one, port_id, extra_two = lldp_index.split(".")
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
@@ -2700,7 +2699,7 @@ class SnmpConnector(Connector):
 
         lldp_index = oid_in_branch(lldpRemChassisIdSubtype, oid)
         if lldp_index:
-            (extra_one, port_id, extra_two) = lldp_index.split(".")
+            extra_one, port_id, extra_two = lldp_index.split(".")
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
@@ -2718,7 +2717,7 @@ class SnmpConnector(Connector):
 
         lldp_index = oid_in_branch(lldpRemChassisId, oid)
         if lldp_index:
-            (extra_one, port_id, extra_two) = lldp_index.split(".")
+            extra_one, port_id, extra_two = lldp_index.split(".")
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
@@ -3030,7 +3029,7 @@ class SnmpConnector(Connector):
             return True
         if oid == sysDescr:
             self.add_more_info("System", "Model", value)
-            self.set_driver_info(name="model", value=value)     # can be overwritten by "chassis" info from entities MIB
+            self.set_driver_info(name="model", value=value)  # can be overwritten by "chassis" info from entities MIB
             return True
         if oid == sysContact:
             self.add_more_info("System", "Contact", value)
@@ -3044,7 +3043,7 @@ class SnmpConnector(Connector):
         """
         Get the current sysUpTime timetick for the device.
         """
-        (error_status, snmpval) = self.get(sysUpTime, parser=self._parse_mibs_system)
+        error_status, snmpval = self.get(sysUpTime, parser=self._parse_mibs_system)
         # sysUpTime is ticks in 1/100th of second since boot
         self.sys_uptime_timestamp = time.time()
 
@@ -3903,7 +3902,7 @@ class SnmpConnector(Connector):
         # Remove port from list of ports on old vlan,
         # i.e. read current Egress PortList bitmap first:
         dprint("Reading egress ports:")
-        (error_status, snmpval) = self.get(
+        error_status, snmpval = self.get(
             f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", parser=self._parse_mibs_vlan_related
         )
         if error_status:
@@ -3946,18 +3945,20 @@ class SnmpConnector(Connector):
         # tagged/untagged on the old and new vlan
         # note the 0 to hopefully deactivate time filter!
         dprint("Get OLD VLAN Current Egress Ports")
-        (error_status, snmpval) = self.get(
+        error_status, snmpval = self.get(
             f"{dot1qVlanCurrentEgressPorts}.0.{old_vlan_id}", parser=self._parse_mibs_vlan_related
         )
         dprint("Get NEW VLAN Current Egress Ports")
-        (error_status, snmpval) = self.get(
+        error_status, snmpval = self.get(
             f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_related
         )
         interface.untagged_vlan = new_vlan_id
         dprint("SnmpConnector.set_interface_untagged_vlan() -> True")
         return True
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False) -> bool:
+    def set_interface_vlans(
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
+    ) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
 
@@ -4014,7 +4015,7 @@ class SnmpConnector(Connector):
                 # Remove port from list of ports on old vlan,
                 # i.e. read current Egress PortList bitmap first:
                 dprint("Reading egress ports:")
-                (error_status, snmpval) = self.get(
+                error_status, snmpval = self.get(
                     f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", parser=self._parse_mibs_vlan_related
                 )
                 if error_status:
@@ -4072,7 +4073,7 @@ class SnmpConnector(Connector):
                 # bitmpa. In our testing, using dot1qVlanStaticEgressPorts vlan port bitmap does not!
 
                 # read the static ports active on this vlan.
-                (error_status, snmpval) = self.get(f"{dot1qVlanStaticEgressPorts}.{vlan_id}", parser=False)
+                error_status, snmpval = self.get(f"{dot1qVlanStaticEgressPorts}.{vlan_id}", parser=False)
                 if error_status:
                     raise Exception(f"IGNORING Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
                 vlan_port_bitmap = PortList()
@@ -4127,7 +4128,9 @@ class SnmpConnector(Connector):
 
         # all OK, now do the book keeping
         dprint("---\nCalling Bookkeeping...")
-        super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
+        super().set_interface_vlans(
+            interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
+        )
 
         return True
 
@@ -4218,7 +4221,7 @@ class SnmpProbeConnector(SnmpConnector):
             If we cannot read the OID, throw generic exception.
         """
         dprint("get_system_oid()")
-        (error_status, retval) = self.get(oid=sysObjectID, parser=self._parse_mibs_system)
+        error_status, retval = self.get(oid=sysObjectID, parser=self._parse_mibs_system)
         if error_status:
             self.add_log(description=self.error.details, type=LOG_TYPE_ERROR, action=LOG_SNMP_ERROR)
             raise Exception(f"Error getting System OID: {self.error.details}")

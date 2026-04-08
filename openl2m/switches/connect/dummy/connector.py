@@ -55,7 +55,6 @@ class DummyConnector(Connector):
         self.can_change_poe_status = True
         self.can_change_vlan = True
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = True    # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
     def get_my_basic_info(self):
         dprint("Dummy Connector get_my_basic_info()")

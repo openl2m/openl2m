@@ -36,8 +36,7 @@
           </div>
           <div class="fw-bolder mb-2">Select the 802.1q tagged vlans:</div>
           <div class="fst-italic mb-2">Note: not selecting any tagged vlan<br />makes the interface an 'access' port!</div>
-          {# ALLOW ALL checkbox #}
-          {% if connection.can_allow_all %}
+          {# ALLOW ALL checkbox for convenience #}
           <div class="mb-2">
             <fieldset>
               <legend class="visually-hidden">Check to allow ALL vlans as tagged</legend>
@@ -47,7 +46,6 @@
             </fieldset>
           </div>
           <div class="fst-italic mb-2">Or select specific vlans to allow:</div>
-          {% endif %}
           {# VLANS TO ALLOW #}
             <fieldset><legend class="visually-hidden">VLANS to tag on 802.1q trunk</legend>
           {% for vlan_id, vlan in connection.vlans.items %}
@@ -55,11 +53,9 @@
               {# needs work to mark tag enabled vlan with checkbox! #}
                   <div><input class="form-check-input" type="checkbox" value="{{vlan_id}}"
                               name="tagged_vlans" id="tagged_vlan_{{ iface.key|underscore }}_{{vlan_id}}"
+                              onclick="tagged_vlan_clicked_{{ iface.key|underscore }}(this)"
                   {% if vlan_id in iface.vlans %}
                               checked
-                  {% endif %}
-                  {% if connection.can_allow_all %}
-                              onclick="tagged_vlan_clicked_{{ iface.key|underscore }}(this)"
                   {% endif %}
                   >
                   <label class="form-check-label" for="tagged_vlan_{{ iface.key|underscore }}_{{ vlan_id }}">
@@ -104,8 +100,6 @@
               // Update text on button
               spanText.textContent = 'Updating...';
             });
-
-          {% if connection.can_allow_all %}
             function allow_all_clicked_{{ iface.key|underscore }}(allow_all) {
               if (allow_all.checked) {
                 // uncheck all individual vlans
@@ -122,7 +116,6 @@
                 allow_all.checked = false
               }
             }
-          {% endif %}
           </script>
         </form>
       </div> {# modal-body #}

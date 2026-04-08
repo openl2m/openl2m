@@ -112,24 +112,24 @@ class Connector:
 
         self.show_interfaces = True  # If False, do NOT show interfaces, vlans etc... for command-only devices.
         # data we collect and potentially cache:
-        self.interfaces: dict[
-            str, Interface
-        ] = {}  # Interface() objects representing the ports on this switch, key is if_name *as string!*
+        self.interfaces: dict[str, Interface] = (
+            {}
+        )  # Interface() objects representing the ports on this switch, key is if_name *as string!*
         self.vlans: dict[int, Vlan] = {}  # Vlan() objects on this switch, key is vlan id *as integer!* (not index!)
         self.vlan_count = 0  # number of vlans defined on device
         self.vrfs: dict[str, Vrf] = {}  # VRFs available on this device.
-        self.ip4_to_if_index: dict[
-            str, int
-        ] = {}  # the IPv4 addresses as keys, with stored value if_index; needed to map netmask to interface
+        self.ip4_to_if_index: dict[str, int] = (
+            {}
+        )  # the IPv4 addresses as keys, with stored value if_index; needed to map netmask to interface
         # some flags:
         self.cache_loaded = False  # if True, system data was loaded from cache
         # some timestamps:
         self.basic_info_read_timestamp = 0  # when the last 'basic' read occured
 
         # data we calculate or collect without caching:
-        self.allowed_vlans: dict[
-            int, Vlan
-        ] = {}  # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
+        self.allowed_vlans: dict[int, Vlan] = (
+            {}
+        )  # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
         self.eth_addr_count = 0  # number of known mac/ethernet addresses
         self.neighbor_count = 0  # number of lldp neighbors
         self.warnings: list[str] = []  # list of warning strings that may be shown to users
@@ -182,16 +182,16 @@ class Connector:
 
         # physical device related:
         self.hardware_details_needed = True  # True if we still need to read more hardware info (eg. the Entity tables)
-        self.stack_members: dict[
-            int, StackMember
-        ] = {}  # StackMember() objects that are part of this switch, key is member id
+        self.stack_members: dict[int, StackMember] = (
+            {}
+        )  # StackMember() objects that are part of this switch, key is member id
         # syslog related info, if supported:
         self.syslog_msgs: dict[int, SyslogMsg] = {}  # list of Syslog messages, if any
         self.syslog_max_msgs = 0  # how many syslog msgs device will store
         # generic info for the "Switch Information" tab:
-        self.more_info: dict[
-            str, tuple
-        ] = {}  # dict of categories string, each a list of tuples (name, value), to extend sytem info about this switch!
+        self.more_info: dict[str, tuple] = (
+            {}
+        )  # dict of categories string, each a list of tuples (name, value), to extend sytem info about this switch!
 
         # save switch previous (last) access, since this will be overwritten by this access!
         self.last_accessed = self.switch.last_accessed
@@ -215,7 +215,6 @@ class Connector:
         self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         self.can_edit_tags: bool = False  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all: bool = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
         self.can_change_poe_status = False
         self.can_change_description = False
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
@@ -687,7 +686,9 @@ class Connector:
         # self.save_cache()
         return True
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False) -> bool:
+    def set_interface_vlans(
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
+    ) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
 
@@ -1023,7 +1024,13 @@ class Connector:
         self.interfaces = OrderedDict({key: self.interfaces[key] for key in natsort.natsorted(self.interfaces)})
 
     def add_learned_ethernet_address(
-        self, if_name: str, eth_address: str, vlan_id: int = -1, ip4_address: str = "", ip6_address: str = "", vrf_name: str = "",
+        self,
+        if_name: str,
+        eth_address: str,
+        vlan_id: int = -1,
+        ip4_address: str = "",
+        ip6_address: str = "",
+        vrf_name: str = "",
     ) -> EthernetAddress | bool:
         """
         Add an ethernet address to an interface, as given by the layer2 CAM/Switching tables.
@@ -1044,7 +1051,11 @@ class Connector:
         iface = self.get_interface_by_key(if_name)
         if iface:
             a = iface.add_learned_ethernet_address(
-                eth_address=eth_address, vlan_id=vlan_id, ip4_address=ip4_address, ip6_address=ip6_address, vrf_name=vrf_name,
+                eth_address=eth_address,
+                vlan_id=vlan_id,
+                ip4_address=ip4_address,
+                ip6_address=ip6_address,
+                vrf_name=vrf_name,
             )
             self.eth_addr_count += 1
             return a
@@ -1694,8 +1705,8 @@ class Connector:
 
     def set_driver_info(self, name: str, value):
         """add to the device information set by drivers. Stored in a dict() object
-           This can then be written to the Switch().driver_info database field with save_driver_info()
-           Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
+        This can then be written to the Switch().driver_info database field with save_driver_info()
+        Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
         """
         try:
             self.driver_info[name] = value
@@ -1704,8 +1715,8 @@ class Connector:
             self.add_warning(f"ERROR adding driver_info entry for '{name}': {err}")
 
     def save_driver_info(self):
-        """ Save self.driver_info to the Switch.driver_info field as a JSON encoded string
-            Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
+        """Save self.driver_info to the Switch.driver_info field as a JSON encoded string
+        Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
         """
 
         try:

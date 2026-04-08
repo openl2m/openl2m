@@ -112,9 +112,6 @@ class ArubaAOSsRestConnector(RESTConnector):
         self.can_edit_vlans = True  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = (
-            False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
-        )
 
     def __del__(self):
         """when we close the object, release the REST ticket, so the switch does not run out of resources!"""

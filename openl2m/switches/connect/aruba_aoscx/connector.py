@@ -110,9 +110,6 @@ class AosCxConnector(Connector):
         self.can_save_config = False  # not needed.
         self.can_reload_all = False
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = (
-            True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
-        )
 
     def get_my_basic_info(self) -> bool:
         """
@@ -167,7 +164,10 @@ class AosCxConnector(Connector):
                         )
                         self.add_more_info("System", "Serial", subsystem["product_info"]["serial_number"])
 
-                        self.set_driver_info("model", f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})")
+                        self.set_driver_info(
+                            "model",
+                            f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})",
+                        )
                         self.set_driver_info("serial_number", subsystem["product_info"]["serial_number"])
 
                     # we also want 'power_supplies' information for this chassis:
