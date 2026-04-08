@@ -349,6 +349,7 @@ class Connector:
             self.add_more_info("System", "Driver info", self.description)
             if self.switch.netmiko_profile:
                 self.add_more_info("System", "Credentials Profile", self.switch.netmiko_profile.name)
+            self.add_more_info("System", "Connect IP", self.switch.primary_ip)
 
             # call the implementation-specific function:
             if hasattr(self, "get_my_basic_info"):
