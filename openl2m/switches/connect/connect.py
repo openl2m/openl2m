@@ -45,7 +45,9 @@ from switches.connect.snmp.connector import SnmpConnector, SnmpProbeConnector, o
 from switches.connect.snmp.constants import enterprises
 
 # from switches.connect.snmp.cisco.constants import ENTERPRISE_ID_CISCO
+from switches.connect.snmp.cisco.constants import ciscoSB
 from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
+from switches.connect.snmp.cisco.connector_sb import SnmpConnectorCiscoSB
 
 # Dell is yet to be tested!
 # from switches.connect.snmp.dell.constants import *
@@ -113,7 +115,14 @@ def get_connection_object(request: HttpRequest, group: SwitchGroup, switch: Swit
                 # here we go:
                 match enterprise_id:
                     case switches.connect.snmp.cisco.constants.ENTERPRISE_ID_CISCO:
-                        connection = SnmpConnectorCisco(request, group, switch)
+                        # for Cisco, we have 2 kinds of Connector, one 'generic catalyst',
+                        # the other for Small Business devices
+                        if snmp_oid.startswith(ciscoSB):
+                            dprint("Cisco SB device, using SnmpConnectorCiscoSB()")
+                            connection = SnmpConnectorCiscoSB(request, group, switch)
+                        else:
+                            dprint("Cisco 'regular' device, using SnmpConnectorCisco()")
+                            connection = SnmpConnectorCisco(request, group, switch)
                     case switches.connect.snmp.juniper.constants.ENTERPRISE_ID_JUNIPER:
                         connection = SnmpConnectorJuniper(request, group, switch)
                     case switches.connect.snmp.procurve.constants.ENTERPRISE_ID_HP:
