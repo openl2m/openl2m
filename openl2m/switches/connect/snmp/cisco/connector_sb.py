@@ -26,6 +26,7 @@ from switches.connect.snmp.connector import dot1qPvid
 from switches.connect.snmp.connector import oid_in_branch
 from switches.utils import dprint
 
+from switches.connect.snmp.connector import SnmpConnector
 from .connector import SnmpConnectorCisco
 
 from .constants import (
@@ -66,6 +67,7 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
         self.can_change_description = True
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
         """
+        self.can_save_config = False
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         #
@@ -122,7 +124,7 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
 
         # read and return standard SNMP Q-Bridge mib for vlan data.
         # THIS NEEDS WORK!
-        super()._get_vlan_data()
+        SnmpConnector._get_vlan_data(self=self)
 
         # and finally read the vlanAccessPortModeVlanId, this reads access mode vlan id's
         retval = self.get_snmp_branch(branch_name="vlanAccessPortModeVlanId", parser=self._parse_mibs_sb_access_vlan)
@@ -130,7 +132,9 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
             return retval
 
         # and read trunk mode PVID as well:
-        retval = self.get_snmp_branch(branch_name="vlanTrunkPortModeNativeVlanId", parser=self._parse_mibs_sb_trunk_vlan)
+        retval = self.get_snmp_branch(
+            branch_name="vlanTrunkPortModeNativeVlanId", parser=self._parse_mibs_sb_trunk_vlan
+        )
         if retval < 0:
             return retval
 
