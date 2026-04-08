@@ -1,5 +1,11 @@
 {% load helpers %}
 
+<style>
+  .template-field-row:nth-child(even) {
+    background-color: var(--bs-light);
+  }
+</style>
+
 <div class="card border-default">
   <div class="card-header bg-default">
     <strong>Command Templates</strong>
@@ -23,146 +29,156 @@
                     action="{% url 'switches:switch_cmd_template_output' group.id switch.id %}"
                     method="post">
                     {% csrf_token %}
-                    <table class="table table-hover table-headings">
-                      <tbody>
-                        {% if t.field1_name %}
-                        <tr>
-                          <td>{{ t.field1_name }}</td>
-                          <td><input type="text" class="form-control" name="field1" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field1_description }}"
-                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
-                         </tr>
-                        {% endif %}
-                        {% if t.field2_name %}
-                        <tr>
-                          <td>{{ t.field2_name }}</td>
-                          <td><input type="text" class="form-control" name="field2" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field2_description }}"
-                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
-                        </tr>
-                        {% endif %}
-                        {% if t.field3_name %}
-                        <tr>
-                          <td>{{ t.field3_name }}</td>
-                          <td><input type="text" class="form-control" name="field3" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field3_description }}"
-                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
-                        </tr>
-                        {% endif %}
-                        {% if t.field4_name %}
-                        <tr>
-                          <td>{{ t.field4_name }}</td>
-                          <td><input type="text" class="form-control" name="field4" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field4_description }}"
-                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
-                        </tr>
-                        {% endif %}
-                        {% if t.field5_name %}
-                        <tr>
-                          <td>{{ t.field5_name }}</td>
-                          <td><input type="text" class="form-control" name="field5" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field5_description }}"
-                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
-                        </tr>
-                        {% endif %}
-                        {% if t.field6_name %}
-                        <tr>
-                          <td>{{ t.field6_name }}</td>
-                          <td><input type="text" class="form-control" name="field6" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field6_description }}"
-                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
-                        </tr>
-                        {% endif %}
-                        {% if t.field7_name %}
-                        <tr>
-                          <td>{{ t.field7_name }}</td>
-                          <td><input type="text" class="form-control" name="field7" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field7_description }}"
-                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
-                        </tr>
-                        {% endif %}
-                        {% if t.field8_name %}
-                        <tr>
-                          <td>{{ t.field8_name }}</td>
-                          <td><input type="text" class="form-control" name="field8" value=""
-                                   data-bs-toggle="tooltip" title="{{ t.field8_description }}"
-                                   onkeyup="templateInputChanged{{ t.id }}()"></td>
-                        </tr>
-                        {% endif %}
-                        {% if t.list1_name %}
-                        <tr>
-                          <td>{{ t.list1_name }}</td>
-                          <td>
-                            <select name="list1" class="form-select" data-bs-toggle="tooltip" title="{{ t.list1_description }}"
-                                    aria-label="Select an option for {{ t.list1_name }}"
-                                    onchange="templateInputChanged{{ t.id }}()">
-                              {{ t.list1_values | get_options_from_comma_string }}
-                            </select>
-                          </td>
-                        </tr>
-                        {% endif %}
-                        {% if t.list2_name %}
-                        <tr>
-                          <td>{{ t.list2_name }}</td>
-                          <td>
-                            <select name="list2" class="form-select" data-bs-toggle="tooltip" title="{{ t.list2_description }}"
-                                    aria-label="Select an option for {{ t.list2_name }}"
-                                    onchange="templateInputChanged{{ t.id }}()">
-                              {{ t.list2_values | get_options_from_comma_string }}
-                            </select>
-                          </td>
-                        </tr>
-                        {% endif %}
-                        {% if t.list3_name %}
-                        <tr>
-                          <td>{{ t.list3_name }}</td>
-                          <td>
-                            <select name="list3" class="form-select" data-bs-toggle="tooltip" title="{{ t.list3_description }}"
-                                    aria-label="Select an option for {{ t.list3_name }}"
-                                    onchange="templateInputChanged{{ t.id }}()">
-                              {{ t.list3_values | get_options_from_comma_string }}
-                            </select>
-                          </td>
-                        </tr>
-                        {% endif %}
-                        {% if t.list4_name %}
-                        <tr>
-                          <td>{{ t.list4_name }}</td>
-                          <td>
-                            <select name="list4" class="form-select" data-bs-toggle="tooltip" title="{{ t.list4_description }}"
-                                    aria-label="Select an option for {{ t.list4_name }}"
-                                    onchange="templateInputChanged{{ t.id }}()">
-                              {{ t.list4_values | get_options_from_comma_string }}
-                            </select>
-                          </td>
-                        </tr>
-                        {% endif %}
-                        {% if t.list5_name %}
-                        <tr>
-                          <td>{{ t.list5_name }}</td>
-                          <td>
-                            <select name="list5" class="form-select" data-bs-toggle="tooltip" title="{{ t.list5_description }}"
-                                    aria-label="Select an option for {{ t.list5_name }}"
-                                    onchange="templateInputChanged{{ t.id }}()">
-                              {{ t.list5_values | get_options_from_comma_string }}
-                            </select>
-                          </td>
-                        </tr>
-                        {% endif %}
-                        <tr>
-                          <td colspan="2">
-                            <input type="hidden" id="id" name="template_id" value="{{ t.id }}">
-                            &nbsp;
-                            <button type="submit" name="template_form_submit{{ t.id }}" id="template_form_submit{{ t.id }}"
-                                    disabled class="btn btn-primary">
-                              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_template_form_{{ t.id }}"></span>
-                              <span id="spinner_template_form_{{ t.id }}_text"
-                                    data-bs-toggle="tooltip" title="Click to run command template! This may take some time...">Run</span>
-                            </button>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    {% if t.field1_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.field1_name }}</label>
+                      <div class="col">
+                        <input type="text" class="form-control" name="field1" value=""
+                               data-bs-toggle="tooltip" title="{{ t.field1_description }}"
+                               onkeyup="templateInputChanged{{ t.id }}()">
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.field2_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.field2_name }}</label>
+                      <div class="col">
+                        <input type="text" class="form-control" name="field2" value=""
+                               data-bs-toggle="tooltip" title="{{ t.field2_description }}"
+                               onkeyup="templateInputChanged{{ t.id }}()">
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.field3_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.field3_name }}</label>
+                      <div class="col">
+                        <input type="text" class="form-control" name="field3" value=""
+                               data-bs-toggle="tooltip" title="{{ t.field3_description }}"
+                               onkeyup="templateInputChanged{{ t.id }}()">
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.field4_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.field4_name }}</label>
+                      <div class="col">
+                        <input type="text" class="form-control" name="field4" value=""
+                               data-bs-toggle="tooltip" title="{{ t.field4_description }}"
+                               onkeyup="templateInputChanged{{ t.id }}()">
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.field5_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.field5_name }}</label>
+                      <div class="col">
+                        <input type="text" class="form-control" name="field5" value=""
+                               data-bs-toggle="tooltip" title="{{ t.field5_description }}"
+                               onkeyup="templateInputChanged{{ t.id }}()">
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.field6_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.field6_name }}</label>
+                      <div class="col">
+                        <input type="text" class="form-control" name="field6" value=""
+                               data-bs-toggle="tooltip" title="{{ t.field6_description }}"
+                               onkeyup="templateInputChanged{{ t.id }}()">
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.field7_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.field7_name }}</label>
+                      <div class="col">
+                        <input type="text" class="form-control" name="field7" value=""
+                               data-bs-toggle="tooltip" title="{{ t.field7_description }}"
+                               onkeyup="templateInputChanged{{ t.id }}()">
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.field8_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.field8_name }}</label>
+                      <div class="col">
+                        <input type="text" class="form-control" name="field8" value=""
+                               data-bs-toggle="tooltip" title="{{ t.field8_description }}"
+                               onkeyup="templateInputChanged{{ t.id }}()">
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.list1_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.list1_name }}</label>
+                      <div class="col">
+                        <select name="list1" class="form-select" data-bs-toggle="tooltip" title="{{ t.list1_description }}"
+                                aria-label="Select an option for {{ t.list1_name }}"
+                                onchange="templateInputChanged{{ t.id }}()">
+                          {{ t.list1_values | get_options_from_comma_string }}
+                        </select>
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.list2_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.list2_name }}</label>
+                      <div class="col">
+                        <select name="list2" class="form-select" data-bs-toggle="tooltip" title="{{ t.list2_description }}"
+                                aria-label="Select an option for {{ t.list2_name }}"
+                                onchange="templateInputChanged{{ t.id }}()">
+                          {{ t.list2_values | get_options_from_comma_string }}
+                        </select>
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.list3_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.list3_name }}</label>
+                      <div class="col">
+                        <select name="list3" class="form-select" data-bs-toggle="tooltip" title="{{ t.list3_description }}"
+                                aria-label="Select an option for {{ t.list3_name }}"
+                                onchange="templateInputChanged{{ t.id }}()">
+                          {{ t.list3_values | get_options_from_comma_string }}
+                        </select>
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.list4_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.list4_name }}</label>
+                      <div class="col">
+                        <select name="list4" class="form-select" data-bs-toggle="tooltip" title="{{ t.list4_description }}"
+                                aria-label="Select an option for {{ t.list4_name }}"
+                                onchange="templateInputChanged{{ t.id }}()">
+                          {{ t.list4_values | get_options_from_comma_string }}
+                        </select>
+                      </div>
+                    </div>
+                    {% endif %}
+                    {% if t.list5_name %}
+                    <div class="mb-0 p-1 row template-field-row">
+                      <label class="col-4 col-form-label">{{ t.list5_name }}</label>
+                      <div class="col">
+                        <select name="list5" class="form-select" data-bs-toggle="tooltip" title="{{ t.list5_description }}"
+                                aria-label="Select an option for {{ t.list5_name }}"
+                                onchange="templateInputChanged{{ t.id }}()">
+                          {{ t.list5_values | get_options_from_comma_string }}
+                        </select>
+                      </div>
+                    </div>
+                    {% endif %}
+                    <div class="mt-2">
+                      <input type="hidden" id="id" name="template_id" value="{{ t.id }}">
+                      &nbsp;
+                      <button type="submit" name="template_form_submit{{ t.id }}" id="template_form_submit{{ t.id }}"
+                              disabled class="btn btn-primary">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_template_form_{{ t.id }}"></span>
+                        <span id="spinner_template_form_{{ t.id }}_text"
+                              data-bs-toggle="tooltip" title="Click to run command template! This may take some time...">Run</span>
+                      </button>
+                    </div>
                 {# add some client-side validation #}
                 <script>
                   // submit spinner handling
