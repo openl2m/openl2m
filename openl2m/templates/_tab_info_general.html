@@ -55,11 +55,9 @@
     <strong>Modules Information</strong>
   </div>
   <div class="card-body">
-    <table class="table table-striped w-auto">
-      <tbody>
     {% for dev_id,dev in connection.stack_members.items %}
-        <tr>
-          <td>ID {{ dev_id }} - {{ dev|get_device_class }}
+        <div class="p-2{% if not forloop.last %} border-bottom{% endif %}{% cycle '' ' bg-light' %}">
+          ID {{ dev_id }} - {{ dev|get_device_class }}
           {% if dev.description %}
             , &quot;{{ dev.description }}&quot;
           {% endif %}
@@ -75,11 +73,8 @@
           {% if dev.info %}
             , {{ dev.info }}
           {% endif %}
-          </td>
-        </tr>
-        {% endfor%}
-      </tbody>
-    </table>
+        </div>
+    {% endfor%}
   </div>
 </div>
 {% endif %}
