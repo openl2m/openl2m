@@ -7,19 +7,15 @@
   </div>
   <div class="card-body">
     {% for category,values in connection.more_info.items %}
-      <table class="table table-striped table-hover table-headings w-auto">
-        <thead>
-          <tr><th colspan="2">{{ category }}</th></tr>
-        </thead>
-        <tbody>
+      <div class="mb-3">
+        <div class="fw-bold border-bottom pb-1 mb-1">{{ category }}</div>
         {% for name,value in values.items %}
-          <tr>
-            <td>{{ name }}</td>
-            <td>{{ value }}</td>
-          </tr>
+          <div class="row p-1{% cycle '' ' bg-light' %}">
+            <div class="col-3">{{ name }}</div>
+            <div class="col">{{ value }}</div>
+          </div>
         {% endfor %}
-        </tbody>
-      </table>
+      </div>
     {% endfor%}
   </div>
 </div>
@@ -31,19 +27,16 @@
     <strong>Recent Syslog Entries ({{ connection.syslog_max_msgs }} max)</strong>
   </div>
   <div class="card-body">
-      <table class="table table-striped w-auto">
-        <thead>
-          <tr><th>Approx. Time</th><th>Message</th></tr>
-        </thead>
-        <tbody>
-        {% for index,msg in connection.syslog_msgs.items %}
-          <tr>
-            <td>{{ msg.datetime|date:"SHORT_DATETIME_FORMAT" }}</td>
-            <td>{{ msg.message }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
+      <div class="fw-bold border-bottom pb-1 mb-1 row">
+        <div class="col-3">Approx. Time</div>
+        <div class="col">Message</div>
+      </div>
+      {% for index,msg in connection.syslog_msgs.items %}
+        <div class="row p-1{% cycle '' ' bg-light' %}">
+          <div class="col-3">{{ msg.datetime|date:"SHORT_DATETIME_FORMAT" }}</div>
+          <div class="col">{{ msg.message }}</div>
+        </div>
+      {% endfor %}
   </div>
 </div>
 {% endif %}
