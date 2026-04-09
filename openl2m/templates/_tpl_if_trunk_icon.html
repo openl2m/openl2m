@@ -4,7 +4,7 @@
 {% if iface.is_tagged %}
   &nbsp;
   {% if not iface.can_edit_tags %}
-    <i class="fa-solid fa-ellipsis-v" aria-hidden="true"
+    <i class="fa-solid fa-tags" aria-hidden="true"
         data-bs-toggle="tooltip"
         title="Tagged (trunk) Interface, tagged vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
     </i>
@@ -16,7 +16,7 @@
             data-bs-target="#tagEditForm_{{ iface.key|underscore }}"
             data-bs-placement="top"
             title="Tagged (802.1q trunk) Interface, click here to edit vlans. Current vlans {% for vlan_id in iface.vlans %}{{ vlan_id }} {% endfor %}">
-    <i class="fa-solid fa-ellipsis-v" aria-hidden="true"></i>
+    <i class="fa-solid fa-tags" aria-hidden="true"></i>
     </button>
     {% include "_tpl_if_trunk_edit_form.html" %}
   {% endif %}{# can edit #}
