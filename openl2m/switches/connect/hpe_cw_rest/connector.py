@@ -561,6 +561,10 @@ class HPECwRestConnector(RESTConnector):
 
             # we are reading 802.1Q Trunk/Tagged vlans from "VLAN/TrunkInterfaces",
             # as this has more detailed info, specifically shows if the PVID is permitted as tagged.abs
+            #
+            # NOTE: if the config is "port trunk permit vlan all", this will return ALL vlans,
+            #       not just the vlans configured on the device!
+            #
             dprint("--- Reading tagged vlans from 'VLAN/TrunkInterfaces' api ---")
             interfaces = self._get(path="VLAN/TrunkInterfaces")
             if interfaces:
@@ -573,7 +577,9 @@ class HPECwRestConnector(RESTConnector):
                         iface = self.get_interface_by_key(key=i["IfIndex"])
                         if iface:
                             for vlan_id in tagged_vlans:
-                                iface.add_tagged_vlan(vlan_id=vlan_id)
+                                # per NOTE above, we only add defined vlans!
+                                if vlan_id in self.vlans:
+                                    iface.add_tagged_vlan(vlan_id=vlan_id)
 
             #
             # get IRF ports
