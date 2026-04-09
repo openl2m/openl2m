@@ -28,7 +28,7 @@ Here are the icons used in OpenL2M, and their meanings:
      - Click to download the interface data as a spreadsheet.
    * - :fas:`cogs;`
      - A routed interface. Hover will show routed subnet information, if known.
-   * - :fas:`ellipsis-v;`
+   * - :fas:`tags;`
      - A 802.1q Tagged or Trunked interface. Hover will show allowed vlans. If enabled, you can click to edit 802.1q tags.
    * - :fas:`plus`
      - An access mode interface where the user can edit the untagged and 802.1q-tagged vlans.

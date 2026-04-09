@@ -65,6 +65,7 @@ Bug fixes:
 
 * remove duplicate login/logout for AOS-S REST api driver.
 * driver support matrices are updated with valid info.
+* fix show only defined vlans on interface "trunk permit all" in HPE Comware REST driver.
 * make all id attributes unique in interface tags edit popup page.
 * remove leading blank line at start of html page.
 * several html form errors fixed.
