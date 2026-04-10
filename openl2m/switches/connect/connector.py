@@ -936,8 +936,9 @@ class Connector:
         """
         key = str(key)
         if key in self.interfaces.keys():
-            dprint(f"get_interface_by_key() for '{key}' => Found!")
-            return self.interfaces[key]
+            interface = self.interfaces[key]
+            dprint(f"get_interface_by_key() for '{key}' => Found '{interface.name}'")
+            return interface
         dprint(f"get_interface_by_key() for '{key}' => NOT Found!")
         return False
 
@@ -954,7 +955,9 @@ class Connector:
         """
         for iface in self.interfaces.values():
             if iface.name == name:
+                dprint(f"get_interface_by_name() for '{name}' => Found!")
                 return iface
+        dprint(f"get_interface_by_name() for '{name}' => NOT Found!")
         return False
 
     def set_interface_attribute_by_key(self, key: str, attribute: str, value) -> bool:
