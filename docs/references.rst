@@ -108,6 +108,8 @@ Juniper SNMP: https://www.juniper.net/documentation/us/en/software/junos/network
 
 Arista SNMP: https://www.arista.com/en/support/product-documentation/arista-snmp-mibs
 
+More MIB files can be found at
+https://github.com/librenms/librenms/blob/master/mibs/ and https://mibs.observium.org/all/
 
 Aruba AOS-CX
 ------------
