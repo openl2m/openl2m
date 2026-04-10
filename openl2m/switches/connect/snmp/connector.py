@@ -4114,6 +4114,11 @@ class SnmpConnector(Connector):
                 dprint(f"  Port active={active}, desired={desired}")
 
                 if active != desired:
+                    if not desired and vlan_id == untagged_vlan:
+                        # this is the PVID, we are NOT going to remove this from dot1qVlanStaticEgressPorts
+                        # as this is required for dot1qPvid to function!
+                        dprint("  VLAN = Pvid, and active, NOT REMOVING!")
+                        continue
                     dprint("  VLAN PORT CHANGE NEEDED!")
                     # set of clear the bit for this port!
                     vlan_port_bitmap[interface.port_id] = desired
