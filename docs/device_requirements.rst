@@ -93,6 +93,18 @@ Several vendor specific MIB are supported at this time.
 * Cisco Syslog-Mib
   Used to read log messages from Cisco devices (if configured).
 
+* Cisco-Config MIB
+  Used to save the configuration on regular Cisco devices.
+
+* CiscoSB-Config MIB
+  Used to save the configuration on Cisco SB devices.
+
+* CISCOSB-vlan-MIB
+  Read vlans in Cisco-SB devices.
+
+* CISCOSB-rlInterfaces MIB
+  Read interface transceiver information.
+
 * HP Aruba/Procure HP-ICF-POE-MIB
   Get enhanced PoE info on the Aruba/Procurve switches that support it.
 

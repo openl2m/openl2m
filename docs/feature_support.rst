@@ -60,6 +60,30 @@ Features Supported
      - Yes
      - untested
 
+   * - Cisco (snmp) :sup:`4`
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - NO
+     - NO
+     - Yes
+     - Yes
+
+   * - Cisco-SB (snmp) :sup:`5`
+     - Yes
+     - Yes
+     - NO
+     - Yes
+     - Yes
+     - Yes
+     - NO
+     - NO
+     - Yes
+     - Yes
+
    * - HPE Comware (snmp)
      - Yes
      - Yes
@@ -84,7 +108,7 @@ Features Supported
      - Yes
      - untested
 
-   * - Juniper (snmp r/o) :sup:`4`
+   * - Juniper (snmp r/o) :sup:`6`
      -
      -
      - (r/o)
@@ -96,7 +120,7 @@ Features Supported
      - Yes
      - Yes
 
-   * - MikroTik (snmp) :sup:`5`
+   * - MikroTik (snmp) :sup:`6`
      - Yes
      -
      - R/O
@@ -127,9 +151,15 @@ Features Supported
   :sup:`3` AOS-CX SNMP minimal versions:
   VLAN edit/change - v10.12 (no name supported), Description edit - v10.09
 
-  :sup:`4` Juniper's SNMP implementation on devices is Read-Only!
+  :sup:`4` The Cisco SNMP implementation should support most 'regular' Catalyst style switches. This has been
+  tested on Catalyst-2960 and Catalyst-4500 series devices.
 
-  :sup:`5` The MikroTik driver has limited functionality. MikroTik does not support VLANs over SNMP.
+  :sup:`5` Cisco Small Business devices are tested on a single CBS350 (non-PoE) switch.
+  All features (except for PoE) are supported.
+
+  :sup:`6` Juniper's SNMP implementation on devices is Read-Only!
+
+  :sup:`7` The MikroTik driver has limited functionality. MikroTik does not support VLANs over SNMP.
   This driver has only been tested on a single HexS (RB760iGS) device.
 
 

@@ -54,6 +54,7 @@ Release Date: TBD
 
 * add 802.1Q tags (trunk) vlan editing for base SNMP and HPE/Aruba Procurve/AOS-S switches.
   We use the standard Q-Bridge MIB for this. See supported feature notes in the documentation for more details.
+* Cisco-SB devices can now save the running config.
 * Add IPv4 ARP info for device using the Aruba AOS-S REST driver.
 * add PoE on-off capability for Aruba AOS-S REST driver.
 * enable 802.1q tags edit for Admins by default.
@@ -66,6 +67,7 @@ Bug fixes:
 * remove duplicate login/logout for AOS-S REST api driver.
 * driver support matrices are updated with valid info.
 * fix show only defined vlans on interface "trunk permit all" in HPE Comware REST driver.
+* fix handling of pvid on tagged interface in standard SNMP and Aruba/Procurve SNMP drivers.
 * make all id attributes unique in interface tags edit popup page.
 * remove leading blank line at start of html page.
 * several html form errors fixed.
