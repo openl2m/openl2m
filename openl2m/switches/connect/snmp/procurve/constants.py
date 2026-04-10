@@ -21,8 +21,8 @@ from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_in
 ENTERPRISE_ID_HP = 11
 enterprise_id_info[ENTERPRISE_ID_HP] = "HP/ProCurve"
 
-# SOME SWITCHES IMPLEMENTE THIS:
-# http://www.circitor.fr/Mibs/Html/H/HPN-ICF-CONFIG-MAN-MIB.php
+# SOME SWITCHES IMPLEMENT THIS:
+# https://mibs.observium.org/mib/HPN-ICF-CONFIG-MAN-MIB/
 hpnicfConfigManObjects = ".1.3.6.1.4.1.11.2.14.11.15.2.4.1"
 snmp_mib_variables["hpnicfConfigManObjects"] = hpnicfConfigManObjects
 # start of some good information:
