@@ -3969,6 +3969,14 @@ class SnmpConnector(Connector):
 
         Returns:
             True on success, False on error and set self.error variables
+
+        Note: this will ALSO set the pvid/untagged-vlan as tagged if this
+              is in the list of allowed tagged vlans!
+              Some devices cannot handle this (e.g. Aruba switches)
+              some appear to need this for the pvid vlan to work
+              properly (e.g. Comware)
+              It is up to the caller (driver) to remove the pvid
+              vlan from tagged-vlans is this is problematic!
         """
         dprint(
             f"SnmpConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
@@ -4056,16 +4064,19 @@ class SnmpConnector(Connector):
         ###############################################################
         # STEP 2:                                                     #
         # set all port tagged vlans, and remove port non-tagged vlans #
+        #                                                             #
+        # Note: this will ALSO set the pvid/untagged-vlan if this     #
+        #       is in the list of allowed tagged vlans!               #
+        #       Some devices cannot handle this (e.g. Aruba switches) #
+        #       some appear to need this for the pvid vlan to work    #
+        #       properly (e.g. Comware)                               #
+        #       It is up to the caller (driver) to remove the pvid    #
+        #       vlan from tagged-vlans is this is problematic!        #
         ###############################################################
 
         try:
             for vlan_id in self.vlans:
                 dprint(f"---\nChecking vlan {vlan_id}")
-                if vlan_id == untagged_vlan:
-                    # we can ignore this, as it will be needed on the "dot1qVlanCurrentEgressPorts" bitmap,
-                    # but will be sent as 'untagged' as it is set as PVID above!
-                    dprint("  PVID, ignoring.")
-                    continue
 
                 # Since we don't deal with dynamic vlans, we read and write the static port bitmap for each vlan!
                 # Note some implementations read vlan member ports from dot1qVlanCurrentEgressPorts bitmap,
