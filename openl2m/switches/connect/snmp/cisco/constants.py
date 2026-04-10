@@ -173,7 +173,7 @@ vmVoiceVlanId = ".1.3.6.1.4.1.9.9.68.1.5.1.1.1"
 snmp_mib_variables["vmVoiceVlanId"] = vmVoiceVlanId
 
 # Cisco Config Copy MIB
-# http://www.circitor.fr/Mibs/Html/C/CISCO-CONFIG-COPY-MIB.php
+# https://mibs.observium.org/mib/CISCO-CONFIG-COPY-MIB/
 ccCopySourceFileType = ".1.3.6.1.4.1.9.9.96.1.1.1.1.3"
 snmp_mib_variables["ccCopySourceFileType"] = ccCopySourceFileType
 runningConfig = 4
@@ -232,55 +232,6 @@ snmp_mib_variables["cpeExtPsePortMaxPwrDrawn"] = cpeExtPsePortMaxPwrDrawn
 # OID to "write mem" via Snmp
 ciscoWriteMem = ".1.3.6.1.4.1.9.2.1.54.0"
 snmp_mib_variables["ciscoWriteMem"] = ciscoWriteMem
-
-
-#
-# Cisco SB devices, "Small Business" switches
-# Only tested on CBS-350 switch.
-#
-# see https://mibs.observium.org/mib/CISCOSB-vlan-MIB/
-# and https://github.com/librenms/librenms/blob/master/mibs/cisco/CISCOSB-vlan-MIB
-# and all high-level entries at https://mibbrowser.online/mibdb_search.php?mib=CISCOSB-MIB
-
-# see if the CISCOSB-vlan-MIB exists:
-# vlan = ".1.3.6.1.4.1.9.6.1.101.48"
-vlanMibVersion = ".1.3.6.1.4.1.9.6.1.101.48.1"
-snmp_mib_variables["vlanMibVersion"] = vlanMibVersion
-
-# vlan state, ie access, general, trunk
-vlanPortModeState = ".1.3.6.1.4.1.9.6.1.101.48.22.1.1"
-snmp_mib_variables["vlanPortModeState"] = vlanPortModeState
-SB_VLAN_MODE_GENERAL = 10
-SB_VLAN_MODE_ACCESS = 11
-SB_VLAN_MODE_TRUNK = 12
-sb_vlan_mode = {}
-sb_vlan_mode[SB_VLAN_MODE_GENERAL] = "General"
-sb_vlan_mode[SB_VLAN_MODE_ACCESS] = "Access"
-sb_vlan_mode[SB_VLAN_MODE_TRUNK] = "Trunk"
-
-# access mode ports set the vlan on this mib:
-vlanAccessPortModeVlanId = ".1.3.6.1.4.1.9.6.1.101.48.62.1.1"
-snmp_mib_variables["vlanAccessPortModeVlanId"] = vlanAccessPortModeVlanId
-
-# trunk mode ports set the PVID/untagged vlan on this mib:
-vlanTrunkPortModeNativeVlanId = ".1.3.6.1.4.1.9.6.1.101.48.61.1.1"
-snmp_mib_variables["vlanTrunkPortModeNativeVlanId"] = vlanTrunkPortModeNativeVlanId
-
-#
-# from the CISCOSB-rlInterfaces mib
-#
-# this show the physical port type, eg copper, fiber.
-swIfTransceiverType = ".1.3.6.1.4.1.9.6.1.101.43.1.1.7"
-snmp_mib_variables["swIfTransceiverType"] = swIfTransceiverType
-SB_TX_TYPE_COPPER = 1
-SB_TX_TYPE_FIBER = 2
-SB_TX_TYPE_COMBO = 3  # this really is combo/unknown
-SB_TX_TYPE_COMBO_FIBER = 4  # an optical transciever is used.
-sb_tx_type = {}
-sb_tx_type[SB_TX_TYPE_COPPER] = "Copper"
-sb_tx_type[SB_TX_TYPE_FIBER] = "FiberOptics"
-sb_tx_type[SB_TX_TYPE_COMBO] = "Fiber/Copper Combo Port"  # combo port without transceiver
-sb_tx_type[SB_TX_TYPE_COMBO_FIBER] = "FiberOptics Combo"  # combo port with optical transceiver installed.
 
 #
 # Cisco Stack MIB

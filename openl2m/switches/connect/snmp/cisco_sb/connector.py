@@ -14,12 +14,14 @@
 """
 Cisco Small Business (SB) devices specific implementation of the SNMP Connection object.
 This augments/re-implements some methods found in the Cisco SNMP() class
+located in switches/connect/snmp/cisco/connector.py
 with Cisco-SB specific ways of doing things...
 """
 
 # from django.conf import settings
 from django.http.request import HttpRequest
 
+from switches.constants import LOG_TYPE_ERROR, LOG_SAVE_SWITCH
 from switches.models import Switch, SwitchGroup
 from switches.connect.classes import Interface, Transceiver
 from switches.connect.snmp.connector import dot1qPvid
@@ -27,19 +29,28 @@ from switches.connect.snmp.connector import oid_in_branch
 from switches.utils import dprint
 
 from switches.connect.snmp.connector import SnmpConnector
-from .connector import SnmpConnectorCisco
+from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
 
 from .constants import (
-    SB_VLAN_MODE_GENERAL,
-    SB_VLAN_MODE_ACCESS,
-    SB_VLAN_MODE_TRUNK,
-    sb_vlan_mode,
     vlanPortModeState,
     vlanAccessPortModeVlanId,
     vlanTrunkPortModeNativeVlanId,
     swIfTransceiverType,
+    SB_VLAN_MODE_GENERAL,
+    SB_VLAN_MODE_ACCESS,
+    SB_VLAN_MODE_TRUNK,
+    sb_vlan_mode,
     SB_TX_TYPE_COPPER,
     sb_tx_type,
+    createAndGo,
+    rlCopyRowStatus,
+    local,
+    rlCopySourceLocation,
+    runningConfig,
+    rlCopySourceFileType,
+    rlCopyDestinationLocation,
+    startupConfig,
+    rlCopyDestinationFileType,
 )
 
 
@@ -51,7 +62,7 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
 
     def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
-        dprint("SnmpConnectorCiscoSB().__init__")
+        dprint("SnmpConnectorCiscoSB().__init__()")
         super().__init__(request, group, switch)
         self.description = "Cisco SB SNMP driver"
         self.vendor_name = "Cisco (SB)"
@@ -67,7 +78,6 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
         self.can_change_description = True
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
         """
-        self.can_save_config = False
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         #
@@ -150,6 +160,7 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
 
         Returns 1 on succes, -1 on failure
         """
+        dprint("SnmpConnectorCiscoSB()._get_interface_transceiver_types()")
         super()._get_interface_transceiver_types()
         # note: we have already read 'portIfIndex' in _get_poe_data().
         # this maps stack-id's to ifIndex.
@@ -222,6 +233,41 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
             f"Port mode {sb_vlan_mode[interface.if_vlan_mode]} - Set vlan not implemented for SB devices!"
         )
         self.error.details = "We cannot yet handle SB devices!"
+        return False
+
+    def save_running_config(self) -> bool:
+        """
+        Cisco-SB save the current config to startup. Method is mostly identical to 'regular' Cisco,
+        but uses different SNMP OIDs.
+        Returns True is this succeeds, False on failure. self.error() will be set in that case
+        """
+        dprint("SnmpConnectorCiscoSB().save_running_config()")
+
+        # we use the CISCOSB-COPY-MIB for this
+        # https://github.com/librenms/librenms/blob/master/mibs/cisco/CISCOSB-MIB
+        # this is described at
+        # https://www.cisco.com/c/en/us/support/docs/smb/switches/Catalyst-switches/kmgmt3810-triggering-configuration-file-copies-to-tftp-server-via-snmp.html
+        # and
+        # https://community.cisco.com/t5/switches-small-business/how-to-save-config-through-snmp/td-p/1667917
+        # (the latter has old pre-Cisco OIDs !)
+
+        # this needs to be an "atomic" set of actions
+        oid_values = [
+            (f"{rlCopyRowStatus}.1", createAndGo, "i"),  # create new "config row"
+            (f"{rlCopySourceLocation}.1", local, "i"),  # set source of copy to local running-config
+            (f"{rlCopySourceFileType}.1", runningConfig, "i"),
+            (f"{rlCopyDestinationLocation}.1", local, "i"),  # set destination to local startup-config
+            (f"{rlCopyDestinationFileType}.1", startupConfig, "i"),
+        ]
+        # go execute the set of actions:
+        if self.set_multiple(oid_values=oid_values):
+            return True
+
+        dprint("ERROR Caught in set_multiple()!")
+        self.error.description = "Save running-config returned error!"
+        self.add_log(
+            type=LOG_TYPE_ERROR, action=LOG_SAVE_SWITCH, description=f"{self.error.description} - {self.error.details}"
+        )
         return False
 
     def _parse_mibs_sb_vlan_port_mode(self, oid: str, val: str) -> bool:

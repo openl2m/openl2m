@@ -47,7 +47,7 @@ from switches.connect.snmp.constants import enterprises
 # from switches.connect.snmp.cisco.constants import ENTERPRISE_ID_CISCO
 from switches.connect.snmp.cisco.constants import ciscoSB
 from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
-from switches.connect.snmp.cisco.connector_sb import SnmpConnectorCiscoSB
+from switches.connect.snmp.cisco_sb.connector import SnmpConnectorCiscoSB
 
 # Dell is yet to be tested!
 # from switches.connect.snmp.dell.constants import *
