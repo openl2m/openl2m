@@ -59,6 +59,16 @@ SNMP related constants.
 SNMP_TRUE = 1
 SNMP_FALSE = 2
 
+# from SMIv2, Textual Convcertion:
+# https://datatracker.ietf.org/doc/html/rfc2579
+# RowStatus related:
+active = 1          # The row is available and valid for use.
+notInService= 2     # The row exists but is currently inactive/unavailable.
+notReady = 3        # The row exists but lacks necessary information to be used (missing required objects).
+createAndGo = 4     # Action to create a new row, immediately setting it to active.
+createAndWait = 5   # Action to create a new row, starting it in notInService or notReady to set other columns first.
+destroy = 6         # Action to remove the row from the table.
+
 """
 SNMP MIB variables names and their string numeric value. EasySNMP uses the formal notation starting with ".""
 """
