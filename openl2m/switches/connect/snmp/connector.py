@@ -944,7 +944,7 @@ class SnmpConnector(Connector):
         dprint(f"get_snmp_branch() returns {count}")
         return count
 
-    def set(self, oid: str, value, snmp_type, parser) -> bool:
+    def set(self, oid: str, value, snmp_type, parser=None) -> bool:
         """
         Set a single OID value. Note that 'value' has to be properly typed!
         Returns True if success.
@@ -968,7 +968,7 @@ class SnmpConnector(Connector):
             dprint("SnmpConnector.set() OK, parser called:")
             parser(str(oid), str(value))
         else:
-            dprint("SnmpConnector.set() OK, BUT Return NOT parsed!")
+            dprint("SnmpConnector.set() OK, return NOT parsed!")
 
         return True
 
