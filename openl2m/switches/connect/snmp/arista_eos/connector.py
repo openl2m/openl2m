@@ -21,10 +21,11 @@ General Arista SNMP config information is at:
 
 from django.http.request import HttpRequest
 
+from switches.constants import LOG_TYPE_ERROR, LOG_SAVE_SWITCH
 from switches.connect.constants import IF_TYPE_ETHERNET, LACP_IF_TYPE_AGGREGATOR, LACP_IF_TYPE_MEMBER
 from switches.connect.classes import Interface
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
-from switches.connect.snmp.constants import dot1qPvid, dot3adAggPortActorAdminKey
+from switches.connect.snmp.constants import active, createAndGo, dot1qPvid, dot3adAggPortActorAdminKey
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
 
@@ -37,6 +38,13 @@ from .constants import (
     #    ARISTA_VRF_ROUTING_IPV4_BIT,
     #    ARISTA_VRF_ROUTING_IPV6_BIT,
     aristaVrfIfMembership,
+    aristaConfigCopyName,
+    aristaConfigCopyId,
+    aristaConfigCopySourceUri,
+    aristaConfigCopyDestUri,
+    aristaConfigCopyRowStatus,
+    # default_job_id,
+    save_job_id,
 )
 
 
@@ -194,6 +202,73 @@ class SnmpConnectorAristaEOS(SnmpConnector):
             # reset to default for the next call
             self._set_snmp_session()
         return True
+
+    #
+    # THIS DOES NOT APPEAR TO WORK with either default_job_id, or save_job_id
+    #
+    def save_running_config(self):
+        """ Save the current config to startup.
+
+        Returns:
+            (bool) - True if this succeeds, False on failure. self.error() will be set in that case
+        """
+        dprint("SnmpConnectorAristaEOS().save_running_config()")
+
+        """
+        To save the running-configuration to the startup-configuration on an Arista switch via SNMP,
+        use a set request (SNMP SET) to activate the copy command MIB.
+
+            Source OID: 1.3.6.1.4.1.30065.3.7.1.1.3.7.100.101.102.97.117.108.116.0 (OctetString: "running-config")
+            Destination OID: 1.3.6.1.4.1.30065.3.7.1.1.4.7.100.101.102.97.117.108.116.0 (OctetString: "startup-config")
+            Status OID (Action): 1.3.6.1.4.1.30065.3.7.1.1.11.7.100.101.102.97.117.108.116.0 (Integer32: 1 to execute)
+
+        See Arista Config-COPY mib at
+            https://www.arista.com/assets/data/docs/MIBS/ARISTA-CONFIG-COPY-MIB.txt
+            https://mibs.observium.org/mib/ARISTA-CONFIG-COPY-MIB/
+        Also look at https://www.reddit.com/r/Arista/comments/v6tfs9/save_config_via_snmp/
+        """
+        # we're sending the commands using the 'default' job as an atomic group of set()
+        try:
+            # this creates a new row
+            # THIS DOES NOT APPEAR TO WORK with either default_job_id, or save_job_id
+            self.set(oid=f"{aristaConfigCopyRowStatus}.{save_job_id}.0", value=createAndGo, snmp_type="i")
+
+            self.set(oid=f"{aristaConfigCopyName}.{save_job_id}.0", value="openl2m-save", snmp_type="s")
+            self.set(oid=f"{aristaConfigCopyId}.{save_job_id}.0", value=23, snmp_type="i")
+
+            # set source entry in new row
+            self.set(oid=f"{aristaConfigCopySourceUri}.{save_job_id}.0", value="running-config", snmp_type="s")
+            # set dest entry in new row
+            self.set(oid=f"{aristaConfigCopyDestUri}.{save_job_id}.0", value="startup-config", snmp_type="s")
+            # activate the new row
+            self.set(oid=f"{aristaConfigCopyRowStatus}.{save_job_id}.0", value=active, snmp_type="i")
+
+            # all OK
+            return True
+
+        except Exception as err:
+            dprint(f"ERROR in set: {err}")
+
+        # oid_values = [
+        #     (f"{aristaConfigCopyRowStatus}.{save_job_id}.0", createAndGo, "i"),     # this creates a new row
+        #     #(f"{aristaConfigCopyName}.{save_job_id}.0", "openl2m-save", "s"),
+        #     #(f"{aristaConfigCopyId}.{save_job_id}.0", 23, "i"),
+        #     (f"{aristaConfigCopySourceUri}.{save_job_id}.0", "running-config", "s"),    # set source entry in new row
+        #     (f"{aristaConfigCopyDestUri}.{save_job_id}.0", "startup-config", "s"),      # set dest entry in new row
+        #     (f"{aristaConfigCopyRowStatus}.{save_job_id}.0", active, "i"),              # activate the new row
+        # ]
+        # # go execute the set of actions:
+        # if self.set_multiple(oid_values=oid_values):
+        #     # thiss schedules a job. We do NOT check return at later time, we just assume this worked!
+        #     return True
+        #
+        # dprint("ERROR Caught in set_multiple()!")
+
+        self.error.description = "Save running-config returned error!"
+        self.add_log(
+            type=LOG_TYPE_ERROR, action=LOG_SAVE_SWITCH, description=f"{self.error.description} - {self.error.details}"
+        )
+        return False
 
     def _parse_mibs_lacp_member_port_arista(self, oid: str, val: str) -> bool:
         """
