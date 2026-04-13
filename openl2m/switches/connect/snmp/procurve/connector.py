@@ -327,3 +327,30 @@ class SnmpConnectorProcurve(SnmpConnector):
             else:
                 # should not happen!
                 dprint(f"ERROR: PoE entry NOT FOUND for pe_index={pe_index}")
+
+"""
+    def save_running_config(self) -> bool:
+
+    Save the running config to startup config.
+    Returns True is this succeeds, False on failure. self.error() will be set in that case
+
+    NOTE: Aruba AOS-S and the older Procurce devices do NOT need this function.
+    These devices perform an implicit "write mem" after every succcesfull SNMP "set".
+
+    In the HP-SWITCH-BASIC-CONFIG mib, you can find the value "hpSwitchImplicitConfigSave".
+    Here is the description from the mib:
+
+    "This object is to enable/disable the implicit write-memory (saving the running-config to the flash)
+    done after every successful SNMP set operation.
+
+    When set to 'enable', config changes are written to the flash which results in slow performance for these set operations.
+    To get faster processing while doing large number of continuous SNMP set operations, this object can be set to 'disable';
+    And, once the SNMP set operations are done, 'hpSwitchSaveConfig' MIB object can be used to save the running-config to the flash.
+    This object will not be saved across a re-boot, and will always be set to 'enable' at boot.
+    It is advisable to set this MIB object to 'disable' only when there are a lot of continuous SNMP set operations
+    e.g. a script executing a large number of SNMP set operations."
+
+    In an snmp walk or get, you will find the first instance (.0) of this OID set to 1:
+
+        1.3.6.1.4.1.11.2.14.11.5.1.7.1.29.1.11.0 = (integer) 1
+"""
