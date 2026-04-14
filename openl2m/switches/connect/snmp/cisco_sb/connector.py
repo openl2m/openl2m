@@ -173,6 +173,16 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
                 return retval
         return 1
 
+    def _get_known_ethernet_addresses(self) -> bool:
+        """
+        Read known ethernet address on the switch. SB devices are 'standard' snmp,
+        so call that connector (ie. Skip the SnmpConnectorCisco() object)
+
+        Return True on success (0 or more found), False on errors
+        """
+        dprint("SnmpConnectorCiscoSB()._get_known_ethernet_addresses()")
+        return SnmpConnector._get_known_ethernet_addresses(self=self)
+
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
         Implement VLAN change for new style Cisco SB devices. Method depends on interface mode.
