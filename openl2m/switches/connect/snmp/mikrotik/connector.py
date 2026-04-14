@@ -63,9 +63,6 @@ class SnmpConnectorMikroTik(SnmpConnector):
         dprint("MikroTik SnmpConnector __init__")
         super().__init__(request, group, switch)
         self.description = "MikroTik SNMP driver"
-        self.can_save_config = False
-        # force READ-ONLY for now! We have not implemented changing settings.
-        # self.switch.read_only = False
         self.vendor_name = "MikroTik"
         # map PoE-index to if_index
         self.poe_index_to_if_index = {}
@@ -98,7 +95,9 @@ class SnmpConnectorMikroTik(SnmpConnector):
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         # Note: MikroTik does NOT support reading VLAN information via SNMP! So we cannot edit trunks!
-        self.can_edit_tags = False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_edit_tags = (
+            False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+        )
 
         self.add_warning(
             warning="This MikroTik driver has only been tested on a single Hex-S (RB760iGS) router, and may not work for your MikroTik device!",
