@@ -5,7 +5,12 @@ Features Supported
 
 **Features Supported by Drivers**
 
-**SNMP DEVICES**
+Note: All driver features are automatically supported by the OpenL2M client REST API! (except for SSH commands)
+
+*untested* means the feature likely works, but is (clearly) untested.
+
+
+**SNMP Devices**
 ----------------
 
 .. list-table::
@@ -21,6 +26,7 @@ Features Supported
      - Neighbors
      - Vlan Edit
      - Trunk Edit
+     - Save Config
      - SSH
      - VRF
 
@@ -33,58 +39,24 @@ Features Supported
      - Yes
      - Yes
      - Yes :sup:`1`
+     - NO
      - Yes
      - Yes
 
-   * - Arista (snmp) :sup:`2`
+   * - Arista :sup:`2`
      - Yes
      - Yes
      - untested
      - Yes
      - Yes
      - Yes
-     -
      - NO
-     - Yes
-     - Yes
-
-   * - Aruba AOS-CX (snmp) :sup:`3`
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - NO
-     - Yes
-     - untested
-
-   * - Cisco (snmp) :sup:`4`
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
      - NO
      - NO
      - Yes
      - Yes
 
-   * - Cisco-SB (snmp) :sup:`5`
-     - Yes
-     - Yes
-     - NO
-     - Yes
-     - Yes
-     - Yes
-     - NO
-     - NO
-     - Yes
-     - Yes
-
-   * - HPE Comware (snmp)
+   * - Aruba AOS-CX :sup:`3`
      - Yes
      - Yes
      - Yes
@@ -93,34 +65,76 @@ Features Supported
      - Yes
      - Yes
      - NO
-     - Yes
-     - Yes
-
-   * - Procurve/AOS-S (snmp)
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - untested
-     - Yes
-     - Yes
      - Yes
      - Yes
      - untested
 
-   * - Juniper (snmp r/o) :sup:`6`
+   * - Cisco :sup:`4`
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - NO
+     - NO
+     - Yes
+     - Yes
+     - Yes
+
+   * - Cisco-SB :sup:`5`
+     - Yes
+     - Yes
+     - NO
+     - Yes
+     - Yes
+     - Yes
+     - NO
+     - NO
+     - Yes
+     - Yes
+     - Yes
+
+   * - HPE Comware :sup:`6`
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - NO
+     - Yes
+     - Yes
+     - Yes
+
+   * - Procurve/AOS-S :sup:`7`
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - untested
+     - Yes
+     - Yes
+     - Yes
+     - Automatic
+     - Yes
+     - untested
+
+   * - Juniper (r/o) :sup:`8`
      -
      -
      - (r/o)
      - (r/o)
      - Yes
      - Yes
-     -
+     - (r/o)
+     - (r/o)
      - (r/o)
      - Yes
      - Yes
 
-   * - MikroTik (snmp) :sup:`6`
+   * - MikroTik :sup:`9`
      - Yes
      -
      - R/O
@@ -129,17 +143,16 @@ Features Supported
      -
      -
      - NO
+     - NO
      - untested
      -
 
-.. note::
 
-  All driver features are automatically supported by the OpenL2M REST API! (except for SSH commands)
-
-  *untested* means the feature likely works, but is (clearly) untested.
+.. admonition::  SNMP Driver Notes
 
   :sup:`1` The generic SNMP driver supports standard MIBs only! PoE may not function for 'standard' devices,
-  as many vendors provide incorrect mapping of PoE switch-ports ID to interface index in their MIBs.
+  as many vendors provide incorrect mapping of PoE switch-ports ID to interface index in their MIBs. This driver
+  can NOT save the config.
 
   Editing 802.1q tagged interfaces (aka trunk ports by some vendors) is performed using the standard Q-Bridge MIB.
   We set the "dot1qpvid" entry for the untagged interface, and modify using the "dot1qVlanStaticEgressPorts" VLAN
@@ -157,14 +170,20 @@ Features Supported
   :sup:`5` Cisco Small Business devices are tested on a single CBS350 (non-PoE) switch.
   All features (except for PoE) are supported.
 
-  :sup:`6` Juniper's SNMP implementation on devices is Read-Only!
+  :sup:`6` HPE Comware devices are fully supported for all functionality.
 
-  :sup:`7` The MikroTik driver has limited functionality. MikroTik does not support VLANs over SNMP.
+  :sup:`7` Aruba AOS-S, and older Procurve switches, do NOT require a 'write mem' after succesful snmp changes.
+
+  :sup:`8` Juniper's SNMP implementation on devices is Read-Only. Therefor we can only read, and not make changes!
+
+  :sup:`9` The MikroTik driver has limited functionality. MikroTik does not support VLANs over SNMP.
   This driver has only been tested on a single HexS (RB760iGS) device.
 
 
 **Other API's**
 ---------------
+
+Devices supported via REST api's and more...
 
 .. list-table::
    :header-rows: 1
@@ -179,10 +198,11 @@ Features Supported
      - Neighbors
      - Vlan Edit
      - Trunk Edit
+     - Save Config
      - SSH
      - VRF
 
-   * - Arista eAPI
+   * - Arista eAPI :sup:`1`
      - Yes
      - Yes
      - NO
@@ -193,8 +213,9 @@ Features Supported
      - Yes
      - Yes
      - Yes
+     - Yes
 
-   * - Aruba AOS-CX (api)
+   * - Aruba AOS-CX :sup:`2`
      - Yes
      - Yes
      - Yes
@@ -203,10 +224,11 @@ Features Supported
      - Yes
      - Yes
      - Yes
+     - NO
      - Yes
      - Yes
 
-   * - Aruba AOS-S (api) :sup:`1`
+   * - Aruba AOS-S :sup:`3`
      - Yes
      - Yes
      - Yes
@@ -216,9 +238,10 @@ Features Supported
      - Yes
      - Yes
      - Yes
+     - Yes
      - n/a
 
-   * - HPE Comware (api) :sup:`2`
+   * - HPE Comware :sup:`4`
      - Yes
      - Yes
      - Yes :sup:`2`
@@ -229,20 +252,22 @@ Features Supported
      - Yes
      - Yes
      - Yes
-
-   * - Junos (PyEZ) :sup:`3`
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
-     - Yes
      - Yes
 
-   * - SSH :sup:`4`
+   * - Junos :sup:`5`
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - Automatic
+     - Yes
+     - Yes
+
+   * - SSH :sup:`6`
      -
      -
      -
@@ -251,10 +276,11 @@ Features Supported
      -
      -
      -
+     - n/a
      - Yes
      - n/a
 
-   * - Napalm (r/o) :sup:`5`
+   * - Napalm (r/o) :sup:`7`
      -
      -
      -
@@ -263,35 +289,32 @@ Features Supported
      - Yes
      -
      - (r/o)
+     - n/a
      - Yes
      - Yes
 
-.. note::
 
-  All driver features are automatically supported by the OpenL2M REST API! (except for SSH commands)
+.. admonition::  API Driver Notes
 
-  *untested* means the feature likely works, but is (clearly) untested.
+  :sup:`1` The Arista eAPI driver does not PoE due to lack of testing hardware. It is tested on 7050 and 7280cr3 hardware.
 
+  :sup:`2` The Aruba AOS-CX REST api driver supports most features, and is tested in 6100 and 6300 hardware.
 
-  :sup:`1` The AOS-S REST api driver requires firmware v16.x. This has been tested using firmware v16.11.0029, and REST api v4,
+  :sup:`3` The Aruba AOS-S REST api driver requires firmware v16.x. This has been tested using firmware v16.11.0029, and REST api v4,
   on the following single devices: 2530(PoE), 2940(PoE), 2930M, and 2930F(PoE). It should function on the 2530, 2540, 2920,
   2930F, 2930M, 3810 and 5400R line of devices with the proper software levels.
 
-
-  :sup:`2` The Comware REST API is in development. Most features are supported.
+  :sup:`4` The Comware REST api driver supports all features. Tested on a variety of devices.
 
   - Some older devices only return PoE info for ports with active PoE power drawn.
     Other interfaces will show as 'n/s' (not supported), even though they may support PoE.
   - Interface descriptions can be set, but NOT cleared at this time.
 
-
-  :sup:`3` The Junos PyEZ driver expects a **device with "ELS" software**, ie running Enhanced Layer2 Software,
+  :sup:`5` The Junos PyEZ driver expects a **device with "ELS" software**, ie running Enhanced Layer2 Software,
   that unifies the configuration of Ethernet interfaces access the product line. **Many MX routers do
   not support this, and have not been tested!**
 
-
-  :sup:`4` SSH support is via the Netmiko library. Most devices supported by that library should work, but
+  :sup:`6` SSH support is via the Netmiko library. Most devices supported by that library should work, but
   your mileage may vary!
 
-
-  :sup:`5` Napalm support has been tested on a limited set of devices. Your mileage may vary!
+  :sup:`7` Napalm support has been tested on a limited set of devices. It requires SSH access. Your mileage may vary!
