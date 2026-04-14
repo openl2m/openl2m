@@ -103,7 +103,7 @@ Note: All driver features are automatically supported by the OpenL2M client REST
      - Yes
      - Yes
      - Yes
-     - NO
+     - Yes
      - Yes
      - Yes
      - Yes
