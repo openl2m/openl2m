@@ -109,6 +109,7 @@ class StackMember:
         self.model: str = ""  # vendor model number
         self.info: str = ""  # hardware info string
         self.description: str = ""  # module description
+        self.uptime: int = 0    # uptime in seconds
 
     def as_dict(self) -> dict:
         """
@@ -122,6 +123,7 @@ class StackMember:
             "model": self.model,
             "info": self.info,
             "description": self.description,
+            "uptime": self.uptime,
         }
 
 
