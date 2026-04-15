@@ -34,6 +34,7 @@ from rangeparser import RangeParser
 # used to disable unknown SSL cert warnings:
 import urllib3
 
+from switches.constants import LOG_TYPE_WARNING, LOG_HEALTH_MESSAGE
 from switches.connect.classes import Interface, Vlan, Transceiver, PoePort, NeighborDevice, StackMember
 from switches.connect.restconnector import RESTConnector
 from switches.connect.constants import (
@@ -261,7 +262,7 @@ class HPECwRestConnector(RESTConnector):
                     case 3:  # 3 = Frame, i.e. the whole chassis
                         # IRF stacks show up as multiple chassis, add to system and hardware section:
                         if not found_chassis:
-                            self.add_more_info("System", "Model Short", hw["Model"])
+                            self.add_more_info("System", "Model", hw["Model"])
                             self.add_more_info("System", "Model Name", hw["Name"])
                             self.add_more_info("System", "Serial", hw["SerialNumber"])
                             self.add_more_info("System", "OS Version", hw["SoftwareRev"])
@@ -291,6 +292,19 @@ class HPECwRestConnector(RESTConnector):
                         s = StackMember(id=hw["PhysicalIndex"], type=11)
                         s.description = "HPE IRF"
                         self.stack_members[hw["PhysicalIndex"]] = s
+
+        #
+        # some extended hardware info, mostly to get individual stack member chassis uptime
+        #
+        hardware = self._get(path="Device/ExtPhysicalEntities")
+        if hardware:
+            found_chassis = False
+            # dprint(f"HARDWARE: {pprint.pformat(hardware)}")
+            for hw in hardware["ExtPhysicalEntities"]:
+                if hw["PhysicalIndex"] in self.stack_members:
+                    # this is more info about a stack member!
+                    if "Uptime" in hw:
+                        self.stack_members[hw["PhysicalIndex"]].uptime = hw["Uptime"]
 
         #
         # get vlan info
@@ -634,6 +648,58 @@ class HPECwRestConnector(RESTConnector):
         self.save_driver_info()
 
         return True
+
+    def check_my_device_health(self):
+        """Implement a health checks for this device.
+        Here are check IRF stacking, which is typically not handled by general purpose snmp monitoring tools.
+        """
+        dprint("HPECwRestConnector().check_my_device_health()")
+
+        # call the super class implementation of this:
+        super().check_my_device_health()
+
+        # check health of the IRF stack
+        #
+        # get IRF members
+        #
+
+        irf_members = self._get("IRF/Members")
+        if irf_members:
+            # walk through the IRF info, and check for problems:
+            irf_member_count = 0
+            highest_priority = -1
+            master_id = -1
+            master_priority = -1
+            irf_status = "OK"
+            for member in irf_members["Members"]:
+                dprint(f"IRF-Member: {pprint.pformat(member)}")
+                irf_member_count += 1
+                # the "Board" entry is a list of dicts (even though there appears to ever be just a single entry!)
+                if member['Board'][0]['Role'] == 1:  # the master
+                    dprint("  MASTER found!")
+                    master_id = member["MemberID"]
+                    master_priority = member["Priority"]
+                if member["Priority"] > highest_priority:
+                    dprint("  NEW Higher Priority found!")
+                    highest_priority = member["Priority"]
+                    highest_priority_id = member["MemberID"]
+            # now check if we have a higher priority than the master
+            if master_priority < highest_priority:
+                irf_status = "Unhealthy!"
+                self.add_warning(
+                    warning=f"IRF master id = {master_id}, but member id = {highest_priority_id} has highest priority {highest_priority}",
+                    add_log=False,
+                )
+                self.add_log(
+                    description=f"IRF master id = {master_id}, but member id = {highest_priority_id} has highest priority {highest_priority}",
+                    type=LOG_TYPE_WARNING,
+                    action=LOG_HEALTH_MESSAGE,
+                )
+
+            self.add_more_info(category="IRF Info", name="Status", value=irf_status)
+            self.add_more_info(category="IRF Info", name="Members", value=irf_member_count)
+
+        return
 
     def get_my_vrfs(self):
         #
