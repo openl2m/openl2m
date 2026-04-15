@@ -147,6 +147,19 @@ Note: All driver features are automatically supported by the OpenL2M client REST
      - untested
      -
 
+   * - Netgear :sup:`10`
+     - Yes
+     - Yes
+     - Yes
+     - Yes
+     - untested
+     - Yes
+     - Yes
+     - NO
+     - NO
+     - untested
+     - untested
+
 
 .. admonition::  SNMP Driver Notes
 
@@ -178,6 +191,9 @@ Note: All driver features are automatically supported by the OpenL2M client REST
 
   :sup:`9` The MikroTik driver has limited functionality. MikroTik does not support VLANs over SNMP.
   This driver has only been tested on a single HexS (RB760iGS) device.
+
+  :sup:`10` The Netgear driver has limited functionality. Basic features work. Vlan tagging appears non-functional,
+  even though the standard snmp calls to the Q-Bridge MIB do not return errors. So this functionality is disabled.
 
 
 **Other API's**

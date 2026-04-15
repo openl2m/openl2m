@@ -65,7 +65,12 @@ class SnmpConnectorNetgear(SnmpConnector):
         # let Netmiko decide...
         # self.netmiko_disable_paging_command = "terminal length 0"
 
-        self.can_edit_tags = False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+        # Note: 802.1q vlan tag editing calls via snmp q-bridge mib appear to succeed.
+        # However:on a re-read of the mib data, this change does NOT show.
+        # this is likely due to the Netgear "port policies" stuff...
+        self.can_edit_tags = (
+            False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+        )
 
         self.add_warning(
             warning="This Netgear driver has only been tested on a single M4250 switch, and may not work for your Netgear device!",
@@ -186,7 +191,7 @@ class SnmpConnectorNetgear(SnmpConnector):
         """
         dprint("_map_poe_port_entries_to_interface(Netgear)")
         for port_entry in self.poe_port_entries.values():
-            (pse_module, port) = port_entry.index.split(".")
+            pse_module, port = port_entry.index.split(".")
             # calculate the stack member number from PSE#
             member = int((int(pse_module) - 1) / 3)
             if_index = self._get_if_index_from_port_id(int(port))
