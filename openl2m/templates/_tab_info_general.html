@@ -66,6 +66,9 @@
           {% if dev.info %}
             , {{ dev.info }}
           {% endif %}
+          {% if dev.uptime %}
+            , uptime {{ dev.uptime|humanize_seconds }}
+          {% endif %}
         </div>
     {% endfor%}
   </div>

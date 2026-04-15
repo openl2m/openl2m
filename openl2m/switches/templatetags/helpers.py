@@ -12,6 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import csv
+import datetime
 import json
 
 from django.conf import settings
@@ -717,6 +718,16 @@ def humanize_power(power):
         return ""
     # return '{:.1f}W'.format(power / 1000)
     return f"{power / 1000:.1f}W"
+
+
+@register.filter()
+def humanize_seconds(seconds):
+    """
+    Humanize the number of seconds given to dd:hh:mm:ss format.
+    """
+    if not seconds:
+        return "0s"
+    return str(datetime.timedelta(seconds=int(seconds)))
 
 
 # from https://stackoverflow.com/questions/2751319/is-there-a-django-template-filter-to-display-percentages
