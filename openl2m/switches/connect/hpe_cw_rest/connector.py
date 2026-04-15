@@ -686,10 +686,12 @@ class HPECwRestConnector(RESTConnector):
             # now check if we have a higher priority than the master
             if master_priority < highest_priority:
                 irf_status = "Unhealthy!"
-                self.add_warning(
-                    warning=f"IRF master id = {master_id}, but member id = {highest_priority_id} has highest priority {highest_priority}",
-                    add_log=False,
-                )
+                # we don't show this to the user:
+                # self.add_warning(
+                #     warning=f"IRF master id = {master_id}, but member id = {highest_priority_id} has highest priority {highest_priority}",
+                #     add_log=False,
+                # )
+                # this log entry can be email to alert personel via the log-emailer capabilities
                 self.add_log(
                     description=f"IRF master id = {master_id}, but member id = {highest_priority_id} has highest priority {highest_priority}",
                     type=LOG_TYPE_WARNING,
