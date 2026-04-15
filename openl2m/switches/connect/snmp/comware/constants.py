@@ -75,7 +75,7 @@ snmp_mib_variables["hh3cPsePortCurrentPower"] = hh3cPsePortCurrentPower
 
 # HH3C IF Extension MIB has some interesting fields
 # HH3C-IF-EXT-MIB
-# see http://www.circitor.fr/Mibs/Html/H/HH3C-IF-EXT-MIB.ph
+# see https://mibs.observium.org/mib/HH3C-IF-EXT-MIB/
 
 # is an interface in Link (switch) mode, or Route (layer 3) mode ?
 hh3cIfLinkMode = ".1.3.6.1.4.1.25506.2.40.2.2.3.1.2"
@@ -91,7 +91,7 @@ snmp_mib_variables["hh3cIfIsPoe"] = hh3cIfIsPoe
 
 
 # HH3C LswINF MIB - interface related information
-# See http://www.circitor.fr/Mibs/Html/H/HH3C-LswINF-MIB.php
+# See https://mibs.observium.org/mib/HH3C-LswINF-MIB
 #
 # Note: in the HPE/Comware mib downloads, this is in "hh3c-splat-inf.mib"
 
@@ -112,8 +112,7 @@ HH3C_IF_MODE_HYBRID = 3
 HH3C_IF_MODE_FABRIC = 4  # not used!
 
 # HH3C LswVLAN MIB - VLAN related
-# See http://www.circitor.fr/Mibs/Html/H/HH3C-LswVLAN-MIB.php
-# and the raw text at http://www.circitor.fr/Mibs/Mib/H/HH3C-LswVLAN-MIB.mib
+# See https://mibs.observium.org/mib/HH3C-LswVLAN-MIB
 # This is the H3C VLan mib, similar to Q-Bridge mib.
 #
 # Note: in the HPE/Comware mib downloads, this is in "hh3c-splat-vlan.mib"
