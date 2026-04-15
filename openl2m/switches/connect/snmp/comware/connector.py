@@ -929,6 +929,12 @@ class SnmpConnectorComware(SnmpConnector):
         if master_id != highest_prio["id"]:
             # this means something happened to the stack, add a log message!
             irf_status = "Unhealthy!"
+            # we don't show this to the user:
+            # self.add_warning(
+            #     warning=f"IRF master id = {master_id}, but member id = {highest_prio['id']} has highest priority {highest_prio['priority']}",
+            #     add_log=False
+            # )
+            # this log entry can be email to alert personel via the log-emailer capabilities
             self.add_log(
                 description=f"IRF master id = {master_id}, but member id = {highest_prio['id']} has highest priority {highest_prio['priority']}",
                 type=LOG_TYPE_WARNING,
