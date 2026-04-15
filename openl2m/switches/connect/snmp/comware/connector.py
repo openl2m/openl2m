@@ -72,6 +72,7 @@ from .constants import (
     hh3cStackBoardRole,
     hh3cStackBoardBelongtoMember,
     IRF_ROLE_MASTER,
+    hh3cEntityExtUpTime,
 )
 
 
@@ -214,6 +215,11 @@ class SnmpConnectorComware(SnmpConnector):
         super().get_my_hardware_details()
 
         # now read Comware specific data:
+        retval = self.get_snmp_branch(branch_name="hh3cEntityExtUpTime", parser=self._parse_mib_hhc3_entity_ext)
+        if retval < 0:
+            self.add_warning(warning="Error getting Comware extended hardware info ('hh3cEntityExtUpTime')")
+            return False
+
         retval = self.get_snmp_branch(branch_name="hh3cCfgLog", parser=self._parse_mibs_comware_config)
         if retval < 0:
             self.add_warning(warning="Error getting Comware log details ('hh3cCfgLog')")
@@ -587,6 +593,22 @@ class SnmpConnectorComware(SnmpConnector):
                 iface.unmanage_reason = "Access denied: interface in Hybrid or Fabric mode!"
                 return False
         return True
+
+    def _parse_mib_hhc3_entity_ext(self, oid: str, val: str) -> bool:
+        """
+        Parse Comware specific Entity Extension MIB (HH3C-ENTITY-EXT-MIB)
+        Looking for individual chassis uptime only.
+
+        return True if we parse it, False if not.
+        """
+        dev_id = int(oid_in_branch(hh3cEntityExtUpTime, oid))
+        if dev_id:
+            # this is the index into the Entity MIB, we use this as index into stack members!
+            if dev_id in self.stack_members:
+                self.stack_members[dev_id].uptime = int(val)
+            else:
+                dprint(f"ERROR parsing hh3cEntityExtUpTime: device id {dev_id} NOT found!")
+            return True
 
     def _parse_mibs_comware_config(self, oid: str, val: str) -> bool:
         """

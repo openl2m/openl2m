@@ -42,8 +42,28 @@ hh3cCfgOperateRowStatus = ".1.3.6.1.4.1.25506.2.4.1.2.4.1.9"
 snmp_mib_variables["hh3cCfgOperateRowStatus"] = hh3cCfgOperateRowStatus
 HH3C_createAndGo = 4
 
+#
+# HH3C-ENTITY-EXT-MIB
+# see https://mibs.observium.org/mib/HH3C-ENTITY-EXT-MIB/
+#
+# hh3cEntityExtStateEntry = ".1.3.6.1.4.1.25506.2.6.1.1.1.1"
+# hh3cEntityExtStateEntry OBJECT-TYPE
+# SYNTAX Hh3cEntityExtStateEntry
+# DESCRIPTION
+#     "The information about a particular physical entity."
+# INDEX { hh3cEntityExtPhysicalIndex }
+
+# DESCRIPTION
+# "The uptime for the entity. The meaning of uptime is
+# when the entity is up, and the value of the object
+# will add 1 seconds while the entity is running."
+hh3cEntityExtUpTime = ".1.3.6.1.4.1.25506.2.6.1.1.1.1.11"  # uptime in seconds
+snmp_mib_variables["hh3cEntityExtUpTime"] = hh3cEntityExtUpTime
+
+
+#
 # HH3C PoE
-# see http://www.circitor.fr/Mibs/Html/H/HH3C-POWER-ETH-EXT-MIB.php
+# see https://mibs.observium.org/mib/HH3C-POWER-ETH-EXT-MIB/
 
 hh3cPowerEthernetExt = ".1.3.6.1.4.1.25506.2.14"
 
