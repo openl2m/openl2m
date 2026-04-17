@@ -1729,7 +1729,7 @@ class Connector:
             dprint(f"ERROR saving driver_info field: {err}")
             self.add_warning(f"ERROR saving driver_info field: {err}")
 
-    def _can_manage_interface(self, iface: Interface):
+    def _can_manage_interface(self, interface: Interface):
         """
         Function meant to check if this interface can be managed.
 
@@ -1879,7 +1879,7 @@ class Connector:
 
             # next check vendor-specific restrictions. This allows denying Stacking ports, etc.
             # vendor should set reason for not managing!
-            if not self._can_manage_interface(iface):
+            if not self._can_manage_interface(interface=iface):
                 iface.manageable = False
                 iface.allow_poe_toggle = False
                 iface.can_edit_description = False

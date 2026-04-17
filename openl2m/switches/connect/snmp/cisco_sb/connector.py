@@ -34,6 +34,10 @@ from .constants import (
     vlanPortModeState,
     vlanAccessPortModeVlanId,
     vlanTrunkPortModeNativeVlanId,
+    vlanTrunkModeList1to1024,
+    vlanTrunkModeList1025to2048,
+    vlanTrunkModeList2049to3072,
+    vlanTrunkModeList3073to4094,
     swIfTransceiverType,
     SB_VLAN_MODE_GENERAL,
     SB_VLAN_MODE_ACCESS,
@@ -130,8 +134,8 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
         # and then read the vlanAccessPortModeVlanId, this reads access mode vlan id's
         self.get_snmp_branch(branch_name="vlanAccessPortModeVlanId", parser=self._parse_mibs_sb_access_vlan)
 
-        # and finally read trunk mode PVID as well:
-        self.get_snmp_branch(branch_name="vlanTrunkPortModeNativeVlanId", parser=self._parse_mibs_sb_trunk_vlan)
+        # and finally read trunk mode PVID and tagged vlans as well:
+        self.get_snmp_branch(branch_name="vlanTrunkPortModeEntry", parser=self._parse_mibs_sb_trunk_vlan)
 
         # and parse the transceiver type, if any
         self.get_snmp_branch(branch_name="swIfTransceiverType", parser=self._parse_mibs_sb_port_transceiver_type)
@@ -261,21 +265,24 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
                 if success:
                     dprint(" PVID set OK")
                     # now add tagged vlans
-                    for vlan_id in self.vlans:
-                        if allow_all or vlan_id in tagged_vlans:
-                            dprint(f"  VLAN {vlan_id}: ADD as tagged")
+                    # for vlan_id in self.vlans:
+                    #     if allow_all or vlan_id in tagged_vlans:
+                    #         dprint(f"  VLAN {vlan_id}: ADD as tagged")
 
-                        else:
-                            dprint(f"  VLAN {vlan_id} REMOVE as tagged")
+                    #     else:
+                    #         dprint(f"  VLAN {vlan_id} REMOVE as tagged")
 
-                    # do the bookkeeping
-                    return Connector.set_interface_vlans(
-                        self=self,
-                        interface=interface,
-                        untagged_vlan=untagged_vlan,
-                        tagged_vlans=tagged_vlans,
-                        allow_all=allow_all,
-                    )
+                    # call the SnmpConnector() to handle regular Q-Bridge port vlan setting:
+                    success = self.set_interface_tagged_vlans(interface=interface, tagged_vlans=tagged_vlans, allow_all=allow_all)
+                    if success:
+                        # do the bookkeeping
+                        return Connector.set_interface_vlans(
+                            self=self,
+                            interface=interface,
+                            untagged_vlan=untagged_vlan,
+                            tagged_vlans=tagged_vlans,
+                            allow_all=allow_all,
+                        )
 
         else:
             dprint("  ACCESS MODE!")
@@ -360,30 +367,17 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
             dprint(f"FOUND: vlanPortModeState for index {if_index} = {val} ({get_if_mode_name(mode=int(val))})")
             iface = self.get_interface_by_key(key=if_index)
             if iface:
-                iface.if_vlan_mode = int(val)
+                mode = int(val)
+                iface.if_vlan_mode = mode
                 # if ACCESS mode, clear out any vlans we have found from Q-Bridge,as they are not valid.
-                if int(val) == SB_VLAN_MODE_ACCESS:
+                if mode == SB_VLAN_MODE_ACCESS:
                     iface.is_tagged = False
                     iface.vlans = []
-            return True  # parsed
-
-        return False  # not parsed.
-
-    def _parse_mibs_sb_port_transceiver_type(self, oid: str, val: str) -> bool:
-        """
-        Parse CiscoSB-rlInterfaces Port transceiver type
-        """
-
-        if_index = oid_in_branch(swIfTransceiverType, oid)
-        if if_index:
-            dprint(f"FOUND: swIfTransceiverType for index {if_index} = {val}")
-            # only set data for optical or combo transceiver ports:
-            if int(val) != SB_TX_TYPE_COPPER:
-                iface = self.get_interface_by_key(key=if_index)
-                if iface:
-                    if not iface.transceiver:
-                        iface.transceiver = Transceiver()
-                    iface.transceiver.type = sb_tx_type[int(val)]
+                elif mode == SB_VLAN_MODE_TRUNK:
+                    iface.is_tagged = True
+                    iface.vlans = []  # clear out from Q-Bridge, as we are about to read vlanTrunkModeList1to1024, etc.
+                else:
+                    dprint(f"  WARNING: cannot handle mode {mode} !")
             return True  # parsed
 
         return False  # not parsed.
@@ -414,6 +408,73 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
                 iface.untagged_vlan = int(val)
             return True  # parsed
 
+        if_index = oid_in_branch(vlanTrunkModeList1to1024, oid)
+        if if_index:
+            dprint(f"FOUND: vlanTrunkModeList1to1024 for index {if_index} = {val}")
+            iface = self.get_interface_by_key(key=if_index)
+            if iface.if_vlan_mode == SB_VLAN_MODE_TRUNK:
+                # data is only valid in trunk mode!
+                # now parse the bitmap. Note the bit place values are vlan indexes, NOT vlan ID!!!
+                dprint("   BITMAP to parse here!")
+                # note this is offset by 1 to count valid vlan id's
+                self._cisco_parse_vlan_bitmap(val=val, vlan_base=1, iface=iface)
+            return True  # parsed
+
+        if_index = oid_in_branch(vlanTrunkModeList1025to2048, oid)
+        if if_index:
+            dprint(f"FOUND: vlanTrunkModeList1025to2048 for index {if_index} = {val}")
+            iface = self.get_interface_by_key(key=if_index)
+            if iface.if_vlan_mode == SB_VLAN_MODE_TRUNK:
+                # data is only valid in trunk mode!
+                # now parse the bitmap. Note the bit place values are vlan indexes, NOT vlan ID!!!
+                dprint("   BITMAP to parse here!")
+                # note this is offset by 1 to count valid vlan id's
+                self._cisco_parse_vlan_bitmap(val=val, vlan_base=1025, iface=iface)
+            return True  # parsed
+
+        if_index = oid_in_branch(vlanTrunkModeList2049to3072, oid)
+        if if_index:
+            dprint(f"FOUND: vlanTrunkModeList2049to3072 for index {if_index} = {val}")
+            iface = self.get_interface_by_key(key=if_index)
+            if iface.if_vlan_mode == SB_VLAN_MODE_TRUNK:
+                # data is only valid in trunk mode!
+                # now parse the bitmap. Note the bit place values are vlan indexes, NOT vlan ID!!!
+                dprint("   BITMAP to parse here!")
+                # note this is offset by 1 to count valid vlan id's
+                self._cisco_parse_vlan_bitmap(val=val, vlan_base=2049, iface=iface)
+            return True  # parsed
+
+        if_index = oid_in_branch(vlanTrunkModeList3073to4094, oid)
+        if if_index:
+            dprint(f"FOUND: vlanTrunkModeList3073to4094 for index {if_index} = {val}")
+            iface = self.get_interface_by_key(key=if_index)
+            if iface.if_vlan_mode == SB_VLAN_MODE_TRUNK:
+                # data is only valid in trunk mode!
+                # now parse the bitmap. Note the bit place values are vlan indexes, NOT vlan ID!!!
+                dprint("   BITMAP to parse here!")
+                # note this is offset by 1 to count valid vlan id's
+                self._cisco_parse_vlan_bitmap(val=val, vlan_base=3073, iface=iface)
+            return True  # parsed
+
+        return False  # not parsed.
+
+    def _parse_mibs_sb_port_transceiver_type(self, oid: str, val: str) -> bool:
+        """
+        Parse CiscoSB-rlInterfaces Port transceiver type
+        """
+
+        if_index = oid_in_branch(swIfTransceiverType, oid)
+        if if_index:
+            dprint(f"FOUND: swIfTransceiverType for index {if_index} = {val}")
+            # only set data for optical or combo transceiver ports:
+            if int(val) != SB_TX_TYPE_COPPER:
+                iface = self.get_interface_by_key(key=if_index)
+                if iface:
+                    if not iface.transceiver:
+                        iface.transceiver = Transceiver()
+                    iface.transceiver.type = sb_tx_type[int(val)]
+            return True  # parsed
+
         return False  # not parsed.
 
     def _can_manage_interface(self, interface: Interface):
@@ -434,6 +495,7 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
             SB_VLAN_MODE_TRUNK,
         ):
             # we cannot manage this yet, so disable for now:
+            dprint("  -> NO!")
             interface.manageable = False
             interface.unmanage_reason = f"On Cisco SB devices, mode '{get_if_mode_name(mode=interface.if_vlan_mode)}' interface is not manageable!"
             return False

@@ -69,13 +69,32 @@ sb_vlan_mode[SB_VLAN_MODE_GENERAL] = "General"
 sb_vlan_mode[SB_VLAN_MODE_ACCESS] = "Access"
 sb_vlan_mode[SB_VLAN_MODE_TRUNK] = "Trunk"
 
+
+# TRUNK mode settings:
+#
+# vlanTrunkPortModeTable 		.1.3.6.1.4.1.9.6.1.101.48.61
+vlanTrunkPortModeEntry = ".1.3.6.1.4.1.9.6.1.101.48.61.1"
+snmp_mib_variables["vlanTrunkPortModeEntry"] = vlanTrunkPortModeEntry
+
+#
+# trunk mode ports set the PVID/untagged vlan on this mib:
+vlanTrunkPortModeNativeVlanId = ".1.3.6.1.4.1.9.6.1.101.48.61.1.1"
+snmp_mib_variables["vlanTrunkPortModeNativeVlanId"] = vlanTrunkPortModeNativeVlanId
+# other tagged vlans are read/set here:
+vlanTrunkModeList1to1024 =    ".1.3.6.1.4.1.9.6.1.101.48.61.1.2"
+vlanTrunkModeList1025to2048 = ".1.3.6.1.4.1.9.6.1.101.48.61.1.3"
+vlanTrunkModeList2049to3072 = ".1.3.6.1.4.1.9.6.1.101.48.61.1.4"
+vlanTrunkModeList3073to4094 = ".1.3.6.1.4.1.9.6.1.101.48.61.1.5"
+
 # access mode ports set the vlan on this mib:
 vlanAccessPortModeVlanId = ".1.3.6.1.4.1.9.6.1.101.48.62.1.1"
 snmp_mib_variables["vlanAccessPortModeVlanId"] = vlanAccessPortModeVlanId
 
-# trunk mode ports set the PVID/untagged vlan on this mib:
-vlanTrunkPortModeNativeVlanId = ".1.3.6.1.4.1.9.6.1.101.48.61.1.1"
-snmp_mib_variables["vlanTrunkPortModeNativeVlanId"] = vlanTrunkPortModeNativeVlanId
+# port mode, L2 or L3:
+vlanSwitchPortModeCategory = ".1.3.6.1.4.1.9.6.1.101.48.64.1.1"
+snmp_mib_variables["vlanSwitchPortModeCategory"] = vlanSwitchPortModeCategory
+SB_L2_MODE = 1    # layer-2 switching mode
+SB_L3_MODE = 2    # layer-3 routing mode
 
 #
 # Small Business COPY MIB, save configs!
