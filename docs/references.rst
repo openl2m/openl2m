@@ -90,7 +90,7 @@ Compose: https://docs.docker.com/compose/
 Nginx in docker: https://hub.docker.com/_/nginx
 
 
-SNMP related
+SNMP clients
 ------------
 
 Python EzSNMP, using native Net-Snmp:
@@ -99,17 +99,21 @@ and the docs at https://carlkidcrypto.github.io/ezsnmp/html/index.html
 
 PySNMP, a native Python SNMP stack: https://pysnmp.com/
 
-MIB browser at
-http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.3.6.1.2.1
 
-Cisco SNMP MIBs: https://github.com/cisco/cisco-mibs/
-
-Juniper SNMP: https://www.juniper.net/documentation/us/en/software/junos/network-mgmt/topics/topic-map/snmp-mibs-supported-by-junos-os-and-junos-os-evolved.html
+SNMP mibs
+---------
 
 Arista SNMP: https://www.arista.com/en/support/product-documentation/arista-snmp-mibs
 
+Cisco SNMP MIBs: https://github.com/cisco/cisco-mibs/tree/main/v2
+
+Juniper SNMP: https://www.juniper.net/documentation/us/en/software/junos/network-mgmt/topics/topic-map/snmp-mibs-supported-by-junos-os-and-junos-os-evolved.html
+
 More MIB files can be found at
 https://github.com/librenms/librenms/blob/master/mibs/ and https://mibs.observium.org/all/
+
+And one of a number of MIB browsers at http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.3.6.1.2.1
+
 
 Aruba AOS-CX
 ------------

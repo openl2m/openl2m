@@ -6,7 +6,7 @@ Cisco SNMP Driver Overview
 
 .. toctree::
    :maxdepth: 1
-   :caption: The various parts of the SNMP driver:
+   :caption: The SNMP driver for 'regular' Cisco devices:
 
    cisco-base.rst
    cisco-transceiver-type
