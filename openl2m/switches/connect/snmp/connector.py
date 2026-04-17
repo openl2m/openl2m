@@ -3956,6 +3956,111 @@ class SnmpConnector(Connector):
         dprint("SnmpConnector.set_interface_untagged_vlan() -> True")
         return True
 
+
+    def set_interface_tagged_vlans(self, interface: Interface, tagged_vlans: list[int], allow_all: bool = False) -> bool:
+        """
+        Set the tagged vlans on an interface. This uses the standard Q-Bridge MIB
+        to set vlan egress ports with dot1qVlanStaticEgressPorts.<vlan-id>
+
+        Note: this will ALSO set the pvid/untagged-vlan of an interface as tagged
+              if this is in the list of allowed tagged vlans!
+
+              Some devices cannot handle this (e.g. Aruba switches), others appear to need this for
+              the pvid vlan to work properly (e.g. Comware)
+
+              It is up to the caller (driver) to remove the pvid vlan from tagged-vlans is this is problematic!
+
+        Args:
+            interface = Interface() object for the requested port
+            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+            allow_all = boolean indicating if all vlans should be allow (True), or just the given list (False)
+
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(f"SnmpConnector.set_interface_tagged_vlans() for {interface.name} to tagged {tagged_vlans}, allow_all={allow_all}")
+
+        #
+        # get snmp helper to handle bitmapping
+        #
+        try:
+            pysnmp = pysnmpHelper(self.switch)
+        except Exception as err:
+            dprint(f"ERROR getting pysnmpHelper(): {err}")
+            self.error.status = True
+            self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+            self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            return False
+
+        try:
+            for vlan_id in self.vlans:
+                dprint(f"Checking vlan {vlan_id}")
+
+                # Since we don't deal with dynamic vlans, we read and write the static port bitmap for each vlan!
+                # Note some implementations read vlan member ports from dot1qVlanCurrentEgressPorts bitmap,
+                # but this appears to result in errors for vlan 1 port membership when writing back the modified
+                # bitmpa. In our testing, using dot1qVlanStaticEgressPorts vlan port bitmap does not!
+
+                # read the static ports active on this vlan.
+                error_status, snmpval = self.get(f"{dot1qVlanStaticEgressPorts}.{vlan_id}", parser=False)
+                if error_status:
+                    raise Exception(f"IGNORING Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
+                vlan_port_bitmap = PortList()
+                vlan_port_bitmap.from_unicode(snmpval.value)
+                dprint(f"  Static Egress Ports = {vlan_port_bitmap.to_hex_string()}")
+
+                # # read all the static and dynamic ports active on this vlan.
+                # # Note 0 is some kind of 'time filter'...
+                # (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{vlan_id}", parser=False)
+                # if error_status:
+                #     raise Exception(f"Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
+                # vlan_port_bitmap = PortList()
+                # vlan_port_bitmap.from_unicode(snmpval.value)
+                # dprint(f"  Current Egress Ports = {vlan_port_bitmap.to_hex_string()}")
+
+                # now check the status of this port (interface.port_id) on this vlan:
+                active = vlan_port_bitmap[interface.port_id]
+
+                # do we need this vlan as 802.1q-tagged ?
+                if allow_all or vlan_id in tagged_vlans:
+                    dprint("  TRUNK ADD!")
+                    desired = 1
+                else:
+                    dprint("  TRUNK REMOVE!")
+                    desired = 0
+
+                dprint(f"  Port active={active}, desired={desired}")
+
+                if active != desired:
+                    dprint("  VLAN PORT CHANGE NEEDED!")
+                    # set of clear the bit for this port!
+                    vlan_port_bitmap[interface.port_id] = desired
+                    dprint(f"  NEW Egress Ports = {vlan_port_bitmap.to_hex_string()}")
+                    # and write it back to the vlan bitmap! We use PySNMP to do this work
+                    octet_string = OctetString(hexValue=vlan_port_bitmap.to_hex_string())
+                    if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{vlan_id}", octet_string):
+                        self.error.status = True
+                        self.error.description = f"Error setting port tagged vlan {vlan_id}"
+                        # copy over the error details from the call:
+                        self.error.details = pysnmp.error.details
+                        dprint(f"ERROR setting port tagged vlan {vlan_id} using dot1qVlanStaticEgressPorts")
+                        return False
+                    dprint("  CHANGE OK!\n-----")
+                else:
+                    dprint("  NO CHANGE NEEDED!\n-----")
+
+            # all vlans seem OK!
+            return True
+
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Error adding vlans to trunk! Interface is now in UNKNOWN state!"
+            self.error.details = format(err)
+            return False
+
+
+
+
     def set_interface_vlans(
         self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
     ) -> bool:
@@ -3966,6 +4071,7 @@ class SnmpConnector(Connector):
             interface = Interface() object for the requested port
             untagged_vlan = an integer with the requested untagged vlan
             tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+            allow_all = boolean indicating if all vlans should be allow (True), or just the given list (False)
 
         Returns:
             True on success, False on error and set self.error variables
