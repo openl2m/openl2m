@@ -577,20 +577,20 @@ class SnmpConnectorComware(SnmpConnector):
 
             return False  # self.error() already set!
 
-    def _can_manage_interface(self, iface: Interface) -> bool:
+    def _can_manage_interface(self, interface: Interface) -> bool:
         """
         vendor-specific override of function to check if this interface can be managed.
         We check for IRF ports here. This is detected via 'hh3cifVLANType' MIB value,
         in _parse_mibs_comware_if_type()
         Returns True for normal interfaces, but False for IRF ports.
         """
-        if iface.type == IF_TYPE_ETHERNET:
-            if iface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
-                # dprint(f"Interface {iface.name}: mode={interface.if_vlan_mode}, NO MANAGEMENT ALLOWED!")
-                iface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
+        if interface.type == IF_TYPE_ETHERNET:
+            if interface.if_vlan_mode <= HH3C_IF_MODE_INVALID:
+                # dprint(f"Interface {interface.name}: mode={interface.if_vlan_mode}, NO MANAGEMENT ALLOWED!")
+                interface.unmanage_reason = "Access denied: interface in IRF (stacking) mode!"
                 return False
-            if iface.if_vlan_mode in (HH3C_IF_MODE_HYBRID, HH3C_IF_MODE_FABRIC):
-                iface.unmanage_reason = "Access denied: interface in Hybrid or Fabric mode!"
+            if interface.if_vlan_mode in (HH3C_IF_MODE_HYBRID, HH3C_IF_MODE_FABRIC):
+                interface.unmanage_reason = "Access denied: interface in Hybrid or Fabric mode!"
                 return False
         return True
 
