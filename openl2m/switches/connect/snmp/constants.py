@@ -61,7 +61,7 @@ SNMP_FALSE = 2
 
 # from SMIv2, Textual Convcertion:
 # https://datatracker.ietf.org/doc/html/rfc2579
-# RowStatus related:
+# RowStatus related, these values are of type INTEGER:
 active = 1          # The row is available and valid for use.
 notInService= 2     # The row exists but is currently inactive/unavailable.
 notReady = 3        # The row exists but lacks necessary information to be used (missing required objects).
@@ -646,6 +646,10 @@ VLAN_NAME_MAX_LEN = 32  # per Q-Bridge MIB object definition
 # this is what you change when you SET a new vlan on a port (based on the bitmap)
 dot1qVlanStaticEgressPorts = ".1.3.6.1.2.1.17.7.1.4.3.1.2"  # followed by vlanId
 snmp_mib_variables["dot1qVlanStaticEgressPorts"] = dot1qVlanStaticEgressPorts
+
+# The set of ports that are prohibited by management
+# from being included in the egress list for this VLAN.
+dot1qVlanForbiddenEgressPorts = ".1.3.6.1.2.1.17.7.1.4.3.1.3"  # followed by vlanId
 
 # To get untagged ports of a VLAN, returns bitmap
 # dot1qVlanStaticUntaggedPorts = 1.3.6.1.2.1.17.7.1.4.3.1.4
