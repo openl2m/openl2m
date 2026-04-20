@@ -23,7 +23,7 @@ import traceback
 # from django.conf import settings
 from django.http.request import HttpRequest
 
-from pysnmp.proto.rfc1902 import OctetString
+from pysnmp.proto.rfc1902 import Integer, OctetString
 
 from switches.constants import LOG_TYPE_ERROR, LOG_SAVE_SWITCH
 from switches.models import Switch, SwitchGroup
@@ -31,6 +31,8 @@ from switches.connect.classes import Interface, PortList, Transceiver
 from switches.connect.constants import IF_TYPE_ETHERNET
 from switches.connect.connector import Connector
 from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_branch, dot1qPvid
+from switches.connect.snmp.constants import dot1qVlanStaticName, dot1qVlanStaticRowStatus, vlan_createAndGo
+# from switches.connect.snmp.constants import dot1qVlanStaticEgressPorts, dot1qVlanStaticUntaggedPorts, dot1qVlanForbiddenEgressPorts
 from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
 from switches.utils import dprint
 
@@ -76,7 +78,7 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
         self.vendor_name = "Cisco (SB)"
 
         # capabilities of the Cisco-SB snmp drivers:
-        self.can_edit_vlans = False
+        self.can_edit_vlans = False  # only rename and delete are support, so False for now...
         self.can_edit_tags = True  # this driver can edit 802.1q tagged vlans on interfaces
         self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         """
@@ -578,3 +580,108 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
             return False
 
         return True
+
+    #
+    # NOT FUNCTIONAL YET !
+    #
+    # This is custom implementation, as the generic SnmpConnector.vlan_create() fails.
+    #
+    def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
+        """
+        Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
+
+        Note: this uses SNMP dot1qVlanStaticRowStatus set to createAndGo(4). This should work on most devices
+        that implement the Q-Bridge MIB. However, some devices may need to set createAndWait(5). If your device
+        needs a different sequency, please override this function in your device driver!
+
+        Args:
+            vlan_id (int): the vlan id
+            vlan_name (str): the name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        """
+        dprint(f"SnmpConnectorCiscoSB().vlan_create() for {vlan_id} = '{vlan_name}'")
+
+        # # this is atomic multi-set action. Full tuples with (OID, value, type) calling ezsnmp
+        # # Cisco_SB switches appear to want the full 'matrix' or array of entries when creating a new vlan:
+        oid1 = (f"{dot1qVlanStaticRowStatus}.{vlan_id}", vlan_createAndGo, "i")
+        oid2 = (f"{dot1qVlanStaticName}.{vlan_id}", vlan_name, "s")
+        # oid3 = (f"{dot1qVlanStaticEgressPorts}.{vlan_id}", OctetString(), ""
+        # oid4 = (f"{dot1qVlanForbiddenEgressPorts}.{vlan_id}",
+        # oid5 = (f"{dot1qVlanStaticUntaggedPorts}.{vlan_id}",
+
+        # if not self.set_multiple(oid_values=[oid1, oid2, oid3, oid4, oid5]):
+        # # if not self.set_multiple(oid_values=[oid1]):
+        # # if not self.set(oid=f"{dot1qVlanStaticRowStatus}.{vlan_id}", value=5, snmp_type="i"):
+        #     # we leave self.error.details as is!
+        #     return False
+
+
+        oid1 = (f"{dot1qVlanStaticRowStatus}.{vlan_id}", Integer(vlan_createAndGo))
+        oid2 = (f"{dot1qVlanStaticName}.{vlan_id}", str(vlan_name))
+        # oid3 = (f"{dot1qVlanStaticEgressPorts}.{vlan_id}", OctetString())
+        #oid4 = (f"{dot1qVlanForbiddenEgressPorts}.{vlan_id}", OctetString())
+        # oid5 = (f"{dot1qVlanStaticUntaggedPorts}.{vlan_id}", OctetString())
+
+        # now write these to the device:
+        try:
+            pysnmp = pysnmpHelper(self.switch)
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Error getting snmp connection object (pysnmpHelper()) for vlan_create()"
+            self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            return False
+
+        dprint("Setting via pysnmpHelper()")
+        try:
+            # if not pysnmp.set_multiple([oid1, oid2, oid3, oid4, oid5]):
+            if not pysnmp.set_multiple([oid1, oid2]):
+                self.error.status = True
+                self.error.description = "Error creating vlan!"
+                # copy over the error details from the call:
+                self.error.details = pysnmp.error.details
+                # we leave self.error.details as is!
+                return False
+        except Exception as err:
+            dprint(f"ERROR in pysnmp: {err}")
+            self.error.status = True
+            self.error.description = err
+            self.error.details = ""
+            return False
+
+        # all OK, now do the book keeping
+        return Connector.vlan_create(self=self, vlan_id=vlan_id, vlan_name=vlan_name)
+
+    #
+    # This works!
+    # This is handled by the standard SnmpConnector() implementation, bypassing SnmpConnectorCiso()
+    #
+    def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
+        """
+        Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            vlan_id (int): the vlan id to edit
+            vlan_name (str): the new name of the vlan
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        """
+        return SnmpConnector.vlan_edit(self=self, vlan_id=vlan_id, vlan_name=vlan_name)
+
+    #
+    # This works!
+    # This is handled by the standard SnmpConnector() implementation, bypassing SnmpConnectorCiso()
+    #
+    def vlan_delete(self, vlan_id: int) -> bool:
+        """
+        Deletel the vlan. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            vlan_id (int): the vlan id to edit
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        """
+        return SnmpConnector.vlan_delete(self=self, vlan_id=vlan_id)
