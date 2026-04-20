@@ -58,6 +58,14 @@ sb_tx_type[SB_TX_TYPE_COMBO_FIBER] = "FiberOptics Combo"  # combo port with opti
 vlanMibVersion = ".1.3.6.1.4.1.9.6.1.101.48.1"
 snmp_mib_variables["vlanMibVersion"] = vlanMibVersion
 
+# vlan definitions - appears not implemented on SB switches ?
+# per the CISCOSB-vlan-MIB, these are rad-only (if they exist at all ...)
+# vlanNameTable = ".1.3.6.1.4.1.9.6.1.101.48.21"
+# vlanNameEntry = ".1.3.6.1.4.1.9.6.1.101.48.21.1"
+# vlanNameName = ".1.3.6.1.4.1.9.6.1.101.48.21.1.1"  # OctetString
+# vlanNameTag	= ".1.3.6.1.4.1.9.6.1.101.48.21.1.2"  # Integer32
+# vlanNameIfIndex = ".1.3.6.1.4.1.9.6.1.101.48.21.1.3"  # Integer32
+
 # vlan state, ie access, general, trunk
 vlanPortModeState = ".1.3.6.1.4.1.9.6.1.101.48.22.1.1"
 snmp_mib_variables["vlanPortModeState"] = vlanPortModeState
