@@ -18,15 +18,19 @@ located in switches/connect/snmp/cisco/connector.py
 with Cisco-SB specific ways of doing things...
 """
 
+import traceback
+
 # from django.conf import settings
 from django.http.request import HttpRequest
 
+from pysnmp.proto.rfc1902 import OctetString
+
 from switches.constants import LOG_TYPE_ERROR, LOG_SAVE_SWITCH
 from switches.models import Switch, SwitchGroup
-from switches.connect.classes import Interface, Transceiver
+from switches.connect.classes import Interface, PortList, Transceiver
 from switches.connect.constants import IF_TYPE_ETHERNET
 from switches.connect.connector import Connector
-from switches.connect.snmp.connector import SnmpConnector, oid_in_branch, dot1qPvid
+from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_branch, dot1qPvid
 from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
 from switches.utils import dprint
 
@@ -125,8 +129,11 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
         """
         dprint("SnmpConnectorCiscoSB()._get_vlan_data()")
 
-        # first read astandard SNMP Q-Bridge mib for vlan data.
+        # first read standard SNMP Q-Bridge mib for vlan data.
+        # pylint: disable=protected-access
         SnmpConnector._get_vlan_data(self=self)
+
+        # we could probe "vlanNameTable" as well...
 
         # go probe the CiscoSB-VLAN mib for the port mode, ie access or trunk
         self.get_snmp_branch(branch_name="vlanPortModeState", parser=self._parse_mibs_sb_vlan_port_mode)
@@ -173,6 +180,7 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
         Return True on success (0 or more found), False on errors
         """
         dprint("SnmpConnectorCiscoSB()._get_known_ethernet_addresses()")
+        # pylint: disable=protected-access
         return SnmpConnector._get_known_ethernet_addresses(self=self)
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
@@ -265,24 +273,93 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
                 if success:
                     dprint(" PVID set OK")
                     # now add tagged vlans
-                    # for vlan_id in self.vlans:
-                    #     if allow_all or vlan_id in tagged_vlans:
-                    #         dprint(f"  VLAN {vlan_id}: ADD as tagged")
+                    # as Cisco-SB maps interface to vlan list, we need 4 PortList() objects to represent the Vlan bitmaps
+                    # a bit for each of the 1024 vlans per entry, ie 1024 / 8 = 128 bytes!
+                    vlans1to1024 = PortList()
+                    vlans1to1024.from_byte_count(128)  # initialize with "00" bytes, ie NO vlan set as tagged!
+                    vlans1025to2048 = PortList()
+                    vlans1025to2048.from_byte_count(128)
+                    vlans2049to3072 = PortList()
+                    vlans2049to3072.from_byte_count(128)
+                    vlans3073to4094 = PortList()
+                    vlans3073to4094.from_byte_count(128)
+                    # now set bit to 1 for each vlan on this interface
+                    for vlan_id in self.vlans:
+                        if allow_all or vlan_id in tagged_vlans:
+                            dprint(f"  VLAN {vlan_id}: ADD as tagged")
+                            if vlan_id < 1025:
+                                # Note: bit 0 is vlan 1, but PortList() already offsets by -1, so offset by +1
+                                vlans1to1024[vlan_id] = 1
+                            elif vlan_id < 2049:
+                                # subtract base to get to vlan offset in range 1025-2048
+                                vlans1025to2048[vlan_id - 1024] = 1
+                            elif vlan_id < 3073:
+                                # subtract base to get to vlan offset in range 2049-3072
+                                vlans2049to3072[vlan_id - 2048] = 1
+                            else:
+                                # subtract base to get to vlan offset in range 3073-4094
+                                vlans3073to4094[vlan_id - 3073] = 1
+                        else:
+                            dprint(f"  VLAN {vlan_id} REMOVED as tagged")
 
-                    #     else:
-                    #         dprint(f"  VLAN {vlan_id} REMOVE as tagged")
+                    # prepare into OctetString objects for writing snmp:
+                    oid1 = (
+                        f"{vlanTrunkModeList1to1024}.{interface.index}",
+                        OctetString(hexValue=vlans1to1024.to_hex_string()),
+                    )
+                    oid2 = (
+                        f"{vlanTrunkModeList1025to2048}.{interface.index}",
+                        OctetString(hexValue=vlans1025to2048.to_hex_string()),
+                    )
+                    oid3 = (
+                        f"{vlanTrunkModeList2049to3072}.{interface.index}",
+                        OctetString(hexValue=vlans2049to3072.to_hex_string()),
+                    )
+                    oid4 = (
+                        f"{vlanTrunkModeList3073to4094}.{interface.index}",
+                        OctetString(hexValue=vlans3073to4094.to_hex_string()),
+                    )
 
-                    # call the SnmpConnector() to handle regular Q-Bridge port vlan setting:
-                    success = self.set_interface_tagged_vlans(interface=interface, tagged_vlans=tagged_vlans, allow_all=allow_all)
-                    if success:
-                        # do the bookkeeping
-                        return Connector.set_interface_vlans(
-                            self=self,
-                            interface=interface,
-                            untagged_vlan=untagged_vlan,
-                            tagged_vlans=tagged_vlans,
-                            allow_all=allow_all,
-                        )
+                    # now write these to the device:
+                    try:
+                        pysnmp = pysnmpHelper(self.switch)
+                    except Exception as err:
+                        self.error.status = True
+                        self.error.description = "Error getting snmp connection object (pysnmpHelper()) for set_access_mode_vlan on '{interface.name}'"
+                        self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                        return False
+
+                    dprint("Setting via pysnmpHelper()")
+                    if not pysnmp.set_multiple([oid1, oid2, oid3, oid4]):
+                        self.error.status = True
+                        self.error.description = f"Error setting vlans on tagged port '{interface.name}'!"
+                        # copy over the error details from the call:
+                        self.error.details = pysnmp.error.details
+                        # we leave self.error.details as is!
+                        return False
+
+                    # # call the SnmpConnector() to handle regular Q-Bridge port vlan setting:
+                    # This should be used for GENERAL-MODE interface, which we at present don't support.
+                    #
+                    # success = self.set_interface_tagged_vlans(interface=interface, tagged_vlans=tagged_vlans, allow_all=allow_all)
+                    # if success:
+                    #     # do the bookkeeping
+                    #     return Connector.set_interface_vlans(
+                    #         self=self,
+                    #         interface=interface,
+                    #         untagged_vlan=untagged_vlan,
+                    #         tagged_vlans=tagged_vlans,
+                    #         allow_all=allow_all,
+                    #     )
+
+                    # all vlan sets succeeded! Do the bookkeeping
+                    return Connector.set_interface_vlans(
+                        self=self,
+                        interface=interface,
+                        untagged_vlan=untagged_vlan,
+                        tagged_vlans=tagged_vlans,
+                        allow_all=allow_all,
+                    )
 
         else:
             dprint("  ACCESS MODE!")

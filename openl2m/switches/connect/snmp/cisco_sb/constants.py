@@ -12,7 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 """constants.py defines Cisco-Small-Business switches specific SNMP-related variables.
-   These are mostly MIB OIDs and their value definitions."""
+These are mostly MIB OIDs and their value definitions."""
 
 from switches.connect.snmp.constants import snmp_mib_variables
 
@@ -81,7 +81,7 @@ snmp_mib_variables["vlanTrunkPortModeEntry"] = vlanTrunkPortModeEntry
 vlanTrunkPortModeNativeVlanId = ".1.3.6.1.4.1.9.6.1.101.48.61.1.1"
 snmp_mib_variables["vlanTrunkPortModeNativeVlanId"] = vlanTrunkPortModeNativeVlanId
 # other tagged vlans are read/set here:
-vlanTrunkModeList1to1024 =    ".1.3.6.1.4.1.9.6.1.101.48.61.1.2"
+vlanTrunkModeList1to1024 = ".1.3.6.1.4.1.9.6.1.101.48.61.1.2"
 vlanTrunkModeList1025to2048 = ".1.3.6.1.4.1.9.6.1.101.48.61.1.3"
 vlanTrunkModeList2049to3072 = ".1.3.6.1.4.1.9.6.1.101.48.61.1.4"
 vlanTrunkModeList3073to4094 = ".1.3.6.1.4.1.9.6.1.101.48.61.1.5"
@@ -93,8 +93,8 @@ snmp_mib_variables["vlanAccessPortModeVlanId"] = vlanAccessPortModeVlanId
 # port mode, L2 or L3:
 vlanSwitchPortModeCategory = ".1.3.6.1.4.1.9.6.1.101.48.64.1.1"
 snmp_mib_variables["vlanSwitchPortModeCategory"] = vlanSwitchPortModeCategory
-SB_L2_MODE = 1    # layer-2 switching mode
-SB_L3_MODE = 2    # layer-3 routing mode
+SB_L2_MODE = 1  # layer-2 switching mode
+SB_L3_MODE = 2  # layer-3 routing mode
 
 #
 # Small Business COPY MIB, save configs!
@@ -113,7 +113,7 @@ SB_L3_MODE = 2    # layer-3 routing mode
 createAndGo = 4
 rlCopyRowStatus = ".1.3.6.1.4.1.9.6.1.101.87.2.1.17"
 snmp_mib_variables["rlCopyRowStatus"] = rlCopyRowStatus
-#rlCopySourceLocation = 1 = local (source is the switch)
+# rlCopySourceLocation = 1 = local (source is the switch)
 local = 1
 rlCopySourceLocation = ".1.3.6.1.4.1.9.6.1.101.87.2.1.3"
 snmp_mib_variables["rlCopySourceLocation"] = rlCopySourceLocation

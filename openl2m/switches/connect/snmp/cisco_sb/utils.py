@@ -16,15 +16,14 @@ from .constants import sb_vlan_mode
 
 
 def get_if_mode_name(mode: int):
-    """ return string representation of interface mode
+    """return string representation of interface mode
     Args:
         mode (int): the (snmp) integer representing the mode, eg. SB_VLAN_MODE_ACCESS
 
     Returns:
         (str): string representation of the mode, include number of unknown.
-     """
+    """
 
     if mode in sb_vlan_mode:
         return sb_vlan_mode[mode]
-    else:
-        return f"Unknown ({mode})"
+    return f"Unknown ({mode})"
