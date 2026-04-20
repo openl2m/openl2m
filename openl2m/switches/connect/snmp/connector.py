@@ -947,8 +947,28 @@ class SnmpConnector(Connector):
     def set(self, oid: str, value, snmp_type, parser=None) -> bool:
         """
         Set a single OID value. Note that 'value' has to be properly typed!
-        Returns True if success.
-        On failure, returns False, and self.error.X will be set
+        We 'force' the snmp type in the packet based on 'snmp_type'.
+
+        Params:
+            oid (str): the OID as a string, starting from ".1.x.y.x"
+            value:  the value to set set. Should be properly types.
+            snmp_type (str): a single character string indicating the data type of 'value'.
+                As set() calls the underlying 'snmpset' command from the Net-Snmp package,
+                the valid values for snmp_type are:
+                i: INTEGER — A signed 32-bit integer (e.g., snmpset ... OID i 1).
+                u: UNSIGNED — An unsigned 32-bit integer, often used for Gauge32 values.
+                s: STRING — A simple ASCII text string (e.g., snmpset ... OID s "example").
+                x: HEX STRING — A string of hexadecimal pairs (e.g., snmpset ... OID x "0a 1b 2c").
+                d: DECIMAL STRING — A string of decimal bytes separated by spaces.
+                n: NULLOBJ — Used to set an object to a null value.
+                o: OBJID — An Object Identifier (e.g., snmpset ... OID o .1.3.6.1.2.1.1.1.0).
+                t: TIMETICKS — A time value in hundredths of a second.
+                a: IPADDRESS — An IPv4 address (e.g., snmpset ... OID a 192.168.1.1).
+                b: BITS — A set of named or numbered bits.
+
+        Returns:
+            (bool): True if success. False on failure, and self.error.X will be set
+
         """
         dprint(f"SnmpConnector.set(oid={oid}, value={value}, snmp_type={snmp_type})")
         # Set a variable using an SNMP SET
