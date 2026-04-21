@@ -19,20 +19,6 @@ from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_in
 ENTERPRISE_ID_CISCO = 9
 enterprise_id_info[ENTERPRISE_ID_CISCO] = "Cisco"
 
-# This Cisco device OID start indicates the Small Business 'family' of equipment:
-ciscoSB = ".1.3.6.1.4.1.9.6.1"
-# here is an OLD list of device oid's in this group:
-# https://www.cisco.com/c/en/us/support/docs/smb/switches/cisco-small-business-200-series-smart-switches/smb5512-cisco-small-business-switches-model-object-identifiers-oids.html
-
-# the various snmp driver mib types we can detect:
-CISCO_DEVICE_TYPE_UNKNOWN_MIB = 0
-CISCO_DEVICE_TYPE_VTP_MIB = 1
-CISCO_DEVICE_TYPE_SB_MIB = 2
-cisco_device_types = {}
-cisco_device_types[CISCO_DEVICE_TYPE_UNKNOWN_MIB] = "Unknown (MIB ?)"
-cisco_device_types[CISCO_DEVICE_TYPE_VTP_MIB] = "Catalyst (VTP MIB)"
-cisco_device_types[CISCO_DEVICE_TYPE_SB_MIB] = "CBS (SB MIB)"
-
 # CDP MIB:
 # https://mibs.observium.org/mib/CISCO-CDP-MIB/
 # Normall, Cisco device support the standard LLDP mib as well!
@@ -70,7 +56,7 @@ clogHistTimestamp = ".1.3.6.1.4.1.9.9.41.1.2.3.1.6"
 snmp_mib_variables["clogHistTimestamp"] = clogHistTimestamp
 
 # most Cisco switches support this:
-# http://www.circitor.fr/Mibs/Html/C/CISCO-CONFIG-MAN-MIB.php
+# https://mibs.observium.org/mib/CISCO-CONFIG-MAN-MIB/
 
 ciscoConfigManMIBObjects = ".1.3.6.1.4.1.9.9.43.1"
 snmp_mib_variables["ciscoConfigManMIBObjects"] = ciscoConfigManMIBObjects
@@ -91,12 +77,15 @@ snmp_mib_variables["ccmHistoryStartupLastChanged"] = ccmHistoryStartupLastChange
 
 # VTP MIB:
 # https://mibs.observium.org/mib/CISCO-VTP-MIB/
+# https://github.com/librenms/librenms/blob/master/mibs/cisco/CISCO-VTP-MIB
 #
 # ciscoVtpMIB = .1.3.6.1.4.1.9.9.46
 #
 # Note: older style Cisco device use this MIB for vlans, port vlan changes, etc.
 # newer style use the 'standard' Q-Bridge or CiscoSB mibs.
 #
+# some good info about the VTP mib is here:
+# https://www.cisco.com/c/en/us/support/docs/ip/simple-network-management-protocol-snmp/45080-vlans.html
 
 # used to probe VTP mib existance:
 vtpVersion = ".1.3.6.1.4.1.9.9.46.1.1.1"
@@ -110,7 +99,7 @@ snmp_mib_variables["vtpVlanState"] = vtpVlanState
 vtpVlanType = ".1.3.6.1.4.1.9.9.46.1.3.1.1.3.1"
 snmp_mib_variables["vtpVlanType"] = vtpVlanType
 
-CISCO_VLAN_TYPE_NORMAL = 1  # regular(1)
+CISCO_VLAN_TYPE_NORMAL = 1  # regular(1) aka ethernet
 CISCO_VLAN_TYPE_FDDI = 2  # fddi(2)
 CISCO_VLAN_TYPE_TOKENRING = 3  # tokenRing(3)
 CISCO_VLAN_TYPE_FDDINET = 4  # fddiNet(4)
@@ -121,7 +110,21 @@ snmp_mib_variables["vtpVlanName"] = vtpVlanName
 # VTP trunk ports start at .1.3.6.1.4.1.9.9.46.1.6
 # details about ports start at .1.3.6.1.4.1.9.9.46.1.6.1.1
 
+vtpVlanEditOperation = ".1.3.6.1.4.1.9.9.46.1.4.1.1.1"
+# vtpVlanEditOperation values:
+vtp_vlan_none = 1
+vtp_vlan_copy = 2
+vtp_vlan_apply = (3,)
+vtp_vlan_release = 4
+vtp_vlan_restartTimer = 5
+
+vtpVlanEditRowStatus = ".1.3.6.1.4.1.9.9.46.1.4.2.1.11"
+vtpVlanEditType = ".1.3.6.1.4.1.9.9.46.1.4.2.1.3"
+vtpVlanEditName = ".1.3.6.1.4.1.9.9.46.1.4.2.1.4"
+vtpVlanEditDot10Said = ".1.3.6.1.4.1.9.9.46.1.4.2.1.6"
+
 # the vlans in a trunk port, using the switchport bitmap format:
+# this maps the first 1024 vlans (and it returns a 128 byte bitmap of vlans enabled.)
 vlanTrunkPortVlansEnabled = ".1.3.6.1.4.1.9.9.46.1.6.1.1.4"
 snmp_mib_variables["vlanTrunkPortVlansEnabled"] = vlanTrunkPortVlansEnabled
 
@@ -158,7 +161,6 @@ snmp_mib_variables["vlanTrunkPortVlansEnabled4k"] = vlanTrunkPortVlansEnabled4k
 
 # Cisco VLAN Membership mib - on older devices only
 # https://mibs.observium.org/mib/CISCO-VLAN-MEMBERSHIP-MIB/
-# https://circitor.fr/Mibs/Html/CISCO-VLAN-MEMBERSHIP-MIB.php
 # https://raw.githubusercontent.com/cisco/cisco-mibs/main/v2/CISCO-VLAN-MEMBERSHIP-MIB.my
 #
 # ciscoVlanMembershipMIB = '.1.3.6.1.4.1.9.9.68'
@@ -195,7 +197,7 @@ copyStateFailed = 4
 
 
 # Cisco L2L3 Interface Config Mib
-# http://www.circitor.fr/Mibs/Html/C/CISCO-L2L3-INTERFACE-CONFIG-MIB.php
+# https://mibs.observium.org/mib/CISCO-L2L3-INTERFACE-CONFIG-MIB/
 
 cL2L3IfModeOper = ".1.3.6.1.4.1.9.9.151.1.1.1.1.2"
 snmp_mib_variables["cL2L3IfModeOper"] = cL2L3IfModeOper
@@ -235,6 +237,7 @@ snmp_mib_variables["ciscoWriteMem"] = ciscoWriteMem
 
 #
 # Cisco Stack MIB
+# https://mibs.observium.org/mib/CISCO-STACK-MIB/
 # CISCO-STACK-MIB contains various mappings
 # https://github.com/librenms/librenms/blob/master/mibs/cisco/CISCO-STACK-MIB
 #

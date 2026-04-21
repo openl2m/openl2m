@@ -62,12 +62,12 @@ SNMP_FALSE = 2
 # from SMIv2, Textual Convcertion:
 # https://datatracker.ietf.org/doc/html/rfc2579
 # RowStatus related, these values are of type INTEGER:
-active = 1          # The row is available and valid for use.
-notInService= 2     # The row exists but is currently inactive/unavailable.
-notReady = 3        # The row exists but lacks necessary information to be used (missing required objects).
-createAndGo = 4     # Action to create a new row, immediately setting it to active.
-createAndWait = 5   # Action to create a new row, starting it in notInService or notReady to set other columns first.
-destroy = 6         # Action to remove the row from the table.
+active = 1  # The row is available and valid for use.
+notInService = 2  # The row exists but is currently inactive/unavailable.
+notReady = 3  # The row exists but lacks necessary information to be used (missing required objects).
+createAndGo = 4  # Action to create a new row, immediately setting it to active.
+createAndWait = 5  # Action to create a new row, starting it in notInService or notReady to set other columns first.
+destroy = 6  # Action to remove the row from the table.
 
 """
 SNMP MIB variables names and their string numeric value. EasySNMP uses the formal notation starting with ".""
@@ -678,6 +678,8 @@ snmp_mib_variables["dot1qPortVlanEntry"] = dot1qPortVlanEntry
 dot1qPvid = ".1.3.6.1.2.1.17.7.1.4.5.1.1"
 snmp_mib_variables["dot1qPvid"] = dot1qPvid
 
+# dot1qPortAcceptableFrameTypes = ".1.3.6.1.2.1.17.7.1.4.5.1.2"
+# dot1qPortIngressFiltering = ".1.3.6.1.2.1.17.7.1.4.5.1.3"
 
 # GVRP port status related:
 dot1qPortGvrpStatus = ".1.3.6.1.2.1.17.7.1.4.5.1.4"
