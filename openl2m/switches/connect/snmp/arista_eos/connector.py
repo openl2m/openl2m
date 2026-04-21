@@ -73,7 +73,9 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         # vlan create/edit not supported:
         self.can_edit_vlans = False
         self.can_set_vlan_name = False  # vlan create/delete allowed over snmp, but cannot set name!
-        self.can_edit_tags = True  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_edit_tags = (
+            True  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+        )
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         #
@@ -103,6 +105,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         # first get all normal SNMP info, implemented in the super class:
         if not super().get_my_basic_info():
             return False
+
         # now run all interfaces and set routed if no valid vlan.
         for iface in self.interfaces.values():
             if iface.type == IF_TYPE_ETHERNET and iface.untagged_vlan == -1:
@@ -207,7 +210,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
     # THIS DOES NOT APPEAR TO WORK with either default_job_id, or save_job_id
     #
     def save_running_config(self):
-        """ Save the current config to startup.
+        """Save the current config to startup.
 
         Returns:
             (bool) - True if this succeeds, False on failure. self.error() will be set in that case

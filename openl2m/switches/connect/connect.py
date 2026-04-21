@@ -39,19 +39,20 @@ from switches.constants import (
 
 from switches.connect.connector import Connector
 
-# here are the device specific classes.
+# here are the device specific driver/connector classes.
 # this should be made dynamic at some point!
 from switches.connect.snmp.connector import SnmpConnector, SnmpProbeConnector, oid_in_branch
 from switches.connect.snmp.constants import enterprises
 
 # from switches.connect.snmp.cisco.constants import ENTERPRISE_ID_CISCO
-from switches.connect.snmp.cisco.constants import ciscoSB
 from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
+from switches.connect.snmp.cisco_sb.constants import ciscoSB
 from switches.connect.snmp.cisco_sb.connector import SnmpConnectorCiscoSB
 
 # Dell is yet to be tested!
 # from switches.connect.snmp.dell.constants import *
 # from switches.connect.snmp.dell.connector import SnmpConnectorDell
+
 # from switches.connect.snmp.comware.constants import ENTERPRISE_ID_H3C
 from switches.connect.snmp.comware.connector import SnmpConnectorComware
 
@@ -73,9 +74,11 @@ from switches.connect.snmp.netgear.connector import SnmpConnectorNetgear
 # from switches.connect.snmp.mikrotik.constants import ENTERPRISE_ID_MIKROTIK
 from switches.connect.snmp.mikrotik.connector import SnmpConnectorMikroTik
 
+# various other API connectors
 from switches.connect.aruba_aoscx.connector import AosCxConnector
 from switches.connect.aruba_aoss_rest.connector import ArubaAOSsRestConnector
 from switches.connect.arista_eapi.connector import AristaApiConnector
+
 # from switches.connect.hpe_cw7_nc.connector import HPECw7NcConnector
 from switches.connect.hpe_cw_rest.connector import HPECwRestConnector
 from switches.connect.junos_pyez.connector import PyEZConnector
