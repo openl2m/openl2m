@@ -14,15 +14,15 @@
   {% if connection.vlan_count %}
   <div class="card-body">
     <div class="fw-bold border-bottom pb-1 mb-1 row">
-      <div class="col-1">Vlan ID</div>
-      <div class="col-3">Name</div>
+      <div class="col-2">Vlan ID</div>
+      <div class="col-4">Name</div>
       <div class="col">Etc.</div>
     </div>
     {% for vlanid,vlan in connection.vlans.items %}
       {% if vlan.type == VLAN_TYPE_NORMAL %}
         <div class="row p-1{% cycle '' ' bg-light' %}">
-          <div class="col-1">{{ vlanid }}</div>
-          <div class="col-3">{% if vlan.name %}{{ vlan.name }}{% else %}<span class="fw-lighter fst-italic">(no name set)</span>{% endif %}</div>
+          <div class="col-2">{{ vlanid }}</div>
+          <div class="col-4">{% if vlan.name %}{{ vlan.name }}{% else %}<span class="fw-lighter fst-italic">(no name set)</span>{% endif %}</div>
           {# Etc. Column #}
           <div class="col">{{ vlan|get_vlan_info_links }}
           {% if vlan.status == VLAN_STATUS_DYNAMIC %}
