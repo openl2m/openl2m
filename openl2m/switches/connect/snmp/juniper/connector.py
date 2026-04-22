@@ -87,7 +87,7 @@ class SnmpConnectorJuniper(SnmpConnector):
         dprint("Juniper _map_poe_port_entries_to_interface()")
         for port_entry in self.poe_port_entries.values():
             # we take the ending part of "1.5" as the index
-            (module, port) = port_entry.index.split(".")
+            module, port = port_entry.index.split(".")
             module = int(module) - 1  # 0-based!
             port = int(port) - 1  # 0-based!
             # find the matching interface:

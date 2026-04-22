@@ -80,7 +80,9 @@ class SnmpConnectorArubaCx(SnmpConnector):
         # see https://www.arubanetworks.com/techdocs/AOS-CX/10.12/PDF/snmp_mib.pdf
         self.can_change_vlan = True
         self.can_set_vlan_name = False  # vlan create/delete allowed over snmp, but cannot set name!
-        self.can_edit_tags = False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_edit_tags = (
+            False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+        )
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         #

@@ -107,7 +107,7 @@ snmp_mib_variables["aristaVrfIfMembership"] = aristaVrfIfMembership
 # where 7 is length of string, and 100.101.102.97.117.108.116 decodes to ascii "default"!
 default_job_id = "7.100.101.102.97.117.108.116"
 # we create a new job with the index save:
-save_job_id = "4.115.97.118.101"    # "save", length 4
+save_job_id = "4.115.97.118.101"  # "save", length 4
 
 # The source URI of a copy request.
 # The URI format is: scheme://[username:password@]host/path

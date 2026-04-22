@@ -27,9 +27,11 @@ from django.http.request import HttpRequest
 from switches.models import Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_SAVE_SWITCH, LOG_PORT_POE_FAULT, SNMP_VERSION_2C
 from switches.connect.classes import Interface, Transceiver, SyslogMsg
+
 # from switches.connect.connector import Connector
 from switches.connect.constants import poe_status_name, POE_PORT_DETECT_FAULT, VLAN_TYPE_NORMAL
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
+
 # from switches.connect.snmp.constants import createAndGo, destroy
 from switches.utils import dprint
 

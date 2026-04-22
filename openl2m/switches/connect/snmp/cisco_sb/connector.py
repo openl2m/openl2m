@@ -32,6 +32,7 @@ from switches.connect.constants import IF_TYPE_ETHERNET
 from switches.connect.connector import Connector
 from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_branch, dot1qPvid
 from switches.connect.snmp.constants import dot1qVlanStaticName, dot1qVlanStaticRowStatus, vlan_createAndGo
+
 # from switches.connect.snmp.constants import dot1qVlanStaticEgressPorts, dot1qVlanStaticUntaggedPorts, dot1qVlanForbiddenEgressPorts
 from switches.connect.snmp.cisco.connector import SnmpConnectorCisco
 from switches.utils import dprint
@@ -617,11 +618,10 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
         #     # we leave self.error.details as is!
         #     return False
 
-
         oid1 = (f"{dot1qVlanStaticRowStatus}.{vlan_id}", Integer(vlan_createAndGo))
         oid2 = (f"{dot1qVlanStaticName}.{vlan_id}", str(vlan_name))
         # oid3 = (f"{dot1qVlanStaticEgressPorts}.{vlan_id}", OctetString())
-        #oid4 = (f"{dot1qVlanForbiddenEgressPorts}.{vlan_id}", OctetString())
+        # oid4 = (f"{dot1qVlanForbiddenEgressPorts}.{vlan_id}", OctetString())
         # oid5 = (f"{dot1qVlanStaticUntaggedPorts}.{vlan_id}", OctetString())
 
         # now write these to the device:

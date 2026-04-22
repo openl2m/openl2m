@@ -328,6 +328,7 @@ class SnmpConnectorProcurve(SnmpConnector):
                 # should not happen!
                 dprint(f"ERROR: PoE entry NOT FOUND for pe_index={pe_index}")
 
+
 """
     def save_running_config(self) -> bool:
 
