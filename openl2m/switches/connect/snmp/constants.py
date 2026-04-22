@@ -1012,8 +1012,6 @@ syslogMsgMsg = '.1.3.6.1.2.1.192.1.2.1.11'
 
 # IEEE also has a Dot1Q MIB:
 # see also https://mibs.observium.org/mib/IEEE8021-Q-BRIDGE-MIB/
-# or https://www.circitor.fr/Mibs/Html/I/IEEE8021-Q-BRIDGE-MIB.php
-#
 # MIB file at https://github.com/librenms/librenms/blob/master/mibs/IEEE8021-Q-BRIDGE-MIB
 #
 ieee8021QBridgeMib = ".1.3.111.2.802.1.1.4"
