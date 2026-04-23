@@ -62,10 +62,14 @@ from switches.connect.constants import (
     #   IANA_TYPE_IPV6,
 )
 
-# devices support up to v10.12, but pyaoscx currently supports 10.09 as highest,
+# devices support up to v10.12 as of time of writing, but pyaoscx currently supports 10.09 as highest,
 # see https://github.com/aruba/pyaoscx/tree/master/pyaoscx/rest
 API_VERSION = "10.08"  # '10.09', '10.08' or '10.04'
 
+#####################################################################
+# NOTE: each function call is enclosed by an open / close API call, #
+# in order to avoid token time out and resource overload.           #
+#####################################################################
 
 class AosCxConnector(Connector):
     """
@@ -107,7 +111,7 @@ class AosCxConnector(Connector):
         self.can_edit_vlans = True
         self.can_change_poe_status = True
         self.can_change_description = True
-        self.can_save_config = False  # not needed.
+        self.can_save_config = True
         self.can_reload_all = False
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
 
@@ -444,9 +448,6 @@ class AosCxConnector(Connector):
                     iface.transceiver = trx
 
             self.add_interface(iface)
-
-        # done with REST connection:
-        # self._close_device()
 
         # fix up some things that are not known at time of interface discovery,
         # such as LACP master interfaces:
@@ -866,7 +867,7 @@ class AosCxConnector(Connector):
 
                 # loop through all vlans, and see if they are allowed
                 allow = []  # list of AosCx Vlan() objects!
-                for vid in self.vlans.keys():
+                for vid in self.vlans:
                     if allow_all or vid in tagged_vlans:
                         # allowed!
                         v = AosCxVlan(session=self.aoscx_session, vlan_id=vid)
@@ -891,6 +892,7 @@ class AosCxConnector(Connector):
         super().set_interface_vlans(
             interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
         )
+        self._close_device()
         return True
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
@@ -954,6 +956,7 @@ class AosCxConnector(Connector):
             self.error.details = f"Error updating vlan {vlan_id} name to '{vlan_name}' (not sure what happened!)"
             self._close_device()
             return False
+
         # all OK, now do the book keeping
         super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
         self._close_device()
@@ -980,9 +983,46 @@ class AosCxConnector(Connector):
         except Exception as err:
             self.error.status = True
             self.error.details = f"Error trapped while deleting vlan {vlan_id}: {err}"
+            self._close_device()
             return False
+
         # all OK, now do the book keeping
         super().vlan_delete(vlan_id=vlan_id)
+        self._close_device()
+        return True
+
+    def save_running_config(self) -> bool:
+        """
+        save the current config to startup via api.
+
+        Returns:
+            (bool) - True if this succeeds, False on failure. self.error() will be set in that case
+        """
+        dprint("AosCxConnector().save_running_config()")
+
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        # see https://github.com/aruba/pyaoscx/blob/master/pyaoscx/device.py
+        try:
+            aoscx_device = AosCxDevice(session=self.aoscx_session)
+            # Create a Configuration Object
+            config = aoscx_device.configuration()
+            config.create_checkpoint("running-config", "startup-config")
+        except Exception as error:
+            dprint(f"  save_running_config(): save config failed: {format(error)}")
+            self._close_device()
+            self.error.status = True
+            self.error.description = "Error saving configuration!"
+            self.error.details = f"Error details: {format(error)}"
+            self.add_warning(
+                warning=f"Cannot save configuration: {repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
+            )
+            self._close_device()
+            return False
+
+        self._close_device()
         return True
 
     def _open_device(self) -> bool:
