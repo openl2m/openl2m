@@ -12,6 +12,7 @@ Release Notes
    :maxdepth: 2
    :caption: Releases:
 
+   v4.1.rst
    v4.0.rst
    v3.4.rst
    v3.3.rst

@@ -1,0 +1,58 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 4.1
+===========
+
+.. note::
+
+  v4.1 requires Postgres version 15 or greater! (I.e. Ubuntu 20.04 will no longer work.)
+  And Python 3.12 or 3.13
+
+
+**Version 4.1 highlights:**
+
+- updates to Django 6.0 and FontAwesome 7.2.0
+- **more support for editing 802.1Q tagged/trunk interfaces.**
+  Now also supported for HPE Aruba AOS-S devices (via SNMP) and Cisco SB devices (via SNMP)
+
+See the documentation for more details.
+
+.. note::
+
+  **As always, TEST before you use on Production devices !!!**
+
+
+New Configuration Options
+-------------------------
+
+None at this time.
+
+
+Version 4.1beta
+---------------
+
+Release Date: TBD
+
+* add 802.1Q tags (trunk) vlan editing for base SNMP and HPE/Aruba Procurve/AOS-S switches.
+  We use the standard Q-Bridge MIB for this. See supported feature notes in the documentation for more details.
+* 802.1q interface tag editing now supported on Cisco-SB devices over snmp.
+* Cisco-SB devices can now save the running config.
+* Add IPv4 ARP info for device using the Aruba AOS-S REST driver.
+* add PoE on-off capability for Aruba AOS-S REST driver.
+* enable 802.1q tags edit for Admins by default.
+* update to FontAwesome v7.2.0 (from v7.1.0)
+* some admin screens have improved list views.
+* various accessibility improvements.
+
+Bug fixes:
+
+* remove duplicate login/logout for AOS-S REST api driver.
+* driver support matrices are updated with valid info.
+* fix show only defined vlans on interface "trunk permit all" in HPE Comware REST driver.
+* fix handling of pvid on tagged interface in standard SNMP and Aruba/Procurve SNMP drivers.
+* make all id attributes unique in interface tags edit popup page.
+* remove leading blank line at start of html page.
+* several html form errors fixed.
+* code refactoring and simplications use Claude Code
+
