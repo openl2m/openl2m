@@ -32,10 +32,10 @@ import netaddr
 
 from django.core.exceptions import ImproperlyConfigured
 
-# Django 5.2 requires Python 3.10 - 3.14.
-# OpenL2M has now been tested with 3.13, but not with 3.14!
-if sys.version_info < (3, 10) or sys.version_info >= (3, 14):
-    raise RuntimeError(f"OpenL2M requires Python 3.10 - 3.13 (current: Python {sys.version.split()[0]})")
+# Django 6.0 requires Python 3.12 - 3.14.
+# OpenL2M has been tested with 3.12 and 3.13, but not with 3.14!
+if sys.version_info < (3, 12) or sys.version_info >= (3, 14):
+    raise RuntimeError(f"OpenL2M requires Python 3.12 - 3.13 (current: Python {sys.version.split()[0]})")
 
 
 # Check for configuration file
@@ -47,8 +47,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = "4.0.3"
-VERSION_DATE = "2026-03-23"
+VERSION = "4.1beta"
+VERSION_DATE = "2026-04-23"
 
 # Hostname
 HOSTNAME = platform.node()
