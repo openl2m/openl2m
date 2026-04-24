@@ -67,6 +67,7 @@ In summary:
 
 **dot1qVlanCurrentEgressPorts** - This shows which ports are currently, when read, transmitting traffic for the VLAN,
 either tagged or untagged. This includes ports dynamically learned (e.g., via GVRP), even if not explicitly configured.
+The same warning about interface not in "up" state as above goes here as well. (Thus the reading of dot1qVlanStaticEgressPorts as well)
 
 Ie. If there is NO dynamic learning and all ports are "up", the two entries should be the same!
 

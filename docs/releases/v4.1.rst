@@ -51,6 +51,7 @@ Bug fixes:
 * driver support matrices are updated with valid info.
 * fix show only defined vlans on interface "trunk permit all" in HPE Comware REST driver.
 * fix handling of pvid on tagged interface in standard SNMP and Aruba/Procurve SNMP drivers.
+* AOS-CX device can now save config via the REST api.
 * make all id attributes unique in interface tags edit popup page.
 * remove leading blank line at start of html page.
 * several html form errors fixed.
