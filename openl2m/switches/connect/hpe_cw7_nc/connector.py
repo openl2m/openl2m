@@ -19,24 +19,14 @@ Code at https://github.com/HPENetworking/hpe-cw7-ansible/tree/main/pyhpecw7
 Some applicable docs are for the old py2hpecw' module at https://py3hpecw7.readthedocs.io/en/latest/
 """
 
-from django.http.request import HttpRequest
 import pprint
-from rangeparser import RangeParser
-
-from .libraries.pyhpecw7.comware import HPCOM7
-from .libraries.pyhpecw7.features.vlan import Vlan as CwVlan
-from .libraries.pyhpecw7.features.interface import Interface as CwInterface
-from .libraries.pyhpecw7.features.switchport import Switchport as CwSwitchport
-from .libraries.pyhpecw7.features.intfState import IntfState as CwIntfState
-from .libraries.pyhpecw7.features.ipinterface import IpInterface as CwIpInterface
-from .libraries.pyhpecw7.features.irf import IrfPort as CwIrfPort
-from .libraries.pyhpecw7.features.portchannel import Portchannel as CwPortchannel
-from .libraries.pyhpecw7.features.mac import MacUnicastTable
-from .libraries.pyhpecw7.features.neighbor import Neighbors
+import traceback
 
 # used to disable unknown SSL cert warnings:
 import urllib3
-import traceback
+
+from django.http.request import HttpRequest
+from rangeparser import RangeParser
 
 from switches.connect.classes import Interface, Vlan
 
@@ -69,6 +59,17 @@ from switches.models import Switch, SwitchGroup
 
 # from switches.utils import time_duration, dprint
 from switches.utils import dprint
+
+from .libraries.pyhpecw7.comware import HPCOM7
+from .libraries.pyhpecw7.features.vlan import Vlan as CwVlan
+from .libraries.pyhpecw7.features.interface import Interface as CwInterface
+from .libraries.pyhpecw7.features.switchport import Switchport as CwSwitchport
+from .libraries.pyhpecw7.features.intfState import IntfState as CwIntfState
+from .libraries.pyhpecw7.features.ipinterface import IpInterface as CwIpInterface
+from .libraries.pyhpecw7.features.irf import IrfPort as CwIrfPort
+from .libraries.pyhpecw7.features.portchannel import Portchannel as CwPortchannel
+from .libraries.pyhpecw7.features.mac import MacUnicastTable
+from .libraries.pyhpecw7.features.neighbor import Neighbors
 
 
 class HPECw7NcConnector(Connector):
@@ -125,6 +126,7 @@ class HPECw7NcConnector(Connector):
         self.set_driver_info("os_version", self.device.facts["os"])
         self.save_driver_info()
 
+        command = ""  # to satisfy pylint
         try:
             #
             # get vlan info
@@ -322,10 +324,10 @@ class HPECw7NcConnector(Connector):
             command = "IrfPort()"
             irf = CwIrfPort(device=self.device).get_config()
             dprint(f"\n-----\nIRF INFO:\n{irf}")
-            for id, ports in irf.items():
+            for irf_id, ports in irf.items():
                 # we are interested in the ports.
                 # IRF type 1 ports
-                dprint(f"IRF id={id}, ports={ports}")
+                dprint(f"IRF id={irf_id}, ports={ports}")
                 for port_name in ports['irf_p1']:
                     dprint(f"FOUND IRF PORT-1 '{port_name}'")
                     irf_iface = self.get_interface_by_name(name=port_name)
@@ -353,11 +355,11 @@ class HPECw7NcConnector(Connector):
             command = "Portchannel().get_portchannels()"
             pc_data = pc.get_portchannels()
             dprint(f"\n-----\nPORT-CHANNELS:\n{pc_data}\n--------")
-            for id in pc_data:
-                pc = CwPortchannel(device=self.device, groupid=int(id), pc_type="bridged").get_config()
-                dprint(f"Found PORTCHANNNEL {id}:\n{pc}")
+            for aggr_id in pc_data:
+                pc = CwPortchannel(device=self.device, groupid=int(aggr_id), pc_type="bridged").get_config()
+                dprint(f"Found PORTCHANNNEL {aggr_id}:\n{pc}")
                 # see if we can find the Bridge-Agg interface
-                lacp_if_name = f"Bridge-Aggregation{id}"
+                lacp_if_name = f"Bridge-Aggregation{aggr_id}"
                 port_channel = self.get_interface_by_name(name=lacp_if_name)
                 if port_channel:
                     port_channel.type = IF_TYPE_LAGG
@@ -370,17 +372,19 @@ class HPECw7NcConnector(Connector):
                             dprint(f"    found Interface() for '{member_iface.name}'")
                             member_iface.lacp_type = LACP_IF_TYPE_MEMBER
                             member_iface.lacp_master_name = lacp_if_name
-                            member_iface.lacp_master_index = int(id)  # needs to be an integer!
+                            member_iface.lacp_master_index = int(aggr_id)  # needs to be an integer!
                             # add to list of port-channel
                             port_channel.lacp_members[member_iface.key] = member_name
                         else:
-                            dprint(f"ERROR: cannot find member interface '{member_name}' for Bridge-Aggregation{id}")
+                            dprint(
+                                f"ERROR: cannot find member interface '{member_name}' for Bridge-Aggregation{aggr_id}"
+                            )
                             self.add_warning(
-                                f"ERROR: cannot find member interface '{member_name}' for Bridge-Aggregation{id}"
+                                f"ERROR: cannot find member interface '{member_name}' for Bridge-Aggregation{aggr_id}"
                             )
                 else:
-                    dprint(f"ERROR: cannot find interface Bridge-Aggregation{id}")
-                    self.add_warning(f"ERROR: cannot find interface Bridge-Aggregation{id}")
+                    dprint(f"ERROR: cannot find interface Bridge-Aggregation{aggr_id}")
+                    self.add_warning(f"ERROR: cannot find interface Bridge-Aggregation{aggr_id}")
 
             #
             # read interface state
@@ -996,7 +1000,7 @@ class HPECw7NcConnector(Connector):
             True if all goes OK.
             False if this fails. the self.error() variable will be set with information about the failure.
         """
-        dprint(f"HPECw7NcConnector()._run_command:\n{commands}")
+        dprint(f"HPECw7NcConnector()._run_command:\n'{commands}', action={action}")
 
         # try:
         #     # run the command:
