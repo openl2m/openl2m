@@ -668,6 +668,7 @@ class HPECwRestConnector(RESTConnector):
             # walk through the IRF info, and check for problems:
             irf_member_count = 0
             highest_priority = -1
+            highest_priority_id = -1
             master_id = -1
             master_priority = -1
             irf_status = "OK"
@@ -700,8 +701,6 @@ class HPECwRestConnector(RESTConnector):
 
             self.add_more_info(category="IRF Info", name="Status", value=irf_status)
             self.add_more_info(category="IRF Info", name="Members", value=irf_member_count)
-
-        return
 
     def get_my_vrfs(self):
         #
