@@ -230,12 +230,16 @@ class SnmpConnectorArubaCx(SnmpConnector):
             return retval
 
         # and get untagged ports in those vlans:
-        retval = self.get_snmp_branch(
-            branch_name="ieee8021QBridgeVlanCurrentUntaggedPorts",
-            parser=self._parse_mibs_ieee_qbridge_vlan_current_untagged_ports,
-        )
-        if retval < 0:
-            return retval
+        #
+        # tis appears to not add any extra information, and causes strange differing info
+        # from ieee8021QBridgePvid for untagged vlan
+        # for now, do not read...
+        # retval = self.get_snmp_branch(
+        #     branch_name="ieee8021QBridgeVlanCurrentUntaggedPorts",
+        #     parser=self._parse_mibs_ieee_qbridge_vlan_current_untagged_ports,
+        # )
+        # if retval < 0:
+        #     return retval
 
         # and get ieee8021QBridgeVlanStaticUntaggedPorts and ieee8021QBridgeVlanStaticEgressPorts
         # this could have some more statically defined info on ports.
