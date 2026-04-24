@@ -509,73 +509,73 @@ class SnmpConnectorComware(SnmpConnector):
 
             return False
 
-        else:
-            dprint("  Setting ACCESS mode")
-            success = self.set(
-                oid=f"{hh3cifVLANType}.{interface.port_id}", value=HH3C_IF_MODE_ACCESS, snmp_type="i", parser=False
+        # this is access mode
+        dprint("  Setting ACCESS mode")
+        success = self.set(
+            oid=f"{hh3cifVLANType}.{interface.port_id}", value=HH3C_IF_MODE_ACCESS, snmp_type="i", parser=False
+        )
+        if success:
+            dprint("  Setting PVID")
+            #
+            # get snmp helper to handle bitmapping
+            #
+            try:
+                pysnmp = pysnmpHelper(self.switch)
+            except Exception as err:
+                # unlikely to happen...
+                dprint(f"ERROR getting pysnmpHelper(): {err}")
+                self.error.status = True
+                self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+                self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                return False
+
+            #
+            # add this port to "hh3cdot1qVlanPorts.<vlan-id>" bitmap of ports on vlan:
+            #
+            # read current ports
+            error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", parser=False)
+            if error_status:
+                return False
+            # and get ready to add these ports in bitmap Portlist() format
+            vlan_port_bitmap = PortList()
+            #  We need to manipulate the returned snmp value (str() class) into a true bitmap OctectString()
+            vlan_port_bitmap.from_unicode(snmpval.value)
+            dprint(f"  VlanPorts = {vlan_port_bitmap.to_hex_string()}")
+            # now set bit to 1 for this interface (i.e. set the port_id bit!).
+            # NOTE: Comware sends (and receives) bits in opposite order inside each byte! (go figure)
+            # so we are going to reverse bits in each byte to regular order,
+            # then set the port bit, and reverse back to "comware" order
+            vlan_port_bitmap.reverse_bits_in_bytes()
+            dprint(f"  VlanPorts Reverse = {vlan_port_bitmap.to_hex_string()}")
+            # set the port-id bit to 1
+            vlan_port_bitmap[int(interface.port_id)] = 1
+            dprint(f"  Port bit set:\n  VlanPorts Reverse = {vlan_port_bitmap.to_hex_string()}")
+            # and reverse again:
+            vlan_port_bitmap.reverse_bits_in_bytes()
+            dprint(f"  VlanPorts = {vlan_port_bitmap.to_hex_string()}")
+
+            # and convert to OctetString()
+            octet_string = OctetString(hexValue=vlan_port_bitmap.to_hex_string())
+            # now write this back to switch
+            if not pysnmp.set(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", octet_string):
+                self.error.status = True
+                self.error.description = f"Error setting port untagged vlan {untagged_vlan}"
+                # copy over the error details from the call:
+                self.error.details = pysnmp.error.details
+                dprint(f"ERROR setting port untagged vlan {untagged_vlan} using hh3cdot1qVlanPorts")
+                return False
+
+            # do bookkeeping. Do NOT call super() as this would invoke SnmpConnector(), we need true base class:
+            Connector.set_interface_vlans(
+                self=self,
+                interface=interface,
+                untagged_vlan=untagged_vlan,
+                tagged_vlans=tagged_vlans,
+                allow_all=allow_all,
             )
-            if success:
-                dprint("  Setting PVID")
-                #
-                # get snmp helper to handle bitmapping
-                #
-                try:
-                    pysnmp = pysnmpHelper(self.switch)
-                except Exception as err:
-                    # unlikely to happen...
-                    dprint(f"ERROR getting pysnmpHelper(): {err}")
-                    self.error.status = True
-                    self.error.description = "Error getting snmp connection object (pysnmpHelper())"
-                    self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
-                    return False
+            return True
 
-                #
-                # add this port to "hh3cdot1qVlanPorts.<vlan-id>" bitmap of ports on vlan:
-                #
-                # read current ports
-                error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", parser=False)
-                if error_status:
-                    return False
-                # and get ready to add these ports in bitmap Portlist() format
-                vlan_port_bitmap = PortList()
-                #  We need to manipulate the returned snmp value (str() class) into a true bitmap OctectString()
-                vlan_port_bitmap.from_unicode(snmpval.value)
-                dprint(f"  VlanPorts = {vlan_port_bitmap.to_hex_string()}")
-                # now set bit to 1 for this interface (i.e. set the port_id bit!).
-                # NOTE: Comware sends (and receives) bits in opposite order inside each byte! (go figure)
-                # so we are going to reverse bits in each byte to regular order,
-                # then set the port bit, and reverse back to "comware" order
-                vlan_port_bitmap.reverse_bits_in_bytes()
-                dprint(f"  VlanPorts Reverse = {vlan_port_bitmap.to_hex_string()}")
-                # set the port-id bit to 1
-                vlan_port_bitmap[int(interface.port_id)] = 1
-                dprint(f"  Port bit set:\n  VlanPorts Reverse = {vlan_port_bitmap.to_hex_string()}")
-                # and reverse again:
-                vlan_port_bitmap.reverse_bits_in_bytes()
-                dprint(f"  VlanPorts = {vlan_port_bitmap.to_hex_string()}")
-
-                # and convert to OctetString()
-                octet_string = OctetString(hexValue=vlan_port_bitmap.to_hex_string())
-                # now write this back to switch
-                if not pysnmp.set(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", octet_string):
-                    self.error.status = True
-                    self.error.description = f"Error setting port untagged vlan {untagged_vlan}"
-                    # copy over the error details from the call:
-                    self.error.details = pysnmp.error.details
-                    dprint(f"ERROR setting port untagged vlan {untagged_vlan} using hh3cdot1qVlanPorts")
-                    return False
-
-                # do bookkeeping. Do NOT call super() as this would invoke SnmpConnector(), we need true base class:
-                Connector.set_interface_vlans(
-                    self=self,
-                    interface=interface,
-                    untagged_vlan=untagged_vlan,
-                    tagged_vlans=tagged_vlans,
-                    allow_all=allow_all,
-                )
-                return True
-
-            return False  # self.error() already set!
+        return False  # self.error() already set!
 
     def _can_manage_interface(self, interface: Interface) -> bool:
         """
@@ -609,6 +609,9 @@ class SnmpConnectorComware(SnmpConnector):
             else:
                 dprint(f"ERROR parsing hh3cEntityExtUpTime: device id {dev_id} NOT found!")
             return True
+
+        # not parsed!
+        return False
 
     def _parse_mibs_comware_config(self, oid: str, val: str) -> bool:
         """
@@ -718,7 +721,7 @@ class SnmpConnectorComware(SnmpConnector):
             return True
         return False
 
-    def _parse_mibs_comware_configfile(self, oid: str, val: str) -> bool:
+    def _parse_mibs_comware_configfile(self, oid: str, val: str) -> bool:  # pylint: disable=unused-argument
         """
         Parse Comware specific ConfigMan MIB
         return True if we parse it, False if not.
@@ -872,18 +875,18 @@ class SnmpConnectorComware(SnmpConnector):
 
         # TBD: we could check DRNI health
 
-        return
-
     def _check_irf_health(self):
         """Check health of the IRF stack (if found)"""
         # get the number of devices in the IRF stack
         retval = self.get_snmp_branch(branch_name="hh3cStackMemberNum", parser=self._parse_mibs_irf_member_count)
         if retval < 0:
             self.add_warning(warning="Error reading 'IRF member count' (hh3cStackMemberNum)")
-            return False
+            return
+
         if self.irf_member_count == 1:
             # single device, no need for more checks on IRF
             return
+
         dprint("IRF stack found!")
         self.add_more_info(category="IRF Info", name="Members", value=self.irf_member_count)
 
@@ -894,14 +897,14 @@ class SnmpConnectorComware(SnmpConnector):
         )
         if retval < 0:
             self.add_warning(warning="Error reading 'IRF Device Config' (hh3cStackDeviceConfigEntry)")
-            return False
+            return
 
         # and then check the role for each board. This is an indirect read, each device can have boards with a role
         # (see parsing below)
         retval = self.get_snmp_branch(branch_name="hh3cStackBoardConfigEntry", parser=self._parse_mibs_irf_device_role)
         if retval < 0:
             self.add_warning(warning="Error reading 'IRF Device Role' (hh3cStackBoardConfigEntry)")
-            return False
+            return
 
         # now go check the results in  self.irf_member_info{}
         dprint(f"FINAL IRF Info:\n{self.irf_member_info}")
@@ -910,7 +913,7 @@ class SnmpConnectorComware(SnmpConnector):
         # walk through the IRF info, and check for problems:
         highest_prio = {"priority": -1}
         master_id = -1
-        for member_index, irf_info in self.irf_member_info.items():
+        for irf_info in self.irf_member_info.values():
             # if this device has less then 2 active ports, there is a problem
             if irf_info["ports"] < 2:
                 # healthy = False
@@ -925,6 +928,7 @@ class SnmpConnectorComware(SnmpConnector):
                 highest_prio = irf_info
             if irf_info["role"] == IRF_ROLE_MASTER:
                 master_id = irf_info["id"]
+
         # now check that the MASTER id is the same as the highest priority
         if master_id != highest_prio["id"]:
             # this means something happened to the stack, add a log message!
@@ -942,8 +946,6 @@ class SnmpConnectorComware(SnmpConnector):
             )
 
         self.add_more_info(category="IRF Info", name="Status", value=irf_status)
-
-        return
 
     def _parse_mibs_irf_member_count(self, oid: str, val: str) -> bool:
         """
@@ -1013,8 +1015,9 @@ class SnmpConnectorComware(SnmpConnector):
             dprint(f"IRF board id {ret_val} = member id {val}")
             # find this board's role, and add to the member id:
             role = self.irf_board_role[ret_val]
+
             # find the member id:
-            for member_index, member_info in self.irf_member_info.items():
+            for member_info in self.irf_member_info.values():
                 if int(val) == member_info["id"]:
                     # update this member's role
                     member_info["role"] = role
