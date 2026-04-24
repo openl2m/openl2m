@@ -71,6 +71,7 @@ API_VERSION = "10.08"  # '10.09', '10.08' or '10.04'
 # in order to avoid token time out and resource overload.           #
 #####################################################################
 
+
 class AosCxConnector(Connector):
     """
     This class implements a Connector() to get switch information from Aruba AOS-CX devices.
@@ -402,14 +403,14 @@ class AosCxConnector(Connector):
                 self.poe_enabled = True
                 # assign an OpenL2M PoePort() object
                 # dprint(f"POE: config.admin_disabled={aoscx_poe.config['admin_disable']}")
-                if aoscx_poe_iface.config["admin_disable"]:
+                if aoscx_poe_iface.config["admin_disable"]:  # pylint: disable=no-member
                     poe_status = POE_PORT_ADMIN_DISABLED
                 else:
                     poe_status = POE_PORT_ADMIN_ENABLED
                 poe_entry = PoePort(index=if_name, admin_status=poe_status)
                 iface.poe_entry = poe_entry
                 # get power used. Listed in watts, convert to milliwatts:
-                consumed = int(aoscx_poe_iface.measurements["power_drawn"] * 1000)
+                consumed = int(aoscx_poe_iface.measurements["power_drawn"] * 1000)  # pylint: disable=no-member
                 if consumed > 0:
                     super().set_interface_poe_consumed(iface, consumed)
 
@@ -848,7 +849,7 @@ class AosCxConnector(Connector):
 
         # now set mode and vlans
         try:
-            if not len(tagged_vlans) and not allow_all:
+            if not tagged_vlans and not allow_all:
                 # no tagged vlan, ie "access mode".
                 dprint("  access mode.")
                 aoscx_interface.set_vlan_mode("access")
