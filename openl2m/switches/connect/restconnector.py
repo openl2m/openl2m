@@ -15,6 +15,7 @@
 Driver that adds basic REST connectibity to the base Connector() class.
 This implements base HTTP(s) GET, POST, PUT, and DELETE to other REST API drivers to inherit.
 """
+
 import json
 import time
 
@@ -34,25 +35,22 @@ class RESTConnector(Connector):
     """
 
     def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
-        """ Set a few things, and then call the Connector.__init__()
-        """
+        """Set a few things, and then call the Connector.__init__()"""
         dprint("RESTConnector.__init__()")
-        self.headers: dict = {}                 # contains HTTP headers for GET/POST
-        self.response = None                    # full response from request, in case user wants it!
-        self.base_url: str = ""                 # base URL of REST queries
-        self.cookies: dict = {}                 # cookies to add to the request
+        self.headers: dict = {}  # contains HTTP headers for GET/POST
+        self.response = None  # full response from request, in case user wants it!
+        self.base_url: str = ""  # base URL of REST queries
+        self.cookies: dict = {}  # cookies to add to the request
         # call the base connector init:
         super().__init__(request, group, switch)
 
     def _set_base_url(self, base_url: str):
-        """ Set the base URL for all REST queries
-        """
+        """Set the base URL for all REST queries"""
         dprint(f"RESTConnector()._set_base_url() = {base_url}")
         self.base_url = base_url
 
     def _set_cookies(self, cookies: dict):
-        """ Set the cookie jar!
-        """
+        """Set the cookie jar!"""
         dprint(f"RESTConnector()._set_cookies() = {cookies}")
         self.cookies = cookies
 
@@ -100,11 +98,13 @@ class RESTConnector(Connector):
 
         # make the request:
         start_time = time.time()
-        self.response = requests.get(url=self.base_url + path,
-                                     headers=headers,
-                                     cookies=cookies,
-                                     verify=self.switch.netmiko_profile.verify_hostkey,
-                                     timeout=settings.REST_API_TIMEOUT)
+        self.response = requests.get(
+            url=self.base_url + path,
+            headers=headers,
+            cookies=cookies,
+            verify=self.switch.netmiko_profile.verify_hostkey,
+            timeout=settings.REST_API_TIMEOUT,
+        )
         read_duration = time.time() - start_time
         if not message:
             message = "_GET() Call"
@@ -117,12 +117,14 @@ class RESTConnector(Connector):
 
         self.add_timing(path, 1, read_duration)
 
-        if self.response.status_code == 200:    # valid return!
+        if self.response.status_code == 200:  # valid return!
             return json.loads(self.response.text)
         # likely 204 - Valid return, but No Content
         return None
 
-    def _post(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""):
+    def _post(
+        self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""
+    ):
         """POST a specific REST endpoint and return JSON response.
             will raise exception on error
 
@@ -147,20 +149,22 @@ class RESTConnector(Connector):
         if not cookies:
             cookies = self.cookies
 
-        self.response = requests.post(url=self.base_url + path,
-                                      headers=headers,
-                                      cookies=cookies,
-                                      params=params,
-                                      data=data,
-                                      verify=self.switch.netmiko_profile.verify_hostkey,
-                                      timeout=settings.REST_API_TIMEOUT)
+        self.response = requests.post(
+            url=self.base_url + path,
+            headers=headers,
+            cookies=cookies,
+            params=params,
+            data=data,
+            verify=self.switch.netmiko_profile.verify_hostkey,
+            timeout=settings.REST_API_TIMEOUT,
+        )
         if not message:
             message = "_POST() Call"
         debug_response(response=self.response, message=message)
         self.response.raise_for_status()
 
         # no errors:
-        if self.response.status_code in (200, 201,202, 204):
+        if self.response.status_code in (200, 201, 202, 204):
             # valid returns:
             # 200 - Created, with content returned
             # 201 - Created, not content
@@ -170,7 +174,9 @@ class RESTConnector(Connector):
 
         return False
 
-    def _put(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""):
+    def _put(
+        self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""
+    ):
         """PUT a specific REST endpoint and return JSON response.
         will raise exception on error
 
@@ -195,13 +201,15 @@ class RESTConnector(Connector):
         if not cookies:
             cookies = self.cookies
 
-        self.response = requests.put(url=self.base_url + path,
-                                     headers=headers,
-                                     cookies=cookies,
-                                     params=params,
-                                     data=data,
-                                     verify=self.switch.netmiko_profile.verify_hostkey,
-                                     timeout=settings.REST_API_TIMEOUT)
+        self.response = requests.put(
+            url=self.base_url + path,
+            headers=headers,
+            cookies=cookies,
+            params=params,
+            data=data,
+            verify=self.switch.netmiko_profile.verify_hostkey,
+            timeout=settings.REST_API_TIMEOUT,
+        )
         if not message:
             message = "_PUT() Call"
         debug_response(response=self.response, message=message)
@@ -213,7 +221,9 @@ class RESTConnector(Connector):
         # Hmm ?
         return False
 
-    def _delete(self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""):
+    def _delete(
+        self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""
+    ):
         """DELETE a specific REST endpoint and return JSON response.
         will raise exception on error
 
@@ -238,13 +248,15 @@ class RESTConnector(Connector):
         if not cookies:
             cookies = self.cookies
 
-        self.response = requests.delete(url=self.base_url + path,
-                                        headers=headers,
-                                        cookies=cookies,
-                                        params=params,
-                                        data=data,
-                                        verify=self.switch.netmiko_profile.verify_hostkey,
-                                        timeout=settings.REST_API_TIMEOUT)
+        self.response = requests.delete(
+            url=self.base_url + path,
+            headers=headers,
+            cookies=cookies,
+            params=params,
+            data=data,
+            verify=self.switch.netmiko_profile.verify_hostkey,
+            timeout=settings.REST_API_TIMEOUT,
+        )
         if not message:
             message = "_DELETE() Call"
         debug_response(response=self.response, message=message)
