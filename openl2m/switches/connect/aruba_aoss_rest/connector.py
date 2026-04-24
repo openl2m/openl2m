@@ -638,7 +638,7 @@ class ArubaAOSsRestConnector(RESTConnector):
         if success:
             dprint("ARP INFO FOUND!")
             # match this format: "10.128.11.65     00005e-000165     dynamic 24"
-            ip_format = re.compile("^(\d+\.\d+\.\d+\.\d+).*$")  # we assume it if starts with IP, we are good!
+            ip_format = re.compile(r"^(\d+\.\d+\.\d+\.\d+).*$")  # we assume it if starts with IP, we are good!
             for line in self.netmiko_output.split("\n"):
                 # remove all extra white spaces
                 stripped = re.sub(r"\s+", " ", line.strip())
@@ -856,10 +856,7 @@ class ArubaAOSsRestConnector(RESTConnector):
         if not self._open_device():
             return False
 
-        if new_state == POE_PORT_ADMIN_ENABLED:
-            state = True  # True=PoE enabled, False=disabled
-        else:
-            state = False
+        state = new_state == POE_PORT_ADMIN_ENABLED
 
         # body data
         data = {
