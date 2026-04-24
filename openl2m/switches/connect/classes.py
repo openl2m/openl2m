@@ -109,7 +109,7 @@ class StackMember:
         self.model: str = ""  # vendor model number
         self.info: str = ""  # hardware info string
         self.description: str = ""  # module description
-        self.uptime: int = 0    # uptime in seconds
+        self.uptime: int = 0  # uptime in seconds
 
     def as_dict(self) -> dict:
         """
@@ -737,14 +737,18 @@ class PoePort:
         Initialize the object
         """
         self.index: str = index  # poe index on SNMP is the value after the PoE OID that is the index to this interface
-                                 # on other drivers, (rest, etc.) set this as needed to unique value!
-        self.admin_status: int = admin_status   # Note: use the SNMP values POE_PORT_ADMIN_ENABLED (1), and POE_PORT_ADMIN_DISABLED (2)
-        self.detect_status: int = POE_PORT_DETECT_SEARCHING     # same, use SNMP values defined in connect/constants.py
+        # on other drivers, (rest, etc.) set this as needed to unique value!
+        self.admin_status: int = (
+            admin_status  # Note: use the SNMP values POE_PORT_ADMIN_ENABLED (1), and POE_PORT_ADMIN_DISABLED (2)
+        )
+        self.detect_status: int = POE_PORT_DETECT_SEARCHING  # same, use SNMP values defined in connect/constants.py
         """ currently not used:
         self.priority = 0
         self.description = ""       # rarely used, but available in POE MIB
         """
-        self.pse_id: int = -1    # the PSE ID, ie. Power Supply ID that feeds this port. Needed for some devices PoE enable/disable
+        self.pse_id: int = (
+            -1
+        )  # the PSE ID, ie. Power Supply ID that feeds this port. Needed for some devices PoE enable/disable
         # power consumed is not in the standard PoE MIB, but some proprietary MIBs support this (e.g. Cisco)
         self.power_consumption_supported: bool = False
         self.power_consumed: int = 0  # power consumed in milliWatt
@@ -898,7 +902,7 @@ class Vrf:
         self.ipv6 = ipv6  # True if VRF is enabled for IPv6
         self.active_interfaces = 0  # number of interfaces active on this VRF
         self.interfaces = []  # list of interface names in this VRF
-        self.index = 0      # device specific index of this vrf. Needed for some drivers
+        self.index = 0  # device specific index of this vrf. Needed for some drivers
 
     def set_name(self, name: str):
         """Set the name attribute of a VRF
@@ -1034,9 +1038,9 @@ class Interface:
         self.transceiver: Transceiver = None  # any transceiver info know for this interface
         self.description: str = ""  # the interface description, as set by the switch configuration, from IF-MIB
         self.addresses_ip4: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
-        self.addresses_ip6: Dict[
-            str, IPNetworkHostname
-        ] = {}  # dictionary of all my (routable) ipv6 addresses on this interface
+        self.addresses_ip6: Dict[str, IPNetworkHostname] = (
+            {}
+        )  # dictionary of all my (routable) ipv6 addresses on this interface
         self.address_ip6_linklocal: str = ""  # the IPv6 LinkLocal address for this interface, if any.
         self.igmp_snooping: bool = False  # if True, interface does IGMP snooping
         # vlan related
@@ -1044,9 +1048,9 @@ class Interface:
         self.untagged_vlan: int = (
             -1
         )  # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
-        self.vlans: List[
-            int
-        ] = []  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
+        self.vlans: List[int] = (
+            []
+        )  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
         self.vlan_count: int = 0
         self.is_tagged: bool = False  # if 802.1q tagging or trunking is enabled
         # some vendors (e.g. Comware, Cisco-SB) have a interface vlan mode:
@@ -1077,9 +1081,9 @@ class Interface:
         self.poe_entry: PoePort | bool = False  # if interface has PoE capabilities, will be a PoePort() object
         self.allow_poe_toggle: bool = False  # if set, any user can toggle PoE OFF-ON
         # a variety of data about what is happening on this interface:
-        self.eth: Dict[
-            str, EthernetAddress
-        ] = {}  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
+        self.eth: Dict[str, EthernetAddress] = (
+            {}
+        )  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
         self.lldp: Dict[str, NeighborDevice] = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
         # the Vrf() this interface belongs to, if any
         self.vrf_name = ""
