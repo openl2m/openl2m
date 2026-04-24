@@ -32,9 +32,9 @@ def get_vlan_and_interface_from_string(if_string: str):
     # whereasthe Ipv6 ND info starts with "Vlxxxx"
     if if_string.startswith("Vlan"):
         # Ipv4 Vlan format:
-        (vlan_str, if_name) = if_string[4:].split(",")
+        vlan_str, if_name = if_string[4:].split(",")
     elif if_string.startswith("Vl"):  # short IPv6 ND format:
-        (vlan_str, if_name) = if_string[2:].split(",")
+        vlan_str, if_name = if_string[2:].split(",")
     else:  # no vlan info, plain "Ethernet1/1" format:
         vlan_str = -1
         # in IPV6 ND, when no vlan found, the interface name is abreviated to "Etx/y", so expand this:
