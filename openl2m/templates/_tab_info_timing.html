@@ -7,13 +7,13 @@
   </div>
   <div class="card-body">
     <div class="fw-bold border-bottom pb-1 mb-1 row">
-      <div class="col-5">Name</div>
+      <div class="col-6">Name</div>
       <div class="col-2">Count</div>
       <div class="col">Time</div>
     </div>
     {% for name,info in connection.timing.items %}
       <div class="row p-1{% cycle '' ' bg-light' %}">
-        <div class="col-5">{{ name }}</div>
+        <div class="col-6">{{ name }}</div>
         <div class="col-2">{{ info.0 }}</div>
         <div class="col">{{ info.1|floatformat:3 }}</div>
       </div>
