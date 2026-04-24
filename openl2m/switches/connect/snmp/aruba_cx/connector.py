@@ -209,8 +209,12 @@ class SnmpConnectorArubaCx(SnmpConnector):
         if retval < 0:
             return retval
 
-        # get the generic vlan data:
-        super()._get_vlan_data()
+        # we do not need the generic vlan data, wich is mostly Q-Bridge info
+        # super()._get_vlan_data()
+        # we DO need the (switch) port-id to ifIndex mapping:
+        retval = self._get_dot1d_port_to_ifindex_map()
+        if retval < 0:
+            return retval
 
         # Note: as of v10.13, AOS-CX does NOT use "dot1qVlanCurrentEgressPorts" to define
         # vlan port membership. Instead it uses the IEEE Q-Bridge equivalents at
@@ -224,6 +228,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         )
         if retval < 0:
             return retval
+
         # and get untagged ports in those vlans:
         retval = self.get_snmp_branch(
             branch_name="ieee8021QBridgeVlanCurrentUntaggedPorts",
@@ -232,12 +237,24 @@ class SnmpConnectorArubaCx(SnmpConnector):
         if retval < 0:
             return retval
 
-        # this adds no new information:
-        # # and get dot1qVlanStaticUntaggedPorts, this could have some more untagged vlan info on tagged ports.
-        # retval = self.get_snmp_branch(branch_name='dot1qVlanStaticUntaggedPorts', parser=self._parse_mibs_vlan_related)
-        # if retval < 0:
-        #     self.add_warning(warning="Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
-        #     return retval
+        # and get ieee8021QBridgeVlanStaticUntaggedPorts and ieee8021QBridgeVlanStaticEgressPorts
+        # this could have some more statically defined info on ports.
+        # but we're not sure this adds anything new...
+        retval = self.get_snmp_branch(
+            branch_name='ieee8021QBridgeVlanStaticUntaggedPorts',
+            parser=self._parse_mibs_ieee_qbridge_vlan_static_untagged_ports,
+        )
+        if retval < 0:
+            self.add_warning(warning="Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
+            return retval
+
+        retval = self.get_snmp_branch(
+            branch_name='ieee8021QBridgeVlanStaticEgressPorts',
+            parser=self._parse_mibs_ieee_qbridge_vlan_static_egress_ports,
+        )
+        if retval < 0:
+            self.add_warning(warning="Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
+            return retval
 
         return self.vlan_count
 
