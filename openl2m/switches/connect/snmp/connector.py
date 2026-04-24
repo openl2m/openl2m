@@ -104,12 +104,12 @@ from switches.connect.snmp.constants import (
     dot1qPortGvrpStatus,
     dot1qPvid,
     dot1qTpFdbPort,
-    dot1qVlanCurrentEgressPorts,
     dot1qVlanStaticEgressPorts,
+    dot1qVlanCurrentEgressPorts,
     dot1qVlanStaticName,
     dot1qVlanStaticRowStatus,
-    dot1qVlanCurrentUntaggedPorts,
     dot1qVlanStaticUntaggedPorts,
+    dot1qVlanCurrentUntaggedPorts,
     dot1qVlanStatus,
     dot3adAggActorAdminKey,
     dot3adAggPortActorAdminKey,
@@ -123,7 +123,9 @@ from switches.connect.snmp.constants import (
     entPhysicalSoftwareRev,
     ieee8021QBridgeMvrpEnabledStatus,
     ieee8021QBridgePvid,
+    ieee8021QBridgeVlanStaticEgressPorts,
     ieee8021QBridgeVlanCurrentEgressPorts,
+    ieee8021QBridgeVlanStaticUntaggedPorts,
     ieee8021QBridgeVlanCurrentUntaggedPorts,
     ieee8021QBridgeVlanStaticName,
     ifAdminStatus,
@@ -1263,23 +1265,36 @@ class SnmpConnector(Connector):
 
         return self.vlan_count
 
+    def _get_dot1d_port_to_ifindex_map(self) -> int:
+        """ """
+        # read the dot1D-Bridge mapping of (switch) ports to ifIndexes,
+        # needed for Q-Bridge and IEEE8021-QBridge vlan bitmap entried that use port-id to map back to ifIndex
+        retval = self.get_snmp_branch(
+            branch_name="dot1dBasePortIfIndex", parser=self._parse_mibs_dot1d_port_to_ifindex_map
+        )
+        if retval < 0:
+            self.add_warning(
+                "Error getting 'Q-Bridge PortId-to-ifIndex Map' (dot1dBasePortIfIndex), we will assume (switch)port_id == ifIndex !"
+            )
+            # see also _get_if_index_from_port_id()
+        return retval
+
     def _get_vlans(self) -> int:
         """
         Read the list of defined vlans on the switch
         Returns error value (if < 0), or count of vlans found (0 or greater)
         """
         # first map dot1D-Bridge ports to ifIndexes, needed for Q-Bridge port-id to ifIndex
-        retval = self.get_snmp_branch(branch_name="dot1dBasePortIfIndex", parser=self._parse_mibs_vlan_related)
-        if retval < 0:
-            self.add_warning(
-                "Error getting 'Q-Bridge-PortId-Map' (dot1dBasePortIfIndex), NOT reading VLAN mibs dot1qVlanStaticRowStatus, dot1qVlanStaticName, dot1qVlanStatus, dot1qVlanStaticRowStatus"
-            )
-            return retval
+        retval = self._get_dot1d_port_to_ifindex_map()
+        # don't care about errors here... (probably not the right way to handle this ?)
+        # see also _get_if_index_from_port_id()
+
         # read existing vlan id's from MIB-2 Q-Bridge "dot1qVlanStaticTable"
         retval = self.get_snmp_branch(branch_name="dot1qVlanStaticRowStatus", parser=self._parse_mibs_vlan_related)
         if retval < 0:
             self.add_warning("Error getting 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
             return retval
+
         # if there are MIB-2 Q-Bridge vlans, read the name and type
         if retval > 0:
             retval = self.get_snmp_branch(branch_name="dot1qVlanStaticName", parser=self._parse_mibs_vlan_related)
@@ -1287,6 +1302,7 @@ class SnmpConnector(Connector):
                 # error occured (unlikely to happen)
                 self.add_warning("Error getting 'Q-Bridge-Vlan-Names' (dot1qVlanStaticName)")
                 # we have found VLANs, so we are going to ignore this!
+
             # read the vlan status, ie static, dynamic!
             retval = self.get_snmp_branch(branch_name="dot1qVlanStatus", parser=self._parse_mibs_vlan_related)
             if retval < 0:
@@ -1348,6 +1364,28 @@ class SnmpConnector(Connector):
             return retval
 
         return 1
+
+    def _get_port_untagged_vlan_membership(self) -> bool:
+        """Read and parse Static and Current untagged ports. This should be similar to dot1qPvid
+        Set interface.untagged_vlan if not already set (ie still = -1). We do NOT override the info from dot1qPvid,
+        but warn if these two do NOT agree!
+        """
+        # read the statically configured untagged vlan to port mappings
+        # this should mostly be the same as dot1qPvid
+        retval = self.get_snmp_branch(dot1qVlanStaticUntaggedPorts, parser=self._parse_mibs_vlan_static_untagged_ports)
+        if retval < 0:
+            self.add_warning(f"Error getting 'Q-Bridge-Vlan-Untagged-Interfaces' ({dot1qVlanStaticUntaggedPorts})")
+            return False
+
+        # read the current, active vlan untagged port mappings
+        retval = self.get_snmp_branch(
+            dot1qVlanCurrentUntaggedPorts, parser=self._parse_mibs_vlan_current_untagged_ports
+        )
+        if retval < 0:
+            self.add_warning(f"Error getting 'Q-Bridge-Vlan-Untagged-Interfaces' ({dot1qVlanCurrentUntaggedPorts})")
+            return False
+
+        return True
 
     def _get_my_ip_addresses(self) -> int:
         """
@@ -1824,6 +1862,38 @@ class SnmpConnector(Connector):
         # we did not parse the OID.
         return False
 
+    def _parse_mibs_dot1d_port_to_ifindex_map(self, oid: str, val: str) -> bool:
+        """Function to parse the mapping of a (switch) port id to an interface ifIndex value.
+        This is used when reading bitmaps that represent vlan port-membership information.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnector()._parse_mib_dot1d_port_to_ifindex_map(oid={str(oid)}, val={val}")
+
+        # Map the Q-BRIDGE port id to the MIB-II if_indexes.
+        # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
+        port_id = int(oid_in_branch(dot1dBasePortIfIndex, oid))
+        if port_id:
+            # map port ID (as int, snmp-specific) to interface ID, the key to the interfaces{} dict,
+            # where the key is a str(), since other non-snmp drivers also use it!
+            if_index = str(val)
+            dprint(f"  Found dot1dBasePortIfIndex mapping port {port_id} = ifIndex {if_index}")
+            if if_index in self.interfaces:
+                dprint(f"  Mapping to if_index = {if_index}")
+                self.qbridge_port_to_if_index[port_id] = if_index
+                # and map Interface() object back to port ID as well:
+                self.set_interface_attribute_by_key(if_index, "port_id", port_id)
+            # we parsed it, return true:
+            return True
+
+        # we did not parse the OID.
+        return False
+
     def _parse_mibs_vlan_related(self, oid: str, val: str) -> bool:
         """Function to parse various VLAN related MIB entries
         that contains vlans and vlan-membership information.
@@ -1836,21 +1906,6 @@ class SnmpConnector(Connector):
             (boolean): True if we parse the OID, False if not.
         """
         dprint(f"SnmpConnector()._parse_mibs_vlan_related(oid={str(oid)}, val={val}")
-
-        # Map the Q-BRIDGE port id to the MIB-II if_indexes.
-        # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
-        port_id = int(oid_in_branch(dot1dBasePortIfIndex, oid))
-        if port_id:
-            dprint(f"  Found dot1dBasePortIfIndex = {port_id}")
-            # map port ID (as str) to interface ID (as str)
-            if_index = str(val)
-            if if_index in self.interfaces:
-                dprint(f"  Mapping to if_index = {if_index}")
-                self.qbridge_port_to_if_index[port_id] = if_index
-                # and map Interface() object back to port ID as well:
-                self.set_interface_attribute_by_key(if_index, "port_id", port_id)
-            # we parsed it, return true:
-            return True
 
         # List of all available vlans on this switch as by the command "show vlans"
         vlan_id = int(oid_in_branch(dot1qVlanStaticRowStatus, oid))
@@ -1951,6 +2006,15 @@ class SnmpConnector(Connector):
         # we did not parse the OID.
         return False
 
+    ######################################################################################################
+    #                                                                                                    #
+    # the following functions all parse BITMAP values that map what (switch) ports are active on a vlan. #
+    # we have both standard SNMP Q-BRIDGE mib, and IEEE IEEE8021-Q-BRIDGE mib parsers.                   #
+    #                                                                                                    #
+    # there is a lot of room for improvement of duplicate code here...                                   #
+    #                                                                                                    #
+    ######################################################################################################
+
     def _parse_mibs_vlan_current_untagged_ports(self, oid: str, val: str) -> bool:
         """Function to parse VLAN current active untagged vlans on ports.
 
@@ -1970,18 +2034,20 @@ class SnmpConnector(Connector):
         sub_oid = oid_in_branch(dot1qVlanCurrentUntaggedPorts, oid)
         if sub_oid:
             dprint(f"  Found dot1qVlanCurrentUntaggedPorts for sub_oid {sub_oid}")
-            dprint("  NOT PARSED YET!!!")
-            #     (timestamp, v) = sub_oid.split('.')
-            #     vlan_id = int(v)
-            #     if vlan_id not in self.vlans:
-            #         # not likely, but just in case:
-            #         self.add_vlan_by_id(vlan_id=vlan_id)
+            # the timestamp is related to when the switchport membership on this vlan was last changed.
+            timestamp, v = sub_oid.split('.')   # pylint: disable=unused-variable
+            vlan_id = int(v)
+            if vlan_id not in self.vlans:
+                # not likely, but just in case:
+                self.add_vlan_by_id(vlan_id=vlan_id)
 
-            #     # store bitmap for later use
-            #     self.vlans[vlan_id].untagged_ports_bitmap = val
+            # store bitmap for later use - do we use this ???
+            self.vlans[vlan_id].untagged_ports_bitmap = val
 
-            #     # now look at all the bits in this multi-byte value to find ports on this vlan:
-            #     self._parse_vlan_port_bitmap(vlan_id=vlan_id, bitmap=val, set_function=self._add_untagged_vlan_to_interface_by_port_id)
+            # now look at all the bits in this multi-byte value to find ports on this vlan:
+            self._parse_vlan_port_bitmap(
+                vlan_id=vlan_id, bitmap=val, handler=self._add_untagged_vlan_to_interface_by_port_id
+            )
 
             return True
 
@@ -1993,6 +2059,11 @@ class SnmpConnector(Connector):
 
         The "val" returned from snmp is a bitmap for a specific vlan (in the sub-oid)
         that has a 1 for each (switch)port-id that is statically configured as untagged on this vlan.
+
+        This is likely not adding any extra information, as most devices should have proper info
+        for all ports in dot1qVlanCurrentUntaggedPorts, the currently active untagged vlan port membership.
+        However, we have seen a few vendors that do not set bits in dot1qVlanCurrentUntaggedPorts
+        if the interface is not "UP". Reading dot1qVlanStaticUntaggedPorts will catch those configurations!
 
         Params:
             oid (str): the SNMP OID to parse
@@ -2074,6 +2145,12 @@ class SnmpConnector(Connector):
         The "val" returned from snmp is a bitmap for a specific vlan (in the sub-oid)
         that has a 1 for each (switch)port-id that is statically defined to participate in switching on this vlan,
         either as tagged or untagged....
+
+        This is likely not adding any extra information, as most devices should have proper info
+        for all ports in dot1qVlanCurrentEgressPorts, the currently active vlan port membership.
+        However, we have seen a few vendors that do not set bits in dot1qVlanCurrentEgressPorts
+        if the interface is not "UP". Reading dot1qVlanStaticEgressPorts will catch those configurations!
+
         """
         dprint("SnmpConnector()._parse_mib_vlan_static_egress_ports()")
 
@@ -2090,6 +2167,157 @@ class SnmpConnector(Connector):
             return True
 
         return False  # not parsed
+
+    #
+    # here are the IEEE bridge mib BITMAP parsing functions
+    #
+
+    def _parse_mibs_ieee_qbridge_vlan_static_egress_ports(self, oid: str, val: str) -> bool:
+        """
+        Parse IEEE 802.1Q bridge vlan data for statically configured egress ports.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnector()._parse_mibs_ieee_qbridge_vlan_static_egress_ports() {oid} = {val}")
+
+        sub_oid = oid_in_branch(ieee8021QBridgeVlanStaticEgressPorts, oid)
+        if sub_oid:
+            # vlans with port members
+            dprint(f"Found ieee8021QBridgeVlanStaticEgressPorts, sub_oid = '{sub_oid}'")
+            # sub oid part is ieee8021QBridgeVlanStaticEgressPorts.instance.timestamp.vlan_id = bitmap
+            # timestamp appears to be related to last member change of this vlan. We don't use it!
+            ignore, v = sub_oid.split(".")  # pylint: disable=unused-variable
+            vlan_id = int(v)
+
+            # check if vlan is globally defined on switch:
+            if vlan_id not in self.vlans:
+                # not likely, we should know vlan by now, but just in case!
+                self.add_vlan_by_id(vlan_id=vlan_id)
+
+            # store the egress port list, as some switches need this when setting untagged vlans
+            self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
+
+            # and go figure out what ports are part of this vlan:
+            self._parse_vlan_port_bitmap(vlan_id=vlan_id, bitmap=val, handler=self._add_vlan_to_interface_by_port_id)
+
+            return True
+
+        return False
+
+    def _parse_mibs_ieee_qbridge_vlan_current_egress_ports(self, oid: str, val: str) -> bool:
+        """
+        Parse IEEE 802.1Q bridge vlan data for current egress ports.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnector()._parse_mibs_ieee_qbridge_vlan_current_egress_ports() {oid} = {val}")
+
+        sub_oid = oid_in_branch(ieee8021QBridgeVlanCurrentEgressPorts, oid)
+        if sub_oid:
+            # vlans with port members
+            dprint(f"Found ieee8021QBridgeVlanCurrentEgressPorts, sub_oid = '{sub_oid}'")
+            # sub oid part is ieee8021QBridgeVlanCurrentEgressPorts.instance.timestamp.vlan_id = bitmap
+            # there are 2 vars that we ignore. We don't use it!
+            ignore1, ignore2, v = sub_oid.split(".")  # pylint: disable=unused-variable
+            vlan_id = int(v)
+
+            # check if vlan is globally defined on switch:
+            if vlan_id not in self.vlans:
+                # not likely, we should know vlan by now, but just in case!
+                self.add_vlan_by_id(vlan_id=vlan_id)
+
+            # store the egress port list, as some switches need this when setting untagged vlans
+            self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
+
+            # and go figure out what ports are part of this vlan:
+            self._parse_vlan_port_bitmap(vlan_id=vlan_id, bitmap=val, handler=self._add_vlan_to_interface_by_port_id)
+
+            return True
+
+        return False
+
+    def _parse_mibs_ieee_qbridge_vlan_static_untagged_ports(self, oid: str, val: str) -> bool:
+        """
+        Parse IEEE 802.1Q bridge vlan data for statically configured untagged ports.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnector()._parse_mibs_ieee_qbridge_vlan_static_untagged() {oid} = {val}")
+
+        sub_oid = oid_in_branch(ieee8021QBridgeVlanStaticUntaggedPorts, oid)
+        if sub_oid:
+            dprint("Found ieee8021QBridgeVlanStaticUntaggedPorts ")
+            # sub oid part is ieee8021QBridgeVlanStaticUntaggedPorts.<some_value>.<vlan_id> = bitmap
+            ignore, v = sub_oid.split('.')  # pylint: disable=unused-variable
+            vlan_id = int(v)
+
+            # check if vlan is globally defined on switch:
+            if vlan_id not in self.vlans:
+                # not likely, we should know vlan by now, but just in case!
+                self.add_vlan_by_id(vlan_id=vlan_id)
+
+            # figure out untagged ports based on the bitmap
+            self._parse_vlan_port_bitmap(
+                vlan_id=vlan_id, bitmap=val, handler=self._add_untagged_vlan_to_interface_by_port_id
+            )
+            return True
+
+        return False
+
+    def _parse_mibs_ieee_qbridge_vlan_current_untagged_ports(self, oid: str, val: str) -> bool:
+        """
+        Parse IEEE 802.1Q bridge vlan data for current untagged ports.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"_parse_mibs_ieee_qbridge_vlan_current_untagged() {oid} = {val}")
+
+        sub_oid = oid_in_branch(ieee8021QBridgeVlanCurrentUntaggedPorts, oid)
+        if sub_oid:
+            dprint("Found ieee8021QBridgeVlanCurrentUntaggedPorts ")
+            dprint("parsing ignored for now (not functional!)")
+            # sub oid part is ieee8021QBridgeVlanCurrentUntaggedPorts.something.instance.vlan_id = bitmap
+            ignore, ignore2, v = sub_oid.split('.')     # pylint: disable=unused-variable
+            vlan_id = int(v)
+
+            # check if vlan is globally defined on switch:
+            if vlan_id not in self.vlans:
+                # not likely, we should know vlan by now, but just in case!
+                self.add_vlan_by_id(vlan_id=vlan_id)
+
+            # figure out untagged ports based on the bitmap
+            self._parse_vlan_port_bitmap(
+                vlan_id=vlan_id, bitmap=val, handler=self._add_untagged_vlan_to_interface_by_port_id
+            )
+            return True
+
+        return False
+
+    #####################################
+    #                                   #
+    # end of "bitmap" parsing functions #
+    #                                   #
+    #####################################
 
     def _parse_vlan_port_bitmap(self, vlan_id: int, bitmap: str, handler):
         """Parse a vlan bit, look at all the bits in this multi-byte bitmap value
@@ -2337,75 +2565,6 @@ class SnmpConnector(Connector):
                 log.save()
                 # not sure what else to do here
             return True  # parsed!
-
-        return False
-
-    def _parse_mibs_ieee_qbridge_vlan_current_egress_ports(self, oid: str, val: str) -> bool:
-        """
-        Parse IEEE 802.1Q bridge vlan data for current egress ports.
-
-        Params:
-            oid (str): the SNMP OID to parse
-            val (str): the value of the SNMP OID we are parsing
-
-        Returns:
-            (boolean): True if we parse the OID, False if not.
-        """
-        dprint(f"_parse_mibs_ieee_qbridge_vlan_current_untagged() {oid} = {val}")
-
-        sub_oid = oid_in_branch(ieee8021QBridgeVlanCurrentEgressPorts, oid)
-        if sub_oid:
-            # vlans with port members
-            dprint(f"Found ieee8021QBridgeVlanCurrentEgressPorts, sub_oid = '{sub_oid}'")
-            # sub oid part is ieee8021QBridgeVlanCurrentEgressPorts.instance.timestamp.vlan_id = bitmap
-            # timestamp appears to be related to last member change of this vlan. We don't use it!
-            ignore, timestamp, v = sub_oid.split(".")  # pylint: disable=unused-variable
-            vlan_id = int(v)
-
-            # check if vlan is globally defined on switch:
-            if vlan_id not in self.vlans:
-                # not likely, we should know vlan by now, but just in case!
-                self.add_vlan_by_id(vlan_id=vlan_id)
-
-            # store the egress port list, as some switches need this when setting untagged vlans
-            self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
-
-            # and go figure out what ports are part of this vlan:
-            self._parse_vlan_port_bitmap(vlan_id=vlan_id, bitmap=val, handler=self._add_vlan_to_interface_by_port_id)
-
-            return True
-
-        return False
-
-    def _parse_mibs_ieee_qbridge_vlan_current_untagged_ports(self, oid: str, val: str) -> bool:
-        """
-        Parse IEEE 802.1Q bridge vlan data for current untagged ports.
-
-        Params:
-            oid (str): the SNMP OID to parse
-            val (str): the value of the SNMP OID we are parsing
-
-        Returns:
-            (boolean): True if we parse the OID, False if not.
-        """
-        dprint(f"_parse_mibs_ieee_qbridge_vlan_current_untagged() {oid} = {val}")
-
-        sub_oid = oid_in_branch(ieee8021QBridgeVlanCurrentUntaggedPorts, oid)
-        if sub_oid:
-            dprint("Found ieee8021QBridgeVlanCurrentUntaggedPorts ")
-            dprint("parsing ignored for now (not functional!)")
-            # # sub oid part is ieee8021QBridgeVlanCurrentUntaggedPorts.something.instance.vlan_id = bitmap
-            # (ignore, ignore2, v) = sub_oid.split('.')
-            # vlan_id = int(v)
-
-            # # check if vlan is globally defined on switch:
-            # if vlan_id not in self.vlans:
-            #     # not likely, we should know vlan by now, but just in case!
-            #     self.add_vlan_by_id(vlan_id=vlan_id)
-
-            # # figure out untagged ports based on the bitmap
-            # self._(vlan_id=vlan_id, bitmap=val, handler=self._add_untagged_vlan_to_interface_by_port_id)
-            return True
 
         return False
 
@@ -3375,13 +3534,13 @@ class SnmpConnector(Connector):
                                 neighbor.chassis_string_type = IANA_TYPE_IPV4
                                 addr_bytes = val[1:]
                                 chassis_info = ".".join(
-                                    "%d" % ord(b) for b in addr_bytes
+                                    "%d" % ord(b) for b in addr_bytes   # pylint: disable=consider-using-f-string
                                 )  # pylint: disable=consider-using-f-string
                             elif net_addr_type == IANA_TYPE_IPV6:
                                 neighbor.chassis_string_type = IANA_TYPE_IPV6
                                 addr_bytes = val[1:]
                                 chassis_info = ":".join(
-                                    "%d" % ord(b) for b in addr_bytes
+                                    "%d" % ord(b) for b in addr_bytes   # pylint: disable=consider-using-f-string
                                 )  # pylint: disable=consider-using-f-string
                                 # we should simplify this here - TBD
                             else:
@@ -3686,40 +3845,68 @@ class SnmpConnector(Connector):
         if_index = self._get_if_index_from_port_id(port_id)
         if if_index in self.interfaces:
             if self.interfaces[if_index].untagged_vlan == vlan_id:
-                dprint("   Vlan already set as untagged, not adding)!")
+                dprint("  Already set as untagged!")
                 # interface already has this untagged vlan, not adding
                 return True
 
-            dprint("   Add as tagged?")
             # only add vlan once, and only if defined!
-            if vlan_id in self.vlans and vlan_id not in self.interfaces[if_index].vlans:
-                dprint("      valid vlan, yes!")
-                self.interfaces[if_index].vlans.append(vlan_id)
-                self.interfaces[if_index].is_tagged = True
+            if vlan_id in self.vlans:
+                if vlan_id not in self.interfaces[if_index].vlans:
+                    dprint("  Add as tagged!")
+                    self.interfaces[if_index].vlans.append(vlan_id)
+                    self.interfaces[if_index].is_tagged = True
+                else:
+                    dprint("  Already set as tagged!")
+            else:  # should not happen
+                dprint("  INVALID vlan!")
             return True
+
+        # should not happen:
+        dprint(f"  Invalid ifIndex {if_index} - ignoring.")
         return False
 
-    def _add_untagged_vlan_to_interface_by_port_id(self, port_id: int, vlan_id: int):
+    def _add_untagged_vlan_to_interface_by_port_id(self, port_id: int, vlan_id: int) -> bool:
+        """Add a given vlan as untagged to the interface identified by the dot1d bridge port id
+        This is called when parsing dot1qVlanStaticUntaggedPorts and dot1qVlanCurrentUntaggedPorts
+        Note this similar (identical ?) to the untagged vlan found from reading dot1qPvid
+
+        If interface.untagged_vlan is already set, and the same, we don't do anything.
+        If not set (ie = -1), we set. If set, and not the same as read here, we don't change,
+        and set a warning!
+
+        Args:
+            port_id (int):  the (switch) port_id that maps to the interface ifIndex.
+            vlan_id (int):  the vlan ID.
+
+        Returns:
+            (boo): True on success, False on error/failure, and will set self.error()
         """
-        Add a given vlan as untaggfed to the interface identified by the dot1d bridge port id
-        """
-        dprint(f"_add_untagged_vlan_to_interface_by_port_id() port id {port_id} vlan {vlan_id}")
+        dprint(f"SnmpConnector()._add_untagged_vlan_to_interface_by_port_id() port id {port_id} vlan {vlan_id}")
 
         # get the interface index first:
         if_index = self._get_if_index_from_port_id(port_id)
         if if_index in self.interfaces:
-            if self.interfaces[if_index].untagged_vlan == 0:
-                dprint("   PVID was 0, now set!")
+            interface = self.interfaces[if_index]
+            if interface.untagged_vlan < 1:
+                dprint("   PVID was < 1, now set!")
                 self.interfaces[if_index].untagged_vlan = vlan_id
                 return True
 
-            if self.interfaces[if_index].untagged_vlan == vlan_id:
+            if interface.untagged_vlan == vlan_id:
                 dprint("   PVID already set!")
                 # interface already has this untagged vlan, not adding
                 return True
+
             # this case should not happen:
-            dprint(f"   PVID was {self.interfaces[if_index].untagged_vlan}, now set!")  # should not happen
-            self.interfaces[if_index].untagged_vlan = vlan_id
+            dprint(
+                f"   WARNING on {interface.name}: PVID={interface.untagged_vlan}, NOT THE SAME AS untagged vlan bitmap {vlan_id}!"
+            )
+            self.add_warning(
+                warning=f"{interface.name}: PVID is {interface.untagged_vlan}, but untagged vlan bitmap would set to {vlan_id}"
+            )
+            # we are NOT going to set the untagged vlan!
+            # self.interfaces[if_index].untagged_vlan = vlan_id
+
             return True
         dprint(f"if_index '{if_index}' not found!")
         return False
@@ -4335,6 +4522,14 @@ class SnmpConnector(Connector):
         )
 
         return True
+
+    ###########################################################
+    #                                                         #
+    # These vlan create/edit/delete fucntions are implemented #
+    # using the standard SNMP Q-BRIDGE mib.                   #
+    # for IEEE-BRIDGE mib, we need different functions...     #
+    #                                                         #
+    ###########################################################
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
         """
