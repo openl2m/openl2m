@@ -189,7 +189,6 @@ class NapalmConnector(Connector):
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_VLANS, description=f"ERROR: {self.error.details}")
             return False
 
-
         # now load the interface ipv4 data:
         try:
             ip_list = self.napalm_device.get_interfaces_ip()
