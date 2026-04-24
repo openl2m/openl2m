@@ -2023,7 +2023,7 @@ class SnmpConnector(Connector):
         if sub_oid:
             dprint(f"  Found dot1qVlanCurrentUntaggedPorts for sub_oid {sub_oid}")
             # the timestamp is related to when the switchport membership on this vlan was last changed.
-            timestamp, v = sub_oid.split('.')   # pylint: disable=unused-variable
+            timestamp, v = sub_oid.split('.')  # pylint: disable=unused-variable
             self._add_ports_to_vlan_from_bitmap(
                 vlan_id=int(v), bitmap=val, handler=self._add_untagged_vlan_to_interface_by_port_id
             )
@@ -2095,7 +2095,9 @@ class SnmpConnector(Connector):
             vlan_id = int(v)
 
             # parse the bitmap to find ports set (enabled) on vlan
-            self._add_ports_to_vlan_from_bitmap(vlan_id=vlan_id, bitmap=val, handler=self._add_vlan_to_interface_by_port_id)
+            self._add_ports_to_vlan_from_bitmap(
+                vlan_id=vlan_id, bitmap=val, handler=self._add_vlan_to_interface_by_port_id
+            )
 
             # store the egress port list, as some switches need this when setting untagged vlans
             self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
@@ -2125,7 +2127,9 @@ class SnmpConnector(Connector):
         if vlan_id:
             dprint(f"  Found vlan {vlan_id}")
             # parse the bitmap to find ports set (enabled) on vlan
-            self._add_ports_to_vlan_from_bitmap(vlan_id=vlan_id, bitmap=val, handler=self._add_vlan_to_interface_by_port_id)
+            self._add_ports_to_vlan_from_bitmap(
+                vlan_id=vlan_id, bitmap=val, handler=self._add_vlan_to_interface_by_port_id
+            )
             return True
 
         return False  # not parsed
@@ -2157,7 +2161,9 @@ class SnmpConnector(Connector):
             vlan_id = int(v)
 
             # and go figure out what ports are part of this vlan:
-            self._add_ports_to_vlan_from_bitmap(vlan_id=vlan_id, bitmap=val, handler=self._add_vlan_to_interface_by_port_id)
+            self._add_ports_to_vlan_from_bitmap(
+                vlan_id=vlan_id, bitmap=val, handler=self._add_vlan_to_interface_by_port_id
+            )
 
             return True
 
@@ -2189,7 +2195,9 @@ class SnmpConnector(Connector):
             self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
 
             # and go figure out what ports are part of this vlan:
-            self._add_ports_to_vlan_from_bitmap(vlan_id=vlan_id, bitmap=val, handler=self._add_vlan_to_interface_by_port_id)
+            self._add_ports_to_vlan_from_bitmap(
+                vlan_id=vlan_id, bitmap=val, handler=self._add_vlan_to_interface_by_port_id
+            )
 
             return True
 
@@ -2240,7 +2248,7 @@ class SnmpConnector(Connector):
             dprint("Found ieee8021QBridgeVlanCurrentUntaggedPorts ")
             dprint("parsing ignored for now (not functional!)")
             # sub oid part is ieee8021QBridgeVlanCurrentUntaggedPorts.something.instance.vlan_id = bitmap
-            ignore, ignore2, v = sub_oid.split('.')     # pylint: disable=unused-variable
+            ignore, ignore2, v = sub_oid.split('.')  # pylint: disable=unused-variable
 
             # figure out untagged ports based on the bitmap
             self._add_ports_to_vlan_from_bitmap(
@@ -3481,13 +3489,13 @@ class SnmpConnector(Connector):
                                 neighbor.chassis_string_type = IANA_TYPE_IPV4
                                 addr_bytes = val[1:]
                                 chassis_info = ".".join(
-                                    "%d" % ord(b) for b in addr_bytes   # pylint: disable=consider-using-f-string
+                                    "%d" % ord(b) for b in addr_bytes  # pylint: disable=consider-using-f-string
                                 )  # pylint: disable=consider-using-f-string
                             elif net_addr_type == IANA_TYPE_IPV6:
                                 neighbor.chassis_string_type = IANA_TYPE_IPV6
                                 addr_bytes = val[1:]
                                 chassis_info = ":".join(
-                                    "%d" % ord(b) for b in addr_bytes   # pylint: disable=consider-using-f-string
+                                    "%d" % ord(b) for b in addr_bytes  # pylint: disable=consider-using-f-string
                                 )  # pylint: disable=consider-using-f-string
                                 # we should simplify this here - TBD
                             else:
@@ -3846,7 +3854,9 @@ class SnmpConnector(Connector):
 
             # this case should not happen, but we see this on some Aruba AOS-CX switches...
             # Not sure how to handle this, for now just add a log entry...
-            warning = f"{interface.name}: PVID is {interface.untagged_vlan}, untagged vlan bitmap would set vlan {vlan_id}"
+            warning = (
+                f"{interface.name}: PVID is {interface.untagged_vlan}, untagged vlan bitmap would set vlan {vlan_id}"
+            )
             dprint(f"   WARNING on {warning}!")
             # self.add_warning(warning=warning)
             self.add_log(
