@@ -145,8 +145,8 @@ class SnmpConnectorProcurve(SnmpConnector):
             if allow_all:
                 dprint("  Adding ALL vlans to tagged_vlans")
                 # add all vlans to tagged_vlans:
-                for id in self.vlans:
-                    tagged_vlans.append(id)
+                for vlan_id in self.vlans:
+                    tagged_vlans.append(vlan_id)
                 # make it unique:
                 tagged_vlans = list(dict.fromkeys(tagged_vlans))
             # now remove the PVID (untagged_vlan) if present:
@@ -310,7 +310,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         dprint("Procurve _map_poe_port_entries_to_interface()\n")
         for pe_index, port_entry in self.poe_port_entries.items():
             # we take the ending part of "5.12" as the index
-            module, index = port_entry.index.split(".")
+            module, index = port_entry.index.split(".")  # pylint: disable=unused-variable
             # for the SnmpConnector() class and sub-classes, the "index" is the key to the Interface()
             if index in self.interfaces:
                 iface = self.interfaces[index]
@@ -328,30 +328,26 @@ class SnmpConnectorProcurve(SnmpConnector):
                 # should not happen!
                 dprint(f"ERROR: PoE entry NOT FOUND for pe_index={pe_index}")
 
+    # def save_running_config(self) -> bool:
 
-"""
-    def save_running_config(self) -> bool:
+    # Save the running config to startup config.
+    # Returns True is this succeeds, False on failure. self.error() will be set in that case
 
-    Save the running config to startup config.
-    Returns True is this succeeds, False on failure. self.error() will be set in that case
+    # NOTE: Aruba AOS-S and the older Procurce devices do NOT need this function.
+    # These devices perform an implicit "write mem" after every succcesfull SNMP "set".
 
-    NOTE: Aruba AOS-S and the older Procurce devices do NOT need this function.
-    These devices perform an implicit "write mem" after every succcesfull SNMP "set".
+    # In the HP-SWITCH-BASIC-CONFIG mib, you can find the value "hpSwitchImplicitConfigSave".
+    # Here is the description from the mib:
 
-    In the HP-SWITCH-BASIC-CONFIG mib, you can find the value "hpSwitchImplicitConfigSave".
-    Here is the description from the mib:
+    # "This object is to enable/disable the implicit write-memory (saving the running-config to the flash)
+    # done after every successful SNMP set operation.
 
-    "This object is to enable/disable the implicit write-memory (saving the running-config to the flash)
-    done after every successful SNMP set operation.
+    # When set to 'enable', config changes are written to the flash which results in slow performance for these set operations.
+    # To get faster processing while doing large number of continuous SNMP set operations, this object can be set to 'disable';
+    # And, once the SNMP set operations are done, 'hpSwitchSaveConfig' MIB object can be used to save the running-config to the flash.
+    # This object will not be saved across a re-boot, and will always be set to 'enable' at boot.
+    # It is advisable to set this MIB object to 'disable' only when there are a lot of continuous SNMP set operations
+    # e.g. a script executing a large number of SNMP set operations."
 
-    When set to 'enable', config changes are written to the flash which results in slow performance for these set operations.
-    To get faster processing while doing large number of continuous SNMP set operations, this object can be set to 'disable';
-    And, once the SNMP set operations are done, 'hpSwitchSaveConfig' MIB object can be used to save the running-config to the flash.
-    This object will not be saved across a re-boot, and will always be set to 'enable' at boot.
-    It is advisable to set this MIB object to 'disable' only when there are a lot of continuous SNMP set operations
-    e.g. a script executing a large number of SNMP set operations."
-
-    In an snmp walk or get, you will find the first instance (.0) of this OID set to 1:
-
-        1.3.6.1.4.1.11.2.14.11.5.1.7.1.29.1.11.0 = (integer) 1
-"""
+    # In an snmp walk or get, you will find the first instance (.0) of this OID set to 1:
+    #     1.3.6.1.4.1.11.2.14.11.5.1.7.1.29.1.11.0 = (integer) 1
