@@ -105,7 +105,7 @@ __Requirements__:
 This is minimal list of requirements. Read the documentation for more details.
 
 * a Linux OS environment able to run nginx.
-* Python v3.12 - v3.13 (v3.14 is not yet supported).
+* Python v3.12 - v3.13 (v3.14 is not supported; ie. Ubuntu 26.04 requires an alternative Python install!).
 * Postgres version 15 or higher (for Django 6.0).
 * NetSNMP packages on your Linux server, and ability to install and run python EzSNMP package.
 

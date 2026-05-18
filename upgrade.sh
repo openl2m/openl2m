@@ -17,20 +17,22 @@ if [ -f "altpython.sh" ]; then
   echo "Using Alternate Python version at '${PYTHON}'"
 fi
 
-# From netbox:
-# Validate the minimum required Python version
-COMMAND="${PYTHON} -c 'import sys; exit(1 if sys.version_info < (3, 8) else 0)'"
+# Validate the required Python version
+COMMAND="${PYTHON} -c 'import sys; exit(1 if sys.version_info < (3, 12) or sys.version_info >= (3, 14) else 0)'"
 PYTHON_VERSION=$(eval "${PYTHON} -V")
 eval $COMMAND || {
-  echo "--------------------------------------------------------------------"
-  echo "ERROR: Unsupported Python version: ${PYTHON_VERSION}. OpenL2M requires"
-  echo "Python 3.8 or later. To specify an alternate Python executable, set"
-  echo "the PYTHON environment variable. For example:"
+  echo "-----------------------------------------------------"
+  echo "ERROR: Unsupported Python version: ${PYTHON_VERSION}."
+  echo "OpenL2M requires Python 3.12 or 3.13."
   echo ""
-  echo "  sudo PYTHON=/usr/bin/python3.8 ./upgrade.sh"
+  echo "To specify an alternate Python executable,"
+  echo "create a file named 'altpython.sh'"
+  echo "and add a line such as this:"
   echo ""
-  echo "To show your current Python version: ${PYTHON} -V"
-  echo "--------------------------------------------------------------------"
+  echo "PYTHON=/usr/bin/python3.13"
+  echo ""
+  echo "Then re-run upgrade.sh"
+  echo "-----------------------------------------------------"
   exit 1
 }
 echo "Using ${PYTHON_VERSION}"
