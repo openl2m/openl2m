@@ -2237,8 +2237,9 @@ def clear_switch_cache(request: HttpRequest):
     """
     dprint("clear_switch_cache() called:")
     if request:
-        # all we have to do it clear the 'switch_id' !
+        # all we have to do is clear the 'switch_id' !
         if "switch_id" in request.session:
+            dprint(f"  clearing request.session['switch_id'] = {request.session['switch_id']}")
             del request.session["switch_id"]
             request.session.modified = True
         # if not found, we had not selected a switch before. ie upon login!
