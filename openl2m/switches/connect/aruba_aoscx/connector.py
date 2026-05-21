@@ -12,7 +12,10 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import datetime
+import pprint
 import traceback
+
+import requests
 
 #
 # Basic Aruba AOS-CX connector. This uses the documented REST API, and allows us to handle
@@ -61,10 +64,11 @@ from switches.connect.constants import (
     #   IANA_TYPE_IPV4,
     #   IANA_TYPE_IPV6,
 )
+from switches.connect.utils import debug_session
 
 # devices support up to v10.12 as of time of writing, but pyaoscx currently supports 10.09 as highest,
 # see https://github.com/aruba/pyaoscx/tree/master/pyaoscx/rest
-API_VERSION = "10.08"  # '10.09', '10.08' or '10.04'
+API_VERSION = "10.09"  # '10.09', '10.08' or '10.04'
 
 #####################################################################
 # NOTE: each function call is enclosed by an open / close API call, #
@@ -128,14 +132,32 @@ class AosCxConnector(Connector):
             # self.error already set!
             return False
 
+        # the Aos-CX session has the request.Session() object stored in the "s" attribute:
+        debug_session(session=self.aoscx_session.s)
+
         # get facts of device first, ie OS, model, etc.!
         # see https://github.com/aruba/pyaoscx/blob/master/pyaoscx/device.py
         try:
             aoscx_device = AosCxDevice(session=self.aoscx_session)
-            aoscx_device.get()
         except Exception as error:
-            dprint(f"  get_my_basic_info(): AosCxDevice.get() failed: {format(error)}")
-            self._close_device()
+            dprint(f"  get_my_basic_info(): error get login session: {format(error)}")
+            self.error.status = True
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"Cannot get login session: {format(error)}"
+            self.add_warning(
+                warning=f"Cannot get login session: {repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
+            )
+            return False
+
+        try:
+            debug_session(session=self.aoscx_session.s, message="before device.get()")
+            aoscx_device.get()
+            # sub-systems has information about power supplies, etc.
+            debug_session(session=self.aoscx_session.s, message="after device.get()")
+            aoscx_device.get_subsystems()
+            debug_session(session=self.aoscx_session.s, message="after device.get_subsystems()")
+        except Exception as error:
+            dprint(f"  get_my_basic_info(): AosCxDevice.get() or get_subsystems() failed: {format(error)}")
             self.error.status = True
             self.error.description = "Error establishing connection!"
             self.error.details = f"Cannot read device information: {format(error)}"
@@ -146,9 +168,6 @@ class AosCxConnector(Connector):
             return False
 
         # dvar(var=aoscx_device, header="\n\nAosCxDevice:\n\n")
-
-        # sub-systems has information about power supplies, etc.
-        aoscx_device.get_subsystems()
         # dvar(var=aoscx_device, header="\n\nAosCxDevice-SubSystems:\n\n")
 
         # this has info about each subsystem in the environment:
@@ -236,20 +255,15 @@ class AosCxConnector(Connector):
         # if 'system_contact' in aoscx_device.other_config and aoscx_device.other_config['system_description']:
         #     self.add_more_info('System', 'Description', aoscx_device.other_config['system_description'])
 
-        # not sure what to get here yet:
-        # aoscx_device.get_subsystems()
-        # for key in device.subsystems:
-        #    print(f"        attribute: {key}")
 
         # get the VLAN info, this get class objects pyaoscx.vlan.Vlan()
         try:
             aoscx_vlans = AosCxVlan.get_facts(session=self.aoscx_session)
         except Exception as error:
-            self._close_device()
+            dprint("  get_my_basic_info(): AosCxVlan.get_facts() failed!")
             self.error.status = True
             self.error.description = "Error establishing connection!"
             self.error.details = f"Cannot read device vlans: {format(error)}"
-            dprint("  get_my_basic_info(): AosCxVlan.get_facts() failed!")
             self._close_device()
             return False
 
@@ -267,10 +281,19 @@ class AosCxConnector(Connector):
                 self.vlans[vlan_id].voice = True
 
         # get any VRF information
-        vrfs = AosCxVrf.get_all(session=self.aoscx_session)
+        try:
+            vrfs = AosCxVrf.get_all(session=self.aoscx_session)
+        except Exception as error:
+            dprint("  get_my_basic_info(): AosCxVrf.get_all() failed!")
+            self.error.status = True
+            self.error.description = "Error establishing connection!"
+            self.error.details = f"Cannot read device VRFs: {format(error)}"
+            self._close_device()
+            return False
+
         for name, vrf in vrfs.items():
             # dprint(f"Found VRF '{name}'")
-            # dvar(vrf)
+            # dvar(var=vrf, header="VRFs:")
             v = self.get_vrf_by_name(name=name)
             vrf.get()
             # dprint("  -- GET() --")
@@ -285,7 +308,6 @@ class AosCxConnector(Connector):
             # get_all() return a proper class pyaoscx.interface.Interface() ...
             # aoscx_interfaces2 = AosCxInterface.get_all(session=self.aoscx_session)
         except Exception as error:
-            self._close_device()
             self.error.status = True
             self.error.description = "Error establishing connection!"
             self.error.details = f"Cannot read device interfaces: {format(error)}"
@@ -306,7 +328,7 @@ class AosCxConnector(Connector):
         for if_name, aoscx_interface in aoscx_interfaces.items():
             dprint(f"AosCxInterface[]: {if_name}")
             # see the attributes available:
-            # dvar(var=aoscx_interface, header=f"AosCxInterface[]: {if_name}")
+            dvar(var=aoscx_interface, header=f"AosCxInterface[]: {if_name}")
 
             # add an OpenL2M Interface() object
             iface = Interface(if_name)
@@ -315,20 +337,25 @@ class AosCxConnector(Connector):
             if aoscx_interface["description"]:  # when not set, this is None, so catch that!
                 iface.description = aoscx_interface["description"]
             # this is Admin Up/Down:
-            if "admin" in aoscx_interface and aoscx_interface["admin"] == "down":
+            if "admin" in aoscx_interface and aoscx_interface["admin"] == "down":  # hard down, ie admin-down
                 iface.admin_status = False
                 iface.oper_status = False
             else:
-                # Admin UP, but do we have link?
-                iface.admin_status = True
-                if "admin_state" in aoscx_interface and aoscx_interface["admin_state"] == "up":
-                    iface.oper_status = True
-                    if "link_speed" in aoscx_interface:  # better be :-)
-                        if aoscx_interface["link_speed"] is not None:
-                            # iface.speed is in 1Mbps increments:
-                            iface.speed = int(int(aoscx_interface["link_speed"]) / 1000000)
-                else:
-                    iface.oper_status = False
+                iface.admin_status = True   # admin UP
+                if "admin_state" in aoscx_interface:    # virtual interfaces appear not to always have this
+                    if aoscx_interface["admin_state"] == "down":
+                        iface.oper_status = False
+                    elif aoscx_interface["admin_state"] == "up":   # admin up, oper up, but operational status not yet known...
+                        iface.oper_status = True
+                        if "link_speed" in aoscx_interface:  # for physicl ports, better be :-)
+                            if aoscx_interface["link_speed"] is not None:
+                                # iface.speed is in 1Mbps increments:
+                                iface.speed = int(int(aoscx_interface["link_speed"]) / 1000000)
+                    else:   # not sure what this is, should not happen!
+                        iface.admin_status = False
+                        iface.oper_status = False
+                        dprint(f"Found unknown admin_state={aoscx_interface['admin_state']}")
+
             if "duplex" in aoscx_interface:
                 iface.duplex = aoscx_parse_duplex(aoscx_interface["duplex"])
             if "ip_mtu" in aoscx_interface:
@@ -338,9 +365,31 @@ class AosCxConnector(Connector):
             if "routing" in aoscx_interface:
                 iface.is_routed = aoscx_interface["routing"]
             if "type" in aoscx_interface:
-                if aoscx_interface["type"] == "vlan":
-                    dprint("VLAN interface")
-                    iface.type = IF_TYPE_VIRTUAL
+                match aoscx_interface["type"]:
+                    # case "system":    # regular ethernet...
+                    case "vlan":
+                        dprint("VLAN interface")
+                        iface.type = IF_TYPE_VIRTUAL
+                    case "lag":
+                        dprint("LACP virtual interface")
+                        iface.type = IF_TYPE_LAGG
+                        iface.lacp_type = LACP_IF_TYPE_AGGREGATOR
+                        # 'bond_status': {'bond_speed': 10000000000, 'state': 'up'} shows for virtual LACP interfaces:
+                        if "bond_status" in aoscx_interface and "state" in aoscx_interface["bond_status"]:
+                            if aoscx_interface["bond_status"]["state"] == "up":
+                                iface.oper_status = True
+                                dprint(f"LACP speed found: {aoscx_interface['bond_status']['bond_speed']}")
+                                # iface.speed is in 1Mbps increments:
+                                iface.speed = int(int(aoscx_interface["bond_status"]["bond_speed"]) / 1000000)
+                            else:
+                                # down interface
+                                iface.open_status = False
+
+                            # LACP members are stored in "interfaces"
+                            # 'interfaces': {'1/1/16': '/rest/v10.09/system/interfaces/1%2F1%2F16'},
+                            if "interfaces" in aoscx_interface:
+                                for if_name in aoscx_interface["interfaces"]:
+                                    iface.lacp_members[if_name] = if_name
 
             #
             # Find VLAN Info for interface:
@@ -362,23 +411,39 @@ class AosCxConnector(Connector):
                         for vid in aoscx_interface["applied_vlan_trunks"]:
                             iface.add_tagged_vlan(int(vid))
 
+            # this is from an older API version, no longer in v10.09
             # check LACP 'stuff':
-            if "lacp" in aoscx_interface and aoscx_interface["lacp"] == "active":
-                dprint("LAG interface")
-                iface.type = IF_TYPE_LAGG
-                iface.lacp_type = LACP_IF_TYPE_AGGREGATOR
-                # get speed
-                if "bond_status" in aoscx_interface:
-                    dprint(f"Bond Status found: {aoscx_interface['bond_status']['bond_speed']}")
-                    # iface.speed is in 1Mbps increments:
-                    iface.speed = int(int(aoscx_interface["bond_status"]["bond_speed"]) / 1000000)
+            # if "lacp" in aoscx_interface and aoscx_interface["lacp"] == "active":
+            #     dprint("LAG interface")
+            #     iface.type = IF_TYPE_LAGG
+            #     iface.lacp_type = LACP_IF_TYPE_AGGREGATOR
+            #     # LACP members are stored in "interfaces"
+            #     # 'interfaces': {'1/1/16': '/rest/v10.09/system/interfaces/1%2F1%2F16'},
+            #     if "interfaces" in aoscx_interface:
+            #         for if_name in aoscx_interface["interfaces"]:
+            #             iface.lacp_members[if_name] = if_name
+            #     # get speed
+            #     if "bond_status" in aoscx_interface:
+            #         dprint(f"Bond Status found: {aoscx_interface['bond_status']['bond_speed']}")
+            #         # iface.speed is in 1Mbps increments:
+            #         iface.speed = int(int(aoscx_interface["bond_status"]["bond_speed"]) / 1000000)
+            #
+            # elif "lacp_current" in aoscx_interface and aoscx_interface["lacp_current"]:
+            #     # lacp member interface:
+            #     iface.lacp_type = LACP_IF_TYPE_MEMBER
+            #     lacp_actor = int(aoscx_interface["lacp_status"]["actor_key"])
+            #     iface.lacp_master_index = lacp_actor
+            #     iface.lacp_master_name = f"lag{lacp_actor}"
+            #     # we don't have the LAG interface yet, so cannot add member there!
 
-            elif "lacp_current" in aoscx_interface and aoscx_interface["lacp_current"]:
+            # Check for LACP membership:
+            if "other_config" in aoscx_interface and "lacp-aggregation-key" in aoscx_interface["other_config"]:
                 # lacp member interface:
                 iface.lacp_type = LACP_IF_TYPE_MEMBER
-                lacp_actor = int(aoscx_interface["lacp_status"]["actor_key"])
+                lacp_actor = int(aoscx_interface["other_config"]["lacp-aggregation-key"])
                 iface.lacp_master_index = lacp_actor
                 iface.lacp_master_name = f"lag{lacp_actor}"
+                # we don't have the LAG interface yet, so cannot add member there!
 
             if "ip4_address" in aoscx_interface:
                 if aoscx_interface["ip4_address"]:
@@ -1062,9 +1127,8 @@ class AosCxConnector(Connector):
                 username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password
             )
             dprint("  session OK!")
-            # dprint(f"  SESSION.cookies():\n{self.aoscx_session.cookies()}")
-            # dprint(f"  SESSION.s:\n{self.aoscx_session.s}")
-            # dprint(f"  SESSION.s(pformat):\n{pprint.pformat(self.aoscx_session.s)}")
+            # aoscx_session.s is a requests.Session object
+            dprint(f"  SESSION.s(pformat):\n{pprint.pformat(self.aoscx_session.s)}")
 
             return True
         except Exception as err:
@@ -1087,10 +1151,30 @@ class AosCxConnector(Connector):
                 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
                 # or all warnings:
                 # urllib3.disable_warnings()
-            self.aoscx_session.close()
-            del self.aoscx_session
-            self.aoscx_session = False
-            dprint(("  session close OK!"))
+
+            try:
+                # close the pyaoscx.Session()
+                self.aoscx_session.close()
+                self.aoscx_session.s.close()
+
+                # hack to empty session parameters, as we are seeing 401 errors when changing devices!
+                # aoscx_session.s is a requests.Session object
+                self.aoscx_session.s.cookies.clear()
+                self.aoscx_session.s.headers.clear()
+                self.aoscx_session.s.headers.update(requests.utils.default_headers())
+                self.aoscx_session.s.auth = None
+                self.aoscx_session.s.proxies = {}
+                self.aoscx_session.s.params = {}
+                # self.aoscx_session.s.hooks = requests.hooks.default_hooks
+
+                # and destroy the object.
+                del self.aoscx_session
+                self.aoscx_session = False
+
+                dprint(("  session close OK!"))
+            except Exception as err:
+                dprint(f"ERROR during Aos-Cx Session.close(): {err}")
+
         else:
             dprint("  NOT Needed (no session!)")
         return True
