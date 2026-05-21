@@ -139,3 +139,17 @@ def debug_response(response: Response, message: str = ""):
     if response.status_code == 200:
         dprint(f"Content (JSON):\n{pprint.pformat(response.json())}")
     dprint("\n--- END ---\n")
+
+
+def debug_session(session):
+    """Do some print out of session cookies and headers...
+
+    Args:
+        session: a request.Session() object
+
+    """
+    if not settings.DEBUG or not settings.DEBUG_API:
+        return
+
+    dprint(f"--- SESSION ---\ncookies:{session.cookies.get_dict()}")
+    dprint(f"headers: {session.headers}\n------\n")
