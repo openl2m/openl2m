@@ -141,7 +141,7 @@ def debug_response(response: Response, message: str = ""):
     dprint("\n--- END ---\n")
 
 
-def debug_session(session):
+def debug_session(session, message: str = ""):
     """Do some print out of session cookies and headers...
 
     Args:
@@ -151,5 +151,6 @@ def debug_session(session):
     if not settings.DEBUG or not settings.DEBUG_API:
         return
 
-    dprint(f"--- SESSION ---\ncookies:{session.cookies.get_dict()}")
+    dprint(f"--- SESSION INFO {message} ---\n")
+    dprint(f"cookies: {session.cookies.get_dict()}")
     dprint(f"headers: {session.headers}\n------\n")
