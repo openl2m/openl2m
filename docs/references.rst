@@ -118,7 +118,7 @@ And one of a number of MIB browsers at http://cric.grenoble.cnrs.fr/Administrate
 Aruba AOS-CX
 ------------
 
-AOS-CX REST API v10.08 Guide: https://www.arubanetworks.com/techdocs/AOS-CX/10.08/PDF/rest_v10-0x.pdf
+AOS-CX REST API v10.x Most Recent Guide (at time of writing): https://arubanetworking.hpe.com/techdocs/AOS-CX/10.16/PDF/rest_v10-0x.pdf
 
 The pyasocx library is at https://github.com/aruba/pyaoscx/
 

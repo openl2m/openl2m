@@ -13,7 +13,7 @@ Arista eAPI
 Aruba AOS-CX
 ------------
 
-* any device that supports the Aruba AOS-CX API v10.08 is supported, via the pyaoscx library.
+* any device that supports the Aruba AOS-CX API v10.09 is supported, via the pyaoscx library.
 * Device access needs to be configured properly.
 
 Aruba AOS-S

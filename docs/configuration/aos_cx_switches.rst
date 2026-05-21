@@ -13,8 +13,9 @@ As needed, create Commands and Command Groups to assign to this device.
 Switch Configuration
 --------------------
 
-AOS-CX switches are managed via the device REST API v10.08.  You will need to configure the switch to allow this access.
-Something like this is needed
+AOS-CX switches are managed via the device REST API v10.09. (I.e. minimal supported firmware is v10.09)  You will need to configure the switch to allow this access.
+
+Something like this is needed:
 
 .. code-block:: bash
 
@@ -24,7 +25,25 @@ Something like this is needed
 
     and then set an admin username and password.
 
-Please refere to your Aruba AOX-CX documentation for more.
+
+Validate that the REST server is running with the following command. You should see similar output:
+
+.. code-block::
+
+    show https-server
+
+        HTTPS Server Configuration
+        ----------------------------
+        VRF                      : default, mgmt
+        REST Access Mode         : read-write
+        Max sessions per user    : 6
+        Session idle timeout     : 20
+        Session absolute timeout : 480
+
+Note that read-write access is the default. You can explicitly set this, if needed,
+with "https-server rest access-mode read-write"
+
+Please refer to your Aruba AOX-CX documentation for more.
 
 
 OpenL2M Configuration
@@ -112,4 +131,16 @@ If selected, users can toggle PoE on *all* ports, including those ports on vlans
 
 Enabled by default. If *not* selected, users cannot edit the interface descriptions
 on this device (regardless of rights!)
+
+
+REST API Troubleshooting
+------------------------
+
+In case this is needed, here are some commands that can help troublehoot REST configurations.
+
+View REST session events, and logins:
+
+.. code-block::
+
+    show events -r | include restd
 
