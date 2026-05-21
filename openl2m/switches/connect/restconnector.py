@@ -73,7 +73,7 @@ class RESTConnector(Connector):
     # DELETE needs to be used to remove an object. It does NOT take request body data.
     #
 
-    def _get(self, path: str, headers: str = "", cookies: dict = {}, message: str = ""):
+    def _get(self, path: str, headers: dict = {}, cookies: dict = {}, message: str = ""):
         """GET a specific REST endpoint and return JSON response.
         Will return json response or None if error is trapped (most likely because API endpoint does not exist).
 
