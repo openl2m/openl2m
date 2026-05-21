@@ -18,8 +18,9 @@
 #
 
 import array
-import netaddr
 from typing import Dict, List
+
+import netaddr
 
 from django.conf import settings
 from django.utils.encoding import iri_to_uri
@@ -61,7 +62,7 @@ from switches.connect.constants import (
 )
 from switches.utils import dprint, get_ip_dns_name, string_is_int
 
-
+# pylint: disable=too-few-public-methods
 class Error:
     """
     Simple error information object, created with error status indicated!
@@ -98,6 +99,7 @@ class StackMember:
     This could be just one unit (single switch), or multiple if part of a stack
     """
 
+    # pylint: disable=redefined-builtin
     def __init__(self, id: int, type: int):
         """
         Initialize the object
@@ -149,6 +151,7 @@ class Vlan:
     Class to represent a vlan found on the switch
     """
 
+    # pylint: disable=redefined-builtin
     def __init__(self, id: int = 0, index: int = 0, name: str = ""):
         """
         Vlan() requires passing in the vlan id
@@ -224,7 +227,7 @@ class PortList:
         Initialize by setting a number of bytes to 0
         """
         dprint(f"PortList bytecount size={bytecount}")
-        for i in range(int(bytecount)):
+        for i in range(int(bytecount)):     # pylint: disable=unused-variable
             self.portlist.append(0)
 
     def tobytes(self) -> bytes:
@@ -250,7 +253,7 @@ class PortList:
 
         :return: a hexadecimal string representing the bytes of this bitmap.
         """
-        digits = ["%02x" % octet for octet in self.portlist]
+        digits = ["%02x" % octet for octet in self.portlist]    # pylint: disable=consider-using-f-string
         return "".join(digits)
 
     def reverse_bits_in_bytes(self) -> None:
@@ -320,10 +323,10 @@ class PortList:
             for i in range(*position.indices(len(self))):
                 result.append(self[i])
             return result
-        else:
-            block = position // 8
-            shift = position & 7
-            return (self.portlist[block] << shift) & 128 and 1 or 0
+
+        block = position // 8
+        shift = position & 7
+        return (self.portlist[block] << shift) & 128 and 1 or 0
 
 
 class EthernetAddress(netaddr.EUI):
@@ -340,6 +343,7 @@ class EthernetAddress(netaddr.EUI):
         super().__init__(ethernet_string)
         self.vendor: str = ""
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
+        self.vrf_name: str = ""     # the VRF this ethernet belongs to.
         self.address_ip4: list = []  # ipv4 address as str() from arp table, if known
         self.address_ip6: List = []  # known ipv6 addresses of this ethernet address, in list as str()
         self.address_ip6_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
@@ -699,7 +703,7 @@ class PoePSE:
         try:
             self.power_consumed = int(power)
         except Exception:
-            self.consumed_power = 0
+            self.power_consumed = 0
 
     def add_consumed_power(self, power: int) -> None:
         """
@@ -1179,7 +1183,7 @@ class Interface:
         dprint(
             f"Interface().add_learned_ethernet_address() for interface {self.name}: {eth_address}, vlan={vlan_id}, ip4='{ip4_address}', ip6='{ip6_address}'"
         )
-        if eth_address in self.eth.keys():
+        if eth_address in self.eth:
             # already known!
             e = self.eth[eth_address]
             dprint("  Eth already known!")
@@ -1223,10 +1227,9 @@ class Interface:
         dprint(f"get_neighbor(index={index})")
         if index in self.lldp:
             return self.lldp[index]
-        else:
-            dprint(f"ERROR: cannot find Interface.lldp entry for index {index}")
-            return None
-        # return True
+
+        dprint(f"ERROR: cannot find Interface.lldp entry for index {index}")
+        return None
 
     def as_dict(self) -> dict:
         """
@@ -1277,13 +1280,13 @@ class Interface:
 
         # add the learned mac addresses:
         addresses = []
-        for address, eth in self.eth.items():
+        for eth in self.eth.values():
             addresses.append(eth.as_dict())
         inf["ethernet_addresses"] = addresses
 
         # add the heard neighbors:
         neighbors = []
-        for key, neighbor in self.lldp.items():
+        for neighbor in self.lldp.values():
             neighbors.append(neighbor.as_dict())
         inf["neighbors"] = neighbors
 
