@@ -93,7 +93,8 @@ drf-spectacular
 # https://github.com/tfranzel/drf-spectacular-sidecar
 drf-spectacular-sidecar
 
-urllib3>=2.2
+# urllib3 2.7 and greater cause errors due to ssl v3
+urllib3>=2.6,<2.8
 
 # Addition for docker
 tzdata
