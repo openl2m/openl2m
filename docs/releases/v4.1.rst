@@ -41,6 +41,7 @@ Release Date: TBD
 * Add IPv4 ARP info for device using the Aruba AOS-S REST driver.
 * add PoE on-off capability for Aruba AOS-S REST driver.
 * enable 802.1q tags edit for Admins by default.
+* AOS-CX switches using API need minimum of v10.09
 * update to FontAwesome v7.2.0 (from v7.1.0)
 * some admin screens have improved list views.
 * various accessibility improvements.
@@ -55,5 +56,6 @@ Bug fixes:
 * make all id attributes unique in interface tags edit popup page.
 * remove leading blank line at start of html page.
 * several html form errors fixed.
+* fixed not calling json.loads when empty data in restconnector.py
 * code refactoring and simplications use Claude Code
 
