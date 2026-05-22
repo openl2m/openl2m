@@ -18,6 +18,9 @@ This implements base HTTP(s) GET, POST, PUT, and DELETE to other REST API driver
 
 import json
 import time
+import ssl
+import sys
+import urllib3
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -27,6 +30,34 @@ from switches.connect.connector import Connector
 from switches.connect.utils import debug_response
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
+
+
+# for python >= 3.13, we need to ignore a number of cert errors for older switches.
+# this includes X509, hostname check, and allowing older ciphers
+# this also works on v3.10-3.12
+class SslFlagAdapter(requests.adapters.HTTPAdapter):
+    def init_poolmanager(self, *args, **kwargs):
+        # Create a default context
+        context = urllib3.util.ssl_.create_urllib3_context()
+
+        # disable hostname verification FIRST
+        context.check_hostname = False
+
+        # disable certificate verification SECOND
+        context.verify_mode = ssl.CERT_NONE
+
+        # allow old ciphers
+        context.set_ciphers('DEFAULT@SECLEVEL=1')
+
+        # Modify verify_flags (e.g., remove STRICT mode)
+        # See ssl module docs for flags: https://python.org
+        context.verify_flags &= ~ssl.VERIFY_X509_STRICT
+        if sys.version_info >= (3, 13):
+            # this flag only exists in 3.13+
+            context.verify_flags &= ~ssl.VERIFY_X509_PARTIAL_CHAIN
+
+        kwargs['ssl_context'] = context
+        return super().init_poolmanager(*args, **kwargs)
 
 
 class RESTConnector(Connector):
@@ -41,8 +72,22 @@ class RESTConnector(Connector):
         self.response = None  # full response from request, in case user wants it!
         self.base_url: str = ""  # base URL of REST queries
         self.cookies: dict = {}  # cookies to add to the request
+        self.ssl_session = requests.Session()
+
         # call the base connector init:
         super().__init__(request, group, switch)
+
+        # do we ignore ssl warnings and errors?
+        if not self.switch.netmiko_profile.verify_hostkey:
+            dprint("DISABLING SSL Checks!!!")
+            # disable unknown cert warnings
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            # or all warnings:
+            # urllib3.disable_warnings()
+
+            # set the handler to disable other SSL checks in Python 3.13+
+            # this includes X509, hostname check, and allowing older ciphers
+            self.ssl_session.mount("https://", SslFlagAdapter())
 
     def _set_base_url(self, base_url: str):
         """Set the base URL for all REST queries"""
@@ -98,7 +143,7 @@ class RESTConnector(Connector):
 
         # make the request:
         start_time = time.time()
-        self.response = requests.get(
+        self.response = self.ssl_session.get(
             url=self.base_url + path,
             headers=headers,
             cookies=cookies,
@@ -150,7 +195,7 @@ class RESTConnector(Connector):
         if not cookies:
             cookies = self.cookies
 
-        self.response = requests.post(
+        self.response = self.ssl_session.post(
             url=self.base_url + path,
             headers=headers,
             cookies=cookies,
@@ -202,7 +247,7 @@ class RESTConnector(Connector):
         if not cookies:
             cookies = self.cookies
 
-        self.response = requests.put(
+        self.response = self.ssl_session.put(
             url=self.base_url + path,
             headers=headers,
             cookies=cookies,
@@ -249,7 +294,7 @@ class RESTConnector(Connector):
         if not cookies:
             cookies = self.cookies
 
-        self.response = requests.delete(
+        self.response = self.ssl_session.delete(
             url=self.base_url + path,
             headers=headers,
             cookies=cookies,
