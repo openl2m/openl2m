@@ -117,9 +117,10 @@ class RESTConnector(Connector):
 
         self.add_timing(path, 1, read_duration)
 
-        if self.response.status_code == 200:  # valid return!
+        if self.response.status_code == 200 and self.response.text:  # valid return with content!
             return json.loads(self.response.text)
-        # likely 204 - Valid return, but No Content
+
+        # 200 without content, or likely 204 - Valid return, but No Content
         return None
 
     def _post(
