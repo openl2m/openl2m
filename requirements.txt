@@ -42,7 +42,7 @@ napalm-dellos10
 napalm-procurve
 natsort>=8.4.0
 netaddr>=1.2.1
-netmiko>=4.6,<4.7
+netmiko>=4.7,<4.8
 #improved PostGreSQL support
 psycopg2-binary
 # Python 3 library for HPE Comware 7 NetConf drivers.

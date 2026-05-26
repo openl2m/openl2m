@@ -1192,6 +1192,9 @@ class Connector:
             device_type = self.switch.netmiko_profile.device_type
         # connection attributes:
         dprint(f"  Netmiko device_type: '{device_type}'")
+
+        # for all possible parameters, see
+        # https://ktbyers.github.io/netmiko/docs/netmiko/index.html#netmiko.BaseConnection
         device = {
             "device_type": device_type,
             "host": self.switch.primary_ip4,
@@ -1199,26 +1202,36 @@ class Connector:
             "password": self.switch.netmiko_profile.password,
             "port": self.switch.netmiko_profile.tcp_port,
             "conn_timeout": settings.SSH_CONNECT_TIMEOUT,
+            # "ssh_strict": False,  # the default!
         }
+
+        # write a debug file for paramiko/netmiko SSH session logging.
+        if settings.DEBUG:
+            import logging
+
+            logging.basicConfig(filename='netmiko-debug.log', level=logging.DEBUG)
+            logging.getLogger("netmiko")
 
         try:
             handle = netmiko.ConnectHandler(**device)
-        except netmiko.NetMikoTimeoutException:
+        except netmiko.NetMikoTimeoutException as err:
             dprint("netmiko_connect(): ERROR NetMikoTimeoutException")
             self.error.status = True
             self.error.description = "Connection time-out! Please ask the admin to verify the switch hostname or IP, or change the SSH_COMMAND_TIMEOUT configuration."
+            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
             return False
-        except netmiko.NetMikoAuthenticationException:
+        except netmiko.NetMikoAuthenticationException as err:
             dprint("netmiko_connect(): ERROR NetMikoAuthenticationException")
             self.error.status = True
             self.error.description = "Access denied! Please ask the admin to correct the switch credentials."
+            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
             return False
         except netmiko.exceptions.ReadTimeout as err:
             dprint(f"netmiko_connect(): ERROR ReadTimeout: {repr(err)}")
             self.output = "Error: the connection attempt timed out!"
             self.error.status = True
             self.error.description = "Error: the connection attempt timed out!"
-            self.error.details = f"Netmiko Error: {repr(err)}"
+            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
             return False
         except Exception as err:
             dprint(f"netmiko_connect(): ERROR Generic Error: {str(type(err))}")
