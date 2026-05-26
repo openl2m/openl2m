@@ -63,4 +63,5 @@ Bug fixes:
 * fixed not calling json.loads when empty data in restconnector.py
 * code refactoring and simplications use Claude Code
 * fix X.509 and older cipher errors on older devices with Python 3.13+
+* upgrade Netmiko to v4.7.0 fix incompatible SSH peer (no acceptable key)
 
