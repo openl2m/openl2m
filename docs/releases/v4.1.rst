@@ -6,8 +6,8 @@ Version 4.1
 
 .. note::
 
-  v4.1 requires Postgres version 15 or greater! (I.e. Ubuntu 20.04 will no longer work.)
-  And Python 3.12 or 3.13
+  v4.1 uses Django 6.0. We now require Python 3.12 or 3.13 (3.14+ not supported!).
+  OpenL2M also requires Postgres version 15 or greater! (I.e. Ubuntu 20.04 will no longer work.)
 
 
 **Version 4.1 highlights:**
@@ -35,13 +35,17 @@ Version 4.1beta
 Release Date: TBD
 
 * add 802.1Q tags (trunk) vlan editing for base SNMP and HPE/Aruba Procurve/AOS-S switches.
-  We use the standard Q-Bridge MIB for this. See supported feature notes in the documentation for more details.
+  We use the standard Q-Bridge MIB for this. See supported feature notes in the documentation
+  for more details.
 * 802.1q interface tag editing now supported on Cisco-SB devices over snmp.
 * Cisco-SB devices can now save the running config.
 * Add IPv4 ARP info for device using the Aruba AOS-S REST driver.
 * add PoE on-off capability for Aruba AOS-S REST driver.
 * enable 802.1q tags edit for Admins by default.
 * AOS-CX switches using API need minimum of v10.09
+* REST connector update to support Python 3.13+ (for AOS-S and Comware REST):
+  when SSL checking is disabled on credentials, on Python v3.13+ add support to
+  ignore the new defaults to check for X.509, older ciphers, etc.
 * update to FontAwesome v7.2.0 (from v7.1.0)
 * some admin screens have improved list views.
 * various accessibility improvements.
@@ -58,4 +62,5 @@ Bug fixes:
 * several html form errors fixed.
 * fixed not calling json.loads when empty data in restconnector.py
 * code refactoring and simplications use Claude Code
+* fix X.509 and older cipher errors on older devices with Python 3.13+
 
