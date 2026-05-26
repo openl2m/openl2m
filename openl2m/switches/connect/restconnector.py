@@ -52,9 +52,8 @@ class SslFlagAdapter(requests.adapters.HTTPAdapter):
         # Modify verify_flags (e.g., remove STRICT mode)
         # See ssl module docs for flags: https://python.org
         context.verify_flags &= ~ssl.VERIFY_X509_STRICT
-        if sys.version_info >= (3, 13):
-            # this flag only exists in 3.13+
-            context.verify_flags &= ~ssl.VERIFY_X509_PARTIAL_CHAIN
+        # this flag only exists in 3.13+
+        context.verify_flags &= ~ssl.VERIFY_X509_PARTIAL_CHAIN
 
         kwargs['ssl_context'] = context
         return super().init_poolmanager(*args, **kwargs)
@@ -85,9 +84,10 @@ class RESTConnector(Connector):
             # or all warnings:
             # urllib3.disable_warnings()
 
-            # set the handler to disable other SSL checks in Python 3.13+
-            # this includes X509, hostname check, and allowing older ciphers
-            self.ssl_session.mount("https://", SslFlagAdapter())
+            if sys.version_info >= (3, 13):
+                # set the handler to disable other SSL checks in Python 3.13+
+                # this includes X.509 certs, hostname check, and allowing older ciphers
+                self.ssl_session.mount("https://", SslFlagAdapter())
 
     def _set_base_url(self, base_url: str):
         """Set the base URL for all REST queries"""
