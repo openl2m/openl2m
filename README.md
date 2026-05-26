@@ -110,6 +110,11 @@ This is minimal list of requirements. Read the documentation for more details.
 * NetSNMP packages on your Linux server, and ability to install and run python EzSNMP package.
 
 
+__Contributing__:
+
+Please see [CONTRIBUTING.md](https://github.com/openl2m/openl2m/blob/development/CONTRIBUTING.md)
+
+
 __License__:
 
 OpenL2M is free software: you can redistribute it and/or modify it
