@@ -136,7 +136,7 @@ def debug_response(response: Response, message: str = ""):
         f"Headers: {response.headers}\n"
         f"Content (text): {response.text}\n"
     )
-    if response.status_code == 200:
+    if response.status_code == 200 and response.text:
         dprint(f"Content (JSON):\n{pprint.pformat(response.json())}")
     dprint("\n--- END ---\n")
 
