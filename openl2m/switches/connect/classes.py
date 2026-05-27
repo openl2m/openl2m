@@ -39,6 +39,7 @@ from switches.connect.constants import (
     POE_PSE_STATUS_OFF,
     POE_PSE_STATUS_FAULT,
     POE_PORT_DETECT_SEARCHING,
+    POE_PORT_ADMIN_DISABLED,
     #   IANA_TYPE_OTHER,
     #   IANA_TYPE_IPV4,
     #   IANA_TYPE_IPV6,
@@ -736,7 +737,7 @@ class PoePort:
     I.e. this is the per-interface power information.
     """
 
-    def __init__(self, index: str, admin_status: int):
+    def __init__(self, index: str, admin_status: int = POE_PORT_ADMIN_DISABLED):
         """
         Initialize the object
         """
