@@ -69,12 +69,15 @@ class RESTConnector(Connector):
         dprint("RESTConnector.__init__()")
         self.headers: dict = {}  # contains HTTP headers for GET/POST
         self.response = None  # full response from request, in case user wants it!
-        self.base_url: str = ""  # base URL of REST queries
+        self.server_url: str = ""   # the base server URL, e.g. https://<server-ip-or-name>/
+        self.base_url: str = ""  # base URL (host + base rest uri) of REST queries
         self.cookies: dict = {}  # cookies to add to the request
         self.ssl_session = requests.Session()
 
         # call the base connector init:
         super().__init__(request, group, switch)
+
+        self.server_url = f"https://{self.switch.primary_ip4}"
 
         # do we ignore ssl warnings and errors?
         if not self.switch.netmiko_profile.verify_hostkey:
@@ -90,9 +93,12 @@ class RESTConnector(Connector):
                 self.ssl_session.mount("https://", SslFlagAdapter())
 
     def _set_base_url(self, base_url: str):
-        """Set the base URL for all REST queries"""
+        """Set the base URL for all REST queries, and return previous URL
+        """
         dprint(f"RESTConnector()._set_base_url() = {base_url}")
+        old_base_url = self.base_url
         self.base_url = base_url
+        return old_base_url
 
     def _set_headers(self, headers: dict):
         """Set the request headers!"""
@@ -128,17 +134,20 @@ class RESTConnector(Connector):
     # DELETE needs to be used to remove an object. It does NOT take request body data.
     #
 
-    def _get(self, path: str, headers: dict = {}, cookies: dict = {}, message: str = ""):
+    def _get(self, path: str = "", uri: str = "", headers: dict = {}, cookies: dict = {}, message: str = ""):
         """GET a specific REST endpoint and return JSON response.
         Will return json response or None if error is trapped (most likely because API endpoint does not exist).
 
         Args:
-            path (str) - API path (ie withouth host url)
+            path (str) - API path (ie withouth host url and rest base path)
+            uri (str) - proper (full) URI of the API path, e.g. "/rest/v1/path/"
             headers (dict) - HTTPS headers to override default headers from login.
             cookies (dict) - cookied to add to the request. If not set, will use self.cookies (if set)
             message (str) - debug message added to debug_reponse()
 
-        Note that headers can be passed to the request library as is!
+        Notes:
+            - either path or uri argument is needed.
+            - https headers dictionary can be passed to the request library as is!
 
         Returns:
             (json) - json response or None if error is trapped (most likely because API endpoint does not exist).
@@ -151,10 +160,18 @@ class RESTConnector(Connector):
         if not cookies:
             cookies = self.cookies
 
+        if path:
+            url = self.base_url + path
+        elif uri:
+            url = self.server_url + uri
+        else:
+            # we need either path or uri!
+            raise Exception("Give either path or uri!")
+
         # make the request:
         start_time = time.time()
         self.response = self.ssl_session.get(
-            url=self.base_url + path,
+            url=url,
             headers=headers,
             cookies=cookies,
             verify=self.switch.netmiko_profile.verify_hostkey,
@@ -170,7 +187,9 @@ class RESTConnector(Connector):
             # some error occured (after we had a valid token!), return nothing!
             return None
 
-        self.add_timing(path, 1, read_duration)
+        # we ignore URI's, as these are plentiful for many interface and vlan attributes...
+        if path:
+            self.add_timing(path, 1, read_duration)
 
         if self.response.status_code == 200 and self.response.text:  # valid return with content!
             return json.loads(self.response.text)
