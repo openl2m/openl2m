@@ -198,11 +198,13 @@ class ArubaAOSsRestConnector(RESTConnector):
                 return True
             # Hmm? No token?
             dprint("ERROR: No login sessionId found!")
+            self.error.status = True
             self.error.description = "Error getting login sessionId!"
             self.error.details = "We're not sure what happened!"
             return False
         except Exception as err:
             dprint(f"ERROR: cannot login! - {err}")
+            self.error.status = True
             self.error.description = "Error establishing connection!"
             self.error.details = f"Cannot open REST session: {format(err)}"
             return False
