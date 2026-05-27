@@ -94,6 +94,16 @@ class RESTConnector(Connector):
         dprint(f"RESTConnector()._set_base_url() = {base_url}")
         self.base_url = base_url
 
+    def _set_headers(self, headers: dict):
+        """Set the request headers!"""
+        dprint(f"RESTConnector()._set_headers() = {headers}")
+        self.headers = headers
+
+    def _add_header(self, name: str, value: str):
+        """Add to the request headers!"""
+        dprint(f"RESTConnector()._add_header('{name}' = '{value}'")
+        self.headers[name] = value
+
     def _set_cookies(self, cookies: dict):
         """Set the cookie jar!"""
         dprint(f"RESTConnector()._set_cookies() = {cookies}")
