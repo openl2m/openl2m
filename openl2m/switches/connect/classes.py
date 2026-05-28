@@ -101,6 +101,9 @@ class StackMember:
     This could be just one unit (single switch), or multiple if part of a stack
     """
 
+    # class variable to track instance count
+    _count = 0
+
     # pylint: disable=redefined-builtin
     def __init__(self, id: int, type: int):
         """
@@ -114,6 +117,17 @@ class StackMember:
         self.info: str = ""  # hardware info string
         self.description: str = ""  # module description
         self.uptime: int = 0  # uptime in seconds
+        # we have a new instance:
+        StackMember._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        StackMember._count -= 1
+
+    def get_count(self):
+        """Return the number of instances"""
+        return StackMember._count
 
     def as_dict(self) -> dict:
         """
@@ -153,6 +167,9 @@ class Vlan:
     Class to represent a vlan found on the switch
     """
 
+    # class variable to track instance count
+    _count = 0
+
     # pylint: disable=redefined-builtin
     def __init__(self, id: int = 0, index: int = 0, name: str = ""):
         """
@@ -182,6 +199,18 @@ class Vlan:
         self.static_macs_uri = ""  # URI to static ethernet addresses on vlan
         # not useful:
         # self.client_info_uri = ""  # URI to client IP info
+
+        # we have a new instance:
+        Vlan._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        Vlan._count -= 1
+
+    def get_count(self):
+        """Return the number of instances"""
+        return Vlan._count
 
     def set_name(self, name: str) -> None:
         self.name = name
@@ -450,7 +479,6 @@ class NeighborDevice:
     """
 
     # class variable to track instance count
-
     _count = 0
 
     # def __init__(self, lldp_index, if_index):
@@ -679,6 +707,9 @@ class PoePSE:
     stacks have multiple, e.g. one per line card or stack unit.
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self, index: int):
         """
         Initialize the object
@@ -694,6 +725,18 @@ class PoePSE:
         self.model = ""
         self.part_number = ""
         self.serial = ""
+
+        # we have a new instance:
+        PoePSE._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        PoePSE._count -= 1
+
+    def get_count(self):
+        """Return the number of instances"""
+        return PoePSE._count
 
     def as_dict(self) -> dict:
         """
@@ -774,6 +817,9 @@ class PoePort:
     I.e. this is the per-interface power information.
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self, index: str, admin_status: int = POE_PORT_ADMIN_DISABLED):
         """
         Initialize the object
@@ -796,6 +842,18 @@ class PoePort:
         self.power_consumed: int = 0  # power consumed in milliWatt
         self.power_available: int = 0  # power available in milliWatt
         self.max_power_consumed: int = 0  # max power drawn since PoE reset, in milliWatt
+
+        # we have a new instance:
+        PoePort._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        PoePort._count -= 1
+
+    def get_count(self):
+        """Return the number of instances"""
+        return PoePort._count
 
     def as_dict(self) -> dict:
         """
@@ -825,6 +883,9 @@ class Transceiver:
     Class to represent a transceiver in an interface slot. Eg. QSFP28 100g-LR4, etc.
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self):
         """
         Initialize the object
@@ -837,6 +898,17 @@ class Transceiver:
         self.wavelength: int = 0  # the wavelength in nm, ie 850, 1310, 1550, etc.
         self.distance: int = 0  # the max distance of this transceiver
         self.connector: str = ""  # 'LC', SC', etc.
+        # we have a new instance:
+        Transceiver._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        Transceiver._count -= 1
+
+    def get_count(self):
+        """Return the number of instances"""
+        return Transceiver._count
 
     def as_dict(self) -> dict:
         """
@@ -890,6 +962,9 @@ class SyslogMsg:
     or vendorm-specific mibs like CISCO-SYSLOG-MIB
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self, index: int):
         """
         Initialize the object with the message index
@@ -902,6 +977,17 @@ class SyslogMsg:
         # datetime() value of message. Generic SYSLOG-MSG-MIB has time "string" (DateAndTime)
         # some vendor mibs have sys-uptime timetick. Recalculate all to datetime() object
         self.datetime = 0
+        # we have a new instance:
+        SyslogMsg._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        SyslogMsg._count -= 1
+
+    def get_count(self):
+        """Return the number of instances"""
+        return SyslogMsg._count
 
     def as_dict(self) -> dict:
         """
@@ -925,6 +1011,9 @@ class Vrf:
     Class to represent a VRF (Virtual Routing and Forwarding instance) that exists on the device.
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self, name: str = "", rd: str = "", description: str = "", ipv4: bool = False, ipv6: bool = False):
         """
         Initialize the VRF object
@@ -945,6 +1034,17 @@ class Vrf:
         self.active_interfaces = 0  # number of interfaces active on this VRF
         self.interfaces = []  # list of interface names in this VRF
         self.index = 0  # device specific index of this vrf. Needed for some drivers
+        # we have a new instance:
+        Vrf._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        Vrf._count -= 1
+
+    def get_count(self):
+        """Return the number of instances"""
+        return Vrf._count
 
     def set_name(self, name: str):
         """Set the name attribute of a VRF
@@ -1055,6 +1155,9 @@ class Interface:
     Class to represent all the attributes of a single device (switch) interface.
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self, key: str):
         """
         Initialize the object. We map the MIB-II entity names to similar class attributes.
@@ -1136,6 +1239,18 @@ class Interface:
         self.ipv6_link_local_uri = ""  # Link-Local IPv6
         self.cdp_uri = ""  # URI to CDP neighbors on interface
         self.lldp_uri = ""  # URI to LLDP neighbors on interface
+
+        # we have a new instance:
+        Interface._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        Interface._count -= 1
+
+    def get_count(self):
+        """Return the number of instances"""
+        return Interface._count
 
     def add_ip4_network(self, address: str, prefix_len: int = 0, netmask: str = "") -> None:
         """
