@@ -63,6 +63,7 @@ from switches.connect.constants import (
 )
 from switches.utils import dprint, get_ip_dns_name, string_is_int
 
+
 # pylint: disable=too-few-public-methods
 class Error:
     """
@@ -175,6 +176,12 @@ class Vlan:
         self.voice: bool = False  # if True, this is a "voice vlan"
         self.vrf: str = ""  # the VRF this vlan is a member of, if any.
 
+        # some URI's need by REST api's
+        self.vlan_uri = ""  # URI to this vlan
+        self.macs_uri = ""  # URI to ethernet addresses on vlan
+        self.static_mac_uri = ""  # URI to static ethernet addresses on vlan
+        self.client_info_uri = ""  # URI to client IP info
+
     def set_name(self, name: str) -> None:
         self.name = name
 
@@ -228,7 +235,7 @@ class PortList:
         Initialize by setting a number of bytes to 0
         """
         dprint(f"PortList bytecount size={bytecount}")
-        for i in range(int(bytecount)):     # pylint: disable=unused-variable
+        for i in range(int(bytecount)):  # pylint: disable=unused-variable
             self.portlist.append(0)
 
     def tobytes(self) -> bytes:
@@ -254,7 +261,7 @@ class PortList:
 
         :return: a hexadecimal string representing the bytes of this bitmap.
         """
-        digits = ["%02x" % octet for octet in self.portlist]    # pylint: disable=consider-using-f-string
+        digits = ["%02x" % octet for octet in self.portlist]  # pylint: disable=consider-using-f-string
         return "".join(digits)
 
     def reverse_bits_in_bytes(self) -> None:
@@ -301,12 +308,12 @@ class PortList:
         # NOTE: bit 0 = port_id 1. First byte is ports 1-8, second 9-16, etc.
         dprint(f"PortList __setitem__ pos={position}, val={value}")
         position -= 1
-        value = value and 1 or 0
+        value = value and 1 or 0  # pylint: disable=consider-using-ternary
         block = position // 8
         shift = position & 7
         dprint(f"PortList position={position} value={value} block={block} shift={shift}")
         block_value = self.portlist[block]
-        if (block_value << shift) & 128 and 1 or 0 != value:
+        if (block_value << shift) & 128 and 1 or 0 != value:  # pylint: disable=simplifiable-condition
             if value:
                 self.portlist[block] = block_value | (128 >> shift)
             else:
@@ -327,7 +334,7 @@ class PortList:
 
         block = position // 8
         shift = position & 7
-        return (self.portlist[block] << shift) & 128 and 1 or 0
+        return (self.portlist[block] << shift) & 128 and 1 or 0  # pylint: disable=consider-using-ternary
 
 
 class EthernetAddress(netaddr.EUI):
@@ -344,7 +351,7 @@ class EthernetAddress(netaddr.EUI):
         super().__init__(ethernet_string)
         self.vendor: str = ""
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
-        self.vrf_name: str = ""     # the VRF this ethernet belongs to.
+        self.vrf_name: str = ""  # the VRF this ethernet belongs to.
         self.address_ip4: list = []  # ipv4 address as str() from arp table, if known
         self.address_ip6: List = []  # known ipv6 addresses of this ethernet address, in list as str()
         self.address_ip6_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
@@ -406,7 +413,7 @@ class EthernetAddress(netaddr.EUI):
         return this class as a dictionary for use by the API
         """
         return {
-            "address": self.__str__(),
+            "address": str(self),
             "vlan": self.vlan_id,
             "ipv4": self.address_ip4,
             "ipv6": self.address_ip6,
@@ -1092,6 +1099,13 @@ class Interface:
         self.lldp: Dict[str, NeighborDevice] = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
         # the Vrf() this interface belongs to, if any
         self.vrf_name = ""
+
+        # some URI's need by REST api's
+        self.interface_uri = ""  # URI to sub-elements of interface
+        self.ipv6_uri = ""  # URI to interface IPv6 addresses
+        self.ipv6_link_local_uri = ""  # Link-Local IPv6
+        self.cdp_uri = ""  # URI to CDP neighbors on interface
+        self.lldp_uri = ""  # URI to LLDP neighbors on interface
 
     def add_ip4_network(self, address: str, prefix_len: int = 0, netmask: str = "") -> None:
         """
