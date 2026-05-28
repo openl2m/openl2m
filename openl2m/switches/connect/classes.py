@@ -344,6 +344,9 @@ class EthernetAddress(netaddr.EUI):
     We reuse most of the netaddr library abilities to find vendor.
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self, ethernet_string: str):
         """
         EthernetAddress() requires passing in the hyphen or colon format of the 6 ethernet bytes.
@@ -358,6 +361,17 @@ class EthernetAddress(netaddr.EUI):
         self.address_ip6_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
         self.hostname: str = ""  # reverse lookup for ipv4 address.
         self.hostname6: str = ""  # reverse lookup of ipv6 address.
+        # we have a new instance:
+        EthernetAddress._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        EthernetAddress._count -= 1
+
+    def get_count(self):
+        """Return the number of instances"""
+        return EthernetAddress._count
 
     def set_vlan(self, vlan_id: int) -> None:
         self.vlan_id = int(vlan_id)
