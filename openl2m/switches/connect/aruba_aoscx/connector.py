@@ -236,15 +236,21 @@ class AosCxConnector(RESTConnector):
             dvar(var=vlan, header=f"VLAN: {vid}")
             vlan_id = int(vid)
             self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan["name"])
+            v = self.vlans[vlan_id]
             # is this vlan enabled?
             if not vlan["admin"] == "up" and not vlan["oper_state"] == "up":
                 dprint("  VLAN is disabled!")
-                self.vlans[vlan_id].admin_status = VLAN_ADMIN_DISABLED
+                v.admin_status = VLAN_ADMIN_DISABLED
             if "voice" in vlan and vlan["voice"]:
                 dprint(f"Voice Vlan = '{vlan['voice']}' {type(vlan['voice'])})")
-                self.vlans[vlan_id].voice = True
+                v.voice = True
             # mac/ethernet info found at "macs", eg. "macs": "/rest/v10.13/system/vlans/1/macs"
             # and "static_macs": "/rest/v10.13/system/vlans/1/static_macs"
+            # set several REST uri's for additional vlan data
+            v.vlan_uri = vlan["macs"]
+            v.macs_uri = vlan["macs"]
+            v.static_macs_uri = vlan["static_macs"]
+            v.client_info_uri = vlan["client_ip_trackers"]
 
         ###########################
         # get any VRF information #
@@ -459,6 +465,14 @@ class AosCxConnector(RESTConnector):
                     if consumed > 0:
                         super().set_interface_poe_consumed(iface, consumed)
 
+            # save the various lldp and cdp URI's
+            iface.interface_uri = interface["interfaces"]
+            iface.ipv6_uri = interface["ip6_addresses"]
+            iface.ipv6_link_local_uri = interface["ip6_autoconfigured_addresses"]
+            iface.cdp_uri = interface["cdp_neighbors"]
+            iface.lldp_uri = interface["lldp_neighbors"]
+
+            # add finally add this interface!
             self.add_interface(iface)
 
         # fix up some things that are not known at time of interface discovery,
@@ -475,6 +489,9 @@ class AosCxConnector(RESTConnector):
         TBD: Placeholder to read more hardware details of the AOS-CX device.
         """
         return True
+
+    # various URI's load:
+    # "lldp_neighbors": "/rest/v10.13/system/interfaces/1%2F1%2F1/lldp_neighbors",
 
     # def get_my_client_data(self) -> bool:
     #     """
