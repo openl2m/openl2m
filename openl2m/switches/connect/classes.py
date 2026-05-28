@@ -179,8 +179,9 @@ class Vlan:
         # some URI's need by REST api's
         self.vlan_uri = ""  # URI to this vlan
         self.macs_uri = ""  # URI to ethernet addresses on vlan
-        self.static_mac_uri = ""  # URI to static ethernet addresses on vlan
-        self.client_info_uri = ""  # URI to client IP info
+        self.static_macs_uri = ""  # URI to static ethernet addresses on vlan
+        # not useful:
+        # self.client_info_uri = ""  # URI to client IP info
 
     def set_name(self, name: str) -> None:
         self.name = name
