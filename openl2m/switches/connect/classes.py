@@ -449,6 +449,10 @@ class NeighborDevice:
     Class to represents an lldp neighbor, and whatever we know about it.
     """
 
+    # class variable to track instance count
+
+    _count = 0
+
     # def __init__(self, lldp_index, if_index):
     def __init__(self, lldp_index: str):
         """
@@ -485,6 +489,17 @@ class NeighborDevice:
         # these are the graphing block "start" and "finish" formatting characters
         self.start_device = ""
         self.stop_device = ""
+        # we have a new instance:
+        NeighborDevice._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        NeighborDevice._count -= 1
+
+    def get_count(self):
+        """Return the number of instances"""
+        return NeighborDevice._count
 
     def set_port_name(self, port_name: str) -> None:
         """
