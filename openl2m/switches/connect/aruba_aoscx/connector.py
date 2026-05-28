@@ -24,7 +24,7 @@ from switches.utils import dprint, dvar
 from switches.constants import LOG_TYPE_ERROR, LOG_DEVICE_REST_OPEN, LOG_DEVICE_REST_CLOSE, LOG_DEVICE_REST_GET
 
 from switches.connect.restconnector import RESTConnector
-from switches.connect.classes import Interface, PoePort, Transceiver  # , NeighborDevice,
+from switches.connect.classes import Interface, PoePort, Transceiver, NeighborDevice
 from switches.connect.aruba_aoscx.utils import aoscx_parse_duplex
 from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
@@ -35,14 +35,14 @@ from switches.connect.constants import (
     IF_TYPE_LAGG,
     LACP_IF_TYPE_MEMBER,
     LACP_IF_TYPE_AGGREGATOR,
-    # LLDP_CHASSIC_TYPE_ETH_ADDR,
-    # LLDP_CAPABILITIES_BRIDGE,
-    # LLDP_CAPABILITIES_ROUTER,
-    # LLDP_CAPABILITIES_WLAN,
-    # LLDP_CAPABILITIES_PHONE,
-    #   IANA_TYPE_OTHER,
-    #   IANA_TYPE_IPV4,
-    #   IANA_TYPE_IPV6,
+    LLDP_CHASSIC_TYPE_ETH_ADDR,
+    LLDP_CAPABILITIES_BRIDGE,
+    LLDP_CAPABILITIES_ROUTER,
+    LLDP_CAPABILITIES_WLAN,
+    LLDP_CAPABILITIES_PHONE,
+    # IANA_TYPE_OTHER,
+    # IANA_TYPE_IPV4,
+    # IANA_TYPE_IPV6,
 )
 
 #####################################################################
@@ -516,75 +516,68 @@ class AosCxConnector(RESTConnector):
             for uri in (vlan.macs_uri, vlan.static_macs_uri):
                 try:
                     macs = self._get(uri=f"{uri}?depth=2", message="ETH INFO")
+                    # now get details for each mac address
+                    for mac_addr, mac in macs.items():
+                        mac_if_name = next(iter(mac["port"]))  # we use first element only!
+                        dprint(f"  MAC Address: {mac_addr} -> {mac_if_name}")
+                        # add this to the known addressess:
+                        self.add_learned_ethernet_address(
+                            if_name=mac_if_name, eth_address=mac["mac_addr"], vlan_id=int(vlan.id)
+                        )
+
                 except Exception as err:
                     dprint(f"Vlan get macs error: {err}")
                     description = f"Cannot get ethernet table for vlan {vlan.id}"
                     details = f"Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
                     self.add_warning(warning=description)
                     self.add_log(type=LOG_TYPE_ERROR, action=LOG_DEVICE_REST_GET, description=details)
-                    continue
-                # # now get details for each mac address
-                for mac_addr, mac in macs.items():
-                    mac_if_name = next(iter(mac["port"]))  # we use first element only!
-                    dprint(f"  MAC Address: {mac_addr} -> {mac_if_name}")
-                    # add this to the known addressess:
-                    self.add_learned_ethernet_address(
-                        if_name=mac_if_name, eth_address=mac["mac_addr"], vlan_id=int(vlan.id)
-                    )
 
         dprint("Getting LLDP data per INTERFACE:")
 
-        # for iface in self.interfaces.values():
-        #     dprint(f"  Interface {iface.name}:")
-        #     try:
-        #         neighbors = self._get(uri=f"{iface.lldp_uri}?depth=2", message="LLDP INFO")
+        for iface in self.interfaces.values():
+            dprint(f"  Interface {iface.name}:")
+            try:
+                neighbors = self._get(uri=f"{iface.lldp_uri}?depth=2", message="LLDP INFO")
+                for nb_name, lldp_nb in neighbors.items():
+                    dprint(f"LLDP FOUND: {nb_name}")
+                    neighbor = NeighborDevice(lldp_nb["chassis_id"])
+                    nb = lldp_nb["neighbor_info"]  # this is where the "real" info resides!
+                    neighbor.set_sys_name(nb["chassis_name"])
+                    neighbor.set_sys_description(nb["chassis_description"])
+                    # remote device port info:
+                    neighbor.port_name = nb["port_description"]
+                    neighbor.set_port_description(nb["port_description"])
+                    # remote chassis info:
+                    neighbor.set_chassis_string(lldp_nb["chassis_id"])
+                    if nb["chassis_id_subtype"] == "link_local_addr":
+                        neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
+                    # parse capabilities:
+                    capabilities = nb["chassis_capability_enabled"].lower()
+                    dprint(f"  Capabilities: {capabilities}")
+                    if "bridge" in capabilities:
+                        neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
+                    if "router" in capabilities:
+                        neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
+                    # Following NOT tested; we are assuming the following two are correct:
+                    if "wlan" in capabilities:
+                        neighbor.set_capability(LLDP_CAPABILITIES_WLAN)
+                    if "phone" in capabilities:
+                        neighbor.set_capability(LLDP_CAPABILITIES_PHONE)
+                    # remote device management address, this is a list(), take first entry
+                    if len(nb["mgmt_ip_list"]) > 0:
+                        # hardcoding to IPv4 for now...
+                        neighbor.set_management_address_v4(address=nb["mgmt_ip_list"])
+                    # add to device interface, we need to do this on the Connector (ie self.)
+                    # to track lldp count:
+                    self.add_neighbor_object(if_name=iface.name, neighbor=neighbor)
 
-        #         # for nb_name, nb in neighbors.items():
-        #         #     dprint(f"AOS-CX LLDP FOUND: on {if_name} => {nb_name} -> {nb}")
-        #         #     try:  # this occasionally fails!
-        #         #         nb.get()
-        #         #         # for attrib, value in nb.__dict__.items():
-        #         #         #    dprint(f"  {attrib} -> {value}")
-        #         #         # get an OpenL2M NeighborDevice()
-        #         #         neighbor = NeighborDevice(nb.chassis_id)
-        #         #         neighbor.set_sys_name(nb.neighbor_info["chassis_name"])
-        #         #         neighbor.set_sys_description(nb.neighbor_info["chassis_description"])
-        #         #         # remote device port info:
-        #         #         neighbor.port_name = nb.port_id
-        #         #         neighbor.set_port_description(nb.neighbor_info["port_description"])
-        #         #         # remote chassis info:
-        #         #         neighbor.set_chassis_string(nb.chassis_id)
-        #         #         if nb.neighbor_info["chassis_id_subtype"] == "link_local_addr":
-        #         #             neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
-        #         #         # parse capabilities:
-        #         #         capabilities = nb.neighbor_info["chassis_capability_enabled"].lower()
-        #         #         dprint(f"  Capabilities: {capabilities}")
-        #         #         if "bridge" in capabilities:
-        #         #             neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
-        #         #         if "router" in capabilities:
-        #         #             neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
-        #         #         # Following NOT tested; we are assuming the following two are correct:
-        #         #         if "wlan" in capabilities:
-        #         #             neighbor.set_capability(LLDP_CAPABILITIES_WLAN)
-        #         #         if "phone" in capabilities:
-        #         #             neighbor.set_capability(LLDP_CAPABILITIES_PHONE)
-        #         #         # remote device management address, this is a list(), take first entry
-        #         #         if len(nb.neighbor_info["mgmt_ip_list"]) > 0:
-        #         #             # hardcoding to IPv4 for now...
-        #         #             neighbor.set_management_address_v4(address=nb.neighbor_info["mgmt_ip_list"])
-        #         #         # add to device interface:
-        #         #         self.add_neighbor_object(if_name, neighbor)
-
-        #         #     except Exception as err:
-        #         #         dprint(f"ERROR in neighbor.get(): {err}")
-        #         #     # just try the next one...
-        #     except Exception as err:
-        #         dprint(f"ERROR getting lldp neighbors: {err}")
-        #         description = f"Cannot get LLDP table for interface '{if_name}'"
-        #         details = f"Error getting '{iface.lldp_uri}': {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
-        #         self.add_warning(warning=description)
-        #         self.add_log(type=LOG_TYPE_ERROR, action=LOG_DEVICE_REST_GET, description=details)
-        #         continue
+            except Exception as err:
+                dprint(f"ERROR getting lldp neighbors: {err}")
+                description = f"Cannot get LLDP table for interface '{iface.name}'"
+                details = f"Error getting '{iface.lldp_uri}': {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                self.add_warning(warning=description)
+                self.add_log(type=LOG_TYPE_ERROR, action=LOG_DEVICE_REST_GET, description=details)
+                continue
 
         # done...
         self._close_device()
