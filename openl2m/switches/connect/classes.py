@@ -125,6 +125,7 @@ class StackMember:
         # remove from instance count
         StackMember._count -= 1
 
+    @classmethod
     def get_count(self):
         """Return the number of instances"""
         return StackMember._count
@@ -208,6 +209,7 @@ class Vlan:
         # remove from instance count
         Vlan._count -= 1
 
+    @classmethod
     def get_count(self):
         """Return the number of instances"""
         return Vlan._count
@@ -398,6 +400,7 @@ class EthernetAddress(netaddr.EUI):
         # remove from instance count
         EthernetAddress._count -= 1
 
+    @classmethod
     def get_count(self):
         """Return the number of instances"""
         return EthernetAddress._count
@@ -525,6 +528,7 @@ class NeighborDevice:
         # remove from instance count
         NeighborDevice._count -= 1
 
+    @classmethod
     def get_count(self):
         """Return the number of instances"""
         return NeighborDevice._count
@@ -734,6 +738,7 @@ class PoePSE:
         # remove from instance count
         PoePSE._count -= 1
 
+    @classmethod
     def get_count(self):
         """Return the number of instances"""
         return PoePSE._count
@@ -851,6 +856,7 @@ class PoePort:
         # remove from instance count
         PoePort._count -= 1
 
+    @classmethod
     def get_count(self):
         """Return the number of instances"""
         return PoePort._count
@@ -906,6 +912,7 @@ class Transceiver:
         # remove from instance count
         Transceiver._count -= 1
 
+    @classmethod
     def get_count(self):
         """Return the number of instances"""
         return Transceiver._count
@@ -985,6 +992,7 @@ class SyslogMsg:
         # remove from instance count
         SyslogMsg._count -= 1
 
+    @classmethod
     def get_count(self):
         """Return the number of instances"""
         return SyslogMsg._count
@@ -1042,6 +1050,7 @@ class Vrf:
         # remove from instance count
         Vrf._count -= 1
 
+    @classmethod
     def get_count(self):
         """Return the number of instances"""
         return Vrf._count
@@ -1248,6 +1257,7 @@ class Interface:
         # remove from instance count
         Interface._count -= 1
 
+    @classmethod
     def get_count(self):
         """Return the number of instances"""
         return Interface._count
