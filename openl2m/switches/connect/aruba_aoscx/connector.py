@@ -12,13 +12,32 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import datetime
+import json
 import traceback
+import urllib.parse
 
+# This is a custom AOS-CX REST connector that performs significantly faster then the
+# "pyaoscx" package, which also appears to be not thread-safe when running with gunicorn.py
 #
-# New Aruba AOS-CX REST connector based on the internal RestConnector() framework,
-# instead of the Aruba-provided "pyaoscx" Python package.
 # This uses the documented REST API, and allows us to handle any AOS-CX device.
 # see https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
+# a good API doc is at
+# https://arubanetworking.hpe.com/techdocs/AOS-CX/10.16/PDF/rest_v10-0x.pdf
+#
+# Here are how the AOS-CX REST api uses the various HTTP methods (from the REST API docs):
+#
+# The GET method is a read method that gets the resource specified by the URI. Data is returned
+# in JSON format in the response body. Using GET on a resource collection results in a list of
+# URIs. Each URI in the list corresponds to a specific resource in the collection.
+# Using GET on a specific resource returns the attributes of that resource.
+#
+# The POST method creates an instance of a resource in the collection specified by the URI.
+#
+# The PUT method updates an instance of a resource by replacing the existing resource
+# with the resource provided in the request body.
+#
+# The PATCH method updates values in an existing resource using only the desired values
+# in the request body.
 
 from switches.utils import dprint, dvar
 from switches.constants import LOG_TYPE_ERROR, LOG_DEVICE_REST_OPEN, LOG_DEVICE_REST_CLOSE, LOG_DEVICE_REST_GET
@@ -79,7 +98,7 @@ class AosCxConnector(RESTConnector):
 
         # we can override the settings calculated from switch.read_only, group.ready_only and user.profile.read_only
         # but we should only do this to create a Read-Only driver!
-        self.read_only = True
+        # self.read_only = True
 
         # REST driver settings
         self.api_prefix = ""  # rest uri prefix, ie. "/rest/v10.13"
@@ -88,13 +107,13 @@ class AosCxConnector(RESTConnector):
 
         # capabilities of current driver:
         self.can_change_admin_status = True
-        self.can_change_vlan = True
+        # self.can_change_vlan = True
         self.can_edit_vlans = True
-        self.can_change_poe_status = True
-        self.can_change_description = True
-        self.can_save_config = True
+        # self.can_change_poe_status = True
+        # self.can_change_description = True
+        # self.can_save_config = True
         self.can_reload_all = False
-        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
+        # self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
 
     def __del__(self):
         """when we close the object, release the REST ticket, so the switch does not run out of resources!"""
@@ -250,7 +269,6 @@ class AosCxConnector(RESTConnector):
             v.vlan_uri = vlan["macs"]
             v.macs_uri = vlan["macs"]
             v.static_macs_uri = vlan["static_macs"]
-            v.client_info_uri = vlan["client_ip_trackers"]
 
         ###########################
         # get any VRF information #
@@ -326,10 +344,11 @@ class AosCxConnector(RESTConnector):
                 iface.is_routed = interface["routing"]
             if "type" in interface:
                 match interface["type"]:
-                    # case "system":    # regular ethernet...
                     case "vlan":
                         dprint("VLAN interface")
                         iface.type = IF_TYPE_VIRTUAL
+                    case "system":  # regular ethernet
+                        iface.type = IF_TYPE_ETHERNET
                     case "lag":
                         dprint("LACP virtual interface")
                         iface.type = IF_TYPE_LAGG
@@ -493,9 +512,6 @@ class AosCxConnector(RESTConnector):
         """
         return True
 
-    # various URI's load:
-    # "lldp_neighbors": "/rest/v10.13/system/interfaces/1%2F1%2F1/lldp_neighbors",
-
     def get_my_client_data(self) -> bool:
         """
         read mac addressess, and lldp neigbor info.
@@ -583,50 +599,52 @@ class AosCxConnector(RESTConnector):
         self._close_device()
         return True
 
-    # def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
-    #     """
-    #     set the interface to the requested state (up or down)
-    #     interface = Interface() object for the requested port
-    #     new_state = True / False  (enabled/disabled)
-    #     return True on success, False on error and set self.error variables
-    #     """
-    #     # interface.admin_status = new_state
-    #     dprint(f"AosCxConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
+    def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
+        """
+        set the interface to the requested state (up or down)
+        interface = Interface() object for the requested port
+        new_state = True / False  (enabled/disabled)
+        return True on success, False on error and set self.error variables
+        """
+        # interface.admin_status = new_state
+        dprint(f"AosCxConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
 
-    #     if not self._open_device():
-    #         dprint("_open_device() failed!")
-    #         return False
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-    #     try:
-    #         aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
-    #         aoscx_interface.get()
-    #     except Exception as error:
-    #         self.error.status = True
-    #         self.error.description = "Error establishing connection!"
-    #         self.error.details = f"Cannot read device interface: {format(error)}"
-    #         dprint(f"  set_interface_admin_status(): AosCxInterface.get() failed!\n{format(error)}")
-    #         self._close_device()
-    #         return False
+        if new_state:
+            state = "up"
+        else:
+            state = "down"
+        data = {"admin": state}
 
-    #     if new_state:
-    #         state = "up"
-    #     else:
-    #         state = "down"
-    #     # changed = aoscx_interface.set_state(state=state)
-    #     aoscx_interface.admin_state = state
-    #     changed = aoscx_interface.apply()
-    #     # self._close_device()
-    #     if changed:
-    #         dprint(f"  Interface change '{state}' OK!")
-    #         # call the super class for bookkeeping.
-    #         super().set_interface_admin_status(interface, new_state)
-    #         self._close_device()
-    #         return True
+        # encode the / in the interface to a url format:
+        if_name_url = urllib.parse.quote(interface.name, safe="")
 
-    #     dprint(f"   Interface change '{state}' FAILED!")
-    #     # we need to add error info here!!!
-    #     self._close_device()
-    #     return False
+        try:
+            success = self._patch(
+                path=f"system/interfaces/{if_name_url}", data=json.dumps(data), message="Set Interface Status"
+            )
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Error changing interface status!"
+            self.error.details = f"Error changing status: {format(err)}"
+            dprint(f"  set_interface_admin_status() failed!\n{format(err)}")
+            self._close_device()
+            return False
+
+        self._close_device()
+
+        if not success:
+            dprint(f"   Interface change '{state}' FAILED!")
+            # we need to add error info here!!!
+            return False
+
+        dprint(f"  Interface change '{state}' OK!")
+        # call the super class for bookkeeping.
+        super().set_interface_admin_status(interface, new_state)
+        return True
 
     # def set_interface_description(self, interface: Interface, description: str) -> bool:
     #     """
@@ -907,101 +925,119 @@ class AosCxConnector(RESTConnector):
     #     self._close_device()
     #     return True
 
-    # def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
-    #     """
-    #     Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
+    def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
+        """
+        Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
 
-    #     Args:
-    #         id (int): the vlan id
-    #         name (str): the name of the vlan
+        Args:
+            id (int): the vlan id
+            name (str): the name of the vlan
 
-    #     Returns:
-    #         True on success, False on error and set self.error variables.
-    #     """
-    #     dprint(f"AosCxConnector.vlan_create() for vlan {vlan_id} = '{vlan_name}'")
-    #     if not self._open_device():
-    #         dprint("_open_device() failed!")
-    #         return False
+        Returns:
+            True on success, False on error and set self.error variables.
+        """
+        dprint(f"AosCxConnector.vlan_create() for vlan {vlan_id} = '{vlan_name}'")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-    #     new_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id, name=vlan_name, voice=False)
-    #     try:
-    #         new_vlan.apply()
-    #     except Exception as err:
-    #         self.error.status = True
-    #         self.error.details = f"Error creating new vlan {vlan_id}: {err}"
-    #         self._close_device()
-    #         return False
+        data = {
+            "name": f"{vlan_name}",
+            "id": vlan_id,
+            "type": "static",
+            "admin": "up",
+        }
+        try:
+            success = self._post(path="system/vlans", data=json.dumps(data), message="Create VLAN")
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Error creating new vlan!"
+            self.error.details = f"POST ERROR: {err}"
+            return False
 
-    #     # all OK, now do the book keeping
-    #     super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
-    #     self._close_device()
-    #     return True
+        if not success:
+            self.error.status = True
+            self.error.description = "Error creating new vlan!"
+            self.error.details = f"POST returned {self.response.status_code}"
+            return False
 
-    # def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
-    #     """
-    #     Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
+        # all OK, now do the book keeping
+        super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
+        self._close_device()
+        return True
 
-    #     Args:
-    #         id (int): the vlan id to edit
-    #         name (str): the new name of the vlan
+    def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
+        """
+        Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
 
-    #     Returns:
-    #         True on success, False on error and set self.error variables.
-    #     """
-    #     dprint(f"AosCxConnector.vlan_edit() for vlan {vlan_id} = '{vlan_name}'")
-    #     if not self._open_device():
-    #         dprint("_open_device() failed!")
-    #         return False
-    #     try:
-    #         vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
-    #         vlan.get()
-    #         vlan.name = vlan_name
-    #         changed = vlan.apply()
-    #     except Exception as err:
-    #         self.error.status = True
-    #         self.error.details = f"Error trapped while updating vlan {vlan_id} name to '{vlan_name}': {err}"
-    #         self._close_device()
-    #         return False
+        Args:
+            id (int): the vlan id to edit
+            name (str): the new name of the vlan
 
-    #     if not changed:
-    #         self.error.status = True
-    #         self.error.details = f"Error updating vlan {vlan_id} name to '{vlan_name}' (not sure what happened!)"
-    #         self._close_device()
-    #         return False
+        Returns:
+            True on success, False on error and set self.error variables.
+        """
+        dprint(f"AosCxConnector.vlan_edit() for vlan {vlan_id} = '{vlan_name}'")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-    #     # all OK, now do the book keeping
-    #     super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
-    #     self._close_device()
-    #     return True
+        data = {
+            "name": f"{vlan_name}",
+            # "id": vlan_id,
+        }
 
-    # def vlan_delete(self, vlan_id: int) -> bool:
-    #     """
-    #     Delete the vlan. Upon success, this then needs to call the base class for book keeping!
+        try:
+            success = self._patch(path=f"system/vlans/{vlan_id}", data=json.dumps(data), message="VLAN Update")
+        except Exception as err:
+            self.error.status = True
+            self.error.details = f"Error trapped while updating vlan {vlan_id} name to '{vlan_name}': {err}"
+            self._close_device()
+            return False
 
-    #     Args:
-    #         id (int): the vlan id to edit
+        if not success:
+            self.error.status = True
+            self.error.details = f"Error updating vlan {vlan_id} name to '{vlan_name}' (not sure what happened!)"
+            self._close_device()
+            return False
 
-    #     Returns:
-    #         True on success, False on error and set self.error variables.
-    #     """
-    #     dprint(f"AosCxConnector.vlan_delete() for vlan {vlan_id}")
-    #     if not self._open_device():
-    #         dprint("_open_device() failed!")
-    #         return False
-    #     try:
-    #         vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
-    #         vlan.delete()
-    #         # changed = vlan.apply()  # is this needed ?
-    #     except Exception as err:
-    #         self.error.status = True
-    #         self.error.details = f"Error trapped while deleting vlan {vlan_id}: {err}"
-    #         self._close_device()
-    #         return False
+        # all OK, now do the book keeping
+        super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
+        self._close_device()
+        return True
 
-    #     # all OK, now do the book keeping
-    #     super().vlan_delete(vlan_id=vlan_id)
-    #     self._close_device()
-    #     return True
+    def vlan_delete(self, vlan_id: int) -> bool:
+        """
+        Delete the vlan. Upon success, this then needs to call the base class for book keeping!
+
+        Args:
+            id (int): the vlan id to edit
+
+        Returns:
+            True on success, False on error and set self.error variables.
+        """
+        dprint(f"AosCxConnector.vlan_delete() for vlan {vlan_id}")
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+        try:
+            success = self._delete(path=f"system/vlans/{vlan_id}", message="VLAN Delete")
+        except Exception as err:
+            self.error.status = True
+            self.error.details = f"Error trapped while deleting vlan {vlan_id}: {err}"
+            self._close_device()
+            return False
+
+        if not success:
+            self.error.status = True
+            self.error.details = f"Error deleting vlan {vlan_id} (not sure what happened!)"
+            self._close_device()
+            return False
+
+        # all OK, now do the book keeping
+        super().vlan_delete(vlan_id=vlan_id)
+        self._close_device()
+        return True
 
     # def save_running_config(self) -> bool:
     #     """
