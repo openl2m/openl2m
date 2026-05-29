@@ -299,7 +299,7 @@ class RESTConnector(Connector):
         self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""
     ):
         """PUT a specific REST endpoint and return JSON response.
-        Intended for partial updates of objects. Will raise exception on error
+        Intended for partial updates of objects. Will raise exception on HTTP error
 
         Args:
             path (str) - API path (ie withouth host url)
