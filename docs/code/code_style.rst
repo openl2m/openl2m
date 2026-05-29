@@ -18,6 +18,11 @@ New code should add Python type hinting. Specifically, we require type hints as 
 
 Function calls with more then one parameter should use named parameters, instead of position-based calling.
 
+.. note::
+
+    We require a *pylint* score of 10.00/10. This may mean you (occasionally) need to disable some checks.
+
+
 HTML
 ----
 
@@ -29,5 +34,7 @@ Accessibility
 
 Accessibility should be tested by using the WAVE Web Accessibility Evaluation Tool browser extension.
 
-WAVE Results minimumm requirements are no Errors and no Contrast Error.
-Code should not have Alerts unless absolutely necessary.
+.. note::
+
+    WAVE Results minimum requirements are no Errors and no Contrast Errors. Code should not have Alerts
+    unless absolutely necessary.
