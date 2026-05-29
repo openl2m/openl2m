@@ -823,77 +823,37 @@ class AosCxConnector(RESTConnector):
             dprint("_open_device() failed!")
             return False
 
-        # encode the / in the interface to a url format:
-        if_name_url = urllib.parse.quote(interface.name, safe="")
-
         # 802.1q-tagged or untagged?
         if interface.is_tagged:
-            dprint("CANNOT HANDLE THIS YET!")
-            vlan_type = "Tagged-Native"
-            return False
-
-            # # this needs to set the native vlan!
-            # dprint("  tagged port: calling using set_native_vlan()")
-
-            # try:
-            #     # Note:
-            #     # here we work around a possible bug in the pyaoscx module,
-            #     # where 'trunk vlan allow all' translates into an empty aoscx_interface.vlans_trunks list
-            #     # this causes the new vlan to be the only one allowed on the trunk.
-            #     # Work around by explicityly setting the trunk allows vlans.
-            #     # also see https://github.com/aruba/pyaoscx/issues/36
-            #     vlan_trunks = []
-            #     for vlan_id in interface.vlans:
-            #         v = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
-            #         vlan_trunks.append(v)
-            #     aoscx_interface.vlan_trunks = vlan_trunks
-            #     # and now set the new native vlan
-            #     changed = aoscx_interface.set_native_vlan(vlan=int(new_vlan_id), tagged=False)
-            # except Exception as err:
-            #     dprint(f"ERROR in aoscx_interface.set_untagged_vlan() object: {err}")
-            #     self.error.status = True
-            #     self.error.description = "Error setting untagged vlan on trunk port!"
-            #     self.error.details = f"ERROR in aoscx_interface.set_native_vlan(): {format(err)}"
-            #     self._close_device()
-            #     return False
-            # if changed:
-            #     dprint("   Vlan Change OK!")
-            #     # call the super class for bookkeeping.
-            #     super().set_interface_untagged_vlan(interface, new_vlan_id)
-            #     self._close_device()
-            #     return True
-
-            # dprint("   Vlan Change FAILED for Unknown Reasons!")
-            # # we need to add error info here!!!
-            # self.error.status = True
-            # self.error.description = "Error setting untagged vlan!"
-            # self.error.details = "UNKNOWN ERROR in aoscx_interface.set_native_vlan()!"
-            # self._close_device()
-            # return False
-
+            dprint("  tagged mode port!")
+            vlan_mode = "native-untagged"
         else:
             # untagged, ie set access mode vlan
             dprint("  access mode port!")
-            vlan_type = "Untagged"
+            vlan_mode = "access"
 
-            v = self.get_vlan_by_id(vlan_id=new_vlan_id)
-            data = {
-                "vlan_mode": "access",
-                "vlan_tag": {
-                    new_vlan_id: v.vlan_uri,
-                },
-            }
+        # set the payload for the patch request
+        v = self.get_vlan_by_id(vlan_id=new_vlan_id)
+        data = {
+            "vlan_mode": vlan_mode,
+            "vlan_tag": {
+                new_vlan_id: v.vlan_uri,
+            },
+        }
+
+        # encode the / in the interface to a url format:
+        if_name_url = urllib.parse.quote(interface.name, safe="")
 
         try:
             success = self._patch(
                 path=f"system/interfaces/{if_name_url}",
                 data=json.dumps(data),
-                message=f"Set Interface {vlan_type} Vlan",
+                message=f"Set Interface {vlan_mode} Vlan",
             )
         except Exception as err:
-            dprint(f"ERROR: setting {vlan_type} vlan: {err}")
+            dprint(f"ERROR: setting {vlan_mode} vlan: {err}")
             self.error.status = True
-            self.error.description = "Exception setting {vlan_type} vlan!"
+            self.error.description = "Exception setting {vlan_mode} vlan!"
             self.error.details = f"Info: {format(err)}"
             self._close_device()
             return False
@@ -902,7 +862,7 @@ class AosCxConnector(RESTConnector):
             dprint("   Vlan Change FAILED for Unknown Reasons!")
             # we need to add error info here!!!
             self.error.status = True
-            self.error.description = f"Error setting {vlan_type} vlan!"
+            self.error.description = f"Error setting {vlan_mode} vlan!"
             if self.response.text:
                 self.error.details = f"Response text: {self.response.text}"
             else:
