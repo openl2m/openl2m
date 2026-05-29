@@ -110,9 +110,9 @@ class AosCxConnector(RESTConnector):
         # self.can_change_vlan = True
         self.can_edit_vlans = True
         # self.can_change_poe_status = True
-        # self.can_change_description = True
+        self.can_change_description = True
         # self.can_save_config = True
-        self.can_reload_all = False
+        self.can_reload_all = True
         # self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
 
     def __del__(self):
@@ -637,53 +637,61 @@ class AosCxConnector(RESTConnector):
         self._close_device()
 
         if not success:
-            dprint(f"   Interface change '{state}' FAILED!")
+            dprint(f"   Interface change to '{state}' FAILED!")
             # we need to add error info here!!!
             return False
 
-        dprint(f"  Interface change '{state}' OK!")
+        dprint(f"  Interface change to '{state}' OK!")
         # call the super class for bookkeeping.
         super().set_interface_admin_status(interface, new_state)
         return True
 
-    # def set_interface_description(self, interface: Interface, description: str) -> bool:
-    #     """
-    #     set the interface description (aka. description) to the string
-    #     interface = Interface() object for the requested port
-    #     new_description = a string with the requested text
-    #     return True on success, False on error and set self.error variables
-    #     """
-    #     dprint(f"AosCxConnector.set_interface_description() for {interface.name} to '{description}'")
+    def set_interface_description(self, interface: Interface, description: str) -> bool:
+        """
+        set the interface description (aka. description) to the string
+        interface = Interface() object for the requested port
+        new_description = a string with the requested text
+        return True on success, False on error and set self.error variables
+        """
+        dprint(f"AosCxConnector.set_interface_description() for {interface.name} to '{description}'")
 
-    #     if not self._open_device():
-    #         dprint("_open_device() failed!")
-    #         return False
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-    #     try:
-    #         aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
-    #         aoscx_interface.get()
-    #     except Exception as error:
-    #         self.error.status = True
-    #         self.error.description = "Error establishing connection!"
-    #         self.error.details = f"Cannot read device interface: {format(error)}"
-    #         dprint("  set_interface_description(): AosCxInterface.get() failed!")
-    #         self._close_device()
-    #         return False
+        data = {"description": description}
 
-    #     aoscx_interface.description = description
-    #     changed = aoscx_interface.apply()
-    #     # self._close_device()
-    #     if changed:
-    #         dprint("   Descr OK!")
-    #         # call the super class for bookkeeping.
-    #         super().set_interface_description(interface, description)
-    #         self._close_device()
-    #         return True
+        # encode the / in the interface to a url format:
+        if_name_url = urllib.parse.quote(interface.name, safe="")
 
-    #     dprint("   Descr FAILED!")
-    #     # we need to add error info here!!!
-    #     self._close_device()
-    #     return False
+        try:
+            success = self._patch(
+                path=f"system/interfaces/{if_name_url}", data=json.dumps(data), message="Set Interface Description"
+            )
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Error changing interface description!"
+            self.error.details = f"Error changing interface description: {format(err)}"
+            dprint(f"  set_interface_description() failed!\n{format(err)}")
+            self._close_device()
+            return False
+
+        self._close_device()
+
+        if not success:
+            dprint("   Interface description change FAILED!")
+            # we need to add error info here!!!
+            self.error.status = True
+            self.error.description = "Error changing interface description!"
+            self.error.details = "We're not sure what happened, sorry... :-("
+            return False
+
+        dprint("   Descr Set OK!")
+        # call the super class for bookkeeping.
+        super().set_interface_description(interface, description)
+        self._close_device()
+        return True
+
 
     # def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
     #     """
