@@ -111,7 +111,7 @@ class AosCxConnector(RESTConnector):
         self.can_edit_vlans = True
         self.can_change_poe_status = True
         self.can_change_description = True
-        # self.can_save_config = True
+        self.can_save_config = True
         self.can_reload_all = True
         # self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
 
@@ -136,14 +136,12 @@ class AosCxConnector(RESTConnector):
         ##############################################
         try:
             system = self._get(path="system?depth=1", message="Get Systems")
-        except Exception as error:
-            dprint(f"  get_my_basic_info(): error getting system info: {format(error)}")
+        except Exception as err:
+            dprint(f"  get_my_basic_info(): error getting system info: {format(err)}")
             self.error.status = True
             self.error.description = "Error getting system info!"
-            self.error.details = ""
-            self.add_warning(
-                warning=f"Error getting system info!\n{repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
-            )
+            self.error.details = f"Info: {format(err)}"
+            self.add_warning(warning=f"Error getting system info!\n{format(err)}\n{traceback.format_exc()}")
             return False
 
         self.add_more_info("System", "Firmware Version", system["software_version"])
@@ -243,11 +241,11 @@ class AosCxConnector(RESTConnector):
         #####################
         try:
             vlans = self._get(path="system/vlans?depth=2", message="Get VLANs")
-        except Exception as error:
+        except Exception as err:
             dprint("  get_my_basic_info(): error getting Vlans!")
             self.error.status = True
-            self.error.description = "Error getting Vlans!"
-            self.error.details = f"Cannot read device vlans: {format(error)}"
+            self.error.description = "Error reading Vlans!"
+            self.error.details = f"Info: {format(err)}"
             self._close_device()
             return False
 
@@ -279,7 +277,7 @@ class AosCxConnector(RESTConnector):
             dprint("  get_my_basic_info(): error getting VRFs!")
             self.error.status = True
             self.error.description = "Error getting VRFs!"
-            self.error.details = f"Cannot read device VRFs: {format(error)}"
+            self.error.details = f"Info: {format(error)}"
             self._close_device()
             return False
 
@@ -299,7 +297,7 @@ class AosCxConnector(RESTConnector):
         except Exception as error:
             self.error.status = True
             self.error.description = "Error getting interfaces!"
-            self.error.details = f"Cannot read device interfaces: {format(error)}"
+            self.error.details = f"Info: {format(error)}"
             dprint("  get_my_basic_info(): error getting interfaces!")
             self._close_device()
             return False
@@ -578,7 +576,9 @@ class AosCxConnector(RESTConnector):
                 except Exception as err:
                     dprint(f"Vlan get macs error: {err}")
                     description = f"Cannot get ethernet table for vlan {vlan.id}"
-                    details = f"Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                    details = (
+                        f"Error getting ethernet table for vlan {vlan.id}\n{format(err)}\n{traceback.format_exc()}"
+                    )
                     self.add_warning(warning=description)
                     self.add_log(type=LOG_TYPE_ERROR, action=LOG_DEVICE_REST_GET, description=details)
 
@@ -624,7 +624,7 @@ class AosCxConnector(RESTConnector):
             except Exception as err:
                 dprint(f"ERROR getting lldp neighbors: {err}")
                 description = f"Cannot get LLDP table for interface '{iface.name}'"
-                details = f"Error getting '{iface.lldp_uri}': {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                details = f"Error getting '{iface.lldp_uri}'\n{format(err)}\n{traceback.format_exc()}"
                 self.add_warning(warning=description)
                 self.add_log(type=LOG_TYPE_ERROR, action=LOG_DEVICE_REST_GET, description=details)
                 continue
@@ -673,9 +673,9 @@ class AosCxConnector(RESTConnector):
         if not success:
             dprint(f"   Interface change to '{state}' FAILED!")
             self.error.status = True
-            self.error.description = "Error returned changing interface status!"
+            self.error.description = "Error changing interface status!"
             if self.response.text:
-                self.error.details = f"Response text: {self.response.text}"
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
             else:
                 self.error.details = "We're not sure what happened, sorry... :-("
             dprint("ERROR: set_interface_admin_status() failed, not sure why?")
@@ -725,7 +725,7 @@ class AosCxConnector(RESTConnector):
             self.error.status = True
             self.error.description = "Error changing interface description!"
             if self.response.text:
-                self.error.details = f"Response text: {self.response.text}"
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
             else:
                 self.error.details = "We're not sure what happened, sorry... :-("
             return False
@@ -799,7 +799,7 @@ class AosCxConnector(RESTConnector):
             self.error.status = True
             self.error.description = "Error changing interface PoE!"
             if self.response.text:
-                self.error.details = f"Response text: {self.response.text}"
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
             else:
                 self.error.details = "We're not sure what happened, sorry... :-("
             return False
@@ -853,7 +853,7 @@ class AosCxConnector(RESTConnector):
         except Exception as err:
             dprint(f"ERROR: setting {vlan_mode} vlan: {err}")
             self.error.status = True
-            self.error.description = "Exception setting {vlan_mode} vlan!"
+            self.error.description = "Exception error setting {vlan_mode} vlan!"
             self.error.details = f"Info: {format(err)}"
             self._close_device()
             return False
@@ -864,7 +864,7 @@ class AosCxConnector(RESTConnector):
             self.error.status = True
             self.error.description = f"Error setting {vlan_mode} vlan!"
             if self.response.text:
-                self.error.details = f"Response text: {self.response.text}"
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
             else:
                 self.error.details = "We're not sure what happened, sorry... :-("
             self._close_device()
@@ -988,14 +988,17 @@ class AosCxConnector(RESTConnector):
             success = self._post(path="system/vlans", data=json.dumps(data), message="Create VLAN")
         except Exception as err:
             self.error.status = True
-            self.error.description = "Error creating new vlan!"
+            self.error.description = "Exception error creating new vlan!"
             self.error.details = f"POST ERROR: {err}"
             return False
 
         if not success:
             self.error.status = True
-            self.error.description = "Error creating new vlan!"
-            self.error.details = f"POST returned {self.response.status_code}"
+            self.error.description = f"Error creating new vlan {vlan_id}!"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
             return False
 
         # all OK, now do the book keeping
@@ -1028,13 +1031,18 @@ class AosCxConnector(RESTConnector):
             success = self._patch(path=f"system/vlans/{vlan_id}", data=json.dumps(data), message="VLAN Update")
         except Exception as err:
             self.error.status = True
-            self.error.details = f"Error trapped while updating vlan {vlan_id} name to '{vlan_name}': {err}"
+            self.error.description = f"Exception error updating vlan {vlan_id}"
+            self.error.details = f"Info: {err}"
             self._close_device()
             return False
 
         if not success:
             self.error.status = True
-            self.error.details = f"Error updating vlan {vlan_id} name to '{vlan_name}' (not sure what happened!)"
+            self.error.description = f"Error updating vlan {vlan_id}"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
             self._close_device()
             return False
 
@@ -1061,13 +1069,18 @@ class AosCxConnector(RESTConnector):
             success = self._delete(path=f"system/vlans/{vlan_id}", message="VLAN Delete")
         except Exception as err:
             self.error.status = True
-            self.error.details = f"Error trapped while deleting vlan {vlan_id}: {err}"
+            self.error.description = f"Exception error deleting vlan {vlan_id}"
+            self.error.details = f"Info: {err}"
             self._close_device()
             return False
 
         if not success:
             self.error.status = True
-            self.error.details = f"Error deleting vlan {vlan_id} (not sure what happened!)"
+            self.error.description = f"Error deleting vlan {vlan_id}"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
             self._close_device()
             return False
 
@@ -1076,39 +1089,45 @@ class AosCxConnector(RESTConnector):
         self._close_device()
         return True
 
-    # def save_running_config(self) -> bool:
-    #     """
-    #     save the current config to startup via api.
+    def save_running_config(self) -> bool:
+        """
+        save the current config to startup via api.
 
-    #     Returns:
-    #         (bool) - True if this succeeds, False on failure. self.error() will be set in that case
-    #     """
-    #     dprint("AosCxConnector().save_running_config()")
+        Returns:
+            (bool) - True if this succeeds, False on failure. self.error() will be set in that case
+        """
+        dprint("AosCxConnector().save_running_config()")
 
-    #     if not self._open_device():
-    #         dprint("_open_device() failed!")
-    #         return False
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-    #     # see https://github.com/aruba/pyaoscx/blob/master/pyaoscx/device.py
-    #     try:
-    #         aoscx_device = AosCxDevice(session=self.aoscx_session)
-    #         # Create a Configuration Object
-    #         config = aoscx_device.configuration()
-    #         config.create_checkpoint("running-config", "startup-config")
-    #     except Exception as error:
-    #         dprint(f"  save_running_config(): save config failed: {format(error)}")
-    #         self._close_device()
-    #         self.error.status = True
-    #         self.error.description = "Error saving configuration!"
-    #         self.error.details = f"Error details: {format(error)}"
-    #         self.add_warning(
-    #             warning=f"Cannot save configuration: {repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
-    #         )
-    #         self._close_device()
-    #         return False
+        # see https://github.com/aruba/pyaoscx/blob/master/pyaoscx/configuration.py
 
-    #     self._close_device()
-    #     return True
+        try:
+            success = self._put(
+                path=f"fullconfigs/startup-config?from={self.api_prefix}/fullconfigs/running-config",
+                message="Save Config",
+            )
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Exception error saving configuration"
+            self.error.details = f"Info: {err}"
+            self._close_device()
+            return False
+
+        if not success:
+            self.error.status = True
+            self.error.description = "Error saving configuration"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
+            self._close_device()
+            return False
+
+        self._close_device()
+        return True
 
     def _open_device(self) -> bool:
         """
@@ -1125,6 +1144,7 @@ class AosCxConnector(RESTConnector):
         if not self.switch.netmiko_profile:
             self.error.status = True
             self.error.description = "Please configure a Credentials Profile to be able to connect to this device!"
+            self.error.details = ""
             dprint("  _open_device: No Credentials!")
             return False
 
