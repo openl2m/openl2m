@@ -109,7 +109,7 @@ class AosCxConnector(RESTConnector):
         self.can_change_admin_status = True
         # self.can_change_vlan = True
         self.can_edit_vlans = True
-        # self.can_change_poe_status = True
+        self.can_change_poe_status = True
         self.can_change_description = True
         # self.can_save_config = True
         self.can_reload_all = True
@@ -305,35 +305,67 @@ class AosCxConnector(RESTConnector):
             return False
 
         for if_name, interface in interfaces.items():
+            dprint(f"--- {if_name} ---")
             # see the attributes available:
-            dvar(var=interface, header=f"Interface: {if_name}")
+            # dvar(var=interface, header=f"Interface: {if_name}")
 
             # add an OpenL2M Interface() object
             iface = Interface(if_name)
             iface.name = if_name
-            iface.type = IF_TYPE_ETHERNET
+            iface.type = IF_TYPE_ETHERNET  # unless we learn differently later
             if interface["description"]:  # when not set, this is None, so catch that!
                 iface.description = interface["description"]
-            # this is Admin Up/Down:
-            if "admin" in interface and interface["admin"] == "down":  # hard down, ie admin-down
-                iface.admin_status = False
-                iface.oper_status = False
-            else:
-                iface.admin_status = True  # admin UP
-                if "admin_state" in interface:  # virtual interfaces appear not to always have this
-                    if interface["admin_state"] == "down":
-                        iface.oper_status = False
-                    elif interface["admin_state"] == "up":  # admin up, oper up, but operational status not yet known...
-                        iface.oper_status = True
-                        if "link_speed" in interface:  # for physicl ports, better be :-)
-                            if interface["link_speed"] is not None:
-                                # iface.speed is in 1Mbps increments:
-                                iface.speed = int(int(interface["link_speed"]) / 1000000)
-                    else:  # not sure what this is, should not happen!
-                        iface.admin_status = False
-                        iface.oper_status = False
-                        dprint(f"Found unknown admin_state={interface['admin_state']}")
 
+            # this is Admin Up/Down:
+            # note that defaults are admin_status = oper_status = False (ie Down)
+            # here are the values that appear to indicate admin and operational state:
+            # Admin shutdown:
+            #     "admin": "down",
+            #     "admin_state": "down",
+            #     "link_speed": 0,
+            #     "link_state": "down",
+            #     "hw_intf_info": {
+            #         ...
+            #         "max_speed": "5000",
+
+            # Admin no shutdown, port down:
+            #     "admin": null,
+            #     "admin_state": "down",
+            #     "link_speed": 0,
+            #     "link_state": "down",
+            #     "hw_intf_info": {
+            #         ...
+            #         "max_speed": "5000",
+
+            # Admin no shutdown, port up:
+
+            #     "admin": null,
+            #     "admin_state": "up",
+            #     "link_speed": 1000000000,
+            #     "link_state": "up",
+
+            if "link_state" in interface:
+                if interface["link_state"] == "up":  # operationally up
+                    # dprint("LINK_STATE UP!")
+                    iface.admin_status = True
+                    iface.oper_status = True
+                    if "link_speed" in interface:  # for physicl ports, better be :-)
+                        if interface["link_speed"] is not None:
+                            # iface.speed is in 1Mbps increments:
+                            iface.speed = int(int(interface["link_speed"]) / 1000000)
+                else:  # not up, we can get port speed from hw_info
+                    # dprint("LINK_STATE NOT UP!")
+                    if "hw_intf_info" in interface and "max_speed" in interface["hw_intf_info"]:
+                        iface.speed = int(interface["hw_intf_info"]["max_speed"])  # already in Mbps !
+
+            # interface not up, so just down, or admin shutdown?
+            if not iface.oper_status:
+                # dprint("LINK NOT UP, CHECKING ADMIN STATE")
+                if "admin" in interface and not interface["admin"]:
+                    dprint("ADMIN STATE UP!")
+                    iface.admin_status = True
+
+            # read some other interface attributes...
             if "duplex" in interface:
                 iface.duplex = aoscx_parse_duplex(interface["duplex"])
             if "ip_mtu" in interface:
@@ -342,6 +374,8 @@ class AosCxConnector(RESTConnector):
                 iface.gvrp_enabled = interface["mvrp_enable"]
             if "routing" in interface:
                 iface.is_routed = interface["routing"]
+
+            # get details about the port type:
             if "type" in interface:
                 match interface["type"]:
                     case "vlan":
@@ -467,7 +501,7 @@ class AosCxConnector(RESTConnector):
                 # this does not mean PoE is available for this interface. Let's check...
                 poe_info = self._get(uri=interface["poe_interface"])
                 if poe_info:
-                    dprint(f"   +++ POE Exists for {if_name} ===")
+                    dprint(f"--- POE found for {if_name} ---")
                     # there is probably a more 'global' system/device way to see if PoE capabilities exist:
                     self.poe_capable = True
                     self.poe_enabled = True
@@ -628,9 +662,9 @@ class AosCxConnector(RESTConnector):
             )
         except Exception as err:
             self.error.status = True
-            self.error.description = "Error changing interface status!"
-            self.error.details = f"Error changing status: {format(err)}"
-            dprint(f"  set_interface_admin_status() failed!\n{format(err)}")
+            self.error.description = "Exception error changing interface status!"
+            self.error.details = f"Info: {format(err)}"
+            dprint(f"ERROR: set_interface_admin_status() failed!\n{format(err)}")
             self._close_device()
             return False
 
@@ -638,6 +672,13 @@ class AosCxConnector(RESTConnector):
 
         if not success:
             dprint(f"   Interface change to '{state}' FAILED!")
+            self.error.status = True
+            self.error.description = "Error returned changing interface status!"
+            if self.response.text:
+                self.error.details = f"Response text: {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
+            dprint("ERROR: set_interface_admin_status() failed, not sure why?")
             # we need to add error info here!!!
             return False
 
@@ -670,20 +711,23 @@ class AosCxConnector(RESTConnector):
             )
         except Exception as err:
             self.error.status = True
-            self.error.description = "Error changing interface description!"
-            self.error.details = f"Error changing interface description: {format(err)}"
-            dprint(f"  set_interface_description() failed!\n{format(err)}")
+            self.error.description = "Exception error changing interface description!"
+            self.error.details = f"Info: {format(err)}"
+            dprint(f"ERROR: set_interface_description() exception!\n{format(err)}")
             self._close_device()
             return False
 
         self._close_device()
 
         if not success:
-            dprint("   Interface description change FAILED!")
+            dprint("ERROR: Interface description change FAILED, not sure why?")
             # we need to add error info here!!!
             self.error.status = True
             self.error.description = "Error changing interface description!"
-            self.error.details = "We're not sure what happened, sorry... :-("
+            if self.response.text:
+                self.error.details = f"Response text: {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
             return False
 
         dprint("   Descr Set OK!")
@@ -692,65 +736,79 @@ class AosCxConnector(RESTConnector):
         self._close_device()
         return True
 
+    def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
+        """
+        set the interface Power-over-Ethernet status as given
+        interface = Interface() object for the requested port
 
-    # def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
-    #     """
-    #     set the interface Power-over-Ethernet status as given
-    #     interface = Interface() object for the requested port
+        Args:
+            interface: the Interface to modify
+            new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
 
-    #     Args:
-    #         interface: the Interface to modify
-    #         new_state = POE_PORT_ADMIN_ENABLED or POE_PORT_ADMIN_DISABLED
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(f"AosCxConnector.set_interface_poe_status() for {interface.name} to {new_state}")
 
-    #     Returns:
-    #         True on success, False on error and set self.error variables
-    #     """
-    #     dprint(f"AosCxConnector.set_interface_poe_status() for {interface.name} to {new_state}")
+        if not interface.poe_entry:
+            # this should never happen!
+            dprint("PoE change requested, but interface does not support PoE!!!")
+            self.error.status = True
+            self.error.description = "PoE change requested, but interface does not support PoE!!!"
+            self.error.details = ""
+            return False
 
-    #     if interface.poe_entry:
-    #         if not self._open_device():
-    #             dprint("_open_device() failed!")
-    #             return False
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-    #         # go get PoE info:
-    #         try:
-    #             aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
-    #             aoscx_poe = AosCxPoEInterface(session=self.aoscx_session, parent_interface=aoscx_interface)
-    #             aoscx_poe.get()
-    #         except Exception as error:
-    #             self.error.status = True
-    #             self.error.description = "Error establishing connection!"
-    #             self.error.details = f"Cannot read device interface: {format(error)}"
-    #             dprint("  set_interface_poe_status(): AosCxInterface or AosCxPoEInterface.get() failed!")
-    #             self._close_device()
-    #             return False
+        # entry is "admin_disable", so "opposite" logic!
+        if new_state == POE_PORT_ADMIN_ENABLED:
+            state = False
+        else:
+            state = True
 
-    #         dprint(f"  +++ POE Exists for {interface.name} ===")
-    #         if new_state == POE_PORT_ADMIN_ENABLED:
-    #             aoscx_poe.power_enabled = True
-    #             changed = aoscx_poe.apply()
-    #         else:
-    #             aoscx_poe.power_enabled = False
-    #             changed = aoscx_poe.apply()
-    #         # self._close_device()
-    #         if changed:
-    #             dprint("   PoE change OK!")
-    #             # call the super class for bookkeeping.
-    #             super().set_interface_poe_status(interface, new_state)
-    #             self._close_device()
-    #             return True
+        data = {
+            "config": {
+                "admin_disable": state,
+            },
+        }
 
-    #         dprint("   PoE change FAILED!")
-    #         # we need to add error info here!!!
-    #         self._close_device()
-    #         return False
+        # encode the / in the interface to a url format:
+        if_name_url = urllib.parse.quote(interface.name, safe="")
 
-    #     # this should never happen!
-    #     dprint("PoE change requested, but interface does not support PoE!!!")
-    #     self.error.status = True
-    #     self.error.description = "PoE change requested, but interface does not support PoE!!!"
-    #     self.error.details = ""
-    #     return False
+        try:
+            success = self._patch(
+                path=f"system/interfaces/{if_name_url}/poe_interface",
+                data=json.dumps(data),
+                message="Set Interface PoE Status",
+            )
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Exception error changing interface PoE!"
+            self.error.details = f"Info: {format(err)}"
+            dprint(f"  set_interface_poe_status() exception!\n{format(err)}")
+            self._close_device()
+            return False
+
+        self._close_device()
+
+        if not success:
+            dprint("   Interface PoE change FAILED, not sure why?")
+            # we need to add error info here!!!
+            self.error.status = True
+            self.error.description = "Error changing interface PoE!"
+            if self.response.text:
+                self.error.details = f"Response text: {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
+            return False
+
+        dprint("   PoE change OK!")
+        # call the super class for bookkeeping.
+        super().set_interface_poe_status(interface, new_state)
+        self._close_device()
+        return True
 
     # def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
     #     """
