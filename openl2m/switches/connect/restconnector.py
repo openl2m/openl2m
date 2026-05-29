@@ -53,7 +53,7 @@ class SslFlagAdapter(requests.adapters.HTTPAdapter):
         # See ssl module docs for flags: https://python.org
         context.verify_flags &= ~ssl.VERIFY_X509_STRICT
         # this flag only exists in 3.13+
-        context.verify_flags &= ~ssl.VERIFY_X509_PARTIAL_CHAIN
+        context.verify_flags &= ~ssl.VERIFY_X509_PARTIAL_CHAIN  # pylint: disable=no-member
 
         kwargs['ssl_context'] = context
         return super().init_poolmanager(*args, **kwargs)
@@ -69,7 +69,7 @@ class RESTConnector(Connector):
         dprint("RESTConnector.__init__()")
         self.headers: dict = {}  # contains HTTP headers for GET/POST
         self.response = None  # full response from request, in case user wants it!
-        self.server_url: str = ""   # the base server URL, e.g. https://<server-ip-or-name>/
+        self.server_url: str = ""  # the base server URL, e.g. https://<server-ip-or-name>/
         self.base_url: str = ""  # base URL (host + base rest uri) of REST queries
         self.cookies: dict = {}  # cookies to add to the request
         self.ssl_session = requests.Session()
@@ -93,8 +93,7 @@ class RESTConnector(Connector):
                 self.ssl_session.mount("https://", SslFlagAdapter())
 
     def _set_base_url(self, base_url: str):
-        """Set the base URL for all REST queries, and return previous URL
-        """
+        """Set the base URL for all REST queries, and return previous URL"""
         dprint(f"RESTConnector()._set_base_url() = {base_url}")
         old_base_url = self.base_url
         self.base_url = base_url
@@ -253,7 +252,7 @@ class RESTConnector(Connector):
         self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""
     ):
         """PUT a specific REST endpoint and return JSON response.
-        will raise exception on error
+        Intended for full updates of objects. Will raise exception on error
 
         Args:
             path (str) - API path (ie withouth host url)
@@ -287,6 +286,53 @@ class RESTConnector(Connector):
         )
         if not message:
             message = "_PUT() Call"
+        debug_response(response=self.response, message=message)
+        self.response.raise_for_status()
+
+        # no errors
+        if self.response.status_code in (200, 204):
+            return True
+        # Hmm ?
+        return False
+
+    def _patch(
+        self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""
+    ):
+        """PUT a specific REST endpoint and return JSON response.
+        Intended for partial updates of objects. Will raise exception on error
+
+        Args:
+            path (str) - API path (ie withouth host url)
+            params (dict) - query string parameters, as string or dict if multiple.
+            data (dict) - body data as json-encoded dict, if any.
+            headers (dict) - HTTPS headers to override default headers from login.
+            cookies (dict) - cookied to add to the request. If not set, will use self.cookies (if set)
+            message (str) - debug message added to debug_reponse()
+
+        Note that params, data and headers can be passed to the request library as is!
+
+        Returns:
+             data as json dict, or None if empty.
+        """
+        dprint("RESTConnector.patch()")
+
+        if not headers:
+            # set to default
+            headers = self.headers
+        if not cookies:
+            cookies = self.cookies
+
+        self.response = self.ssl_session.patch(
+            url=self.base_url + path,
+            headers=headers,
+            cookies=cookies,
+            params=params,
+            data=data,
+            verify=self.switch.netmiko_profile.verify_hostkey,
+            timeout=settings.REST_API_TIMEOUT,
+        )
+        if not message:
+            message = "_PATCH() Call"
         debug_response(response=self.response, message=message)
         self.response.raise_for_status()
 
