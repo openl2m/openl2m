@@ -37,7 +37,10 @@ import urllib.parse
 # with the resource provided in the request body.
 #
 # The PATCH method updates values in an existing resource using only the desired values
-# in the request body.
+# in the request body. It cannot be used to remove JSON keys or array elements.
+#
+# The DELETE method deletes an instance of a resource.
+
 
 from switches.utils import dprint, dvar
 from switches.constants import LOG_TYPE_ERROR, LOG_DEVICE_REST_OPEN, LOG_DEVICE_REST_CLOSE, LOG_DEVICE_REST_GET
@@ -422,31 +425,6 @@ class AosCxConnector(RESTConnector):
                         for vid in interface["applied_vlan_trunks"]:
                             iface.add_tagged_vlan(int(vid))
 
-            # this is from an older API version, no longer in v10.09
-            # check LACP 'stuff':
-            # if "lacp" in interface and interface["lacp"] == "active":
-            #     dprint("LAG interface")
-            #     iface.type = IF_TYPE_LAGG
-            #     iface.lacp_type = LACP_IF_TYPE_AGGREGATOR
-            #     # LACP members are stored in "interfaces"
-            #     # 'interfaces': {'1/1/16': '/rest/v10.09/system/interfaces/1%2F1%2F16'},
-            #     if "interfaces" in interface:
-            #         for if_name in interface["interfaces"]:
-            #             iface.lacp_members[if_name] = if_name
-            #     # get speed
-            #     if "bond_status" in interface:
-            #         dprint(f"Bond Status found: {interface['bond_status']['bond_speed']}")
-            #         # iface.speed is in 1Mbps increments:
-            #         iface.speed = int(int(interface["bond_status"]["bond_speed"]) / 1000000)
-            #
-            # elif "lacp_current" in interface and interface["lacp_current"]:
-            #     # lacp member interface:
-            #     iface.lacp_type = LACP_IF_TYPE_MEMBER
-            #     lacp_actor = int(interface["lacp_status"]["actor_key"])
-            #     iface.lacp_master_index = lacp_actor
-            #     iface.lacp_master_name = f"lag{lacp_actor}"
-            #     # we don't have the LAG interface yet, so cannot add member there!
-
             # Check for LACP membership:
             if "other_config" in interface and "lacp-aggregation-key" in interface["other_config"]:
                 # lacp member interface:
@@ -651,7 +629,13 @@ class AosCxConnector(RESTConnector):
             state = "up"
         else:
             state = "down"
-        data = {"admin": state}
+
+        data = {
+            "admin": state,
+            "user_config": {
+                "admin": state,
+            },
+        }
 
         # encode the / in the interface to a url format:
         if_name_url = urllib.parse.quote(interface.name, safe="")
@@ -876,91 +860,150 @@ class AosCxConnector(RESTConnector):
         self._close_device()
         return True
 
-    # def set_interface_vlans(
-    #     self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
-    # ) -> bool:
-    #     """
-    #     Set the interface to the untagged and tagged vlans.
+    def set_interface_vlans(
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
+    ) -> bool:
+        """
+        Set the interface to the untagged and tagged vlans.
 
-    #     Args:
-    #         interface = Interface() object for the requested port
-    #         untagged_vlan = an integer with the requested untagged vlan
-    #         tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+        Args:
+            interface = Interface() object for the requested port
+            untagged_vlan = an integer with the requested untagged vlan
+            tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
-    #     Returns:
-    #         True on success, False on error and set self.error variables
-    #     """
-    #     dprint(
-    #         f"AosCxConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
-    #     )
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(
+            f"AosCxConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
+        )
 
-    #     if not self._open_device():
-    #         dprint("_open_device() failed!")
-    #         return False
+        # start with the untagged/access vlan in the payload for the http patch request
+        v = self.get_vlan_by_id(vlan_id=untagged_vlan)
+        data = {
+            "vlan_tag": {
+                "untagged_vlan": v.vlan_uri,
+            },
+        }
 
-    #     # get AosCxInterface:
-    #     try:
-    #         aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
-    #         aoscx_interface.get()  # we need a fully "populated" AosCxInterface() object
-    #         dprint(f"  AosCxInterface.get() OK: {aoscx_interface.name}")
-    #         dvar(var=aoscx_interface, header="\n\nINTERFACE:")
-    #         dvar(var=aoscx_interface.vlan_trunks, header="\n\n  TRUNK VLANS")
-    #     except Exception as err:
-    #         dprint(f"  set_interface_untagged_vlan(): AosCxInterface.get() failed!\n{traceback.format_exc()}")
-    #         self.error.status = True
-    #         self.error.description = "Error establishing connection!"
-    #         self.error.details = f"Cannot read device interface: {format(err)}\n{traceback.format_exc()}"
-    #         self._close_device()
-    #         return False
+        # encode the / in the interface to a url format:
+        if_name_url = urllib.parse.quote(interface.name, safe="")
 
-    #     # now set mode and vlans
-    #     try:
-    #         if not tagged_vlans and not allow_all:
-    #             # no tagged vlan, ie "access mode".
-    #             dprint("  access mode.")
-    #             aoscx_interface.set_vlan_mode("access")
-    #             aoscx_interface.set_untagged_vlan(vlan=int(untagged_vlan))
+        # now set mode and vlans
+        if not tagged_vlans and not allow_all:
+            # no tagged vlan, ie "access mode".
+            dprint("  access mode")
+            data["vlan_mode"] = "access"
+        else:
+            dprint("  trunk mode")
+            if interface.is_tagged:
+                # if interface is already tagged, the patch segment below does NOT delete the other tagged vlans
+                # that are not allowed from now on.
+                # as a work-around, we are going to set "access mode" first, which clears out all trunk/tagged vlans!
+                # this is likely needed because we don't fully understand the API ! (mea culpa)
+                dprint("  already trunk, clearing all vlans")
+                # interface.is_tagged = False
+                # success = self.set_interface_untagged_vlan(interface=interface, new_vlan_id=untagged_vlan)
+                # if not success:
+                #     dprint("ERROR clearing trunik vlans in access mode!")
+                #     return False
+                # return True
 
-    #         else:
-    #             dprint("  trunk mode.")
-    #             # trunk mode, setup mode and native vlan:
-    #             aoscx_interface.set_vlan_mode("native-untagged")
-    #             # Note:
-    #             # here we work around a possible bug in the pyaoscx module,
-    #             # where 'trunk vlan allow all' translates into an empty aoscx_interface.vlans_trunks list
-    #             # this causes the new vlan to be the only one allowed on the trunk.
-    #             # Work around by explicityly setting the trunk allows vlans.
-    #             # also see https://github.com/aruba/pyaoscx/issues/36
+                # open to set access mode
+                if not self._open_device():
+                    dprint("_open_device() failed!")
+                    return False
 
-    #             # loop through all vlans, and see if they are allowed
-    #             allow = []  # list of AosCx Vlan() objects!
-    #             for vid in self.vlans:
-    #                 if allow_all or vid in tagged_vlans:
-    #                     # allowed!
-    #                     v = AosCxVlan(session=self.aoscx_session, vlan_id=vid)
-    #                     allow.append(v)
-    #             # add these to the trunk config
-    #             aoscx_interface.vlan_trunks = allow
-    #             # set the new native vlan
-    #             aoscx_interface.set_native_vlan(vlan=int(untagged_vlan), tagged=False)
+                access_mode = {
+                    "vlan_mode": "access",
+                }
+                access_mode["vlan_trunks"] = {}
+                try:
+                    success = self._patch(
+                        path=f"system/interfaces/{if_name_url}",
+                        data=json.dumps(access_mode),
+                        message="Clear Trunk - Set Access Mode",
+                    )
+                except Exception as err:
+                    # some error triggered
+                    dprint(f"ERROR setting mode and vlans: {err}")
+                    self.error.status = True
+                    self.error.description = "Exception error clearing interface vlans!"
+                    self.error.details = f"Info: {format(err)}"
+                    self._close_device()
+                    return False
+                if not success:
+                    dprint("   Clearing Trunk Vlans FAILED for Unknown Reasons!")
+                    # we need to add error info here!!!
+                    self.error.status = True
+                    self.error.description = "Error clearing trunk vlan!"
+                    if self.response.text:
+                        self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+                    else:
+                        self.error.details = "We're not sure what happened, sorry... :-("
+                    self._close_device()
+                    return False
 
-    #     except Exception as err:
-    #         # some error triggered
-    #         dprint(f"ERROR in aoscx_interface() setting mode and vlans: {err}")
-    #         self.error.status = True
-    #         self.error.description = "Error setting vlans!"
-    #         self.error.details = f"ERROR in aoscx_interface.set_interface_vlans(): {format(err)}"
-    #         self._close_device()
-    #         return False
+                # these changes do not seem to take unless we close the session?
+                # again, likely our lack of understanding this api...
+                self._close_device()
 
-    #     dprint("ALL OK!")
+                # now re-open for the actual setting of trunk info... (go figure :0)
+                if not self._open_device():
+                    dprint("  _open_device() re-open failed!")
+                    # self.error already set!
+                    return False
 
-    #     # call the base Connector() for bookkeeping:
-    #     super().set_interface_vlans(
-    #         interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
-    #     )
-    #     self._close_device()
-    #     return True
+            # set trunk mode
+            data["vlan_mode"] = "native-untagged"
+            # loop through all vlans, and see if they are allowed
+            trunked_vlans = {}
+            for vlan in self.vlans.values():
+                if allow_all or vlan.id in tagged_vlans:
+                    # allowed!
+                    trunked_vlans[vlan.id] = vlan.vlan_uri
+            # add these to the trunk config
+            data["vlan_trunks"] = trunked_vlans
+
+        # here the actual work starts...
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        try:
+            success = self._patch(
+                path=f"system/interfaces/{if_name_url}",
+                data=json.dumps(data),
+                message="Set Interface Vlans",
+            )
+        except Exception as err:
+            # some error triggered
+            dprint(f"ERROR setting mode and vlans: {err}")
+            self.error.status = True
+            self.error.description = "Exception error setting interface vlans!"
+            self.error.details = f"Info: {format(err)}"
+            self._close_device()
+            return False
+
+        if not success:
+            dprint("   Setting Mode and Vlans FAILED for Unknown Reasons!")
+            self.error.status = True
+            self.error.description = "Error setting vlans!"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
+            self._close_device()
+            return False
+
+        dprint("ALL OK!")
+
+        # call the base Connector() for bookkeeping:
+        super().set_interface_vlans(
+            interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
+        )
+        self._close_device()
+        return True
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
         """
