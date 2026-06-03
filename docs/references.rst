@@ -120,7 +120,7 @@ Aruba AOS-CX
 
 AOS-CX REST API v10.x Most Recent Guide (at time of writing): https://arubanetworking.hpe.com/techdocs/AOS-CX/10.16/PDF/rest_v10-0x.pdf
 
-The pyasocx library is at https://github.com/aruba/pyaoscx/
+https://developer.arubanetworks.com/aoscx/docs/introduction has information about configuring and using the REST api.
 
 AOS-CX SNMP Capabilities are documented here (for v10.14, Sept 2024):
 https://www.arubanetworks.com/techdocs/AOS-CX/10.14/HTML/snmp_mib/Content/Chp_SNMP/snm.htm

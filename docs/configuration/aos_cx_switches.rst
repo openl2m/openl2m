@@ -13,12 +13,17 @@ As needed, create Commands and Command Groups to assign to this device.
 Switch Configuration
 --------------------
 
-AOS-CX switches are managed via the device REST API v10.09. (I.e. minimal supported firmware is v10.09)  You will need to configure the switch to allow this access.
+AOS-CX switches are managed via the device REST API. Minimal supported firmware is v10.09.
+Our driver will automatically use the last API version availabe on the device.
+
+You will need to configure the switch to allow this access.
+See more details at https://developer.arubanetworks.com/aoscx/docs/introduction
 
 Something like this is needed:
 
 .. code-block:: bash
 
+    switch(config)# https-server rest access-mode read-write
     switch(config)# https-server vrf default
     OR:
     switch(config)# https-server vrf mgmt
