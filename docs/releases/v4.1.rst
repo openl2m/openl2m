@@ -38,15 +38,17 @@ The default timeout is increased to 10 seconds.
 
 
 
-Version 4.1beta
----------------
+Version 4.1
+-----------
 
-Release Date: TBD
+Release Date: 2026-06-03
 
 * add 802.1Q tags (trunk) vlan editing for base SNMP and HPE/Aruba Procurve/AOS-S switches.
   We use the standard Q-Bridge MIB for this. See supported feature notes in the documentation
   for more details.
 * 802.1q interface tag editing now supported on Cisco-SB devices over snmp.
+* implemented a new REST driver for Aruba AOS-CX devices to fix a threading problem in the
+  Aruba pyaoscx class that manifests itself when running under gunicorn.py (the Djano runtime environment)
 * Cisco-SB devices can now save the running config.
 * Add IPv4 ARP info for device using the Aruba AOS-S REST driver.
 * add PoE on-off capability for Aruba AOS-S REST driver.
@@ -71,6 +73,7 @@ Bug fixes:
 * several html form errors fixed.
 * fixed not calling json.loads when empty data in restconnector.py
 * code refactoring and simplications use Claude Code
-* fix X.509 and older cipher errors on older devices with Python 3.13+
+* fix X.509 certificate errors, and older cipher errors on older devices triggered with Python 3.13+
 * upgrade Netmiko to v4.7.0 fix incompatible SSH peer (no acceptable key)
+* many pylint updates.
 
