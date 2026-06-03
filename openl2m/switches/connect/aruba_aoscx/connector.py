@@ -892,9 +892,36 @@ class AosCxConnector(RESTConnector):
         # encode the / in the interface to a url format:
         if_name_url = urllib.parse.quote(interface.name, safe="")
 
+        # "access" mode does not mean that the "vlan_trunks" attribute is empty.
+        # An HTTP PATCH does NOT delete tagged "trunk_vlans" that may already be set
+        # in both access or either of the tagged modes, so this could cause unwanted
+        # vlans permitted in the tagged trunk.
+        #
+        # A PUT deletes attributes that are not listed in the request data,
+        # i.e. can clear things like "description"
+        #
+        # We are going to read all "writable" interface attributes first,
+        # make changes to the untagged and/or tagged vlans,
+        # and then write all those values back to the device.
+        dprint("  reading FULL interface attributes")
+        try:
+            data = self._get(
+                path=f"system/interfaces/{if_name_url}?selector=writable",
+                message=f"Read writable attributes for {interface.name}",
+            )
+        except Exception as err:
+            # some error triggered
+            dprint(f"ERROR reading interface writable attributes: {err}")
+            self.error.status = True
+            self.error.description = "Exception error reading interface settings!"
+            self.error.details = f"Info: {format(err)}"
+            self._close_device()
+            return False
+
+        # 'data' now contains the interface writable attributes
         # now set mode and vlans
         if not tagged_vlans and not allow_all:
-            # no tagged vlan, ie "access mode".
+            # no tagged vlans, ie "access mode".
             dprint("  access mode")
             data = {
                 "vlan_mode": "access",
@@ -902,33 +929,10 @@ class AosCxConnector(RESTConnector):
                     untagged_vlan: v.vlan_uri,
                 },
             }
-        else:
-            dprint("  trunk mode, reading FULL interface attributes")
-            # an interface in "access" mode does not clear "vlan_trunks" values.
-            # An HTTP PATCH does NOT delete tagged "trunk_vlans" that may already be set
-            # in both access or either of the tagged modes, so this could cause unwanted
-            # vlans permitted in the tagged trunk.
-            #
-            # A PUT deletes attributes that are not listed in the request data,
-            # i.e. can clear things like "description"
-            #
-            # We are going to read all "writable" interface attributes first,
-            # make changes to the tagged vlans, and write all those values back to the device.
-            try:
-                data = self._get(
-                    path=f"system/interfaces/{if_name_url}?selector=writable",
-                    message=f"Read writable attributes for {interface.name}",
-                )
-            except Exception as err:
-                # some error triggered
-                dprint(f"ERROR reading interface writable attributes: {err}")
-                self.error.status = True
-                self.error.description = "Exception error reading interface settings!"
-                self.error.details = f"Info: {format(err)}"
-                self._close_device()
-                return False
+            # for this mode "vlan_trunks" is a don't care!
 
-            # data now contains the interface writable attributes, go modify for the tagged mode requested
+        else:
+            dprint("  trunk mode")
             data["vlan_mode"] = "native-untagged"
             data["vlan_tag"] = {
                 untagged_vlan: v.vlan_uri,
