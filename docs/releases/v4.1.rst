@@ -26,7 +26,16 @@ See the documentation for more details.
 New Configuration Options
 -------------------------
 
-None at this time.
+**REST_API_TIMEOUT** has been **renamed** to **REST_CLIENT_TIMEOUT** for better clarify.
+The default timeout is increased to 10 seconds.
+
+.. code-block:: python
+
+  # for drivers that use a REST API (ie. clients), this is the query timeout
+  # currently applies to devices using the REST API client driver for
+  # HPE Comware, HPE/Aruba AOS-S, and HPE/Aruba AOS-CX API.
+  REST_CLIENT_TIMEOUT = 10
+
 
 
 Version 4.1beta

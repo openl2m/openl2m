@@ -174,7 +174,7 @@ class RESTConnector(Connector):
             headers=headers,
             cookies=cookies,
             verify=self.switch.netmiko_profile.verify_hostkey,
-            timeout=settings.REST_API_TIMEOUT,
+            timeout=settings.REST_CLIENT_TIMEOUT,
         )
         read_duration = time.time() - start_time
         if not message:
@@ -230,7 +230,7 @@ class RESTConnector(Connector):
             params=params,
             data=data,
             verify=self.switch.netmiko_profile.verify_hostkey,
-            timeout=settings.REST_API_TIMEOUT,
+            timeout=settings.REST_CLIENT_TIMEOUT,
         )
         if not message:
             message = "_POST() Call"
@@ -282,7 +282,7 @@ class RESTConnector(Connector):
             params=params,
             data=data,
             verify=self.switch.netmiko_profile.verify_hostkey,
-            timeout=settings.REST_API_TIMEOUT,
+            timeout=settings.REST_CLIENT_TIMEOUT,
         )
         if not message:
             message = "_PUT() Call"
@@ -329,7 +329,7 @@ class RESTConnector(Connector):
             params=params,
             data=data,
             verify=self.switch.netmiko_profile.verify_hostkey,
-            timeout=settings.REST_API_TIMEOUT,
+            timeout=settings.REST_CLIENT_TIMEOUT,
         )
         if not message:
             message = "_PATCH() Call"
@@ -376,7 +376,7 @@ class RESTConnector(Connector):
             params=params,
             data=data,
             verify=self.switch.netmiko_profile.verify_hostkey,
-            timeout=settings.REST_API_TIMEOUT,
+            timeout=settings.REST_CLIENT_TIMEOUT,
         )
         if not message:
             message = "_DELETE() Call"

@@ -458,8 +458,10 @@ JUNOS_PYEZ_CONN_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CONN_TIMEOUT', 10)
 # command timeout for Junos devices via the Netconf interface
 JUNOS_PYEZ_CMD_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CMD_TIMEOUT', 120)
 
-# For drivers that use a REST API, this is the query timeout
-REST_API_TIMEOUT = getattr(configuration, 'REST_API_TIMEOUT', 5)
+# for drivers that use a REST API (ie. clients), this is the query timeout
+# currently applies to devices using the REST API client driver for
+# HPE Comware, HPE/Aruba AOS-S, and HPE/Aruba AOS-CX API.
+REST_CLIENT_TIMEOUT = getattr(configuration, 'REST_CLIENT_TIMEOUT', 10)
 
 # REST API Settings
 API_ENABLED = getattr(configuration, 'API_ENABLED', True)
