@@ -34,7 +34,10 @@ import urllib.parse
 # The POST method creates an instance of a resource in the collection specified by the URI.
 #
 # The PUT method updates an instance of a resource by replacing the existing resource
-# with the resource provided in the request body.
+# with the resource provided in the request body. When using the PUT method to modify a
+# resource, only writable attributes can be included in the request body.
+# In REST v10.04 and later versions, the GET method 'selector' parameter includes a value of 'writable',
+# which enables you to get only the mutable configuration attributes of a resource.
 #
 # The PATCH method updates values in an existing resource using only the desired values
 # in the request body. It cannot be used to remove JSON keys or array elements.
@@ -116,7 +119,7 @@ class AosCxConnector(RESTConnector):
         self.can_change_description = True
         self.can_save_config = True
         self.can_reload_all = True
-        # self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
+        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
 
     def __del__(self):
         """when we close the object, release the REST ticket, so the switch does not run out of resources!"""
@@ -878,13 +881,13 @@ class AosCxConnector(RESTConnector):
             f"AosCxConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
         )
 
+        # open to set access mode
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
         # start with the untagged/access vlan in the payload for the http patch request
         v = self.get_vlan_by_id(vlan_id=untagged_vlan)
-        data = {
-            "vlan_tag": {
-                "untagged_vlan": v.vlan_uri,
-            },
-        }
 
         # encode the / in the interface to a url format:
         if_name_url = urllib.parse.quote(interface.name, safe="")
@@ -893,85 +896,66 @@ class AosCxConnector(RESTConnector):
         if not tagged_vlans and not allow_all:
             # no tagged vlan, ie "access mode".
             dprint("  access mode")
-            data["vlan_mode"] = "access"
+            data = {
+                "vlan_mode": "access",
+                "vlan_tag": {
+                    untagged_vlan: v.vlan_uri,
+                },
+            }
         else:
-            dprint("  trunk mode")
-            if interface.is_tagged:
-                # if interface is already tagged, the patch segment below does NOT delete the other tagged vlans
-                # that are not allowed from now on.
-                # as a work-around, we are going to set "access mode" first, which clears out all trunk/tagged vlans!
-                # this is likely needed because we don't fully understand the API ! (mea culpa)
-                dprint("  already trunk, clearing all vlans")
-                # interface.is_tagged = False
-                # success = self.set_interface_untagged_vlan(interface=interface, new_vlan_id=untagged_vlan)
-                # if not success:
-                #     dprint("ERROR clearing trunik vlans in access mode!")
-                #     return False
-                # return True
-
-                # open to set access mode
-                if not self._open_device():
-                    dprint("_open_device() failed!")
-                    return False
-
-                access_mode = {
-                    "vlan_mode": "access",
-                }
-                access_mode["vlan_trunks"] = {}
-                try:
-                    success = self._patch(
-                        path=f"system/interfaces/{if_name_url}",
-                        data=json.dumps(access_mode),
-                        message="Clear Trunk - Set Access Mode",
-                    )
-                except Exception as err:
-                    # some error triggered
-                    dprint(f"ERROR setting mode and vlans: {err}")
-                    self.error.status = True
-                    self.error.description = "Exception error clearing interface vlans!"
-                    self.error.details = f"Info: {format(err)}"
-                    self._close_device()
-                    return False
-                if not success:
-                    dprint("   Clearing Trunk Vlans FAILED for Unknown Reasons!")
-                    # we need to add error info here!!!
-                    self.error.status = True
-                    self.error.description = "Error clearing trunk vlan!"
-                    if self.response.text:
-                        self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
-                    else:
-                        self.error.details = "We're not sure what happened, sorry... :-("
-                    self._close_device()
-                    return False
-
-                # these changes do not seem to take unless we close the session?
-                # again, likely our lack of understanding this api...
+            dprint("  trunk mode, reading FULL interface attributes")
+            # an interface in "access" mode does not clear "vlan_trunks" values.
+            # An HTTP PATCH does NOT delete tagged "trunk_vlans" that may already be set
+            # in both access or either of the tagged modes, so this could cause unwanted
+            # vlans permitted in the tagged trunk.
+            #
+            # A PUT deletes attributes that are not listed in the request data,
+            # i.e. can clear things like "description"
+            #
+            # We are going to read all "writable" interface attributes first,
+            # make changes to the tagged vlans, and write all those values back to the device.
+            try:
+                data = self._get(
+                    path=f"system/interfaces/{if_name_url}?selector=writable",
+                    message=f"Read writable attributes for {interface.name}",
+                )
+            except Exception as err:
+                # some error triggered
+                dprint(f"ERROR reading interface writable attributes: {err}")
+                self.error.status = True
+                self.error.description = "Exception error reading interface settings!"
+                self.error.details = f"Info: {format(err)}"
                 self._close_device()
+                return False
 
-                # now re-open for the actual setting of trunk info... (go figure :0)
-                if not self._open_device():
-                    dprint("  _open_device() re-open failed!")
-                    # self.error already set!
-                    return False
-
-            # set trunk mode
+            # data now contains the interface writable attributes, go modify for the tagged mode requested
             data["vlan_mode"] = "native-untagged"
-            # loop through all vlans, and see if they are allowed
-            trunked_vlans = {}
-            for vlan in self.vlans.values():
-                if allow_all or vlan.id in tagged_vlans:
-                    # allowed!
-                    trunked_vlans[vlan.id] = vlan.vlan_uri
-            # add these to the trunk config
-            data["vlan_trunks"] = trunked_vlans
+            data["vlan_tag"] = {
+                untagged_vlan: v.vlan_uri,
+            }
+            # # loop through all vlans, and see if they are allowed
+            # trunked_vlans = {}
+            # for vlan in self.vlans.values():
+            #     if allow_all or vlan.id in tagged_vlans:
+            #         # allowed!
+            #         trunked_vlans[vlan.id] = vlan.vlan_uri
+            if allow_all:
+                # this is the equivalent to CLI "vlan trunk allowed all"
+                data["vlan_trunks"] = {}
+            else:
+                # allow only specified vlans
+                trunked_vlans = {}
+                for vlan in self.vlans.values():
+                    if vlan.id in tagged_vlans:
+                        # allowed!
+                        trunked_vlans[vlan.id] = vlan.vlan_uri
+
+                # add these to the trunk config
+                data["vlan_trunks"] = trunked_vlans
 
         # here the actual work starts...
-        if not self._open_device():
-            dprint("_open_device() failed!")
-            return False
-
         try:
-            success = self._patch(
+            success = self._put(
                 path=f"system/interfaces/{if_name_url}",
                 data=json.dumps(data),
                 message="Set Interface Vlans",
