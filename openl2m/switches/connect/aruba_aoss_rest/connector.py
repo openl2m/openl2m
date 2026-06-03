@@ -631,7 +631,6 @@ class ArubaAOSsRestConnector(RESTConnector):
                 iface = self.get_interface_by_key(key=mac["port_id"])
                 if iface:
                     iface.add_learned_ethernet_address(eth_address=mac["mac_address"], vlan_id=mac["vlan_id"])
-                    self.eth_addr_count += 1
 
         #
         # get IPV4 ARP data - NOT implemented in API, so use CLI
@@ -736,7 +735,6 @@ class ArubaAOSsRestConnector(RESTConnector):
 
                     # add neighbor to interface:
                     iface.add_neighbor(neighbor=neighbor)
-                    self.neighbor_count += 1
 
         # to prevent the device from running out of REST ticket resources, close REST session
         self._close_device()

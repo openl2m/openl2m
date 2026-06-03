@@ -488,7 +488,7 @@ def get_lldp_info(neighbor):
     return mark_safe(info)
 
 
-# {% if connection.neighbor_count <= settings.NB_MAX_FOR_TD %}
+# {% if neighbor_count <= settings.NB_MAX_FOR_TD %}
 # flowchart TD
 # {% else %}
 # flowchart LR
@@ -520,7 +520,7 @@ def get_lldp_info(neighbor):
 
 
 @register.filter
-def get_neighbor_mermaid_graph(connection):
+def get_neighbor_mermaid_graph(connection, neighbor_count):
     """
     Return a string that represents the all lldp neighbors in a mermaid.js graph format.
     To keep things simple, we return a single icon, even when multiple capabilities exist.
@@ -537,7 +537,7 @@ config:
 ---
 """
     # select horizontal (LeftRight) or vertical (TopDown)
-    if settings.MM_GRAPH_EXPANDED or connection.neighbor_count > settings.NB_MAX_FOR_TD:
+    if settings.MM_GRAPH_EXPANDED or neighbor_count > settings.NB_MAX_FOR_TD:
         mermaid += "flowchart LR\n"
     else:
         mermaid += "flowchart TD\n"
@@ -736,7 +736,7 @@ def as_percentage_of(part, whole):
     if whole == 0:
         return "0%"
     try:
-        return "%d%%" % (float(part) / whole * 100)
+        return "%d%%" % (float(part) / whole * 100)     # pylint: disable=consider-using-f-string
     except (ValueError, ZeroDivisionError):
         return "0%"
 

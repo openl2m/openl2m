@@ -64,6 +64,33 @@ from switches.connect.constants import (
 from switches.utils import dprint, get_ip_dns_name, string_is_int
 
 
+class CountInstances:
+    # class track instance counts
+
+    # class variable to count instances.
+    _count = 0
+
+    # pylint: disable=redefined-builtin
+    def __init__(self):
+        # we have a new instance:
+        CountInstances._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        CountInstances._count -= 1
+
+    @classmethod
+    def clear_count(cls):
+        """Reset the number of instances"""
+        cls._count = 0
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
+
+
 # pylint: disable=too-few-public-methods
 class Error:
     """
@@ -126,9 +153,9 @@ class StackMember:
         StackMember._count -= 1
 
     @classmethod
-    def get_count(self):
+    def get_count(cls) -> int:
         """Return the number of instances"""
-        return StackMember._count
+        return cls._count
 
     def as_dict(self) -> dict:
         """
@@ -210,9 +237,9 @@ class Vlan:
         Vlan._count -= 1
 
     @classmethod
-    def get_count(self):
+    def get_count(cls) -> int:
         """Return the number of instances"""
-        return Vlan._count
+        return cls._count
 
     def set_name(self, name: str) -> None:
         self.name = name
@@ -394,16 +421,23 @@ class EthernetAddress(netaddr.EUI):
         self.hostname6: str = ""  # reverse lookup of ipv6 address.
         # we have a new instance:
         EthernetAddress._count += 1
+        dprint("ETH ADD CALLED!")
 
     def __del__(self):
         """Clean up this instance"""
         # remove from instance count
         EthernetAddress._count -= 1
+        dprint("ETH DELETE CALLED!")
 
     @classmethod
-    def get_count(self):
+    def clear_count(cls):
+        """Reset the number of instances"""
+        cls._count = 0
+
+    @classmethod
+    def get_count(cls) -> int:
         """Return the number of instances"""
-        return EthernetAddress._count
+        return cls._count
 
     def set_vlan(self, vlan_id: int) -> None:
         self.vlan_id = int(vlan_id)
@@ -529,9 +563,14 @@ class NeighborDevice:
         NeighborDevice._count -= 1
 
     @classmethod
-    def get_count(self):
+    def clear_count(cls):
+        """Reset the number of instances"""
+        cls._count = 0
+
+    @classmethod
+    def get_count(cls) -> int:
         """Return the number of instances"""
-        return NeighborDevice._count
+        return cls._count
 
     def set_port_name(self, port_name: str) -> None:
         """
@@ -739,9 +778,9 @@ class PoePSE:
         PoePSE._count -= 1
 
     @classmethod
-    def get_count(self):
+    def get_count(cls) -> int:
         """Return the number of instances"""
-        return PoePSE._count
+        return cls._count
 
     def as_dict(self) -> dict:
         """
@@ -857,9 +896,9 @@ class PoePort:
         PoePort._count -= 1
 
     @classmethod
-    def get_count(self):
+    def get_count(cls) -> int:
         """Return the number of instances"""
-        return PoePort._count
+        return cls._count
 
     def as_dict(self) -> dict:
         """
@@ -913,9 +952,9 @@ class Transceiver:
         Transceiver._count -= 1
 
     @classmethod
-    def get_count(self):
+    def get_count(cls) -> int:
         """Return the number of instances"""
-        return Transceiver._count
+        return cls._count
 
     def as_dict(self) -> dict:
         """
@@ -993,9 +1032,9 @@ class SyslogMsg:
         SyslogMsg._count -= 1
 
     @classmethod
-    def get_count(self):
+    def get_count(cls) -> int:
         """Return the number of instances"""
-        return SyslogMsg._count
+        return cls._count
 
     def as_dict(self) -> dict:
         """
@@ -1051,9 +1090,9 @@ class Vrf:
         Vrf._count -= 1
 
     @classmethod
-    def get_count(self):
+    def get_count(cls) -> int:
         """Return the number of instances"""
-        return Vrf._count
+        return cls._count
 
     def set_name(self, name: str):
         """Set the name attribute of a VRF
@@ -1258,9 +1297,9 @@ class Interface:
         Interface._count -= 1
 
     @classmethod
-    def get_count(self):
+    def get_count(cls) -> int:
         """Return the number of instances"""
-        return Interface._count
+        return cls._count
 
     def add_ip4_network(self, address: str, prefix_len: int = 0, netmask: str = "") -> None:
         """

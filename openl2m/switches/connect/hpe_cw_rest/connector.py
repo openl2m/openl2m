@@ -767,7 +767,6 @@ class HPECwRestConnector(RESTConnector):
                     iface = self._get_interface_by_port_id(port_id=mac["PortIndex"])
                     if iface:
                         iface.add_learned_ethernet_address(eth_address=mac["MacAddress"], vlan_id=mac["VLANID"])
-                        self.eth_addr_count += 1
                 else:
                     # this appears to happen on Aggregate interfaces:
                     # dprint(f"WARNING: ethernet PortIndex {mac['PortIndex']} unknown, trying PortName...")
@@ -776,7 +775,6 @@ class HPECwRestConnector(RESTConnector):
                         if iface:
                             dprint("  Ethernet adding from PortName !")
                             iface.add_learned_ethernet_address(eth_address=mac["MacAddress"], vlan_id=mac["VLANID"])
-                            self.eth_addr_count += 1
 
         #
         # get IPV4 ARP data
@@ -915,7 +913,6 @@ class HPECwRestConnector(RESTConnector):
         iface = self.get_interface_by_key(key=nb["IfIndex"])
         if iface:
             iface.add_neighbor(neighbor=neighbor)
-            self.neighbor_count += 1
 
     def parse_neighbor_basics(self, nb):
         #

@@ -31,7 +31,7 @@ from django.views import View
 
 from switches.device_actions import DeviceActions
 
-from switches.connect.classes import Error
+from switches.connect.classes import EthernetAddress, Error, NeighborDevice
 from switches.models import (
     CommandTemplate,
     Switch,
@@ -444,6 +444,8 @@ def switch_view(
 
     dprint("Basic Info OK")
 
+    eth_addr_count = 0
+    neighbor_count = 0
     if view == "arp_lldp":
         # catch errors in case not trapped in drivers
         try:
@@ -451,10 +453,14 @@ def switch_view(
                 log.type = LOG_TYPE_ERROR
                 log.description = "ERROR get_client_data()"
                 log.save()
+                dprint("ERROR getting ethernet addresses!")
                 # don't render error, since we have already read the basic interface data
                 # Note that errors are already added to warnings!
                 # return error_page(request=request, group=group, switch=switch, error=conn.error)
-            dprint("ARP-LLDP Info OK")
+            else:
+                eth_addr_count = EthernetAddress.get_count()
+                neighbor_count = NeighborDevice.get_count()
+                dprint(f"ARP-LLDP Info OK: {eth_addr_count} eth, {neighbor_count} lldp")
         except Exception as e:
             log.type = LOG_TYPE_ERROR
             log.description = (
@@ -572,6 +578,8 @@ def switch_view(
             "cmd": cmd,
             "bulk_edit": bulk_edit,
             "edit_vlans": edit_vlans,
+            "eth_addr_count": eth_addr_count,
+            "neighbor_count": neighbor_count,
             "time_since_last_read": time_since_last_read,
         },
     )

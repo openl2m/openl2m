@@ -103,8 +103,6 @@ class Connector:
             "switch",
             "error",
             "netmiko_connection",
-            "eth_addr_count",
-            "neighbor_count",
         ]
 
         self.hostname = ""  # system hostname, typically set in sub-class
@@ -130,8 +128,6 @@ class Connector:
         self.allowed_vlans: dict[int, Vlan] = (
             {}
         )  # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
-        self.eth_addr_count = 0  # number of known mac/ethernet addresses
-        self.neighbor_count = 0  # number of lldp neighbors
         self.warnings: list[str] = []  # list of warning strings that may be shown to users
         # timing related attributes:
         self.timing = {}  # dictionary to track how long various calls take to read. Key = name, value = tuple()
@@ -538,6 +534,9 @@ class Connector:
         for interface in self.interfaces.values():
             interface.eth = {}
             interface.lldp = {}
+        # reset the counter for the objects:
+        EthernetAddress.clear_count()
+        NeighborDevice.clear_count()
 
     """
     These are the "set" functions that implement changes on the device.
@@ -1060,7 +1059,6 @@ class Connector:
                 ip6_address=ip6_address,
                 vrf_name=vrf_name,
             )
-            self.eth_addr_count += 1
             return a
         else:
             dprint(f"conn.add_learned_ethernet_address(): Interface {if_name} does NOT exist!")
@@ -1081,7 +1079,6 @@ class Connector:
         iface = self.get_interface_by_key(if_name)
         if iface:
             iface.add_neighbor(neighbor)
-            self.neighbor_count += 1
             return True
         else:
             dprint(f"conn.add_neighbor_object(): Interface {if_name} does NOT exist!")

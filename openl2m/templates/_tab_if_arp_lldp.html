@@ -2,7 +2,7 @@
 {% load static %}
 
 <div class="card border-default container-fluid">
-{% if connection.eth_addr_count == 0 and connection.neighbor_count == 0 %}
+{% if eth_addr_count == 0 and neighbor_count == 0 %}
   <div class="card-header bg-default">
     <strong>No Ethernet addresses and no neighbors found!</strong>
   </div>
@@ -17,9 +17,9 @@
           {% if connection.poe_capable %}
           <th>PoE</th>
           {% endif %}
-          {% if connection.eth_addr_count > 0 %}
+          {% if eth_addr_count > 0 %}
           <th>
-            <!-- <a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fa-solid fa-download" aria-hidden="true"></i> Ethernet Addresses ({{ connection.eth_addr_count }})</a> -->
+            <!-- <a data-bs-toggle="tooltip" href="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id  %}" title="Click here to download Ethernet addresses and Neighbor info to Excel"><i class="fa-solid fa-download" aria-hidden="true"></i> Ethernet Addresses ({{ eth_addr_count }})</a> -->
             <form
               action="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id %}"
               method="post">
@@ -27,11 +27,11 @@
               <button type="submit" name="DownloadXLSX" value="Download" class="btn-link"
               data-bs-toggle="tooltip"
               data-bs-title="Click here to download Ethernet addresses and Neighbor info to Excel"
-              ><i class="fa-solid fa-download" aria-hidden="true"></i> Ethernet Addresses ({{ connection.eth_addr_count }})</button>
+              ><i class="fa-solid fa-download" aria-hidden="true"></i> Ethernet Addresses ({{ eth_addr_count }})</button>
             </form>
           </th>
           {% endif %}
-          {% if connection.neighbor_count > 0 %}
+          {% if neighbor_count > 0 %}
           <th>
             <form
               action="{% url 'switches:switch_download_ethernet_neighbors' group.id switch.id %}"
@@ -40,7 +40,7 @@
               <button type="submit" name="DownloadXLSX" value="Download" class="btn-link"
               data-bs-toggle="tooltip"
               data-bs-title="Click here to download Ethernet addresses and Neighbor info to Excel"
-              ><i class="fa-solid fa-download" aria-hidden="true"></i> Neighbors ({{ connection.neighbor_count }})</button>
+              ><i class="fa-solid fa-download" aria-hidden="true"></i> Neighbors ({{ neighbor_count }})</button>
             </form>
             &nbsp;
             <button id="openGraphButton" type="submit" name="ShowGraph" value="ShowGraph" class="btn-link"
@@ -97,7 +97,7 @@
             </td>
             {% endif %}
 
-            {% if connection.eth_addr_count > 0 %}
+            {% if eth_addr_count > 0 %}
             <td>{# known ethernet addresses #}
               {% with eth_size=iface.eth|length %}
               {% if eth_size > 1 %}{# add interface eth table #}
@@ -152,7 +152,7 @@
             </td>
             {% endif %}
 
-            {% if connection.neighbor_count > 0 %}
+            {% if neighbor_count > 0 %}
             <td>{# lldp neigbors #}
               {% for lldp_index,neighbor in iface.lldp.items %}
                 <div>{{ neighbor|get_lldp_info }}
@@ -171,7 +171,7 @@
     </table>
 
   </div> {# class table-responsive #}
-  {% if connection.neighbor_count > 0 %}
+  {% if neighbor_count > 0 %}
     {% include "_neighbor_mermaid_graphic.html" %}
   {% endif %}
 {% endif %}

@@ -2562,7 +2562,6 @@ class SnmpConnector(Connector):
                         # and _parse_mibs_q_bridge_eth()
                     if str(e) not in self.interfaces[if_index].eth:
                         self.interfaces[if_index].eth[str(e)] = e
-                        self.eth_addr_count += 1
                         dprint(f"  Added MAC address: {e}")
                     else:
                         dprint(f"  Duplicate MAC: {e}")
@@ -2626,7 +2625,6 @@ class SnmpConnector(Connector):
                     dprint(f"  NEW MAC: {e}, vlan: {e.vlan_id}, interface {self.interfaces[if_index].name}")
                     if str(e) not in self.interfaces[if_index].eth:
                         self.interfaces[if_index].eth[str(e)] = e
-                        self.eth_addr_count += 1
                         dprint("  Ethernet Added!")
                     else:
                         dprint(f"  Duplicate MAC: {e}")
@@ -2680,7 +2678,6 @@ class SnmpConnector(Connector):
                     # ethernet not found from the layer 2 tables. Add an entry
                     # this should never fail, as this was already checked above!
                     iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
-                    self.eth_addr_count += 1
             else:
                 dprint(f"ERROR: interface not found for ifIndex {if_index}")
 
@@ -3372,7 +3369,6 @@ class SnmpConnector(Connector):
                 neighbor.port_name = val
                 # and add to interface lldp info:
                 self.interfaces[if_index].lldp[lldp_index] = neighbor
-                self.neighbor_count += 1
             return True
 
         # lldpRemPortIdSubType is used to indicate what the value from "lldpRemPortId" means.
