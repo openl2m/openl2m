@@ -1867,6 +1867,15 @@ class Connector:
                     iface.visible = False
                     continue
 
+            # next check vendor-specific restrictions. This allows denying Stacking ports, etc.
+            # vendor should set reason for not managing!
+            if not self._can_manage_interface(interface=iface):
+                iface.manageable = False
+                iface.allow_poe_toggle = False
+                iface.can_edit_description = False
+                iface.visible = True
+                continue
+
             # if we are showing it, check other thing as well:
 
             # 802.1x authenticated interfaces are denied management, but shown!
@@ -1885,15 +1894,6 @@ class Connector:
                 iface.can_edit_description = False
                 iface.visible = True
                 iface.unmanage_reason = "Access denied: interface in routed mode!"
-                continue
-
-            # next check vendor-specific restrictions. This allows denying Stacking ports, etc.
-            # vendor should set reason for not managing!
-            if not self._can_manage_interface(interface=iface):
-                iface.manageable = False
-                iface.allow_poe_toggle = False
-                iface.can_edit_description = False
-                iface.visible = True
                 continue
 
             # Read-Only switch cannot be overwritten, not even by SuperUser!
