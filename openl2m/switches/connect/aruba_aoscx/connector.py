@@ -447,7 +447,9 @@ class AosCxConnector(RESTConnector):
             # check VRF membership
             if "vrf" in interface:
                 if interface["vrf"] is not None:
-                    vrf_name = interface["vrf"]
+                    # this is a dictionary of one element only!
+                    # e.g.: 'vrf': {'KeepAlive': '/rest/v10.17/system/vrfs/KeepAlive'},
+                    vrf_name = next(iter(interface["vrf"]))  # we use first element only!
                     if iface.name not in self.vrfs[vrf_name].interfaces:
                         self.vrfs[vrf_name].interfaces.append(iface.name)
                     # assing this vrf name to the interface:
