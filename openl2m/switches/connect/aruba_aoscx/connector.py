@@ -69,6 +69,7 @@ from switches.connect.constants import (
     # IANA_TYPE_IPV4,
     # IANA_TYPE_IPV6,
 )
+from switches.connect.aruba_aoscx.constants import VSX_NONE, VSX_ISL, VSX_KEEPALIVE
 
 #####################################################################
 # NOTE: each function call is enclosed by an open / close API call, #
@@ -317,6 +318,7 @@ class AosCxConnector(RESTConnector):
             iface = Interface(if_name)
             iface.name = if_name
             iface.type = IF_TYPE_ETHERNET  # unless we learn differently later
+            iface.if_vlan_mode = VSX_NONE
             if interface["description"]:  # when not set, this is None, so catch that!
                 iface.description = interface["description"]
 
@@ -512,6 +514,93 @@ class AosCxConnector(RESTConnector):
             # add finally add this interface!
             self.add_interface(iface)
 
+        ############################
+        # read VSX (stacking) info #
+        ############################
+
+        try:
+            vsx_info = self._get(path="system/vsx?depth=2", message="Get VSX Info")
+        except Exception as error:
+            self.error.status = True
+            self.error.description = "Error getting VSX info!"
+            self.error.details = f"Info: {format(error)}"
+            dprint("  get_my_basic_info(): error getting VSX info!")
+            self._close_device()
+            return False
+
+        if vsx_info:
+            if "isl_port" in vsx_info:
+                self.add_more_info("System", "VSX Stacking", "Yes")
+                for if_name, if_info in vsx_info["isl_port"].items():
+                    dprint(f"VSX LINK PORT: {if_name}")
+                    iface = self.get_interface_by_name(name=if_name)
+                    if iface:
+                        iface.if_vlan_mode = VSX_ISL
+                    # for lags, see if there are member interfaces, mark them as ISL as well!
+                    if "interfaces" in if_info:
+                        for vsx_name in if_info["interfaces"]:
+                            dprint(f"VSX LINK MEMBER PORT: {vsx_name}")
+                            iface = self.get_interface_by_name(name=vsx_name)
+                            if iface:
+                                iface.if_vlan_mode = VSX_ISL
+
+            if "keepalive_port" in vsx_info:
+                for if_name, if_info in vsx_info["keepalive_port"].items():
+                    dprint(f"VSX KeepAlive Port: {if_name}")
+                    iface = self.get_interface_by_name(name=if_name)
+                    if iface:
+                        iface.if_vlan_mode = VSX_KEEPALIVE
+                    # for lags, see if there are member interfaces, mark them as KeepAlive as well!
+                    if "interfaces" in if_info:
+                        for vsx_name in if_info["interfaces"]:
+                            dprint(f"VSX KeepAlive MEMBER PORT: {vsx_name}")
+                            iface = self.get_interface_by_name(name=vsx_name)
+                            if iface:
+                                iface.if_vlan_mode = VSX_KEEPALIVE
+
+            # other potentially interesting items:
+            # 'keepalive_last_established': 1777926498,
+            # 'keepalive_last_failed': None,
+            # 'keepalive_peer_ip': '10.199.74.2',
+            # 'keepalive_peer_status': {'peer_islp_state': 'in_sync',
+            #                         'peer_system_id': '02:01:10:xx:xx:xx'},
+            # 'keepalive_src_ip': '10.199.74.1',
+            # 'keepalive_statistics': {'dead_interval_timeout': 0,
+            #                         'dropped': 0,
+            #                         'rx': 2673237,
+            #                         'tx': 2674474},
+            # 'keepalive_status': {'state': 'in_sync_established'},
+            # 'keepalive_timers': {'dead_interval': 3, 'hello_interval': 1},
+            # 'keepalive_udp_port': 7678,
+            # 'keepalive_vrf': {'KeepAlive': ...
+            #  'keepalive_src_ip': '10.199.74.1',
+            #  'keepalive_statistics': {'dead_interval_timeout': 0,
+            #                           'dropped': 0,
+            #                           'rx': 2673237,
+            #                           'tx': 2674474},
+            #  'keepalive_status': {'state': 'in_sync_established'},
+            #  'keepalive_timers': {'dead_interval': 3, 'hello_interval': 1},
+            #  'keepalive_udp_port': 7678,
+            #  'keepalive_vrf': {'KeepAlive':
+
+            #  'oper_status': {'config_sync_state': 'in-sync',
+            #                  'device_role': 'primary',
+            #                  'https_server_state': 'peer_reachable',
+            #                  'isl_mgmt_state': 'operational',
+
+            #  'peer_status': {'peer_device_role': 'secondary',
+            #                  'peer_isl_port': 'lag10',
+            #                  'peer_islp_version': 2,
+            #                  'peer_ready': True,
+            #                  'peer_system_id': '02:01:10:74:00:19',
+            #                  'peer_system_mac': '14:7e:19:a5:96:40'},
+            #  'peer_sw_version': 'LL.10.17.1010',
+            self.add_more_info("VSX Stacking", "Status", vsx_info["oper_status"]["config_sync_state"])
+            self.add_more_info("VSX Stacking", "My Role", vsx_info["oper_status"]["device_role"])
+            self.add_more_info("VSX Stacking", "Peer Role", vsx_info["peer_status"]["peer_device_role"])
+            self.add_more_info("VSX Stacking", "Peer IP", vsx_info["keepalive_peer_ip"])
+            self.add_more_info("VSX Stacking", "Peer Fw", vsx_info["peer_sw_version"])
+
         # fix up some things that are not known at time of interface discovery,
         # such as LACP master interfaces:
         self._map_lacp_members_to_logical()
@@ -614,6 +703,20 @@ class AosCxConnector(RESTConnector):
 
         # done...
         self._close_device()
+        return True
+
+    def _can_manage_interface(self, interface: Interface) -> bool:
+        """
+        vendor-specific override of function to check if this interface can be managed.
+        We check for VSX ports here.
+        Returns True for normal interfaces, but False for VSX ports.
+        """
+        if interface.if_vlan_mode == VSX_ISL:
+            interface.unmanage_reason = "Access denied: interface is VSX stacking port!"
+            return False
+        if interface.if_vlan_mode == VSX_KEEPALIVE:
+            interface.unmanage_reason = "Access denied: interface is VSX KeepAlive port!"
+            return False
         return True
 
     def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
