@@ -529,77 +529,91 @@ class AosCxConnector(RESTConnector):
             return False
 
         if vsx_info:
+
             if "isl_port" in vsx_info:
                 self.add_more_info("System", "VSX Stacking", "Yes")
+                isl_ports = []  # track ISL ports
+                ka_ports = []  # track KeepAlive ports
                 for if_name, if_info in vsx_info["isl_port"].items():
                     dprint(f"VSX LINK PORT: {if_name}")
                     iface = self.get_interface_by_name(name=if_name)
                     if iface:
                         iface.if_vlan_mode = VSX_ISL
+                        isl_ports.append(if_name)
                     # for lags, see if there are member interfaces, mark them as ISL as well!
                     if "interfaces" in if_info:
-                        for vsx_name in if_info["interfaces"]:
-                            dprint(f"VSX LINK MEMBER PORT: {vsx_name}")
-                            iface = self.get_interface_by_name(name=vsx_name)
+                        for isl_name in if_info["interfaces"]:
+                            dprint(f"VSX LINK MEMBER PORT: {isl_name}")
+                            iface = self.get_interface_by_name(name=isl_name)
                             if iface:
                                 iface.if_vlan_mode = VSX_ISL
+                                if isl_name != if_name:
+                                    isl_ports.append(isl_name)
 
-            if "keepalive_port" in vsx_info:
-                for if_name, if_info in vsx_info["keepalive_port"].items():
-                    dprint(f"VSX KeepAlive Port: {if_name}")
-                    iface = self.get_interface_by_name(name=if_name)
-                    if iface:
-                        iface.if_vlan_mode = VSX_KEEPALIVE
-                    # for lags, see if there are member interfaces, mark them as KeepAlive as well!
-                    if "interfaces" in if_info:
-                        for vsx_name in if_info["interfaces"]:
-                            dprint(f"VSX KeepAlive MEMBER PORT: {vsx_name}")
-                            iface = self.get_interface_by_name(name=vsx_name)
-                            if iface:
-                                iface.if_vlan_mode = VSX_KEEPALIVE
+                if "keepalive_port" in vsx_info:
+                    for if_name, if_info in vsx_info["keepalive_port"].items():
+                        dprint(f"VSX KeepAlive Port: {if_name}")
+                        iface = self.get_interface_by_name(name=if_name)
+                        if iface:
+                            iface.if_vlan_mode = VSX_KEEPALIVE
+                            ka_ports.append(if_name)
+                        # for lags, see if there are member interfaces, mark them as KeepAlive as well!
+                        if "interfaces" in if_info:
+                            for ka_name in if_info["interfaces"]:
+                                dprint(f"VSX KeepAlive MEMBER PORT: {ka_name}")
+                                iface = self.get_interface_by_name(name=ka_name)
+                                if iface:
+                                    iface.if_vlan_mode = VSX_KEEPALIVE
+                                    if ka_name != if_name:
+                                        ka_ports.append(ka_name)
 
-            # other potentially interesting items:
-            # 'keepalive_last_established': 1777926498,
-            # 'keepalive_last_failed': None,
-            # 'keepalive_peer_ip': '10.199.74.2',
-            # 'keepalive_peer_status': {'peer_islp_state': 'in_sync',
-            #                         'peer_system_id': '02:01:10:xx:xx:xx'},
-            # 'keepalive_src_ip': '10.199.74.1',
-            # 'keepalive_statistics': {'dead_interval_timeout': 0,
-            #                         'dropped': 0,
-            #                         'rx': 2673237,
-            #                         'tx': 2674474},
-            # 'keepalive_status': {'state': 'in_sync_established'},
-            # 'keepalive_timers': {'dead_interval': 3, 'hello_interval': 1},
-            # 'keepalive_udp_port': 7678,
-            # 'keepalive_vrf': {'KeepAlive': ...
-            #  'keepalive_src_ip': '10.199.74.1',
-            #  'keepalive_statistics': {'dead_interval_timeout': 0,
-            #                           'dropped': 0,
-            #                           'rx': 2673237,
-            #                           'tx': 2674474},
-            #  'keepalive_status': {'state': 'in_sync_established'},
-            #  'keepalive_timers': {'dead_interval': 3, 'hello_interval': 1},
-            #  'keepalive_udp_port': 7678,
-            #  'keepalive_vrf': {'KeepAlive':
+                # other potentially interesting items:
+                # 'keepalive_last_established': 1777926498,
+                # 'keepalive_last_failed': None,
+                # 'keepalive_peer_ip': '10.199.74.2',
+                # 'keepalive_peer_status': {'peer_islp_state': 'in_sync',
+                #                         'peer_system_id': '02:01:10:xx:xx:xx'},
+                # 'keepalive_src_ip': '10.199.74.1',
+                # 'keepalive_statistics': {'dead_interval_timeout': 0,
+                #                         'dropped': 0,
+                #                         'rx': 2673237,
+                #                         'tx': 2674474},
+                # 'keepalive_status': {'state': 'in_sync_established'},
+                # 'keepalive_timers': {'dead_interval': 3, 'hello_interval': 1},
+                # 'keepalive_udp_port': 7678,
+                # 'keepalive_vrf': {'KeepAlive': ...
+                #  'keepalive_src_ip': '10.199.74.1',
+                #  'keepalive_statistics': {'dead_interval_timeout': 0,
+                #                           'dropped': 0,
+                #                           'rx': 2673237,
+                #                           'tx': 2674474},
+                #  'keepalive_status': {'state': 'in_sync_established'},
+                #  'keepalive_timers': {'dead_interval': 3, 'hello_interval': 1},
+                #  'keepalive_udp_port': 7678,
+                #  'keepalive_vrf': {'KeepAlive':
 
-            #  'oper_status': {'config_sync_state': 'in-sync',
-            #                  'device_role': 'primary',
-            #                  'https_server_state': 'peer_reachable',
-            #                  'isl_mgmt_state': 'operational',
+                #  'oper_status': {'config_sync_state': 'in-sync',
+                #                  'device_role': 'primary',
+                #                  'https_server_state': 'peer_reachable',
+                #                  'isl_mgmt_state': 'operational',
 
-            #  'peer_status': {'peer_device_role': 'secondary',
-            #                  'peer_isl_port': 'lag10',
-            #                  'peer_islp_version': 2,
-            #                  'peer_ready': True,
-            #                  'peer_system_id': '02:01:10:74:00:19',
-            #                  'peer_system_mac': '14:7e:19:a5:96:40'},
-            #  'peer_sw_version': 'LL.10.17.1010',
-            self.add_more_info("VSX Stacking", "Status", vsx_info["oper_status"]["config_sync_state"])
-            self.add_more_info("VSX Stacking", "My Role", vsx_info["oper_status"]["device_role"])
-            self.add_more_info("VSX Stacking", "Peer Role", vsx_info["peer_status"]["peer_device_role"])
-            self.add_more_info("VSX Stacking", "Peer IP", vsx_info["keepalive_peer_ip"])
-            self.add_more_info("VSX Stacking", "Peer Fw", vsx_info["peer_sw_version"])
+                #  'peer_status': {'peer_device_role': 'secondary',
+                #                  'peer_isl_port': 'lag10',
+                #                  'peer_islp_version': 2,
+                #                  'peer_ready': True,
+                #                  'peer_system_id': '02:01:10:74:00:19',
+                #                  'peer_system_mac': '14:7e:19:a5:96:40'},
+                #  'peer_sw_version': 'LL.10.17.1010',
+                self.add_more_info("VSX Stacking", "Status", vsx_info["oper_status"]["config_sync_state"])
+                self.add_more_info("VSX Stacking", "My Role", vsx_info["oper_status"]["device_role"])
+                self.add_more_info("VSX Stacking", "Peer Role", vsx_info["peer_status"]["peer_device_role"])
+                self.add_more_info("VSX Stacking", "Peer IP", vsx_info["keepalive_peer_ip"])
+                self.add_more_info("VSX Stacking", "Peer Fw", vsx_info["peer_sw_version"])
+                self.add_more_info("VSX Stacking", "ISL Ports", ", ".join(isl_ports))
+                self.add_more_info("VSX Stacking", "KeepAlive Ports", ", ".join(ka_ports))
+
+            else:
+                self.add_more_info("System", "VSX Stacking", "No")
 
         # fix up some things that are not known at time of interface discovery,
         # such as LACP master interfaces:
