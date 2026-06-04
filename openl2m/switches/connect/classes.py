@@ -1251,7 +1251,9 @@ class Interface:
         # Cisco-SB devices use this for general, access, trunk modes.
         self.is_dot1x: bool = False  # if True, this interface is configured for 802.1x port authentication
         # we do not allow this port to be edited!
-        self.if_vlan_mode: int = -1
+        self.if_vlan_mode: int = -1  # a field set by and interpreted by specific drivers to map "special" interfaces
+        # typically used to set, and then read in the driver-specifc "def _can_manage_interface()" to disallow
+        # interface management...
         self.voice_vlan: int = 0  # Cisco specific "Voice Vlan"
         self.can_change_vlan: bool = (
             True  # if set, we can change the vlan; some device types this is not implemented yet!
