@@ -25,7 +25,7 @@ def user_can_bulkedit(user, group, switch):
     Return True is so, False if not.
     """
     if (
-        user.profile.bulk_edit
+        user.profile.bulk_edit  # pylint: disable=too-many-boolean-expressions
         and group.bulk_edit
         and switch.bulk_edit
         and not group.read_only

@@ -57,18 +57,18 @@ class Command(BaseCommand):
         try:
             user = User.objects.get(username=username)
         except Exception:
-            self.stdout.write(self.style.ERROR(f"Error: user '{username}' not found!"))
+            self.stdout.write(self.style.ERROR(f"Error: user '{username}' not found!"))  # pylint: disable=no-member
             return
         # check if we exceed max:
-        count = Token.objects.all().filter(user=user).count()
+        count = Token.objects.all().filter(user=user).count()  # pylint: disable=no-member
         if count >= settings.MAX_API_TOKENS:
-            self.stdout.write(self.style.ERROR(f"Error: Maximum number of tokens exceeded for '{username}'!"))
+            self.stdout.write(self.style.ERROR(f"Error: Maximum number of tokens exceeded for '{username}'!"))  # pylint: disable=no-member
         else:
             # get a new token:
             t = Token()
             t.user = user
             t.key = Token.generate_key()
-            self.stdout.write(self.style.SUCCESS(f"New token for '{username}': {t.key}"))
+            self.stdout.write(self.style.SUCCESS(f"New token for '{username}': {t.key}"))  # pylint: disable=no-member
             t.save()
             # log this!
             log = Log(

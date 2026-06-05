@@ -20,14 +20,14 @@ from switches.utils import dprint, get_remote_ip
 
 # are we actually using LDAP
 if settings.LDAP_CONFIG is not None:
-    from django.dispatch import receiver
+    from django.dispatch import receiver  # pylint: disable=ungrouped-imports
     from django_auth_ldap.backend import populate_user, ldap_error, LDAPBackend
 
-    from switches.models import SwitchGroup, Log
-    from switches import constants
+    from switches import constants  # pylint: disable=ungrouped-imports
+    from switches.models import Log, SwitchGroup
 
     @receiver(populate_user, sender=LDAPBackend)
-    def ldap_auth_handler(user, ldap_user, **kwargs):
+    def ldap_auth_handler(user, ldap_user, **kwargs):  # pylint: disable=unused-argument
         """
         Django Signal handler that assigns user to SwitchGroup(s)
 
@@ -63,7 +63,7 @@ if settings.LDAP_CONFIG is not None:
                 switchgroup_name = match.group(1).strip()
                 # Add user to the SwitchGroup.
                 try:
-                    group = SwitchGroup.objects.get(name=switchgroup_name)
+                    group = SwitchGroup.objects.get(name=switchgroup_name)  # pylint: disable=no-member
                     # existing SwitchGroup, try adding below
                 except Exception:
                     # new SwitchGroup() needed
@@ -119,7 +119,7 @@ if settings.LDAP_CONFIG is not None:
                         dprint(f"LDAP: ERROR adding user to switchgroup '{switchgroup_name}'")
 
     @receiver(ldap_error, sender=LDAPBackend)
-    def ldap_error_handler(context, user, request, exception, **kwargs):
+    def ldap_error_handler(context, user, request, exception, **kwargs):  # pylint: disable=unused-argument
         """
         Django Signal handler that logs LDAP related login errors
 

@@ -44,7 +44,7 @@ def add_user_to_switchgroups(request, user):
         try:
             pk = int(pk)
             group_list.append(pk)
-            group = SwitchGroup.objects.get(pk=pk)
+            group = SwitchGroup.objects.get(pk=pk)  # pylint: disable=no-member
             dprint(f"    ADD to group: {pk} = {group.name}")
             group.users.add(user)
         except Exception as err:
@@ -52,7 +52,7 @@ def add_user_to_switchgroups(request, user):
             dprint(f"SwitchGroup.get({pk}) error: {err}")
 
     # now go through and remove from all other groups:
-    for group in SwitchGroup.objects.all():
+    for group in SwitchGroup.objects.all():  # pylint: disable=no-member
         if group.pk not in group_list:
             dprint(f"    DELETE from group: {group.pk} = {group.name}")
             group.users.remove(user)  # remove is No-Op if not member.
@@ -83,7 +83,7 @@ def update_user_profile(request, user):
         d = json.loads(request.data['profile'])
         if isinstance(d, dict):
             # all looks good, get user's Profile()
-            profile = Profile.objects.get(user=user)
+            profile = Profile.objects.get(user=user)  # pylint: disable=no-member
             dprint(f"Found Profile: {repr(profile)}")
             # and go update the fields:
             for name, value in d.items():

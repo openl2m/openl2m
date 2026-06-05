@@ -39,7 +39,7 @@ from users.api.admin.utils import add_user_to_switchgroups, update_user_profile
 from openl2m.api.authentication import IsSuperUser
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):  # pylint: disable=too-many-ancestors
     """
     API endpoint that allows users to be viewed or edited.
     """
