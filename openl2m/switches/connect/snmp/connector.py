@@ -1396,6 +1396,11 @@ class SnmpConnector(Connector):
             ipAddressIfIndex from ipAddressTable, new style, contains both IPv4 and IPv6 addresses.
         - ipv6AddrPfxLength from OLD deprecated IPV6-MIB, still available on some routers.
 
+        NOTE: if we find an IPv4/6 address on an Ethernet interface,
+              we assume this interface is in routing mode,
+              as only routing mode Ethernet interfaces can have IP addresses!
+              Same for Aggregate interfaces...
+
         Returns 1 on success, -1 on failure
         """
         #
@@ -2910,6 +2915,10 @@ class SnmpConnector(Connector):
         This is an OLD deprecated part of the IP-MIB, that only handles IPv4 addresses.
         Some devices still support this!
 
+        NOTE: if we find an IPv4/6 address on an Ethernet or LAG interface,
+              we assume this interface is in routing mode,
+              as only routing mode Ethernet or LAG interfaces can have IP addresses!
+
         Params:
             oid (str): the SNMP OID to parse
             val (str): the value of the SNMP OID we are parsing
@@ -2929,9 +2938,15 @@ class SnmpConnector(Connector):
             if ip in self.ip4_to_if_index:
                 if_key = self.ip4_to_if_index[ip]
                 # make sure we have an interface for this key:
-                if if_key in self.interfaces:
-                    # now add this IP / Netmask combo to this interface:
-                    self.interfaces[if_key].add_ip4_network(address=ip, netmask=val)
+                # if if_key in self.interfaces:
+                #     # now add this IP / Netmask combo to this interface:
+                #     self.interfaces[if_key].add_ip4_network(address=ip, netmask=val)
+                iface = self.get_interface_by_key(key=if_key)
+                if iface:
+                    iface.add_ip4_network(address=ip, netmask=val)
+                    # these types are routed if they have an IP address of any kind!
+                    if iface.type in (IF_TYPE_ETHERNET, IF_TYPE_LAGG):
+                        iface.is_routed = True
             return True
 
         # we did not parse the OID.
@@ -2950,6 +2965,11 @@ class SnmpConnector(Connector):
         """
         Parse a single OID from IP-MIB with data returned from the "ipAddressIfIndex" Interface IP address MIBs.
         This can return both IPv4 and IPv6 with address type field, see parsing below.
+
+        NOTE: if we find an IPv4/6 address on an Ethernet interface,
+              we assume this interface is in routing mode,
+              as only routing mode Ethernet interfaces can have IP addresses!
+              Same for Aggregate interfaces...
 
         Params:
             oid (str): the SNMP OID to parse
@@ -2990,6 +3010,9 @@ class SnmpConnector(Connector):
                         dprint(f"   INTERFACE IPV6={ip_address} (/64)")
                         # add to the interface, assume a /64:
                         iface.add_ip6_network(address=ip_address, prefix_len=64)
+                    # these types are routed if they have an IP address of any kind!
+                    if iface.type in (IF_TYPE_ETHERNET, IF_TYPE_LAGG):
+                        iface.is_routed = True
                 else:
                     dprint("INVALID empty IP!")
             else:
@@ -3093,6 +3116,10 @@ class SnmpConnector(Connector):
     def _parse_mibs_ipv6_interface_address(self, oid: str, val: str) -> bool:
         """Parse the OLD, deprecated IPV6-MIB entry "ipv6AddrPfxLength" for interface IPv6 addresses.
 
+        NOTE: if we find an IPv4/6 address on an Ethernet or LAG interface,
+              we assume this interface is in routing mode,
+              as only routing mode Ethernet or LAG interfaces can have IP addresses!
+
         Params:
             oid (str): the SNMP OID to parse
             val (str): the value of the SNMP OID we are parsing
@@ -3123,6 +3150,9 @@ class SnmpConnector(Connector):
                     iface.add_ip6_network(
                         address=ip, prefix_len=int(val)
                     )  # Link-Local is handled by add_ip6_network()!
+                    # these types are routed if they have an IP address of any kind!
+                    if iface.type in (IF_TYPE_ETHERNET, IF_TYPE_LAGG):
+                        iface.is_routed = True
                 else:
                     dprint("INVALID empty IP returned!")
             else:
