@@ -187,6 +187,8 @@ __Command Templates Menu:__ Run pre-defined commands with user-input on the devi
 
 __VLAN Edit Menu:__ Add, Rename, or Delete vlans
 
+Enable this in your configuration.py as needed.
+
 <kbd><img src= "docs/_static/vlan-edit.png" alt="VLAN Edit Menu"></kbd>
 
 
