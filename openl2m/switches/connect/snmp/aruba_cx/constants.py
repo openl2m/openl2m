@@ -34,14 +34,21 @@ enterprise_id_info[ENTERPRISE_ID_HP_ENTERPRISE] = "Aruba (HPE)"
 # ARUBAWIRED-VSX-MIB has VSX stacking info
 #
 arubaWiredVsxMIB = ".1.3.6.1.4.1.47196.4.1.1.3.7"
+snmp_mib_variables["arubaWiredVsxMIB"] = arubaWiredVsxMIB
 
 # arubaWiredVsxConfig = "".1.3.6.1.4.1.47196.4.1.1.3.7.1"
 
 # arubaWiredVsxIslConfig = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.1"
 arubaWiredVsxIslPort = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.1.1"
 
+# we define a few constants to track VSX ports, the same as for the AOS-CX REST driver
+VSX_NONE = 0  # not a VSX interface
+VSX_ISL = 1  # VSX Inter Switch Link port
+VSX_KEEPALIVE = 2  # VSX Keep-Alive port
+
 # arubaWiredVsxKeepAliveConfig = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2"
 arubaWiredVsxKeepAliveSrcIPAddrType = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2.1"
+arubaWiredVsxKeepAliveSrcIPAddr = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2.2"
 arubaWiredVsxKeepAliveVrf = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2.3"
 arubaWiredVsxKeepAlivePeerIPAddrType = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2.5"
 arubaWiredVsxKeepAlivePeerIPAddr = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2.6"
