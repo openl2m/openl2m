@@ -37,6 +37,21 @@ The default timeout is increased to 10 seconds.
   REST_CLIENT_TIMEOUT = 10
 
 
+Version 4.1.1
+-------------
+
+Release Date: TBD
+
+* for SNMP devices, mark Ethernet or Aggregate interfaces with IPv4/6 addresses as routed.
+* read VSX "stacking" info for AOS-CX device over SNMP and REST API.
+* admins can see application settings from their dropdown menu.
+
+Bug fixes:
+
+* fix VRF parsing error in AOS-CX REST API driver.
+* fix ethernet count sometime incorrect.
+* parse vendor-specific interface access rules first to clarify deny reason.
+* various pylint updates.
 
 Version 4.1
 -----------
