@@ -1,0 +1,23 @@
+{% extends '_base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+  <div class="card border-default">
+    <div class="card-header bg-default">
+      <strong>ALL Django Application Settings</strong>
+    </div>
+    <div class="card-body">
+      <ul class="list-group list-group-flush">
+      {% for name, value in all_settings.items %}
+        <li class="list-group-item list-group-item-action"><strong>{{ name }}</strong>: '{{ value}}'</li>
+      {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

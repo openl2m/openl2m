@@ -63,6 +63,7 @@ from switches.constants import (
     LOG_VIEW_DOWNLOAD_ARP_LLDP,
     LOG_VIEW_DOWNLOAD_INTERFACES,
     LOG_VIEW_TOP_ACTIVITY,
+    LOG_VIEW_SETTINGS,
     LOG_EXECUTE_COMMAND,
     LOG_RELOAD_SWITCH,
     INTERFACE_STATUS_NONE,
@@ -148,7 +149,7 @@ def close_device(request):
         try:
             switch = get_object_or_404(Switch, pk=request.session["switch_id"])
             conn = get_connection_object(request=request, group=False, switch=switch)
-            conn._close_device()
+            conn._close_device()    # pylint: disable=protected-access
             del conn
         except Exception as err:
             dprint(f"ERROR CLOSING DEVICE: {err}\n{traceback.format_exc()}\n")
@@ -546,7 +547,7 @@ def switch_view(
     # get recent "non-viewing" activity for this switch
     # for now, show most recent 25 activities
     logs = (
-        Log.objects.all()
+        Log.objects.all()       # pylint: disable=no-member
         .filter(switch=switch, type__gt=LOG_TYPE_VIEW)
         .order_by("-timestamp")[: settings.RECENT_SWITCH_LOG_COUNT]
     )
@@ -683,7 +684,7 @@ class SwitchBulkEdit(LoginRequiredMixin, SwitchPermissionMixin, View):
 
         # safety-check: is the new PVID allowed:
         if new_pvid > 0:
-            conn._set_allowed_vlans()
+            conn._set_allowed_vlans()       # pylint: disable=protected-access
             if new_pvid not in conn.allowed_vlans.keys():
                 log = Log(
                     user=request.user,
@@ -820,11 +821,11 @@ def bulkedit_processor(
                 switch=switch,
                 group=group,
             )
+            new_state = False
+            new_state_name = "Down"
             current_state = iface.admin_status
             if interface_change == INTERFACE_STATUS_CHANGE:
                 if iface.admin_status:
-                    new_state = False
-                    new_state_name = "Down"
                     log.action = LOG_CHANGE_INTERFACE_DOWN
                 else:
                     new_state = True
@@ -1420,16 +1421,15 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
     ):
         dprint("InterfaceTagsEdit() - POST called")
 
-        """ Implementation notes:
-        If we allow untagged and tags-edit for regular, non-admin users, we need to parse carefully!
-        In that case, we will allow adding/deleting vlans the user has access to,
-        and SHOULD NOT CHANGE NON-PERMITTED VLANS !!!!
-        Ie. this requires looking at the interface current tagged vlans, and mashing this up with the requested vlans...
+        # Implementation notes:
+        # If we allow untagged and tags-edit for regular, non-admin users, we need to parse carefully!
+        # In that case, we will allow adding/deleting vlans the user has access to,
+        # and SHOULD NOT CHANGE NON-PERMITTED VLANS !!!!
+        # Ie. this requires looking at the interface current tagged vlans, and mashing this up with the requested vlans...
+        #
+        # Currently, permissions are set in Connector()._set_interfaces_permissions(),
+        # in switches/connect/connector.py, around line 1775
 
-        Currently, permissions are set in Connector()._set_interfaces_permissions(),
-        in switches/connect/connector.py, around line 1775
-
-        """
         # read the submitted form data:
         # untagged PVID first.
         try:
@@ -1818,7 +1818,7 @@ class SwitchActivity(LoginRequiredMixin, SwitchPermissionMixin, View):
 
         # only show this switch. May add more filters later...
         filter_values = {"switch_id": switch_id}
-        logs = Log.objects.all().filter(**filter_values).order_by("-timestamp")
+        logs = Log.objects.all().filter(**filter_values).order_by("-timestamp")     # pylint: disable=no-member
 
         # setup pagination of the resulting activity logs
         page_number = int(request.GET.get("page", default=1))
@@ -1941,6 +1941,8 @@ class ShowTop(LoginRequiredMixin, View):
 #
 # "Administrative" views
 #
+
+
 class SwitchAdminActivity(LoginRequiredMixin, View):
     """
     This shows recent activity
@@ -2006,7 +2008,7 @@ class SwitchAdminActivity(LoginRequiredMixin, View):
             log.description = f"Viewing filtered logs: {filter_values} (page {page_number})"
             title = "Filtered Logs"
         else:
-            logs = Log.objects.all().order_by("-timestamp")
+            logs = Log.objects.all().order_by("-timestamp")     # pylint: disable=no-member
             log.description = f"Viewing all logs (page {page_number})"
             title = "All Logs"
         log.save()
@@ -2025,11 +2027,93 @@ class SwitchAdminActivity(LoginRequiredMixin, View):
                 "filter": filter,
                 "types": LOG_TYPE_CHOICES,
                 "actions": LOG_ACTION_CHOICES,
-                "switches": Switch.objects.all().order_by("name"),
-                "switchgroups": SwitchGroup.objects.all().order_by("name"),
-                "users": User.objects.all().order_by("username"),
+                "switches": Switch.objects.all().order_by("name"),              # pylint: disable=no-member
+                "switchgroups": SwitchGroup.objects.all().order_by("name"),     # pylint: disable=no-member
+                "users": User.objects.all().order_by("username"),               # pylint: disable=no-member
                 "log_title": title,
                 "logs_link": False,
+            },
+        )
+
+
+class SwitchAdminSettings(LoginRequiredMixin, View):
+    """
+    This shows the Django settings.* variables
+    """
+
+    def get(
+        self,
+        request,
+    ):
+        dprint("SwitchAdminSettings() - GET called")
+
+        template_name = "admin_settings.html"
+
+        # what do we have rights to:
+        if not request.user.is_superuser:
+            # get them out of here!
+            # log my activity
+            log = Log(
+                user=request.user,
+                ip_address=get_remote_ip(request),
+                type=LOG_TYPE_ERROR,
+                action=LOG_VIEW_SETTINGS,
+                description="Not Allowed to View Application Settings",
+            )
+            log.save()
+            error = Error()
+            error.status = True
+            error.description = "You do not have access to this page!"
+            counter_increment(COUNTER_ACCESS_DENIED)
+            return error_page(request=request, group=False, switch=False, error=error)
+
+        # log my activity
+        log = Log(
+            user=request.user,
+            ip_address=get_remote_ip(request),
+            type=LOG_TYPE_VIEW,
+            action=LOG_VIEW_SETTINGS,
+        )
+
+        # get all settings
+        # note that we cannot figure out what the default would be in openl2m/settings.py
+        # so we simply show all settings here...
+        all_settings = {}
+        sensitive_keywords = [
+            'AUTH_PASSWORD_VALIDATORS',
+            'DATABASE',
+            'DATABASES',
+            'EMAIL_HOST',
+            'EMAIL_HOST_PASSWORD',
+            'EMAIL_HOST_USER',
+            'EMAIL_SSL_CERTFILE',
+            'EMAIL_SSL_KEYFILE',
+            'PASSWORD_HASHERS',
+            'SECRET_KEY_FALLBACKS',
+            'SECRET_KEY',
+            'DSN',
+        ]
+
+        # run through all available settings
+        for setting_name in dir(settings):
+            # Filter out private attributes and lowercase internal helpers
+            if setting_name.isupper():
+                setting_value = getattr(settings, setting_name)
+                # filter out some to keep credentials safe
+                if any(kw in setting_name for kw in sensitive_keywords):
+                    value = "**********"
+                else:
+                    # Convert complex objects/modules to string for stable HTML rendering
+                    value = str(setting_value)
+                # add to all settings
+                all_settings[setting_name] = value
+
+        # render the template
+        return render(
+            request,
+            template_name,
+            {
+                "all_settings": all_settings,
             },
         )
 
