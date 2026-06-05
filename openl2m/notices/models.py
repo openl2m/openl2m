@@ -30,11 +30,11 @@ NOTICE_PRIORITY_CHOICES = [
 ]
 
 
-class NoticeManager(models.Manager):
+class NoticeManager(models.Manager):  # pylint: disable=too-few-public-methods
     def active_notices(self):
         dtnow = now()
         return (
-            super(NoticeManager, self)
+            super()
             .get_queryset()
             .filter(enabled=True)
             .filter(start_time__lte=dtnow)
@@ -64,8 +64,8 @@ class Notice(models.Model):
 
     objects = NoticeManager()
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods
         ordering = ['start_time']
 
     def __str__(self):
-        return self.title
+        return str(self.title)
