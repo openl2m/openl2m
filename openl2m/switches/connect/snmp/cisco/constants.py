@@ -114,7 +114,7 @@ vtpVlanEditOperation = ".1.3.6.1.4.1.9.9.46.1.4.1.1.1"
 # vtpVlanEditOperation values:
 vtp_vlan_none = 1
 vtp_vlan_copy = 2
-vtp_vlan_apply = (3,)
+vtp_vlan_apply = 3
 vtp_vlan_release = 4
 vtp_vlan_restartTimer = 5
 
