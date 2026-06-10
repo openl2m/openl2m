@@ -842,7 +842,7 @@ class Connector:
             vlan_name (str): string representing the vlan name
 
         Returns:
-            True
+            the Vlan() object
         """
         v = Vlan(vlan_id)
         v.name = vlan_name
@@ -850,7 +850,7 @@ class Connector:
         # sort ordered by vlan id; this is needed for vlans added by users.
         self.vlans = dict(sorted(self.vlans.items()))  # note: sorted() returns a list of tuples(key, value), NOT dict!
         self.vlan_count = len(self.vlans)
-        return True
+        return v
 
     def add_vlan(self, vlan: Vlan) -> bool:
         """

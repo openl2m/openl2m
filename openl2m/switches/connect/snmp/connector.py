@@ -1925,8 +1925,8 @@ class SnmpConnector(Connector):
                 self.vlans[vlan_id].name = val
             else:
                 # vlan not found yet, create it
-                self.add_vlan_by_id(vlan_id=vlan_id)
-                self.vlans[vlan_id].name = val
+                self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=val)
+                #self.vlans[vlan_id].name = val
             return True
 
         # see if this is static or dynamic vlan

@@ -259,8 +259,8 @@ class AosCxConnector(RESTConnector):
         for vid, vlan in vlans.items():
             dvar(var=vlan, header=f"VLAN: {vid}")
             vlan_id = int(vid)
-            self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan["name"])
-            v = self.vlans[vlan_id]
+            v = self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan["name"])
+            # v = self.vlans[vlan_id]
             # is this vlan enabled?
             if not vlan["admin"] == "up" and not vlan["oper_state"] == "up":
                 dprint("  VLAN is disabled!")
