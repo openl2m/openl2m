@@ -52,6 +52,7 @@ Bug fixes:
 * fix ethernet count sometime incorrect.
 * parse vendor-specific interface access rules first to clarify deny reason.
 * various pylint updates.
+* remove vlan-related icons (trunk edit icon, edit tab) if no vlans found.
 
 Version 4.1
 -----------
