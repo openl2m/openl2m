@@ -75,11 +75,14 @@ Interface names may have icons behind them. They indicate various features.
 
 .. raw:: html
 
-  <i class="fa-solid fa-ellipsis-v" aria-hidden="true"></i>
+  <i class="fa-solid fa-tags" aria-hidden="true"></i>
 
 This means the interface is in trunking or 802.1Q tagged mode.
-Hovering over the icon will show the tagged Vlans on this port. If enabled and user has permissions,
-clicking this will show the Edit Vlan Tags form.
+Hovering over the icon will show the tagged Vlans on this port.
+Clicking this will show the Edit Vlan Tags form, if user has permissions.
+
+*Note:* this functionality needs to be enabled in the "configuration.py" file.
+It requires a restart of the OpenL2M service.
 
 .. raw:: html
 
