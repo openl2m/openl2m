@@ -149,7 +149,7 @@ def close_device(request):
         try:
             switch = get_object_or_404(Switch, pk=request.session["switch_id"])
             conn = get_connection_object(request=request, group=False, switch=switch)
-            conn._close_device()    # pylint: disable=protected-access
+            conn._close_device()  # pylint: disable=protected-access
             del conn
         except Exception as err:
             dprint(f"ERROR CLOSING DEVICE: {err}\n{traceback.format_exc()}\n")
@@ -547,7 +547,7 @@ def switch_view(
     # get recent "non-viewing" activity for this switch
     # for now, show most recent 25 activities
     logs = (
-        Log.objects.all()       # pylint: disable=no-member
+        Log.objects.all()  # pylint: disable=no-member
         .filter(switch=switch, type__gt=LOG_TYPE_VIEW)
         .order_by("-timestamp")[: settings.RECENT_SWITCH_LOG_COUNT]
     )
@@ -561,6 +561,7 @@ def switch_view(
         and conn.can_edit_vlans
         and len(conn.interfaces)
         and user_can_edit_vlans(request.user, group, switch)
+        and len(conn.vlans)  # if no vlans found, disable adding or editing
     )
 
     log_title = "Recent Activity"
@@ -684,7 +685,7 @@ class SwitchBulkEdit(LoginRequiredMixin, SwitchPermissionMixin, View):
 
         # safety-check: is the new PVID allowed:
         if new_pvid > 0:
-            conn._set_allowed_vlans()       # pylint: disable=protected-access
+            conn._set_allowed_vlans()  # pylint: disable=protected-access
             if new_pvid not in conn.allowed_vlans.keys():
                 log = Log(
                     user=request.user,
@@ -1818,7 +1819,7 @@ class SwitchActivity(LoginRequiredMixin, SwitchPermissionMixin, View):
 
         # only show this switch. May add more filters later...
         filter_values = {"switch_id": switch_id}
-        logs = Log.objects.all().filter(**filter_values).order_by("-timestamp")     # pylint: disable=no-member
+        logs = Log.objects.all().filter(**filter_values).order_by("-timestamp")  # pylint: disable=no-member
 
         # setup pagination of the resulting activity logs
         page_number = int(request.GET.get("page", default=1))
@@ -2008,7 +2009,7 @@ class SwitchAdminActivity(LoginRequiredMixin, View):
             log.description = f"Viewing filtered logs: {filter_values} (page {page_number})"
             title = "Filtered Logs"
         else:
-            logs = Log.objects.all().order_by("-timestamp")     # pylint: disable=no-member
+            logs = Log.objects.all().order_by("-timestamp")  # pylint: disable=no-member
             log.description = f"Viewing all logs (page {page_number})"
             title = "All Logs"
         log.save()
@@ -2027,9 +2028,9 @@ class SwitchAdminActivity(LoginRequiredMixin, View):
                 "filter": filter,
                 "types": LOG_TYPE_CHOICES,
                 "actions": LOG_ACTION_CHOICES,
-                "switches": Switch.objects.all().order_by("name"),              # pylint: disable=no-member
-                "switchgroups": SwitchGroup.objects.all().order_by("name"),     # pylint: disable=no-member
-                "users": User.objects.all().order_by("username"),               # pylint: disable=no-member
+                "switches": Switch.objects.all().order_by("name"),  # pylint: disable=no-member
+                "switchgroups": SwitchGroup.objects.all().order_by("name"),  # pylint: disable=no-member
+                "users": User.objects.all().order_by("username"),  # pylint: disable=no-member
                 "log_title": title,
                 "logs_link": False,
             },
