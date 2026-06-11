@@ -44,7 +44,7 @@ import os
 Vendor = namedtuple("Vendor", ["manuf", "manuf_long", "comment"])
 
 
-class MacParser(object):
+class MacParser():
     """Class that contains a parser for Wireshark's OUI database.
 
     Optimized for quick lookup performance by reading the entire file into memory on
@@ -108,8 +108,9 @@ class MacParser(object):
                 # Specification includes mask
                 if len(parts) > 1:
                     mask_spec = 48 - int(parts[1])
-                    if mask_spec > mask:
-                        mask = mask_spec
+                    # if mask_spec > mask:
+                    #     mask = mask_spec
+                    mask = max(mask, mask_spec)
 
                 comment = fields[3].strip("#").strip() if len(fields) > 3 else None
                 long_name = fields[2] if len(fields) > 2 else None
@@ -144,8 +145,8 @@ class MacParser(object):
         # Retrieve the new database
         try:
             response = urlopen(Request(manuf_url, headers={"User-Agent": "Mozilla"}))
-        except URLError:
-            raise URLError("Failed downloading OUI database")
+        except URLError as exc:
+            raise URLError("Failed downloading OUI database") from exc
 
         # Parse the response
         if response.code == 200:
@@ -154,8 +155,8 @@ class MacParser(object):
             if refresh:
                 self.refresh(manuf_name)
         else:
-            err = "{0} {1}".format(response.code, response.msg)
-            raise URLError("Failed downloading database: {0}".format(err))
+            err = f"{response.code} {response.msg}"
+            raise URLError(f"Failed downloading database: {format(err)}")
 
         response.close()
         if not wfa_url:
@@ -164,8 +165,8 @@ class MacParser(object):
         # Append WFA to new database
         try:
             response = urlopen(Request(wfa_url, headers={"User-Agent": "Mozilla"}))
-        except URLError:
-            raise URLError("Failed downloading WFA database")
+        except URLError as exc:
+            raise URLError("Failed downloading WFA database") from exc
 
         # Parse the response
         if response.code == 200:
@@ -174,8 +175,8 @@ class MacParser(object):
             if refresh:
                 self.refresh(manuf_name)
         else:
-            err = "{0} {1}".format(response.code, response.msg)
-            raise URLError("Failed downloading database: {0}".format(err))
+            err = f"{response.code} {response.msg}"
+            raise URLError(f"Failed downloading database: {format(err)}")
 
         response.close()
 
@@ -278,8 +279,8 @@ class MacParser(object):
         try:
             # Fill in missing bits with zeroes
             return int(mac_str, 16) << self._bits_left(mac_str)
-        except ValueError:
-            raise ValueError("Could not parse MAC: {0}".format(mac_str))
+        except ValueError as exc:
+            raise ValueError(f"Could not parse MAC: {format(mac_str)}") from exc
 
     # Regular expression that matches '-', ':', and '.' characters
     _pattern = re.compile(r"[-:\.]")
