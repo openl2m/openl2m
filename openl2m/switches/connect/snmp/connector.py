@@ -2022,14 +2022,14 @@ class SnmpConnector(Connector):
         # we did not parse the OID.
         return False
 
-    ######################################################################################################
-    #                                                                                                    #
-    # the following functions all parse BITMAP values that map what (switch) ports are active on a vlan. #
-    # we have both standard SNMP Q-BRIDGE mib, and IEEE IEEE8021-Q-BRIDGE mib parsers.                   #
-    #                                                                                                    #
-    # there is a lot of room for improvement of duplicate code here...                                   #
-    #                                                                                                    #
-    ######################################################################################################
+    ###############################################################################################################
+    #                                                                                                             #
+    # The following functions all parse BITMAP values that map what (physical switch) ports are active on a vlan. #
+    # We have both standard SNMP Q-BRIDGE mib, and IEEE IEEE8021-Q-BRIDGE mib parsers.                            #
+    #                                                                                                             #
+    # There is a lot of room for improvement of duplicate code here...                                            #
+    #                                                                                                             #
+    ###############################################################################################################
 
     def _parse_mibs_vlan_current_untagged_ports(self, oid: str, val: str) -> bool:
         """Function to parse VLAN current active untagged vlans on ports.
@@ -2291,6 +2291,9 @@ class SnmpConnector(Connector):
         and look at all the bits in this multi-byte bitmap value to find ports on this vlan.
         Then call the handler to store appropriate Interface() config.
 
+        Unlike EzSnmp v1, which returned the actual byte values, EzSnmp v2 returns this bit as a string with
+        hexadecimal numbers representing the bytes in the bitmap. E.g. "00 40 00 C0 00 E2 00 ..."
+
         Args:
             vlan_id (int): the Vlan ID that the bitmap represents.
             bitmap (str): the bytes that represent the bitmap. Note this is a str() as returned from the ezsnmp return value!
@@ -2312,12 +2315,12 @@ class SnmpConnector(Connector):
         # to find bits that are set (1). This indicates that port-id is part of the vlan given!
 
         # THIS NEEDS WORK FOR EzSnmp v2 - now return a string of Hex values representing bytes...
-        dprint("NOT PARSING BITMAP YET, THIS NEEDS WORK!!!!")
-        return
+        # dprint("PARSING BITMAP, THIS NEEDS WORK!!!!")
 
         offset = 0
-        for byte in bitmap:
-            byte = ord(byte)
+        for hexadecimal in bitmap.split():
+            # dprint(f"Found: {hexadecimal}")
+            byte = ord(bytes.fromhex(hexadecimal))
             # which bits are set? A hack but it works!
             # note that the bits are actually in system order,
             # ie. bit 1 is first bit in stream, i.e. HIGH order bit!
