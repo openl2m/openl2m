@@ -2128,7 +2128,8 @@ class SnmpConnector(Connector):
             )
 
             # store the egress port list, as some switches need this when setting untagged vlans
-            self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
+            # self.vlans[vlan_id].current_egress_portlist.from_unicode(val) # old, EzSnmp v1
+            self.vlans[vlan_id].current_egress_portlist.from_hexadecimal(val)  # new EzSnmp v2
 
             return True  # parsed
 
