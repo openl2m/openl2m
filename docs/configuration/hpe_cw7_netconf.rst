@@ -4,6 +4,12 @@
 Adding HPE Comware7 NetConf Devices
 ===================================
 
+.. note::
+
+    This page is left in place for historic reasons.
+    The HPE NetConf driver was abandoned in favor of the HPE Comware REST Driver.
+
+
 Prerequisites
 -------------
 
