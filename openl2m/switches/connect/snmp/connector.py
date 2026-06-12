@@ -2252,7 +2252,8 @@ class SnmpConnector(Connector):
             vlan_id = int(v)
 
             # store the egress port list, as some switches need this when setting untagged vlans
-            self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
+            # self.vlans[vlan_id].current_egress_portlist.from_unicode(val)       # EzSnmp v1
+            self.vlans[vlan_id].current_egress_portlist.from_hexadecimal(val)  # EzSnmp v2
 
             # and go figure out what ports are part of this vlan:
             self._add_ports_to_vlan_from_bitmap(
@@ -4212,7 +4213,8 @@ class SnmpConnector(Connector):
 
         # should this be using "dot1qVlanCurrentEgressPorts" ?
         #        old_vlan_portlist = PortList()
-        #        old_vlan_portlist.from_unicode(snmpval.value)
+        #        # old_vlan_portlist.from_unicode(snmpval.value)    # EzSnmp v1
+        #        old_vlan_portlist.from_decimal(snmpval.value)      # EzSnmp v2
         #        dprint(f"OLD VLAN Static Egress Ports = {old_vlan_portlist.to_hex_string()}")
         #
         #        # dot1qVlanCurrentEgressPorts Read-Only field! .0. is timestamp.
@@ -4229,7 +4231,8 @@ class SnmpConnector(Connector):
 
         # now calculate new bitmap by removing this switch port
         old_vlan_portlist = PortList()
-        old_vlan_portlist.from_unicode(snmpval.value)
+        # old_vlan_portlist.from_unicode(snmpval.value)     # EzSNmp v1
+        old_vlan_portlist.from_hexadecimal(snmpval.value)  # EzSnmp v2
         dprint(f"OLD VLAN Current Egress Ports = {old_vlan_portlist.to_hex_string()}")
 
         # unset bit for port, i.e. remove from active portlist on vlan:
@@ -4326,7 +4329,8 @@ class SnmpConnector(Connector):
                 if error_status:
                     raise Exception(f"IGNORING Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
                 vlan_port_bitmap = PortList()
-                vlan_port_bitmap.from_unicode(snmpval.value)
+                # vlan_port_bitmap.from_unicode(snmpval.value)    # for EzSnmp v1
+                vlan_port_bitmap.from_hexadecimal(snmpval.value)  # for EzSnmp v2
                 dprint(f"  Static Egress Ports = {vlan_port_bitmap.to_hex_string()}")
 
                 # # read all the static and dynamic ports active on this vlan.
@@ -4335,7 +4339,8 @@ class SnmpConnector(Connector):
                 # if error_status:
                 #     raise Exception(f"Error reading dot1qVlanCurrentEgressPorts.{vlan_id}")
                 # vlan_port_bitmap = PortList()
-                # vlan_port_bitmap.from_unicode(snmpval.value)
+                # # vlan_port_bitmap.from_unicode(snmpval.value)      # for EzSnmp v1
+                # vlan_port_bitmap.from_hexadecimal(snmpval.value)  # for EzSnmp v1
                 # dprint(f"  Current Egress Ports = {vlan_port_bitmap.to_hex_string()}")
 
                 # now check the status of this port (interface.port_id) on this vlan:
@@ -4454,7 +4459,8 @@ class SnmpConnector(Connector):
 
                 # now calculate new bitmap by removing this switch port
                 old_vlan_portlist = PortList()
-                old_vlan_portlist.from_unicode(snmpval.value)
+                # old_vlan_portlist.from_unicode(snmpval.value)     # EzSnmp v1
+                old_vlan_portlist.from_hexadecimal(snmpval.value)  # EzSnmp v2
                 dprint(f"OLD VLAN Current Egress Ports = {old_vlan_portlist.to_hex_string()}")
 
                 # unset bit for port, i.e. remove from active portlist on vlan:
@@ -4509,7 +4515,8 @@ class SnmpConnector(Connector):
                 if error_status:
                     raise Exception(f"IGNORING Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
                 vlan_port_bitmap = PortList()
-                vlan_port_bitmap.from_unicode(snmpval.value)
+                # vlan_port_bitmap.from_unicode(snmpval.value)    # EzSnmp v1
+                vlan_port_bitmap.from_hexadecimal(snmpval.value)  # EzSnmp v2
                 dprint(f"  Static Egress Ports = {vlan_port_bitmap.to_hex_string()}")
 
                 # # read all the static and dynamic ports active on this vlan.
@@ -4518,7 +4525,8 @@ class SnmpConnector(Connector):
                 # if error_status:
                 #     raise Exception(f"Error reading dot1qVlanCurrentEgressPorts.{vlan_id}")
                 # vlan_port_bitmap = PortList()
-                # vlan_port_bitmap.from_unicode(snmpval.value)
+                # # vlan_port_bitmap.from_unicode(snmpval.value)    # EzSnmp v1
+                # vlan_port_bitmap.from_hexadecimal(snmpval.value)      # EzSnmp v2
                 # dprint(f"  Current Egress Ports = {vlan_port_bitmap.to_hex_string()}")
 
                 # now check the status of this port (interface.port_id) on this vlan:
