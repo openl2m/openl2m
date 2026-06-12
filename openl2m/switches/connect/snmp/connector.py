@@ -846,8 +846,9 @@ class SnmpConnector(Connector):
         dprint(f"SnmpConnector.get(oid={oid})")
         self.error.clear()
 
-        # Perform an SNMP GET. EzSnmp v2.3 returns a tuple of Result objects.
-        # See docs at https://carlkidcrypto.github.io/ezsnmp/html_v2.3.0/session_python.html
+        # Perform an SNMP GET. EzSnmp v2.x returns a tuple of Result objects:
+        #      oid (str), index (str), value (str), and type (str)
+        # See https://carlkidcrypto.github.io/ezsnmp/html_v2.3.0/session_python.html#ezsnmp.session.Session.get
         try:
             results = self._snmp_session.get(oid)
         except Exception as e:
@@ -863,7 +864,7 @@ class SnmpConnector(Connector):
             self.error.details = f"SNMP Get returned no data for oid '{oid}'"
             return (True, None)
 
-        # fix-up EzSnmp 2 returning some "STRING" types with extra "\<string\"
+        # fix-up EzSnmp v2.x returning some "STRING" types with extra "\<string\"
         # THIS NEEDS WORK on results[0].value
         dprint(f"\n\n====> SNMP GET: {results[0].oid}.{results[0].index} {results[0].type} = {results[0].value}")
 
@@ -907,10 +908,11 @@ class SnmpConnector(Connector):
         self.error.clear()
         try:
             dprint(f"   Calling BulkWalk {start_oid}")
-            # ezsnmp v2.3 no longer accepts non_repeaters/max_repetitions on the call;
+            # EzSnmp v2.x no longer accepts non_repeaters/max_repetitions on the call;
             # set the per-call max-repeaters on the session before invoking bulk_walk().
             self._snmp_session.set_max_repeaters_to_num = str(max_repetitions)
             start_time = time.time()
+            # see https://carlkidcrypto.github.io/ezsnmp/html_v2.3.0/session_python.html#ezsnmp.session.Session.bulk_walk
             items = self._snmp_session.bulk_walk(start_oid)
             stop_time = time.time()
         except Exception as e:
@@ -929,8 +931,10 @@ class SnmpConnector(Connector):
             return -1
 
         dprint(f"   Reading return items from {start_oid}")
-        # Each returned Result has attributes: oid (str), index (str), value (str), type (str)
-        # See https://carlkidcrypto.github.io/ezsnmp/html_v2.3.0/session_python.html
+        # EzSnmp v2.x returns a tuple of Result objects for each result:
+        #      oid (str), index (str), value (str), and type (str)
+        # See docs at https://carlkidcrypto.github.io/ezsnmp/html_v2.3.0/session_python.html#ezsnmp.session.Session.bulk_walk
+
         count = 0
         for item in items:
             count = count + 1
@@ -940,12 +944,12 @@ class SnmpConnector(Connector):
                 # In v2.3 the SNMP data type is reported in item.type (was item.snmp_type in v1).
                 # Default net-snmp output renders non-printable octet strings as "Hex-STRING".
                 if item.type in ("STRING", "Hex-STRING") and not item.value.isprintable():
-                    value = "CAN NOT PRINT!"
+                    printable_value = "CAN NOT PRINT!"
                 else:
-                    value = item.value
+                    printable_value = item.value
                 # fix-up EzSnmp 2 returning some "STRING" types with extra "\<string\"
                 # THIS NEEDS WORK!
-                dprint(f"\n\n====> SNMP READ: {oid_found} {item.type} = {value}")
+                dprint(f"\n\n====> SNMP READ: {oid_found} {item.type} = {printable_value}")
 
             # call the mib parser
             try:
@@ -999,8 +1003,10 @@ class SnmpConnector(Connector):
         dprint(f"SnmpConnector.set(oid={oid}, value={value}, snmp_type={snmp_type})")
         # Set a variable using an SNMP SET.
         # ezsnmp v2.3 set() takes a flat list [oid, type, value, ...].
+        # see https://carlkidcrypto.github.io/ezsnmp/html_v2.3.0/session_python.html#ezsnmp.session.Session.set
         self.error.clear()
         try:
+            # self._snmp_session.set(oid=oid, value=value, snmp_type=snmp_type) - old EzSnmp v1.1
             self._snmp_session.set([str(oid), str(snmp_type), str(value)])
 
         except Exception as e:
@@ -1037,6 +1043,7 @@ class SnmpConnector(Connector):
 
         self.error.clear()
         try:
+            # self._snmp_session.set_multiple(oid_values=oid_values) - v1.1 NO longer available in v2.x
             self._snmp_session.set(flat_args)
 
         except Exception as e:
@@ -4483,7 +4490,7 @@ class SnmpConnector(Connector):
 
                 # # read all the static and dynamic ports active on this vlan.
                 # # Note 0 is some kind of 'time filter'...
-                # (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{vlan_id}", parser=False)
+                # (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{vlan_id}")
                 # if error_status:
                 #     raise Exception(f"Error reading dot1qVlanCurrentEgressPorts.{vlan_id}")
                 # vlan_port_bitmap = PortList()
