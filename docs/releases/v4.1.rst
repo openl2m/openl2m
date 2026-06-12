@@ -40,19 +40,25 @@ The default timeout is increased to 10 seconds.
 Version 4.1.1
 -------------
 
-Release Date: TBD
+Release Date: 2026-06-12
 
 * for SNMP devices, mark Ethernet or Aggregate interfaces with IPv4/6 addresses as routed.
-* read VSX "stacking" info for AOS-CX device over SNMP and REST API.
+* read VSX "stacking" info for AOS-CX device over REST API and SNMP.
 * admins can see application settings from their dropdown menu.
+* improve down interface maximum speed reporting.
+* various documentation updates.
 
 Bug fixes:
 
 * fix VRF parsing error in AOS-CX REST API driver.
-* fix ethernet count sometime incorrect.
+* fix ethernet count sometimes incorrect.
 * parse vendor-specific interface access rules first to clarify deny reason.
-* various pylint updates.
 * remove vlan-related icons (trunk edit icon, edit tab) if no vlans found.
+* no vlan editing on LACP interfaces.
+* upgrade to Junos-EzNC v2.8.1
+* improve interface permission parsing order.
+* various pylint updates.
+
 
 Version 4.1
 -----------

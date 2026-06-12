@@ -49,8 +49,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = "4.1"
-VERSION_DATE = "2026-06-03"
+VERSION = "4.1.1"
+VERSION_DATE = "2026-06-12"
 
 # Hostname
 HOSTNAME = platform.node()
@@ -92,7 +92,7 @@ DATETIME_FORMAT = getattr(configuration, "DATETIME_FORMAT", "N j, Y g:i a")
 DEBUG = getattr(configuration, "DEBUG", False)
 # if True, then some drivers will print API debug info. Also requires DEBUG=True
 DEBUG_API = getattr(configuration, "DEBUG_API", False)
-DEVELOPER = getattr(configuration, "DEVELOPER", False)      # If True, django developer extension are loaded.
+DEVELOPER = getattr(configuration, "DEVELOPER", False)  # If True, django developer extension are loaded.
 LOGGING = getattr(configuration, "LOGGING", {})
 LOGIN_TIMEOUT = getattr(configuration, "LOGIN_TIMEOUT", 1800)
 LOGOUT_ON_INACTIVITY = getattr(configuration, "LOGOUT_ON_INACTIVITY", True)
@@ -322,7 +322,7 @@ if LDAP_CONFIG is not None:
     # Check that django_auth_ldap is installed
     try:
         import ldap
-        import django_auth_ldap     # noqa: F401
+        import django_auth_ldap  # noqa: F401
     except ImportError:
         raise ImproperlyConfigured(
             "LDAP authentication has been configured, but django-auth-ldap is not installed. Remove "
