@@ -864,13 +864,15 @@ class SnmpConnector(Connector):
             self.error.details = f"SNMP Get returned no data for oid '{oid}'"
             return (True, None)
 
-        # fix-up EzSnmp v2.x returning some "STRING" types with extra "\<string\"
-        # THIS NEEDS WORK on results[0].value
-        dprint(f"\n\n====> SNMP GET: {results[0].oid}.{results[0].index} {results[0].type} = {results[0].value}")
+        oid_found = f"{results[0].oid}.{results[0].index}"
+        dprint(f"\n====> SNMP GET: {oid_found} {results[0].type} = {results[0].value}")
+
+        # fix-up EzSnmp 2 returning some "STRING" types with extra \"<string>\" quotes.
+        clean_value = self._clean_quotes_from_snmp_string(data_type=results[0].type, value=results[0].value)
 
         # parse the data, just like returns from get_branch()
         if parser:
-            parser(f"{results[0].oid}.{results[0].index}", results[0].value)
+            parser(oid_found, clean_value)
         else:
             dprint("SnmpConnector.get(): Warning - Return NOT parsed!")
 
@@ -939,6 +941,7 @@ class SnmpConnector(Connector):
         for item in items:
             count = count + 1
             oid_found = f"{item.oid}.{item.index}"
+
             if settings.DEBUG:
                 # Note: with ezsnmp, the returned "item.value" is ALWAYS of type str!
                 # In v2.3 the SNMP data type is reported in item.type (was item.snmp_type in v1).
@@ -947,13 +950,14 @@ class SnmpConnector(Connector):
                     printable_value = "CAN NOT PRINT!"
                 else:
                     printable_value = item.value
-                # fix-up EzSnmp 2 returning some "STRING" types with extra "\<string\"
-                # THIS NEEDS WORK!
-                dprint(f"\n\n====> SNMP READ: {oid_found} {item.type} = {printable_value}")
+                dprint(f"\n====> SNMP READ: {oid_found} {item.type} = {printable_value}")
+
+            # fix-up EzSnmp 2 returning some "STRING" types with extra \"<string>\" quotes.
+            clean_value = self._clean_quotes_from_snmp_string(data_type=item.type, value=item.value)
 
             # call the mib parser
             try:
-                parser(oid_found, item.value)
+                parser(oid_found, clean_value)
             except Exception as e:
                 self.error.status = True
                 self.error.description = "A SNMP parsing error occured!"
@@ -1054,6 +1058,26 @@ class SnmpConnector(Connector):
             return False
 
         return True
+
+    def _clean_quotes_from_snmp_string(self, data_type: str, value: str) -> str:
+        """Clean starting and ending \" from strings, if found.
+           This is a Fix-Up for EzSnmp v2 returning some "STRING" types with extra \"<string>\" quotes.
+
+        Args:
+            data_type(str):  the data type of 'value'
+            value(str): the snmp string value to clean
+
+        Returns:
+            (str): the 'cleaned' string.
+        """
+        dprint("_clean_quotes_from_snmp_string()")
+        # numeric_values = [ord(char) for char in item.value]
+        # dprint(f"chars = {numeric_values}")
+
+        if data_type == "STRING" and value.startswith(r'\"') and value.endswith(r'\"'):
+            dprint("    STRING with starting and ending quotes found, stripping!")
+            return value[2:-2]
+        return value
 
     #################################
     #
