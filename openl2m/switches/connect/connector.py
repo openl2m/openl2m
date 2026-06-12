@@ -50,6 +50,7 @@ from switches.connect.constants import (
     IANA_TYPE_IPV4,
     IANA_TYPE_IPV6,
     IF_TYPE_ETHERNET,
+    LACP_IF_TYPE_NONE,
     LACP_IF_TYPE_MEMBER,
     LLDP_CHASSIC_TYPE_NET_ADDR,
     visible_interfaces,
@@ -1906,6 +1907,20 @@ class Connector:
                 iface.visible = True
                 continue
 
+            # is 802.1q tag editing allowed? (default=no)
+            if (
+                self.can_edit_tags
+                and self.can_change_vlan
+                and self.vlan_count
+                and iface.type == IF_TYPE_ETHERNET
+                and iface.untagged_vlan > 0
+                and (user.is_staff or user.is_superuser)
+                and settings.ALLOW_TAGS_EDIT
+                and settings.STAFF_ALLOW_TAGS_EDIT
+                and iface.lacp_type == LACP_IF_TYPE_NONE
+            ):
+                iface.can_edit_tags = True
+
             # super-users have access to all other ethernet interfaces!
             if user.is_superuser:
                 if iface.type == IF_TYPE_ETHERNET:
@@ -1914,20 +1929,10 @@ class Connector:
                     iface.allow_poe_toggle = True
                     iface.can_edit_description = True
                     # if the driver can edit 802.1q vlan tags, we have found vlans, and it is allowed:
-                    if self.can_edit_tags and self.vlan_count and settings.ALLOW_TAGS_EDIT:
-                        # if interface is tagged, we allow vlan edit:
-                        iface.can_edit_tags = True
+                    # if self.can_edit_tags and self.vlan_count and settings.ALLOW_TAGS_EDIT:
+                    #     # if interface is tagged, we allow vlan edit:
+                    #     iface.can_edit_tags = True
                 continue
-
-            # staff 802.1q tag editing allowed?
-            if (
-                self.can_edit_tags
-                and self.vlan_count
-                and user.is_staff
-                and settings.ALLOW_TAGS_EDIT
-                and settings.STAFF_ALLOW_TAGS_EDIT
-            ):
-                iface.can_edit_tags = True
 
             # globally allow PoE toggle:
             # we can also enable PoE toggle globally, per user, group or switch, if allowed somewhere:
