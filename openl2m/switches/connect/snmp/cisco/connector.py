@@ -1017,7 +1017,7 @@ class SnmpConnectorCisco(SnmpConnector):
         waittime = settings.CISCO_WRITE_MEM_MAX_WAIT
         while waittime:
             time.sleep(1)
-            error_status, snmp_ret = self.get(oid=f"{ccCopyState}.{some_number}", parser=False)
+            error_status, snmp_ret = self.get(oid=f"{ccCopyState}.{some_number}")
             if error_status:
                 break
             if int(snmp_ret.value) == copyStateSuccess:
