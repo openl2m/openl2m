@@ -401,7 +401,7 @@
 
               <td>
                 {% if iface.untagged_vlan > 0 %}
-                  <span data-bs-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
+                  <span data-bs-toggle="tooltip" title="Cannot edit vlan {{iface.untagged_vlan}} '{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}' due to interface status (LACP, etc.)">
                       {{ iface.untagged_vlan }}
                   </span>
                 {% else %}
