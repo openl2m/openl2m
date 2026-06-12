@@ -432,7 +432,7 @@ class SnmpConnectorComware(SnmpConnector):
         # add this port to "hh3cdot1qVlanPorts.<vlan-id>" bitmap of ports on vlan:
         #
         # read current ports
-        error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", parser=False)
+        error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}")
         if error_status:
             return False
         # and get ready to add these ports in bitmap Portlist() format
@@ -533,7 +533,7 @@ class SnmpConnectorComware(SnmpConnector):
             # add this port to "hh3cdot1qVlanPorts.<vlan-id>" bitmap of ports on vlan:
             #
             # read current ports
-            error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", parser=False)
+            error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}")
             if error_status:
                 return False
             # and get ready to add these ports in bitmap Portlist() format
