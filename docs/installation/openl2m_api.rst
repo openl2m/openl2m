@@ -1,14 +1,14 @@
 .. image:: ../_static/openl2m_logo.png
 
-=================
-API Configuration
-=================
+=========================
+OpenL2M API Configuration
+=========================
 
-There are a number of settings related to the REST API of OpenL2M.
+There are a number of *configuration.py* settings related to the REST API of OpenL2M.
 
 **Enable/disabled**
 
-API access can be turn off. If this setting is False, API access is disabled:
+API access is enabled by default. If this setting is False, API access is disabled:
 
 .. code-block:: python
 
@@ -66,4 +66,4 @@ after creation. We recommend for security reasons you leave the latter to False
     MAX_API_TOKENS = 3
 
 
-If all is well, you are now ready to :doc:`Install Gunicorn<gunicorn>`
+If all is well, you are now ready to finalize the configuration of OpenL2M.
