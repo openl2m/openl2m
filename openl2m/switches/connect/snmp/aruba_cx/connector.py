@@ -117,7 +117,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         # we recommend using the AOS-CX API driver, tell the user so:
         self.add_warning(
-            warning="We recommend using the AOS-CX API driver for this device. Please contact your OpenL2M administrator!",
+            warning="For full functionality with this device use the AOS-CX API driver!. Please contact your OpenL2M administrator!",
             add_log=False,
         )
 
@@ -456,7 +456,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             # this needs work!
             self.error.status = True
             self.error.description = f"Vlan {new_vlan_id} is not allowed on this trunk port."
-            self.error.details = "We cannot yet change the untagged vlan if this is not allowed on the trunk!"
+            self.error.details = "We cannot yet change the untagged vlan if this is not allowed on the trunk! For this functionality, please use the AOS-CX API driver for this device!"
             dprint("  ERROR: New vlan NOT allowed on TRUNK!")
             return False
 
@@ -470,7 +470,8 @@ class SnmpConnectorArubaCx(SnmpConnector):
             # # get the return value into a port list:
             # dprint(f"Portlist size is {len(str(retval))} bytes")
             # egress_portlist = PortList()
-            # egress_portlist.from_unicode(str(retval))
+            # # gress_portlist.from_unicode(str(retval))    # EzSnmp v1
+            # egress_portlist.from_hexadecimal(str(retval)) # EzSnmp v2
             # # now set the bit for this port
             # egress_portlist[int(interface.index)] = 1
             # # and atomically set both the egress port list, and the pvid OIDs:

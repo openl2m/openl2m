@@ -330,7 +330,8 @@ class SnmpConnectorComware(SnmpConnector):
                 #     return -1
                 # # now calculate new bitmap by removing this switch port
                 # current_egress_portlist = PortList()
-                # current_egress_portlist.from_unicode(snmpval.value)
+                # # current_egress_portlist.from_unicode(snmpval.value)     # EzSnmp v1
+                # current_egress_portlist.from_hexadecimal(snmpval.value)       # EzSnmp v2
                 #
 
                 # now loop to find other existing ports on this vlan:
@@ -432,13 +433,14 @@ class SnmpConnectorComware(SnmpConnector):
         # add this port to "hh3cdot1qVlanPorts.<vlan-id>" bitmap of ports on vlan:
         #
         # read current ports
-        error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", parser=False)
+        error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}")
         if error_status:
             return False
         # and get ready to add these ports in bitmap Portlist() format
         vlan_port_bitmap = PortList()
         #  We need to manipulate the returned snmp value (str() class) into a true bitmap OctectString()
-        vlan_port_bitmap.from_unicode(snmpval.value)
+        # vlan_port_bitmap.from_unicode(snmpval.value)      # EzSnmp v1
+        vlan_port_bitmap.from_hexadecimal(snmpval.value)  # EzSnmp v2
         dprint(f"  VlanPorts = {vlan_port_bitmap.to_hex_string()}")
         # now set bit to 1 for this interface (i.e. set the port_id bit!).
         # NOTE: Comware sends (and receives) bits in opposite order inside each byte! (go figure)
@@ -533,13 +535,14 @@ class SnmpConnectorComware(SnmpConnector):
             # add this port to "hh3cdot1qVlanPorts.<vlan-id>" bitmap of ports on vlan:
             #
             # read current ports
-            error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", parser=False)
+            error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}")
             if error_status:
                 return False
             # and get ready to add these ports in bitmap Portlist() format
             vlan_port_bitmap = PortList()
             #  We need to manipulate the returned snmp value (str() class) into a true bitmap OctectString()
-            vlan_port_bitmap.from_unicode(snmpval.value)
+            # vlan_port_bitmap.from_unicode(snmpval.value)  # EzSnmp v1
+            vlan_port_bitmap.from_hexadecimal(snmpval.value)  # EzSnmp v2
             dprint(f"  VlanPorts = {vlan_port_bitmap.to_hex_string()}")
             # now set bit to 1 for this interface (i.e. set the port_id bit!).
             # NOTE: Comware sends (and receives) bits in opposite order inside each byte! (go figure)

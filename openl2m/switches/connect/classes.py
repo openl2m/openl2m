@@ -297,6 +297,22 @@ class PortList:
         for i in range(int(bytecount)):  # pylint: disable=unused-variable
             self.portlist.append(0)
 
+    def from_hexadecimal(self, hex_string: str) -> None:
+        """
+        Initialize from an EzSnmp v2 octetstring / bitmap, which is a string with
+        hexadecimal numbers representing the bytes in the bitmap. E.g. "00 40 00 C0 00 E2 00 ..."
+
+        Args:
+            hex_string (str): the EzSnmp v2 return string of hexadecimals representing the bitmap.
+
+        Returns:
+            n/a
+        """
+        for hexadecimal in hex_string.split():
+            # dprint(f"Found: {hexadecimal}")
+            byte = ord(bytes.fromhex(hexadecimal))
+            self.portlist.append(byte)
+
     def tobytes(self) -> bytes:
         """
         call the array.tobytes() function to return
