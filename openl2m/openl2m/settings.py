@@ -32,10 +32,12 @@ import netaddr
 
 from django.core.exceptions import ImproperlyConfigured
 
-# Django 5.2 requires Python 3.10 - 3.14.
-# OpenL2M has now been tested with 3.13, but not with 3.14!
-if sys.version_info < (3, 10) or sys.version_info >= (3, 14):
-    raise RuntimeError(f"OpenL2M requires Python 3.10 - 3.13 (current: Python {sys.version.split()[0]})")
+# Django 6.0 requires Python 3.12 - 3.14.
+# OpenL2M has been tested with 3.12 and 3.13!
+# for v3.14 support (the default in Ubuntu 26.04), we need to upgrade to EzSnmp 2.x,
+# which requires refactoring of the base SNMP code switches/connect/snmp/connector.py
+if sys.version_info < (3, 12) or sys.version_info >= (3, 14):
+    raise RuntimeError(f"OpenL2M requires Python 3.12 - 3.13 (current: Python {sys.version.split()[0]})")
 
 
 # Check for configuration file
@@ -47,8 +49,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = "4.0.3"
-VERSION_DATE = "2026-03-23"
+VERSION = "4.1.2"
+VERSION_DATE = "2026-06-17"
 
 # Hostname
 HOSTNAME = platform.node()
@@ -90,7 +92,7 @@ DATETIME_FORMAT = getattr(configuration, "DATETIME_FORMAT", "N j, Y g:i a")
 DEBUG = getattr(configuration, "DEBUG", False)
 # if True, then some drivers will print API debug info. Also requires DEBUG=True
 DEBUG_API = getattr(configuration, "DEBUG_API", False)
-DEVELOPER = getattr(configuration, "DEVELOPER", False)      # If True, django developer extension are loaded.
+DEVELOPER = getattr(configuration, "DEVELOPER", False)  # If True, django developer extension are loaded.
 LOGGING = getattr(configuration, "LOGGING", {})
 LOGIN_TIMEOUT = getattr(configuration, "LOGIN_TIMEOUT", 1800)
 LOGOUT_ON_INACTIVITY = getattr(configuration, "LOGOUT_ON_INACTIVITY", True)
@@ -113,7 +115,7 @@ ALWAYS_ALLOW_POE_TOGGLE = getattr(configuration, "ALWAYS_ALLOW_POE_TOGGLE", Fals
 
 HIDE_NONE_ETHERNET_INTERFACES = getattr(configuration, "HIDE_NONE_ETHERNET_INTERFACES", False)
 
-ALLOW_TAGS_EDIT = getattr(configuration, "ALLOW_TAGS_EDIT", False)
+ALLOW_TAGS_EDIT = getattr(configuration, "ALLOW_TAGS_EDIT", True)
 STAFF_ALLOW_TAGS_EDIT = getattr(configuration, "STAFF_ALLOW_TAGS_EDIT", False)
 
 CSRF_COOKIE_NAME = getattr(configuration, "CSRF_COOKIE_NAME", "csrftoken")
@@ -171,7 +173,10 @@ SNMP_MAX_REPETITIONS = getattr(configuration, 'SNMP_MAX_REPETITIONS', 10)  # SNM
 # Syslog related fields:
 SYSLOG_HOST = getattr(configuration, "SYSLOG_HOST", False)
 SYSLOG_PORT = getattr(configuration, "SYSLOG_PORT", 514)
+SYSLOG_FACILITY = getattr(configuration, "SYSLOG_FACILITY", "daemon")
+SYSLOG_LEVEL = getattr(configuration, "SYSLOG_LEVEL", "INFO")
 SYSLOG_JSON = getattr(configuration, "SYSLOG_JSON", True)
+SYSLOG_ACTIONS = getattr(configuration, "SYSLOG_ACTIONS", "")
 if SYSLOG_HOST:
     # validate host:
     try:
@@ -320,7 +325,7 @@ if LDAP_CONFIG is not None:
     # Check that django_auth_ldap is installed
     try:
         import ldap
-        import django_auth_ldap     # noqa: F401
+        import django_auth_ldap  # noqa: F401
     except ImportError:
         raise ImproperlyConfigured(
             "LDAP authentication has been configured, but django-auth-ldap is not installed. Remove "
@@ -456,8 +461,10 @@ JUNOS_PYEZ_CONN_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CONN_TIMEOUT', 10)
 # command timeout for Junos devices via the Netconf interface
 JUNOS_PYEZ_CMD_TIMEOUT = getattr(configuration, 'JUNOS_PYEZ_CMD_TIMEOUT', 120)
 
-# For drivers that use a REST API, this is the query timeout
-REST_API_TIMEOUT = getattr(configuration, 'REST_API_TIMEOUT', 5)
+# for drivers that use a REST API (ie. clients), this is the query timeout
+# currently applies to devices using the REST API client driver for
+# HPE Comware, HPE/Aruba AOS-S, and HPE/Aruba AOS-CX API.
+REST_CLIENT_TIMEOUT = getattr(configuration, 'REST_CLIENT_TIMEOUT', 10)
 
 # REST API Settings
 API_ENABLED = getattr(configuration, 'API_ENABLED', True)

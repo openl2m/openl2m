@@ -15,7 +15,7 @@
         action="{% url 'switches:admin_change' group.id switch.id iface.key 0 %}"
         method="post">
         {% csrf_token %}
-        <button type="submit" name="NAME" value="VALUE" class="btn-link"
+        <button type="submit" name="NAME" value="VALUE" class="btn-link text-dark"
         data-bs-toggle="tooltip"
         data-bs-title="Click here to Disable {{ iface.name }}"
       {% if request.user.profile.are_you_sure %}
@@ -35,7 +35,7 @@
         action="{% url 'switches:admin_change' group.id switch.id iface.key 1 %}"
         method="post">
         {% csrf_token %}
-        <button type="submit" name="NAME" value="VALUE" class="btn-link"
+        <button type="submit" name="NAME" value="VALUE" class="btn-link text-dark"
                 data-bs-toggle="tooltip"
                 data-bs-title="Click here to Enable {{ iface.name }}"
           {% if request.user.profile.are_you_sure %}

@@ -26,8 +26,7 @@
 
   {% if settings.SWITCH_SEARCH_FORM %}
     <div class="navbar-collapse ms-4">
-      <form class="d-flex"
-            name="switch_search_form"
+      <form name="switch_search_form"
             action="{% url 'switches:switch_search' %}"
             method="post"
       >
@@ -126,6 +125,9 @@
             <li><a class="dropdown-item" href="{% url 'switches:show_stats' %}"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Usage Statistics</a></li>
             {% if settings.TOP_ACTIVITY %}
             <li><a class="dropdown-item" href="{% url 'switches:show_top' %}"><i class="fa-solid fa-mountain" aria-hidden="true"></i> Top Usage</a></li>
+            {% endif %}
+            {% if request.user.is_superuser %}
+              <li><a class="dropdown-item" href="{% url 'switches:admin_settings' %}"><i class="fa-solid fa-gear" aria-hidden="true"></i> Django Settings</a></li>
             {% endif %}
             <li><a class="dropdown-item" href="https://github.com/openl2m/openl2m/" target="_blank"><i class="fa-solid fa-code" aria-hidden="true"></i> Code</a></li>
             <li><hr class="dropdown-divider"></li>

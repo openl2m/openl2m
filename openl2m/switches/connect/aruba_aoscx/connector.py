@@ -12,37 +12,44 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import datetime
+import json
 import traceback
-from typing import List
+import urllib.parse
 
+# This is a custom AOS-CX REST connector that performs significantly faster then the
+# "pyaoscx" package, which also appears to be not thread-safe when running with gunicorn.py
 #
-# Basic Aruba AOS-CX connector. This uses the documented REST API, and allows us to handle
-# any device supported by the Aruba Python "pyaoscx" library.
-# See more at https://github.com/aruba/pyaoscx/
-# and https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
-
-# For clarity, and to avoid namespace collisions with our own internal classes,
-# we import all AOS-CX classes as AosCx<original-name>
+# This uses the documented REST API, and allows us to handle any AOS-CX device.
+# see https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
+# a good API doc is at
+# https://arubanetworking.hpe.com/techdocs/AOS-CX/10.16/PDF/rest_v10-0x.pdf
 #
-from pyaoscx.session import Session as AosCxSession
-
-# from pyaoscx.configuration import Configuration as AosCxConfiguration
-from pyaoscx.device import Device as AosCxDevice
-from pyaoscx.vlan import Vlan as AosCxVlan
-from pyaoscx.mac import Mac as AosCxMac
-from pyaoscx.interface import Interface as AosCxInterface
-from pyaoscx.poe_interface import PoEInterface as AosCxPoEInterface
-from pyaoscx.lldp_neighbor import LLDPNeighbor as AosCxLLDPNeighbor
-from pyaoscx.vrf import Vrf as AosCxVrf
-
-# used to disable unknown SSL cert warnings:
-import urllib3
+# Here are how the AOS-CX REST api uses the various HTTP methods (from the REST API docs):
+#
+# The GET method is a read method that gets the resource specified by the URI. Data is returned
+# in JSON format in the response body. Using GET on a resource collection results in a list of
+# URIs. Each URI in the list corresponds to a specific resource in the collection.
+# Using GET on a specific resource returns the attributes of that resource.
+#
+# The POST method creates an instance of a resource in the collection specified by the URI.
+#
+# The PUT method updates an instance of a resource by replacing the existing resource
+# with the resource provided in the request body. When using the PUT method to modify a
+# resource, only writable attributes can be included in the request body.
+# In REST v10.04 and later versions, the GET method 'selector' parameter includes a value of 'writable',
+# which enables you to get only the mutable configuration attributes of a resource.
+#
+# The PATCH method updates values in an existing resource using only the desired values
+# in the request body. It cannot be used to remove JSON keys or array elements.
+#
+# The DELETE method deletes an instance of a resource.
 
 
 from switches.utils import dprint, dvar
-from switches.constants import LOG_TYPE_ERROR, LOG_AOSCX_ERROR_GENERIC
-from switches.connect.classes import Interface, PoePort, NeighborDevice, Transceiver
-from switches.connect.connector import Connector
+from switches.constants import LOG_TYPE_ERROR, LOG_DEVICE_REST_OPEN, LOG_DEVICE_REST_CLOSE, LOG_DEVICE_REST_GET
+
+from switches.connect.restconnector import RESTConnector
+from switches.connect.classes import Interface, PoePort, Transceiver, NeighborDevice
 from switches.connect.aruba_aoscx.utils import aoscx_parse_duplex
 from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
@@ -58,17 +65,19 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_ROUTER,
     LLDP_CAPABILITIES_WLAN,
     LLDP_CAPABILITIES_PHONE,
-    #   IANA_TYPE_OTHER,
-    #   IANA_TYPE_IPV4,
-    #   IANA_TYPE_IPV6,
+    # IANA_TYPE_OTHER,
+    # IANA_TYPE_IPV4,
+    # IANA_TYPE_IPV6,
 )
+from switches.connect.aruba_aoscx.constants import VSX_NONE, VSX_ISL, VSX_KEEPALIVE
 
-# devices support up to v10.12, but pyaoscx currently supports 10.09 as highest,
-# see https://github.com/aruba/pyaoscx/tree/master/pyaoscx/rest
-API_VERSION = "10.08"  # '10.09', '10.08' or '10.04'
+#####################################################################
+# NOTE: each function call is enclosed by an open / close API call, #
+# in order to avoid token time out and resource overload.           #
+#####################################################################
 
 
-class AosCxConnector(Connector):
+class AosCxConnector(RESTConnector):
     """
     This class implements a Connector() to get switch information from Aruba AOS-CX devices.
     """
@@ -79,7 +88,7 @@ class AosCxConnector(Connector):
         """
         dprint("AosCxConnector() __init__")
         super().__init__(request, group, switch)
-        self.description = "Aruba AOS-CX API driver"
+        self.description = "Aruba AOS-CX REST API driver"
         self.vendor_name = "Aruba Networks"
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
@@ -98,9 +107,10 @@ class AosCxConnector(Connector):
         # but we should only do this to create a Read-Only driver!
         # self.read_only = True
 
-        # this will be the pyaoscx driver session object
-        self.aoscx_session = False
-        self.set_do_not_cache_attribute("aoscx_session")
+        # REST driver settings
+        self.api_prefix = ""  # rest uri prefix, ie. "/rest/v10.13"
+        self.latest_api_version = ""  # the latest version supported by thye device
+        self.aoscx_session = False  # no open REST session
 
         # capabilities of current driver:
         self.can_change_admin_status = True
@@ -108,12 +118,13 @@ class AosCxConnector(Connector):
         self.can_edit_vlans = True
         self.can_change_poe_status = True
         self.can_change_description = True
-        self.can_save_config = False  # not needed.
-        self.can_reload_all = False
+        self.can_save_config = True
+        self.can_reload_all = True
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = (
-            True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
-        )
+
+    def __del__(self):
+        """when we close the object, release the REST ticket, so the switch does not run out of resources!"""
+        self._close_device()
 
     def get_my_basic_info(self) -> bool:
         """
@@ -127,339 +138,487 @@ class AosCxConnector(Connector):
             # self.error already set!
             return False
 
-        # get facts of device first, ie OS, model, etc.!
-        # see https://github.com/aruba/pyaoscx/blob/master/pyaoscx/device.py
+        ##############################################
+        # get system facts first, ie OS, model, etc. #
+        ##############################################
         try:
-            aoscx_device = AosCxDevice(session=self.aoscx_session)
-            aoscx_device.get()
-        except Exception as error:
-            dprint(f"  get_my_basic_info(): AosCxDevice.get() failed: {format(error)}")
-            self._close_device()
+            system = self._get(path="system?depth=1", message="Get Systems")
+        except Exception as err:
+            dprint(f"  get_my_basic_info(): error getting system info: {format(err)}")
             self.error.status = True
-            self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot read device information: {format(error)}"
-            self.add_warning(
-                warning=f"Cannot read device information: {repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
-            )
-            self._close_device()
+            self.error.description = "Error getting system info!"
+            self.error.details = f"Info: {format(err)}"
+            self.add_warning(warning=f"Error getting system info!\n{format(err)}\n{traceback.format_exc()}")
             return False
 
-        # dvar(var=aoscx_device, header="\n\nAosCxDevice:\n\n")
-
-        # sub-systems has information about power supplies, etc.
-        aoscx_device.get_subsystems()
-        # dvar(var=aoscx_device, header="\n\nAosCxDevice-SubSystems:\n\n")
-
-        # this has info about each subsystem in the environment:
-        ps_id = 1  # power supply ID, starting at 1
-        for name, subsystem in aoscx_device.subsystems.items():
-            # format is 'subsys-name,unit-id'
-            subsys_name, subsys_id = name.split(",", 1)  # split once, we want just 2 components.
-            if subsys_name == "chassis":
-                if subsystem["product_info"]["part_number"]:
-                    # this is an existing chassis, not an empty "data slot"
-                    dprint(f"  Found CHASSIS #{subsys_id}")
-                    # for the first chassis, add some info:
-                    if int(subsys_id) == 1:
-                        self.add_more_info(
-                            "System",
-                            "Type",
-                            f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})",
-                        )
-                        self.add_more_info("System", "Serial", subsystem["product_info"]["serial_number"])
-                        self.set_driver_info(name="serial_number", value=subsystem["product_info"]["serial_number"])
-
-                    # we also want 'power_supplies' information for this chassis:
-                    if "power_supplies" in subsystem:
-                        for ps_name, ps in subsystem["power_supplies"].items():
-                            dprint(f"\n  FOUND PS INFO for {ps_name}\n{ps}\n")
-                            if ps["status"] == "ok":
-                                # get used and max power:
-                                power_used = int(ps["characteristics"]["instantaneous_power"])
-                                power_max = int(ps["characteristics"]["maximum_power"])
-                                dprint("  MAX: {power_max} W, used {power_used} W")
-                                new_ps = self.add_poe_powersupply(id=ps_id, power_available=power_max)
-                                new_ps.set_consumed_power(power=power_used)
-                                self.poe_power_consumed += power_used  # total value
-                                ps_id += 1
-                                # set a few more attributes, currently not displayed yet (9/2024)
-                                new_ps.name = ps["name"]
-                                new_ps.description = ps["identity"]["description"]
-                                new_ps.model = ps["identity"]["model_number"]
-                                new_ps.part_number = ps["identity"]["product_name"]
-                                new_ps.serial = ps["identity"]["serial_number"]
-
-        # aoscx_config = AosCxConfiguration(session=self.aoscx_session)
-        # dvar(var=aoscx_config, header="AosCxConfiguration:")
-
-        # self.hostname = aoscx_device.hostname
-        # # if first time for this device (or changed), update hostname
-        # if self.switch.hostname != aoscx_device.hostname:
-        #     self.switch.hostname = aoscx_device.hostname
-        #     self.switch.save()
-
-        self.add_more_info("System", "Firmware Version", aoscx_device.software_version)
-        self.set_driver_info(name="os_version", value=aoscx_device.software_version)
+        self.add_more_info("System", "Firmware Version", system["software_version"])
+        self.set_driver_info("os_version", system["software_version"])
         # this is typically the same as software_version:
-        # self.add_more_info('System', 'Firmware Version', aoscx_device.firmware_version)
-        if "build_date" in aoscx_device.software_info:
-            self.add_more_info("System", "Firmware Info", f"Build date: {aoscx_device.software_info['build_date']}")
+        # self.add_more_info('System', 'Firmware Version', system["firmware_version"])
+        if "build_date" in system["software_info"]:
+            self.add_more_info("System", "Firmware Info", f"Build date: {system['software_info']['build_date']}")
+
         # this same info is in 'Type' above:
-        # self.add_more_info('System', 'Platform', aoscx_device.platform_name)
+        # self.add_more_info('System', 'Platform', system["platform_name"])
 
-        if aoscx_device.hostname:  # this is None when not set!
-            # self.add_more_info('System', 'Hostname', self.hostname)
-            self.set_driver_info(name="hostname", value=aoscx_device.hostname)
-        # else:
-        #     self.add_more_info('System', 'Hostname', '')
+        if "hostname" in system:
+            self.hostname = system["hostname"]
+            self.add_more_info('System', 'Hostname', self.hostname)
+            self.set_driver_info("hostname", self.hostname)
+        else:
+            self.add_more_info('System', 'Hostname', '<not set>')
 
-        # if aoscx_device.domain_name:  # this is None when not set!
-        #     self.add_more_info('System', 'Domain Name', aoscx_device.domain_name)
+        # system["domain_name"]
+        #     self.add_more_info('System', 'Domain Name', system["domain_name"])
         # else:
         #     self.add_more_info('System', 'Domain Name', '')
 
-        # dprint(f"\nCapabilities = {aoscx_device.capabilities}")
-        # dprint(f"\nCapacities = {aoscx_device.capacities}")
-        # dprint(f"\nBoot time = {aoscx_device.boot_time}")
-        if aoscx_device.boot_time:
-            boot_time = datetime.datetime.fromtimestamp(aoscx_device.boot_time)
+        if "boot_time" in system:
+            boot_time = datetime.datetime.fromtimestamp(system["boot_time"])
             self.add_more_info("System", "Boot Time", boot_time)
-        # dprint(f"\nOther Config = {aoscx_device.other_config}")
-        # dprint(f"\nMgmt Intf Status = {aoscx_device.mgmt_intf_status}")
 
-        # if 'system_contact' in aoscx_device.other_config and aoscx_device.other_config['system_contact']:
-        #     self.add_more_info('System', 'Contact', aoscx_device.other_config['system_contact'])
-        # if 'system_location' in aoscx_device.other_config and aoscx_device.other_config['system_location']:
-        #     self.add_more_info('System', 'Location', aoscx_device.other_config['system_location'])
-        # if 'system_contact' in aoscx_device.other_config and aoscx_device.other_config['system_description']:
-        #     self.add_more_info('System', 'Description', aoscx_device.other_config['system_description'])
+        # if 'system_contact' in system["other_config"] and system["other_config"]['system_contact']:
+        #     self.add_more_info('System', 'Contact', system["other_config"]['system_contact'])
+        # if 'system_location' in in system["other_config"] and system["other_config"]['system_location']:
+        #     self.add_more_info('System', 'Location', system["other_config"]['system_location'])
+        # if 'system_contact' in in system["other_config"] and system["other_config"]['system_description']:
+        #     self.add_more_info('System', 'Description', system["other_config"]['system_description'])
 
-        # not sure what to get here yet:
-        # aoscx_device.get_subsystems()
-        # for key in device.subsystems:
-        #    print(f"        attribute: {key}")
+        #######################
+        # get sub-system info #
+        #######################
+        # try:
+        #     subsystems = self._get(path="system/subsystems?depth=2", message="Get Sub-Systems")
+        # except Exception as error:
+        #     dprint(f"  get_my_basic_info(): error geting subsystem info: {format(error)}")
+        #     self.error.status = True
+        #     self.error.description = "Error getting subsystem info!"
+        #     self.error.details = ""
+        #     self.add_warning(
+        #         warning=f"Error getting subsystem info!\n{repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
+        #     )
+        #     return False
 
-        # get the VLAN info, this get class objects pyaoscx.vlan.Vlan()
+        # # this has info about each subsystem in the environment:
+        # ps_id = 1  # power supply ID, starting at 1
+        # for name, subsystem in subsystems.items():
+        #     # format is 'subsys-name,unit-id'
+        #     subsys_name, subsys_id = name.split(",", 1)  # split once, we want just 2 components.
+        #     if subsys_name == "chassis":
+        #         if subsystem["product_info"]["part_number"]:
+        #             # this is an existing chassis, not an empty "data slot"
+        #             dprint(f"  Found CHASSIS #{subsys_id}")
+        #             # for the first chassis, add some info:
+        #             if int(subsys_id) == 1:
+        #                 self.add_more_info(
+        #                     "System",
+        #                     "Type",
+        #                     f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})",
+        #                 )
+        #                 self.add_more_info("System", "Serial", subsystem["product_info"]["serial_number"])
+
+        #                 self.set_driver_info(
+        #                     "model",
+        #                     f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})",
+        #                 )
+        #                 self.set_driver_info("serial_number", subsystem["product_info"]["serial_number"])
+
+        #             # we also want 'power_supplies' information for this chassis:
+        #             if "power_supplies" in subsystem:
+        #                 for ps_name, ps in subsystem["power_supplies"].items():
+        #                     dprint(f"\n  FOUND PS INFO for {ps_name}\n{ps}\n")
+        #                     if ps["status"] == "ok":
+        #                         # get used and max power:
+        #                         power_used = int(ps["characteristics"]["instantaneous_power"])
+        #                         power_max = int(ps["characteristics"]["maximum_power"])
+        #                         dprint("  MAX: {power_max} W, used {power_used} W")
+        #                         new_ps = self.add_poe_powersupply(id=ps_id, power_available=power_max)
+        #                         new_ps.set_consumed_power(power=power_used)
+        #                         self.poe_power_consumed += power_used  # total value
+        #                         ps_id += 1
+        #                         # set a few more attributes, currently not displayed yet (9/2024)
+        #                         new_ps.name = ps["name"]
+        #                         new_ps.description = ps["identity"]["description"]
+        #                         new_ps.model = ps["identity"]["model_number"]
+        #                         new_ps.part_number = ps["identity"]["product_name"]
+        #                         new_ps.serial = ps["identity"]["serial_number"]
+
+        #####################
+        # get the VLAN info #
+        #####################
         try:
-            aoscx_vlans = AosCxVlan.get_facts(session=self.aoscx_session)
-        except Exception as error:
-            self._close_device()
+            vlans = self._get(path="system/vlans?depth=2", message="Get VLANs")
+        except Exception as err:
+            dprint("  get_my_basic_info(): error getting Vlans!")
             self.error.status = True
-            self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot read device vlans: {format(error)}"
-            dprint("  get_my_basic_info(): AosCxVlan.get_facts() failed!")
+            self.error.description = "Error reading Vlans!"
+            self.error.details = f"Info: {format(err)}"
             self._close_device()
             return False
 
-        for vid, vlan in aoscx_vlans.items():
-            dvar(var=vlan, header="VLAN():")
-            # dprint(f"Vlan {vid}: {vlan['name']}")
+        for vid, vlan in vlans.items():
+            dvar(var=vlan, header=f"VLAN: {vid}")
             vlan_id = int(vid)
-            self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan["name"])
+            v = self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan["name"])
+            # v = self.vlans[vlan_id]
             # is this vlan enabled?
             if not vlan["admin"] == "up" and not vlan["oper_state"] == "up":
                 dprint("  VLAN is disabled!")
-                self.vlans[vlan_id].admin_status = VLAN_ADMIN_DISABLED
+                v.admin_status = VLAN_ADMIN_DISABLED
             if "voice" in vlan and vlan["voice"]:
                 dprint(f"Voice Vlan = '{vlan['voice']}' {type(vlan['voice'])})")
-                self.vlans[vlan_id].voice = True
+                v.voice = True
+            # set several REST uri's for additional vlan data
+            v.vlan_uri = f"{self.api_prefix}/system/vlans/{vlan_id}"  # not given by object for some reason ?
+            # mac/ethernet info found at "macs", eg. "macs": "/rest/v10.13/system/vlans/1/macs"
+            # and "static_macs": "/rest/v10.13/system/vlans/1/static_macs"
+            v.macs_uri = vlan["macs"]
+            v.static_macs_uri = vlan["static_macs"]
 
-        # get any VRF information
-        vrfs = AosCxVrf.get_all(session=self.aoscx_session)
-        for name, vrf in vrfs.items():
-            # dprint(f"Found VRF '{name}'")
-            # dvar(vrf)
-            v = self.get_vrf_by_name(name=name)
-            vrf.get()
-            # dprint("  -- GET() --")
-            # dvar(vrf)
-            if vrf.rd:
-                v.rd = vrf.rd
-
-        # and get the interfaces:
+        ###########################
+        # get any VRF information #
+        ###########################
         try:
-            # get_facts() returns Interface() items as dictionaries, not classes!
-            aoscx_interfaces = AosCxInterface.get_facts(session=self.aoscx_session)
-            # get_all() return a proper class pyaoscx.interface.Interface() ...
-            # aoscx_interfaces2 = AosCxInterface.get_all(session=self.aoscx_session)
+            vrfs = self._get(path="system/vrfs?depth=2", message="Get VRFs")
         except Exception as error:
-            self._close_device()
+            dprint("  get_my_basic_info(): error getting VRFs!")
             self.error.status = True
-            self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot read device interfaces: {format(error)}"
-            dprint("  get_my_basic_info(): AosCxInterface.get_facts() failed!")
+            self.error.description = "Error getting VRFs!"
+            self.error.details = f"Info: {format(error)}"
             self._close_device()
             return False
 
-        # if you use the class object, and want to get a fully materialized (ie. flushed-out) object,
-        # you need to call .get() on each Interface() object first!
-        # for if_name, aoscx_interface in aoscx_interfaces2.items():
-        #     try:
-        #         aoscx_interface.get()
-        #         dvar(var=aoscx_interface, header=f"\n\n=== AosCxInterface() CLASS: {if_name} ===")
-        #     except Exception as err:
-        #         dprint(f"Error '{if_name}'.get(): {err}")
-        # return True
+        for name, vrf in vrfs.items():
+            dvar(var=vrf, header="VRF:")
+            v = self.get_vrf_by_name(name=name)
+            v.rd = vrf["rd"]
+            # for VRF address families, get "system/vrfs/<vrf_name>/vrf_address_families"
+            # af = self._get(path=f"system/vrfs/{name}/vrf_address_families?depth=2", message=f"Get Address Family for VRF {name}")
+            # dvar(var=af, header="Address Families:")
 
-        for if_name, aoscx_interface in aoscx_interfaces.items():
-            dprint(f"AosCxInterface[]: {if_name}")
+        ######################
+        # get the interfaces #
+        ######################
+        try:
+            interfaces = self._get(path="system/interfaces?depth=2", message="Get Interfaces")
+        except Exception as error:
+            self.error.status = True
+            self.error.description = "Error getting interfaces!"
+            self.error.details = f"Info: {format(error)}"
+            dprint("  get_my_basic_info(): error getting interfaces!")
+            self._close_device()
+            return False
+
+        for if_name, interface in interfaces.items():
+            dprint(f"--- {if_name} ---")
             # see the attributes available:
-            # dvar(var=aoscx_interface, header=f"AosCxInterface[]: {if_name}")
+            # dvar(var=interface, header=f"Interface: {if_name}")
 
             # add an OpenL2M Interface() object
             iface = Interface(if_name)
             iface.name = if_name
-            iface.type = IF_TYPE_ETHERNET
-            if aoscx_interface["description"]:  # when not set, this is None, so catch that!
-                iface.description = aoscx_interface["description"]
+            iface.type = IF_TYPE_ETHERNET  # unless we learn differently later
+            iface.if_vlan_mode = VSX_NONE
+            if interface["description"]:  # when not set, this is None, so catch that!
+                iface.description = interface["description"]
+
             # this is Admin Up/Down:
-            if "admin" in aoscx_interface and aoscx_interface["admin"] == "down":
-                iface.admin_status = False
-                iface.oper_status = False
-            else:
-                # Admin UP, but do we have link?
-                iface.admin_status = True
-                if "admin_state" in aoscx_interface and aoscx_interface["admin_state"] == "up":
+            # note that defaults are admin_status = oper_status = False (ie Down)
+            # here are the values that appear to indicate admin and operational state:
+            # Admin shutdown:
+            #     "admin": "down",
+            #     "admin_state": "down",
+            #     "link_speed": 0,
+            #     "link_state": "down",
+            #     "hw_intf_info": {
+            #         ...
+            #         "max_speed": "5000",
+
+            # Admin no shutdown, port down:
+            #     "admin": null,
+            #     "admin_state": "down",
+            #     "link_speed": 0,
+            #     "link_state": "down",
+            #     "hw_intf_info": {
+            #         ...
+            #         "max_speed": "5000",
+
+            # Admin no shutdown, port up:
+
+            #     "admin": null,
+            #     "admin_state": "up",
+            #     "link_speed": 1000000000,
+            #     "link_state": "up",
+
+            if "link_state" in interface:
+                if interface["link_state"] == "up":  # operationally up
+                    # dprint("LINK_STATE UP!")
+                    iface.admin_status = True
                     iface.oper_status = True
-                    if "link_speed" in aoscx_interface:  # better be :-)
-                        if aoscx_interface["link_speed"] is not None:
+                    if "link_speed" in interface:  # for physicl ports, better be :-)
+                        if interface["link_speed"] is not None:
                             # iface.speed is in 1Mbps increments:
-                            iface.speed = int(int(aoscx_interface["link_speed"]) / 1000000)
-                else:
-                    iface.oper_status = False
-            if "duplex" in aoscx_interface:
-                iface.duplex = aoscx_parse_duplex(aoscx_interface["duplex"])
-            if "ip_mtu" in aoscx_interface:
-                iface.mtu = aoscx_interface["ip_mtu"]
-            if "mvrp_enable" in aoscx_interface:
-                iface.gvrp_enabled = aoscx_interface["mvrp_enable"]
-            if "routing" in aoscx_interface:
-                iface.is_routed = aoscx_interface["routing"]
-            if "type" in aoscx_interface:
-                if aoscx_interface["type"] == "vlan":
-                    dprint("VLAN interface")
-                    iface.type = IF_TYPE_VIRTUAL
+                            iface.speed = int(int(interface["link_speed"]) / 1000000)
+                else:  # not up, we can get port speed from hw_info
+                    # dprint("LINK_STATE NOT UP!")
+                    if "hw_intf_info" in interface and "max_speed" in interface["hw_intf_info"]:
+                        iface.speed = int(interface["hw_intf_info"]["max_speed"])  # already in Mbps !
+
+            # interface not up, so just down, or admin shutdown?
+            if not iface.oper_status:
+                # dprint("LINK NOT UP, CHECKING ADMIN STATE")
+                if "admin" in interface and not interface["admin"]:
+                    dprint("ADMIN STATE UP!")
+                    iface.admin_status = True
+
+            # read some other interface attributes...
+            if "duplex" in interface:
+                iface.duplex = aoscx_parse_duplex(interface["duplex"])
+            if "ip_mtu" in interface:
+                iface.mtu = interface["ip_mtu"]
+            if "mvrp_enable" in interface:
+                iface.gvrp_enabled = interface["mvrp_enable"]
+            if "routing" in interface:
+                iface.is_routed = interface["routing"]
+
+            # get details about the port type:
+            if "type" in interface:
+                match interface["type"]:
+                    case "vlan":
+                        dprint("VLAN interface")
+                        iface.type = IF_TYPE_VIRTUAL
+                    case "system":  # regular ethernet
+                        iface.type = IF_TYPE_ETHERNET
+                    case "lag":
+                        dprint("LACP virtual interface")
+                        iface.type = IF_TYPE_LAGG
+                        iface.lacp_type = LACP_IF_TYPE_AGGREGATOR
+                        # 'bond_status': {'bond_speed': 10000000000, 'state': 'up'} shows for virtual LACP interfaces:
+                        if "bond_status" in interface and "state" in interface["bond_status"]:
+                            if interface["bond_status"]["state"] == "up":
+                                iface.oper_status = True
+                                dprint(f"LACP speed found: {interface['bond_status']['bond_speed']}")
+                                # iface.speed is in 1Mbps increments:
+                                iface.speed = int(int(interface["bond_status"]["bond_speed"]) / 1000000)
+                            else:
+                                # down interface
+                                iface.open_status = False
+
+                            # LACP members are stored in "interfaces"
+                            # 'interfaces': {'1/1/16': '/rest/v10.09/system/interfaces/1%2F1%2F16'},
+                            if "interfaces" in interface:
+                                for if_name in interface["interfaces"]:
+                                    iface.lacp_members[if_name] = if_name
 
             #
             # Find VLAN Info for interface:
             # set in "applied_vlan_mode", "applied_vlan_tag" and "applied_vlan_trunks"
             #
-            if "applied_vlan_tag" in aoscx_interface and aoscx_interface["applied_vlan_tag"] is not None:
+            if "applied_vlan_tag" in interface and interface["applied_vlan_tag"] is not None:
                 # the untagged vlan
-                for vid in aoscx_interface["applied_vlan_tag"]:
+                for vid in interface["applied_vlan_tag"]:
                     # there is only 1:
                     iface.untagged_vlan = int(vid)
-            if "applied_vlan_mode" in aoscx_interface:
-                if aoscx_interface["applied_vlan_mode"] == "access":
+            if "applied_vlan_mode" in interface:
+                if interface["applied_vlan_mode"] == "access":
                     iface.is_tagged = False
-                elif aoscx_interface["applied_vlan_mode"] == "native-untagged":
+                elif interface["applied_vlan_mode"] == "native-untagged":
                     iface.is_tagged = True
                     # see if there are vlans on the trunk (untagged vlan is set above)
                     # vlan_trunks = {'500': '/rest/v10.04/system/vlans/500', '504': '/rest/v10.04/system/vlans/504'}
-                    if "applied_vlan_trunks" in aoscx_interface:
-                        for vid in aoscx_interface["applied_vlan_trunks"]:
+                    if "applied_vlan_trunks" in interface:
+                        for vid in interface["applied_vlan_trunks"]:
                             iface.add_tagged_vlan(int(vid))
 
-            # check LACP 'stuff':
-            if "lacp" in aoscx_interface and aoscx_interface["lacp"] == "active":
-                dprint("LAG interface")
-                iface.type = IF_TYPE_LAGG
-                iface.lacp_type = LACP_IF_TYPE_AGGREGATOR
-                # get speed
-                if "bond_status" in aoscx_interface:
-                    dprint(f"Bond Status found: {aoscx_interface['bond_status']['bond_speed']}")
-                    # iface.speed is in 1Mbps increments:
-                    iface.speed = int(int(aoscx_interface["bond_status"]["bond_speed"]) / 1000000)
-
-            elif "lacp_current" in aoscx_interface and aoscx_interface["lacp_current"]:
+            # Check for LACP membership:
+            if "other_config" in interface and "lacp-aggregation-key" in interface["other_config"]:
                 # lacp member interface:
                 iface.lacp_type = LACP_IF_TYPE_MEMBER
-                lacp_actor = int(aoscx_interface["lacp_status"]["actor_key"])
+                lacp_actor = int(interface["other_config"]["lacp-aggregation-key"])
                 iface.lacp_master_index = lacp_actor
                 iface.lacp_master_name = f"lag{lacp_actor}"
+                # we don't have the LAG interface yet, so cannot add member there!
 
-            if "ip4_address" in aoscx_interface:
-                if aoscx_interface["ip4_address"]:
-                    dprint(f"   IPv4 = {aoscx_interface['ip4_address']}")
-                    iface.add_ip4_network(address=aoscx_interface["ip4_address"])
-                    if "ip4_address_secondary" in aoscx_interface:
-                        dprint(f"   IPv4(2nd) = {aoscx_interface['ip4_address_secondary']}")
-
-            # check if this has PoE Capabilities
-            try:
-                # go get PoE info:
-                aoscx_iface = AosCxInterface(session=self.aoscx_session, name=if_name)
-                aoscx_poe_iface = AosCxPoEInterface(session=self.aoscx_session, parent_interface=aoscx_iface)
-                # get both configuration data (which has poe enable/disable status)
-                aoscx_poe_iface.get(selector="status")
-                # as well as status data, which has power usage:
-                aoscx_poe_iface.get(selector="configuration")
-
-                dprint(f"   +++ POE Exists for {if_name} ===")
-                # there is probably a more 'global' system/device way to see if PoE capabilities exist:
-                self.poe_capable = True
-                self.poe_enabled = True
-                # assign an OpenL2M PoePort() object
-                # dprint(f"POE: config.admin_disabled={aoscx_poe.config['admin_disable']}")
-                if aoscx_poe_iface.config["admin_disable"]:
-                    poe_status = POE_PORT_ADMIN_DISABLED
-                else:
-                    poe_status = POE_PORT_ADMIN_ENABLED
-                poe_entry = PoePort(index=if_name, admin_status=poe_status)
-                iface.poe_entry = poe_entry
-                # get power used. Listed in watts, convert to milliwatts:
-                consumed = int(aoscx_poe_iface.measurements["power_drawn"] * 1000)
-                if consumed > 0:
-                    super().set_interface_poe_consumed(iface, consumed)
-
-            except Exception as error:
-                dprint(f"   +++ NO PoE! - exception: {format(error)}")
+            if "ip4_address" in interface:
+                if interface["ip4_address"]:
+                    dprint(f"   IPv4 = {interface['ip4_address']}")
+                    iface.add_ip4_network(address=interface["ip4_address"])
+                    if "ip4_address_secondary" in interface:
+                        dprint(f"   IPv4(2nd) = {interface['ip4_address_secondary']}")
 
             # check VRF membership
-            if "vrf" in aoscx_interface:
-                if aoscx_interface["vrf"] is not None:
-                    vrf_name = aoscx_interface["vrf"]
+            if "vrf" in interface:
+                if interface["vrf"] is not None:
+                    # this is a dictionary of one element only!
+                    # e.g.: 'vrf': {'KeepAlive': '/rest/v10.17/system/vrfs/KeepAlive'},
+                    vrf_name = next(iter(interface["vrf"]))  # we use first element only!
                     if iface.name not in self.vrfs[vrf_name].interfaces:
                         self.vrfs[vrf_name].interfaces.append(iface.name)
                     # assing this vrf name to the interface:
                     iface.vrf_name = vrf_name
 
             # check plugable modules for optics info
-            if "pm_info" in aoscx_interface:
-                if "connector" in aoscx_interface["pm_info"] and aoscx_interface["pm_info"]["connector"] != "absent":
-                    dprint(f"Optics info found:\n{aoscx_interface['pm_info']}\n")
+            if "pm_info" in interface:
+                if "connector" in interface["pm_info"] and interface["pm_info"]["connector"] != "absent":
+                    dprint(f"Optics info found:\n{interface['pm_info']}\n")
                     trx = Transceiver()
-                    if "external_connector" in aoscx_interface["pm_info"]:
-                        trx.connector = aoscx_interface["pm_info"]["external_connector"]
+                    if "external_connector" in interface["pm_info"]:
+                        trx.connector = interface["pm_info"]["external_connector"]
 
-                    if "xcvr_desc" in aoscx_interface["pm_info"]:
-                        trx.type = aoscx_interface["pm_info"]["xcvr_desc"]
+                    if "xcvr_desc" in interface["pm_info"]:
+                        trx.type = interface["pm_info"]["xcvr_desc"]
                     else:  # see if we can goble something from speed and connector info:
-                        if "speed" in aoscx_interface["pm_info"]:
-                            gig_speed = int(aoscx_interface["pm_info"]["speed"]) / 1000
-                            trx.type = f"{gig_speed}g {aoscx_interface['pm_info']['connector']}"
+                        if "speed" in interface["pm_info"]:
+                            gig_speed = int(interface["pm_info"]["speed"]) / 1000
+                            trx.type = f"{gig_speed}g {interface['pm_info']['connector']}"
 
-                    if "vendor_name" in aoscx_interface["pm_info"]:
-                        trx.vendor = aoscx_interface["pm_info"]["vendor_name"]
+                    if "vendor_name" in interface["pm_info"]:
+                        trx.vendor = interface["pm_info"]["vendor_name"]
 
-                    if "wavelength" in aoscx_interface["pm_info"]:
-                        trx.wavelength = aoscx_interface["pm_info"]["wavelength"]
+                    if "wavelength" in interface["pm_info"]:
+                        trx.wavelength = interface["pm_info"]["wavelength"]
                     iface.transceiver = trx
 
+            # check if this has PoE Capabilities
+            if "poe_interface" in interface:
+                # this does not mean PoE is available for this interface. Let's check...
+                poe_info = self._get(uri=interface["poe_interface"])
+                if poe_info:
+                    dprint(f"--- POE found for {if_name} ---")
+                    # there is probably a more 'global' system/device way to see if PoE capabilities exist:
+                    self.poe_capable = True
+                    self.poe_enabled = True
+
+                    # assign an OpenL2M PoePort() object
+                    if poe_info["config"]["admin_disable"]:
+                        poe_status = POE_PORT_ADMIN_DISABLED
+                    else:
+                        poe_status = POE_PORT_ADMIN_ENABLED
+                    iface.poe_entry = PoePort(index=if_name, admin_status=poe_status)
+
+                    # get power used. Listed in watts, convert to milliwatts:
+                    consumed = int(poe_info["measurements"]["power_drawn"] * 1000)
+                    if consumed > 0:
+                        super().set_interface_poe_consumed(iface, consumed)
+
+            # save the various lldp and cdp URI's
+            if "ip6_addresses" in interface:
+                iface.ipv6_uri = interface["ip6_addresses"]
+            if "ip6_autoconfigured_addresses" in interface:
+                iface.ipv6_link_local_uri = interface["ip6_autoconfigured_addresses"]
+            if "cdp_neighbors" in interface:
+                iface.cdp_uri = interface["cdp_neighbors"]
+            if "lldp_neighbors" in interface:
+                iface.lldp_uri = interface["lldp_neighbors"]
+
+            # add finally add this interface!
             self.add_interface(iface)
 
-        # done with REST connection:
-        # self._close_device()
+        ############################
+        # read VSX (stacking) info #
+        ############################
 
-        # the REST API gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
-        # sort this to the human natural order we expect:
-        self.set_interfaces_natural_sort_order()
+        try:
+            vsx_info = self._get(path="system/vsx?depth=2", message="Get VSX Info")
+        except Exception as error:
+            self.error.status = True
+            self.error.description = "Error getting VSX info!"
+            self.error.details = f"Info: {format(error)}"
+            dprint("  get_my_basic_info(): error getting VSX info!")
+            self._close_device()
+            return False
+
+        if vsx_info:
+
+            if "isl_port" in vsx_info:
+                self.add_more_info("System", "VSX Stacking", "Yes")
+                isl_ports = []  # track ISL ports
+                ka_ports = []  # track KeepAlive ports
+                for if_name, if_info in vsx_info["isl_port"].items():
+                    dprint(f"VSX LINK PORT: {if_name}")
+                    iface = self.get_interface_by_name(name=if_name)
+                    if iface:
+                        iface.if_vlan_mode = VSX_ISL
+                        isl_ports.append(if_name)
+                    # for lags, see if there are member interfaces, mark them as ISL as well!
+                    if "interfaces" in if_info:
+                        for isl_name in if_info["interfaces"]:
+                            dprint(f"VSX LINK MEMBER PORT: {isl_name}")
+                            iface = self.get_interface_by_name(name=isl_name)
+                            if iface:
+                                iface.if_vlan_mode = VSX_ISL
+                                if isl_name != if_name:
+                                    isl_ports.append(isl_name)
+
+                if "keepalive_port" in vsx_info:
+                    for if_name, if_info in vsx_info["keepalive_port"].items():
+                        dprint(f"VSX KeepAlive Port: {if_name}")
+                        iface = self.get_interface_by_name(name=if_name)
+                        if iface:
+                            iface.if_vlan_mode = VSX_KEEPALIVE
+                            ka_ports.append(if_name)
+                        # for lags, see if there are member interfaces, mark them as KeepAlive as well!
+                        if "interfaces" in if_info:
+                            for ka_name in if_info["interfaces"]:
+                                dprint(f"VSX KeepAlive MEMBER PORT: {ka_name}")
+                                iface = self.get_interface_by_name(name=ka_name)
+                                if iface:
+                                    iface.if_vlan_mode = VSX_KEEPALIVE
+                                    if ka_name != if_name:
+                                        ka_ports.append(ka_name)
+
+                # other potentially interesting items:
+                # 'keepalive_last_established': 1777926498,
+                # 'keepalive_last_failed': None,
+                # 'keepalive_peer_ip': '10.199.74.2',
+                # 'keepalive_peer_status': {'peer_islp_state': 'in_sync',
+                #                         'peer_system_id': '02:01:10:xx:xx:xx'},
+                # 'keepalive_src_ip': '10.199.74.1',
+                # 'keepalive_statistics': {'dead_interval_timeout': 0,
+                #                         'dropped': 0,
+                #                         'rx': 2673237,
+                #                         'tx': 2674474},
+                # 'keepalive_status': {'state': 'in_sync_established'},
+                # 'keepalive_timers': {'dead_interval': 3, 'hello_interval': 1},
+                # 'keepalive_udp_port': 7678,
+                # 'keepalive_vrf': {'KeepAlive': ...
+                #  'keepalive_src_ip': '10.199.74.1',
+                #  'keepalive_statistics': {'dead_interval_timeout': 0,
+                #                           'dropped': 0,
+                #                           'rx': 2673237,
+                #                           'tx': 2674474},
+                #  'keepalive_status': {'state': 'in_sync_established'},
+                #  'keepalive_timers': {'dead_interval': 3, 'hello_interval': 1},
+                #  'keepalive_udp_port': 7678,
+                #  'keepalive_vrf': {'KeepAlive':
+
+                #  'oper_status': {'config_sync_state': 'in-sync',
+                #                  'device_role': 'primary',
+                #                  'https_server_state': 'peer_reachable',
+                #                  'isl_mgmt_state': 'operational',
+
+                #  'peer_status': {'peer_device_role': 'secondary',
+                #                  'peer_isl_port': 'lag10',
+                #                  'peer_islp_version': 2,
+                #                  'peer_ready': True,
+                #                  'peer_system_id': '02:01:10:74:00:19',
+                #                  'peer_system_mac': '14:7e:19:a5:96:40'},
+                #  'peer_sw_version': 'LL.10.17.1010',
+                self.add_more_info("VSX Stacking", "Status", vsx_info["oper_status"]["config_sync_state"])
+                self.add_more_info("VSX Stacking", "My Role", vsx_info["oper_status"]["device_role"])
+                self.add_more_info("VSX Stacking", "Peer Role", vsx_info["peer_status"]["peer_device_role"])
+                self.add_more_info("VSX Stacking", "Peer IP", vsx_info["keepalive_peer_ip"])
+                self.add_more_info("VSX Stacking", "Peer Fw", vsx_info["peer_sw_version"])
+                self.add_more_info("VSX Stacking", "ISL Ports", ", ".join(isl_ports))
+                self.add_more_info("VSX Stacking", "KeepAlive Ports", ", ".join(ka_ports))
+
+            else:
+                self.add_more_info("System", "VSX Stacking", "No")
 
         # fix up some things that are not known at time of interface discovery,
         # such as LACP master interfaces:
         self._map_lacp_members_to_logical()
 
-        # save driver info
         self.save_driver_info()
 
         self._close_device()
@@ -485,97 +644,93 @@ class AosCxConnector(Connector):
 
         # get mac address table, this is based on vlans:
         dprint("Getting MAC table per VLAN:")
-        for vlan_id in self.vlans:
-            dprint(f"Vlan {vlan_id}:")
-            try:
-                v = AosCxVlan(session=self.aoscx_session, vlan_id=int(vlan_id))
-                v.get()
-                if hasattr(v, "name"):
-                    # vlan 1 does not typically have a name!
-                    dprint(f"  VLAN {v.name}")
-            except Exception as err:
-                dprint(f"v = Vlan() error: {err}")
-                description = f"Cannot get ethernet table for vlan {vlan_id}"
-                details = f"pyaoscx Vlan() Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
-                self.add_warning(warning=description)
-                self.add_log(type=LOG_TYPE_ERROR, action=LOG_AOSCX_ERROR_GENERIC, description=details)
-                continue
-            try:
-                # this gets ethernet addresses by vlan:
-                vlan_macs = AosCxMac.get_all(session=self.aoscx_session, parent_vlan=v)
-            except Exception as err:
-                dprint(f"ERROR in AosCxMac.get_all(): {err}")
-            else:
-                # now get details for each mac address
-                for mac in vlan_macs.values():
-                    try:  # this occasionally fails!
-                        mac.get()  # materialize the object from the device
-                        dprint(f"  MAC Address: {mac} -> {mac.port}")
-                        # for name in mac.__dict__:
-                        #    dprint(f"      attribute: {name} = {mac.__dict__[name]}")
+        for vlan in self.vlans.values():
+            # dvar(var=vlan, header="VLAN OBJECT")
+            dprint(f"Vlan {vlan.id}:")
+            for uri in (vlan.macs_uri, vlan.static_macs_uri):
+                try:
+                    macs = self._get(uri=f"{uri}?depth=2", message="ETH INFO")
+                    # now get details for each mac address
+                    for mac_addr, mac in macs.items():
+                        mac_if_name = next(iter(mac["port"]))  # we use first element only!
+                        dprint(f"  MAC Address: {mac_addr} -> {mac_if_name}")
                         # add this to the known addressess:
                         self.add_learned_ethernet_address(
-                            if_name=mac.port.name, eth_address=mac.mac_address, vlan_id=int(vlan_id)
+                            if_name=mac_if_name, eth_address=mac["mac_addr"], vlan_id=int(vlan.id)
                         )
-                    except Exception as err:
-                        dprint(f"ERROR in mac.get(): {err}")
-                    # just try the next one...
+
+                except Exception as err:
+                    dprint(f"Vlan get macs error: {err}")
+                    description = f"Cannot get ethernet table for vlan {vlan.id}"
+                    details = (
+                        f"Error getting ethernet table for vlan {vlan.id}\n{format(err)}\n{traceback.format_exc()}"
+                    )
+                    self.add_warning(warning=description)
+                    self.add_log(type=LOG_TYPE_ERROR, action=LOG_DEVICE_REST_GET, description=details)
 
         dprint("Getting LLDP data per INTERFACE:")
-        for if_name in self.interfaces:
-            dprint(f"  Interface {if_name}:")
-            try:
-                aoscx_iface = AosCxInterface(session=self.aoscx_session, name=if_name)
-                neighbors = AosCxLLDPNeighbor.get_all(session=self.aoscx_session, parent_interface=aoscx_iface)
-                for nb_name, nb in neighbors.items():
-                    dprint(f"AOS-CX LLDP FOUND: on {if_name} => {nb_name} -> {nb}")
-                    try:  # this occasionally fails!
-                        nb.get()
-                        # for attrib, value in nb.__dict__.items():
-                        #    dprint(f"  {attrib} -> {value}")
-                        # get an OpenL2M NeighborDevice()
-                        neighbor = NeighborDevice(nb.chassis_id)
-                        neighbor.set_sys_name(nb.neighbor_info["chassis_name"])
-                        neighbor.set_sys_description(nb.neighbor_info["chassis_description"])
-                        # remote device port info:
-                        neighbor.port_name = nb.port_id
-                        neighbor.set_port_description(nb.neighbor_info["port_description"])
-                        # remote chassis info:
-                        neighbor.set_chassis_string(nb.chassis_id)
-                        if nb.neighbor_info["chassis_id_subtype"] == "link_local_addr":
-                            neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
-                        # parse capabilities:
-                        capabilities = nb.neighbor_info["chassis_capability_enabled"].lower()
-                        dprint(f"  Capabilities: {capabilities}")
-                        if "bridge" in capabilities:
-                            neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
-                        if "router" in capabilities:
-                            neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
-                        # Following NOT tested; we are assuming the following two are correct:
-                        if "wlan" in capabilities:
-                            neighbor.set_capability(LLDP_CAPABILITIES_WLAN)
-                        if "phone" in capabilities:
-                            neighbor.set_capability(LLDP_CAPABILITIES_PHONE)
-                        # remote device management address, this is a list(), take first entry
-                        if len(nb.neighbor_info["mgmt_ip_list"]) > 0:
-                            # hardcoding to IPv4 for now...
-                            neighbor.set_management_address_v4(address=nb.neighbor_info["mgmt_ip_list"])
-                        # add to device interface:
-                        self.add_neighbor_object(if_name, neighbor)
 
-                    except Exception as err:
-                        dprint(f"ERROR in neighbor.get(): {err}")
-                    # just try the next one...
+        for iface in self.interfaces.values():
+            dprint(f"  Interface {iface.name}:")
+            try:
+                neighbors = self._get(uri=f"{iface.lldp_uri}?depth=2", message="LLDP INFO")
+                for nb_name, lldp_nb in neighbors.items():
+                    dprint(f"LLDP FOUND: {nb_name}")
+                    neighbor = NeighborDevice(lldp_nb["chassis_id"])
+                    nb = lldp_nb["neighbor_info"]  # this is where the "real" info resides!
+                    neighbor.set_sys_name(nb["chassis_name"])
+                    neighbor.set_sys_description(nb["chassis_description"])
+                    # remote device port info:
+                    neighbor.port_name = nb["port_description"]
+                    neighbor.set_port_description(nb["port_description"])
+                    # remote chassis info:
+                    neighbor.set_chassis_string(lldp_nb["chassis_id"])
+                    if nb["chassis_id_subtype"] == "link_local_addr":
+                        neighbor.set_chassis_type(LLDP_CHASSIC_TYPE_ETH_ADDR)
+                    # parse capabilities:
+                    capabilities = nb["chassis_capability_enabled"].lower()
+                    dprint(f"  Capabilities: {capabilities}")
+                    if "bridge" in capabilities:
+                        neighbor.set_capability(LLDP_CAPABILITIES_BRIDGE)
+                    if "router" in capabilities:
+                        neighbor.set_capability(LLDP_CAPABILITIES_ROUTER)
+                    # Following NOT tested; we are assuming the following two are correct:
+                    if "wlan" in capabilities:
+                        neighbor.set_capability(LLDP_CAPABILITIES_WLAN)
+                    if "phone" in capabilities:
+                        neighbor.set_capability(LLDP_CAPABILITIES_PHONE)
+                    # remote device management address, this is a list(), take first entry
+                    if len(nb["mgmt_ip_list"]) > 0:
+                        # hardcoding to IPv4 for now...
+                        neighbor.set_management_address_v4(address=nb["mgmt_ip_list"])
+                    # add to device interface, we need to do this on the Connector (ie self.)
+                    # to track lldp count:
+                    self.add_neighbor_object(if_name=iface.name, neighbor=neighbor)
+
             except Exception as err:
-                dprint(f"neighbors = AosCxLLDPNeighbor.get_all() error: {err}")
-                description = f"Cannot get LLDP table for interface '{if_name}'"
-                details = f"pyaoscx LLDPNeighbor() Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                dprint(f"ERROR getting lldp neighbors: {err}")
+                description = f"Cannot get LLDP table for interface '{iface.name}'"
+                details = f"Error getting '{iface.lldp_uri}'\n{format(err)}\n{traceback.format_exc()}"
                 self.add_warning(warning=description)
-                self.add_log(type=LOG_TYPE_ERROR, action=LOG_AOSCX_ERROR_GENERIC, description=details)
+                self.add_log(type=LOG_TYPE_ERROR, action=LOG_DEVICE_REST_GET, description=details)
                 continue
 
         # done...
         self._close_device()
+        return True
+
+    def _can_manage_interface(self, interface: Interface) -> bool:
+        """
+        vendor-specific override of function to check if this interface can be managed.
+        We check for VSX ports here.
+        Returns True for normal interfaces, but False for VSX ports.
+        """
+        if interface.if_vlan_mode == VSX_ISL:
+            interface.unmanage_reason = "Access denied: interface is VSX stacking port!"
+            return False
+        if interface.if_vlan_mode == VSX_KEEPALIVE:
+            interface.unmanage_reason = "Access denied: interface is VSX KeepAlive port!"
+            return False
         return True
 
     def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
@@ -592,36 +747,51 @@ class AosCxConnector(Connector):
             dprint("_open_device() failed!")
             return False
 
-        try:
-            aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
-            aoscx_interface.get()
-        except Exception as error:
-            self.error.status = True
-            self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot read device interface: {format(error)}"
-            dprint(f"  set_interface_admin_status(): AosCxInterface.get() failed!\n{format(error)}")
-            self._close_device()
-            return False
-
         if new_state:
             state = "up"
         else:
             state = "down"
-        # changed = aoscx_interface.set_state(state=state)
-        aoscx_interface.admin_state = state
-        changed = aoscx_interface.apply()
-        # self._close_device()
-        if changed:
-            dprint(f"  Interface change '{state}' OK!")
-            # call the super class for bookkeeping.
-            super().set_interface_admin_status(interface, new_state)
-            self._close_device()
-            return True
 
-        dprint(f"   Interface change '{state}' FAILED!")
-        # we need to add error info here!!!
+        data = {
+            "admin": state,
+            "user_config": {
+                "admin": state,
+            },
+        }
+
+        # encode the / in the interface to a url format:
+        if_name_url = urllib.parse.quote(interface.name, safe="")
+
+        try:
+            success = self._patch(
+                path=f"system/interfaces/{if_name_url}", data=json.dumps(data), message="Set Interface Status"
+            )
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Exception error changing interface status!"
+            self.error.details = f"Info: {format(err)}"
+            dprint(f"ERROR: set_interface_admin_status() failed!\n{format(err)}")
+            self._close_device()
+            return False
+
         self._close_device()
-        return False
+
+        if not success:
+            dprint(f"   Interface change to '{state}' FAILED!")
+            self.error.status = True
+            self.error.description = "Error changing interface status!"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
+            dprint("ERROR: set_interface_admin_status() failed, not sure why?")
+            # we need to add error info here!!!
+            return False
+
+        dprint(f"  Interface change to '{state}' OK!")
+        # call the super class for bookkeeping.
+        super().set_interface_admin_status(interface, new_state)
+        return True
 
     def set_interface_description(self, interface: Interface, description: str) -> bool:
         """
@@ -636,31 +806,41 @@ class AosCxConnector(Connector):
             dprint("_open_device() failed!")
             return False
 
+        data = {"description": description}
+
+        # encode the / in the interface to a url format:
+        if_name_url = urllib.parse.quote(interface.name, safe="")
+
         try:
-            aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
-            aoscx_interface.get()
-        except Exception as error:
+            success = self._patch(
+                path=f"system/interfaces/{if_name_url}", data=json.dumps(data), message="Set Interface Description"
+            )
+        except Exception as err:
             self.error.status = True
-            self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot read device interface: {format(error)}"
-            dprint("  set_interface_description(): AosCxInterface.get() failed!")
+            self.error.description = "Exception error changing interface description!"
+            self.error.details = f"Info: {format(err)}"
+            dprint(f"ERROR: set_interface_description() exception!\n{format(err)}")
             self._close_device()
             return False
 
-        aoscx_interface.description = description
-        changed = aoscx_interface.apply()
-        # self._close_device()
-        if changed:
-            dprint("   Descr OK!")
-            # call the super class for bookkeeping.
-            super().set_interface_description(interface, description)
-            self._close_device()
-            return True
-
-        dprint("   Descr FAILED!")
-        # we need to add error info here!!!
         self._close_device()
-        return False
+
+        if not success:
+            dprint("ERROR: Interface description change FAILED, not sure why?")
+            # we need to add error info here!!!
+            self.error.status = True
+            self.error.description = "Error changing interface description!"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
+            return False
+
+        dprint("   Descr Set OK!")
+        # call the super class for bookkeeping.
+        super().set_interface_description(interface, description)
+        self._close_device()
+        return True
 
     def set_interface_poe_status(self, interface: Interface, new_state: int) -> bool:
         """
@@ -676,50 +856,65 @@ class AosCxConnector(Connector):
         """
         dprint(f"AosCxConnector.set_interface_poe_status() for {interface.name} to {new_state}")
 
-        if interface.poe_entry:
-            if not self._open_device():
-                dprint("_open_device() failed!")
-                return False
+        if not interface.poe_entry:
+            # this should never happen!
+            dprint("PoE change requested, but interface does not support PoE!!!")
+            self.error.status = True
+            self.error.description = "PoE change requested, but interface does not support PoE!!!"
+            self.error.details = ""
+            return False
 
-            # go get PoE info:
-            try:
-                aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
-                aoscx_poe = AosCxPoEInterface(session=self.aoscx_session, parent_interface=aoscx_interface)
-                aoscx_poe.get()
-            except Exception as error:
-                self.error.status = True
-                self.error.description = "Error establishing connection!"
-                self.error.details = f"Cannot read device interface: {format(error)}"
-                dprint("  set_interface_poe_status(): AosCxInterface or AosCxPoEInterface.get() failed!")
-                self._close_device()
-                return False
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
 
-            dprint(f"  +++ POE Exists for {interface.name} ===")
-            if new_state == POE_PORT_ADMIN_ENABLED:
-                aoscx_poe.power_enabled = True
-                changed = aoscx_poe.apply()
-            else:
-                aoscx_poe.power_enabled = False
-                changed = aoscx_poe.apply()
-            # self._close_device()
-            if changed:
-                dprint("   PoE change OK!")
-                # call the super class for bookkeeping.
-                super().set_interface_poe_status(interface, new_state)
-                self._close_device()
-                return True
+        # entry is "admin_disable", so "opposite" logic!
+        if new_state == POE_PORT_ADMIN_ENABLED:
+            state = False
+        else:
+            state = True
 
-            dprint("   PoE change FAILED!")
-            # we need to add error info here!!!
+        data = {
+            "config": {
+                "admin_disable": state,
+            },
+        }
+
+        # encode the / in the interface to a url format:
+        if_name_url = urllib.parse.quote(interface.name, safe="")
+
+        try:
+            success = self._patch(
+                path=f"system/interfaces/{if_name_url}/poe_interface",
+                data=json.dumps(data),
+                message="Set Interface PoE Status",
+            )
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Exception error changing interface PoE!"
+            self.error.details = f"Info: {format(err)}"
+            dprint(f"  set_interface_poe_status() exception!\n{format(err)}")
             self._close_device()
             return False
 
-        # this should never happen!
-        dprint("PoE change requested, but interface does not support PoE!!!")
-        self.error.status = True
-        self.error.description = "PoE change requested, but interface does not support PoE!!!"
-        self.error.details = ""
-        return False
+        self._close_device()
+
+        if not success:
+            dprint("   Interface PoE change FAILED, not sure why?")
+            # we need to add error info here!!!
+            self.error.status = True
+            self.error.description = "Error changing interface PoE!"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
+            return False
+
+        dprint("   PoE change OK!")
+        # call the super class for bookkeeping.
+        super().set_interface_poe_status(interface, new_state)
+        self._close_device()
+        return True
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
@@ -734,90 +929,61 @@ class AosCxConnector(Connector):
             dprint("_open_device() failed!")
             return False
 
-        # get AosCxInterface:
+        # 802.1q-tagged or untagged?
+        if interface.is_tagged:
+            dprint("  tagged mode port!")
+            vlan_mode = "native-untagged"
+        else:
+            # untagged, ie set access mode vlan
+            dprint("  access mode port!")
+            vlan_mode = "access"
+
+        # set the payload for the patch request
+        v = self.get_vlan_by_id(vlan_id=new_vlan_id)
+        data = {
+            "vlan_mode": vlan_mode,
+            "vlan_tag": {
+                new_vlan_id: v.vlan_uri,
+            },
+        }
+
+        # encode the / in the interface to a url format:
+        if_name_url = urllib.parse.quote(interface.name, safe="")
+
         try:
-            aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
-            aoscx_interface.get()  # we need a fully "populated" AosCxInterface() object
-            dprint(f"  AosCxInterface.get() OK: {aoscx_interface.name}")
-            dvar(var=aoscx_interface, header="\n\nINTERFACE:")
-            dvar(var=aoscx_interface.vlan_trunks, header="\n\n  TRUNK VLANS")
+            success = self._patch(
+                path=f"system/interfaces/{if_name_url}",
+                data=json.dumps(data),
+                message=f"Set Interface {vlan_mode} Vlan",
+            )
         except Exception as err:
-            dprint(f"  set_interface_untagged_vlan(): AosCxInterface.get() failed!\n{traceback.format_exc()}")
+            dprint(f"ERROR: setting {vlan_mode} vlan: {err}")
             self.error.status = True
-            self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot read device interface: {format(err)}\n{traceback.format_exc()}"
+            self.error.description = "Exception error setting {vlan_mode} vlan!"
+            self.error.details = f"Info: {format(err)}"
             self._close_device()
             return False
 
-        # 802.1q-tagged or untagged?
-        if interface.is_tagged:
-            # this needs to set the native vlan!
-            dprint("  tagged port: calling aoscx.set_native_vlan()")
-
-            try:
-                # Note:
-                # here we work around a possible bug in the pyaoscx module,
-                # where 'trunk vlan allow all' translates into an empty aoscx_interface.vlans_trunks list
-                # this causes the new vlan to be the only one allowed on the trunk.
-                # Work around by explicityly setting the trunk allows vlans.
-                # also see https://github.com/aruba/pyaoscx/issues/36
-                vlan_trunks = []
-                for vlan_id in interface.vlans:
-                    v = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
-                    vlan_trunks.append(v)
-                aoscx_interface.vlan_trunks = vlan_trunks
-                # and now set the new native vlan
-                changed = aoscx_interface.set_native_vlan(vlan=int(new_vlan_id), tagged=False)
-            except Exception as err:
-                dprint(f"ERROR in aoscx_interface.set_untagged_vlan() object: {err}")
-                self.error.status = True
-                self.error.description = "Error setting untagged vlan on trunk port!"
-                self.error.details = f"ERROR in aoscx_interface.set_native_vlan(): {format(err)}"
-                self._close_device()
-                return False
-            if changed:
-                dprint("   Vlan Change OK!")
-                # call the super class for bookkeeping.
-                super().set_interface_untagged_vlan(interface, new_vlan_id)
-                self._close_device()
-                return True
-
+        if not success:
             dprint("   Vlan Change FAILED for Unknown Reasons!")
             # we need to add error info here!!!
             self.error.status = True
-            self.error.description = "Error setting untagged vlan!"
-            self.error.details = "UNKNOWN ERROR in aoscx_interface.set_native_vlan()!"
+            self.error.description = f"Error setting {vlan_mode} vlan!"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
             self._close_device()
             return False
 
-        # untagged, ie set access mode vlan
-        dprint("  access mode port: calling aoscx.set_untagged_vlan()")
-        try:
-            changed = aoscx_interface.set_untagged_vlan(vlan=int(new_vlan_id))
-        except Exception as err:
-            dprint(f"ERROR in aoscx_interface.set_untagged_vlan() object: {err}")
-            self.error.status = True
-            self.error.description = "Error setting access vlan!"
-            self.error.details = f"ERROR in aoscx_interface.set_untagged_vlan(): {format(err)}"
-            self._close_device()
-            return False
-        if changed:
-            dprint("   Vlan Change OK!")
-            # call the super class for bookkeeping.
-            super().set_interface_untagged_vlan(interface, new_vlan_id)
-            self._close_device()
-            return True
-
-        dprint("   Vlan Change FAILED for Unknown Reasons!")
-        # we need to add error info here!!!
-        self.error.status = True
-        self.error.description = "Error setting access vlan!"
-        self.error.details = "UNKNOWN ERROR in aoscx_interface.set_untagged_vlan()!"
+        dprint("   Vlan Change OK!")
+        # call the super class for bookkeeping.
+        super().set_interface_untagged_vlan(interface, new_vlan_id)
         self._close_device()
-        return False
+        return True
 
     def set_interface_vlans(
-        self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
     ) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
@@ -825,7 +991,7 @@ class AosCxConnector(Connector):
         Args:
             interface = Interface() object for the requested port
             untagged_vlan = an integer with the requested untagged vlan
-            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+            tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
         Returns:
             True on success, False on error and set self.error variables
@@ -834,62 +1000,106 @@ class AosCxConnector(Connector):
             f"AosCxConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
         )
 
+        # open to set access mode
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
 
-        # get AosCxInterface:
+        # start with the untagged/access vlan in the payload for the http patch request
+        v = self.get_vlan_by_id(vlan_id=untagged_vlan)
+
+        # encode the / in the interface to a url format:
+        if_name_url = urllib.parse.quote(interface.name, safe="")
+
+        # "access" mode does not mean that the "vlan_trunks" attribute is empty.
+        # An HTTP PATCH does NOT delete tagged "trunk_vlans" that may already be set
+        # in both access or either of the tagged modes, so this could cause unwanted
+        # vlans permitted in the tagged trunk.
+        #
+        # A PUT deletes attributes that are not listed in the request data,
+        # i.e. can clear things like "description"
+        #
+        # We are going to read all "writable" interface attributes first,
+        # make changes to the untagged and/or tagged vlans,
+        # and then write all those values back to the device.
+        dprint("  reading FULL interface attributes")
         try:
-            aoscx_interface = AosCxInterface(session=self.aoscx_session, name=interface.name)
-            aoscx_interface.get()  # we need a fully "populated" AosCxInterface() object
-            dprint(f"  AosCxInterface.get() OK: {aoscx_interface.name}")
-            dvar(var=aoscx_interface, header="\n\nINTERFACE:")
-            dvar(var=aoscx_interface.vlan_trunks, header="\n\n  TRUNK VLANS")
+            data = self._get(
+                path=f"system/interfaces/{if_name_url}?selector=writable",
+                message=f"Read writable attributes for {interface.name}",
+            )
         except Exception as err:
-            dprint(f"  set_interface_untagged_vlan(): AosCxInterface.get() failed!\n{traceback.format_exc()}")
+            # some error triggered
+            dprint(f"ERROR reading interface writable attributes: {err}")
             self.error.status = True
-            self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot read device interface: {format(err)}\n{traceback.format_exc()}"
+            self.error.description = "Exception error reading interface settings!"
+            self.error.details = f"Info: {format(err)}"
             self._close_device()
             return False
 
+        # 'data' now contains the interface writable attributes
         # now set mode and vlans
-        try:
-            if not len(tagged_vlans) and not allow_all:
-                # no tagged vlan, ie "access mode".
-                dprint("  access mode.")
-                aoscx_interface.set_vlan_mode("access")
-                aoscx_interface.set_untagged_vlan(vlan=int(untagged_vlan))
+        if not tagged_vlans and not allow_all:
+            # no tagged vlans, ie "access mode".
+            dprint("  access mode")
+            data = {
+                "vlan_mode": "access",
+                "vlan_tag": {
+                    untagged_vlan: v.vlan_uri,
+                },
+            }
+            # for this mode "vlan_trunks" is a don't care!
 
+        else:
+            dprint("  trunk mode")
+            data["vlan_mode"] = "native-untagged"
+            data["vlan_tag"] = {
+                untagged_vlan: v.vlan_uri,
+            }
+            # # loop through all vlans, and see if they are allowed
+            # trunked_vlans = {}
+            # for vlan in self.vlans.values():
+            #     if allow_all or vlan.id in tagged_vlans:
+            #         # allowed!
+            #         trunked_vlans[vlan.id] = vlan.vlan_uri
+            if allow_all:
+                # this is the equivalent to CLI "vlan trunk allowed all"
+                data["vlan_trunks"] = {}
             else:
-                dprint("  trunk mode.")
-                # trunk mode, setup mode and native vlan:
-                aoscx_interface.set_vlan_mode("native-untagged")
-                # Note:
-                # here we work around a possible bug in the pyaoscx module,
-                # where 'trunk vlan allow all' translates into an empty aoscx_interface.vlans_trunks list
-                # this causes the new vlan to be the only one allowed on the trunk.
-                # Work around by explicityly setting the trunk allows vlans.
-                # also see https://github.com/aruba/pyaoscx/issues/36
-
-                # loop through all vlans, and see if they are allowed
-                allow = []  # list of AosCx Vlan() objects!
-                for vid in self.vlans.keys():
-                    if allow_all or vid in tagged_vlans:
+                # allow only specified vlans
+                trunked_vlans = {}
+                for vlan in self.vlans.values():
+                    if vlan.id in tagged_vlans:
                         # allowed!
-                        v = AosCxVlan(session=self.aoscx_session, vlan_id=vid)
-                        allow.append(v)
-                # add these to the trunk config
-                aoscx_interface.vlan_trunks = allow
-                # set the new native vlan
-                aoscx_interface.set_native_vlan(vlan=int(untagged_vlan), tagged=False)
+                        trunked_vlans[vlan.id] = vlan.vlan_uri
 
+                # add these to the trunk config
+                data["vlan_trunks"] = trunked_vlans
+
+        # here the actual work starts...
+        try:
+            success = self._put(
+                path=f"system/interfaces/{if_name_url}",
+                data=json.dumps(data),
+                message="Set Interface Vlans",
+            )
         except Exception as err:
             # some error triggered
-            dprint(f"ERROR in aoscx_interface() setting mode and vlans: {err}")
+            dprint(f"ERROR setting mode and vlans: {err}")
+            self.error.status = True
+            self.error.description = "Exception error setting interface vlans!"
+            self.error.details = f"Info: {format(err)}"
+            self._close_device()
+            return False
+
+        if not success:
+            dprint("   Setting Mode and Vlans FAILED for Unknown Reasons!")
             self.error.status = True
             self.error.description = "Error setting vlans!"
-            self.error.details = f"ERROR in aoscx_interface.set_interface_vlans(): {format(err)}"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
             self._close_device()
             return False
 
@@ -899,6 +1109,7 @@ class AosCxConnector(Connector):
         super().set_interface_vlans(
             interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
         )
+        self._close_device()
         return True
 
     def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
@@ -917,13 +1128,27 @@ class AosCxConnector(Connector):
             dprint("_open_device() failed!")
             return False
 
-        new_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id, name=vlan_name, voice=False)
+        data = {
+            "name": f"{vlan_name}",
+            "id": vlan_id,
+            "type": "static",
+            "admin": "up",
+        }
         try:
-            new_vlan.apply()
+            success = self._post(path="system/vlans", data=json.dumps(data), message="Create VLAN")
         except Exception as err:
             self.error.status = True
-            self.error.details = f"Error creating new vlan {vlan_id}: {err}"
-            self._close_device()
+            self.error.description = "Exception error creating new vlan!"
+            self.error.details = f"POST ERROR: {err}"
+            return False
+
+        if not success:
+            self.error.status = True
+            self.error.description = f"Error creating new vlan {vlan_id}!"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
             return False
 
         # all OK, now do the book keeping
@@ -946,22 +1171,31 @@ class AosCxConnector(Connector):
         if not self._open_device():
             dprint("_open_device() failed!")
             return False
+
+        data = {
+            "name": f"{vlan_name}",
+            # "id": vlan_id,
+        }
+
         try:
-            vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
-            vlan.get()
-            vlan.name = vlan_name
-            changed = vlan.apply()
+            success = self._patch(path=f"system/vlans/{vlan_id}", data=json.dumps(data), message="VLAN Update")
         except Exception as err:
             self.error.status = True
-            self.error.details = f"Error trapped while updating vlan {vlan_id} name to '{vlan_name}': {err}"
+            self.error.description = f"Exception error updating vlan {vlan_id}"
+            self.error.details = f"Info: {err}"
             self._close_device()
             return False
 
-        if not changed:
+        if not success:
             self.error.status = True
-            self.error.details = f"Error updating vlan {vlan_id} name to '{vlan_name}' (not sure what happened!)"
+            self.error.description = f"Error updating vlan {vlan_id}"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
             self._close_device()
             return False
+
         # all OK, now do the book keeping
         super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
         self._close_device()
@@ -982,15 +1216,67 @@ class AosCxConnector(Connector):
             dprint("_open_device() failed!")
             return False
         try:
-            vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
-            vlan.delete()
-            # changed = vlan.apply()  # is this needed ?
+            success = self._delete(path=f"system/vlans/{vlan_id}", message="VLAN Delete")
         except Exception as err:
             self.error.status = True
-            self.error.details = f"Error trapped while deleting vlan {vlan_id}: {err}"
+            self.error.description = f"Exception error deleting vlan {vlan_id}"
+            self.error.details = f"Info: {err}"
+            self._close_device()
             return False
+
+        if not success:
+            self.error.status = True
+            self.error.description = f"Error deleting vlan {vlan_id}"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
+            self._close_device()
+            return False
+
         # all OK, now do the book keeping
         super().vlan_delete(vlan_id=vlan_id)
+        self._close_device()
+        return True
+
+    def save_running_config(self) -> bool:
+        """
+        save the current config to startup via api.
+
+        Returns:
+            (bool) - True if this succeeds, False on failure. self.error() will be set in that case
+        """
+        dprint("AosCxConnector().save_running_config()")
+
+        if not self._open_device():
+            dprint("_open_device() failed!")
+            return False
+
+        # see https://github.com/aruba/pyaoscx/blob/master/pyaoscx/configuration.py
+
+        try:
+            success = self._put(
+                path=f"fullconfigs/startup-config?from={self.api_prefix}/fullconfigs/running-config",
+                message="Save Config",
+            )
+        except Exception as err:
+            self.error.status = True
+            self.error.description = "Exception error saving configuration"
+            self.error.details = f"Info: {err}"
+            self._close_device()
+            return False
+
+        if not success:
+            self.error.status = True
+            self.error.description = "Error saving configuration"
+            if self.response.text:
+                self.error.details = f"Response: {self.response.status_code} - {self.response.text}"
+            else:
+                self.error.details = "We're not sure what happened, sorry... :-("
+            self._close_device()
+            return False
+
+        self._close_device()
         return True
 
     def _open_device(self) -> bool:
@@ -1008,38 +1294,65 @@ class AosCxConnector(Connector):
         if not self.switch.netmiko_profile:
             self.error.status = True
             self.error.description = "Please configure a Credentials Profile to be able to connect to this device!"
+            self.error.details = ""
             dprint("  _open_device: No Credentials!")
             return False
 
-        # do we want to check SSL certificates?
-        if not self.switch.netmiko_profile.verify_hostkey:
-            dprint("  Cert warnings disabled in urllib3!")
-            # disable unknown cert warnings
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            # or all warnings:
-            # urllib3.disable_warnings()
+        # first check to see what the latest API version supported is
+        if not self.latest_api_version:
+            self._set_base_url(base_url=f"https://{self.switch.primary_ip4}/")
+            # get the "rest" uri to see what versions are supported:
+            response = self._get(path="rest")
+            self.latest_api_version = response['latest']['version']
+            self.api_prefix = response['latest']['prefix']
+            self.add_more_info("System", "API Version", self.latest_api_version)
+            dprint(f"  Using API version '{self.latest_api_version}'")
+            dprint(f"  API documentation is at: {response['latest']['doc']}")
 
+        # start using lastest API:
+        self._set_base_url(base_url=f"https://{self.switch.primary_ip4}{self.api_prefix}/")
+
+        # Authenticate
+        headers = {
+            "Accept": "*/*",
+            "x-use-csrf-token": "true",
+        }
         try:
-            dprint(f"  Creating AosCxSession(ip_address={self.switch.primary_ip4}, api={API_VERSION})")
-            self.aoscx_session = AosCxSession(ip_address=self.switch.primary_ip4, api=API_VERSION)
-            dprint(
-                f"Opening as '{self.switch.netmiko_profile.username}', password='{self.switch.netmiko_profile.password}'"
-            )
-            self.aoscx_session.open(
-                username=self.switch.netmiko_profile.username, password=self.switch.netmiko_profile.password
-            )
-            dprint("  session OK!")
-            # dprint(f"  SESSION.cookies():\n{self.aoscx_session.cookies()}")
-            # dprint(f"  SESSION.s:\n{self.aoscx_session.s}")
-            # dprint(f"  SESSION.s(pformat):\n{pprint.pformat(self.aoscx_session.s)}")
-
-            return True
+            # auth data is sent in a form post
+            data = {
+                "username": f"{self.switch.netmiko_profile.username}",
+                "password": f"{self.switch.netmiko_profile.password}",
+            }
+            retval = self._post(path="login", data=data, headers=headers, message="API LOGIN")
         except Exception as err:
+            dprint(f"Authentication Error: {err}\nTrace:{traceback.format_exc()}")
             self.error.status = True
             self.error.description = "Error establishing connection!"
-            self.error.details = f"Cannot open REST session: {format(err)}"
-            dprint(f"  _open_device: AosCxSession.open() failed: {format(err)}")
+            self.error.details = f"Cannot open REST session: {format(err)}\n{traceback.format_exc()}"
+            self.add_log(
+                description=f"Cannot open REST session: {format(err)}\n{traceback.format_exc()}",
+                type=LOG_TYPE_ERROR,
+                action=LOG_DEVICE_REST_OPEN,
+            )
             return False
+
+        if not retval:
+            dprint("  _open_device(): FAILED!")
+            return False
+
+        # parse the CSRF token and set as header for requests
+        if "X-Csrf-Token" in self.response.headers:
+            headers["x-csrf-token"] = self.response.headers["X-Csrf-Token"]
+
+        self._set_headers(headers=headers)
+
+        # and set the session cookie(s)
+        self._set_cookies(cookies=self.response.cookies)
+
+        self.aoscx_session = True
+
+        dprint("  _open_device(): OK!")
+        return True
 
     def _close_device(self) -> bool:
         """
@@ -1047,17 +1360,21 @@ class AosCxConnector(Connector):
         """
         dprint("AOS-CX _close_device()")
         if self.aoscx_session:
-            # do we want to check SSL certificates ?
-            if not self.switch.netmiko_profile.verify_hostkey:
-                dprint("  Cert warnings disabled in urllib3!")
-                # disable unknown cert warnings
-                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-                # or all warnings:
-                # urllib3.disable_warnings()
-            self.aoscx_session.close()
-            del self.aoscx_session
-            self.aoscx_session = False
-            dprint(("  session close OK!"))
+            # logout
+            try:
+                self._post(path="logout", message="API LOGOUT")
+                self.aoscx_session = False
+                dprint(("  session close OK!"))
+            except Exception as err:
+                dprint(f"Session Close Error!!!\n{err}\nTrace:{traceback.format_exc()}")
+                # add some logging:
+                self.add_log(
+                    description=f"Session Close Error: {traceback.format_exc()}",
+                    type=LOG_TYPE_ERROR,
+                    action=LOG_DEVICE_REST_CLOSE,
+                )
         else:
             dprint("  NOT Needed (no session!)")
+
+        # no matter what, we return True
         return True

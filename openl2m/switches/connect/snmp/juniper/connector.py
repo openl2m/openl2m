@@ -75,6 +75,8 @@ class SnmpConnectorJuniper(SnmpConnector):
         # self.netmiko_disable_paging_command = "set cli screen-length 0"
         self.add_warning(warning="Note: Juniper SNMP access is Read-Only!", add_log=False)
 
+        self.can_edit_tags = False  # This R/O driver can NOT edit 802.1q tagged vlans on interfaces
+
     def _map_poe_port_entries_to_interface(self):
         """
         This function maps the "pethPsePortEntry" indices that are stored in self.poe_port_entries{}
@@ -85,7 +87,7 @@ class SnmpConnectorJuniper(SnmpConnector):
         dprint("Juniper _map_poe_port_entries_to_interface()")
         for port_entry in self.poe_port_entries.values():
             # we take the ending part of "1.5" as the index
-            (module, port) = port_entry.index.split(".")
+            module, port = port_entry.index.split(".")
             module = int(module) - 1  # 0-based!
             port = int(port) - 1  # 0-based!
             # find the matching interface:

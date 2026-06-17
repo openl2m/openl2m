@@ -16,15 +16,16 @@ Commands-Only Connector: this implements an SSH connection to the devices
 that is used for excuting commands only!
 """
 
-from django.http.request import HttpRequest
 import json
+import traceback
+
+from django.conf import settings
+from django.http.request import HttpRequest
 from rangeparser import RangeParser
 import requests
 
 # used to disable unknown SSL cert warnings:
 import urllib3
-import traceback
-from typing import List
 
 from switches.connect.classes import Interface, NeighborDevice, Transceiver, Vlan
 from switches.connect.connector import Connector
@@ -89,7 +90,6 @@ class AristaApiConnector(Connector):
         self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
     def get_my_basic_info(self) -> bool:
         """
@@ -128,10 +128,9 @@ class AristaApiConnector(Connector):
             self.add_more_info("System", "OS Version", data["version"])
             self.add_more_info("System", "Uptime", time_duration(int(data["uptime"])))
 
-            # self.set_driver_info(name="hostname", value=data["hostname"]) # not real value!
-            self.set_driver_info(name="serial_number", value=data["serialNumber"])
-            self.set_driver_info(name="os_version", value=data["version"])
-            self.set_driver_info(name="model", value=data["modelName"])
+            self.set_driver_info("model", data["modelName"])
+            self.set_driver_info("serial_number", data["serialNumber"])
+            self.set_driver_info("os_version", data["version"])
 
             #
             # get vlan info
@@ -301,7 +300,7 @@ class AristaApiConnector(Connector):
                     # find the member interfaces:
                     member_type_list = ["inactivePorts", "inactivePorts"]
                     for member_type in member_type_list:
-                        for member_name, member_info in po_info[member_type].items():
+                        for member_name in po_info[member_type]:
                             member = self.get_interface_by_name(name=member_name)
                             if member:
                                 member.lacp_type = LACP_IF_TYPE_MEMBER
@@ -344,9 +343,7 @@ class AristaApiConnector(Connector):
             )
             return False
 
-        # the REST API gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
-        # sort this to the human natural order we expect:
-        self.set_interfaces_natural_sort_order()
+        self.save_driver_info()
 
         # save driver info
         self.save_driver_info()
@@ -623,14 +620,16 @@ class AristaApiConnector(Connector):
 
         return False
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
+    def set_interface_vlans(
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
+    ) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
 
         Args:
             interface = Interface() object for the requested port
             untagged_vlan = an integer with the requested untagged vlan
-            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+            tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
         Returns:
             True on success, False on error and set self.error variables
@@ -638,7 +637,7 @@ class AristaApiConnector(Connector):
         dprint(
             f"AristaApiConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
         )
-        if not len(tagged_vlans) and not allow_all:
+        if not tagged_vlans and not allow_all:
             # no tagged vlan, ie "access mode".
             cmds = [
                 "configure terminal",
@@ -667,10 +666,10 @@ class AristaApiConnector(Connector):
                 cmds.append("switchport trunk allowed vlan none")
                 # loop through all vlans, and see if they are allowed
                 allow = []
-                for vid in self.vlans.keys():
-                    if vid in tagged_vlans:
+                for vlan_id in self.vlans:
+                    if vlan_id in tagged_vlans:
                         # allowed!
-                        allow.append(str(vid))
+                        allow.append(str(vlan_id))
                 # add allowed vlans to commands
                 cmds.append("switch trunk allowed vlan add " + ", ".join(allow))
 
@@ -679,10 +678,13 @@ class AristaApiConnector(Connector):
 
         # execute the command:
         if self._run_commands(
-            commands=cmds, action=f"set interface vlans to untagged {untagged_vlan}, tagged={tagged_vlans}, allow_all={allow_all}"
+            commands=cmds,
+            action=f"set interface vlans to untagged {untagged_vlan}, tagged={tagged_vlans}, allow_all={allow_all}",
         ):
             # call the base Connector() for bookkeeping:
-            super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
+            super().set_interface_vlans(
+                interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
+            )
             return True
 
         return False
@@ -829,7 +831,7 @@ class AristaApiConnector(Connector):
 
         try:
             # run the command:
-            json_data = self._eapi_run_command(command=command, format="text")
+            json_data = self._eapi_run_command(command=command, cmd_format="text")
             # The 'result' key will contain a list of command output.
             # dprint(f"RETURN:\n{json_data}")
             self.netmiko_output = json_data.get("result")[0]["output"]
@@ -916,7 +918,7 @@ class AristaApiConnector(Connector):
         dprint("All OK!")
         return True
 
-    def _eapi_run_command(self, command, format="json", autoComplete=True):
+    def _eapi_run_command(self, command, cmd_format="json", autoComplete=True):
         """Run a specifc Arista eAPI command on the router configured.
         By default, return as JSON, and allow for command auto-complete.
 
@@ -938,7 +940,7 @@ class AristaApiConnector(Connector):
             "jsonrpc": "2.0",
             "method": "runCmds",
             "params": {
-                "format": format,
+                "format": cmd_format,
                 "timestamps": False,
                 "autoComplete": autoComplete,
                 "expandAliases": False,
@@ -959,15 +961,16 @@ class AristaApiConnector(Connector):
                 headers=headers,
                 auth=(self.switch.netmiko_profile.username, self.switch.netmiko_profile.password),
                 verify=False,
+                timeout=settings.SSH_COMMAND_TIMEOUT,
             )
             response.raise_for_status()  # Raise an exception for bad status codes
             return response.json()
 
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Error connecting to Arista switch (equests.exceptions.RequestException): {e}")
+            raise Exception(f"Error connecting to Arista switch (equests.exceptions.RequestException): {e}") from e
         except json.JSONDecodeError as e:
-            raise Exception(f"Error decoding JSON response (json.JSONDecodeError): {e}")
+            raise Exception(f"Error decoding JSON response (json.JSONDecodeError): {e}") from e
         except KeyError as e:
-            raise Exception(f"Unexpected JSON structure (KeyError): Missing key {e}")
+            raise Exception(f"Unexpected JSON structure (KeyError): Missing key {e}") from e
         except Exception as e:
-            raise Exception(f"Generic error caught in arista_run_command: {e}")
+            raise Exception(f"Generic error caught in arista_run_command: {e}") from e

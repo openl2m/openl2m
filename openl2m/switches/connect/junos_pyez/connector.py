@@ -21,7 +21,6 @@ from jnpr.junos.utils.config import Config
 from jnpr.junos.exception import RpcError, ConfigLoadError, CommitError, LockError, UnlockError
 
 from netaddr import IPNetwork
-from typing import List
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -111,9 +110,6 @@ class PyEZConnector(Connector):
         self.can_save_config = False  # save not needed after commit in Junos!
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = (
-            True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
-        )
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         #
@@ -234,18 +230,31 @@ class PyEZConnector(Connector):
         self.add_more_info("System", "Model", self.device.facts["model"])
         self.add_more_info("System", "Version", self.device.facts["version"])
         self.add_more_info("System", "Serial #", self.device.facts["serialnumber"])
+
+        self.set_driver_info("hostname", self.hostname)
+        self.set_driver_info("model", self.device.facts["model"])
+        self.set_driver_info("os_version", self.device.facts["version"])
+        self.set_driver_info("serial_number", self.device.facts["serialnumber"])
+
         if self.device.facts["domain"]:  # this is None when not set!
             self.add_more_info("System", "Domain Name", self.device.facts["domain"])
         else:
             self.add_more_info("System", "Domain Name", "")
         self.add_more_info("System", "Uptime", self.device.facts["RE0"]["up_time"])
+
         self.add_more_info("System", "Personality", self.device.facts["personality"])
+        self.set_driver_info("personality", self.device.facts["personality"])
+
         if "switch_style" in self.device.facts:
             self.add_more_info("System", "Switch Style", self.device.facts["switch_style"])
+            self.set_driver_info("switch_style", self.device.facts["switch_style"])
             # see if this an ELS switch (ie unified Layer 2 commands)
             # see https://community.juniper.net/discussion/els-juniper
             if self.device.facts["switch_style"] == "VLAN_L2NG":
                 self.is_els = True
+                self.set_driver_info("ELS", "Yes")
+            else:
+                self.set_driver_info("ELS", "No")
 
         # is the an ELS (Enhanced Layer2 Software) device?
         if not self.is_els:
@@ -388,7 +397,7 @@ class PyEZConnector(Connector):
                 self._parse_address_family(iface=iface, xml_data=intf)
 
             try:
-                intf.find(".//minimum-links-in-aggregate").text
+                intf.find(".//minimum-links-in-aggregate").text  # pylint: disable=expression-not-assigned
                 iface.type = IF_TYPE_LAGG
             except Exception:
                 dprint("  not an aggregate.")
@@ -455,8 +464,8 @@ class PyEZConnector(Connector):
             vlans = vlan_response.findall(".//l2ng-l2ald-vlan-instance-group")
             for v in vlans:
                 name = v.find(".//l2ng-l2rtb-vlan-name").text
-                vid = v.find(".//l2ng-l2rtb-vlan-tag").text
-                self.add_vlan_by_id(int(vid), name)
+                vlan_id = v.find(".//l2ng-l2rtb-vlan-tag").text
+                self.add_vlan_by_id(int(vlan_id), name)
                 # if there is a routed instance of this vlan this tag exists: <l2ng-l2rtb-vlan-l3-interface>
                 # and parse the interfaces on this vlan:
                 members = v.findall(".//l2ng-l2rtb-vlan-member")
@@ -468,13 +477,13 @@ class PyEZConnector(Connector):
                         mode = member.find(".//l2ng-l2rtb-vlan-member-interface-mode").text
                     except Exception:
                         mode = ""
-                    dprint(f"Vlan {vid} '{name}' member {phys_if_name} {tagness} {mode}")
+                    dprint(f"Vlan {vlan_id} '{name}' member {phys_if_name} {tagness} {mode}")
                     iface = self.get_interface_by_key(phys_if_name)
                     if iface:
                         if tagness == "tagged":
-                            iface.add_tagged_vlan(int(vid))
+                            iface.add_tagged_vlan(int(vlan_id))
                         else:
-                            iface.untagged_vlan = int(vid)
+                            iface.untagged_vlan = int(vlan_id)
                         if mode == "trunk":
                             iface.is_tagged = True
 
@@ -552,7 +561,6 @@ class PyEZConnector(Connector):
             # NO warning to user - not all devices support VRF's
             # self.add_warning(warning=f"ERROR: Cannot get VRFs - {error}")
 
-        # save driver info
         self.save_driver_info()
 
         # done with PyEZ connection:
@@ -859,7 +867,7 @@ class PyEZConnector(Connector):
         return False
 
     def set_interface_vlans(
-        self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
     ) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
@@ -867,7 +875,7 @@ class PyEZConnector(Connector):
         Args:
             interface = Interface() object for the requested port
             untagged_vlan = an integer with the requested untagged vlan
-            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+            tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
         Returns:
             True on success, False on error and set self.error variables
@@ -876,7 +884,7 @@ class PyEZConnector(Connector):
             f"PyEZConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
         )
 
-        if not len(tagged_vlans) and not allow_all:
+        if not tagged_vlans and not allow_all:
             # no tagged vlan, ie "access mode".
             if not interface.is_tagged:  # already access mode
                 commands = [
@@ -914,14 +922,14 @@ class PyEZConnector(Connector):
                 # loop through all vlans, see if they are allowed.
                 # note that we add the <untagged-vlan> as tagged, since otherwize it does not show!
                 allow = []
-                for vid in self.vlans.keys():
-                    if vid in tagged_vlans or vid == untagged_vlan:
+                for vlan_id in self.vlans:
+                    if vlan_id in tagged_vlans or vlan_id == untagged_vlan:
                         # allowed!
-                        allow.append(vid)
+                        allow.append(vlan_id)
                 # now add allowed vlans:
-                for vid in allow:
+                for vlan_id in allow:
                     commands.append(
-                        f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {vid}"
+                        f"set interfaces {interface.name} unit 0 family ethernet-switching vlan members {vlan_id}"
                     )
 
             # add native untagged vlan
@@ -1084,23 +1092,23 @@ class PyEZConnector(Connector):
         dprint("  change FAILED!")
         return False
 
-    def pyez_execute_commands(self, commands: list, format: str = "set") -> bool:
+    def pyez_execute_commands(self, commands: list, cmd_format: str = "set") -> bool:
         """
-        Execute a list of command string(s) on the device. Defaults to 'set' format.
+        Execute a list of command string(s) on the device. Defaults to 'set' cmd_format.
 
         Args:
             commands(list): the command list of strings to execute.
-            format(str): the command format, default = 'set'
+            cmd_format(str): the command format, default = 'set'
 
         Returns:
             (boolean) True on success, False on error and set self.error variables
         """
-        dprint(f"PyEZ.pyez_execute_commands(): format={format}, '{commands}'")
+        dprint(f"PyEZ.pyez_execute_commands(): cmd_format={cmd_format}, '{commands}'")
         try:
             conf = Config(self.device)  # we assume this is open!
             conf.lock()
             for command in commands:
-                conf.load(command, format=format)
+                conf.load(command, format=cmd_format)
             dprint(f"Config Diff: {conf.diff()}")
             if conf.commit_check():
                 dprint("commit_check() OK")
@@ -1161,7 +1169,7 @@ class PyEZConnector(Connector):
             self.error.details = f"Error: '{err}', command was '{commands}'"
             return False
 
-    def _validate_vlan_name(self, vlan_name: str) -> bool:
+    def _validate_vlan_name(self, vlan_name: str) -> bool:  # pylint: disable=unused-argument
         """Validate the characters in the new vlan name
 
         Args:

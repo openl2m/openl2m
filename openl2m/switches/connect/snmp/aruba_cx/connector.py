@@ -48,6 +48,22 @@ from switches.connect.snmp.aruba_cx.constants import (
     ARUBA_CONFIG_ACTION_WRITE,
     ARUBA_CONFIG_TYPE_STARTUP,
     ARUBA_CONFIG_TYPE_RUNNING,
+    arubaWiredVsxIslPort,
+    VSX_ISL,
+    VSX_KEEPALIVE,
+    arubaWiredVsxKeepAliveSrcIPAddrType,
+    arubaWiredVsxKeepAliveSrcIPAddr,
+    arubaWiredVsxKeepAliveVrf,
+    arubaWiredVsxKeepAlivePeerIPAddrType,
+    arubaWiredVsxKeepAlivePeerIPAddr,
+    arubaWiredVsxDeviceRole,
+    VSX_Roles,
+    arubaWiredVsxConfigSync,
+    VSX_SyncState,
+    arubaWiredVsxIslOperState,
+    VSX_IslStates,
+    arubaWiredVsxKeepAliveOperState,
+    VSX_KaStates,
 )
 
 
@@ -59,7 +75,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
     def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
-        dprint("Aruba SnmpConnector __init__")
+        dprint("SnmpConnectorArubaCx.__init__()")
         super().__init__(request, group, switch)
         self.description = "Aruba Networks AOS-CX SNMP driver"
         self.vendor_name = "Aruba Networks (AOS-CX)"
@@ -80,6 +96,9 @@ class SnmpConnectorArubaCx(SnmpConnector):
         # see https://www.arubanetworks.com/techdocs/AOS-CX/10.12/PDF/snmp_mib.pdf
         self.can_change_vlan = True
         self.can_set_vlan_name = False  # vlan create/delete allowed over snmp, but cannot set name!
+        self.can_edit_tags = (
+            False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+        )
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         #
@@ -102,11 +121,27 @@ class SnmpConnectorArubaCx(SnmpConnector):
             add_log=False,
         )
 
-    def _parse_mibs_aruba_poe(self, oid: str, val: str) -> bool:
+    def _get_interface_data(self) -> bool:
+        """
+        Implement an override of the interface parsing routine,
+        so we can add VSX specific MIBs
+        """
+        dprint("SnmpConnectorArubaCx._get_interface_data()")
+        # first call the base class to populate interfaces:
+        super()._get_interface_data()
+
+        # now add VSX data, and cache it:
+        if self.get_snmp_branch(branch_name="arubaWiredVsxMIB", parser=self._parse_mibs_aruba_cx_vsx) < 0:
+            dprint("arubaWiredVsxMIB returned error!")
+            return False
+
+        return True
+
+    def _parse_mibs_aruba_cx_poe(self, oid: str, val: str) -> bool:
         """
         Parse Aruba's ARUBAWIRED-POE Mibs
         """
-        dprint(f"_parse_mibs_aruba_poe() {oid} = {val}")
+        dprint(f"SnmpConnectorArubaCx._parse_mibs_aruba_cx_poe() {oid} = {val}")
         pe_index = oid_in_branch(arubaWiredPoePethPsePortPowerDrawn, oid)
         if pe_index:
             dprint(f"Found branch arubaWiredPoePethPsePortPowerDrawn, pe_index = {pe_index}")
@@ -117,11 +152,11 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         return False
 
-    def _parse_mibs_aruba_vsf2(self, oid: str, val: str) -> bool:
+    def _parse_mibs_aruba_cx_vsf2(self, oid: str, val: str) -> bool:
         """
         Parse ARUBAWIRED-VSFv2 mibs.
         """
-        dprint(f"_parse_mibs_aruba_vsf2() {oid} = {val}")
+        dprint(f"SnmpConnectorArubaCx._parse_mibs_aruba_cx_vsf2() {oid} = {val}")
         dev_index = int(oid_in_branch(arubaWiredVsfv2MemberProductName, oid))
         if dev_index:
             dprint(f"Found branch arubaWiredVsfv2MemberProductName, device index = {dev_index}, val = {val}")
@@ -138,9 +173,9 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         return False
 
-    def _parse_mibs_aruba_pm(self, oid: str, val: str) -> bool:
+    def _parse_mibs_aruba_cx_pm(self, oid: str, val: str) -> bool:
         """Parse the ARUBAWIRED-PM MIB for transceiver optics information"""
-        dprint(f"_parse_mibs_aruba_pm() {oid} = {val}")
+        dprint(f"SnmpConnectorArubaCx._parse_mibs_aruba_cx_pm() {oid} = {val}")
         if_index = oid_in_branch(arubaWiredPmXcvrType, oid)
         if if_index:
             iface = self.get_interface_by_key(key=if_index)
@@ -170,6 +205,94 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         return False  # not parsed
 
+    def _parse_mibs_aruba_cx_vsx(self, oid: str, val: str) -> bool:
+        """Parse the ARUBAWIRED-VSX MIB for VSX stacking information"""
+        dprint(f"SnmpConnectorArubaCx._parse_mibs_aruba_cx_vsx() {oid} = {val}")
+
+        # ISL ports
+        i = oid_in_branch(arubaWiredVsxIslPort, oid)
+        if i:
+            # val is the ISL interface name!
+            iface = self.get_interface_by_name(name=val)
+            if iface:
+                dprint(f"{val} is VSX ISL INTERFACE")
+                iface.if_vlan_mode = VSX_ISL
+                self.add_more_info("System", "VSX Stacking", "Yes")
+                self.add_more_info("VSX Stacking", "ISL Ports", val)
+            return True  # parsed
+
+        i = oid_in_branch(arubaWiredVsxKeepAliveSrcIPAddrType, oid)
+        if i:
+            # val is the IP address type of the local KeepAlive interface
+            dprint(f"VSX KA ip type = {val}")
+            return True  # parsed
+
+        i = oid_in_branch(arubaWiredVsxKeepAliveSrcIPAddrType, oid)
+        if i:
+            # val is the IP address type of the local KeepAlive interface
+            dprint(f"VSX KA ip type = {val}")
+            return True  # parsed
+
+        i = oid_in_branch(arubaWiredVsxKeepAliveSrcIPAddr, oid)
+        if i:
+            # val is the IP address of the local KeepAlive interface
+            dprint(f"VSX KA IP = {val}")
+            # TBD: we can find our local KA port by searching for the IP address...
+            # self.add_more_info("VSX Stacking", "KeepAlive Ports", ", ".join(ka_ports))
+            return True  # parsed
+
+        i = oid_in_branch(arubaWiredVsxKeepAliveVrf, oid)
+        if i:
+            # val is the VRF for the local KeepAlive interface
+            dprint(f"VSX KA VRF = {val}")
+            self.add_more_info("VSX Stacking", "KeepAlive VRF", val)
+            return True  # parsed
+
+        i = oid_in_branch(arubaWiredVsxKeepAlivePeerIPAddrType, oid)
+        if i:
+            # val is the IP address type of the local KeepAlive interface
+            dprint(f"VSX KA REMOTE ip type = {val}")
+            return True  # parsed
+
+        i = oid_in_branch(arubaWiredVsxKeepAlivePeerIPAddr, oid)
+        if i:
+            # val is the IP address of the local KeepAlive interface
+            dprint(f"VSX KA REMOTE IP = {val}")
+            self.add_more_info("VSX Stacking", "Peer IP", val)
+            return True  # parsed
+
+        i = oid_in_branch(arubaWiredVsxDeviceRole, oid)
+        if i:
+            # val is the IP address of the local KeepAlive interface
+            dprint(f"VSX Role = {val} -> {VSX_Roles[int(val)]}")
+            self.add_more_info("VSX Stacking", "My Role", VSX_Roles[int(val)])
+            return True  # parsed
+
+        i = oid_in_branch(arubaWiredVsxConfigSync, oid)
+        if i:
+            # val is the sync status
+            dprint(f"VSX Sync State = {val}")
+            self.add_more_info("VSX Stacking", "Status", VSX_SyncState[int(val)])
+            return True  # parsed
+
+        i = oid_in_branch(arubaWiredVsxIslOperState, oid)
+        if i:
+            # val is the ISL status
+            dprint(f"VSX ISL State = {val}")
+            self.add_more_info("VSX Stacking", "ISL", VSX_IslStates[int(val)])
+            return True  # parsed
+
+        i = oid_in_branch(arubaWiredVsxKeepAliveOperState, oid)
+        if i:
+            # val is the KeepAlive status
+            dprint(f"VSX KA State = {val}")
+            self.add_more_info("VSX Stacking", "KeepAlive", VSX_KaStates[int(val)])
+            return True  # parsed
+
+        # self.add_more_info("VSX Stacking", "Peer Fw", vsx_info["peer_sw_version"])
+
+        return False  # not parsed
+
     def _get_poe_data(self) -> int:
         """
         Aruba(HP) used both the standard PoE MIB, and their own ARUBAWIRED-POE mib.
@@ -179,7 +302,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         # if we found power supplies, get Aruba specific info about power usage from ARUBAWIRED-POE mib
         if self.poe_capable:
             retval = self.get_snmp_branch(
-                branch_name="arubaWiredPoePethPsePortPowerDrawn", parser=self._parse_mibs_aruba_poe
+                branch_name="arubaWiredPoePethPsePortPowerDrawn", parser=self._parse_mibs_aruba_cx_poe
             )
             if retval < 0:
                 self.add_warning(warning="Error getting 'PoE-Port-Actual-Power' (arubaWiredPoePethPsePortPowerDrawn)")
@@ -192,7 +315,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         Get all neccesary vlan info (names, id, ports on vlans, etc.) from the switch.
         Returns -1 on error, or number to indicate vlans found.
         """
-        dprint("_get_vlan_data(ArubaAosCx)\n")
+        dprint("SnmpConnectorArubaCx._get_vlan_data()\n")
 
         # first, Aruba vlan names
         retval = self.get_snmp_branch("ieee8021QBridgeVlanStaticName", self._parse_mibs_ieee_qbridge_vlan_static_name)
@@ -206,8 +329,12 @@ class SnmpConnectorArubaCx(SnmpConnector):
         if retval < 0:
             return retval
 
-        # get the generic vlan data:
-        super()._get_vlan_data()
+        # we do not need the generic vlan data, wich is mostly Q-Bridge info
+        # super()._get_vlan_data()
+        # we DO need the (switch) port-id to ifIndex mapping:
+        retval = self._get_dot1d_port_to_ifindex_map()
+        if retval < 0:
+            return retval
 
         # Note: as of v10.13, AOS-CX does NOT use "dot1qVlanCurrentEgressPorts" to define
         # vlan port membership. Instead it uses the IEEE Q-Bridge equivalents at
@@ -221,20 +348,37 @@ class SnmpConnectorArubaCx(SnmpConnector):
         )
         if retval < 0:
             return retval
+
         # and get untagged ports in those vlans:
+        #
+        # tis appears to not add any extra information, and causes strange differing info
+        # from ieee8021QBridgePvid for untagged vlan
+        # for now, do not read...
+        # retval = self.get_snmp_branch(
+        #     branch_name="ieee8021QBridgeVlanCurrentUntaggedPorts",
+        #     parser=self._parse_mibs_ieee_qbridge_vlan_current_untagged_ports,
+        # )
+        # if retval < 0:
+        #     return retval
+
+        # and get ieee8021QBridgeVlanStaticUntaggedPorts and ieee8021QBridgeVlanStaticEgressPorts
+        # this could have some more statically defined info on ports.
+        # but we're not sure this adds anything new...
         retval = self.get_snmp_branch(
-            branch_name="ieee8021QBridgeVlanCurrentUntaggedPorts",
-            parser=self._parse_mibs_ieee_qbridge_vlan_current_untagged_ports,
+            branch_name='ieee8021QBridgeVlanStaticUntaggedPorts',
+            parser=self._parse_mibs_ieee_qbridge_vlan_static_untagged_ports,
         )
         if retval < 0:
+            self.add_warning(warning="Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
             return retval
 
-        # this adds no new information:
-        # # and get dot1qVlanStaticUntaggedPorts, this could have some more untagged vlan info on tagged ports.
-        # retval = self.get_snmp_branch(branch_name='dot1qVlanStaticUntaggedPorts', parser=self._parse_mibs_vlan_related)
-        # if retval < 0:
-        #     self.add_warning(warning="Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
-        #     return retval
+        retval = self.get_snmp_branch(
+            branch_name='ieee8021QBridgeVlanStaticEgressPorts',
+            parser=self._parse_mibs_ieee_qbridge_vlan_static_egress_ports,
+        )
+        if retval < 0:
+            self.add_warning(warning="Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
+            return retval
 
         return self.vlan_count
 
@@ -247,7 +391,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         # now read AOS-CX specific data:
         retval = self.get_snmp_branch(
-            branch_name="arubaWiredVsfv2MemberProductName", parser=self._parse_mibs_aruba_vsf2
+            branch_name="arubaWiredVsfv2MemberProductName", parser=self._parse_mibs_aruba_cx_vsf2
         )
         if retval < 0:
             self.add_warning(warning="Error getting 'Aruba Vsf Product name' ('arubaWiredVsfv2MemberProductName')")
@@ -261,17 +405,32 @@ class SnmpConnectorArubaCx(SnmpConnector):
         This reads the transceiver type of an physical port.
         Returns 1 on succes, -1 on failure
         """
-        retval = self.get_snmp_branch(branch_name="arubaWiredPmXcvrEntry", parser=self._parse_mibs_aruba_pm)
+        retval = self.get_snmp_branch(branch_name="arubaWiredPmXcvrEntry", parser=self._parse_mibs_aruba_cx_pm)
         if retval < 0:
             self.add_warning("Error getting Transceiver data from 'arubaWiredPmXcvrEntry'")
         return retval
+
+    # NOTE: this is the same function as in the AOS-CX REST driver!
+    def _can_manage_interface(self, interface: Interface) -> bool:
+        """
+        vendor-specific override of function to check if this interface can be managed.
+        We check for VSX ports here.
+        Returns True for normal interfaces, but False for VSX ports.
+        """
+        if interface.if_vlan_mode == VSX_ISL:
+            interface.unmanage_reason = "Access denied: interface is VSX stacking port!"
+            return False
+        if interface.if_vlan_mode == VSX_KEEPALIVE:
+            interface.unmanage_reason = "Access denied: interface is VSX KeepAlive port!"
+            return False
+        return True
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
         return True on success, False on error and set self.error variables
         """
-        dprint(f"AosCxSnmpConnector.set_interface_untagged_vlan(intf-index={interface.index}, vlan={new_vlan_id})")
+        dprint(f"SnmpConnectorArubaCx.set_interface_untagged_vlan(intf-index={interface.index}, vlan={new_vlan_id})")
         if not interface:
             dprint("  Invalid interface!, returning False")
             return False
@@ -353,7 +512,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
         read https://www.arubanetworks.com/techdocs/AOS-CX/10.10/PDF/snmp_mib.pdf
         Returns True is this succeeds, False on failure. self.error() will be set in that case
         """
-        dprint("save_running_config(AOS-CX)")
+        dprint("SnmpConnectorArubaCx.save_running_config()")
 
         # According to page 12 of https://www.arubanetworks.com/techdocs/AOS-CX/10.13/PDF/snmp_mib.pdf
         # this implementes "copy running-config startup-config" using SNMP.

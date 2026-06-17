@@ -61,7 +61,8 @@ __What's New:__
 Highlights:
 
 v4.0 adds support for editing 802.1Q tagged/trunk interfaces. Initially implemented for Arista eAPI,
-Aruba AOS-CX API, Aruba AOS-S REST API, Juniper PyEZ and HPE Comware REST API devices.
+Aruba AOS-CX API, Aruba AOS-S REST API, Juniper PyEZ and HPE Comware REST API devices. Initial SNMP support for
+Aruba Procurve and AOS-S switches, as 'generic' snmp devices.
 
 v3.4 adds support for IPv6 ND and interface IPv6 info. Also supports Cisco CBS devices. And we can graph neighbor devices.
 
@@ -104,9 +105,14 @@ __Requirements__:
 This is minimal list of requirements. Read the documentation for more details.
 
 * a Linux OS environment able to run nginx.
-* Python v3.10 - v3.13 (v3.14 is not yet supported).
-* Postgres version 14 or higher (for Django 5.2).
+* Python v3.12 - v3.13 (v3.14 is not supported; ie. Ubuntu 26.04 requires an alternative Python install!).
+* Postgres version 15 or higher (for Django 6.0).
 * NetSNMP packages on your Linux server, and ability to install and run python EzSNMP package.
+
+
+__Contributing__:
+
+Please see [CONTRIBUTING.md](https://github.com/openl2m/openl2m/blob/development/CONTRIBUTING.md)
 
 
 __License__:
@@ -146,6 +152,8 @@ __Login Window:__ Shows configurable login, top and bottom banners.
 
 __Devices Menu:__ Shows the groups and devices you can access
 
+Users can hide their menu, and use search to find devices.
+
 <kbd><img src= "docs/_static/devices-menu.png" alt="Devices Menu"></kbd>
 
 
@@ -161,25 +169,35 @@ __Interfaces Menu:__ Edit a single interface at a time
 
 __Interfaces Tag/Trunk Edit Form:__ Edit untagged and 802.1q-tagged vlans on an interface
 
+Enable this in your configuration.py as needed.
+
 <kbd><img src= "docs/_static/interface-tag-edit.png" alt="Interface Tag Edit Menu"></kbd>
 
 
 __Bulk-Edit Menu:__ Edit multiple interfaces at once
+
+Permit by user, group or device.
 
 <kbd><img src= "docs/_static/bulkedit-menu.png" alt="Bulk Edit Menu"></kbd>
 
 
 __Commands Menu:__ Run pre-defined commands on the device
 
+Definable per device.
+
 <kbd><img src= "docs/_static/commands-menu.png" alt="Commands Menu"></kbd>
 
 
 __Command Templates Menu:__ Run pre-defined commands with user-input on the device
 
+Definable per device for users, or additional for staff/admins.
+
 <kbd><img src= "docs/_static/command-templates-menu.png" alt="Commands Menu"></kbd>
 
 
 __VLAN Edit Menu:__ Add, Rename, or Delete vlans
+
+Implemented for most drivers. Permit by user.
 
 <kbd><img src= "docs/_static/vlan-edit.png" alt="VLAN Edit Menu"></kbd>
 

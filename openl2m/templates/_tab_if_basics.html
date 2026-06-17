@@ -58,7 +58,7 @@
                 {% if connection.vlan_count %}
                 <td>
                   {% if iface.untagged_vlan > 0 %}
-                    {% if connection.can_change_vlan and iface.lacp_type == LACP_IF_TYPE_NONE  %}
+                    {% if connection.can_change_vlan and iface.lacp_type == LACP_IF_TYPE_NONE %}
                       <form name="vlan_form_{{ forloop.counter }}"
                             id="vlan_form_{{ forloop.counter }}"
                             action="{% url 'switches:pvid_change' group.id switch.id iface.key %}"
@@ -67,7 +67,8 @@
                         {% csrf_token %}
                         <select name="new_pvid" data-bs-toggle="tooltip" title="Select the new vlan here"
                                 id="vlan_select{{ forloop.counter }}"
-                                onchange="checkVlanChanged{{ forloop.counter }}()">
+                                onchange="checkVlanChanged{{ forloop.counter }}()"
+                                aria-label="Select new vlan here">
                           {% for vlan_id,vlan in connection.allowed_vlans.items %}
                             <option
                             {% if vlan_id == iface.untagged_vlan %} selected {% endif %}
@@ -117,11 +118,11 @@
                         }
                       </script>
                     {% else %} {# not can_change_vlan #}
-                      <span data-bs-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
+                      <span data-bs-toggle="tooltip" title="Cannot edit vlan {{iface.untagged_vlan}} '{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}' due to interface status (LACP, etc.)">
                         {{ iface.untagged_vlan }}
                       </span>
                     {% endif %}
-                  {% else %} {# untagged_vlan <= 0 #}
+                  {% else %} {# iface.untagged_vlan <= 0 #}
                     <span data-bs-toggle="tooltip" title="Configured vlan {{ iface.untagged_vlan }} is not defined on this switch. See warnings tab!">Not defined!</span>
                   {% endif %}
                 </td>
@@ -373,7 +374,7 @@
 
             {% else %} {# not manageable #}
               <!-- NOT MANAGEABLE -->
-              <td class="
+              <td class="text-dark
               {% if iface.admin_status %}
                 {% if iface.oper_status %}
                   color_if_up">
@@ -400,7 +401,7 @@
 
               <td>
                 {% if iface.untagged_vlan > 0 %}
-                  <span data-bs-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
+                  <span data-bs-toggle="tooltip" title="Cannot edit vlan {{iface.untagged_vlan}} '{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}' due to interface status (LACP, etc.)">
                       {{ iface.untagged_vlan }}
                   </span>
                 {% else %}

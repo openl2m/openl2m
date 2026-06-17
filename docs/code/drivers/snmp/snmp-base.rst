@@ -76,6 +76,25 @@ They are:
 *More details on the SNMP drivers, and specific MIB entries used, will be written as time allows...*
 
 
+def get_my_basic_info(self)
+---------------------------
+
+This function is called to generate the 'basic' info about the device. It calls in order the following functions:
+
+* self._get_system_data()
+* self._get_interface_data()
+* self._get_vlan_data()
+* self._get_my_ip_addresses()
+* self._get_lacp_data()
+* self._get_poe_data()
+* self._map_poe_port_entries_to_interface() # try to map poe port info to actual interfaces
+* self._get_interface_transceiver_types()   # get interface transceiver data. Don't care if this fails.
+
+These functions read various parts of the device info via SNMP. Each function is documented.
+
+Note: All of these can be overridden by Vendor-specific drivers.
+
+
 Vendor-specific SNMP implementations
 ------------------------------------
 

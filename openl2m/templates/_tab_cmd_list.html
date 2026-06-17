@@ -8,7 +8,8 @@
           action="{% url 'switches:switch_cmd_output' group.id switch.id %}"
           method="post">
       {% csrf_token %}
-      <select name="command_id" data-bs-toggle="tooltip" title="Select command to run">
+      <select name="command_id" data-bs-toggle="tooltip" title="Select command to run"
+              aria-label="Select a Show-Command to run">
         <optgroup label="Commands available:">
         {% for c in switch.command_list.global_commands.all %}
           <option value="{{ c.id }}">{{ c.name }}</option>
@@ -42,7 +43,6 @@
     spanText.textContent = 'Running...';
   });
 </script>
-
     </form>
   </div>
 </div>

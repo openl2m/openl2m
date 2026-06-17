@@ -90,7 +90,7 @@ Compose: https://docs.docker.com/compose/
 Nginx in docker: https://hub.docker.com/_/nginx
 
 
-SNMP related
+SNMP clients
 ------------
 
 Python EzSNMP, using native Net-Snmp:
@@ -99,22 +99,28 @@ and the docs at https://carlkidcrypto.github.io/ezsnmp/html/index.html
 
 PySNMP, a native Python SNMP stack: https://pysnmp.com/
 
-MIB browser at
-http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.3.6.1.2.1
 
-Cisco SNMP MIBs: https://github.com/cisco/cisco-mibs/
+SNMP mibs
+---------
+
+Arista SNMP: https://www.arista.com/en/support/product-documentation/arista-snmp-mibs
+
+Cisco SNMP MIBs: https://github.com/cisco/cisco-mibs/tree/main/v2
 
 Juniper SNMP: https://www.juniper.net/documentation/us/en/software/junos/network-mgmt/topics/topic-map/snmp-mibs-supported-by-junos-os-and-junos-os-evolved.html
 
-Arista SNMP: https://www.arista.com/en/support/product-documentation/arista-snmp-mibs
+More MIB files can be found at
+https://github.com/librenms/librenms/blob/master/mibs/ and https://mibs.observium.org/all/
+
+And one of a number of MIB browsers at http://cric.grenoble.cnrs.fr/Administrateurs/Outils/MIBS/?oid=1.3.6.1.2.1
 
 
 Aruba AOS-CX
 ------------
 
-AOS-CX REST API v10.08 Guide: https://www.arubanetworks.com/techdocs/AOS-CX/10.08/PDF/rest_v10-0x.pdf
+AOS-CX REST API v10.x Most Recent Guide (at time of writing): https://arubanetworking.hpe.com/techdocs/AOS-CX/10.16/PDF/rest_v10-0x.pdf
 
-The pyasocx library is at https://github.com/aruba/pyaoscx/
+https://developer.arubanetworks.com/aoscx/docs/introduction has information about configuring and using the REST api.
 
 AOS-CX SNMP Capabilities are documented here (for v10.14, Sept 2024):
 https://www.arubanetworks.com/techdocs/AOS-CX/10.14/HTML/snmp_mib/Content/Chp_SNMP/snm.htm

@@ -103,26 +103,26 @@ class Profile(models.Model):
         help_text='If unchecked, device menu is hidden and only search bar will be displayed',
     )
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods
         pass
 
     def __str__(self):
         # Only display the last 24 bits of the token to avoid accidental exposure.
-        return self.user.username + " Profile"
+        return self.user.username + " Profile"  # pylint: disable=no-member
 
 
 # and the signal handler to auto-create or auto-update
 @receiver(post_save, sender=User)
-def create_or_save_user_profile(sender, instance, created, **kwargs):
+def create_or_save_user_profile(sender, instance, created, **kwargs):  # pylint: disable=unused-argument
     if created:
         # newly saved user object instance
-        Profile.objects.create(user=instance)
+        Profile.objects.create(user=instance)  # pylint: disable=no-member
     else:
         # pre-existing user object
         instance.profile.save()
 
 
-def create_logged_in_log_entry(sender, user, request, **kwargs):
+def create_logged_in_log_entry(sender, user, request, **kwargs):  # pylint: disable=unused-argument
     # log the login!
     log = Log(
         user=request.user,
@@ -134,7 +134,7 @@ def create_logged_in_log_entry(sender, user, request, **kwargs):
     log.save()
 
 
-def create_logged_out_log_entry(sender, user, request, **kwargs):
+def create_logged_out_log_entry(sender, user, request, **kwargs):  # pylint: disable=unused-argument
     # log the logout!
     log = Log(ip_address=get_remote_ip(request), action=LOG_LOGOUT, description="Logged out", type=LOG_TYPE_LOGIN_OUT)
     if isinstance(request.user, User):
@@ -142,7 +142,7 @@ def create_logged_out_log_entry(sender, user, request, **kwargs):
     log.save()
 
 
-def create_login_failed_log_entry(sender, credentials, request, **kwargs):
+def create_login_failed_log_entry(sender, credentials, request, **kwargs):  # pylint: disable=unused-argument
     # log the failed login!
     log = Log(
         user=None,
@@ -221,7 +221,7 @@ class Token(models.Model):
         'Ex: "10.1.1.0/24, 192.168.10.16/32, 2001:DB8:1::/64"',
     )
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods
         verbose_name = 'token'
         verbose_name_plural = 'tokens'
 

@@ -1,12 +1,12 @@
-{% load static %}
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="en" data-bs-theme="{{ request.user.profile.theme }}">
 <head>
     <title>OpenL2M - {% block title %}Home{% endblock %}</title>
+    {# also change Bootstrap in 500.html, neighbor_mermaid-graphic.html and test_page.html ! #}
     <link rel="stylesheet" href="{% static 'bootstrap-5.3.8-dist/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'materialdesignicons-6.7.96/css/materialdesignicons.min.css' %}">
-    {# also change FontAwesome in neighbor_mermaid-graphic.html, and docs/conf.py ! #}
-    <link rel="stylesheet" href="{% static 'fontawesome-7.1.0/css/all.css' %}">
+    {# also change FontAwesome in 500.html, neighbor_mermaid-graphic.html, test_page.html and docs/conf.py ! #}
+    <link rel="stylesheet" href="{% static 'fontawesome-7.2.0/css/all.css' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="icon" type="image/png" href="{% static 'img/openl2m.ico' %}" title="OpenL2M icon">
     <meta charset="UTF-8">
@@ -31,19 +31,14 @@
     </style>
 </head>
 <body>
+  <!-- H1 element to please WAVE / AIM validation -->
+  <h1 class="visually-hidden">OpenL2M Device Management</h1>
+
   <!-- top navigation bar -->
   <div class="container-fluid position-absolute top-0 start-0">
   {% include '_navbar.html' %}
   </div>
   <!-- end navbar -->
-  <!-- we need Javascript -->
-  <noscript>
-    <div class="alert alert-danger text-center" role="alert">
-      <i class="fa-solid fa-triangle-exclamation"></i>
-      You have disabled Javascript. OpenL2M requires it for proper functionality. Please enable Javascript.
-      <i class="fa-solid fa-triangle-exclamation"></i>
-    </div>
-  </noscript>
   <!-- attempt only permit one tab or window on the client browser
        from https://stackoverflow.com/questions/11008177/stop-people-having-my-website-loaded-on-multiple-tabs
   -->

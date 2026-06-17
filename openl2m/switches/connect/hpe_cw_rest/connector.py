@@ -21,18 +21,20 @@ TO DO:
 - description set to empty string ''
 
 """
+
 import base64
 from datetime import timedelta
 import json
 import pprint
 import socket
-from typing import Dict, List
 
 from django.http.request import HttpRequest
 from rangeparser import RangeParser
+
 # used to disable unknown SSL cert warnings:
 import urllib3
 
+from switches.constants import LOG_TYPE_WARNING, LOG_HEALTH_MESSAGE
 from switches.connect.classes import Interface, Vlan, Transceiver, PoePort, NeighborDevice, StackMember
 from switches.connect.restconnector import RESTConnector
 from switches.connect.constants import (
@@ -66,6 +68,7 @@ from switches.connect.constants import (
     # IANA_TYPE_IPV6,
 )
 from switches.models import Switch, SwitchGroup
+
 # from switches.utils import time_duration, dprint
 from switches.utils import dprint
 
@@ -93,13 +96,13 @@ class HPECwRestConnector(RESTConnector):
         self._set_base_url(base_url=f"https://{self.switch.primary_ip4}/api/v{API_VERSION}/")
 
         # this holds the custom REST api attributes
-        self.token: str = ""                    # REST token after username/password login
-        self.token_timeout: str = ""            # time token expires
+        self.token: str = ""  # REST token after username/password login
+        self.token_timeout: str = ""  # time token expires
         self.set_do_not_cache_attribute("token")
 
-        self.port_index_to_if_index: Dict[
-            int, str
-        ] = {}  # this maps switchport "PortIndex" as key (int) to MIB-II IfIndex (str)
+        self.port_index_to_if_index: dict[int, str] = (
+            {}
+        )  # this maps switchport "PortIndex" as key (int) to MIB-II IfIndex (str)
 
         # login and get a REST token
         if not self._open_device():
@@ -110,12 +113,11 @@ class HPECwRestConnector(RESTConnector):
         self.can_change_vlan = True
         self.can_change_poe_status = True
         self.can_change_description = True
-        self.can_save_config = True     # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
+        self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         self.can_reload_all = True  # if true, we can reload all our data (and show a button on screen for this)
         self.can_edit_vlans = True  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = True  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
     #########################################
     # Comware REST API supporting functions #
@@ -257,10 +259,10 @@ class HPECwRestConnector(RESTConnector):
             for hw in hardware["PhysicalEntities"]:
                 match hw["Class"]:
                     # these class numbers match the ENTITY MIB values!
-                    case 3:     # 3 = Frame, i.e. the whole chassis
+                    case 3:  # 3 = Frame, i.e. the whole chassis
                         # IRF stacks show up as multiple chassis, add to system and hardware section:
                         if not found_chassis:
-                            self.add_more_info("System", "Model Short", hw["Model"])
+                            self.add_more_info("System", "Model", hw["Model"])
                             self.add_more_info("System", "Model Name", hw["Name"])
                             self.add_more_info("System", "Serial", hw["SerialNumber"])
                             self.add_more_info("System", "OS Version", hw["SoftwareRev"])
@@ -286,10 +288,23 @@ class HPECwRestConnector(RESTConnector):
                             s.info = f"OID: {hw['VendorType']}"
                             s.description = hw["Description"]
                             self.stack_members[hw["PhysicalIndex"]] = s
-                    case 11:    # IRF fabric indicator
+                    case 11:  # IRF fabric indicator
                         s = StackMember(id=hw["PhysicalIndex"], type=11)
                         s.description = "HPE IRF"
                         self.stack_members[hw["PhysicalIndex"]] = s
+
+        #
+        # some extended hardware info, mostly to get individual stack member chassis uptime
+        #
+        hardware = self._get(path="Device/ExtPhysicalEntities")
+        if hardware:
+            found_chassis = False
+            # dprint(f"HARDWARE: {pprint.pformat(hardware)}")
+            for hw in hardware["ExtPhysicalEntities"]:
+                if hw["PhysicalIndex"] in self.stack_members:
+                    # this is more info about a stack member!
+                    if "Uptime" in hw:
+                        self.stack_members[hw["PhysicalIndex"]].uptime = hw["Uptime"]
 
         #
         # get vlan info
@@ -335,23 +350,23 @@ class HPECwRestConnector(RESTConnector):
 
                 if "ActualSpeed" in i:
                     try:
-                        iface.speed = int(int(i["ActualSpeed"]) / 1000)   # in Bps !
+                        iface.speed = int(int(i["ActualSpeed"]) / 1000)  # in Bps !
                     except Exception:
                         dprint(f"Note: Invalid speed: {i['ActualSpeed']}")
 
                 if "ConfigDuplex" in i:
                     match int(i["ConfigDuplex"]):
-                        case 1:     # Full
+                        case 1:  # Full
                             iface.duplex = IF_DUPLEX_FULL
-                        case 2:     # Half
+                        case 2:  # Half
                             iface.duplex = IF_DUPLEX_HALF
-                        case _:     # should not happen!
+                        case _:  # should not happen!
                             iface.duplex = IF_DUPLEX_UNKNOWN
 
                 if "Description" in i:
                     iface.description = i["Description"]
 
-                if "PortLayer" in i and int(i["PortLayer"]) == 2:     # 2 = layer 3 - routed
+                if "PortLayer" in i and int(i["PortLayer"]) == 2:  # 2 = layer 3 - routed
                     # Note: we also will read "IPV4ADDRESS/Ipv4Addresses" and "IPV6ADDRESS/Ipv6Addresses"
                     # to get interface addresses. This reads both IPv4 and IPv6
                     dprint("  Routed Mode!")
@@ -379,7 +394,7 @@ class HPECwRestConnector(RESTConnector):
 
                 if "LinkType" in i:
                     match int(i["LinkType"]):
-                        case 1:     # access
+                        case 1:  # access
                             dprint("  Access Mode!")
                             iface.is_tagged = False
                             iface.untagged_vlan = int(i['PVID'])
@@ -442,10 +457,9 @@ class HPECwRestConnector(RESTConnector):
                         # ps.description = ""
                         # ps.part_number = ""
                         # ps.serial = ""
-                    else:   # older API entry ?
+                    else:  # older API entry ?
                         dprint("Unknow API data returned?")
                         dprint(f"PSE Info: {pprint.pformat(pse)}")
-
 
             # PoE Ports
             # Note: this API point on gives ports that are using PoE,
@@ -463,13 +477,15 @@ class HPECwRestConnector(RESTConnector):
                             admin_status = POE_PORT_ADMIN_ENABLED
                         poe = PoePort(index=port["IfIndex"], admin_status=admin_status)
                         # set various values found:
-                        poe.pse_id = int(port["PSEID"])                     # need for port PoE enable/disable
+                        poe.pse_id = int(port["PSEID"])  # need for port PoE enable/disable
                         if "CurrentPower" in port:
                             # old style does NOT have CurrentPower if no PoE served...
                             poe.power_consumption_supported = True
-                            poe.power_consumed = int(port["CurrentPower"])      # power consumed in milliWatt
-                            poe.power_available = int(port["PowerLimit"])       # power available in milliWatt
-                            poe.max_power_consumed = int(port["PeakPower"])     # max power drawn since PoE reset, in milliWatt
+                            poe.power_consumed = int(port["CurrentPower"])  # power consumed in milliWatt
+                            poe.power_available = int(port["PowerLimit"])  # power available in milliWatt
+                            poe.max_power_consumed = int(
+                                port["PeakPower"]
+                            )  # max power drawn since PoE reset, in milliWatt
                             # "DetectionStatus" matches the SNMP POE mib definitions
                             poe.detect_status = int(port["DetectionStatus"])
                         # and assign to interface:
@@ -506,10 +522,10 @@ class HPECwRestConnector(RESTConnector):
                                 dprint(f"    found Interface() for '{member_iface.name}'")
                                 member_iface.lacp_type = LACP_IF_TYPE_MEMBER
                                 member_iface.lacp_master_name = lag_master_info[member["GroupId"]].name
-                                member_iface.lacp_master_index = int(member["GroupId"])   # needs to be an integer!
+                                member_iface.lacp_master_index = int(member["GroupId"])  # needs to be an integer!
                                 # add to list of port-channel
                                 lag_master_info[member["GroupId"]].lacp_members[member["IfIndex"]] = member_iface.name
-                            else:   # should not happen.
+                            else:  # should not happen.
                                 err_str = f"ERROR: cannot find LACP member interface for index {member['IfIndex']} for LAGG {member['GroupId']}"
                                 dprint(err_str)
                                 self.add_warning(err_str)
@@ -559,19 +575,25 @@ class HPECwRestConnector(RESTConnector):
 
             # we are reading 802.1Q Trunk/Tagged vlans from "VLAN/TrunkInterfaces",
             # as this has more detailed info, specifically shows if the PVID is permitted as tagged.abs
+            #
+            # NOTE: if the config is "port trunk permit vlan all", this will return ALL vlans,
+            #       not just the vlans configured on the device!
+            #
             dprint("--- Reading tagged vlans from 'VLAN/TrunkInterfaces' api ---")
             interfaces = self._get(path="VLAN/TrunkInterfaces")
             if interfaces:
                 for i in interfaces["TrunkInterfaces"]:
                     # dprint(f"\nINTERFACE: {pprint.pformat(i)}")
-                    if "PermitVlanList" in i:   # better be there :-)
+                    if "PermitVlanList" in i:  # better be there :-)
                         # expand the range to individual port numbers:
                         parser = RangeParser()
                         tagged_vlans = parser.parse(i["PermitVlanList"])
                         iface = self.get_interface_by_key(key=i["IfIndex"])
                         if iface:
                             for vlan_id in tagged_vlans:
-                                iface.add_tagged_vlan(vlan_id=vlan_id)
+                                # per NOTE above, we only add defined vlans!
+                                if vlan_id in self.vlans:
+                                    iface.add_tagged_vlan(vlan_id=vlan_id)
 
             #
             # get IRF ports
@@ -609,27 +631,76 @@ class HPECwRestConnector(RESTConnector):
                         trx.serial = optics["SerialNumber"]
                         dprint(f"\nOptics info:\n{i}\n")
                         match int(optics['FiberDiameterType']):
-                            case 1:     # 9 micron, ie SM
-                                trx.wavelength = int(optics["WaveLength"])   # likely 1310
-                            case 2:     # 50 micron, ie MM
-                                trx.wavelength = int(optics["WaveLength"])   # likely 850
-                            case 3:     # 62.5 micron, ie MM
-                                trx.wavelength = int(optics["WaveLength"])   # likely 850
-                            case 4:     # copper
+                            case 1:  # 9 micron, ie SM
+                                trx.wavelength = int(optics["WaveLength"])  # likely 1310
+                            case 2:  # 50 micron, ie MM
+                                trx.wavelength = int(optics["WaveLength"])  # likely 850
+                            case 3:  # 62.5 micron, ie MM
+                                trx.wavelength = int(optics["WaveLength"])  # likely 850
+                            case 4:  # copper
                                 trx.wavelength = 0
                         # note used:
                         # trx.description: str = ""
                         # trx.connector: str = ""  # 'LC', SC', etc.
                         iface.transceiver = trx
 
-        # API may gives responses in alphbetic order, eg 1/1/10 before 1/1/2.
-        # sort this to the human natural order we expect:
-        self.set_interfaces_natural_sort_order()
-
         # save driver info
         self.save_driver_info()
 
         return True
+
+    def check_my_device_health(self):
+        """Implement a health checks for this device.
+        Here are check IRF stacking, which is typically not handled by general purpose snmp monitoring tools.
+        """
+        dprint("HPECwRestConnector().check_my_device_health()")
+
+        # call the super class implementation of this:
+        super().check_my_device_health()
+
+        # check health of the IRF stack
+        #
+        # get IRF members
+        #
+
+        irf_members = self._get("IRF/Members")
+        if irf_members:
+            # walk through the IRF info, and check for problems:
+            irf_member_count = 0
+            highest_priority = -1
+            highest_priority_id = -1
+            master_id = -1
+            master_priority = -1
+            irf_status = "OK"
+            for member in irf_members["Members"]:
+                dprint(f"IRF-Member: {pprint.pformat(member)}")
+                irf_member_count += 1
+                # the "Board" entry is a list of dicts (even though there appears to ever be just a single entry!)
+                if member['Board'][0]['Role'] == 1:  # the master
+                    dprint("  MASTER found!")
+                    master_id = member["MemberID"]
+                    master_priority = member["Priority"]
+                if member["Priority"] > highest_priority:
+                    dprint("  NEW Higher Priority found!")
+                    highest_priority = member["Priority"]
+                    highest_priority_id = member["MemberID"]
+            # now check if we have a higher priority than the master
+            if master_priority < highest_priority:
+                irf_status = "Unhealthy!"
+                # we don't show this to the user:
+                # self.add_warning(
+                #     warning=f"IRF master id = {master_id}, but member id = {highest_priority_id} has highest priority {highest_priority}",
+                #     add_log=False,
+                # )
+                # this log entry can be email to alert personel via the log-emailer capabilities
+                self.add_log(
+                    description=f"IRF master id = {master_id}, but member id = {highest_priority_id} has highest priority {highest_priority}",
+                    type=LOG_TYPE_WARNING,
+                    action=LOG_HEALTH_MESSAGE,
+                )
+
+            self.add_more_info(category="IRF Info", name="Status", value=irf_status)
+            self.add_more_info(category="IRF Info", name="Members", value=irf_member_count)
 
     def get_my_vrfs(self):
         #
@@ -696,7 +767,6 @@ class HPECwRestConnector(RESTConnector):
                     iface = self._get_interface_by_port_id(port_id=mac["PortIndex"])
                     if iface:
                         iface.add_learned_ethernet_address(eth_address=mac["MacAddress"], vlan_id=mac["VLANID"])
-                        self.eth_addr_count += 1
                 else:
                     # this appears to happen on Aggregate interfaces:
                     # dprint(f"WARNING: ethernet PortIndex {mac['PortIndex']} unknown, trying PortName...")
@@ -705,7 +775,6 @@ class HPECwRestConnector(RESTConnector):
                         if iface:
                             dprint("  Ethernet adding from PortName !")
                             iface.add_learned_ethernet_address(eth_address=mac["MacAddress"], vlan_id=mac["VLANID"])
-                            self.eth_addr_count += 1
 
         #
         # get IPV4 ARP data
@@ -844,7 +913,6 @@ class HPECwRestConnector(RESTConnector):
         iface = self.get_interface_by_key(key=nb["IfIndex"])
         if iface:
             iface.add_neighbor(neighbor=neighbor)
-            self.neighbor_count += 1
 
     def parse_neighbor_basics(self, nb):
         #
@@ -1088,7 +1156,7 @@ class HPECwRestConnector(RESTConnector):
         data = {
             "IfIndex": int(interface.key),
             "PSEID": int(interface.poe_entry.pse_id),
-            "AdminEnable": status,   # True=PoE enabled, False=disabled
+            "AdminEnable": status,  # True=PoE enabled, False=disabled
         }
 
         # go set PoE state
@@ -1136,7 +1204,7 @@ class HPECwRestConnector(RESTConnector):
         # body data
         data = {
             "IfIndex": int(interface.key),
-            "PVID": new_vlan_id,     # valid vlan id's
+            "PVID": new_vlan_id,  # valid vlan id's
         }
 
         try:
@@ -1156,14 +1224,16 @@ class HPECwRestConnector(RESTConnector):
             self.error.details = format(err)
             return False
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
+    def set_interface_vlans(
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
+    ) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
 
         Args:
             interface = Interface() object for the requested port
             untagged_vlan = an integer with the requested untagged vlan
-            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+            tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
         Returns:
             True on success, False on error and set self.error variables
@@ -1180,7 +1250,7 @@ class HPECwRestConnector(RESTConnector):
         # body data - the base settings
         data = {
             "IfIndex": int(interface.key),
-            "PVID": untagged_vlan,     # valid vlan id's
+            "PVID": untagged_vlan,  # valid vlan id's
         }
 
         if not tagged_vlans and not allow_all:
@@ -1190,7 +1260,7 @@ class HPECwRestConnector(RESTConnector):
             if interface.is_tagged:
                 # change mode as well
                 dprint("  Changing to ACCESS")
-                data['LinkType'] = 1    # 1 = Access
+                data['LinkType'] = 1  # 1 = Access
             else:
                 dprint("Already Access mode!")
         else:
@@ -1200,7 +1270,7 @@ class HPECwRestConnector(RESTConnector):
             if not interface.is_tagged:
                 # change mode as well
                 dprint("  Changing to TRUNK")
-                data['LinkType'] = 2    # 2 = Trunk
+                data['LinkType'] = 2  # 2 = Trunk
             else:
                 dprint("Already Trunk mode!")
 
@@ -1248,7 +1318,9 @@ class HPECwRestConnector(RESTConnector):
                         return False
                 # all OK, now do the book keeping
                 dprint("Calling Bookkeeping...")
-                super().set_interface_vlans(interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all)
+                super().set_interface_vlans(
+                    interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
+                )
                 return True
             # error ?
             self.error.status = True

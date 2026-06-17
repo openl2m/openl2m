@@ -1,0 +1,132 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 4.1
+===========
+
+.. note::
+
+  v4.1 uses Django 6.0. We now require Python 3.12 or 3.13 (3.14+ not supported!).
+  OpenL2M also requires Postgres version 15 or greater! (I.e. Ubuntu 20.04 will no longer work.)
+
+
+**Version 4.1 highlights:**
+
+- updates to Django 6.0 and FontAwesome 7.2.0
+- **more support for editing 802.1Q tagged/trunk interfaces.**
+  Now also supported for HPE Aruba AOS-S devices (via SNMP) and Cisco SB devices (via SNMP)
+
+See the documentation for more details.
+
+.. note::
+
+  **As always, TEST before you use on Production devices !!!**
+
+
+New Configuration Options
+-------------------------
+
+**REST_API_TIMEOUT** has been **renamed** to **REST_CLIENT_TIMEOUT** for better clarify.
+The default timeout is increased to 10 seconds.
+
+Additional Syslog configuration options are added: **SYSLOG_FACILITY**, **SYSLOG_LEVEL** and **SYSLOG_ACTIONS**
+
+.. code-block:: python
+
+  # for drivers that use a REST API (ie. clients), this is the query timeout
+  # currently applies to devices using the REST API client driver for
+  # HPE Comware, HPE/Aruba AOS-S, and HPE/Aruba AOS-CX API.
+  REST_CLIENT_TIMEOUT = 10
+
+  # The syslog 'facility' and 'level' or 'priority' to send OpenL2M Log messages to. Read any syslog documentation, or see
+  # https://docs.python.org/3/library/logging.handlers.html#sysloghandler under Facilities
+  # Choose from "auth", "authpriv", "cron", "daemon", "ftp", "kern", "lpr", "mail", "news", "syslog", "user", "uucp",
+  # "local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"
+  #
+  SYSLOG_FACILITY = "daemon"
+  #
+  # The syslog 'priority level', all CAPITAL names as defined at
+  # https://docs.python.org/3/library/logging.html#levels
+  # Choose from "NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+  #
+  SYSLOG_LEVEL = "INFO"
+
+  # If you want to send only specific log actions to syslog, set this variable with the comma-separated list
+  # of actions. The list of available numerical LOG action numbers are in the section "#Actions to log" in this file:
+  # https://github.com/openl2m/openl2m/blob/main/openl2m/switches/constants.py#L185
+  SYSLOG_ACTIONS = ""
+  # E.g. this sends all login/logout related activity, PoE and SNMP Errors, and Health messages.
+  # You can use ranges in the number listing.
+  # SYSLOG_ACTIONS = "90-95,113,258,400"
+
+
+Version 4.1.2
+-------------
+
+Release Date: 2026-06-17
+
+* add new setting SYSLOG_FACILITY, SYSLOG_LEVEL, SYSLOG_ACTIONS to only send specific log entries to syslog.
+
+
+Version 4.1.1
+-------------
+
+Release Date: 2026-06-12
+
+* for SNMP devices, mark Ethernet or Aggregate interfaces with IPv4/6 addresses as routed.
+* read VSX "stacking" info for AOS-CX device over REST API and SNMP.
+* admins can see application settings from their dropdown menu.
+* improve down interface maximum speed reporting.
+* various documentation updates.
+
+Bug fixes:
+
+* fix VRF parsing error in AOS-CX REST API driver.
+* fix ethernet count sometimes incorrect.
+* parse vendor-specific interface access rules first to clarify deny reason.
+* remove vlan-related icons (trunk edit icon, edit tab) if no vlans found.
+* no vlan editing on LACP interfaces.
+* upgrade to Junos-EzNC v2.8.1
+* improve interface permission parsing order.
+* various pylint updates.
+
+
+Version 4.1
+-----------
+
+Release Date: 2026-06-03
+
+* add 802.1Q tags (trunk) vlan editing for base SNMP and HPE/Aruba Procurve/AOS-S switches.
+  We use the standard Q-Bridge MIB for this. See supported feature notes in the documentation
+  for more details.
+* 802.1q interface tag editing now supported on Cisco-SB devices over snmp.
+* implemented a new REST driver for Aruba AOS-CX devices to fix a threading problem in the
+  Aruba pyaoscx class that manifests itself when running under gunicorn.py (the Djano runtime environment)
+* Cisco-SB devices can now save the running config.
+* Add IPv4 ARP info for device using the Aruba AOS-S REST driver.
+* add PoE on-off capability for Aruba AOS-S REST driver.
+* enable 802.1q tags edit for Admins by default.
+* AOS-CX switches using API need minimum of v10.09
+* REST connector update to support Python 3.13+ (for AOS-S and Comware REST):
+  when SSL checking is disabled on credentials, on Python v3.13+ add support to
+  ignore the new defaults to check for X.509, older ciphers, etc.
+* update to FontAwesome v7.2.0 (from v7.1.0)
+* some admin screens have improved list views.
+* various accessibility improvements.
+
+Bug fixes:
+
+* remove duplicate login/logout for AOS-S REST api driver.
+* driver support matrices are updated with valid info.
+* fix show only defined vlans on interface "trunk permit all" in HPE Comware REST driver.
+* fix handling of pvid on tagged interface in standard SNMP and Aruba/Procurve SNMP drivers.
+* AOS-CX device can now save config via the REST api.
+* make all id attributes unique in interface tags edit popup page.
+* remove leading blank line at start of html page.
+* several html form errors fixed.
+* fixed not calling json.loads when empty data in restconnector.py
+* code refactoring and simplications use Claude Code
+* fix X.509 certificate errors, and older cipher errors on older devices triggered with Python 3.13+
+* upgrade Netmiko to v4.7.0 fix incompatible SSH peer (no acceptable key)
+* many pylint updates.
+

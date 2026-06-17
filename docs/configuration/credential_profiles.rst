@@ -6,7 +6,7 @@ Credential Profiles
 
 OpenL2M uses credentials for a variety of authentications:
 * SSH login to execute commands.
-* Aruba-CX REST API access.
+* Aruba AOS-S, Aruba AOS-CX and HPE Comware REST API access.
 * Junos PyEZ (netconf) access.
 
 To configure this, go to Admin, then go to *Credential Profiles* in the Switches section,
@@ -20,9 +20,19 @@ Next, set a username and password for the API, NetConf or SSH login.
 Select the proper Netmiko device type (if applicable). If Cisco, you can give the 'enable'
 password. This is currently not used yet, so you can leave it blank as well.
 
-If you run SSH (Netmiko) on a non-standard port, enter it. If you want SSL host key checking,
-select the option. Note this is not tested, but should work if you have
-the proper SSH known hosts config files in the user profile that runs your web server.
+If you run SSH (Netmiko) on a non-standard port, enter it.
+
+If you want SSL host key checking, select the option (default is to ignore SSL cert errors).
+Note enabling this is not tested, but should work if you have
+the proper SSH known hosts config files and SSL certs in the user profile that runs your web server.
+Please follow your organization's security policy.
+
+.. note::
+
+    On the AOS-S and Comware REST connectors, when running Python 3.13+,
+    with SSL checking disabled (the default), we add support to
+    ignore the new Python/SSL library defaults to check for X.509, older ciphers, etc.
+
 
 **Note that firewall rules, device ACLs etc. will need to
 allow SSH/API connections from the web server where OpenL2M is installed.**

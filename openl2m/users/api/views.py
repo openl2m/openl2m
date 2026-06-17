@@ -20,10 +20,10 @@ from django.conf import settings
 # Use the Django Rest Framework:
 from rest_framework import status
 from rest_framework.authtoken.views import ObtainAuthToken
-from users.models import Token
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from users.models import Token
 from switches.constants import LOG_TYPE_CHANGE, LOG_TYPE_ERROR, LOG_REST_API_TOKEN_CREATED
 from switches.models import Log
 from switches.utils import dprint, get_remote_ip
@@ -48,7 +48,7 @@ class APIObtainAuthToken(ObtainAuthToken):
         )
         user = serializer.validated_data["user"]
         # check max token count:
-        count = Token.objects.all().filter(user=user).count()
+        count = Token.objects.all().filter(user=user).count()  # pylint: disable=no-member
         if count >= settings.MAX_API_TOKENS:
             log = Log(
                 user=user,

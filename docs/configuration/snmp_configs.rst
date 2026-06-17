@@ -44,8 +44,8 @@ Note that this has not been tested on IOS-XR or Nexus devices.
   # this last one is not absolutely needed, but keeps logs synched between device reboots
   snmp-server ifindex persist
 
-Aruba / Procurve
-================
+Aruba AOS-S / Procurve
+======================
 
 * Version 3 (recommended!):
 

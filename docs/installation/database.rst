@@ -4,16 +4,16 @@
 The Database
 ============
 
-NOTE: this is a copy of the NetBox PostgreSQL installation document.
-
 OpenL2M requires a PostgreSQL database to store data. This can be hosted locally or on a remote server.
 Please note that MySQL is not supported, as OpenL2M leverages PostgreSQL's built-in
 Postgresql types_
 
 .. _types: https://www.postgresql.org/docs/current/static/datatype-net-types.html
 
-The installation instructions provided here have been tested to work on Ubuntu 24.04 and 22.04.
-*Installation should still work on Ubuntu 20.04/CentOS/Rocky/AlmaLinux, but those distributions are no longer tested.*
+**The installation instructions provided here have been tested to work on the Ubuntu version we develop on.**
+
+*As long as you install a supported version of PostgreSQL, OpenL2M should still work other on versions of
+Ubuntu/CentOS/Rocky/AlmaLinux, but those distributions are no longer tested.*
 
 The particular commands needed to install dependencies on other distributions may vary significantly.
 Unfortunately, this is outside the control of the OpenL2M maintainers.
@@ -42,7 +42,7 @@ or the brew documentation_.
 
 **Verify Version**
 
-Verify you are running at least version 13:
+Verify you are running a supported version of PostgreSQl:
 
 .. code-block:: bash
 

@@ -58,6 +58,11 @@ urlpatterns = [
         name="admin_activity",
     ),
     path(
+        "settings",
+        views.SwitchAdminSettings.as_view(),
+        name="admin_settings",
+    ),
+    path(
         "stats",
         views.ShowStats.as_view(),
         name="show_stats",

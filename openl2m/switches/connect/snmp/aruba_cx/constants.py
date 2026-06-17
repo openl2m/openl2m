@@ -30,8 +30,87 @@ enterprise_id_info[ENTERPRISE_ID_HP_ENTERPRISE] = "Aruba (HPE)"
 # AOS-CX also uses numerous HP/ProCurve snmp counters.
 # this are defined in switches.connect.snmp.procurve.constants
 
+#
+# ARUBAWIRED-VSX-MIB has VSX stacking info
+#
+arubaWiredVsxMIB = ".1.3.6.1.4.1.47196.4.1.1.3.7"
+snmp_mib_variables["arubaWiredVsxMIB"] = arubaWiredVsxMIB
+
+# arubaWiredVsxConfig = "".1.3.6.1.4.1.47196.4.1.1.3.7.1"
+
+# arubaWiredVsxIslConfig = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.1"
+arubaWiredVsxIslPort = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.1.1"
+
+# we define a few constants to track VSX ports, the same as for the AOS-CX REST driver
+VSX_NONE = 0  # not a VSX interface
+VSX_ISL = 1  # VSX Inter Switch Link port
+VSX_KEEPALIVE = 2  # VSX Keep-Alive port
+
+# arubaWiredVsxKeepAliveConfig = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2"
+arubaWiredVsxKeepAliveSrcIPAddrType = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2.1"
+arubaWiredVsxKeepAliveSrcIPAddr = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2.2"
+arubaWiredVsxKeepAliveVrf = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2.3"
+arubaWiredVsxKeepAlivePeerIPAddrType = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2.5"
+arubaWiredVsxKeepAlivePeerIPAddr = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.2.6"
+
+# arubaWiredVsxAggregatorConfig = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.3"
+# nothing of interest here...
+
+# arubaWiredVsxGlobalConfiguration = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.4"
+arubaWiredVsxDeviceRole = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.4.1"
+VSX_ROLE_PRIMARY = 1  # 1	primary
+VSX_ROLE_SECONDARY = 2  # 2	secondary
+VSX_ROLE_NOT_SET = 3  # 3	notConfigured
+VSX_Roles = {
+    VSX_ROLE_PRIMARY: "Primary",
+    VSX_ROLE_SECONDARY: "Secondary",
+    VSX_ROLE_NOT_SET: "Not Configured",
+}
+
+arubaWiredVsxConfigSync = ".1.3.6.1.4.1.47196.4.1.1.3.7.1.4.2"
+VSX_SYNC_ENABLED = 1  # 1	enabled
+VSX_SYNC_DISABLED = 2  # 2	disabled
+VSX_SyncState = {
+    VSX_SYNC_ENABLED: "Enabled",
+    VSX_SYNC_DISABLED: "Disabled",
+}
+
+# arubaWiredVsxStatus = ".1.3.6.1.4.1.47196.4.1.1.3.7.2"
+
+# arubaWiredVsxIslStatus = ".1.3.6.1.4.1.47196.4.1.1.3.7.2.1"
+arubaWiredVsxIslOperState = ".1.3.6.1.4.1.47196.4.1.1.3.7.2.1.1"
+VSX_ISL_STATE_INIT = 1  # 1	init
+VSX_ISL_STATE_OUT_SYNC = 2  # 2	outSync
+VSX_ISL_STATE_IN_SYNC = 3  # 3	inSync
+VSX_IslStates = {
+    VSX_ISL_STATE_INIT: "Init",
+    VSX_ISL_STATE_OUT_SYNC: "Out-of-Sync",
+    VSX_ISL_STATE_IN_SYNC: "In-Sync",
+}
+
+# arubaWiredVsxKeepAliveStatus = ".1.3.6.1.4.1.47196.4.1.1.3.7.2.2"
+arubaWiredVsxKeepAliveOperState = ".1.3.6.1.4.1.47196.4.1.1.3.7.2.2.1"
+VSX_KA_STATE_INIT = 1  # 1	init
+VSX_KA_STATE_CONFIGURED = 2  # 2	configured
+VSX_KA_STATE_SYNCHED = 3  # 3	inSyncEstablished
+VSX_KA_STATE_NOT_SYNCHED = 4  # 4	outofSyncEstablished
+VSX_KA_STATE_INIT_ESTABLISHED = 5  # 5	initEstablished
+VSX_KA_STATE_FAILED = 6  # 6	failed
+VSX_KA_STATE_STOPPED = 7  # 7	stopped
+VSX_KaStates = {
+    VSX_KA_STATE_INIT: "Init",
+    VSX_KA_STATE_CONFIGURED: "Configured",
+    VSX_KA_STATE_SYNCHED: "In-Sync Established",
+    VSX_KA_STATE_NOT_SYNCHED: "Out-of-Sync Established",
+    VSX_KA_STATE_INIT_ESTABLISHED: "Init Established",
+    VSX_KA_STATE_FAILED: "Failed",
+    VSX_KA_STATE_STOPPED: "Stopped",
+}
+
+#
 # the ARUBAWIRED-POE mib is used for PoE reporting:
-# see http://www.circitor.fr/Mibs/Html/A/ARUBAWIRED-POE-MIB.php
+# see https://mibs.observium.org/mib/ARUBAWIRED-POE-MIB/
+#
 
 # the power drawn, in milliwatts:
 arubaWiredPoePethPsePortPowerDrawn = ".1.3.6.1.4.1.47196.4.1.1.3.8.1.1.1.7"

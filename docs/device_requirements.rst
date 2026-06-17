@@ -13,14 +13,14 @@ Arista eAPI
 Aruba AOS-CX
 ------------
 
-* any device that supports the Aruba AOS-CX API v10.08 is supported, via the pyaoscx library.
+* any device that supports the Aruba AOS-CX API v10.09 is supported, via the pyaoscx library.
 * Device access needs to be configured properly.
 
 Aruba AOS-S
 -----------
 * any device that can run v16.x of AOS-S, and has the REST api enabled (see configuration page).
-* This has been tested on a single 2930M, using firmware v16.11.x, and REST api v4.
-* Due to lack of test hardware, PoE support has not been implemented.
+* This has been tested on a single 2530(PoE), 2540(PoE), 2930M, and 2930F(PoE) using firmware v16.11.0029,
+  and REST api v4.
 
 HPE/Aruba Comware REST API
 --------------------------
@@ -92,6 +92,18 @@ Several vendor specific MIB are supported at this time.
 
 * Cisco Syslog-Mib
   Used to read log messages from Cisco devices (if configured).
+
+* Cisco-Config MIB
+  Used to save the configuration on regular Cisco devices.
+
+* CiscoSB-Config MIB
+  Used to save the configuration on Cisco SB devices.
+
+* CISCOSB-vlan-MIB
+  Read vlans in Cisco-SB devices.
+
+* CISCOSB-rlInterfaces MIB
+  Read interface transceiver information.
 
 * HP Aruba/Procure HP-ICF-POE-MIB
   Get enhanced PoE info on the Aruba/Procurve switches that support it.

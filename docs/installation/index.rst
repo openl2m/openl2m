@@ -12,26 +12,40 @@ The following steps are for a full production install of OpenL2M. No containers 
 
 *We recommend you install OpenL2M on Ubuntu 24.04 LTS*
 
+You can also look at testing in a Docker container, see here for more options: https://github.com/openl2m
+
+
+.. note::
+
+  Ubuntu 26.04 comes with Python 3.14, which is NOT supported at present.
+  Python 3.14 support will require an upgrade to the EzSnmp v2.x library,
+  which will require rewriting of our SNMP code.
+
+
+*So, to run on Ubuntu 26.04, you will need to install an alternative version of Python 3.12 or 3.13! See the docs elsewhere*
+
+
 OpenL2M has some requirements:
 
-* Python 3.10 - 3.13 (OpenL2M is developed and tested on v3.12.)
+* Python 3.12 - 3.13 (OpenL2M is developed and tested on v3.12 and 3.13.)
 * net-snmp v5.7 or greater, including net-snmp-devel
-* the Python "ezsnmp" package v1.0.0 or greater.
+* the Python "ezsnmp" package v1.1.0
 * a web server, with the WSGI capability. We use Nginx in all our documentation.
-  Apache may work but is not tested.
-* the Django framework, v5.1 or greater.
-* a PostgreSQL database, running at least version 14. We use v16 in our testing.
-  Note: Ubuntu 24.04 comes with PostgreSQL v16. Ubuntu 22.04 comes with v14.
-  **Ubuntu 20.04 installs v12, and is no longer supported**
+  Apache or Caddy may work but is not tested.
+* the Django framework, v6.0 or greater.
+* a PostgreSQL database, running at least version 15. We use v16 in our testing.
+
+  Note: Ubuntu 24.04 comes with Python v3.12 and PostgreSQL v16. Ubuntu 22.04 comes with PostGreSQL v14.
+  **Ubuntu 22.04 and 20.04 are no longer supported!**
 
 **Application Stack Overview**
 
 Once installation is complete, you will have the following application stack
 to get a working OpenL2M application:
 
-* Nginx web server (handled user web requests)
-* Gunicorn WSGI Process with Python (processes the request and runs OpenL2M)
-* PostgreSQL database (minimum: version 13)
+* Nginx web server (handles user web requests)
+* Gunicorn WSGI Processes with Python (processes the requests and runs OpenL2M)
+* PostgreSQL database
 
 At the end of this page is an image showing the application stack.
 
@@ -48,7 +62,9 @@ distributions as long as the requirements are met.
 
    database.rst
    openl2m.rst
-   api.rst
+   openl2m_configs.rst
+   openl2m_api.rst
+   openl2m_finalize.rst
    gunicorn.rst
    nginx.rst
    nginx-ssl.rst

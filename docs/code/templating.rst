@@ -73,13 +73,30 @@ Additionally, get_lldp_capabilities_icon() produces html code, and we pass that 
 via mark_safe() to make sure it does not get marked up, i.e. gets interpreted as html.
 
 
-**Icons**
+Icons
+=====
 
-We primarily use the free icons from the FontAwesome icon library, currently v6.7.2.
-You can see them at https://fontawesome.com/v6/search?o=r&m=free
+FontAwesome
+-----------
+
+We primarily use the free icons from the FontAwesome icon library, at time of writing this is v7.2.0.
+You can see them at https://fontawesome.com/search
 
 You can include icons normally, such as shown here:
 
 .. code-block:: html
 
   <i class="fa-solid fa-ethernet" aria-hidden="true"></i>
+
+Material Design
+---------------
+
+We also include version v6.7.96 of the Material Design Icons.
+See a list of icons at https://pictogrammers.github.io/@mdi/font/6.7.96/
+
+Here is some sample html to show usage.
+
+.. code-block:: html
+
+  <span class="mdi mdi-account"></span>
+  <span class="mdi mdi-ethernet" style="font-size: 48px; color: orange;"></span>

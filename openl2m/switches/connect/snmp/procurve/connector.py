@@ -27,7 +27,7 @@ from django.http.request import HttpRequest
 
 from switches.models import Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
-from switches.connect.classes import Transceiver
+from switches.connect.classes import Interface, Transceiver
 from switches.connect.constants import POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.utils import dprint
@@ -55,7 +55,7 @@ class SnmpConnectorProcurve(SnmpConnector):
 
     def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
-        dprint("HP/Procurve SnmpConnector __init__")
+        dprint("SnmpConnectorProcurve.__init__()")
         super().__init__(request, group, switch)
         self.description = "Aruba Networks (HP/ProCurve) SNMP driver"
         self.vendor_name = "Aruba Networks (HP/Procurve)"
@@ -71,6 +71,9 @@ class SnmpConnectorProcurve(SnmpConnector):
         # the command that should be sent to disable screen paging
         # let Netmiko decide...
         # self.netmiko_disable_paging_command = "no page"
+
+        self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
+        # Procurve and AOS-S devices appear to use standard snmp mibs for this!
 
         # some capabilities we cannot do:
         self.can_save_config = False  # not needed on ProCurve, it has auto-save!
@@ -116,6 +119,45 @@ class SnmpConnectorProcurve(SnmpConnector):
             self.add_warning(warning="Error getting Procurve config details ('hpnicfCfgLog')")
             return False
         return True
+
+    def set_interface_vlans(
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
+    ) -> bool:
+        """
+        Set the interface to the untagged and tagged vlans.
+        We override this to handle the fact that on Aruba (Procurve) switches, the PVID on tagged interfaces
+        CAN NOT be part of the list of tagged vlans!
+
+        Args:
+            interface = Interface() object for the requested port
+            untagged_vlan = an integer with the requested untagged vlan
+            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+
+        Returns:
+            True on success, False on error and set self.error variables
+        """
+        dprint(
+            f"SnmpConnectorProcurve.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
+        )
+
+        if allow_all or len(tagged_vlans):
+            dprint("TAGGED MODE - checking to remove PVID from tagged vlan list!")
+            if allow_all:
+                dprint("  Adding ALL vlans to tagged_vlans")
+                # add all vlans to tagged_vlans:
+                for vlan_id in self.vlans:
+                    tagged_vlans.append(vlan_id)
+                # make it unique:
+                tagged_vlans = list(dict.fromkeys(tagged_vlans))
+            # now remove the PVID (untagged_vlan) if present:
+            if untagged_vlan in tagged_vlans:
+                dprint(f"  Removing PVID {untagged_vlan} from tagged_vlans!")
+                tagged_vlans.remove(untagged_vlan)
+
+        # done with prep work, call the "standard" SNMP way to do this:
+        return SnmpConnector.set_interface_vlans(
+            self=self, interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
+        )
 
     #
     # HP has 2 possible MIBs with port(interface) power information:
@@ -268,7 +310,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         dprint("Procurve _map_poe_port_entries_to_interface()\n")
         for pe_index, port_entry in self.poe_port_entries.items():
             # we take the ending part of "5.12" as the index
-            (module, index) = port_entry.index.split(".")
+            module, index = port_entry.index.split(".")  # pylint: disable=unused-variable
             # for the SnmpConnector() class and sub-classes, the "index" is the key to the Interface()
             if index in self.interfaces:
                 iface = self.interfaces[index]
@@ -285,3 +327,27 @@ class SnmpConnectorProcurve(SnmpConnector):
             else:
                 # should not happen!
                 dprint(f"ERROR: PoE entry NOT FOUND for pe_index={pe_index}")
+
+    # def save_running_config(self) -> bool:
+
+    # Save the running config to startup config.
+    # Returns True is this succeeds, False on failure. self.error() will be set in that case
+
+    # NOTE: Aruba AOS-S and the older Procurce devices do NOT need this function.
+    # These devices perform an implicit "write mem" after every succcesfull SNMP "set".
+
+    # In the HP-SWITCH-BASIC-CONFIG mib, you can find the value "hpSwitchImplicitConfigSave".
+    # Here is the description from the mib:
+
+    # "This object is to enable/disable the implicit write-memory (saving the running-config to the flash)
+    # done after every successful SNMP set operation.
+
+    # When set to 'enable', config changes are written to the flash which results in slow performance for these set operations.
+    # To get faster processing while doing large number of continuous SNMP set operations, this object can be set to 'disable';
+    # And, once the SNMP set operations are done, 'hpSwitchSaveConfig' MIB object can be used to save the running-config to the flash.
+    # This object will not be saved across a re-boot, and will always be set to 'enable' at boot.
+    # It is advisable to set this MIB object to 'disable' only when there are a lot of continuous SNMP set operations
+    # e.g. a script executing a large number of SNMP set operations."
+
+    # In an snmp walk or get, you will find the first instance (.0) of this OID set to 1:
+    #     1.3.6.1.4.1.11.2.14.11.5.1.7.1.29.1.11.0 = (integer) 1

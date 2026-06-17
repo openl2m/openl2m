@@ -18,8 +18,9 @@
 #
 
 import array
-import netaddr
 from typing import Dict, List
+
+import netaddr
 
 from django.conf import settings
 from django.utils.encoding import iri_to_uri
@@ -38,6 +39,7 @@ from switches.connect.constants import (
     POE_PSE_STATUS_OFF,
     POE_PSE_STATUS_FAULT,
     POE_PORT_DETECT_SEARCHING,
+    POE_PORT_ADMIN_DISABLED,
     #   IANA_TYPE_OTHER,
     #   IANA_TYPE_IPV4,
     #   IANA_TYPE_IPV6,
@@ -62,6 +64,34 @@ from switches.connect.constants import (
 from switches.utils import dprint, get_ip_dns_name, string_is_int
 
 
+class CountInstances:
+    # class track instance counts
+
+    # class variable to count instances.
+    _count = 0
+
+    # pylint: disable=redefined-builtin
+    def __init__(self):
+        # we have a new instance:
+        CountInstances._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        CountInstances._count -= 1
+
+    @classmethod
+    def clear_count(cls):
+        """Reset the number of instances"""
+        cls._count = 0
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
+
+
+# pylint: disable=too-few-public-methods
 class Error:
     """
     Simple error information object, created with error status indicated!
@@ -98,6 +128,10 @@ class StackMember:
     This could be just one unit (single switch), or multiple if part of a stack
     """
 
+    # class variable to track instance count
+    _count = 0
+
+    # pylint: disable=redefined-builtin
     def __init__(self, id: int, type: int):
         """
         Initialize the object
@@ -109,6 +143,19 @@ class StackMember:
         self.model: str = ""  # vendor model number
         self.info: str = ""  # hardware info string
         self.description: str = ""  # module description
+        self.uptime: int = 0  # uptime in seconds
+        # we have a new instance:
+        StackMember._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        StackMember._count -= 1
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
 
     def as_dict(self) -> dict:
         """
@@ -122,6 +169,7 @@ class StackMember:
             "model": self.model,
             "info": self.info,
             "description": self.description,
+            "uptime": self.uptime,
         }
 
 
@@ -147,6 +195,10 @@ class Vlan:
     Class to represent a vlan found on the switch
     """
 
+    # class variable to track instance count
+    _count = 0
+
+    # pylint: disable=redefined-builtin
     def __init__(self, id: int = 0, index: int = 0, name: str = ""):
         """
         Vlan() requires passing in the vlan id
@@ -168,6 +220,26 @@ class Vlan:
         # self.hh3c_dot1q_vlan_ports = PortList()   # hh3cdot1qVlanPorts is HH3C specific vlan untagged PortList() bitmap
         self.voice: bool = False  # if True, this is a "voice vlan"
         self.vrf: str = ""  # the VRF this vlan is a member of, if any.
+
+        # some URI's need by REST api's
+        self.vlan_uri = ""  # URI to this vlan
+        self.macs_uri = ""  # URI to ethernet addresses on vlan
+        self.static_macs_uri = ""  # URI to static ethernet addresses on vlan
+        # not useful:
+        # self.client_info_uri = ""  # URI to client IP info
+
+        # we have a new instance:
+        Vlan._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        Vlan._count -= 1
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
 
     def set_name(self, name: str) -> None:
         self.name = name
@@ -222,7 +294,7 @@ class PortList:
         Initialize by setting a number of bytes to 0
         """
         dprint(f"PortList bytecount size={bytecount}")
-        for i in range(int(bytecount)):
+        for i in range(int(bytecount)):  # pylint: disable=unused-variable
             self.portlist.append(0)
 
     def tobytes(self) -> bytes:
@@ -248,7 +320,7 @@ class PortList:
 
         :return: a hexadecimal string representing the bytes of this bitmap.
         """
-        digits = ["%02x" % octet for octet in self.portlist]
+        digits = ["%02x" % octet for octet in self.portlist]  # pylint: disable=consider-using-f-string
         return "".join(digits)
 
     def reverse_bits_in_bytes(self) -> None:
@@ -295,12 +367,12 @@ class PortList:
         # NOTE: bit 0 = port_id 1. First byte is ports 1-8, second 9-16, etc.
         dprint(f"PortList __setitem__ pos={position}, val={value}")
         position -= 1
-        value = value and 1 or 0
+        value = value and 1 or 0  # pylint: disable=consider-using-ternary
         block = position // 8
         shift = position & 7
         dprint(f"PortList position={position} value={value} block={block} shift={shift}")
         block_value = self.portlist[block]
-        if (block_value << shift) & 128 and 1 or 0 != value:
+        if (block_value << shift) & 128 and 1 or 0 != value:  # pylint: disable=simplifiable-condition
             if value:
                 self.portlist[block] = block_value | (128 >> shift)
             else:
@@ -318,10 +390,10 @@ class PortList:
             for i in range(*position.indices(len(self))):
                 result.append(self[i])
             return result
-        else:
-            block = position // 8
-            shift = position & 7
-            return (self.portlist[block] << shift) & 128 and 1 or 0
+
+        block = position // 8
+        shift = position & 7
+        return (self.portlist[block] << shift) & 128 and 1 or 0  # pylint: disable=consider-using-ternary
 
 
 class EthernetAddress(netaddr.EUI):
@@ -329,6 +401,9 @@ class EthernetAddress(netaddr.EUI):
     Class to represents an Ethernet address, and whatever we know about it.
     We reuse most of the netaddr library abilities to find vendor.
     """
+
+    # class variable to track instance count
+    _count = 0
 
     def __init__(self, ethernet_string: str):
         """
@@ -338,11 +413,31 @@ class EthernetAddress(netaddr.EUI):
         super().__init__(ethernet_string)
         self.vendor: str = ""
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
+        self.vrf_name: str = ""  # the VRF this ethernet belongs to.
         self.address_ip4: list = []  # ipv4 address as str() from arp table, if known
         self.address_ip6: List = []  # known ipv6 addresses of this ethernet address, in list as str()
         self.address_ip6_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
         self.hostname: str = ""  # reverse lookup for ipv4 address.
         self.hostname6: str = ""  # reverse lookup of ipv6 address.
+        # we have a new instance:
+        EthernetAddress._count += 1
+        dprint("ETH ADD CALLED!")
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        EthernetAddress._count -= 1
+        dprint("ETH DELETE CALLED!")
+
+    @classmethod
+    def clear_count(cls):
+        """Reset the number of instances"""
+        cls._count = 0
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
 
     def set_vlan(self, vlan_id: int) -> None:
         self.vlan_id = int(vlan_id)
@@ -399,7 +494,7 @@ class EthernetAddress(netaddr.EUI):
         return this class as a dictionary for use by the API
         """
         return {
-            "address": self.__str__(),
+            "address": str(self),
             "vlan": self.vlan_id,
             "ipv4": self.address_ip4,
             "ipv6": self.address_ip6,
@@ -419,6 +514,9 @@ class NeighborDevice:
     """
     Class to represents an lldp neighbor, and whatever we know about it.
     """
+
+    # class variable to track instance count
+    _count = 0
 
     # def __init__(self, lldp_index, if_index):
     def __init__(self, lldp_index: str):
@@ -456,6 +554,23 @@ class NeighborDevice:
         # these are the graphing block "start" and "finish" formatting characters
         self.start_device = ""
         self.stop_device = ""
+        # we have a new instance:
+        NeighborDevice._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        NeighborDevice._count -= 1
+
+    @classmethod
+    def clear_count(cls):
+        """Reset the number of instances"""
+        cls._count = 0
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
 
     def set_port_name(self, port_name: str) -> None:
         """
@@ -635,6 +750,9 @@ class PoePSE:
     stacks have multiple, e.g. one per line card or stack unit.
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self, index: int):
         """
         Initialize the object
@@ -650,6 +768,19 @@ class PoePSE:
         self.model = ""
         self.part_number = ""
         self.serial = ""
+
+        # we have a new instance:
+        PoePSE._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        PoePSE._count -= 1
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
 
     def as_dict(self) -> dict:
         """
@@ -697,7 +828,7 @@ class PoePSE:
         try:
             self.power_consumed = int(power)
         except Exception:
-            self.consumed_power = 0
+            self.power_consumed = 0
 
     def add_consumed_power(self, power: int) -> None:
         """
@@ -730,23 +861,44 @@ class PoePort:
     I.e. this is the per-interface power information.
     """
 
-    def __init__(self, index: str, admin_status: int):
+    # class variable to track instance count
+    _count = 0
+
+    def __init__(self, index: str, admin_status: int = POE_PORT_ADMIN_DISABLED):
         """
         Initialize the object
         """
-        self.index: str = index  # port entry is the value after the PoE OID that is the index to this interface
-        self.admin_status: int = admin_status
-        self.detect_status: int = POE_PORT_DETECT_SEARCHING
+        self.index: str = index  # poe index on SNMP is the value after the PoE OID that is the index to this interface
+        # on other drivers, (rest, etc.) set this as needed to unique value!
+        self.admin_status: int = (
+            admin_status  # Note: use the SNMP values POE_PORT_ADMIN_ENABLED (1), and POE_PORT_ADMIN_DISABLED (2)
+        )
+        self.detect_status: int = POE_PORT_DETECT_SEARCHING  # same, use SNMP values defined in connect/constants.py
         """ currently not used:
         self.priority = 0
         self.description = ""       # rarely used, but available in POE MIB
         """
-        self.pse_id: int = -1    # the PSE ID, ie. Power Supply ID that feeds this port. Needed for some devices PoE enable/disable
+        self.pse_id: int = (
+            -1
+        )  # the PSE ID, ie. Power Supply ID that feeds this port. Needed for some devices PoE enable/disable
         # power consumed is not in the standard PoE MIB, but some proprietary MIBs support this (e.g. Cisco)
         self.power_consumption_supported: bool = False
         self.power_consumed: int = 0  # power consumed in milliWatt
         self.power_available: int = 0  # power available in milliWatt
         self.max_power_consumed: int = 0  # max power drawn since PoE reset, in milliWatt
+
+        # we have a new instance:
+        PoePort._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        PoePort._count -= 1
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
 
     def as_dict(self) -> dict:
         """
@@ -776,6 +928,9 @@ class Transceiver:
     Class to represent a transceiver in an interface slot. Eg. QSFP28 100g-LR4, etc.
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self):
         """
         Initialize the object
@@ -788,6 +943,18 @@ class Transceiver:
         self.wavelength: int = 0  # the wavelength in nm, ie 850, 1310, 1550, etc.
         self.distance: int = 0  # the max distance of this transceiver
         self.connector: str = ""  # 'LC', SC', etc.
+        # we have a new instance:
+        Transceiver._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        Transceiver._count -= 1
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
 
     def as_dict(self) -> dict:
         """
@@ -841,6 +1008,9 @@ class SyslogMsg:
     or vendorm-specific mibs like CISCO-SYSLOG-MIB
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self, index: int):
         """
         Initialize the object with the message index
@@ -853,6 +1023,18 @@ class SyslogMsg:
         # datetime() value of message. Generic SYSLOG-MSG-MIB has time "string" (DateAndTime)
         # some vendor mibs have sys-uptime timetick. Recalculate all to datetime() object
         self.datetime = 0
+        # we have a new instance:
+        SyslogMsg._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        SyslogMsg._count -= 1
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
 
     def as_dict(self) -> dict:
         """
@@ -876,6 +1058,9 @@ class Vrf:
     Class to represent a VRF (Virtual Routing and Forwarding instance) that exists on the device.
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self, name: str = "", rd: str = "", description: str = "", ipv4: bool = False, ipv6: bool = False):
         """
         Initialize the VRF object
@@ -895,7 +1080,19 @@ class Vrf:
         self.ipv6 = ipv6  # True if VRF is enabled for IPv6
         self.active_interfaces = 0  # number of interfaces active on this VRF
         self.interfaces = []  # list of interface names in this VRF
-        self.index = 0      # device specific index of this vrf. Needed for some drivers
+        self.index = 0  # device specific index of this vrf. Needed for some drivers
+        # we have a new instance:
+        Vrf._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        Vrf._count -= 1
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
 
     def set_name(self, name: str):
         """Set the name attribute of a VRF
@@ -1006,6 +1203,9 @@ class Interface:
     Class to represent all the attributes of a single device (switch) interface.
     """
 
+    # class variable to track instance count
+    _count = 0
+
     def __init__(self, key: str):
         """
         Initialize the object. We map the MIB-II entity names to similar class attributes.
@@ -1031,9 +1231,9 @@ class Interface:
         self.transceiver: Transceiver = None  # any transceiver info know for this interface
         self.description: str = ""  # the interface description, as set by the switch configuration, from IF-MIB
         self.addresses_ip4: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
-        self.addresses_ip6: Dict[
-            str, IPNetworkHostname
-        ] = {}  # dictionary of all my (routable) ipv6 addresses on this interface
+        self.addresses_ip6: Dict[str, IPNetworkHostname] = (
+            {}
+        )  # dictionary of all my (routable) ipv6 addresses on this interface
         self.address_ip6_linklocal: str = ""  # the IPv6 LinkLocal address for this interface, if any.
         self.igmp_snooping: bool = False  # if True, interface does IGMP snooping
         # vlan related
@@ -1041,9 +1241,9 @@ class Interface:
         self.untagged_vlan: int = (
             -1
         )  # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
-        self.vlans: List[
-            int
-        ] = []  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
+        self.vlans: List[int] = (
+            []
+        )  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
         self.vlan_count: int = 0
         self.is_tagged: bool = False  # if 802.1q tagging or trunking is enabled
         # some vendors (e.g. Comware, Cisco-SB) have a interface vlan mode:
@@ -1051,7 +1251,9 @@ class Interface:
         # Cisco-SB devices use this for general, access, trunk modes.
         self.is_dot1x: bool = False  # if True, this interface is configured for 802.1x port authentication
         # we do not allow this port to be edited!
-        self.if_vlan_mode: int = -1
+        self.if_vlan_mode: int = -1  # a field set by and interpreted by specific drivers to map "special" interfaces
+        # typically used to set, and then read in the driver-specifc "def _can_manage_interface()" to disallow
+        # interface management...
         self.voice_vlan: int = 0  # Cisco specific "Voice Vlan"
         self.can_change_vlan: bool = (
             True  # if set, we can change the vlan; some device types this is not implemented yet!
@@ -1074,12 +1276,32 @@ class Interface:
         self.poe_entry: PoePort | bool = False  # if interface has PoE capabilities, will be a PoePort() object
         self.allow_poe_toggle: bool = False  # if set, any user can toggle PoE OFF-ON
         # a variety of data about what is happening on this interface:
-        self.eth: Dict[
-            str, EthernetAddress
-        ] = {}  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
+        self.eth: Dict[str, EthernetAddress] = (
+            {}
+        )  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
         self.lldp: Dict[str, NeighborDevice] = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
         # the Vrf() this interface belongs to, if any
         self.vrf_name = ""
+
+        # some URI's need by REST api's
+        self.interface_uri = ""  # URI to sub-elements of interface
+        self.ipv6_uri = ""  # URI to interface IPv6 addresses
+        self.ipv6_link_local_uri = ""  # Link-Local IPv6
+        self.cdp_uri = ""  # URI to CDP neighbors on interface
+        self.lldp_uri = ""  # URI to LLDP neighbors on interface
+
+        # we have a new instance:
+        Interface._count += 1
+
+    def __del__(self):
+        """Clean up this instance"""
+        # remove from instance count
+        Interface._count -= 1
+
+    @classmethod
+    def get_count(cls) -> int:
+        """Return the number of instances"""
+        return cls._count
 
     def add_ip4_network(self, address: str, prefix_len: int = 0, netmask: str = "") -> None:
         """
@@ -1172,7 +1394,7 @@ class Interface:
         dprint(
             f"Interface().add_learned_ethernet_address() for interface {self.name}: {eth_address}, vlan={vlan_id}, ip4='{ip4_address}', ip6='{ip6_address}'"
         )
-        if eth_address in self.eth.keys():
+        if eth_address in self.eth:
             # already known!
             e = self.eth[eth_address]
             dprint("  Eth already known!")
@@ -1216,10 +1438,9 @@ class Interface:
         dprint(f"get_neighbor(index={index})")
         if index in self.lldp:
             return self.lldp[index]
-        else:
-            dprint(f"ERROR: cannot find Interface.lldp entry for index {index}")
-            return None
-        # return True
+
+        dprint(f"ERROR: cannot find Interface.lldp entry for index {index}")
+        return None
 
     def as_dict(self) -> dict:
         """
@@ -1270,13 +1491,13 @@ class Interface:
 
         # add the learned mac addresses:
         addresses = []
-        for address, eth in self.eth.items():
+        for eth in self.eth.values():
             addresses.append(eth.as_dict())
         inf["ethernet_addresses"] = addresses
 
         # add the heard neighbors:
         neighbors = []
-        for key, neighbor in self.lldp.items():
+        for neighbor in self.lldp.values():
             neighbors.append(neighbor.as_dict())
         inf["neighbors"] = neighbors
 

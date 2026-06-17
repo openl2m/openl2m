@@ -19,8 +19,8 @@ copyright = '2019-2026, Various'
 author = 'Various'
 
 # The main version and full release, including alpha/beta/rc tags
-version = '4.0.3'
-date = '2026-03-23'
+version = '4.1.2'
+date = '2026-06-17'
 release = f'{version} ({date})'
 
 # --- Running on ReadTheDocs ? ---
@@ -74,14 +74,14 @@ html_static_path = ['_static']
 # These paths are either relative to html_static_path
 # or fully qualified paths (eg. https://...)
 if on_rtd:
-    # need to use fontawesome from CDN, see https://cdnjs.com/libraries/font-awesome
+    # need to use fontawesome from CDN, see https://www.jsdelivr.com/package/npm/@fortawesome/fontawesome-free
     html_css_files = [
-        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css',
+        'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/fontawesome.min.css',
     ]
 else:
     # local server build
     html_css_files = [
-        '/static/fontawesome-7.1.0/css/all.css',
+        '/static/fontawesome-7.2.0/css/all.css',
     ]
 
 # html_js_files = [

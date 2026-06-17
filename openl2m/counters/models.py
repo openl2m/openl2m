@@ -19,14 +19,13 @@ from counters import constants
 
 from switches.utils import dprint
 
+# this class is intended only to be used from the admin site, or from migrations!
+
 
 class Counter(models.Model):
     """
     A simple class to create a counter to track activity.
     """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     name = models.CharField(
         max_length=64,
@@ -41,7 +40,7 @@ class Counter(models.Model):
         verbose_name='Value of this counter',
     )
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods
         ordering = ['name']
         verbose_name = 'Counter'
         verbose_name_plural = 'Counters'
@@ -50,7 +49,7 @@ class Counter(models.Model):
         """
         This is used in templates, so we can 'annotate' as needed
         """
-        return self.name
+        return str(self.name)
 
     def __str__(self):
         return self.display_name()
@@ -60,7 +59,7 @@ def counter_increment(name, addition=1):
     # function to increment the value of a named counter
     dprint(f"counter_increment({name})")
     try:
-        c = Counter.objects.get(name=name)
+        c = Counter.objects.get(name=name)  # pylint: disable=no-member
         c.value += addition
         c.save()
 
@@ -69,12 +68,12 @@ def counter_increment(name, addition=1):
         dprint("Error finding counter!")
 
 
-def increment_login_counter(sender, user, request, **kwargs):
+def increment_login_counter(sender, user, request, **kwargs):  # pylint: disable=unused-argument
     # count the login!
     counter_increment(constants.COUNTER_LOGINS)
 
 
-def increment_login_failed_counter(sender, credentials, request, **kwargs):
+def increment_login_failed_counter(sender, credentials, request, **kwargs):  # pylint: disable=unused-argument
     # count the failed login!
     counter_increment(constants.COUNTER_LOGINS_FAILED)
 

@@ -19,7 +19,7 @@ from switches.utils import dprint
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods
         model = Profile
         fields = "__all__"
 
@@ -29,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
     switchgroups = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     profile = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods
         model = User
         fields = "__all__"
 

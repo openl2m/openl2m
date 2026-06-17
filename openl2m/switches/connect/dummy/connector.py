@@ -17,6 +17,7 @@
 Dummy Connector
 """
 
+from django.conf import settings
 from django.http.request import HttpRequest
 
 from switches.connect.constants import IF_TYPE_ETHERNET
@@ -54,7 +55,6 @@ class DummyConnector(Connector):
         self.can_change_poe_status = True
         self.can_change_vlan = True
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all = True    # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
 
     def get_my_basic_info(self):
         dprint("Dummy Connector get_my_basic_info()")
@@ -181,7 +181,13 @@ class DummyConnector(Connector):
         iface.vrf_name = "VRF-1"
         self.add_interface(iface)
 
-        # save driver info
+        # set some variables that are written back to the device Switch() database
+        # as JSON in the "driver_info" field
+        self.set_driver_info("model", "HAL-1000b")
+        self.set_driver_info("serial_number", "19991231-1")
+        self.set_driver_info("hostname", "dummy-device")
+        self.set_driver_info("os_version", settings.VERSION)
+        self.set_driver_info("build_date", settings.VERSION_DATE)
         self.save_driver_info()
 
         return True

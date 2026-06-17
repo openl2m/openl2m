@@ -36,6 +36,7 @@ You can email selected OpenL2M logs to a user with the Django command '**maillog
 .. note::
 
    This requires the EMAIL related settings to be properly configured in the *configuration.py* file!
+   Make sure you set **EMAIL_HOST**, **EMAIL_HOST_USER**, **EMAIL_HOST_PASSWORD** as needed for your mail (relay) server.
 
 The '*maillogs*' command gives you the ability to e.g. email detected errors on a daily basis to your ticket system;
 or save the logs before you delete them with the *removelogs* command above.
@@ -54,8 +55,10 @@ Here is an example that emails error logs for the past 10 days in an attachment,
    *python3 openl2m/manage.py maillogs --showtypes*
 
 
-The log error numbers are defined in the source code at *switches/constants.py*,
-look at the numerical LOG action numbers.
+The log error numbers are defined in the source code at *switches/constants.py*.
+Look at the numerical LOG action numbers in the section "#Actions to log" in this file:
+
+https://github.com/openl2m/openl2m/blob/main/openl2m/switches/constants.py#L185
 
 
 .. code-block:: bash

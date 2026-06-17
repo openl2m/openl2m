@@ -103,12 +103,14 @@ class NapalmConnector(Connector):
         self.add_more_info("System", "Serial Number", facts["serial_number"])
         self.add_more_info("System", "Uptime", uptime_to_string(int(facts["uptime"])))
 
-        # update database object with some info
-        self.set_driver_info(name="hostname", value=self.hostname)
-        self.set_driver_info(name="vendor", value=facts["vendor"])
-        self.set_driver_info(name="os_version", value=facts["os_version"])
-        self.set_driver_info(name="model", value=facts["model"])
-        self.set_driver_info(name="serial_number", value=facts["serial_number"])
+        self.set_driver_info("hostname", self.hostname)
+        self.set_driver_info("vendor", facts["vendor"])
+        self.set_driver_info("os_version", facts["os_version"])
+        self.set_driver_info("model", facts["model"])
+
+        if "serial_number" in facts:
+            self.add_more_info("System", "Serial Number", facts["serial_number"])
+            self.set_driver_info("serial_number", facts["serial_number"])
 
         # now load the interfaces:
         try:
@@ -143,6 +145,42 @@ class NapalmConnector(Connector):
         # now load the vlan data:
         try:
             vlan_list = self.napalm_device.get_vlans()
+            # dprint(f"\nVLANS = \n{vlan_list}\n")
+            # parse
+            for vlan_id, vlan_data in vlan_list.items():
+                dprint(f"\nVlan {vlan_id}: {vlan_data}")
+                self.add_vlan_by_id(vlan_id, vlan_data["name"])
+                # add this vlan to the specified interfaces:
+                for if_name in vlan_data["interfaces"]:
+                    dprint(f"\nInterface {if_name} = vlan {vlan_id}")
+                    iface = self.get_interface_by_key(if_name)
+                    if iface.untagged_vlan > -1:
+                        # untagged already set, so this must be a trunked/dot1q port.
+                        # note that Napalm API does not properly read the actual PVID !
+                        # so we "assume" first vlan id found is correct untagged.
+                        # this is likely frequently wrong!!!
+                        dprint("   --> tagged")
+                        iface.is_tagged = True
+                        self.add_interface_tagged_vlan(iface, vlan_id)
+                    else:
+                        iface.untagged_vlan = int(vlan_id)
+
+            # now load the per-interface vlan data, implemented in some drivers ?
+
+            #
+            # try:
+            #     iface_list = self.napalm_device.get_interface_vlans()
+            # except Exception as e:
+            #     self.error.status = True
+            #     self.error.description = "Cannot get interface vlan list"
+            #     self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            #     dprint(f"   napalm.device.get_interface_vlan() Exception: {e.__class__.__name__}\n{self.error.details}\n")
+            #     self.add_warning(warning="Napalm error in get_interface_vlan() - Likely not implemented!")
+            #     self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_VLANS, description=f"ERROR: {self.error.details}")
+            #     return False
+            # dprint(f"interface_vlans = \n{iface_list}\n")
+            #
+
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get vlan list"
@@ -151,41 +189,6 @@ class NapalmConnector(Connector):
             self.add_warning(warning="Napalm error in get_vlans() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_VLANS, description=f"ERROR: {self.error.details}")
             return False
-        # dprint(f"\nVLANS = \n{vlan_list}\n")
-        # parse
-        for vlan_id, vlan_data in vlan_list.items():
-            dprint(f"\nVlan {vlan_id}: {vlan_data}")
-            self.add_vlan_by_id(vlan_id, vlan_data["name"])
-            # add this vlan to the specified interfaces:
-            for if_name in vlan_data["interfaces"]:
-                dprint(f"\nInterface {if_name} = vlan {vlan_id}")
-                iface = self.get_interface_by_key(if_name)
-                if iface.untagged_vlan > -1:
-                    # untagged already set, so this must be a trunked/dot1q port.
-                    # note that Napalm API does not properly read the actual PVID !
-                    # so we "assume" first vlan id found is correct untagged.
-                    # this is likely frequently wrong!!!
-                    dprint("   --> tagged")
-                    iface.is_tagged = True
-                    self.add_interface_tagged_vlan(iface, vlan_id)
-                else:
-                    iface.untagged_vlan = int(vlan_id)
-
-        # now load the per-interface vlan data, implemented in some drivers ?
-
-        #
-        # try:
-        #     iface_list = self.napalm_device.get_interface_vlans()
-        # except Exception as e:
-        #     self.error.status = True
-        #     self.error.description = "Cannot get interface vlan list"
-        #     self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-        #     dprint(f"   napalm.device.get_interface_vlan() Exception: {e.__class__.__name__}\n{self.error.details}\n")
-        #     self.add_warning(warning="Napalm error in get_interface_vlan() - Likely not implemented!")
-        #     self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_VLANS, description=f"ERROR: {self.error.details}")
-        #     return False
-        # dprint(f"interface_vlans = \n{iface_list}\n")
-        #
 
         # now load the interface ipv4 data:
         try:
@@ -215,7 +218,6 @@ class NapalmConnector(Connector):
                     # dprint(f"IP: {ipv6}/{prefix_len}")
                     iface.add_ip6_network(address=ipv6, prefix_len=prefix_len)
 
-        # save driver info
         self.save_driver_info()
 
         return True

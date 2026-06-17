@@ -19,9 +19,9 @@ from django.conf import settings
 from switches.utils import dprint
 from switches.connect.classes import Interface
 
-"""
-This file contains general utility functions
-"""
+#
+# This file contains general utility functions
+#
 
 
 def interface_name_to_long(name: str) -> str:
@@ -49,10 +49,10 @@ def interface_name_to_long(name: str) -> str:
             newname = name
         dprint(f"   New = {newname}")
         return newname
-    else:
-        # no match, just return original
-        dprint("   NO match found")
-        return name
+
+    # no match, just return original
+    dprint("   NO match found")
+    return name
 
 
 def standardize_ipv4_subnet(ip: str) -> str:
@@ -125,17 +125,38 @@ def debug_response(response: Response, message: str = ""):
         return
 
     dprint(
-        f"---REQUEST {message} ---\n"
+        f"\n---REQUEST {message} ---\n\n"
         f"URL: {response.request.url}\n"
         f"Method: {response.request.method}\n"
         f"Headers: {response.request.headers}\n"
         f"Body: {response.request.body}\n"
-        "--- RESPONSE ---\n"
+        "\n--- RESPONSE ---\n\n"
         f"Status Code: {response.status_code}\n"
         f"Reason: {response.reason}\n"
         f"Headers: {response.headers}\n"
-        f"Content (text): {response.text}\n"
     )
-    if response.status_code == 200:
-        dprint(f"Content (JSON):\n{pprint.pformat(response.json())}")
-    dprint("\n--- END ---\n")
+    if not response.text:
+        dprint("NO body text returned.")
+    else:
+        content_type = response.headers.get('Content-Type', '')
+        if content_type.startswith('application/json'):
+            dprint(f"Content (JSON):\n{pprint.pformat(response.json())}")
+        else:
+            # just print text:
+            dprint(f"Content (text):\n{response.text}\n")
+    dprint("\n--- REQUEST END ---\n")
+
+
+def debug_session(session, message: str = ""):
+    """Do some print out of session cookies and headers...
+
+    Args:
+        session: a request.Session() object
+
+    """
+    if not settings.DEBUG or not settings.DEBUG_API:
+        return
+
+    dprint(f"--- SESSION INFO {message} ---\n")
+    dprint(f"cookies: {session.cookies.get_dict()}")
+    dprint(f"headers: {session.headers}\n------\n")

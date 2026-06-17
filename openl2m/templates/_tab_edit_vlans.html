@@ -15,31 +15,29 @@
                           method="post">
                         {% csrf_token %}
                         <input type="hidden" id="vlan_create" name="vlan_create" value="SUBMIT">{# differentiate submit types #}
-                        <table class="table table-hover table-headings w-auto">
-                        <tbody>
-                        <tr>
-                            <td class="text-end align-middle"><label for="new_vlan_input">VLAN:</label></td>
-                            <td class="text-start align-middle">
+                        <div class="mb-3 row">
+                            <label for="new_vlan_input" class="col-auto col-form-label text-end">VLAN:</label>
+                            <div class="col">
                                 <input data-bs-toggle="tooltip" title="Enter the new vlan ID" type="number"
                                     id="new_vlan_input" class="form-control" name="vlan_id" value=""
                                     placeholder="new vlan id" min="2" max="4094"
                                     onchange="checkVlanIdChanged()">
-                            </td>
-                        </tr>
+                            </div>
+                        </div>
 {% if connection.can_set_vlan_name %}
-                        <tr>
-                            <td class="text-end align-middle"><label for="id_new_vlan_name">Name:</label></td>
-                            <td class="text-start align-middle">
+                        <div class="mb-3 row">
+                            <label for="id_new_vlan_name" class="col-auto col-form-label text-end">Name:</label>
+                            <div class="col">
                                 <input data-bs-toggle="tooltip" title="Enter the name of the new vlan" type="text"
                                     class="form-control" name="vlan_name" id="id_new_vlan_name" value=""
                                     placeholder="new vlan name" maxlength="{{ connection.max_vlan_name_size}}"
                                     onkeyup="checkVlanIdChanged()">
-                            </td>
-                        </tr>
+                            </div>
+                        </div>
 {% endif %}
-                        <tr>
-                            <td></td>
-                            <td class="text-start align-middle">
+                        <div class="row">
+                            <div class="col-auto"></div>
+                            <div class="col">
                                 <button type="submit" id="button_vlan_create" name="button_vlan_create" disabled class="btn btn-primary"
                                     {% if request.user.profile.are_you_sure %}
                                         onclick="return confirm_change('Are you sure you want create this vlan?')"
@@ -49,12 +47,9 @@
                                     <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_vlan_create_form"></span>
                                     <span id="spinner_vlan_create_text"
                                         data-bs-toggle="tooltip" title="Click here to create new vlan!">Create</span>
-
                                 </button>
-                            </td>
-                        </tr>
-                        </tbody>
-                        </table>
+                            </div>
+                        </div>
 <script>
     // submit spinner handling
     document.getElementById('vlan_create_form').addEventListener('submit', function(event) {
@@ -108,11 +103,9 @@
                           action="{% url 'switches:switch_vlan_update' group.id switch.id %}"
                           method="post">
                         {% csrf_token %}
-                        <table class="table table-hover table-headings w-auto">
-                        <tbody>
-                        <tr>
-                            <td class="text-end align-middle"><label for="update_vlan_id">VLAN:</label></td>
-                            <td class="text-start align-middle" colspan="2">
+                        <div class="mb-3 row">
+                            <label for="update_vlan_id" class="col-auto col-form-label text-end">VLAN:</label>
+                            <div class="col">
                                 <select data-bs-toggle="tooltip" title="Select the vlan to edit"
                                     name="vlan_id" id="update_vlan_id" class="form-select" aria-label="Select VLAN to edit"
                                     onchange="checkEditVlanChanged()">
@@ -124,21 +117,21 @@
                                     </option>
                                 {% endfor %}
                                 </select>
-                            </td>
-                        </tr>
+                            </div>
+                        </div>
         {% if connection.can_set_vlan_name %}
-                        <tr>
-                            <td class="text-end align-middle"><label for="id_update_vlan_name">Name:</label></td>
-                            <td class="text-start align-middle" colspan="2">
+                        <div class="mb-3 row">
+                            <label for="id_update_vlan_name" class="col-auto col-form-label text-end">Name:</label>
+                            <div class="col">
                                 <input type="text" data-bs-toggle="tooltip" title="Enter new name for selected vlan, or leave blank"
                                     class="form-control" name="vlan_name" id="id_update_vlan_name" value=""
                                     placeholder="new vlan name" maxlength="{{ connection.max_vlan_name_size}}"
                                     onkeyup="checkEditVlanChanged()">
-                            </td>
-                        </tr>
+                            </div>
+                        </div>
         {% endif %}
-                        <tr>
-                            <td class="text-start align-middle" colspan="2">
+                        <div class="row">
+                            <div class="col">
         {% if connection.can_set_vlan_name %}
                                 <button type="submit" id="vlan_update_submit" name="vlan_edit" class="btn btn-primary" disabled
                                     value="PRESSED"
@@ -152,8 +145,8 @@
                                         Update</span>
                                 </button>
         {% endif %}
-                            </td>
-                            <td class="text-end align-middle">
+                            </div>
+                            <div class="col-auto text-end">
         {% if request.user.is_superuser %}
                                 <button type="submit" id="vlan_delete_submit" name="vlan_delete" class="btn btn-warning" disabled
                                     value="PRESSED"
@@ -166,12 +159,10 @@
                                     <span id="spinner_vlan_delete_text"
                                           data-bs-toggle="tooltip" title="Click here to delete this vlan!">
                                         DELETE !!!</span>
-                            </button>
+                                </button>
         {% endif %}
-                            </td>
-                        </tr>
-                        </tbody>
-                        </table>
+                            </div>
+                        </div>
 <script>
     // submit spinner handling
     document.getElementById('vlan_edit_form').addEventListener('submit', function(event) {

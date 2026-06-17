@@ -59,6 +59,16 @@ SNMP related constants.
 SNMP_TRUE = 1
 SNMP_FALSE = 2
 
+# from SMIv2, Textual Convcertion:
+# https://datatracker.ietf.org/doc/html/rfc2579
+# RowStatus related, these values are of type INTEGER:
+active = 1  # The row is available and valid for use.
+notInService = 2  # The row exists but is currently inactive/unavailable.
+notReady = 3  # The row exists but lacks necessary information to be used (missing required objects).
+createAndGo = 4  # Action to create a new row, immediately setting it to active.
+createAndWait = 5  # Action to create a new row, starting it in notInService or notReady to set other columns first.
+destroy = 6  # Action to remove the row from the table.
+
 """
 SNMP MIB variables names and their string numeric value. EasySNMP uses the formal notation starting with ".""
 """
@@ -637,6 +647,10 @@ VLAN_NAME_MAX_LEN = 32  # per Q-Bridge MIB object definition
 dot1qVlanStaticEgressPorts = ".1.3.6.1.2.1.17.7.1.4.3.1.2"  # followed by vlanId
 snmp_mib_variables["dot1qVlanStaticEgressPorts"] = dot1qVlanStaticEgressPorts
 
+# The set of ports that are prohibited by management
+# from being included in the egress list for this VLAN.
+dot1qVlanForbiddenEgressPorts = ".1.3.6.1.2.1.17.7.1.4.3.1.3"  # followed by vlanId
+
 # To get untagged ports of a VLAN, returns bitmap
 # dot1qVlanStaticUntaggedPorts = 1.3.6.1.2.1.17.7.1.4.3.1.4
 dot1qVlanStaticUntaggedPorts = ".1.3.6.1.2.1.17.7.1.4.3.1.4"  # followed by vlanId
@@ -664,6 +678,8 @@ snmp_mib_variables["dot1qPortVlanEntry"] = dot1qPortVlanEntry
 dot1qPvid = ".1.3.6.1.2.1.17.7.1.4.5.1.1"
 snmp_mib_variables["dot1qPvid"] = dot1qPvid
 
+# dot1qPortAcceptableFrameTypes = ".1.3.6.1.2.1.17.7.1.4.5.1.2"
+# dot1qPortIngressFiltering = ".1.3.6.1.2.1.17.7.1.4.5.1.3"
 
 # GVRP port status related:
 dot1qPortGvrpStatus = ".1.3.6.1.2.1.17.7.1.4.5.1.4"
@@ -996,8 +1012,6 @@ syslogMsgMsg = '.1.3.6.1.2.1.192.1.2.1.11'
 
 # IEEE also has a Dot1Q MIB:
 # see also https://mibs.observium.org/mib/IEEE8021-Q-BRIDGE-MIB/
-# or https://www.circitor.fr/Mibs/Html/I/IEEE8021-Q-BRIDGE-MIB.php
-#
 # MIB file at https://github.com/librenms/librenms/blob/master/mibs/IEEE8021-Q-BRIDGE-MIB
 #
 ieee8021QBridgeMib = ".1.3.111.2.802.1.1.4"

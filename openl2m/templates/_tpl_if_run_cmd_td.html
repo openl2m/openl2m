@@ -8,7 +8,7 @@
         method="post">
     {% csrf_token %}
     <input type="hidden" name="if_name" value="{{ iface.name }}">
-    <select name="command_id" data-bs-toggle="tooltip" title="Select a command run!">
+    <select name="command_id" data-bs-toggle="tooltip" title="Select a command run!" aria-label="Select a command to run">
       <optgroup label="Commands available:">
       {% for c in switch.command_list.interface_commands.all %}
         <option value="{{ c.id }}">{{ c.name }}</option>

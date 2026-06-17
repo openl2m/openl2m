@@ -12,6 +12,7 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import csv
+import datetime
 import json
 
 from django.conf import settings
@@ -487,7 +488,7 @@ def get_lldp_info(neighbor):
     return mark_safe(info)
 
 
-# {% if connection.neighbor_count <= settings.NB_MAX_FOR_TD %}
+# {% if neighbor_count <= settings.NB_MAX_FOR_TD %}
 # flowchart TD
 # {% else %}
 # flowchart LR
@@ -519,7 +520,7 @@ def get_lldp_info(neighbor):
 
 
 @register.filter
-def get_neighbor_mermaid_graph(connection):
+def get_neighbor_mermaid_graph(connection, neighbor_count):
     """
     Return a string that represents the all lldp neighbors in a mermaid.js graph format.
     To keep things simple, we return a single icon, even when multiple capabilities exist.
@@ -536,7 +537,7 @@ config:
 ---
 """
     # select horizontal (LeftRight) or vertical (TopDown)
-    if settings.MM_GRAPH_EXPANDED or connection.neighbor_count > settings.NB_MAX_FOR_TD:
+    if settings.MM_GRAPH_EXPANDED or neighbor_count > settings.NB_MAX_FOR_TD:
         mermaid += "flowchart LR\n"
     else:
         mermaid += "flowchart TD\n"
@@ -719,13 +720,23 @@ def humanize_power(power):
     return f"{power / 1000:.1f}W"
 
 
+@register.filter()
+def humanize_seconds(seconds):
+    """
+    Humanize the number of seconds given to dd:hh:mm:ss format.
+    """
+    if not seconds:
+        return "0s"
+    return str(datetime.timedelta(seconds=int(seconds)))
+
+
 # from https://stackoverflow.com/questions/2751319/is-there-a-django-template-filter-to-display-percentages
 @register.filter
 def as_percentage_of(part, whole):
     if whole == 0:
         return "0%"
     try:
-        return "%d%%" % (float(part) / whole * 100)
+        return "%d%%" % (float(part) / whole * 100)     # pylint: disable=consider-using-f-string
     except (ValueError, ZeroDivisionError):
         return "0%"
 

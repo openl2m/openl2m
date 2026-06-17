@@ -41,7 +41,7 @@ class ProfileInline(admin.StackedInline):
 
 
 class SwitchGroupInline(admin.TabularInline):
-    model = SwitchGroup.users.through
+    model = SwitchGroup.users.through  # pylint: disable=no-member
 
 
 # Define a new User admin
@@ -77,7 +77,7 @@ class MyUserAdmin(UserAdmin):
 
     # this does the work of deactivating users
     @admin.action(description='Deactivate selected users')
-    def deactivate_user(modeladmin, request, queryset):
+    def deactivate_user(self, request, queryset):  # pylint: disable=unused-argument
         queryset.update(is_active=False)
         # also remove admin or staff rights, if any
         queryset.update(is_staff=False)
@@ -104,7 +104,7 @@ class MyTokenAdmin(admin.ModelAdmin):
 
     # this does the work of deactivating users
     @admin.action(description='Deactivate selected tokens')
-    def deactivate_token(modeladmin, request, queryset):
+    def deactivate_token(self, request, queryset):  # pylint: disable=unused-argument
         queryset.update(expires=timezone.now())
 
     # Allow delete!

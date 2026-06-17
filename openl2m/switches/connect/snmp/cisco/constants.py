@@ -19,15 +19,6 @@ from switches.connect.snmp.constants import snmp_mib_variables, enterprise_id_in
 ENTERPRISE_ID_CISCO = 9
 enterprise_id_info[ENTERPRISE_ID_CISCO] = "Cisco"
 
-# the various snmp driver mib types we can detect:
-CISCO_DEVICE_TYPE_UNKNOWN_MIB = 0
-CISCO_DEVICE_TYPE_VTP_MIB = 1
-CISCO_DEVICE_TYPE_SB_MIB = 2
-cisco_device_types = {}
-cisco_device_types[CISCO_DEVICE_TYPE_UNKNOWN_MIB] = "Unknown (MIB ?)"
-cisco_device_types[CISCO_DEVICE_TYPE_VTP_MIB] = "Catalyst (VTP MIB)"
-cisco_device_types[CISCO_DEVICE_TYPE_SB_MIB] = "CBS (SB MIB)"
-
 # CDP MIB:
 # https://mibs.observium.org/mib/CISCO-CDP-MIB/
 # Normall, Cisco device support the standard LLDP mib as well!
@@ -65,7 +56,7 @@ clogHistTimestamp = ".1.3.6.1.4.1.9.9.41.1.2.3.1.6"
 snmp_mib_variables["clogHistTimestamp"] = clogHistTimestamp
 
 # most Cisco switches support this:
-# http://www.circitor.fr/Mibs/Html/C/CISCO-CONFIG-MAN-MIB.php
+# https://mibs.observium.org/mib/CISCO-CONFIG-MAN-MIB/
 
 ciscoConfigManMIBObjects = ".1.3.6.1.4.1.9.9.43.1"
 snmp_mib_variables["ciscoConfigManMIBObjects"] = ciscoConfigManMIBObjects
@@ -86,12 +77,15 @@ snmp_mib_variables["ccmHistoryStartupLastChanged"] = ccmHistoryStartupLastChange
 
 # VTP MIB:
 # https://mibs.observium.org/mib/CISCO-VTP-MIB/
+# https://github.com/librenms/librenms/blob/master/mibs/cisco/CISCO-VTP-MIB
 #
 # ciscoVtpMIB = .1.3.6.1.4.1.9.9.46
 #
 # Note: older style Cisco device use this MIB for vlans, port vlan changes, etc.
 # newer style use the 'standard' Q-Bridge or CiscoSB mibs.
 #
+# some good info about the VTP mib is here:
+# https://www.cisco.com/c/en/us/support/docs/ip/simple-network-management-protocol-snmp/45080-vlans.html
 
 # used to probe VTP mib existance:
 vtpVersion = ".1.3.6.1.4.1.9.9.46.1.1.1"
@@ -105,7 +99,7 @@ snmp_mib_variables["vtpVlanState"] = vtpVlanState
 vtpVlanType = ".1.3.6.1.4.1.9.9.46.1.3.1.1.3.1"
 snmp_mib_variables["vtpVlanType"] = vtpVlanType
 
-CISCO_VLAN_TYPE_NORMAL = 1  # regular(1)
+CISCO_VLAN_TYPE_NORMAL = 1  # regular(1) aka ethernet
 CISCO_VLAN_TYPE_FDDI = 2  # fddi(2)
 CISCO_VLAN_TYPE_TOKENRING = 3  # tokenRing(3)
 CISCO_VLAN_TYPE_FDDINET = 4  # fddiNet(4)
@@ -116,7 +110,21 @@ snmp_mib_variables["vtpVlanName"] = vtpVlanName
 # VTP trunk ports start at .1.3.6.1.4.1.9.9.46.1.6
 # details about ports start at .1.3.6.1.4.1.9.9.46.1.6.1.1
 
+vtpVlanEditOperation = ".1.3.6.1.4.1.9.9.46.1.4.1.1.1"
+# vtpVlanEditOperation values:
+vtp_vlan_none = 1
+vtp_vlan_copy = 2
+vtp_vlan_apply = 3
+vtp_vlan_release = 4
+vtp_vlan_restartTimer = 5
+
+vtpVlanEditRowStatus = ".1.3.6.1.4.1.9.9.46.1.4.2.1.11"
+vtpVlanEditType = ".1.3.6.1.4.1.9.9.46.1.4.2.1.3"
+vtpVlanEditName = ".1.3.6.1.4.1.9.9.46.1.4.2.1.4"
+vtpVlanEditDot10Said = ".1.3.6.1.4.1.9.9.46.1.4.2.1.6"
+
 # the vlans in a trunk port, using the switchport bitmap format:
+# this maps the first 1024 vlans (and it returns a 128 byte bitmap of vlans enabled.)
 vlanTrunkPortVlansEnabled = ".1.3.6.1.4.1.9.9.46.1.6.1.1.4"
 snmp_mib_variables["vlanTrunkPortVlansEnabled"] = vlanTrunkPortVlansEnabled
 
@@ -153,7 +161,6 @@ snmp_mib_variables["vlanTrunkPortVlansEnabled4k"] = vlanTrunkPortVlansEnabled4k
 
 # Cisco VLAN Membership mib - on older devices only
 # https://mibs.observium.org/mib/CISCO-VLAN-MEMBERSHIP-MIB/
-# https://circitor.fr/Mibs/Html/CISCO-VLAN-MEMBERSHIP-MIB.php
 # https://raw.githubusercontent.com/cisco/cisco-mibs/main/v2/CISCO-VLAN-MEMBERSHIP-MIB.my
 #
 # ciscoVlanMembershipMIB = '.1.3.6.1.4.1.9.9.68'
@@ -168,7 +175,7 @@ vmVoiceVlanId = ".1.3.6.1.4.1.9.9.68.1.5.1.1.1"
 snmp_mib_variables["vmVoiceVlanId"] = vmVoiceVlanId
 
 # Cisco Config Copy MIB
-# http://www.circitor.fr/Mibs/Html/C/CISCO-CONFIG-COPY-MIB.php
+# https://mibs.observium.org/mib/CISCO-CONFIG-COPY-MIB/
 ccCopySourceFileType = ".1.3.6.1.4.1.9.9.96.1.1.1.1.3"
 snmp_mib_variables["ccCopySourceFileType"] = ccCopySourceFileType
 runningConfig = 4
@@ -190,7 +197,7 @@ copyStateFailed = 4
 
 
 # Cisco L2L3 Interface Config Mib
-# http://www.circitor.fr/Mibs/Html/C/CISCO-L2L3-INTERFACE-CONFIG-MIB.php
+# https://mibs.observium.org/mib/CISCO-L2L3-INTERFACE-CONFIG-MIB/
 
 cL2L3IfModeOper = ".1.3.6.1.4.1.9.9.151.1.1.1.1.2"
 snmp_mib_variables["cL2L3IfModeOper"] = cL2L3IfModeOper
@@ -228,56 +235,9 @@ snmp_mib_variables["cpeExtPsePortMaxPwrDrawn"] = cpeExtPsePortMaxPwrDrawn
 ciscoWriteMem = ".1.3.6.1.4.1.9.2.1.54.0"
 snmp_mib_variables["ciscoWriteMem"] = ciscoWriteMem
 
-
-#
-# Cisco SB devices, "Small Business" switches
-# Only tested on CBS-350 switch.
-#
-# see https://mibs.observium.org/mib/CISCOSB-vlan-MIB/
-# and https://github.com/librenms/librenms/blob/master/mibs/cisco/CISCOSB-vlan-MIB
-# and all high-level entries at https://mibbrowser.online/mibdb_search.php?mib=CISCOSB-MIB
-
-# see if the CISCOSB-vlan-MIB exists:
-vlanMibVersion = ".1.3.6.1.4.1.9.6.1.101.48.1"
-snmp_mib_variables["vlanMibVersion"] = vlanMibVersion
-
-# vlan state, ie access, general, trunk
-vlanPortModeState = ".1.3.6.1.4.1.9.6.1.101.48.22.1.1"
-snmp_mib_variables["vlanPortModeState"] = vlanPortModeState
-SB_VLAN_MODE_GENERAL = 10
-SB_VLAN_MODE_ACCESS = 11
-SB_VLAN_MODE_TRUNK = 12
-sb_vlan_mode = {}
-sb_vlan_mode[SB_VLAN_MODE_GENERAL] = "General"
-sb_vlan_mode[SB_VLAN_MODE_ACCESS] = "Access"
-sb_vlan_mode[SB_VLAN_MODE_TRUNK] = "Trunk"
-
-# access mode ports set the vlan on this mib:
-vlanAccessPortModeVlanId = ".1.3.6.1.4.1.9.6.1.101.48.62.1.1"
-snmp_mib_variables["vlanAccessPortModeVlanId"] = vlanAccessPortModeVlanId
-
-# trunk mode ports set the PVID/untagged vlan on this mib:
-vlanTrunkPortModeNativeVlanId = ".1.3.6.1.4.1.9.6.1.101.48.61.1.1"
-snmp_mib_variables["vlanTrunkPortModeNativeVlanId"] = vlanTrunkPortModeNativeVlanId
-
-#
-# from the CISCOSB-rlInterfaces mib
-#
-# this show the physical port type, eg copper, fiber.
-swIfTransceiverType = ".1.3.6.1.4.1.9.6.1.101.43.1.1.7"
-snmp_mib_variables["swIfTransceiverType"] = swIfTransceiverType
-SB_TX_TYPE_COPPER = 1
-SB_TX_TYPE_FIBER = 2
-SB_TX_TYPE_COMBO = 3  # this really is combo/unknown
-SB_TX_TYPE_COMBO_FIBER = 4  # an optical transciever is used.
-sb_tx_type = {}
-sb_tx_type[SB_TX_TYPE_COPPER] = "Copper"
-sb_tx_type[SB_TX_TYPE_FIBER] = "FiberOptics"
-sb_tx_type[SB_TX_TYPE_COMBO] = "Fiber/Copper Combo Port"  # combo port without transceiver
-sb_tx_type[SB_TX_TYPE_COMBO_FIBER] = "FiberOptics Combo"  # combo port with optical transceiver installed.
-
 #
 # Cisco Stack MIB
+# https://mibs.observium.org/mib/CISCO-STACK-MIB/
 # CISCO-STACK-MIB contains various mappings
 # https://github.com/librenms/librenms/blob/master/mibs/cisco/CISCO-STACK-MIB
 #

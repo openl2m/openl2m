@@ -12,6 +12,7 @@ Frequenty Asked Questions
 * **Can I quickly test OpenL2M?**
 
 Yes, you can do a fairly quick Docker compose install to test. Look at "docker/test/README.txt"
+The create/add a device using the "Dummy" driver, and you can see how it looks and performs.
 
 * **Why does it take a while to show the device basic views page?**
 
@@ -31,8 +32,10 @@ GetBulk significantly improves performance, and is extensively used in OpenL2M.
 
 * **Do you support IP v6?**
 
-Yes, IPv6 is now fully supported. We read data from the standard SNMP MIBs for IPv6 interface addresses
-and LLPD neighbors. Various API drivers can also read IPv6 data.
+Yes and No. IPv6 is now fully supported from a data-collection perspective. We read data from the standard SNMP MIBs
+for IPv6 interface addresses and LLPD neighbors. Various API drivers can also read IPv6 data.
+
+We do NOT (yet) support connecting to devices over IPv6.
 
 * **What devices are supported and tested?**
 
@@ -46,10 +49,10 @@ on how to fix this.
 
 * **My HP switch does not ask to save changes?**
 
-Some HP Procurve/Aruba switches do an automatic save after every SNMP set() call. This is unlike CLI access,
+Some HP Procurve/Aruba AOS-S switches do an automatic, implicit save after every SNMP set() call. This is unlike CLI access,
 where (some) switches require an explicit save (write mem).
 
-For more see http://www.circitor.fr/Mibs/Html/H/HP-SWITCH-BASIC-CONFIG-MIB.php#hpSwitchImplicitConfigSave
+For more see https://mibs.observium.org/mib/HP-SWITCH-BASIC-CONFIG-MIB/#hpSwitchSaveConfig
 
 * **My Cisco switch does not show MAC address info using SNMP v3?**
 
@@ -75,7 +78,7 @@ If this looks OK, you need to issue the following command to get your snmp v3 us
 
 * **How can I import devices from <name your NMS here>?**
 
-The Django python API is fully supported. You can write a custom stand-alone import script using whatever NMS API
+The Django command-line Python API is fully supported. You can write a custom stand-alone import script using whatever NMS API
 you have to read your device data and import into OpenL2M. See the ./scripts/example.py file for more details.
 
 * **How do I debug OpenL2M?**

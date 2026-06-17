@@ -99,7 +99,7 @@ def get_environment_info() -> dict:
             psql_version = psql_version.split("(")[0].strip()
             cursor.execute("SELECT current_database()")
             db_name = cursor.fetchone()[0]
-            cursor.execute(f"SELECT pg_size_pretty(pg_database_size('{db_name}'))")
+            cursor.execute("SELECT pg_size_pretty(pg_database_size(%s))", [db_name])
             db_size = cursor.fetchone()[0]
             environment["database"] = {
                 "label": "Database",

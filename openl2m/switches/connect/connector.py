@@ -21,7 +21,7 @@ import netmiko
 import re
 import time
 import traceback
-from typing import Any, Dict, List
+from typing import Any
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -50,6 +50,7 @@ from switches.connect.constants import (
     IANA_TYPE_IPV4,
     IANA_TYPE_IPV6,
     IF_TYPE_ETHERNET,
+    LACP_IF_TYPE_NONE,
     LACP_IF_TYPE_MEMBER,
     LLDP_CHASSIC_TYPE_NET_ADDR,
     visible_interfaces,
@@ -103,8 +104,6 @@ class Connector:
             "switch",
             "error",
             "netmiko_connection",
-            "eth_addr_count",
-            "neighbor_count",
         ]
 
         self.hostname = ""  # system hostname, typically set in sub-class
@@ -112,27 +111,25 @@ class Connector:
 
         self.show_interfaces = True  # If False, do NOT show interfaces, vlans etc... for command-only devices.
         # data we collect and potentially cache:
-        self.interfaces: Dict[
-            str, Interface
-        ] = {}  # Interface() objects representing the ports on this switch, key is if_name *as string!*
-        self.vlans: Dict[int, Vlan] = {}  # Vlan() objects on this switch, key is vlan id *as integer!* (not index!)
+        self.interfaces: dict[str, Interface] = (
+            {}
+        )  # Interface() objects representing the ports on this switch, key is if_name *as string!*
+        self.vlans: dict[int, Vlan] = {}  # Vlan() objects on this switch, key is vlan id *as integer!* (not index!)
         self.vlan_count = 0  # number of vlans defined on device
-        self.vrfs: Dict[str, Vrf] = {}  # VRFs available on this device.
-        self.ip4_to_if_index: Dict[
-            str, int
-        ] = {}  # the IPv4 addresses as keys, with stored value if_index; needed to map netmask to interface
+        self.vrfs: dict[str, Vrf] = {}  # VRFs available on this device.
+        self.ip4_to_if_index: dict[str, int] = (
+            {}
+        )  # the IPv4 addresses as keys, with stored value if_index; needed to map netmask to interface
         # some flags:
         self.cache_loaded = False  # if True, system data was loaded from cache
         # some timestamps:
         self.basic_info_read_timestamp = 0  # when the last 'basic' read occured
 
         # data we calculate or collect without caching:
-        self.allowed_vlans: Dict[
-            int, Vlan
-        ] = {}  # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
-        self.eth_addr_count = 0  # number of known mac/ethernet addresses
-        self.neighbor_count = 0  # number of lldp neighbors
-        self.warnings: List[str] = []  # list of warning strings that may be shown to users
+        self.allowed_vlans: dict[int, Vlan] = (
+            {}
+        )  # list of vlans (stored as Vlan() objects) allowed on the switch, the join of switch and group Vlans
+        self.warnings: list[str] = []  # list of warning strings that may be shown to users
         # timing related attributes:
         self.timing = {}  # dictionary to track how long various calls take to read. Key = name, value = tuple()
         self.add_timing("Total", 0, 0)  # initialize the 'total' count to 0 entries, 0 seconds!
@@ -142,14 +139,14 @@ class Connector:
         self.poe_enabled = False  # note: this needs more work, as we do not parse "units"/stack members
         self.poe_max_power = 0  # maximum power (watts) availabe in this switch, combines all PSE units
         self.poe_power_consumed = 0  # same for power consumed, across all PSE units
-        self.poe_pse_devices: Dict[int, PoePSE] = {}  # dictionary of PoePSE() objects, key is PSE id.
+        self.poe_pse_devices: dict[int, PoePSE] = {}  # dictionary of PoePSE() objects, key is PSE id.
 
         # features that may or may not be implemented:
         self.gvrp_enabled = False
         # set this flag is a save aka. 'write mem' is needed:
         self.save_needed = False
 
-        # device information set by drivers. A Dict() object that can be set with self.set_driver_info(name, value)
+        # device information set by drivers. A dict() object that can be set with self.set_driver_info(name, value)
         # and stored in the Switch().driver_info database field with self.save_driver_info().
         # Visible from admin pages and API.
         # Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
@@ -182,16 +179,16 @@ class Connector:
 
         # physical device related:
         self.hardware_details_needed = True  # True if we still need to read more hardware info (eg. the Entity tables)
-        self.stack_members: Dict[
-            int, StackMember
-        ] = {}  # StackMember() objects that are part of this switch, key is member id
+        self.stack_members: dict[int, StackMember] = (
+            {}
+        )  # StackMember() objects that are part of this switch, key is member id
         # syslog related info, if supported:
-        self.syslog_msgs: Dict[int, SyslogMsg] = {}  # list of Syslog messages, if any
+        self.syslog_msgs: dict[int, SyslogMsg] = {}  # list of Syslog messages, if any
         self.syslog_max_msgs = 0  # how many syslog msgs device will store
         # generic info for the "Switch Information" tab:
-        self.more_info: Dict[
-            str, tuple
-        ] = {}  # dict of categories string, each a list of tuples (name, value), to extend sytem info about this switch!
+        self.more_info: dict[str, tuple] = (
+            {}
+        )  # dict of categories string, each a list of tuples (name, value), to extend sytem info about this switch!
 
         # save switch previous (last) access, since this will be overwritten by this access!
         self.last_accessed = self.switch.last_accessed
@@ -215,7 +212,6 @@ class Connector:
         self.can_edit_vlans = False  # if true, this driver can edit (create/delete) vlans on the device!
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         self.can_edit_tags: bool = False  # True if this driver can edit 802.1q tagged vlans on interfaces
-        self.can_allow_all: bool = False  # if True, driver can perform equivalent of "vlan trunk allow all", additional to "allow x, y, z"
         self.can_change_poe_status = False
         self.can_change_description = False
         self.can_save_config = False  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
@@ -349,6 +345,7 @@ class Connector:
             self.add_more_info("System", "Driver info", self.description)
             if self.switch.netmiko_profile:
                 self.add_more_info("System", "Credentials Profile", self.switch.netmiko_profile.name)
+            self.add_more_info("System", "Connect IP", self.switch.primary_ip)
 
             # call the implementation-specific function:
             if hasattr(self, "get_my_basic_info"):
@@ -369,6 +366,12 @@ class Connector:
                 if not self.vlan_count:  # driver likely did not set it!
                     # set the vlan count
                     self.vlan_count = len(self.vlans)
+
+                # drivers sometime load interfaces in 'strange' order
+                # E.g. virtual interfaces first, or g1/0/10 before g1/0/2 on some devices.
+                # sort this to the human natural order we expect:
+                self._set_interfaces_natural_sort_order()
+
             else:
                 self.add_warning("WARNING: device driver does not support 'get_my_basic_info()' !")
 
@@ -532,6 +535,9 @@ class Connector:
         for interface in self.interfaces.values():
             interface.eth = {}
             interface.lldp = {}
+        # reset the counter for the objects:
+        EthernetAddress.clear_count()
+        NeighborDevice.clear_count()
 
     """
     These are the "set" functions that implement changes on the device.
@@ -680,14 +686,16 @@ class Connector:
         # self.save_cache()
         return True
 
-    def set_interface_vlans(self, interface: Interface, untagged_vlan: int, tagged_vlans: List[int], allow_all: bool = False) -> bool:
+    def set_interface_vlans(
+        self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
+    ) -> bool:
         """
         Set the interface to the untagged and tagged vlans.
 
         Args:
             interface = Interface() object for the requested port
             untagged_vlan = an integer with the requested untagged vlan
-            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+            tagged_vlans = a list() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
         Returns:
             True on success, False on error and set self.error variables
@@ -835,7 +843,7 @@ class Connector:
             vlan_name (str): string representing the vlan name
 
         Returns:
-            True
+            the Vlan() object
         """
         v = Vlan(vlan_id)
         v.name = vlan_name
@@ -843,7 +851,7 @@ class Connector:
         # sort ordered by vlan id; this is needed for vlans added by users.
         self.vlans = dict(sorted(self.vlans.items()))  # note: sorted() returns a list of tuples(key, value), NOT dict!
         self.vlan_count = len(self.vlans)
-        return True
+        return v
 
     def add_vlan(self, vlan: Vlan) -> bool:
         """
@@ -928,8 +936,9 @@ class Connector:
         """
         key = str(key)
         if key in self.interfaces.keys():
-            dprint(f"get_interface_by_key() for '{key}' => Found!")
-            return self.interfaces[key]
+            interface = self.interfaces[key]
+            dprint(f"get_interface_by_key() for '{key}' => Found '{interface.name}'")
+            return interface
         dprint(f"get_interface_by_key() for '{key}' => NOT Found!")
         return False
 
@@ -946,7 +955,9 @@ class Connector:
         """
         for iface in self.interfaces.values():
             if iface.name == name:
+                dprint(f"get_interface_by_name() for '{name}' => Found!")
                 return iface
+        dprint(f"get_interface_by_name() for '{name}' => NOT Found!")
         return False
 
     def set_interface_attribute_by_key(self, key: str, attribute: str, value) -> bool:
@@ -1002,7 +1013,7 @@ class Connector:
             iface.vlans.append(vlan_id)
             iface.is_tagged = True
 
-    def set_interfaces_natural_sort_order(self):
+    def _set_interfaces_natural_sort_order(self):
         """
         Some APIs give responses in alphabetic order, eg 1/1/10 before 1/1/2.
         Sort interfaces by their key in natural sort order.
@@ -1016,7 +1027,13 @@ class Connector:
         self.interfaces = OrderedDict({key: self.interfaces[key] for key in natsort.natsorted(self.interfaces)})
 
     def add_learned_ethernet_address(
-        self, if_name: str, eth_address: str, vlan_id: int = -1, ip4_address: str = "", ip6_address: str = "", vrf_name: str = "",
+        self,
+        if_name: str,
+        eth_address: str,
+        vlan_id: int = -1,
+        ip4_address: str = "",
+        ip6_address: str = "",
+        vrf_name: str = "",
     ) -> EthernetAddress | bool:
         """
         Add an ethernet address to an interface, as given by the layer2 CAM/Switching tables.
@@ -1037,9 +1054,12 @@ class Connector:
         iface = self.get_interface_by_key(if_name)
         if iface:
             a = iface.add_learned_ethernet_address(
-                eth_address=eth_address, vlan_id=vlan_id, ip4_address=ip4_address, ip6_address=ip6_address, vrf_name=vrf_name,
+                eth_address=eth_address,
+                vlan_id=vlan_id,
+                ip4_address=ip4_address,
+                ip6_address=ip6_address,
+                vrf_name=vrf_name,
             )
-            self.eth_addr_count += 1
             return a
         else:
             dprint(f"conn.add_learned_ethernet_address(): Interface {if_name} does NOT exist!")
@@ -1060,7 +1080,6 @@ class Connector:
         iface = self.get_interface_by_key(if_name)
         if iface:
             iface.add_neighbor(neighbor)
-            self.neighbor_count += 1
             return True
         else:
             dprint(f"conn.add_neighbor_object(): Interface {if_name} does NOT exist!")
@@ -1171,6 +1190,9 @@ class Connector:
             device_type = self.switch.netmiko_profile.device_type
         # connection attributes:
         dprint(f"  Netmiko device_type: '{device_type}'")
+
+        # for all possible parameters, see
+        # https://ktbyers.github.io/netmiko/docs/netmiko/index.html#netmiko.BaseConnection
         device = {
             "device_type": device_type,
             "host": self.switch.primary_ip4,
@@ -1178,26 +1200,36 @@ class Connector:
             "password": self.switch.netmiko_profile.password,
             "port": self.switch.netmiko_profile.tcp_port,
             "conn_timeout": settings.SSH_CONNECT_TIMEOUT,
+            # "ssh_strict": False,  # the default!
         }
+
+        # write a debug file for paramiko/netmiko SSH session logging.
+        if settings.DEBUG:
+            import logging
+
+            logging.basicConfig(filename='netmiko-debug.log', level=logging.DEBUG)
+            logging.getLogger("netmiko")
 
         try:
             handle = netmiko.ConnectHandler(**device)
-        except netmiko.NetMikoTimeoutException:
+        except netmiko.NetMikoTimeoutException as err:
             dprint("netmiko_connect(): ERROR NetMikoTimeoutException")
             self.error.status = True
             self.error.description = "Connection time-out! Please ask the admin to verify the switch hostname or IP, or change the SSH_COMMAND_TIMEOUT configuration."
+            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
             return False
-        except netmiko.NetMikoAuthenticationException:
+        except netmiko.NetMikoAuthenticationException as err:
             dprint("netmiko_connect(): ERROR NetMikoAuthenticationException")
             self.error.status = True
             self.error.description = "Access denied! Please ask the admin to correct the switch credentials."
+            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
             return False
         except netmiko.exceptions.ReadTimeout as err:
             dprint(f"netmiko_connect(): ERROR ReadTimeout: {repr(err)}")
             self.output = "Error: the connection attempt timed out!"
             self.error.status = True
             self.error.description = "Error: the connection attempt timed out!"
-            self.error.details = f"Netmiko Error: {repr(err)}"
+            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
             return False
         except Exception as err:
             dprint(f"netmiko_connect(): ERROR Generic Error: {str(type(err))}")
@@ -1686,9 +1718,9 @@ class Connector:
         self.more_info[category][name] = value
 
     def set_driver_info(self, name: str, value):
-        """add to the device information set by drivers. Stored in a Dict() object
-           This can then be written to the Switch().driver_info database field with save_driver_info()
-           Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
+        """add to the device information set by drivers. Stored in a dict() object
+        This can then be written to the Switch().driver_info database field with save_driver_info()
+        Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
         """
         try:
             self.driver_info[name] = value
@@ -1697,8 +1729,8 @@ class Connector:
             self.add_warning(f"ERROR adding driver_info entry for '{name}': {err}")
 
     def save_driver_info(self):
-        """ Save self.driver_info to the Switch.driver_info field as a JSON encoded string
-            Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
+        """Save self.driver_info to the Switch.driver_info field as a JSON encoded string
+        Note this field is NOT read from the Switch() database entry, and ONLY REWRITTEN every time!
         """
 
         try:
@@ -1708,7 +1740,7 @@ class Connector:
             dprint(f"ERROR saving driver_info field: {err}")
             self.add_warning(f"ERROR saving driver_info field: {err}")
 
-    def _can_manage_interface(self, iface: Interface):
+    def _can_manage_interface(self, interface: Interface):
         """
         Function meant to check if this interface can be managed.
 
@@ -1836,6 +1868,15 @@ class Connector:
                     iface.visible = False
                     continue
 
+            # next check vendor-specific restrictions. This allows denying Stacking ports, etc.
+            # vendor should set reason for not managing!
+            if not self._can_manage_interface(interface=iface):
+                iface.manageable = False
+                iface.allow_poe_toggle = False
+                iface.can_edit_description = False
+                iface.visible = True
+                continue
+
             # if we are showing it, check other thing as well:
 
             # 802.1x authenticated interfaces are denied management, but shown!
@@ -1856,15 +1897,6 @@ class Connector:
                 iface.unmanage_reason = "Access denied: interface in routed mode!"
                 continue
 
-            # next check vendor-specific restrictions. This allows denying Stacking ports, etc.
-            # vendor should set reason for not managing!
-            if not self._can_manage_interface(iface):
-                iface.manageable = False
-                iface.allow_poe_toggle = False
-                iface.can_edit_description = False
-                iface.visible = True
-                continue
-
             # Read-Only switch cannot be overwritten, not even by SuperUser!
             # if switch.read_only or group.read_only or user.profile.read_only:
             if self.read_only:
@@ -1875,6 +1907,20 @@ class Connector:
                 iface.visible = True
                 continue
 
+            # is 802.1q tag editing allowed? (default=no)
+            if (
+                self.can_edit_tags
+                and self.can_change_vlan
+                and self.vlan_count
+                and iface.type == IF_TYPE_ETHERNET
+                and iface.untagged_vlan > 0
+                and (user.is_staff or user.is_superuser)
+                and settings.ALLOW_TAGS_EDIT
+                and settings.STAFF_ALLOW_TAGS_EDIT
+                and iface.lacp_type == LACP_IF_TYPE_NONE
+            ):
+                iface.can_edit_tags = True
+
             # super-users have access to all other ethernet interfaces!
             if user.is_superuser:
                 if iface.type == IF_TYPE_ETHERNET:
@@ -1882,15 +1928,11 @@ class Connector:
                     iface.visible = True
                     iface.allow_poe_toggle = True
                     iface.can_edit_description = True
-                    # if the driver can edit 802.1q vlan tags, and it is allowed:
-                    if self.can_edit_tags and settings.ALLOW_TAGS_EDIT:
-                        # if interface is tagged, we allow vlan edit:
-                        iface.can_edit_tags = True
+                    # if the driver can edit 802.1q vlan tags, we have found vlans, and it is allowed:
+                    # if self.can_edit_tags and self.vlan_count and settings.ALLOW_TAGS_EDIT:
+                    #     # if interface is tagged, we allow vlan edit:
+                    #     iface.can_edit_tags = True
                 continue
-
-            # staff 802.1q tag editing allowed?
-            if self.can_edit_tags and user.is_staff and settings.ALLOW_TAGS_EDIT and settings.STAFF_ALLOW_TAGS_EDIT:
-                iface.can_edit_tags = True
 
             # globally allow PoE toggle:
             # we can also enable PoE toggle globally, per user, group or switch, if allowed somewhere:
@@ -2216,8 +2258,9 @@ def clear_switch_cache(request: HttpRequest):
     """
     dprint("clear_switch_cache() called:")
     if request:
-        # all we have to do it clear the 'switch_id' !
+        # all we have to do is clear the 'switch_id' !
         if "switch_id" in request.session:
+            dprint(f"  clearing request.session['switch_id'] = {request.session['switch_id']}")
             del request.session["switch_id"]
             request.session.modified = True
         # if not found, we had not selected a switch before. ie upon login!

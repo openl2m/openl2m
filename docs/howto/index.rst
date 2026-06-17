@@ -8,7 +8,7 @@ How To's
    :maxdepth: 2
 
    Backups, data cleanup, etc. <maintain.rst>
-   Managing logs <logs.rst>
+   Managing or Emailing logs <logs.rst>
    System Notices <notices.rst>
    Updating Ethernet OUI's <oui.rst>
    Submitting Tickets <tickets.rst>

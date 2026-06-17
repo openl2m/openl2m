@@ -42,6 +42,7 @@ Only vendor-specific sections are implemented in the vendor classes. They are li
    arista/index.rst
    aruba_cx/index.rst
    cisco/index.rst
+   cisco_sb/index.rst
    comware/index.rst
    juniper/index.rst
    mikrotik/index.rst

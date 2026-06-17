@@ -1,6 +1,6 @@
 black
 distro
-Django>=5.2,<5.3
+Django>=6.0,<6.1
 django-ipware
 # django-minify-html
 django-ordered-model>=3.7,<4.0
@@ -26,7 +26,7 @@ ip_address>=1.0.23
 isort
 Jinja2
 jsonpickle
-junos-eznc
+junos-eznc>=2.8.1,<2.9	# fixes for Python 3.13 and up
 jxmlease
 lxml
 # no longer used due to Wireshark URL problem
@@ -42,7 +42,7 @@ napalm-dellos10
 napalm-procurve
 natsort>=8.4.0
 netaddr>=1.2.1
-netmiko>=4.6,<4.7
+netmiko>=4.7,<4.8
 #improved PostGreSQL support
 psycopg2-binary
 # Python 3 library for HPE Comware 7 NetConf drivers.
@@ -83,7 +83,7 @@ XlsxWriter>=3.2
 
 # A REST API framework for Django projects
 # https://www.django-rest-framework.org/community/release-notes/
-djangorestframework==3.16.1
+djangorestframework==3.17.1
 
 # Sane and flexible OpenAPI 3 schema generation for Django REST framework.
 # https://github.com/tfranzel/drf-spectacular/blob/master/CHANGELOG.rst
@@ -93,7 +93,8 @@ drf-spectacular
 # https://github.com/tfranzel/drf-spectacular-sidecar
 drf-spectacular-sidecar
 
-urllib3>=2.2
+# urllib3 2.7 and greater cause errors due to ssl v3
+urllib3>=2.6,<2.8
 
 # Addition for docker
 tzdata

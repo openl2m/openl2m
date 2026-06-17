@@ -20,7 +20,6 @@ with Cisco specific ways of doing things...
 import datetime
 import random
 import time
-from typing import Dict
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -28,13 +27,15 @@ from django.http.request import HttpRequest
 from switches.models import Switch, SwitchGroup
 from switches.constants import LOG_TYPE_ERROR, LOG_SAVE_SWITCH, LOG_PORT_POE_FAULT, SNMP_VERSION_2C
 from switches.connect.classes import Interface, Transceiver, SyslogMsg
+
+# from switches.connect.connector import Connector
 from switches.connect.constants import poe_status_name, POE_PORT_DETECT_FAULT, VLAN_TYPE_NORMAL
-from switches.connect.snmp.connector import dot1qPvid
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
+
+# from switches.connect.snmp.constants import createAndGo, destroy
 from switches.utils import dprint
 
 from .constants import (
-    cisco_device_types,
     portIfIndex,
     vmVlan,
     vmVoiceVlanId,
@@ -42,10 +43,16 @@ from .constants import (
     cpeExtPsePortPwrConsumption,
     cpeExtPsePortPwrAvailable,
     cpeExtPsePortMaxPwrDrawn,
-    vtpVersion,
     vtpVlanState,
     vtpVlanType,
     vtpVlanName,
+    # vtpVlanEditOperation,
+    # vtp_vlan_copy,
+    # vtp_vlan_apply,
+    # vtpVlanEditRowStatus,
+    # vtpVlanEditType,
+    # vtpVlanEditName,
+    # vtpVlanEditDot10Said,
     vlanTrunkPortDynamicState,
     vlanTrunkPortNativeVlan,
     vlanTrunkPortVlansEnabled,
@@ -77,20 +84,6 @@ from .constants import (
     CISCO_VLAN_TYPE_NORMAL,
     VTP_TRUNK_STATE_ON,
     CISCO_ROUTE_MODE,
-    SB_VLAN_MODE_GENERAL,
-    SB_VLAN_MODE_ACCESS,
-    SB_VLAN_MODE_TRUNK,
-    sb_vlan_mode,
-    CISCO_DEVICE_TYPE_UNKNOWN_MIB,
-    CISCO_DEVICE_TYPE_VTP_MIB,
-    CISCO_DEVICE_TYPE_SB_MIB,
-    vlanMibVersion,
-    vlanPortModeState,
-    vlanAccessPortModeVlanId,
-    vlanTrunkPortModeNativeVlanId,
-    swIfTransceiverType,
-    SB_TX_TYPE_COPPER,
-    sb_tx_type,
     ciscoPortType,
     cisco_port_types,
 )
@@ -104,13 +97,13 @@ class SnmpConnectorCisco(SnmpConnector):
 
     def __init__(self, request: HttpRequest, group: SwitchGroup, switch: Switch):
         # for now, just call the super class
-        dprint("SnmpConnectorCisco __init__")
+        dprint("SnmpConnectorCisco.__init__()")
         super().__init__(request, group, switch)
         self.description = "Cisco SNMP driver"
         self.vendor_name = "Cisco"
 
         # capabilities of the snmp drivers:
-        self.can_edit_vlans = False
+        self.can_edit_vlans = True
         self.can_save_config = True  # do we have the ability (or need) to execute a 'save config' or 'write memory' ?
         """
         # capabilities of the Cisco snmp driver are identical to the snmp driver:
@@ -120,7 +113,11 @@ class SnmpConnectorCisco(SnmpConnector):
         self.can_change_description = True
         self.can_reload_all = True      # if true, we can reload all our data (and show a button on screen for this)
         """
-        self.stack_port_to_if_index: Dict[int, int] = {}  # maps (Cisco) stacking port to ifIndex values
+        self.can_edit_tags = (
+            False  # False until we can test. True if this driver can edit 802.1q tagged vlans on interfaces
+        )
+
+        self.stack_port_to_if_index: dict[int, int] = {}  # maps (Cisco) stacking port to ifIndex values
 
         # Netmiko is used for SSH connections. Here are some defaults a class can set.
         #
@@ -136,52 +133,16 @@ class SnmpConnectorCisco(SnmpConnector):
         # let Netmiko decide this...
         # self.netmiko_disable_paging_command = "terminal length 0"
 
-        # older style Cisco device use the proprietary VTB MIB for vlans, port vlan changes, etc.
-        # newer style use the 'standard' Q-Bridge mibs. We will use this when we read vlan data.
-        # see self._get_vlan_data() below.
-        self.mib_type = self._probe_mib_type()
-        self.add_more_info(category="System", name="MIB Type", value=cisco_device_types[self.mib_type])
-        if self.mib_type == CISCO_DEVICE_TYPE_UNKNOWN_MIB:
-            # add a warning !
-            self.add_warning(
-                warning="We did not sense a know Cisco device type (not VTP or SB)! Functionality is UNTESTED!",
-                add_log=True,
-            )
-
         # we need to track CISCO-STACK-MIB portType info (transceiver data), which to keyed on 'stack id'.
         # this is then used by portIfIndex to map 'stack id' to 'ifIndex'
         self.cisco_port_type_by_stack_id = {}
-
-    def _probe_mib_type(self):
-        """Probe the mib type we see, e.g. VTP, SB or neither.
-        This defines how we talk to this device.
-        Returns a value indicated by CISCO_DEVICE_TYPE_<XXXXX>_MIB
-
-        Args:
-            n/a
-
-        Returns:
-            int: MIB type discovered.
-        """
-        # first, probe the old proprietary VTP mibs:
-        retval = self.get_snmp_branch(branch_name="vtpVersion", parser=self._parse_mibs_vtp_version)
-        if retval > 0:
-            # found VTP mib entries
-            return CISCO_DEVICE_TYPE_VTP_MIB
-
-        # next, probe for the CiscoSB-VLAN mib
-        retval = self.get_snmp_branch(branch_name="vlanMibVersion", parser=self._parse_mibs_sb_version)
-        if retval > 0:  # found the SB mib.
-            return CISCO_DEVICE_TYPE_SB_MIB
-
-        # default is unknown
-        return CISCO_DEVICE_TYPE_UNKNOWN_MIB
 
     def _get_interface_data(self) -> bool:
         """
         Implement an override of the interface parsing routine,
         so we can add Cisco specific interface MIBs
         """
+        dprint("SnmpConnectorCisco._get_interface_data()")
         # first call the base class to populate interfaces:
         super()._get_interface_data()
 
@@ -194,27 +155,10 @@ class SnmpConnectorCisco(SnmpConnector):
 
     def _get_vlan_data(self) -> int:
         """
-        Implement an override of vlan parsing to read Cisco specific MIBs
-        Call a 'type specific' function depending on what MIBs are supported.
-        """
-        dprint("_get_vlan_data(Cisco)\n")
-
-        if self.mib_type == CISCO_DEVICE_TYPE_VTP_MIB:
-            return self._get_vlan_data_vtp()
-
-        if self.mib_type == CISCO_DEVICE_TYPE_SB_MIB:
-            return self._get_vlan_data_sb()
-
-        # unknown type, just read the standard Q-Bridge mib...
-        # this likely is not accurate!
-        return super()._get_vlan_data()
-
-    def _get_vlan_data_vtp(self) -> int:
-        """
         Read the VTP MIB to get all neccesary vlan info (names, id, ports on vlans, etc.) from the switch.
         Returns -1 on error, or number to indicate vlans found.
         """
-        dprint("_get_vlan_data_vtp(Cisco)\n")
+        dprint("SnmpConnectorCisco._get_vlan_data()\n")
 
         # first, read existing vlan id's according to the old proprietary Cisco mibs:
         retval = self.get_snmp_branch(branch_name="vtpVlanState", parser=self._parse_mibs_cisco_vtp)
@@ -279,37 +223,6 @@ class SnmpConnectorCisco(SnmpConnector):
 
         return self.vlan_count
 
-    def _get_vlan_data_sb(self) -> int:
-        """
-        Read the CiscoSB-Vlan MIB to get all neccesary vlan info (names, id, ports on vlans, etc.) from the switch.
-        Returns -1 on error, or number to indicate vlans found.
-        """
-        dprint("_get_vlan_data_sb(Cisco)\n")
-
-        # go probe the CiscoSB-VLAN mib
-        retval = self.get_snmp_branch(branch_name="vlanPortModeState", parser=self._parse_mibs_sb_vlan_port_mode)
-        if retval < 0:
-            return retval
-
-        # and parse the transceiver type, if any
-        retval = self.get_snmp_branch(
-            branch_name="swIfTransceiverType", parser=self._parse_mibs_sb_port_transceiver_type
-        )
-        if retval < 0:
-            return retval
-
-        # read and return standard SNMP Q-Bridge mib for vlan data.
-        # THIS NEEDS WORK!
-        super()._get_vlan_data()
-
-        # and finally read the vlanAccessPortModeVlanId, this reads access mode vlan id's
-        retval = self.get_snmp_branch(branch_name="vlanAccessPortModeVlanId", parser=self._parse_mibs_sb_access_vlan)
-        if retval < 0:
-            return retval
-
-        # and read trunk mode PVID as well:
-        return self.get_snmp_branch(branch_name="vlanTrunkPortModeNativeVlanId", parser=self._parse_mibs_sb_trunk_vlan)
-
     def _get_interface_transceiver_types(self) -> int:
         """
         Augment SnmpConnector._get_interface_transceiver_type() to read more transceiver info of a physical port
@@ -317,6 +230,8 @@ class SnmpConnectorCisco(SnmpConnector):
 
         Returns 1 on succes, -1 on failure
         """
+        dprint("SnmpConnectorCisco._get_interface_transceiver_types()")
+
         super()._get_interface_transceiver_types()
         # note: we have already read 'portIfIndex' in _get_poe_data().
         # this maps stack-id's to ifIndex.
@@ -331,24 +246,12 @@ class SnmpConnectorCisco(SnmpConnector):
 
     def _get_known_ethernet_addresses(self) -> bool:
         """
-        Read known ethernet address on the switch. Depends on switch family.
-        Return True on success (0 or more found), False on errors
-        """
-        dprint("_get_known_ethernet_addresses(Cisco)\n")
-        if self.mib_type == CISCO_DEVICE_TYPE_VTP_MIB:
-            return self._get_known_ethernet_addresses_vtp()
-
-        # SB type, and "unknown" types, try the regular way:
-        return super()._get_known_ethernet_addresses()
-
-    def _get_known_ethernet_addresses_vtp(self) -> bool:
-        """
         Read the Bridge-MIB for known ethernet address on the switch.
         On Cisco VTP switches, you have to append the vlan ID after the v1/2c community,
         eg. public@13 for vlan 13
         Return True on success (0 or more found), False on errors
         """
-        dprint("_get_known_ethernet_addresses_vtp()\n")
+        dprint("SnmpConnectorCisco._get_known_ethernet_addresses()")
         for vlan_id in self.vlans:
             # little hack for Cisco devices, to see various vlan-specific tables:
             self.vlan_id_context = int(vlan_id)
@@ -381,7 +284,7 @@ class SnmpConnectorCisco(SnmpConnector):
         Implement reading Cisco-specific PoE mib.
         Returns 1 on success, -1 on failure
         """
-        dprint("_get_poe_data(Cisco)\n")
+        dprint("SnmpConnectorCisco._get_poe_data()")
 
         # get Cisco Stack MIB port to ifIndex map first
         # this may be used to find the POE port index
@@ -411,6 +314,8 @@ class SnmpConnectorCisco(SnmpConnector):
         """
         Read the CISCO-SYSLOG-MSG-MIB
         """
+        dprint("SnmpConnectorCisco._get_syslog_msgs()")
+
         retval = self.get_snmp_branch(branch_name="ciscoSyslogMIBObjects", parser=self._parse_mibs_cisco_syslog_msg)
         if retval < 0:
             # something bad happened
@@ -461,32 +366,10 @@ class SnmpConnectorCisco(SnmpConnector):
 
     def set_interface_untagged_vlan(self, interface: Interface, new_vlan_id: int) -> bool:
         """
-        Override the VLAN change, this is done Cisco specific using the VTP MIB
-        Returns True or False
-        """
-        dprint(f"SnmpConnectorCisco.set_interface_untagged_vlan(interface={interface.name}, new_vlan_id={new_vlan_id})")
-        if interface:
-            if self.mib_type == CISCO_DEVICE_TYPE_VTP_MIB:
-                return self.set_interface_untagged_vlan_vtp(interface=interface, new_vlan_id=new_vlan_id)
-
-            if self.mib_type == CISCO_DEVICE_TYPE_SB_MIB:
-                return self.set_interface_untagged_vlan_sb(interface=interface, new_vlan_id=new_vlan_id)
-
-            # unknown type, try regular way in SnmpConnector() (Untested Cisco device!)
-            return super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
-
-        # interface not found (should not happen!)
-        self.error.status = True
-        self.error.description = "interface not found!"
-        self.error.details = "Invalid call to set_interface_untagged_vlan(): interface parameter not set!"
-        return False
-
-    def set_interface_untagged_vlan_vtp(self, interface: Interface, new_vlan_id: int) -> bool:
-        """
         Implement VLAN change for old style Cisco devices using the VTP MIB
         Returns True or False
         """
-        dprint("SnmpConnectorCisco.set_interface_untagged_vlan_vtp()")
+        dprint("SnmpConnectorCisco.set_interface_untagged_vlan()")
 
         if interface.is_tagged:
             # set the TRUNK_NATIVE_VLAN OID:
@@ -519,66 +402,151 @@ class SnmpConnectorCisco(SnmpConnector):
         interface.untagged_vlan = int(new_vlan_id)
         return True
 
-    def set_interface_untagged_vlan_sb(self, interface: Interface, new_vlan_id: int) -> bool:
-        """
-        Implement VLAN change for old style Cisco devices using the VTP MIB
-        Returns True or False
-        """
-        dprint("SnmpConnectorCisco.set_interface_untagged_vlan_sb()")
+    # a copy of CiscoSB connector set_interface_vlans() to get started...
+    #
+    # def set_interface_vlans(
+    #     self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
+    # ) -> bool:
+    #     """
+    #     Set the interface to the untagged and tagged vlans. This is done the 'normal' SNMP way.
+    #     So call the SnmpConnector(), bypassing the SnmpConnectorCisco()
 
-        if interface.if_vlan_mode == SB_VLAN_MODE_GENERAL:
-            # we set the dot1qPvid value:
-            dprint("  SB_VLAN_MODE_GENERAL - setting with dot1qPvid:")
-            if not self.set(
-                oid=f"{dot1qPvid}.{interface.port_id}",
-                value=int(new_vlan_id),
-                snmp_type="u",
-                parser=self._parse_mibs_vlan_related,
-            ):
-                return False
-            return True
+    #     Args:
+    #         interface = Interface() object for the requested port
+    #         untagged_vlan = an integer with the requested untagged vlan
+    #         tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
 
-        if interface.if_vlan_mode == SB_VLAN_MODE_ACCESS:
-            # we set the vlanAccessPortModeVlanId value:
-            dprint("  SB_VLAN_MODE_ACCESS - setting with vlanAccessPortModeVlanId:")
-            if not self.set(
-                oid=f"{vlanAccessPortModeVlanId}.{interface.port_id}",
-                value=int(new_vlan_id),
-                snmp_type="u",
-                parser=self._parse_mibs_sb_access_vlan,
-            ):
-                interface.untagged_vlan = new_vlan_id
-                return False
-            return True
+    #     Returns:
+    #         True on success, False on error and set self.error variables
+    #     """
+    #     dprint(
+    #         f"SnmpConnectorCisco().set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
+    #     )
+    #     if allow_all or len(tagged_vlans):
+    #         dprint(" TAGGED MODE!")
+    #         # set trunk mode
+    #         success = self._set_if_mode(interface=interface, mode=SB_VLAN_MODE_TRUNK)
+    #         if success:
+    #             # set untagged vlan
+    #             success = self.set_interface_untagged_vlan(interface=interface, new_vlan_id=untagged_vlan)
+    #             if success:
+    #                 dprint(" PVID set OK")
+    #                 # now add tagged vlans
+    #                 # as Cisco-SB maps interface to vlan list, we need 4 PortList() objects to represent the Vlan bitmaps
+    #                 # a bit for each of the 1024 vlans per entry, ie 1024 / 8 = 128 bytes!
+    #                 vlans1to1024 = PortList()
+    #                 vlans1to1024.from_byte_count(128)  # initialize with "00" bytes, ie NO vlan set as tagged!
+    #                 vlans1025to2048 = PortList()
+    #                 vlans1025to2048.from_byte_count(128)
+    #                 vlans2049to3072 = PortList()
+    #                 vlans2049to3072.from_byte_count(128)
+    #                 vlans3073to4094 = PortList()
+    #                 vlans3073to4094.from_byte_count(128)
+    #                 # now set bit to 1 for each vlan on this interface
+    #                 for vlan_id in self.vlans:
+    #                     if allow_all or vlan_id in tagged_vlans:
+    #                         dprint(f"  VLAN {vlan_id}: ADD as tagged")
+    #                         if vlan_id < 1025:
+    #                             # Note: bit 0 is vlan 1, but PortList() already offsets by -1, so offset by +1
+    #                             vlans1to1024[vlan_id] = 1
+    #                         elif vlan_id < 2049:
+    #                             # subtract base to get to vlan offset in range 1025-2048
+    #                             vlans1025to2048[vlan_id - 1024] = 1
+    #                         elif vlan_id < 3073:
+    #                             # subtract base to get to vlan offset in range 2049-3072
+    #                             vlans2049to3072[vlan_id - 2048] = 1
+    #                         else:
+    #                             # subtract base to get to vlan offset in range 3073-4094
+    #                             vlans3073to4094[vlan_id - 3073] = 1
+    #                     else:
+    #                         dprint(f"  VLAN {vlan_id} REMOVED as tagged")
 
-        if interface.if_vlan_mode == SB_VLAN_MODE_TRUNK:
-            dprint("  SB_VLAN_MODE_TRUNK")
-            # we set the vlanAccessPortModeVlanId value:
-            dprint("  SB_VLAN_MODE_TRUNK - setting with vlanTrunkPortModeNativeVlanId:")
-            if not self.set(
-                oid=f"{vlanTrunkPortModeNativeVlanId}.{interface.port_id}",
-                value=int(new_vlan_id),
-                snmp_type="u",
-                parser=self._parse_mibs_sb_trunk_vlan,
-            ):
-                interface.untagged_vlan = new_vlan_id
-                return False
-            return True
+    #                 # prepare into OctetString objects for writing snmp:
+    #                 oid1 = (
+    #                     f"{vlanTrunkModeList1to1024}.{interface.index}",
+    #                     OctetString(hexValue=vlans1to1024.to_hex_string()),
+    #                 )
+    #                 oid2 = (
+    #                     f"{vlanTrunkModeList1025to2048}.{interface.index}",
+    #                     OctetString(hexValue=vlans1025to2048.to_hex_string()),
+    #                 )
+    #                 oid3 = (
+    #                     f"{vlanTrunkModeList2049to3072}.{interface.index}",
+    #                     OctetString(hexValue=vlans2049to3072.to_hex_string()),
+    #                 )
+    #                 oid4 = (
+    #                     f"{vlanTrunkModeList3073to4094}.{interface.index}",
+    #                     OctetString(hexValue=vlans3073to4094.to_hex_string()),
+    #                 )
 
-        # for now error out
-        self.error.status = True
-        self.error.description = (
-            f"Port mode {sb_vlan_mode[interface.if_vlan_mode]} - Set vlan not implemented for SB devices!"
-        )
-        self.error.details = "We cannot yet handle SB devices!"
-        return False
+    #                 # now write these to the device:
+    #                 try:
+    #                     pysnmp = pysnmpHelper(self.switch)
+    #                 except Exception as err:
+    #                     self.error.status = True
+    #                     self.error.description = "Error getting snmp connection object (pysnmpHelper()) for set_access_mode_vlan on '{interface.name}'"
+    #                     self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+    #                     return False
+
+    #                 dprint("Setting via pysnmpHelper()")
+    #                 if not pysnmp.set_multiple([oid1, oid2, oid3, oid4]):
+    #                     self.error.status = True
+    #                     self.error.description = f"Error setting vlans on tagged port '{interface.name}'!"
+    #                     # copy over the error details from the call:
+    #                     self.error.details = pysnmp.error.details
+    #                     # we leave self.error.details as is!
+    #                     return False
+
+    #                 # # call the SnmpConnector() to handle regular Q-Bridge port vlan setting:
+    #                 # This should be used for GENERAL-MODE interface, which we at present don't support.
+    #                 #
+    #                 # success = self.set_interface_tagged_vlans(interface=interface, tagged_vlans=tagged_vlans, allow_all=allow_all)
+    #                 # if success:
+    #                 #     # do the bookkeeping
+    #                 #     return Connector.set_interface_vlans(
+    #                 #         self=self,
+    #                 #         interface=interface,
+    #                 #         untagged_vlan=untagged_vlan,
+    #                 #         tagged_vlans=tagged_vlans,
+    #                 #         allow_all=allow_all,
+    #                 #     )
+
+    #                 # all vlan sets succeeded! Do the bookkeeping
+    #                 return Connector.set_interface_vlans(
+    #                     self=self,
+    #                     interface=interface,
+    #                     untagged_vlan=untagged_vlan,
+    #                     tagged_vlans=tagged_vlans,
+    #                     allow_all=allow_all,
+    #                 )
+
+    #     else:
+    #         dprint("  ACCESS MODE!")
+    #         # set access mode
+    #         success = self._set_if_mode(interface=interface, mode=SB_VLAN_MODE_ACCESS)
+    #         if success:
+    #             # set the untagged vlan
+    #             success = self.set_interface_untagged_vlan(interface=interface, new_vlan_id=untagged_vlan)
+    #             if success:
+    #                 # do the bookkeeping
+    #                 return Connector.set_interface_vlans(
+    #                     self=self,
+    #                     interface=interface,
+    #                     untagged_vlan=untagged_vlan,
+    #                     tagged_vlans=tagged_vlans,
+    #                     allow_all=allow_all,
+    #                 )
+
+    #     # we are now in an unknown state!
+    #     return False
 
     def get_my_hardware_details(self) -> bool:
         """
         Implement the get_my_hardware_details() function called from the base object get_hardware_details().
         Does not return anything.
         """
-        dprint("get_my_hardware_details(Cisco)")
+        dprint("SnmpConnectorCisco.get_my_hardware_details()")
+
         super().get_my_hardware_details()
 
         # now read Cisco specific data:
@@ -587,85 +555,6 @@ class SnmpConnectorCisco(SnmpConnector):
             self.add_warning(warning="Error getting Cisco log details ('ccmHistory')")
             return False
         return True
-
-    def _parse_mibs_vtp_version(self, oid: str, val: str) -> bool:
-        """
-        Parse Cisco VTP version to see if this mib exists...
-        """
-        sub_oid = oid_in_branch(vtpVersion, oid)
-        if sub_oid:
-            dprint(f"VTP MIBs found: vtpVersion.{sub_oid} = {val}")
-            return True  # parsed
-        return False  # not parsed.
-
-    def _parse_mibs_sb_version(self, oid: str, val: str) -> bool:
-        """
-        Parse CiscoSB-Vlan version to see if this mib exists...
-        """
-        sub_oid = oid_in_branch(vlanMibVersion, oid)
-        if sub_oid:
-            dprint(f"SB MIBs found: vlanMibVersion.{sub_oid} = {val}")
-            return True  # parsed
-        return False  # not parsed.
-
-    def _parse_mibs_sb_vlan_port_mode(self, oid: str, val: str) -> bool:
-        """
-        Parse CiscoSB-Vlan Port Mode, ie access, trunk, general.
-        """
-        if_index = oid_in_branch(vlanPortModeState, oid)
-        if if_index:
-            dprint(f"FOUND: vlanPortModeState for index {if_index} = {val}")
-            self.set_interface_attribute_by_key(if_index, "if_vlan_mode", int(val))
-            return True  # parsed
-
-        return False  # not parsed.
-
-    def _parse_mibs_sb_port_transceiver_type(self, oid: str, val: str) -> bool:
-        """
-        Parse CiscoSB-rlInterfaces Port transceiver type
-        """
-
-        if_index = oid_in_branch(swIfTransceiverType, oid)
-        if if_index:
-            dprint(f"FOUND: swIfTransceiverType for index {if_index} = {val}")
-            # only set data for optical or combo transceiver ports:
-            if int(val) != SB_TX_TYPE_COPPER:
-                iface = self.get_interface_by_key(key=if_index)
-                if iface:
-                    if not iface.transceiver:
-                        iface.transceiver = Transceiver()
-                    iface.transceiver.type = sb_tx_type[int(val)]
-            return True  # parsed
-
-        return False  # not parsed.
-
-    def _parse_mibs_sb_access_vlan(self, oid: str, val: str) -> bool:
-        """Parse the Access Mode port untagged vlan"""
-        if_index = oid_in_branch(vlanAccessPortModeVlanId, oid)
-        if if_index:
-            dprint(f"FOUND: vlanAccessPortModeVlanId for index {if_index} = {val}")
-            # untagged_vlan = int(val)
-            # only set if port is in "Access Mode"
-            intf = self.get_interface_by_key(key=if_index)
-            if intf.if_vlan_mode == SB_VLAN_MODE_ACCESS:
-                self.set_interface_attribute_by_key(if_index, "untagged_vlan", int(val))
-            return True  # parsed
-
-        return False  # not parsed.
-
-    def _parse_mibs_sb_trunk_vlan(self, oid: str, val: str) -> bool:
-        """Parse the Trunk Mode port untagged vlan"""
-        if_index = oid_in_branch(vlanTrunkPortModeNativeVlanId, oid)
-        if if_index:
-            dprint(f"FOUND: vlanTrunkPortModeNativeVlanId for index {if_index} = {val}")
-            # untagged_vlan = int(val)
-            # only set if port is in "Access Mode"
-            intf = self.get_interface_by_key(key=if_index)
-            if intf.if_vlan_mode == SB_VLAN_MODE_TRUNK:
-                self.set_interface_attribute_by_key(if_index, "untagged_vlan", int(val))
-            return True  # parsed
-
-        return False  # not parsed.
 
     def _parse_mibs_cisco_if_opermode(self, oid: str, val: str) -> bool:
         """
@@ -728,7 +617,7 @@ class SnmpConnectorCisco(SnmpConnector):
         Returns:
             (bool): True is assigned, False if not.
         """
-        dprint(f"_parse_and_set_cisco_port_type() ifIndex {if_index} = port_type {port_type}")
+        dprint(f"SnmpConnectorCisco._parse_and_set_cisco_port_type() ifIndex {if_index} = port_type {port_type}")
 
         # see if this is a type we want to look at:
         if port_type in cisco_port_types:
@@ -1128,7 +1017,7 @@ class SnmpConnectorCisco(SnmpConnector):
         waittime = settings.CISCO_WRITE_MEM_MAX_WAIT
         while waittime:
             time.sleep(1)
-            (error_status, snmp_ret) = self.get(oid=f"{ccCopyState}.{some_number}", parser=False)
+            error_status, snmp_ret = self.get(oid=f"{ccCopyState}.{some_number}", parser=False)
             if error_status:
                 break
             if int(snmp_ret.value) == copyStateSuccess:
@@ -1152,28 +1041,107 @@ class SnmpConnectorCisco(SnmpConnector):
         # return error status
         return False
 
-    def _can_manage_interface_not_needed(self, interface: Interface):
-        """Function that can be implemented by other drivers to disable management of an interface
-        Params:
-            iface (Interface): the Interface() object to check management of.
+    #
+    # we could implement VLAN edit according to:
+    # https://www.cisco.com/c/en/us/support/docs/ip/simple-network-management-protocol-snmp/45080-vlans.html
+    #
 
-        Returns:
-            (bool): True is disabled, False if not.
+    # Placeholder from CiscoSB code...
+    #
+    # NOTE: we are supposed to read vtpVlanEditTable first, to see if the tables are being used.
+    # WE DO NOT DO THIS AT THIS TIME !!!
+    # we also do not set the owner in vtpVlanEditBufferOwner while we are doing the work.
+    #
+    #
+    # NOT FUNCTIONAL YET !
+    #
+    # This is custom implementation, as the generic SnmpConnector.vlan_create() fails.
+    #
+    # def vlan_create(self, vlan_id: int, vlan_name: str) -> bool:
+    #     """
+    #     Create a new vlan on this device. Upon success, this then needs to call the base class for book keeping!
 
-        For Cisco-SB devices, disable TRUNK port management for now.
-        since we cannot change the PVID for it yet.
-        """
-        dprint(f"_disable_interface_permissions() for interface {interface.name}")
-        if self.mib_type == CISCO_DEVICE_TYPE_SB_MIB:
-            if interface.if_vlan_mode == SB_VLAN_MODE_TRUNK:
-                # we cannot manage this yet, so disable for now:
-                interface.manageable = False
-                interface.unmanage_reason = "On Cisco SB devices, trunk interface is not manageable yet!"
-                return True
-        return False
+    #     This follows the steps in
+    #     https://www.cisco.com/c/en/us/support/docs/ip/simple-network-management-protocol-snmp/45080-vlans.html
 
+    #     Args:
+    #         vlan_id (int): the vlan id
+    #         vlan_name (str): the name of the vlan
 
-#
-# we could implement VLAN edit according to:
-# https://www.cisco.com/c/en/us/support/docs/ip/simple-network-management-protocol-snmp/45080-vlans.html
-#
+    #     Returns:
+    #         True on success, False on error and set self.error variables.
+    #     """
+    #     dprint(f"SnmpConnectorCisco().vlan_create() for {vlan_id} = '{vlan_name}'")
+
+    #     # first set edit mode
+    #     if not self.set(oid=f"{vtpVlanEditOperation}.1", value=vtp_vlan_copy, snmp_type="i"):
+    #         dprint("Set Copy Mode Failed!")
+    #         return False
+
+    #     # now create the vlan
+    #     oid1 = (f"{vtpVlanEditRowStatus}.1.{vlan_id}", createAndGo, "i")
+    #     oid2 = (f"{vtpVlanEditType}.1.{vlan_id}", CISCO_VLAN_TYPE_NORMAL, "i")
+    #     oid3 = (f"{vtpVlanEditName}.1.{vlan_id}", vlan_name, "s")
+
+    #     if not self.set_multiple([oid1, oid2, oid2]):
+    #         dprint("Error in set_multiple create-vlan!")
+    #         return False
+
+    #     # and set the SAID
+    #     said_value = 100000 + int(vlan_id)
+    #     if not self.set(oid=f"{vtpVlanEditDot10Said}.1.{vlan_id}", value=hex(said_value), snmp_type="x"):
+    #         dprint("Set Vlan SAID Failed!")
+    #         return False
+
+    #     # and finally apply the edit
+    #     if not self.set(oid=f"{vtpVlanEditOperation}.1", value=vtp_vlan_apply, snmp_type="i"):
+    #         dprint("Apply Copy Mode Failed!")
+    #         return False
+
+    #     # all OK, now do the book keeping
+    #     return Connector.vlan_create(self=self, vlan_id=vlan_id, vlan_name=vlan_name)
+
+    # #
+    # # NOT TESTED YET !!!
+    # # This is handled by the standard SnmpConnector() implementation, bypassing SnmpConnectorCiso()
+    # #
+    # def vlan_edit(self, vlan_id: int, vlan_name: str) -> bool:
+    #     """
+    #     Edit the vlan name. Upon success, this then needs to call the base class for book keeping!
+
+    #     Args:
+    #         vlan_id (int): the vlan id to edit
+    #         vlan_name (str): the new name of the vlan
+
+    #     Returns:
+    #         True on success, False on error and set self.error variables.
+    #     """
+    #     return SnmpConnector.vlan_edit(self=self, vlan_id=vlan_id, vlan_name=vlan_name)
+
+    # #
+    # # NOT TESTED YET !!!
+    # # This is handled by the standard SnmpConnector() implementation, bypassing SnmpConnectorCiso()
+    # #
+    # def vlan_delete(self, vlan_id: int) -> bool:
+    #     """
+    #     Deletel the vlan. Upon success, this then needs to call the base class for book keeping!
+
+    #     Args:
+    #         vlan_id (int): the vlan id to edit
+
+    #     Returns:
+    #         True on success, False on error and set self.error variables.
+    #     """
+    #     dprint(f"SnmpConnectorCisco().vlan_delete() for vlan {vlan_id}")
+
+    #     # first set edit mode
+    #     if not self.set(oid=f"{vtpVlanEditOperation}.1", value=vtp_vlan_copy, snmp_type="i"):
+    #         dprint("Set Copy Mode Failed!")
+    #         return False
+
+    #     if not self.set(oid=f"{vtpVlanEditRowStatus}.1.{vlan_id}", value=destroy, snmp_type="i"):
+    #         dprint("Set Destroy Failed!")
+    #         return False
+
+    #     # all OK, now do the book keeping
+    #     return Connector.vlan_delete(self=self, vlan_id=vlan_id)

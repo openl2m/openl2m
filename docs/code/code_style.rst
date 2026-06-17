@@ -6,7 +6,7 @@ Code Style
 
 We welcome code additions, via Git Pull-Requests, or email, or whatever fashion works for you!
 
-We use *black* to enforce the code style. For more details see
+We use *black* and *ruff* to enforce the code style. For more details see
 https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html
 
 To document functions and classes, we use the Google comment style, see more at
@@ -18,6 +18,11 @@ New code should add Python type hinting. Specifically, we require type hints as 
 
 Function calls with more then one parameter should use named parameters, instead of position-based calling.
 
+.. note::
+
+    We require a *pylint* score of 10.00/10. This may mean you (occasionally) need to disable some checks.
+
+
 HTML
 ----
 
@@ -28,3 +33,8 @@ Accessibility
 -------------
 
 Accessibility should be tested by using the WAVE Web Accessibility Evaluation Tool browser extension.
+
+.. note::
+
+    WAVE Results minimum requirements are no Errors and no Contrast Errors. Code should not have Alerts
+    unless absolutely necessary.

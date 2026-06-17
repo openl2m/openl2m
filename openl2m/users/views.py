@@ -43,7 +43,7 @@ from users.models import Token
 #
 # New Login view to always redirect to /switches
 #
-class MyLoginView(LoginView):
+class MyLoginView(LoginView):  # pylint: disable=too-many-ancestors
 
     # we define the "success ULR" as always going to "/switches/"
     def get_success_url(self) -> str:
@@ -148,7 +148,7 @@ class InfoView(LoginRequiredMixin, View):
     def get(self, request, user_id):
         if request.user.is_superuser or request.user.is_staff:
             user = get_object_or_404(User, pk=user_id)
-            tokens = Token.objects.filter(user=user)
+            tokens = Token.objects.filter(user=user)  # pylint: disable=no-member
             return render(
                 request,
                 self.template_name,
@@ -170,7 +170,7 @@ class TokenListView(LoginRequiredMixin, View):
     template_name = 'users/token_list.html'
 
     def get(self, request):
-        tokens = Token.objects.filter(user=request.user)
+        tokens = Token.objects.filter(user=request.user)  # pylint: disable=no-member
         return render(
             request,
             self.template_name,
@@ -204,7 +204,7 @@ class TokenDelete(LoginRequiredMixin, View):
         )
         partial_token = ""
         try:
-            token = Token.objects.get(user=request.user, id=token_id)
+            token = Token.objects.get(user=request.user, id=token_id)  # pylint: disable=no-member
             partial_token = token.partial
             token.delete()
         except Exception as err:
@@ -252,7 +252,7 @@ class TokenEdit(LoginRequiredMixin, View):
             ip_address=get_remote_ip(request),
         )
         try:
-            token = Token.objects.get(user=request.user, id=token_id)
+            token = Token.objects.get(user=request.user, id=token_id)  # pylint: disable=no-member
         except Exception as err:
             error = Error()
             error.description = "Error editing API key!"
@@ -315,7 +315,7 @@ class TokenAdd(LoginRequiredMixin, View):
         dprint("TokenAdd() - GET")
         template_name = "users/token_edit.html"
 
-        count = Token.objects.filter(user=request.user).count()
+        count = Token.objects.filter(user=request.user).count()  # pylint: disable=no-member
         if count >= settings.MAX_API_TOKENS:
             error = Error()
             error.description = f"You cannot create more API tokens (max = {settings.MAX_API_TOKENS})"
@@ -340,7 +340,7 @@ class TokenAdd(LoginRequiredMixin, View):
     ):
         dprint("TokenAdd() - POST")
 
-        count = Token.objects.filter(user=request.user).count()
+        count = Token.objects.filter(user=request.user).count()  # pylint: disable=no-member
         if count >= settings.MAX_API_TOKENS:
             error = Error()
             error.description = f"You cannot create more API tokens (max = {settings.MAX_API_TOKENS})"
@@ -382,7 +382,7 @@ def update_or_add_token(request, token_id=-1):
     if token_id != -1:
         # get existing token
         try:
-            token = Token.objects.get(user=request.user, id=token_id)
+            token = Token.objects.get(user=request.user, id=token_id)  # pylint: disable=no-member
         except Exception as err:
             error = Error()
             error.description = "Error updating API key!"

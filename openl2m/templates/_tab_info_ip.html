@@ -6,25 +6,25 @@
     <strong>IP Interfaces</strong>
   </div>
   <div class="card-body">
-    <table class="table table-striped table-hover table-headings w-auto">
-      <thead>
-        <tr><th>Interface</th><th>IP Info</th><th>Etc.</th></tr>
-      </thead>
-      <tbody>
-      {% for if_index,iface in connection.interfaces.items %}
-      {# this needs work ! #}
-        {% if iface.addresses_ip4 or iface.addresses_ip6 or iface.address_ip6_linklocal %}
-        <tr>
-          <td>
-            {% if not iface.oper_status %}
-            <span data-bs-toggle="tooltip" title="{{ iface.name }} is DOWN!">
-              {{ iface.name }} <i class="fa-solid fa-down-long"></i>
-            </span>
-            {% else %}
-              {{iface.name}}
-            {% endif %}
-            </td>
-          <td>
+    <div class="fw-bold border-bottom pb-1 mb-1 row">
+      <div class="col-3">Interface</div>
+      <div class="col-5">IP Info</div>
+      <div class="col">Etc.</div>
+    </div>
+    {% for if_index,iface in connection.interfaces.items %}
+    {# this needs work ! #}
+      {% if iface.addresses_ip4 or iface.addresses_ip6 or iface.address_ip6_linklocal %}
+      <div class="row p-1{% cycle '' ' bg-light' %}">
+        <div class="col-3">
+          {% if not iface.oper_status %}
+          <span data-bs-toggle="tooltip" title="{{ iface.name }} is DOWN!">
+            {{ iface.name }} <i class="fa-solid fa-down-long"></i>
+          </span>
+          {% else %}
+            {{iface.name}}
+          {% endif %}
+        </div>
+        <div class="col-5">
           {% for ip,addr in iface.addresses_ip4.items %}
             {% if addr.hostname %}
               <abbr data-bs-toggle="tooltip" title="{{ addr.hostname }}">{{ addr.ip }}</abbr>
@@ -51,21 +51,19 @@
           {% if settings.IPV6_SHOW_LINKLOCAL and iface.address_ip6_linklocal %}
             {{ iface.address_ip6_linklocal.ip }} / {{ iface.address_ip6_linklocal.prefixlen }} <br />
           {% endif %}
-          </td>
-          {# info links/icons in the "Etc" column #}
-          <td>{{ connection.switch|get_interface_info_links:iface }} {{ addr.ip|get_ip4_info_links }}
-            {% if iface.vrf_name %}
-              &nbsp;
-              <i class="fa-solid fa-network-wired" aria-hidden="true"
-                  data-bs-toggle="tooltip"
-                  title="Member of VRF '{{ iface.vrf_name }}'">
-              </i>
-            {% endif %}
-          </td>
-        </tr>
-        {% endif %}
-      {% endfor %}
-      </tbody>
-    </table>
+        </div>
+        {# info links/icons in the "Etc" column #}
+        <div class="col">{{ connection.switch|get_interface_info_links:iface }} {{ addr.ip|get_ip4_info_links }}
+          {% if iface.vrf_name %}
+            &nbsp;
+            <i class="fa-solid fa-network-wired" aria-hidden="true"
+                data-bs-toggle="tooltip"
+                title="Member of VRF '{{ iface.vrf_name }}'">
+            </i>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
   </div>
 </div>
