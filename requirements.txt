@@ -42,8 +42,6 @@ netaddr>=1.2.1
 netmiko>=4.7,<4.8
 #improved PostGreSQL support
 psycopg2-binary
-# Python 3 library for HPE Comware 7 NetConf drivers.
-py3hpecw7
 pycodestyle
 pylint
 # pysnmp (original) is no longer supported.
