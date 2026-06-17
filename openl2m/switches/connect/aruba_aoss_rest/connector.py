@@ -465,9 +465,11 @@ class ArubaAOSsRestConnector(RESTConnector):
                         case "PPDS_DELIVERING":
                             poe_entry.detect_status = POE_PORT_DETECT_DELIVERING
                             poe_entry.power_consumption_supported = True
-                            poe_entry.power_consumed = (
-                                float(poe_stats["actual_power_drawn_in_watts"]) * 1000
-                            )  # in milliWatts !
+                            # older API versions (eg. v16.04 or such) do NOT have power usage:
+                            if "actual_power_drawn_in_watts" in poe_stats:
+                                poe_entry.power_consumed = (
+                                    float(poe_stats["actual_power_drawn_in_watts"]) * 1000
+                                )  # in milliWatts !
                         case "PPDS_DISABLE":
                             poe_entry.admin_status = POE_PORT_ADMIN_DISABLED
                         case "PPDS_FAULT":
