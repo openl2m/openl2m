@@ -13,9 +13,9 @@ list of options. Loggged in as admin, you can see the active list of configurati
 Banners
 -------
 
-Text to include on the login page above the login form can be set here. You can use this to set warnings, etc. HTML is allowed.
+Text to include on the login page above the login form can be set here. You can use this to set warnings, etc. HTML is allowed. The default is NO login banner. Here is an example:
 
-**BANNER_LOGIN** = 'Unauthorized use is Prohibited. <strong>All Activity is logged and monitored.</strong>'
+**BANNER_LOGIN** = 'Unauthorized use is Prohibited.</br><strong>All Activity is logged and monitored.</strong>'
 
 Optionally you can display a persistent banner at the top and/or bottom of every page. HTML is allowed. To display the same
 content in both banners, define BANNER_TOP and set BANNER_BOTTOM = BANNER_TOP.
@@ -38,10 +38,33 @@ If needed, you can change the UDP port:
 
 **SYSLOG_PORT** = 514
 
+You can change the syslog 'facility' to send the messages to. To understand this,
+read any syslog documentation, or see
+https://docs.python.org/3/library/logging.handlers.html#sysloghandler under Facilities
+
+Choose from "auth", "authpriv", "cron", "daemon", "ftp", "kern", "lpr", "mail", "news", "syslog", "user", "uucp", "local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"
+
+**SYSLOG_FACILITY** = "daemon"
+
+Likewise, you can set the syslog 'priority level', all CAPITAL names as defined at
+https://docs.python.org/3/library/logging.html#levels
+
+Choose from "NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+
+**SYSLOG_LEVEL** = "INFO"
+
 By default SYSLOG_JSON=True, and syslog entries will be send in Json format for easier parsing.
 If False, a textual version of log event will be sent.
 
 **SYSLOG_JSON** = True
+
+If you want to send only specific log actions to syslog, set this variable with the comma-separated list
+of actions. The list of available numerical LOG action numbers are in the section "#Actions to log" in this file:
+https://github.com/openl2m/openl2m/blob/main/openl2m/switches/constants.py#L185
+
+E.g. this sends all login/logout related activity, PoE and SNMP Errors, and Health messages.
+You can use ranges in the number listing:
+**SYSLOG_ACTIONS** = "90-95,113,258,400"
 
 
 Link State Colors
@@ -81,6 +104,19 @@ and other emails (see below). This is not related to users with superuser access
 
 ]
 
+You can set the "From" address. To receive bounced emails, make sure this is a valid return address!
+
+**EMAIL_FROM_ADDRESS** = '<openl2m@localhost>'
+
+And you can add some 'subject prefix' to emails to Admins and regular users. This will aide in filtering messages.
+
+The subject Prefix for admin emails:
+
+**EMAIL_SUBJECT_PREFIX** = '[OpenL2M-Admin] '
+
+The subject Prefix for regular user emails:
+
+**EMAIL_SUBJECT_PREFIX_USER** = '[OpenL2M] '
 
 
 Next, configure the REST API as needed, and then finalize the installation.

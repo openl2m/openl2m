@@ -29,12 +29,43 @@ New Configuration Options
 **REST_API_TIMEOUT** has been **renamed** to **REST_CLIENT_TIMEOUT** for better clarify.
 The default timeout is increased to 10 seconds.
 
+Additional Syslog configuration options are added: **SYSLOG_FACILITY**, **SYSLOG_LEVEL** and **SYSLOG_ACTIONS**
+
 .. code-block:: python
 
   # for drivers that use a REST API (ie. clients), this is the query timeout
   # currently applies to devices using the REST API client driver for
   # HPE Comware, HPE/Aruba AOS-S, and HPE/Aruba AOS-CX API.
   REST_CLIENT_TIMEOUT = 10
+
+  # The syslog 'facility' and 'level' or 'priority' to send OpenL2M Log messages to. Read any syslog documentation, or see
+  # https://docs.python.org/3/library/logging.handlers.html#sysloghandler under Facilities
+  # Choose from "auth", "authpriv", "cron", "daemon", "ftp", "kern", "lpr", "mail", "news", "syslog", "user", "uucp",
+  # "local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"
+  #
+  SYSLOG_FACILITY = "daemon"
+  #
+  # The syslog 'priority level', all CAPITAL names as defined at
+  # https://docs.python.org/3/library/logging.html#levels
+  # Choose from "NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+  #
+  SYSLOG_LEVEL = "INFO"
+
+  # If you want to send only specific log actions to syslog, set this variable with the comma-separated list
+  # of actions. The list of available numerical LOG action numbers are in the section "#Actions to log" in this file:
+  # https://github.com/openl2m/openl2m/blob/main/openl2m/switches/constants.py#L185
+  SYSLOG_ACTIONS = ""
+  # E.g. this sends all login/logout related activity, PoE and SNMP Errors, and Health messages.
+  # You can use ranges in the number listing.
+  # SYSLOG_ACTIONS = "90-95,113,258,400"
+
+
+Version 4.1.2
+-------------
+
+Release Date: TBD
+
+* add new setting SYSLOG_LEVEL, SYSLOG_ACTIONS to only syslog specific log entries.
 
 
 Version 4.1.1
