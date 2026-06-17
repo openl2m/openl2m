@@ -33,11 +33,11 @@ import netaddr
 from django.core.exceptions import ImproperlyConfigured
 
 # Django 6.0 requires Python 3.12 - 3.14.
-# OpenL2M has been tested with 3.12 and 3.13!
+# OpenL2M has been tested with 3.12 - 3.14!
 # for v3.14 support (the default in Ubuntu 26.04), we need to upgrade to EzSnmp 2.x,
 # which requires refactoring of the base SNMP code switches/connect/snmp/connector.py
-if sys.version_info < (3, 12) or sys.version_info >= (3, 14):
-    raise RuntimeError(f"OpenL2M requires Python 3.12 - 3.13 (current: Python {sys.version.split()[0]})")
+if sys.version_info < (3, 12) or sys.version_info > (3, 14):
+    raise RuntimeError(f"OpenL2M requires Python 3.12 - 3.14 (current: Python {sys.version.split()[0]})")
 
 
 # Check for configuration file
@@ -49,8 +49,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = "4.1.2"
-VERSION_DATE = "2026-06-17"
+VERSION = "4.2-BETA"
+VERSION_DATE = "2026-TBD"
 
 # Hostname
 HOSTNAME = platform.node()
