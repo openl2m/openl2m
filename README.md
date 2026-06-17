@@ -60,6 +60,8 @@ __What's New:__
 
 Highlights:
 
+v4.1 adds support for Python 3.14 (and thus Ubuntu 26.04!). We now support Python v3.12 - v3.14
+
 v4.0 adds support for editing 802.1Q tagged/trunk interfaces. Initially implemented for Arista eAPI,
 Aruba AOS-CX API, Aruba AOS-S REST API, Juniper PyEZ and HPE Comware REST API devices. Initial SNMP support for
 Aruba Procurve and AOS-S switches, as 'generic' snmp devices.
@@ -105,7 +107,7 @@ __Requirements__:
 This is minimal list of requirements. Read the documentation for more details.
 
 * a Linux OS environment able to run nginx.
-* Python v3.12 - v3.13 (v3.14 is not supported; ie. Ubuntu 26.04 requires an alternative Python install!).
+* Python v3.12 - v3.14 (ie. Ubuntu 26.04 is now supported!).
 * Postgres version 15 or higher (for Django 6.0).
 * NetSNMP packages on your Linux server, and ability to install and run python EzSNMP package.
 
