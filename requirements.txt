@@ -44,13 +44,6 @@ netmiko>=4.7,<4.8
 psycopg2-binary
 # Python 3 library for HPE Comware 7 NetConf drivers.
 py3hpecw7
-# We are using a clone of the Aruba pyaoscx library from github.com,
-# as there always seems to be some fix in there that we need that has
-# not been released yet to PyPi! :-(
-# git+https://github.com/aruba/pyaoscx
-#
-# Note: pyaoscx on PyPi appears stable now, so use the tested version:
-pyaoscx==2.6.0
 pycodestyle
 pylint
 # pysnmp (original) is no longer supported.
