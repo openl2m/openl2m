@@ -26,6 +26,8 @@ from django.utils import timezone
 # from libraries.django_ordered_model.ordered_model.models import OrderedModelManager, OrderedModel
 from ordered_model.models import OrderedModelManager, OrderedModel
 
+from rangeparser import RangeParser
+
 import switches.constants as constants
 from switches.connect.constants import NETMIKO_DEVICE_TYPES, NAPALM_DEVICE_TYPES
 from switches.utils import is_valid_hostname_or_ip, is_valid_hostname_or_ip6
@@ -1252,6 +1254,12 @@ class Log(models.Model):
     either a view/list, or a change.
     """
 
+    # calculate any selected list of actions to send to syslog:
+    if settings.SYSLOG_ACTIONS:
+        syslog_action_list = RangeParser().parse(settings.SYSLOG_ACTIONS)
+    else:
+        syslog_action_list = []
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -1329,24 +1337,28 @@ class Log(models.Model):
 
         # if requested, also sent to Syslog host
         if settings.SYSLOG_HOST:
-            # we are defining a logger, and then check if it has a handler.
-            # each time you create a named logger, python will add handler to existing,
-            # even if you delete the object. this is a 'globally' defined logger in apps.py :
-            syslogger = logging.getLogger("log_to_syslog")
-            if not syslogger.hasHandlers():
-                handler = logging.handlers.SysLogHandler(address=(settings.SYSLOG_HOST, settings.SYSLOG_PORT))
-                syslogger.addHandler(handler)
-            syslogger.setLevel(logging.DEBUG)
-            if settings.SYSLOG_JSON:
-                syslogger.info(self.as_json())
-            else:
-                syslogger.info(self.as_string())
+            # should this action be sent to syslog?
+            # Either all, or partial list
+            if not settings.SYSLOG_ACTIONS or self.action in self.syslog_action_list:
+                # we are defining a logger, and then check if it has a handler.
+                # each time you create a named logger, python will add handler to existing,
+                # even if you delete the object. this is a 'globally' defined logger in apps.py :
+                syslogger = logging.getLogger("openl2m_log_to_syslog")
+                if not syslogger.hasHandlers():
+                    handler = logging.handlers.SysLogHandler(address=(settings.SYSLOG_HOST, settings.SYSLOG_PORT), facility=settings.SYSLOG_FACILITY)
+                    syslogger.addHandler(handler)
+                syslogger.setLevel(settings.SYSLOG_LEVEL)
+                # syslogger.setLevel(logging.DEBUG)
+                if settings.SYSLOG_JSON:
+                    syslogger.info(self.as_json())
+                else:
+                    syslogger.info(self.as_string())
 
     def as_string(self):
         """
         return all the details of this log entry as a string
         """
-        info = "OpenL2M Log: "
+        info = "openl2m: "  # in the Unix world, standard is LC for logging process name
         if self.user:
             info += f"User={self.user.username}, "
         info += f"IP={self.ip_address}, Type={self.get_type_display()}, Action={self.get_action_display()}, "
@@ -1376,7 +1388,7 @@ class Log(models.Model):
             if self.if_name:
                 log_dict["interface"] = self.if_name
         log_dict["description"] = self.description
-        return json.dumps(log_dict)
+        return f"openl2m: {json.dumps(log_dict)}"   # in the Unix world, standard is LC for logging process name
 
     def display_name(self):
         """

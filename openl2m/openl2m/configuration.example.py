@@ -510,13 +510,42 @@ SNMP_RETRIES = 3
 SNMP_MAX_REPETITIONS = 25
 
 # Syslog settings
-# if SYSLOG_HOST is defined (default=False), log entries will also be sent here, to the 'user' facility:
+#
+# if SYSLOG_HOST is defined (default=False), log entries will also be sent here:
+#
 # SYSLOG_HOST = 'localhost'
+#
 # if needed, you can change the UDP port:
-# SYSLOG_PORT = 514
-# By default SYSLOG_JSON=True, and syslog entries will be send in Json format for easier parsing.
+#
+#  SYSLOG_PORT = 514
+#
+# The syslog 'facility' and 'level' or 'priority' to send OpenL2M Log messages to. Read any syslog documentation, or see
+# https://docs.python.org/3/library/logging.handlers.html#sysloghandler under Facilities
+# Choose from "auth", "authpriv", "cron", "daemon", "ftp", "kern", "lpr", "mail", "news", "syslog", "user", "uucp",
+# "local0", "local1", "local2", "local3", "local4", "local5", "local6", "local7"
+#
+# SYSLOG_FACILITY = "daemon"
+#
+# The syslog 'priority level', all CAPITAL names as defined at
+# https://docs.python.org/3/library/logging.html#levels
+# Choose from "NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+#
+# SYSLOG_LEVEL = "INFO"
+#
+#  By default SYSLOG_JSON=True, and syslog entries will be send in Json format for easier parsing.
 # If not, a textual version of log event will be sent.
+#
 # SYSLOG_JSON = True
+#
+# If you want to send only specific log actions to syslog, set this variable with the comma-separated list
+# of actions. The list of available numerical LOG action numbers are in the section "#Actions to log" in this file:
+# https://github.com/openl2m/openl2m/blob/main/openl2m/switches/constants.py#L185
+#
+# SYSLOG_ACTIONS = ""
+#
+# E.g. this sends all login/logout related activity, PoE and SNMP Errors, and Health messages.
+# You can use ranges in the number listing.
+# SYSLOG_ACTIONS = "90-95,113,258,400"
 
 # Email settings, used to send results of commands and other emails.
 # the default uses the local plain old smtp server on port 25

@@ -173,7 +173,10 @@ SNMP_MAX_REPETITIONS = getattr(configuration, 'SNMP_MAX_REPETITIONS', 10)  # SNM
 # Syslog related fields:
 SYSLOG_HOST = getattr(configuration, "SYSLOG_HOST", False)
 SYSLOG_PORT = getattr(configuration, "SYSLOG_PORT", 514)
+SYSLOG_FACILITY = getattr(configuration, "SYSLOG_FACILITY", "daemon")
+SYSLOG_LEVEL = getattr(configuration, "SYSLOG_LEVEL", "INFO")
 SYSLOG_JSON = getattr(configuration, "SYSLOG_JSON", True)
+SYSLOG_ACTIONS = getattr(configuration, "SYSLOG_ACTIONS", "")
 if SYSLOG_HOST:
     # validate host:
     try:
