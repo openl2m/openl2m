@@ -36,7 +36,7 @@ from django.core.exceptions import ImproperlyConfigured
 # OpenL2M has been tested with 3.12 - 3.14!
 # for v3.14 support (the default in Ubuntu 26.04), we need to upgrade to EzSnmp 2.x,
 # which requires refactoring of the base SNMP code switches/connect/snmp/connector.py
-if sys.version_info < (3, 12) or sys.version_info > (3, 14):
+if sys.version_info < (3, 12) or sys.version_info >= (3, 15):
     raise RuntimeError(f"OpenL2M requires Python 3.12 - 3.14 (current: Python {sys.version.split()[0]})")
 
 
