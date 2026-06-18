@@ -183,7 +183,7 @@ from switches.connect.snmp.constants import (
     vlan_destroy,
 )
 from switches.connect.snmp.utils import (
-    bytes_ethernet_to_string,
+    hex_string_to_ethernet,
     decimal_to_hex_string_ethernet,
     get_ip_from_sub_oid,
 )
@@ -950,7 +950,7 @@ class SnmpConnector(Connector):
                     printable_value = "CAN NOT PRINT!"
                 else:
                     printable_value = item.value
-                dprint(f"\n====> SNMP READ: {oid_found} {item.type} = {printable_value}")
+                dprint(f"\n====> SNMP READ: {oid_found} {item.type} = '{printable_value}'")
 
             # fix-up EzSnmp 2 returning some "STRING" types with extra \"<string>\" quotes.
             clean_value = self._clean_quotes_from_snmp_string(data_type=item.type, value=item.value)
@@ -2712,7 +2712,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint("_parse_mibs_net_to_media()")
+        dprint(f"_parse_mibs_net_to_media() OID={oid} = '{val}'")
 
         # Read the old style ipNetToMedia tables
         # we take some shortcuts here by not using the mappings through ipNetToMediaIfIndex and ipNetToMediaNetAddress
@@ -2727,7 +2727,8 @@ class SnmpConnector(Connector):
             # valid interface ?
             iface = self.get_interface_by_key(key=if_index)
             if iface:
-                eth_addr = bytes_ethernet_to_string(val)
+                # eth_addr = bytes_ethernet_to_string(val)    # EzSnmp v1 format conversion
+                eth_addr = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
                 dprint(f"  MAC={eth_addr}")
                 # see if we can add this to a known ethernet address
                 # this should work on layer-2 (switch) devices, where we have already learned
@@ -2771,7 +2772,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint("_parse_mibs_net_to_physical()")
+        dprint("_parse_mibs_net_to_physical() OID {oid} = '{val}")
 
         # Here is the new style ipNetToPhysicalPhysAddress entry
         if_ip_string = oid_in_branch(ipNetToPhysicalPhysAddress, oid)
@@ -2801,7 +2802,8 @@ class SnmpConnector(Connector):
                 return True  # we did parse this SNMP entry
 
             # decode the return value into the ethernet address
-            eth_addr = bytes_ethernet_to_string(val)
+            # eth_addr = bytes_ethernet_to_string(val)  # EzSnmp v1 format conversion
+            eth_addr = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
             dprint(f"    MAC={eth_addr}")
             # did we see this ethernet address in the switching tables?
             eth = self._find_ethernet_address(eth_address=eth_addr)
@@ -3570,7 +3572,8 @@ class SnmpConnector(Connector):
                     neighbor = self.interfaces[if_index].lldp[lldp_index]
                     if neighbor.chassis_type > LLDP_CHASSIS_TYPE_NONE:
                         if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
-                            chassis_info = bytes_ethernet_to_string(val)
+                            # chassis_info = bytes_ethernet_to_string(val)  # EzSNMP v1 format conversion
+                            chassis_info = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
                         elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
                             # per MIB LldpChassisId, the first byte is the IANA Address Family Number:
                             net_addr_type = int(ord(val[0]))

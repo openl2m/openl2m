@@ -12,16 +12,17 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import ipaddress
-import netaddr
 import struct
 
-from django.conf import settings
+# import netaddr
+
+# from django.conf import settings
 from switches.utils import dprint
 from switches.connect.constants import IANA_TYPE_IPV4, IANA_TYPE_IPV6
 
-"""
-This file contains SNMP utility functions
-"""
+#
+# This file contains SNMP utility functions
+#
 
 
 def decimal_to_hex_string_ethernet(decimals: str) -> str:
@@ -29,32 +30,44 @@ def decimal_to_hex_string_ethernet(decimals: str) -> str:
     Convert SNMP decimal ethernet string "5.12.13.78.90.100"
     to hex value and colon-string "05:0c:0d:4e:5a:64"
     """
-    bytes = decimals.split(".")
-    if len(bytes) == 6:
+    eth_bytes = decimals.split(".")
+    if len(eth_bytes) == 6:
         mac = ""
-        for byte in bytes:
-            h = "%02X" % int(byte)
+        for byte in eth_bytes:
+            h = "%02X" % int(byte)  # pylint: disable=consider-using-f-string
             if not mac:
                 mac += h
             else:
-                mac += ":%s" % h
+                mac += ":%s" % h  # pylint: disable=consider-using-f-string
         return mac
     return "00:00:00:00:00:00"
 
 
-def bytes_ethernet_to_string(bytes: str) -> str:
+# EsSnmp v1 "ethernet" snmp return value parsing. No longer used...
+# def bytes_ethernet_to_string(bytes: str) -> str:
+#     """
+#     Convert SNMP ethernet in 6-byte octetstring to the selected ethernet string format.
+#     """
+#     if len(bytes) == 6:
+#         eth_string = ":".join("%02X" % ord(b) for b in bytes)
+#         dprint(f"bytes_ethernet_to_string() for {eth_string}")
+#         # we use the netaddr library here to make it easy on ourselves to convert to the version wanted:
+#         eth = netaddr.EUI(eth_string)
+#         # make sure we use consistent string representation of this ethernet address:
+#         eth.dialect = settings.MAC_DIALECT
+#         return str(eth)
+#     return ""
+
+
+# EsSnmp v2 "ethernet" snmp return value parsing.
+def hex_string_to_ethernet(hex_string: str) -> str:
     """
-    Convert SNMP ethernet in 6-byte octetstring to the selected ethernet string format.
+    Convert a space-separated hex string "00 00 5E 00 01 65"
+    into an ethernet string "00:00:5e:00:01:65"
+
+    Note this does NO validation at all!
     """
-    if len(bytes) == 6:
-        eth_string = ":".join("%02X" % ord(b) for b in bytes)
-        dprint(f"bytes_ethernet_to_string() for {eth_string}")
-        # we use the netaddr library here to make it easy on ourselves to convert to the version wanted:
-        eth = netaddr.EUI(eth_string)
-        # make sure we use consistent string representation of this ethernet address:
-        eth.dialect = settings.MAC_DIALECT
-        return str(eth)
-    return ""
+    return ":".join(hex_string.split()).lower()
 
 
 def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
@@ -109,10 +122,9 @@ def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
             if ipv6.version == 6:  # valid!
                 dprint(f"  IPv6={ipv6}")
                 return str(ipv6)
-            else:
-                # invalid!
-                dprint(f"  INVALID Ipv6 conversion, version return: {ipv6.version}")
-                return ""
+            # invalid!
+            dprint(f"  INVALID Ipv6 conversion, version return: {ipv6.version}")
+            return ""
         except Exception as err:
             dprint(f"  IPv6 conversion failed - {err}")
             return ""
