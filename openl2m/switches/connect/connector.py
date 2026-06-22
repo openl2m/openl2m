@@ -116,6 +116,8 @@ class Connector:
         )  # Interface() objects representing the ports on this switch, key is if_name *as string!*
         self.vlans: dict[int, Vlan] = {}  # Vlan() objects on this switch, key is vlan id *as integer!* (not index!)
         self.vlan_count = 0  # number of vlans defined on device
+        self.eth_count = 0  # total ethernet count on all interfaces
+        self.neighbor_count = 0  # total neighbor (lldp/cdp) count on all interfaces
         self.vrfs: dict[str, Vrf] = {}  # VRFs available on this device.
         self.ip4_to_if_index: dict[str, int] = (
             {}
@@ -467,11 +469,11 @@ class Connector:
                 count = self._lookup_hostname_from_lldp()
                 # add to timing data, for admin use!
                 self.add_timing("DNS Read (lldp)", count, time.time() - start_time)
-            # resolve the ethernet OUI to vendor
+            # resolve the ethernet OUI's to vendor
             start_time = time.time()
-            count = self._lookup_ethernet_vendors()
+            self.eth_count, self.neigbor_count = self._lookup_ethernet_vendors()
             # add to timing data, for admin use!
-            self.add_timing("Ethernet Vendor Search", count, time.time() - start_time)
+            self.add_timing("Ethernet Vendor Search", self.eth_count + self.neighbor_count, time.time() - start_time)
 
             return True
         self.add_warning("WARNING: device driver does not support 'get_my_client_data()' !")
@@ -2168,11 +2170,15 @@ class Connector:
 
         # load the Wireshark ethernet OUI parser
         parser = manuf.manuf.MacParser()
+
         # go through the list of ethernet addresses on each interface
-        count = 0
+        eth_count = 0
+        neighbor_count = 0
+
         for interface in self.interfaces.values():
+            dprint(f"  Interface '{interface.name}'")
             for eth in interface.eth.values():
-                count += 1
+                eth_count += 1
                 # eth of class EthernetAddress(netaddr.EUI),
                 # so we can use that objects internal format. The data is in words[] array:
                 # is this MultiCast? (LSB bit set)
@@ -2184,14 +2190,14 @@ class Connector:
                 # get regular vendor
                 else:
                     eth.vendor = self._get_oui_vendor(parser=parser, ethernet_address=str(eth))
-                dprint(f"  Vendor = {eth.vendor}")
+                dprint(f"  Eth Vendor = {eth.vendor}")
             # also lookup vendor for Neighbors where the chassis-string is an ethernet address:
             for neighbor in interface.lldp.values():
                 if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
-                    count += 1
+                    neighbor_count += 1
                     neighbor.vendor = self._get_oui_vendor(parser=parser, ethernet_address=neighbor.chassis_string)
                     dprint(f"  Neighbor vendor = {neighbor.vendor}")
-        return count
+        return (eth_count, neighbor_count)
 
     def _get_oui_vendor(self, parser, ethernet_address: str) -> str:
         """Look up an ethernet address in the OUI database, and return vendor information.
@@ -2205,6 +2211,7 @@ class Connector:
             if unknown, returns ""
         """
         dprint(f"_get_oui_vendor() for '{ethernet_address}'")
+        return "Unknown"
         # try to get the vendor from the OUI list
         try:
             vendor = parser.get_all(ethernet_address)
