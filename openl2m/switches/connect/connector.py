@@ -537,9 +537,6 @@ class Connector:
         for interface in self.interfaces.values():
             interface.eth = {}
             interface.lldp = {}
-        # reset the counter for the objects:
-        EthernetAddress.clear_count()
-        NeighborDevice.clear_count()
 
     """
     These are the "set" functions that implement changes on the device.
