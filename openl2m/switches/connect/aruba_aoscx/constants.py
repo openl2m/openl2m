@@ -17,6 +17,6 @@
 #
 
 # we define a few constants to track VSX ports
-VSX_NONE = 0    # not a VSX interface
-VSX_ISL = 1     # VSX Inter Switch Link port
-VSX_KEEPALIVE = 2   # VSX Keep-Alive port
+VSX_NONE = 0  # not a VSX interface
+VSX_ISL = 1  # VSX Inter Switch Link port
+VSX_KEEPALIVE = 2  # VSX Keep-Alive port
