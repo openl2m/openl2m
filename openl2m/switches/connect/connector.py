@@ -471,7 +471,7 @@ class Connector:
                 self.add_timing("DNS Read (lldp)", count, time.time() - start_time)
             # resolve the ethernet OUI's to vendor
             start_time = time.time()
-            self.eth_count, self.neigbor_count = self._lookup_ethernet_vendors()
+            self._lookup_ethernet_vendors()
             # add to timing data, for admin use!
             self.add_timing("Ethernet Vendor Search", self.eth_count + self.neighbor_count, time.time() - start_time)
 
@@ -2172,13 +2172,12 @@ class Connector:
         parser = manuf.manuf.MacParser()
 
         # go through the list of ethernet addresses on each interface
-        eth_count = 0
-        neighbor_count = 0
-
+        self.eth_count = 0
+        self.neighbor_count = 0
         for interface in self.interfaces.values():
             dprint(f"  Interface '{interface.name}'")
             for eth in interface.eth.values():
-                eth_count += 1
+                self.eth_count += 1
                 # eth of class EthernetAddress(netaddr.EUI),
                 # so we can use that objects internal format. The data is in words[] array:
                 # is this MultiCast? (LSB bit set)
@@ -2194,10 +2193,10 @@ class Connector:
             # also lookup vendor for Neighbors where the chassis-string is an ethernet address:
             for neighbor in interface.lldp.values():
                 if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
-                    neighbor_count += 1
+                    self.neighbor_count += 1
                     neighbor.vendor = self._get_oui_vendor(parser=parser, ethernet_address=neighbor.chassis_string)
                     dprint(f"  Neighbor vendor = {neighbor.vendor}")
-        return (eth_count, neighbor_count)
+        dprint(f"  VENDOR LOOKUP: ETH {self.eth_count}, LLDP {self.neighbor_count}")
 
     def _get_oui_vendor(self, parser, ethernet_address: str) -> str:
         """Look up an ethernet address in the OUI database, and return vendor information.
@@ -2211,7 +2210,6 @@ class Connector:
             if unknown, returns ""
         """
         dprint(f"_get_oui_vendor() for '{ethernet_address}'")
-        return "Unknown"
         # try to get the vendor from the OUI list
         try:
             vendor = parser.get_all(ethernet_address)

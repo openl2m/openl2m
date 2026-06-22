@@ -520,7 +520,7 @@ def get_lldp_info(neighbor):
 
 
 @register.filter
-def get_neighbor_mermaid_graph(connection, neighbor_count):
+def get_neighbor_mermaid_graph(connection):
     """
     Return a string that represents the all lldp neighbors in a mermaid.js graph format.
     To keep things simple, we return a single icon, even when multiple capabilities exist.
@@ -537,7 +537,7 @@ config:
 ---
 """
     # select horizontal (LeftRight) or vertical (TopDown)
-    if settings.MM_GRAPH_EXPANDED or neighbor_count > settings.NB_MAX_FOR_TD:
+    if settings.MM_GRAPH_EXPANDED or connection.neighbor_count > settings.NB_MAX_FOR_TD:
         mermaid += "flowchart LR\n"
     else:
         mermaid += "flowchart TD\n"
