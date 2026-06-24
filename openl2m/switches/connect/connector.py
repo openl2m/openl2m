@@ -2189,8 +2189,8 @@ class Connector:
                 dprint(f"  Eth Vendor = {eth.vendor}")
             # also lookup vendor for Neighbors where the chassis-string is an ethernet address:
             for neighbor in interface.lldp.values():
+                self.neighbor_count += 1
                 if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
-                    self.neighbor_count += 1
                     neighbor.vendor = self._get_oui_vendor(parser=parser, ethernet_address=neighbor.chassis_string)
                     dprint(f"  Neighbor vendor = {neighbor.vendor}")
         dprint(f"  VENDOR LOOKUP: ETH {self.eth_count}, LLDP {self.neighbor_count}")
