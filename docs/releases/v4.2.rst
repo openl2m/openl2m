@@ -1,0 +1,23 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 4.2
+===========
+
+**Version 4.2 highlights:**
+
+- v4.2 now supports Python 3.14. Ie. Ubuntu 26.04 is supported!
+
+
+New Configuration Options
+-------------------------
+
+None.
+
+
+Version 4.2
+-----------
+
+Release Date: 2026-TBD
+
+* add support for Python 3.14 (and thus Ubuntu 26.04). We now use the Python EzSnmp v2.3 library (from v1.1)
