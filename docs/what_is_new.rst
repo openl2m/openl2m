@@ -6,6 +6,9 @@ What's New...
 
 :doc:`Please read the release notes for more details on each release. <releases/index>`
 
+* v4.1 supports more devices with editing 802.1Q tagged/trunk interfaces.
+  OpenL2M now runs on Django 6.0, and uses FontAwesome 7.2 icons.
+
 * v4.0 adds support for editing 802.1Q tagged/trunk interfaces.
   Initially implemented for Arista eAPI, Aruba AOS-CX and AOS-S REST API,
   HPE Comware REST API, and Juniper PyEZ devices.

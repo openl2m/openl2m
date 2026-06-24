@@ -60,6 +60,8 @@ __What's New:__
 
 Highlights:
 
+v4.1 supports more devices for editing 802.1Q tagged/trunk interfaces. We also upgrade to Django 6.0 and FontAwesome 7.2
+
 v4.0 adds support for editing 802.1Q tagged/trunk interfaces. Initially implemented for Arista eAPI,
 Aruba AOS-CX API, Aruba AOS-S REST API, Juniper PyEZ and HPE Comware REST API devices. Initial SNMP support for
 Aruba Procurve and AOS-S switches, as 'generic' snmp devices.
