@@ -19,10 +19,25 @@
 </div>
 {% else %}{# output OK #}
 <div class="card border-default">
-  <div class="card-header bg-default"><strong>Command: </strong>{{ cmd.command }}</div>
+  <div class="card-header bg-default d-flex justify-content-between align-items-center">
+    <span><strong>Command: </strong>{{ cmd.command }}</span>
+    {% if cmd.output %}
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-sm btn-outline-secondary ol2m-copy-btn"
+              data-bs-toggle="tooltip" data-bs-title="Copy output to clipboard">
+        <i class="fa-solid fa-copy" aria-hidden="true"></i> Copy
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary ol2m-download-btn"
+              data-command="{{ cmd.command }}"
+              data-bs-toggle="tooltip" data-bs-title="Download output as text file">
+        <i class="fa-solid fa-download" aria-hidden="true"></i> Download
+      </button>
+    </div>
+    {% endif %}
+  </div>
   {% if cmd.output %}
     <div class="card-body">
-      <pre>{{ cmd.output }}</pre>
+      <pre class="ol2m-cmd-pre">{{ cmd.output }}</pre>
     </div>
   {% endif %}
 </div>
