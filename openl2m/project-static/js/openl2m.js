@@ -25,7 +25,11 @@ document.addEventListener('click', function (e) {
       var icon = copyBtn.querySelector('i');
       var orig = icon.className;
       icon.className = 'fa-solid fa-check';
-      setTimeout(function () { icon.className = orig; }, 1500);
+      copyBtn.classList.replace('btn-outline-secondary', 'btn-success');
+      setTimeout(function () {
+        icon.className = orig;
+        copyBtn.classList.replace('btn-success', 'btn-outline-secondary');
+      }, 1500);
     });
     return;
   }
