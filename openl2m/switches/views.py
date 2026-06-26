@@ -2140,21 +2140,21 @@ class SwitchDownloadEthernetAndNeighbors(LoginRequiredMixin, MyView):
             type=LOG_TYPE_VIEW,
             action=LOG_VIEW_DOWNLOAD_ARP_LLDP,
         )
-        # load ethernet, neighbor info, etc. again
-        try:
-            if not connection.get_client_data():
-                log.type = LOG_TYPE_ERROR
-                log.description = "ERROR get_client_data()"
-                log.save()
-                return error_page(request=request, group=group, switch=switch, error=connection.error)
-        except Exception as e:
-            log.type = LOG_TYPE_ERROR
-            log.description = (
-                f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            )
-            dprint(log.description)
-            log.save()
-            return error_page(request=request, group=group, switch=switch, error=connection.error)
+        # # load ethernet, neighbor info, etc. again
+        # try:
+        #     if not connection.get_client_data():
+        #         log.type = LOG_TYPE_ERROR
+        #         log.description = "ERROR get_client_data()"
+        #         log.save()
+        #         return error_page(request=request, group=group, switch=switch, error=connection.error)
+        # except Exception as e:
+        #     log.type = LOG_TYPE_ERROR
+        #     log.description = (
+        #         f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+        #     )
+        #     dprint(log.description)
+        #     log.save()
+        #     return error_page(request=request, group=group, switch=switch, error=connection.error)
 
         # create a temp file with the spreadsheet
         stream, error = create_eth_neighbor_xls_file(connection)
