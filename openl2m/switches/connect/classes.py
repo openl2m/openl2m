@@ -409,6 +409,10 @@ class EthernetAddress(netaddr.EUI):
         """Set the IPv4 address for this ethernet address."""
         return self.add_ip4_address(ip4_address=ip4_address)
 
+    def set_ip6_address(self, ip6_address: str) -> None:
+        """Set the IPv6 address for this ethernet address."""
+        return self.add_ip6_address(ip6_address=ip6_address)
+
     def add_ip4_address(self, ip4_address: str) -> None:
         """Add an IPv4 address to the list of addresses for this ethernet address.
 
