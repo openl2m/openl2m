@@ -1801,12 +1801,12 @@ class Connector:
             # no vlan allowed!
             dprint("  read-only, no vlans allowed!")
             return
-        for switch_vlan_id in self.vlans:
+        for switch_vlan_id, switch_vlan in self.vlans.items():
             # if allow_all is set, or we are staff or supervisor, allow this vlan:
             if self.group.allow_all_vlans or (
                 self.request and (self.request.user.is_superuser or self.request.user.is_staff)
             ):
-                self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
+                self.allowed_vlans[int(switch_vlan_id)] = switch_vlan
                 dprint(f"  {switch_vlan_id}: allowed per allow-all or superuser or staff")
             else:
                 # 'regular' user, first check the switchgroup.vlan_groups:
@@ -1814,7 +1814,7 @@ class Connector:
                 for vlan_group in self.group.vlan_groups.all():
                     for group_vlan in vlan_group.vlans.all():
                         if int(group_vlan.vid) == int(switch_vlan_id):
-                            self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
+                            self.allowed_vlans[int(switch_vlan_id)] = switch_vlan
                             found_vlan = True
                             dprint(f"  {switch_vlan_id}: allowed per group.vlan_groups")
                             continue
@@ -1823,7 +1823,7 @@ class Connector:
                     for group_vlan in self.group.vlans.all():
                         if int(group_vlan.vid) == int(switch_vlan_id):
                             # save using the switch vlan name, which is possibly different from the VLAN group name!
-                            self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
+                            self.allowed_vlans[int(switch_vlan_id)] = switch_vlan
                             dprint(f"  {switch_vlan_id}: allowed per group.vlans(individual)")
                             continue
 
