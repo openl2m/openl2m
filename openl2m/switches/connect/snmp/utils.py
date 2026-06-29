@@ -67,7 +67,18 @@ def hex_string_to_ethernet(hex_string: str) -> str:
 
     Note this does NO validation at all!
     """
-    return ":".join(hex_string.split()).lower()
+    # do a quick validation of the data as we have seen some strange return data from ezsnmp v2.3:
+    # clean:
+    # ====> SNMP READ: .1.3.6.1.2.1.4.22.1.2.2024.10.224.64.32 Hex-STRING = '00 02 C9 56 33 5B'
+    # _parse_mibs_net_to_media() OID=.1.3.6.1.2.1.4.22.1.2.2024.10.224.64.32 = '00 02 C9 56 33 5B'
+    # error:
+    # ====> SNMP READ: .1.3.6.1.2.1.4.22.1.2.2024.10.224.64.34 STRING = 'PkKl%0'
+    # _parse_mibs_net_to_media() OID=.1.3.6.1.2.1.4.22.1.2.2024.10.224.64.34 = 'PkKl%0'
+
+    if len(hex_string) == 17:
+        return ":".join(hex_string.split()).lower()
+    else:
+        return ""
 
 
 def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:

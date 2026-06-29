@@ -2729,24 +2729,27 @@ class SnmpConnector(Connector):
             if iface:
                 # eth_addr = bytes_ethernet_to_string(val)    # EzSnmp v1 format conversion
                 eth_addr = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
-                dprint(f"  MAC={eth_addr}")
-                # see if we can add this to a known ethernet address
-                # this should work on layer-2 (switch) devices, where we have already learned
-                # the ethernet address from the dot1qTpFdbPort tables.
-                # this maps ethernet address to the switch port interface, whereas the data here
-                # would possibly be the "virtual interface", e.g. interface Vlan100
-                # we show the ethernet on the phsyical port, if known.
-                # Note: on pure layer 3, we do not learn ethernets from the switching side.
-                #
-                # This loops through all interfaces, time consuming, but useful
-                eth = self._find_ethernet_address(eth_address=eth_addr)
-                if eth:
-                    eth.add_ip4_address(ip4_address=ip)
+                if eth_addr:
+                    dprint(f"  MAC={eth_addr}")
+                    # see if we can add this to a known ethernet address
+                    # this should work on layer-2 (switch) devices, where we have already learned
+                    # the ethernet address from the dot1qTpFdbPort tables.
+                    # this maps ethernet address to the switch port interface, whereas the data here
+                    # would possibly be the "virtual interface", e.g. interface Vlan100
+                    # we show the ethernet on the phsyical port, if known.
+                    # Note: on pure layer 3, we do not learn ethernets from the switching side.
+                    #
+                    # This loops through all interfaces, time consuming, but useful
+                    eth = self._find_ethernet_address(eth_address=eth_addr)
+                    if eth:
+                        eth.add_ip4_address(ip4_address=ip)
+                    else:
+                        dprint("  Eth not found in layer 2, adding from Layer 3 info!")
+                        # ethernet not found from the layer 2 tables. Add an entry
+                        # this should never fail, as this was already checked above!
+                        iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
                 else:
-                    dprint("  Eth not found in layer 2, adding from Layer 3 info!")
-                    # ethernet not found from the layer 2 tables. Add an entry
-                    # this should never fail, as this was already checked above!
-                    iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
+                    dprint("INVALID MAC FOUND - IGNORING!")
             else:
                 dprint(f"ERROR: interface not found for ifIndex {if_index}")
 
@@ -2772,7 +2775,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint("_parse_mibs_net_to_physical() OID {oid} = '{val}")
+        dprint(f"_parse_mibs_net_to_physical() OID {oid} = '{val}")
 
         # Here is the new style ipNetToPhysicalPhysAddress entry
         if_ip_string = oid_in_branch(ipNetToPhysicalPhysAddress, oid)
@@ -2804,25 +2807,28 @@ class SnmpConnector(Connector):
             # decode the return value into the ethernet address
             # eth_addr = bytes_ethernet_to_string(val)  # EzSnmp v1 format conversion
             eth_addr = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
-            dprint(f"    MAC={eth_addr}")
-            # did we see this ethernet address in the switching tables?
-            eth = self._find_ethernet_address(eth_address=eth_addr)
-            if addr_type == IANA_TYPE_IPV4:
-                dprint(f"    IPV4={ip}")
-                if eth:
-                    # known ethernet, go add IPv4 address
-                    eth.add_ip4_address(ip4_address=ip)
-                else:
-                    # add new ethernet address to this interface:
-                    iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
-            elif addr_type == IANA_TYPE_IPV6:
-                dprint(f"    IPv6={ip}")
-                if eth:
-                    # known ethernet, go add IPv6 address
-                    eth.add_ip6_address(ip6_address=ip)
-                else:
-                    # add new ethernet address to this interface:
-                    iface.add_learned_ethernet_address(eth_address=eth_addr, ip6_address=ip)
+            if eth_addr:
+                dprint(f"    MAC={eth_addr}")
+                # did we see this ethernet address in the switching tables?
+                eth = self._find_ethernet_address(eth_address=eth_addr)
+                if addr_type == IANA_TYPE_IPV4:
+                    dprint(f"    IPV4={ip}")
+                    if eth:
+                        # known ethernet, go add IPv4 address
+                        eth.add_ip4_address(ip4_address=ip)
+                    else:
+                        # add new ethernet address to this interface:
+                        iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
+                elif addr_type == IANA_TYPE_IPV6:
+                    dprint(f"    IPv6={ip}")
+                    if eth:
+                        # known ethernet, go add IPv6 address
+                        eth.add_ip6_address(ip6_address=ip)
+                    else:
+                        # add new ethernet address to this interface:
+                        iface.add_learned_ethernet_address(eth_address=eth_addr, ip6_address=ip)
+            else:
+                dprint("INVALID MAC FOUND - IGNORING!")
 
             return True
 
