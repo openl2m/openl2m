@@ -248,17 +248,24 @@ class AristaApiConnector(Connector):
                     dprint("   found Interface()")
                     if switchport["mode"] == "trunk":
                         iface.is_tagged = True
+                        allowed = switchport["trunkAllowedVlans"]
                         # the PVID native untagged vlan is set in this attribute for trunks:
                         iface.untagged_vlan = int(switchport["trunkingNativeVlanId"])
-                        if switchport["trunkAllowedVlans"] == "ALL":
+                        if allowed == "ALL":
                             # add all vlans
                             for v in self.vlans.values():
                                 iface.add_tagged_vlan(vlan_id=v.id)
-                        else:
-                            parser = RangeParser()
-                            tagged_vlans = parser.parse(switchport["trunkAllowedVlans"])
-                            for vlan_id in tagged_vlans:
-                                iface.add_tagged_vlan(vlan_id=vlan_id)
+                        elif allowed != 'NONE':
+                            # this should be a valid range to parse
+                            try:
+                                parser = RangeParser()
+                                tagged_vlans = parser.parse(switchport["trunkAllowedVlans"])
+                                for vlan_id in tagged_vlans:
+                                    iface.add_tagged_vlan(vlan_id=vlan_id)
+                            except Exception as err:
+                                msg = f"Error parsing allowed vlans for interface '{iface.name}': range = '{allowed}' ({err})"
+                                dprint(msg)
+                                self.add_warning(warning=msg)
                     else:
                         # access mode:
                         iface.untagged_vlan = int(switchport["accessVlanId"])
