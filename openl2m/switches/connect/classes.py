@@ -59,6 +59,7 @@ from switches.connect.constants import (
     LLDP_CAPABILITIES_DOCSIS,
     LLDP_CAPABILITIES_STATION,
     LLDP_CAPABILITIES_NONE,
+    LLDP_CHASSIC_TYPE_ETH_ADDR,
     IPV6_LINK_LOCAL_NETWORK,
 )
 from switches.utils import dprint, get_ip_dns_name, string_is_int
@@ -381,7 +382,7 @@ class PortList:
         return (self.portlist[block] << shift) & 128 and 1 or 0  # pylint: disable=consider-using-ternary
 
 
-class EthernetAddress(netaddr.EUI):
+class EthernetAddress:
     """
     Class to represents an Ethernet address, and whatever we know about it.
     We reuse most of the netaddr library abilities to find vendor.
@@ -391,16 +392,34 @@ class EthernetAddress(netaddr.EUI):
         """
         EthernetAddress() requires passing in the hyphen or colon format of the 6 ethernet bytes.
         """
-        # initiate netaddr EUI class parent object
-        super().__init__(ethernet_string)
-        self.vendor: str = ""
+        self.address: str = ethernet_string  # the raw ethernet address string as given
+        self.address_formatted: str = ""  # the ethernet address formatted per settings.MAC_DIALECT
+        self.is_multicast: bool = False
+        self.is_locally_administered: bool = False
+        self.eui: netaddr.EUI = None  # the netaddr.EUI() object of this ethernet address
+        self.vendor: str = ""  # the vendor registered for the OUI portion (first 24 bits) of the address
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
         self.vrf_name: str = ""  # the VRF this ethernet belongs to.
-        self.address_ip4: list = []  # ipv4 address as str() from arp table, if known
+        self.address_ip4: list = []  # list of ipv4 addresses as str() from arp table, if known
         self.address_ip6: List = []  # known ipv6 addresses of this ethernet address, in list as str()
         self.address_ip6_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
-        self.hostname: str = ""  # reverse lookup for ipv4 address.
-        self.hostname6: str = ""  # reverse lookup of ipv6 address.
+        self.hostname: str = ""  # reverse lookup for first ipv4 address found.
+        self.hostname6: str = ""  # reverse lookup of first ipv6 address found.
+        try:
+            self.eui = netaddr.EUI(ethernet_string)
+            self.eui.dialect = settings.MAC_DIALECT
+            self.address_formatted = str(self.eui)
+            if self.eui and bool(self.eui.words[0] & 0b01):  # MultiCast, ie first LSB bit set.
+                self.is_multicast = True
+                self.vendor = "MultiCast"
+            elif self.eui and bool(self.eui.words[0] & 0b10):  # Locally Administered, ie second LSB bit set.
+                self.is_locally_administered = True
+                self.vendor = "Locally Administered"
+        except Exception as err:
+            self.eui = None
+            # just copy the unformatted address
+            self.address_formatted = self.address
+            dprint(f"ERROR: cannot properly format '{ethernet_string}' with settings MAC_DIALECT:\n{err}")
 
     def set_vlan(self, vlan_id: int) -> None:
         self.vlan_id = int(vlan_id)
@@ -461,7 +480,7 @@ class EthernetAddress(netaddr.EUI):
         return this class as a dictionary for use by the API
         """
         return {
-            "address": str(self),
+            "address": self.address_formatted,
             "vlan": self.vlan_id,
             "ipv4": self.address_ip4,
             "ipv6": self.address_ip6,
@@ -473,8 +492,7 @@ class EthernetAddress(netaddr.EUI):
         """
         Print the ethernet string, formatted per the settings value.
         """
-        self.dialect = settings.MAC_DIALECT
-        return super().__str__()
+        return self.address_formatted
 
 
 class NeighborDevice:
@@ -578,7 +596,25 @@ class NeighborDevice:
         Returns:
             none
         """
+        dprint(f"neighbor.set_chassis_type({chassis_type})")
         self.chassis_type = chassis_type
+        if chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR and self.chassis_string:
+            # set the Ethernet address in preferred format
+            try:
+                dprint(f"  Eth Was: {self.chassis_string}")
+                eui = netaddr.EUI(self.chassis_string)
+                eui.dialect = settings.MAC_DIALECT
+                self.chassis_string = str(eui)
+                dprint(f"  Eth Now: {self.chassis_string}")
+                # these two cases are not likely to happen for LLDP neighbors:
+                if bool(eui.words[0] & 0b01):  # MultiCast, ie first LSB bit set.
+                    self.vendor = "MultiCast"
+                elif bool(eui.words[0] & 0b10):  # Locally Administered, ie second LSB bit set.
+                    self.vendor = "Locally Administered"
+            except Exception as err:
+                dprint(
+                    f"ERROR: neighbor.set_chassis_type() cannot properly format '{self.chassis_string}' with settings MAC_DIALECT:\n{err}"
+                )
 
     def set_chassis_string(self, description: str) -> None:
         """
