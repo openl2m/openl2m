@@ -13,6 +13,9 @@ You can execute any "show" command, or any "config" command in this way.
 We implement *get_my_basic_info()* and *get_my_client_data()*
 by running various 'show' commands via the REST API.
 
+*Note that multiple commands can be sent in a single request! This improves performance quite significantly.*
+
+
 Commands are execute are:
 
 **get_my_basic_info()**

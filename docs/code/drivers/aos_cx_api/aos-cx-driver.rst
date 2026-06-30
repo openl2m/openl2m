@@ -4,121 +4,143 @@ AOS-CX Driver Overview
 ======================
 
 The Aruba AOS-CX driver is located in *switches/connect/aruba_aoscx/connector.py*.
-It uses the *pyaoscx* library provided by Aruba,
-and available at https://github.com/aruba/pyaoscx/
-
-Documentation is a little sparse, but you can get started at
-https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
-
-As of November 2023, this library supports all functionality that OpenL2M needs.
+It uses the OpenL2M RestConnector() class to implement the API.
 
 Documentation for the API in AOS-CX v10.13 is at
 https://www.arubanetworks.com/techdocs/AOS-CX/10.13/PDF/rest_v10-0x.pdf
 
-
-We implement *get_my_basic_info()* and *get_my_client_data()* by reading various switch REST API classes.
-
-.. note::
-
-    Since the AOS-CX module *pyaoscx* implements objects with the same name as OpenL2M native classes,
-    we import those AOS-CX object as *AosCx<OriginalName>* in order to avoid name collisions and confusion.
+REST endpoints (calls) may need a "depth" parameter, that indicates how deep (recursive)
+you want the return data of a particular object.
 
 
-**Basic device configs**
+API Login
+---------
 
-Implemented in *get_my_basic_info()*:
+REST Login is a two step process, performed in the function *_open_device()*
 
-We make calls to the following pyaoscx classes: Device(), Vlan(), and  Interface(),
+First, a HTTP GET call to *<host-or-ip>/rest*. This returns the list of api versions supported in a dictionary.
+We use the latest version (*['latest']['version']*), and it's URI endpoint from *['latest']['prefix']*,
+stored in *self.api_prefix*
 
-We used the discovered data to fill in the appropriate data in the OpenL2M Connection() and Interface() objects.
+Then all subsequent calls to endpoints are URI's below the URL *https://<host-or-ip>/{api_prefix}/*
 
-**Interface Info**
-
-When we get all interface information from as below with get_facts(), all data comes in dictionary form:
+For REST api login, we then call the *login* endpoint (e.g. *https://<host-or-ip>/10.13/login*) with an
+HTTP POST with JSON form data containing the *username* and *password* fields.
 
 .. code-block:: python
 
-    interfaces = Interface.get_facts(session)
-    for name, iface in interfaces:
-        description = iface['description']
-        state = iface['admin_state']
-        # etc...
+    # around line 1320:
 
-Each item in the result is an interface, but as a dictionary, where the keys are the attributes!
+    # auth data is sent in a form post
+    data = {
+        "username": f"{self.switch.netmiko_profile.username}",
+        "password": f"{self.switch.netmiko_profile.password}",
+    }
+    retval = self._post(path="login", data=data, headers=headers, message="API LOGIN")
+
+Upon success, we store the cookies and CSRF tokens, and are ready for other API calls.
 
 
-If you instantiate a specific interface object as shown below, the return a Interface() object!
-Ie. you can access attributes as object attributes:
+API Logout
+----------
+
+*_close_device()* simply performs a POST to *logout* without parameters
+(e.g. *https://<host-or-ip>/10.13/logout*)
+
+Note that the session cookies are still set for this call, but are invalid after completion!
+
+
+Basic Device Config
+-------------------
+
+In *get_my_basic_info()* we make calls to the following REST endpoints with HTTP GET:
+
+
+*system?depth=1* - read basis system info such as version, model, etc.
+
+*system/vlans?depth=2* - read VLAN data. Note that we also store the direct REST endpoint for vlans.
+This is used to manipulate vlans. And, ehternet information is loaded per vlan, so we store "macs_uri"
+and "static_macs_uri" sub-endpoints to read during ethernet discovery.
 
 .. code-block:: python
 
-    iface = Interface(session, name)
-        description = iface.description
-        state = iface.admin_state
+    v.uri = "/system/vlans/{vlan_id}"
+    v.macs_uri = vlan["macs"]
+    v.static_macs_uri = vlan["static_macs"]
+
+*system/vrfs?depth=2* - read VRF info.
+
+*system/interfaces?depth=2* - get interface information. We read and assign various attributes.
+Among this, we read the "lldp_neighbors" attribute and assigned to "interface.lldp_uri".
+This is used to read LLDP Neighbors (see below).
+
+*system/vsx?depth=2* - read Virtual Stacking info
 
 
-..
+Arp/Lldp Information
+--------------------
 
-**Arp/Lldp information**
-
-Implemented in *get_my_client_data()*:
+Implemented in *get_my_client_data()*
 
 Ethernet data is learned per vlan. So we loop through all vlans, and read learned ethernet addresses
-for each Vlan() with the Mac() object.
+for each Vlan() with the "macs_uri" learned above. At present, we do not use "static_macs_uri" as we are not
+interested in statically coded ethernet addresses.
 
 LLDP neighbors are listed per interface, so we loop through each OpenL2M Interface(),
-get the AOS-CX Interface(), and next enumerate the LldpNeighbor() objects on that interface.
+and call *interface.lldp_uri?depth=2* to get neighbor information.
 
 
-**Making Changes**
+Hardware Info
+-------------
 
-Interface level changes, ie  enable/disable, description, are made with functions of the Interface() object.
+We can read more hardware info from this endpoint:
 
-PoE changes are made with the PoEInterface() object.
+*system/subsystems?depth=2* - currently not used, get additional hardware info.
 
-Vlan changes are made by assigning a Vlan() object to an interface via a call to Interface().set_untagged_vlan(Vlan())
 
-**VLAN Edit**
+Interface Changes
+-----------------
 
-Vlan edits are done use the Vlan() object. This is relatively straight forward.
+Interface level changes, ie  enable/disable, description, Vlan changes, PoE changes, etc. are made by making
+HTTP PATCH calls to endpoints with properly JSON formatted PATCH/POST form data.
 
-Creating vlans:
-
-.. code-block:: python
-
-    new_vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id, name=vlan_name, voice=False)
-    try:
-        new_vlan.apply()
-
-Edit vlan name:
+Note that all functions need to create a "url safe" version of the interface name, as this is part of the URI.
+This is done with
 
 .. code-block:: python
 
-    vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
-    vlan.get()
-    vlan.name = vlan_name
-    changed = vlan.apply()
-
-Deleting vlans:
-
-.. code-block:: python
-
-    vlan = AosCxVlan(session=self.aoscx_session, vlan_id=vlan_id)
-    vlan.delete()
+    if_name_url = urllib.parse.quote(interface.name, safe="")
 
 
-**Fully Populated Objects**
+Interface changes in **set_interface_admin_status()**, **set_interface_description()**, **set_interface_untagged_vlan()**
+all call *system/interfaces/{if_name_url}* with a self-explanatory post dictionary.
 
-In many cases, you need a fully populated object (Interface(), Vlan() or whatever).
-To instantiate this, you need to call the .get() with selector="configuration".
+Interface PoE calls a slightly different endpoint, with similar post dictionary:
 
-*If you do NOT do this, the object has many attributes missing or empty!*
+**set_interface_poe_status()** calls *system/interfaces/{if_name_url}/poe_interface*
 
-.. code-block:: python
+**set_interface_vlans()**
 
-    session = Session(...)
-    session.open(...)
-    iface = Interface(session=session, name="1/1/1")
-    iface.get(selector="configuration")
+Setting tagged and untagged vlans is handled slightly different. First we read (HTTP GET) *all* modifiable attributes
+of the interface with *system/interfaces/{if_name_url}?selector=writable*. Note the **selector** component.
 
-See more in the API Documentation under "GET method, selector parameters"
+Then we set the mode (*vlan_mode*), untagged vlan (*vlan_tag*), and tagged vlans (*vlan_trunks*) and write
+the complete structure back to the device with an HTTP PUT call to *system/interfaces/{if_name_url}*
+
+
+VLAN Edit
+---------
+
+Creating vlans is a HTTP POST to *system/vlans* with the complete post form data for a new vlan.
+
+Editing a vlan name is an HTTP PATCH to *system/vlans/{vlan_id}* with proper form data.
+
+Deleting a vlan is a simple HTTP DELETE to *system/vlans/{vlan_id}*
+
+
+Saving The Config
+-----------------
+
+In **save_running_config()**, this is performed by an HTTP PUT to *fullconfigs/startup-config?from={api_prefix}/fullconfigs/running-config*
+
+*api_prefix* is found during the login section (see login), and is the current API version used.

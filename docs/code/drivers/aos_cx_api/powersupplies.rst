@@ -4,6 +4,8 @@
 AOS-CX API PowerSupply and Chassis
 ==================================
 
+**This is OLD info, based on pyaoscx python module!!!***
+
 The Device.get_subsystems() call is used to get various information about chassis, power supplies and more.
 This is returned in *device.subsystems*, a dictionary of objects where the key (name) is the subsystem
 type followed by a comma and an ID.
