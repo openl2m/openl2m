@@ -447,7 +447,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
                     oid=f"{dot1qPvid}.{interface.index}",
                     value=int(new_vlan_id),
                     snmp_type="u",
-                    parser=self._parse_mibs_vlan_related,
+                    parser=self._parse_mibs_vlan_dot1q_pvid,
                 ):
                     dprint("   ERROR!")
                     return False
@@ -499,7 +499,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             oid=f"{dot1qPvid}.{interface.index}",
             value=int(new_vlan_id),
             snmp_type="u",
-            parser=self._parse_mibs_vlan_related,
+            parser=self._parse_mibs_vlan_dot1q_pvid,
         ):
             dprint("   ERROR!")
             return False
