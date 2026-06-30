@@ -217,19 +217,20 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         """
         dprint("SnmpConnectorAristaEOS().save_running_config()")
 
-        """
-        To save the running-configuration to the startup-configuration on an Arista switch via SNMP,
-        use a set request (SNMP SET) to activate the copy command MIB.
+        #
+        # To save the running-configuration to the startup-configuration on an Arista switch via SNMP,
+        # use a set request (SNMP SET) to activate the copy command MIB.
 
-            Source OID: 1.3.6.1.4.1.30065.3.7.1.1.3.7.100.101.102.97.117.108.116.0 (OctetString: "running-config")
-            Destination OID: 1.3.6.1.4.1.30065.3.7.1.1.4.7.100.101.102.97.117.108.116.0 (OctetString: "startup-config")
-            Status OID (Action): 1.3.6.1.4.1.30065.3.7.1.1.11.7.100.101.102.97.117.108.116.0 (Integer32: 1 to execute)
+        #     Source OID: 1.3.6.1.4.1.30065.3.7.1.1.3.7.100.101.102.97.117.108.116.0 (OctetString: "running-config")
+        #     Destination OID: 1.3.6.1.4.1.30065.3.7.1.1.4.7.100.101.102.97.117.108.116.0 (OctetString: "startup-config")
+        #     Status OID (Action): 1.3.6.1.4.1.30065.3.7.1.1.11.7.100.101.102.97.117.108.116.0 (Integer32: 1 to execute)
 
-        See Arista Config-COPY mib at
-            https://www.arista.com/assets/data/docs/MIBS/ARISTA-CONFIG-COPY-MIB.txt
-            https://mibs.observium.org/mib/ARISTA-CONFIG-COPY-MIB/
-        Also look at https://www.reddit.com/r/Arista/comments/v6tfs9/save_config_via_snmp/
-        """
+        # See Arista Config-COPY mib at
+        #     https://www.arista.com/assets/data/docs/MIBS/ARISTA-CONFIG-COPY-MIB.txt
+        #     https://mibs.observium.org/mib/ARISTA-CONFIG-COPY-MIB/
+        # Also look at https://www.reddit.com/r/Arista/comments/v6tfs9/save_config_via_snmp/
+        #
+
         # we're sending the commands using the 'default' job as an atomic group of set()
         try:
             # this creates a new row
