@@ -465,16 +465,17 @@ class DeviceActions:
         if not ok:
             return False, error
 
-        """ Implementation notes:
-        If we allow tags-edit for regular, non-admin users, we need to parse carefully!
-        In that case, we will allow adding/deleting vlans the user has access to,
-        and SHOULD NOT CHANGE NON-PERMITTED VLANS !!!!
-        Ie. this requires looking at the interface current tagged vlans,
-        and mashing this up with the requested vlans...
+        #
+        # Implementation notes:
+        # If we allow tags-edit for regular, non-admin users, we need to parse carefully!
+        # In that case, we will allow adding/deleting vlans the user has access to,
+        # and SHOULD NOT CHANGE NON-PERMITTED VLANS !!!!
+        # Ie. this requires looking at the interface current tagged vlans,
+        # and mashing this up with the requested vlans...
 
-        Currently, permissions are set in Connector()._set_interfaces_permissions(),
-        in switches/connect/connector.py, around line 1775
-        """
+        # Currently, permissions are set in Connector()._set_interfaces_permissions(),
+        # in switches/connect/connector.py, around line 1775
+        #
 
         log = self._create_log(action=LOG_CHANGE_INTERFACE_VLANS)
 
