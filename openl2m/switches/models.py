@@ -308,8 +308,8 @@ class Command(models.Model):
         This is used in templates, so we can 'annotate' as needed
         """
         if self.os:
-            return f"{self.name} ({self.os} - {self.get_type_display()})"
-        return f"{self.name} ({self.get_type_display()})"
+            return f"{self.name} ({self.os} - {self.get_type_display()})"   # pylint: disable=no-member
+        return f"{self.name} ({self.get_type_display()})"   # pylint: disable=no-member
 
     def __str__(self):
         return self.display_name()
@@ -728,8 +728,8 @@ class VLAN(models.Model):
         This is used in templates, so we can 'annotate' as needed
         """
         if self.vid == -1:
-            return "(all) - ", self.name
-        return "{} - {}".format(self.vid, self.name)
+            return f"(all) - {self.name}"
+        return f"{self.vid} - {self.name}"
 
     def __str__(self):
         return self.display_name()
