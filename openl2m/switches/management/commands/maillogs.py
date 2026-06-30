@@ -240,7 +240,7 @@ class Command(BaseCommand):
                     return
 
         # both include and exclude? Invalid!
-        if len(includes) and len(excludes):
+        if includes and excludes:
             self.stdout.write("ERROR: --include and --exclude are mutually exclusive! Please only use one...")
             return
 
@@ -305,7 +305,7 @@ class Command(BaseCommand):
         filter_values["timestamp__gt"] = cutoff_local
 
         # and exclude as need. Note that filter() can include, but removing items is done by exclude():
-        if len(excludes):
+        if excludes:
             logs = Log.objects.all().exclude(action__in=excludes).filter(**filter_values).order_by("timestamp")
         else:
             # all logs in time-range, and filtered as needed:
