@@ -77,8 +77,7 @@ def hex_string_to_ethernet(hex_string: str) -> str:
 
     if len(hex_string) == 17:
         return ":".join(hex_string.split()).lower()
-    else:
-        return ""
+    return ""
 
 
 def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
