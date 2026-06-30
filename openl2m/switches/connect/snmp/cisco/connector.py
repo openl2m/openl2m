@@ -264,7 +264,9 @@ class SnmpConnectorCisco(SnmpConnector):
                 com_or_ctx = f"vlan-{vlan_id}"
             self._set_snmp_session(com_or_ctx)
             # first map Q-Bridge ports to ifIndexes:
-            retval = self.get_snmp_branch(branch_name="dot1dBasePortIfIndex", parser=self._parse_mibs_vlan_related)
+            retval = self.get_snmp_branch(
+                branch_name="dot1dBasePortIfIndex", parser=self._parse_mibs_dot1d_port_to_ifindex_map
+            )
             if retval < 0:
                 # probably an error, stop here!
                 return False
