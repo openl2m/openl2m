@@ -240,7 +240,7 @@ Devices supported via REST api's and more...
      - Yes
      - Yes
      - Yes
-     - NO
+     - Yes
      - Yes
      - Yes
 
@@ -314,7 +314,7 @@ Devices supported via REST api's and more...
 
   :sup:`1` The Arista eAPI driver does not PoE due to lack of testing hardware. It is tested on 7050 and 7280cr3 hardware.
 
-  :sup:`2` The Aruba AOS-CX REST api driver supports most features, and is tested in 6100 and 6300 hardware.
+  :sup:`2` The Aruba AOS-CX REST api driver supports most features, and is tested on 6100 and 6300 hardware.
 
   :sup:`3` The Aruba AOS-S REST api driver requires firmware v16.x. This has been tested using firmware v16.11.0029, and REST api v4,
   on the following single devices: 2530(PoE), 2940(PoE), 2930M, and 2930F(PoE). It should function on the 2530, 2540, 2920,

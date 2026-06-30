@@ -1,7 +1,7 @@
 .. image:: ../_static/openl2m_logo.png
 
 ==============
-The Basic view
+The Basic View
 ==============
 
 When you click on a device, we will read all sorts of data from the device (depending on the vendor driver!).
