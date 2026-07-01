@@ -1345,7 +1345,7 @@ class SnmpConnector(Connector):
         # see also _get_if_index_from_port_id()
 
         # read existing vlan id's from MIB-2 Q-Bridge "dot1qVlanStaticTable"
-        retval = self.get_snmp_branch(branch_name="dot1qVlanStaticRowStatus", parser=self._parse_mibs_vlan_related)
+        retval = self.get_snmp_branch(branch_name="dot1qVlanStaticRowStatus", parser=self._parse_mibs_vlan_static_row_status)
         if retval < 0:
             self.add_warning("Error getting 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
             return retval
