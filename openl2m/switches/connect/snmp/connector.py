@@ -1352,7 +1352,7 @@ class SnmpConnector(Connector):
 
         # if there are MIB-2 Q-Bridge vlans, read the name and type
         if retval > 0:
-            retval = self.get_snmp_branch(branch_name="dot1qVlanStaticName", parser=self._parse_mibs_vlan_related)
+            retval = self.get_snmp_branch(branch_name="dot1qVlanStaticName", parser=self._parse_mibs_vlan_static_name)
             if retval < 0:
                 # error occured (unlikely to happen)
                 self.add_warning("Error getting 'Q-Bridge-Vlan-Names' (dot1qVlanStaticName)")
