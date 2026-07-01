@@ -1359,7 +1359,7 @@ class SnmpConnector(Connector):
                 # we have found VLANs, so we are going to ignore this!
 
             # read the vlan status, ie static, dynamic!
-            retval = self.get_snmp_branch(branch_name="dot1qVlanStatus", parser=self._parse_mibs_vlan_related)
+            retval = self.get_snmp_branch(branch_name="dot1qVlanStatus", parser=self._parse_mibs_vlan_status)
             if retval < 0:
                 self.add_warning("Error getting 'Q-Bridge-Vlan-Status' (dot1qVlanStatus)")
                 # we have found VLANs, so we are going to ignore this!
