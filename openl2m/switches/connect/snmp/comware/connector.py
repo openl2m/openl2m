@@ -215,7 +215,7 @@ class SnmpConnectorComware(SnmpConnector):
         super().get_my_hardware_details()
 
         # now read Comware specific data:
-        retval = self.get_snmp_branch(branch_name="hh3cEntityExtUpTime", parser=self._parse_mib_hhc3_entity_ext)
+        retval = self.get_snmp_branch(branch_name="hh3cEntityExtUpTime", parser=self._parse_mibs_hhc3_entity_ext)
         if retval < 0:
             self.add_warning(warning="Error getting Comware extended hardware info ('hh3cEntityExtUpTime')")
             return False
@@ -597,7 +597,7 @@ class SnmpConnectorComware(SnmpConnector):
                 return False
         return True
 
-    def _parse_mib_hhc3_entity_ext(self, oid: str, val: str) -> bool:
+    def _parse_mibs_hhc3_entity_ext(self, oid: str, val: str) -> bool:
         """
         Parse Comware specific Entity Extension MIB (HH3C-ENTITY-EXT-MIB)
         Looking for individual chassis uptime only.
