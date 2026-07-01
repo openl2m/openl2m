@@ -2001,6 +2001,95 @@ class SnmpConnector(Connector):
         # we did not parse the OID.
         return False
 
+    def _parse_mibs_vlan_static_row_status(self, oid: str, val: str) -> bool:
+        """Function to parse the Q-Bridge VLAN mib static vlan entries.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnector()._parse_mibs_vlan_static_row_status(oid={str(oid)}, val={val}")
+
+        # List of all available vlans on this switch as by the command "show vlans"
+        vlan_id = int(oid_in_branch(dot1qVlanStaticRowStatus, oid))
+        if vlan_id:
+            dprint(f"  Found dot1qVlanStaticRowStatus for vlan {vlan_id}")
+            # for now, just add to the dictionary,
+            # we will fill in the initial name below at "VLAN_NAME"
+            if vlan_id in self.vlans:
+                # currently we don't parse the status, so nothing to do here
+                return True
+            # else add entry, should never happen!
+            self.add_vlan_by_id(vlan_id=vlan_id)
+            # assume vlan_id = vlan_index = fdb_index, unless we learn otherwize
+            self.vlan_id_by_index[vlan_id] = vlan_id
+            self.dot1tp_fdb_to_vlan_index[vlan_id] = vlan_id
+            return True
+
+        # we did not parse the OID.
+        return False
+
+    def _parse_mibs_vlan_static_name(self, oid: str, val: str) -> bool:
+        """Function to parse the Q-Bridge mib static vlan names.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnector()._parse_mibs_vlan_static_name(oid={str(oid)}, val={val}")
+
+        # The VLAN name
+        vlan_id = int(oid_in_branch(dot1qVlanStaticName, oid))
+        if vlan_id:
+            dprint(f"  Found dot1qVlanStaticName for vlan {vlan_id}")
+            # not yet sure how to handle this
+            if vlan_id in self.vlans:
+                self.vlans[vlan_id].name = val
+            else:
+                # vlan not found yet, create it
+                self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=val)
+                # self.vlans[vlan_id].name = val
+            return True
+
+        # we did not parse the OID.
+        return False
+
+    def _parse_mibs_vlan_status(self, oid: str, val: str) -> bool:
+        """Function to parse the Q-Bridge vlan status information.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnector()._parse_mibs_vlan_status(oid={str(oid)}, val={val}")
+
+        # see if this is static or dynamic vlan
+        sub_oid = oid_in_branch(dot1qVlanStatus, oid)
+        if sub_oid:
+            dprint(f"  Found dot1qVlanStatus for sub_oid {sub_oid}")
+            dummy, v = sub_oid.split(".")
+            vlan_id = int(v)
+            status = int(val)
+            if vlan_id in self.vlans:
+                self.vlans[vlan_id].status = status
+            else:
+                # only should happen for non-permanent vlans, we should know static vlans by now!
+                self.add_vlan_by_id(vlan_id=vlan_id)
+                self.vlans[vlan_id].status = status
+            return True
+
+        # we did not parse the OID.
+        return False
+
     def _parse_mibs_vlan_dot1q_pvid(self, oid: str, val: str) -> bool:
         """Function to parse the VLAN dot1qPvid entry.
         This returns the (switch)port-id as the sub-oid, and the val returned from snmp
