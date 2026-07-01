@@ -1431,7 +1431,7 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
             pvid = int(request.POST.get("pvid"))
         except Exception as err:
             info = Error()
-            info.description = "Missing or invalid required parameter: 'new_pvid'"
+            info.description = "Missing or invalid required parameter: 'pvid'"
             info.details = err
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
