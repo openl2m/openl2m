@@ -4275,11 +4275,11 @@ class SnmpConnector(Connector):
         # note the 0 to hopefully deactivate time filter!
         dprint("Get OLD VLAN Current Egress Ports")
         error_status, snmpval = self.get(
-            f"{dot1qVlanCurrentEgressPorts}.0.{old_vlan_id}", parser=self._parse_mibs_vlan_related
+            f"{dot1qVlanCurrentEgressPorts}.0.{old_vlan_id}", parser=self._parse_mibs_vlan_current_egress_ports
         )
         dprint("Get NEW VLAN Current Egress Ports")
         error_status, snmpval = self.get(
-            f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_related
+            f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_current_egress_ports
         )
         interface.untagged_vlan = new_vlan_id
         dprint("SnmpConnector.set_interface_untagged_vlan() -> True")
