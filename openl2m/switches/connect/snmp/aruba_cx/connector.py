@@ -463,7 +463,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             # # need to add this vlan to the trunk vlans, by setting bit to 1.
             # # get the current list of static ports on this vlan:
             # egress_oid = f"{ieee8021QBridgeVlanStaticEgressPorts}.1.{new_vlan_id}"
-            # (error_status, retval) = self.get(oid=egress_oid, parser=self._parse_mibs_vlan_related)
+            # (error_status, retval) = self.get(oid=egress_oid, parser=self._parse_mibs_ieee_qbridge_vlan_static_egress_ports)
             # if error_status:
             #     dprint(f"Error getting SNMP value for 'ieee8021QBridgeVlanStaticEgressPorts': {self.error.details}")
             #     return False
