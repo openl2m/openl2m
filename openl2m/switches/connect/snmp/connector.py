@@ -1345,7 +1345,9 @@ class SnmpConnector(Connector):
         # see also _get_if_index_from_port_id()
 
         # read existing vlan id's from MIB-2 Q-Bridge "dot1qVlanStaticTable"
-        retval = self.get_snmp_branch(branch_name="dot1qVlanStaticRowStatus", parser=self._parse_mibs_vlan_static_row_status)
+        retval = self.get_snmp_branch(
+            branch_name="dot1qVlanStaticRowStatus", parser=self._parse_mibs_vlan_static_row_status
+        )
         if retval < 0:
             self.add_warning("Error getting 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
             return retval
@@ -1936,66 +1938,6 @@ class SnmpConnector(Connector):
                 # and map Interface() object back to port ID as well:
                 self.set_interface_attribute_by_key(if_index, "port_id", port_id)
             # we parsed it, return true:
-            return True
-
-        # we did not parse the OID.
-        return False
-
-    def _parse_mibs_vlan_related(self, oid: str, val: str) -> bool:
-        """Function to parse various VLAN related MIB entries
-        that contains vlans and vlan-membership information.
-
-        Params:
-            oid (str): the SNMP OID to parse
-            val (str): the value of the SNMP OID we are parsing
-
-        Returns:
-            (boolean): True if we parse the OID, False if not.
-        """
-        dprint(f"SnmpConnector()._parse_mibs_vlan_related(oid={str(oid)}, val={val}")
-
-        # List of all available vlans on this switch as by the command "show vlans"
-        vlan_id = int(oid_in_branch(dot1qVlanStaticRowStatus, oid))
-        if vlan_id:
-            dprint(f"  Found dot1qVlanStaticRowStatus for vlan {vlan_id}")
-            # for now, just add to the dictionary,
-            # we will fill in the initial name below at "VLAN_NAME"
-            if vlan_id in self.vlans:
-                # currently we don't parse the status, so nothing to do here
-                return True
-            # else add entry, should never happen!
-            self.add_vlan_by_id(vlan_id=vlan_id)
-            # assume vlan_id = vlan_index = fdb_index, unless we learn otherwize
-            self.vlan_id_by_index[vlan_id] = vlan_id
-            self.dot1tp_fdb_to_vlan_index[vlan_id] = vlan_id
-            return True
-
-        # The VLAN name
-        vlan_id = int(oid_in_branch(dot1qVlanStaticName, oid))
-        if vlan_id:
-            dprint(f"  Found dot1qVlanStaticName for vlan {vlan_id}")
-            # not yet sure how to handle this
-            if vlan_id in self.vlans:
-                self.vlans[vlan_id].name = val
-            else:
-                # vlan not found yet, create it
-                self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=val)
-                # self.vlans[vlan_id].name = val
-            return True
-
-        # see if this is static or dynamic vlan
-        sub_oid = oid_in_branch(dot1qVlanStatus, oid)
-        if sub_oid:
-            dprint(f"  Found dot1qVlanStatus for sub_oid {sub_oid}")
-            dummy, v = sub_oid.split(".")
-            vlan_id = int(v)
-            status = int(val)
-            if vlan_id in self.vlans:
-                self.vlans[vlan_id].status = status
-            else:
-                # only should happen for non-permanent vlans, we should know static vlans by now!
-                self.add_vlan_by_id(vlan_id=vlan_id)
-                self.vlans[vlan_id].status = status
             return True
 
         # we did not parse the OID.
