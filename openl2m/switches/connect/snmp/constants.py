@@ -652,7 +652,6 @@ snmp_mib_variables["dot1qVlanStaticEgressPorts"] = dot1qVlanStaticEgressPorts
 dot1qVlanForbiddenEgressPorts = ".1.3.6.1.2.1.17.7.1.4.3.1.3"  # followed by vlanId
 
 # To get untagged ports of a VLAN, returns bitmap
-# dot1qVlanStaticUntaggedPorts = 1.3.6.1.2.1.17.7.1.4.3.1.4
 dot1qVlanStaticUntaggedPorts = ".1.3.6.1.2.1.17.7.1.4.3.1.4"  # followed by vlanId
 snmp_mib_variables["dot1qVlanStaticUntaggedPorts"] = dot1qVlanStaticUntaggedPorts
 
