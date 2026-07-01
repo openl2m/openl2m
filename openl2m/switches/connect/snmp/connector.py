@@ -1145,19 +1145,19 @@ class SnmpConnector(Connector):
             (bool): True on success, False on failure
         """
         dprint("SnmpConnector.get_my_vrfs()")
-        retval = self.get_snmp_branch(branch_name="mplsL3VpnVrfEntry", parser=self._parse_mib_mpls_l3vpn)
+        retval = self.get_snmp_branch(branch_name="mplsL3VpnVrfEntry", parser=self._parse_mibs_mpls_l3vpn)
         if retval < 0:
             self.add_warning("Error getting VRF info from the MPLS-L2VPN tables (mplsL3VpnVrfEntry)")
 
         # if we have found VRF's, let's see if we can find Interface membership:
         if self.vrfs:
             retval = self.get_snmp_branch(
-                branch_name="mplsL3VpnIfVpnClassification", parser=self._parse_mib_mpls_vrf_members
+                branch_name="mplsL3VpnIfVpnClassification", parser=self._parse_mibs_mpls_vrf_members
             )
             if retval < 0:
                 # try another entry in case the device does not implement mplsL3VpnIfVpnClassification:
                 retval = self.get_snmp_branch(
-                    branch_name="mplsL3VpnIfVpnRouteDistProtocol", parser=self._parse_mib_mpls_vrf_members
+                    branch_name="mplsL3VpnIfVpnRouteDistProtocol", parser=self._parse_mibs_mpls_vrf_members
                 )
 
         return True
@@ -1301,7 +1301,7 @@ class SnmpConnector(Connector):
         """
         dprint("#####\n_get_vlan_data()\n#####")
         # get the base 802.1q settings (reads vlan count dot1qNumVlans):
-        retval = self.get_snmp_branch(branch_name="dot1qBase", parser=self._parse_mib_dot1q_base)
+        retval = self.get_snmp_branch(branch_name="dot1qBase", parser=self._parse_mibs_dot1q_base)
         if self.vlan_count > 0:
             # first get vlan id and names
             self._get_vlans()
@@ -1414,7 +1414,7 @@ class SnmpConnector(Connector):
         # reading this will show the static vlan configs for these ports...
         # Note: this will be used when settign/changing (tagged) vlans on ports!
         retval = self.get_snmp_branch(
-            branch_name='dot1qVlanStaticEgressPorts', parser=self._parse_mib_vlan_static_egress_ports
+            branch_name='dot1qVlanStaticEgressPorts', parser=self._parse_mibs_vlan_static_egress_ports
         )
         if retval < 0:
             self.add_warning("Error getting 'Q-Bridge-Vlan-Static-Egress-Interfaces' ({dot1qVlanStaticEgressPorts})")
@@ -1781,7 +1781,7 @@ class SnmpConnector(Connector):
     # 802.1Q / VLAN related MIB parsers
     #
 
-    def _parse_mib_dot1q_base(self, oid: str, val: str) -> bool:
+    def _parse_mibs_dot1q_base(self, oid: str, val: str) -> bool:
         """Parse entries in the 'dot1qBase' part of the Q-Bridge mib.
         This contains various 'counters' about numbers of vlans, etc.
 
@@ -1792,7 +1792,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"Base _parse_mib_dot1q_base() {str(oid)}")
+        dprint(f"Base _parse_mibs_dot1q_base() {str(oid)}")
 
         # these are part of "dot1qBase":
         sub_oid = oid_in_branch(dot1qNumVlans, oid)
@@ -1922,7 +1922,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector()._parse_mib_dot1d_port_to_ifindex_map(oid={str(oid)}, val={val}")
+        dprint(f"SnmpConnector()._parse_mibs_dot1d_port_to_ifindex_map(oid={str(oid)}, val={val}")
 
         # Map the Q-BRIDGE port id to the MIB-II if_indexes.
         # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
@@ -2198,7 +2198,7 @@ class SnmpConnector(Connector):
         # we did not parse the OID.
         return False
 
-    def _parse_mib_vlan_static_egress_ports(self, oid: str, val: str) -> bool:
+    def _parse_mibs_vlan_static_egress_ports(self, oid: str, val: str) -> bool:
         """parse the list of all static egress ports of a VLAN (tagged + untagged) as a hexstring
 
         The "val" returned from snmp is a bitmap for a specific vlan (in the sub-oid)
@@ -2211,7 +2211,7 @@ class SnmpConnector(Connector):
         if the interface is not "UP". Reading dot1qVlanStaticEgressPorts will catch those configurations!
 
         """
-        dprint("SnmpConnector()._parse_mib_vlan_static_egress_ports()")
+        dprint("SnmpConnector()._parse_mibs_vlan_static_egress_ports()")
 
         # dot1qVlanStaticEgressPorts - READ-WRITE variable
         vlan_id = int(oid_in_branch(dot1qVlanStaticEgressPorts, oid))
@@ -3783,7 +3783,7 @@ class SnmpConnector(Connector):
         # not parsed here!
         return False
 
-    def _parse_mib_mpls_l3vpn(self, oid: str, val: str) -> bool:
+    def _parse_mibs_mpls_l3vpn(self, oid: str, val: str) -> bool:
         """
         Parse standard VRF mib entries from MPLS-L3VPN-STD-MIB. This gets added to self.vrfs
 
@@ -3847,7 +3847,7 @@ class SnmpConnector(Connector):
         # we did not parse:
         return False
 
-    def _parse_mib_mpls_vrf_members(self, oid: str, val: str) -> bool:
+    def _parse_mibs_mpls_vrf_members(self, oid: str, val: str) -> bool:
         """
         Parse standard VRF interface membership entries from MPLS-L3VPN-STD-MIB.
         This gets added to Interface().vrfs
@@ -3859,7 +3859,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector._parse_mib_mpls_vrf_members() {str(oid)}")
+        dprint(f"SnmpConnector._parse_mibs_mpls_vrf_members() {str(oid)}")
 
         # find ifIndex entries that are part of a VRF.
         sub_oid = oid_in_branch(mplsL3VpnIfVpnClassification, oid)
