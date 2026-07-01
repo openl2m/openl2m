@@ -369,7 +369,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             parser=self._parse_mibs_ieee_qbridge_vlan_static_untagged_ports,
         )
         if retval < 0:
-            self.add_warning(warning="Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
+            self.add_warning(warning="Error getting 'ieee8021QBridgeVlanStaticUntaggedPorts'")
             return retval
 
         retval = self.get_snmp_branch(
@@ -377,7 +377,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             parser=self._parse_mibs_ieee_qbridge_vlan_static_egress_ports,
         )
         if retval < 0:
-            self.add_warning(warning="Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
+            self.add_warning(warning="Error getting 'ieee8021QBridgeVlanStaticEgressPorts'")
             return retval
 
         return self.vlan_count
