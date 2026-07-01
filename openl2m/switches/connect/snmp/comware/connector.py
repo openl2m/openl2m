@@ -322,7 +322,7 @@ class SnmpConnectorComware(SnmpConnector):
                 #
                 # # next, read current Egress PortList bitmap first:
                 # # note the 0 to hopefull deactivate time filter!
-                # (error_status, snmpval) = self.get(oid=f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_related)
+                # (error_status, snmpval) = self.get(oid=f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_current_egress_ports)
                 # if error_status:
                 #     # Hmm, not sure what to do
                 #     self.error.status = True
