@@ -27,9 +27,6 @@ from django.template import Template, Context
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-
-from switches.device_actions import DeviceActions
-
 from switches.connect.classes import Error
 from switches.models import (
     CommandTemplate,
@@ -105,7 +102,6 @@ from switches.utils import (
     success_page,
     warning_page,
     error_page,
-    success_page_by_id,
     error_page_by_id,
     dprint,
     get_from_http_session,
@@ -1345,7 +1341,7 @@ class InterfacePoeChange(LoginRequiredMixin, SwitchActionMixin, MyView):
 #
 # Toggle PoE status Down then Up
 #
-class InterfacePoeDownUp(LoginRequiredMixin, MyView):
+class InterfacePoeDownUp(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Toggle the PoE status of an interfaces. I.e disable, wait some, then enable again.
     """
@@ -1358,29 +1354,13 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
         interface_name,
     ):
         dprint("InterfacePoeDownUp() - POST called")
-        actions = DeviceActions(request, group_id, switch_id)
-
-        # disable power first:
-        retval, info = actions.interface_poe_change(
+        return self._dispatch_action(
+            request,
+            group_id,
+            switch_id,
+            "interface_poe_down_up",
             interface_key=interface_name,
-            new_state=False,
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-
-        # delay to let the device cold-boot properly
-        time.sleep(settings.POE_TOGGLE_DELAY)
-
-        # and enable again:
-        retval, info = actions.interface_poe_change(
-            interface_key=interface_name,
-            new_state=True,
-        )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-
-        description = "Interface PoE was toggled!"
-        return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message=description)
 
 
 #

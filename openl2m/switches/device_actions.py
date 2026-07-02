@@ -17,6 +17,7 @@
 # called by both the WEB UI and REST API.
 #
 import re
+import time
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -43,6 +44,7 @@ from switches.constants import (
     LOG_CHANGE_INTERFACE_PVID,
     LOG_CHANGE_INTERFACE_POE_UP,
     LOG_CHANGE_INTERFACE_POE_DOWN,
+    LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP,
     LOG_CHANGE_INTERFACE_VLANS,
     LOG_VLAN_CREATE,
     LOG_VLAN_DELETE,
@@ -411,7 +413,7 @@ class DeviceActions:
 
         interface, error = self._get_interface(interface_key, permission=PERMISSION_INTERFACE_POE)
         if not interface:
-            self._log_error(log, f"Admin-Change: ERROR - {error.description}")
+            self._log_error(log, f"PoE-Change: ERROR - {error.description}")
             return False, error
 
         log.if_name = interface.name
@@ -442,6 +444,61 @@ class DeviceActions:
         self._finish_success(log)
 
         return self._success_result(f"Interface {interface.name} PoE is now {state}")
+
+    def interface_poe_down_up(self, interface_key: str):
+        """Toggle the PoE status of an interface to down, and back to up.
+
+        Params:
+            interface_key: Interface() 'key' attribute
+
+        Returns:
+            (bool, Error)
+        """
+        dprint(f"DeviceActions.interface_poe_down_up(g={self.group_id}, s={self.switch_id}, i={interface_key})")
+
+        ok, error = self._setup("interface_poe_down_up()")
+        if not ok:
+            return False, error
+
+        log = self._create_log(action=LOG_CHANGE_INTERFACE_POE_TOGGLE_DOWN_UP)
+
+        interface, error = self._get_interface(interface_key, permission=PERMISSION_INTERFACE_POE)
+        if not interface:
+            self._log_error(log, f"PoE-Change: ERROR - {error.description}")
+            return False, error
+
+        log.if_name = interface.name
+        log.type = LOG_TYPE_CHANGE
+
+        if not interface.poe_entry:
+            dprint("  NOT PoE Capable!")
+            # should not happen...
+            self._log_error(log, f"Interface {interface.name} does not support PoE")
+            return self._error_result(f"Interface {interface.name} does not support PoE")
+
+        # disable power first:
+        if not self.connection.set_interface_poe_status(interface, POE_PORT_ADMIN_DISABLED):
+            self._log_error(
+                log,
+                f"ERROR: PoE Down on {interface.name} - {self.connection.error.description} - {self.connection.error.details}",
+            )
+            return False, self.connection.error
+
+        # delay to let the device cold-boot properly
+        time.sleep(settings.POE_TOGGLE_DELAY)
+
+        # # and enable again:
+        if not self.connection.set_interface_poe_status(interface, POE_PORT_ADMIN_ENABLED):
+            self._log_error(
+                log,
+                f"ERROR: PoE Up on {interface.name} - {self.connection.error.description} - {self.connection.error.details}",
+            )
+            return False, self.connection.error
+
+        log.description = f"Interface {interface.name} PoE was toggled!"
+        self._finish_success(log)
+
+        return self._success_result(log.description)
 
     def interface_tags_edit(self, interface_key: str, pvid: int, tagged_vlans: list, allow_all: bool = False):
         """Change the untagged pvid and 802.1q (tagged/trunked) vlans on an interface.
