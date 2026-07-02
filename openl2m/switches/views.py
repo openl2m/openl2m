@@ -1262,7 +1262,7 @@ class InterfaceDescriptionChange(LoginRequiredMixin, SwitchActionMixin, MyView):
         )
 
 
-class InterfacePvidChange(LoginRequiredMixin, View):
+class InterfacePvidChange(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Change the PVID untagged vlan on an interfaces.
     This still needs to handle dot1q tagged ("trunk") ports.
@@ -1294,15 +1294,14 @@ class InterfacePvidChange(LoginRequiredMixin, View):
             error.description = "Missing required parameter: 'new_pvid'"
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-        actions = DeviceActions(request, group_id, switch_id)
-        retval, info = actions.interface_pvid_change(
+        return self._dispatch_action(
+            request,
+            group_id,
+            switch_id,
+            "interface_pvid_change",
             interface_key=interface_name,
             new_pvid=new_pvid,
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 #
