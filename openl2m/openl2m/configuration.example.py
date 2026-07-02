@@ -501,6 +501,9 @@ TOPMENU_MAX_COLUMNS = 4
 # show the switch search form in nav bar
 SWITCH_SEARCH_FORM = True
 
+# read hardware details of a device (chassis, modules, etc.). Disable to save read time.
+READ_HARDWARE_DETAILS = True
+
 # SNMP related settings, normally not needed to change.
 SNMP_TIMEOUT = 5  # in seconds
 SNMP_RETRIES = 3

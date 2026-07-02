@@ -165,6 +165,9 @@ TOPMENU_MAX_COLUMNS = getattr(configuration, "TOPMENU_MAX_COLUMNS", 4)
 # show the switch search form on home page
 SWITCH_SEARCH_FORM = getattr(configuration, "SWITCH_SEARCH_FORM", True)
 
+# read hardware details of a device (chassis, modules, etc.). Disable to save read time.
+READ_HARDWARE_DETAILS = getattr(configuration, "READ_HARDWARE_DETAILS", True)
+
 # snmp related constants
 SNMP_TIMEOUT = getattr(configuration, 'SNMP_TIMEOUT', 4)  # seconds before retry, see EasySNMP docs
 SNMP_RETRIES = getattr(configuration, 'SNMP_RETRIES', 3)  # retries before fail

@@ -381,25 +381,25 @@ class Connector:
                 self.add_warning("WARNING: device driver does not support 'get_my_basic_info()' !")
 
             # see if we can get hardware details from the driver:
-            if hasattr(self, "get_my_hardware_details"):
+            # this is optional, so we do not warn if not found!
+            if settings.READ_HARDWARE_DETAILS and hasattr(self, "get_my_hardware_details"):
                 start_time = time.time()
                 self.get_my_hardware_details()
                 self.add_timing("HW Info Read", 1, time.time() - start_time)
-            # this is optional, so we do not warn if not found!
 
             # see if we can get device health details from the driver:
+            # this is optional, so we do not warn if not found!
             if hasattr(self, "check_my_device_health"):
                 start_time = time.time()
                 self.check_my_device_health()
                 self.add_timing("Device Health", 1, time.time() - start_time)
-            # this is optional, so we do not warn if not found!
 
             # see if the driver has VRF support:
+            # this is optional, so we do not warn if not found!
             if hasattr(self, "get_my_vrfs"):
                 start_time = time.time()
                 self.get_my_vrfs()
                 self.add_timing("VRF Info Read", 1, time.time() - start_time)
-            # this is optional, so we do not warn if not found!
 
             # info about access times, etc.
             default_time = datetime.datetime(2000, 1, 1, 0, 0, 0, 0, datetime.timezone.utc)
