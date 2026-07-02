@@ -1221,7 +1221,7 @@ class InterfaceAdminChange(LoginRequiredMixin, SwitchActionMixin, MyView):
         )
 
 
-class InterfaceDescriptionChange(LoginRequiredMixin, View):
+class InterfaceDescriptionChange(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Change the description on an interfaces.
 
@@ -1245,26 +1245,21 @@ class InterfaceDescriptionChange(LoginRequiredMixin, View):
         dprint("InterfaceDescriptionChange() - POST called")
 
         # read the submitted form data:
-        # new_description = str(request.POST.get("new_description", ""))
         try:
-            description = request.POST["new_description"]
+            new_description = request.POST["new_description"]
         except Exception:
             error = Error()
             error.description = "Missing required parameter: 'new_description'"
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-        actions = DeviceActions(request, group_id, switch_id)
-        retval, error = actions.interface_description_change(
+        return self._dispatch_action(
+            request,
+            group_id,
+            switch_id,
+            "interface_description_change",
             interface_key=interface_name,
-            new_description=description,
+            new_description=new_description,
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
-
-        # we don't know the name of the interface, only the key or id.
-        # message = f"Interface {interface_name} description changed"
-        message = "Interface description changed"
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
 class InterfacePvidChange(LoginRequiredMixin, View):
