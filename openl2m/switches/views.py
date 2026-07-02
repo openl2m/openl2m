@@ -26,7 +26,6 @@ from django.shortcuts import redirect
 from django.template import Template, Context
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views import View
 
 
 from switches.device_actions import DeviceActions
@@ -166,7 +165,7 @@ def close_device(request):
             log.save()
 
 
-class Switches(LoginRequiredMixin, View):
+class Switches(LoginRequiredMixin, MyView):
     """
     This is the "home view", at "/"
     It shows the list of switches a user has access to
@@ -236,7 +235,7 @@ class Switches(LoginRequiredMixin, View):
         )
 
 
-class SwitchSearch(LoginRequiredMixin, View):
+class SwitchSearch(LoginRequiredMixin, MyView):
     """
     search for a switch by name
     """
@@ -316,7 +315,7 @@ class SwitchSearch(LoginRequiredMixin, View):
         )
 
 
-class SwitchBasics(LoginRequiredMixin, View):
+class SwitchBasics(LoginRequiredMixin, MyView):
     """
     "basic" switch view, i.e. interface data only.
     Simply call switch_view() with proper parameter
@@ -584,7 +583,7 @@ def switch_view(
 #
 # Bulk Edit interfaces on a switch
 #
-class SwitchBulkEdit(LoginRequiredMixin, SwitchPermissionMixin, View):
+class SwitchBulkEdit(LoginRequiredMixin, SwitchPermissionMixin, MyView):
     """
     Change several interfaces at once.
     """
@@ -1489,7 +1488,7 @@ class SwitchSaveConfig(LoginRequiredMixin, SwitchActionMixin, MyView):
         )
 
 
-class SwitchCmdOutput(LoginRequiredMixin, View):
+class SwitchCmdOutput(LoginRequiredMixin, MyView):
     """
     Go parse a global switch command that was submitted in the form
     """
@@ -1512,7 +1511,7 @@ class SwitchCmdOutput(LoginRequiredMixin, View):
         )
 
 
-class SwitchCmdTemplateOutput(LoginRequiredMixin, SwitchPermissionMixin, View):
+class SwitchCmdTemplateOutput(LoginRequiredMixin, SwitchPermissionMixin, MyView):
     """
     Go parse a switch command template that was submitted in the form
     """
@@ -1725,7 +1724,7 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, SwitchPermissionMixin, View):
         )
 
 
-class InterfaceCmdOutput(LoginRequiredMixin, View):
+class InterfaceCmdOutput(LoginRequiredMixin, MyView):
     """
     Parse the interface-specific command form and build the commands
     """
@@ -1785,7 +1784,7 @@ class SwitchReload(LoginRequiredMixin, SwitchPermissionMixin, MyView):
         return switch_view(request=request, group_id=group_id, switch_id=switch_id, view=view, save_needed=save_needed)
 
 
-class SwitchActivity(LoginRequiredMixin, SwitchPermissionMixin, View):
+class SwitchActivity(LoginRequiredMixin, SwitchPermissionMixin, MyView):
     """
     This shows recent activity logs for a specific device
     """
@@ -1845,7 +1844,7 @@ class SwitchActivity(LoginRequiredMixin, SwitchPermissionMixin, View):
         )
 
 
-class ShowStats(LoginRequiredMixin, View):
+class ShowStats(LoginRequiredMixin, MyView):
     """
     This shows various site statistics
     """
@@ -1886,7 +1885,7 @@ class ShowStats(LoginRequiredMixin, View):
         )
 
 
-class ShowTop(LoginRequiredMixin, View):
+class ShowTop(LoginRequiredMixin, MyView):
     """
     This shows various Top-N activity usage statistics
     """
@@ -1930,7 +1929,7 @@ class ShowTop(LoginRequiredMixin, View):
 #
 
 
-class SwitchAdminActivity(LoginRequiredMixin, View):
+class SwitchAdminActivity(LoginRequiredMixin, MyView):
     """
     This shows recent activity
     """
@@ -2023,7 +2022,7 @@ class SwitchAdminActivity(LoginRequiredMixin, View):
         )
 
 
-class SwitchAdminSettings(LoginRequiredMixin, View):
+class SwitchAdminSettings(LoginRequiredMixin, MyView):
     """
     This shows the Django settings.* variables
     """
@@ -2205,7 +2204,7 @@ class SwitchDownloadInterfaces(LoginRequiredMixin, MyView):
         return FileResponse(stream, as_attachment=True, filename=filename)
 
 
-class TestPage(LoginRequiredMixin, View):
+class TestPage(LoginRequiredMixin, MyView):
     """create a page to test html templates.
     For development only, available when DEBUG=true (see url.py)
     """
