@@ -1387,7 +1387,7 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
 #
 # Edit the untagged and 802.1q-tagged vlans on a port (interface)
 #
-class InterfaceTagsEdit(LoginRequiredMixin, View):
+class InterfaceTagsEdit(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Change the untagged and tagged vlans on an interface.
 
@@ -1456,18 +1456,16 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
         # if tagged_vlans = empty List(), then the interface should be in Access mode!
         # else it should be in Trunk or 802.1Q Tagged mode.
 
-        actions = DeviceActions(request, group_id, switch_id)
-        retval, info = actions.interface_tags_edit(
+        return self._dispatch_action(
+            request,
+            group_id,
+            switch_id,
+            "interface_tags_edit",
             interface_key=interface_name,
             pvid=pvid,
             tagged_vlans=tagged_vlans,
             allow_all=allow_all,
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-
-        message = f"Interface '{interface_name}' vlan and 802.1q tags were modified!"
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
 class SwitchSaveConfig(LoginRequiredMixin, SwitchActionMixin, MyView):
