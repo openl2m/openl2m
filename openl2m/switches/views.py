@@ -1103,7 +1103,7 @@ def parse_vlan_form_info(request):
 #
 # Create a new vlan on a device
 #
-class SwitchVlanCreate(LoginRequiredMixin, SwitchActionMixin, View):
+class SwitchVlanCreate(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Create a vlan on a device. Form data will be POST-ed.
 
@@ -1132,7 +1132,7 @@ class SwitchVlanCreate(LoginRequiredMixin, SwitchActionMixin, View):
 #
 # Update a vlan on a device
 #
-class SwitchVlanUpdate(LoginRequiredMixin, SwitchActionMixin, View):
+class SwitchVlanUpdate(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Update a vlan on a device. Form data will be POST-ed.
 
@@ -1161,7 +1161,7 @@ class SwitchVlanUpdate(LoginRequiredMixin, SwitchActionMixin, View):
 #
 # Delete a vlan on a device
 #
-class SwitchVlanDelete(LoginRequiredMixin, SwitchActionMixin, View):
+class SwitchVlanDelete(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Manage vlan to a device. Form data will be POST-ed.
 
