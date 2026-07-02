@@ -536,7 +536,7 @@ class DeviceActions:
 
         log = self._create_log(action=LOG_CHANGE_INTERFACE_VLANS)
 
-        dprint("CONNECTION type = {type(self.connection)}")
+        dprint(f"CONNECTION type = {type(self.connection)}")
         # verify we allow trunk editing and driver can handle interface mode change:
         if not settings.ALLOW_TAGS_EDIT or not self.connection.can_edit_tags:
             log.type = LOG_TYPE_ERROR
