@@ -186,6 +186,7 @@ from switches.connect.snmp.utils import (
     hex_string_to_ethernet,
     decimal_to_hex_string_ethernet,
     get_ip_from_sub_oid,
+    is_valid_snmp_set_type,
 )
 from switches.connect.utils import get_vlan_id_from_l3_interface
 from switches.constants import (
@@ -1008,11 +1009,31 @@ class SnmpConnector(Connector):
         # Set a variable using an SNMP SET.
         # ezsnmp v2.3 set() takes a flat list [oid, type, value, ...].
         # see https://carlkidcrypto.github.io/ezsnmp/html_v2.3.0/session_python.html#ezsnmp.session.Session.set
+        if not is_valid_snmp_set_type(snmp_type=snmp_type):
+            err_string = f"ERROR: invalid SNMP SET data type: {snmp_type}, for oid {oid}"
+            dprint(err_string)
+            self.error.status = True
+            self.error.description = "Invalid SNMP data type!"
+            self.error.details = err_string
+            return False
+
         self.error.clear()
         try:
             # self._snmp_session.set(oid=oid, value=value, snmp_type=snmp_type) - old EzSnmp v1.1
-            self._snmp_session.set([str(oid), str(snmp_type), str(value)])
-
+            results = self._snmp_session.set([str(oid), str(snmp_type), str(value)])
+            if not results:
+                # this "should" not happen...
+                self.error.status = True
+                self.error.description = "Empty result from SET command!"
+                dprint("ERROR in set() - Empty result from SET command!")
+                return False
+            #
+            # for item in results:
+            #     dprint(f"SET returned:\nOID: {item.oid}")
+            #     dprint(f"Index: {item.index}")
+            #     dprint(f"Value: {item.value}")
+            #     dprint(f"Type: {item.type}")
+            #     dprint("-----")
         except Exception as e:
             self.error.status = True
             self.error.description = "Access denied"
@@ -1041,9 +1062,20 @@ class SnmpConnector(Connector):
         # ezsnmp v2.3 no longer has set_multiple(); the single set() takes a flat list
         # of [oid, type, value, oid, type, value, ...] entries.
         # Note the type/value order is swapped vs. our (oid, value, type) input tuples.
+        #
+        # See the list of valid snmp_types in the comment above for self.set() !
+        #
         flat_args: list[str] = []
         for oid, value, snmp_type in oid_values:
-            flat_args.extend([str(oid), str(snmp_type), str(value)])
+            if is_valid_snmp_set_type(snmp_type=snmp_type):
+                flat_args.extend([str(oid), str(snmp_type), str(value)])
+            else:
+                err_string = f"ERROR: invalid SNMP SET data type: {snmp_type}, for oid {oid}"
+                dprint(err_string)
+                self.error.status = True
+                self.error.description = "Invalid SNMP data type!"
+                self.error.details = err_string
+                return False
 
         self.error.clear()
         try:
@@ -4222,7 +4254,7 @@ class SnmpConnector(Connector):
         if self.set(
             oid=f"{ifAlias}.{interface.index}",
             value=description,
-            snmp_type="OCTETSTRING",
+            snmp_type="s",
             parser=self._parse_mibs_if_x_table,
         ):
             super().set_interface_description(interface=interface, description=description)

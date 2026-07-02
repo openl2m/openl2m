@@ -25,6 +25,33 @@ from switches.connect.constants import IANA_TYPE_IPV4, IANA_TYPE_IPV6
 #
 
 
+def is_valid_snmp_set_type(snmp_type: str):
+    """Check if the 'snmp_type' is a valid string as used by the NetSnmp library.
+
+    Args:
+        snmp_type (str): the string type, e.g 'i', 'u', etc.
+
+    Returns:
+        (bool) - True if valid type, False if not.
+    """
+    # As set() calls the underlying 'snmpset' command from the Net-Snmp package,
+    # the valid values for snmp_type are:
+    # i: INTEGER — A signed 32-bit integer (e.g., snmpset ... OID i 1).
+    # u: UNSIGNED — An unsigned 32-bit integer, often used for Gauge32 values.
+    # s: STRING — A simple ASCII text string (e.g., snmpset ... OID s "example").
+    # x: HEX STRING — A string of hexadecimal pairs (e.g., snmpset ... OID x "0a 1b 2c").
+    # d: DECIMAL STRING — A string of decimal bytes separated by spaces.
+    # n: NULLOBJ — Used to set an object to a null value.
+    # o: OBJID — An Object Identifier (e.g., snmpset ... OID o .1.3.6.1.2.1.1.1.0).
+    # t: TIMETICKS — A time value in hundredths of a second.
+    # a: IPADDRESS — An IPv4 address (e.g., snmpset ... OID a 192.168.1.1).
+    # b: BITS — A set of named or numbered bits.
+    valid_types = ("i", "u", "s", "x", "d", "n", "o", "t", "a", "b")
+    if snmp_type in valid_types:
+        return True
+    return False
+
+
 def decimal_to_hex_string_ethernet(decimals: str) -> str:
     """
     Convert SNMP decimal ethernet string "5.12.13.78.90.100"
