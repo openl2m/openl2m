@@ -487,24 +487,28 @@ class SnmpConnectorComware(SnmpConnector):
         )
 
         # first call HH3C specific attribute to set port to untagged or trunk
-        if allow_all or len(tagged_vlans):
+        if allow_all or tagged_vlans:
             dprint("  Setting TRUNK mode")
             success = self.set(
                 oid=f"{hh3cifVLANType}.{interface.port_id}", value=HH3C_IF_MODE_TRUNK, snmp_type="i", parser=False
             )
             if success:
+                dprint("  Set Trunk OK!")
                 # if the interface was in Access mode, setting to Trunk resets the untagged vlan to 1.
                 # Set it back to where it was if not interface.is_tagged:
                 if not interface.is_tagged:
+                    dprint("  Setting Tagged Mode")
                     success = SnmpConnector.set_interface_untagged_vlan(
                         self=self, interface=interface, new_vlan_id=untagged_vlan
                     )
                     if not success:
+                        dprint("ERROR in SnmpConnector.set_interface_untagged_vlan() ")
                         # Error() already set!
                         return False
 
                 time.sleep(0.5)
                 # we call the regular SnmpConnector() to set the various PVID and trunk bitmaps
+                dprint("  Calling super().set_interface_vlans()")
                 return super().set_interface_vlans(
                     interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
                 )
@@ -517,7 +521,7 @@ class SnmpConnectorComware(SnmpConnector):
             oid=f"{hh3cifVLANType}.{interface.port_id}", value=HH3C_IF_MODE_ACCESS, snmp_type="i", parser=False
         )
         if success:
-            dprint("  Setting PVID")
+            dprint("  Access OK, Setting PVID")
             #
             # get snmp helper to handle bitmapping
             #
