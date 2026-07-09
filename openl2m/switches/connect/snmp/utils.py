@@ -98,12 +98,14 @@ def hex_string_to_ethernet(hex_string: str) -> str:
     # clean:
     # ====> SNMP READ: .1.3.6.1.2.1.4.22.1.2.2024.10.224.64.32 Hex-STRING = '00 02 C9 56 33 5B'
     # _parse_mibs_net_to_media() OID=.1.3.6.1.2.1.4.22.1.2.2024.10.224.64.32 = '00 02 C9 56 33 5B'
-    # error:
+    # error, bytes string instead of hex string:
     # ====> SNMP READ: .1.3.6.1.2.1.4.22.1.2.2024.10.224.64.34 STRING = 'PkKl%0'
     # _parse_mibs_net_to_media() OID=.1.3.6.1.2.1.4.22.1.2.2024.10.224.64.34 = 'PkKl%0'
 
     if len(hex_string) == 17:
         return ":".join(hex_string.split()).lower()
+    if len(hex_string) == 6:    # bytes representation as string!
+        return ":".join("%02x" % ord(b) for b in hex_string)
     return ""
 
 
