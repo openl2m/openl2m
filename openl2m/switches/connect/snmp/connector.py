@@ -868,6 +868,19 @@ class SnmpConnector(Connector):
         oid_found = f"{results[0].oid}.{results[0].index}"
         dprint(f"\n====> SNMP GET: {oid_found} {results[0].type} = {results[0].value}")
 
+        if results[0].type == "NOSUCHINSTANCE":
+            self.error.status = True
+            self.error.description = "Instance NOT found"
+            self.error.details = f"SNMP Get Error for oid '{oid}': Instance NOT Found!"
+            # log this as well
+            self.add_log(
+                type=LOG_TYPE_ERROR,
+                action=LOG_SNMP_ERROR,
+                description=f"SNMP Get Error for oid '{oid}': Instance NOT Found!",
+            )
+            dprint(f"   NOSUCHINSTANCE ERROR in get() for oid {oid}")
+            return (True, None)
+
         # fix-up EzSnmp 2 returning some "STRING" types with extra \"<string>\" quotes.
         clean_value = self._clean_quotes_from_snmp_string(data_type=results[0].type, value=results[0].value)
 
@@ -952,6 +965,16 @@ class SnmpConnector(Connector):
                 else:
                     printable_value = item.value
                 dprint(f"\n====> SNMP READ: {oid_found} {item.type} = '{printable_value}'")
+
+            if item.type == "NOSUCHINSTANCE":
+                # log this
+                self.add_log(
+                    type=LOG_TYPE_ERROR,
+                    action=LOG_SNMP_ERROR,
+                    description=f"ERROR in get_snmp_branch(): oid '{oid_found}' returned No Such Instance!",
+                )
+
+                continue
 
             # fix-up EzSnmp 2 returning some "STRING" types with extra \"<string>\" quotes.
             clean_value = self._clean_quotes_from_snmp_string(data_type=item.type, value=item.value)
