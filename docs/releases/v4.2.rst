@@ -21,6 +21,19 @@ New Configuration Options
     READ_HARDWARE_DETAILS = True
 
 
+Version 4.2.1
+-------------
+
+Release Date: TBD
+
+* Add ability to Download, or Copy-to-Clipboard the output of commands run on a switch.
+  Contributed by Jisnu (https://github.com/ZEUSGMJ)
+
+Bug fixes:
+
+* fix disable hardware read functionality on HPE Comware REST driver.
+
+
 Version 4.2
 -----------
 
