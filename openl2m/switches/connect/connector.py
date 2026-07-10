@@ -382,7 +382,12 @@ class Connector:
 
             # see if we can get hardware details from the driver:
             # this is optional, so we do not warn if not found!
-            if settings.READ_HARDWARE_DETAILS and hasattr(self, "get_my_hardware_details"):
+            if (
+                settings.READ_HARDWARE_DETAILS
+                and self.read_hardware_details
+                and self.switchgroup.read_hardware_details
+                and hasattr(self, "get_my_hardware_details")
+            ):
                 start_time = time.time()
                 self.get_my_hardware_details()
                 self.add_timing("HW Info Read", 1, time.time() - start_time)
