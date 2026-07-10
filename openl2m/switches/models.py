@@ -308,8 +308,8 @@ class Command(models.Model):
         This is used in templates, so we can 'annotate' as needed
         """
         if self.os:
-            return f"{self.name} ({self.os} - {self.get_type_display()})"   # pylint: disable=no-member
-        return f"{self.name} ({self.get_type_display()})"   # pylint: disable=no-member
+            return f"{self.name} ({self.os} - {self.get_type_display()})"  # pylint: disable=no-member
+        return f"{self.name} ({self.get_type_display()})"  # pylint: disable=no-member
 
     def __str__(self):
         return self.display_name()
@@ -768,7 +768,7 @@ class VlanGroup(models.Model):
         """
         This is used in templates, so we can 'annotate' as needed
         """
-        return self.name
+        return str(self.name)
 
     def __str__(self):
         return self.display_name()
@@ -992,7 +992,7 @@ class Switch(models.Model):
         if not self.id:
             self.created = timezone.now()
         self.modified = timezone.now()
-        return super(Switch, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
     def update_access(self):
         """
@@ -1001,7 +1001,7 @@ class Switch(models.Model):
         self.last_accessed = timezone.now()
         self.access_count += 1
         # call super.save(), instead of calling our own save (which sets modified as well!)
-        super(Switch, self).save()
+        super().save()
 
     def update_change(self):
         """
@@ -1194,7 +1194,9 @@ class SwitchGroup(models.Model):
     # def sorted_switches(self):
     #    return self.switches.order_by("order")
     allow_all_vlans = models.BooleanField(
-        default=False, verbose_name="Allow All Vlans", help_text="If set, allow access to all vlans on devices in this group."
+        default=False,
+        verbose_name="Allow All Vlans",
+        help_text="If set, allow access to all vlans on devices in this group.",
     )
     vlan_groups = models.ManyToManyField(
         to="VlanGroup",
@@ -1355,7 +1357,9 @@ class Log(models.Model):
                 # even if you delete the object. this is a 'globally' defined logger in apps.py :
                 syslogger = logging.getLogger("openl2m_log_to_syslog")
                 if not syslogger.hasHandlers():
-                    handler = logging.handlers.SysLogHandler(address=(settings.SYSLOG_HOST, settings.SYSLOG_PORT), facility=settings.SYSLOG_FACILITY)
+                    handler = logging.handlers.SysLogHandler(
+                        address=(settings.SYSLOG_HOST, settings.SYSLOG_PORT), facility=settings.SYSLOG_FACILITY
+                    )
                     syslogger.addHandler(handler)
                 syslogger.setLevel(settings.SYSLOG_LEVEL)
                 # syslogger.setLevel(logging.DEBUG)
@@ -1398,7 +1402,7 @@ class Log(models.Model):
             if self.if_name:
                 log_dict["interface"] = self.if_name
         log_dict["description"] = self.description
-        return f"openl2m: {json.dumps(log_dict)}"   # in the Unix world, standard is LC for logging process name
+        return f"openl2m: {json.dumps(log_dict)}"  # in the Unix world, standard is LC for logging process name
 
     def display_name(self):
         """
