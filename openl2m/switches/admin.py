@@ -106,6 +106,7 @@ class SwitchAdmin(admin.ModelAdmin):
                     "bulk_edit",
                     "allow_poe_toggle",
                     "edit_if_descr",
+                    "read_hardware_details",
                 )
             },
         ),
@@ -191,6 +192,7 @@ class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
                     "bulk_edit",
                     "allow_poe_toggle",
                     "edit_if_descr",
+                    "read_hardware_details",
                     "comments",
                 ),
             },

@@ -873,6 +873,11 @@ class Switch(models.Model):
         verbose_name="Edit Port Description",
         help_text="If set, allow interface descriptions to be edited.",
     )
+    read_hardware_details = models.BooleanField(
+        default=True,
+        verbose_name="Read Hardware Details",
+        help_text="If set, read hardware details from device.",
+    )
     status = models.PositiveSmallIntegerField(
         choices=constants.SWITCH_STATUS_CHOICES,
         default=constants.SWITCH_STATUS_ACTIVE,
@@ -1147,22 +1152,27 @@ class SwitchGroup(models.Model):
     read_only = models.BooleanField(
         default=False,
         verbose_name="Read-Only access",
-        help_text="If checked, the devices in this group are read-only for all users.",
+        help_text="If checked, devices in this group are read-only for all users.",
     )
     bulk_edit = models.BooleanField(
         default=True,
         verbose_name="Bulk-editing of interfaces",
-        help_text="If Bulk Edit is set, we can edit multiple interfaces at once on the switches in this group.",
+        help_text="If Bulk Edit is set, we can edit multiple interfaces at once on devices in this group.",
     )
     allow_poe_toggle = models.BooleanField(
         default=False,
         verbose_name="Poe Toggle All",
-        help_text="If set, allow PoE toggle on all interfaces",
+        help_text="If set, allow PoE toggle on all interfaces on devices in this group.",
     )
     edit_if_descr = models.BooleanField(
         default=True,
         verbose_name="Edit Port Description",
-        help_text="If set, allow interface descriptions to be edited.",
+        help_text="If set, allow interface descriptions to be edited on devices in this group.",
+    )
+    read_hardware_details = models.BooleanField(
+        default=True,
+        verbose_name="Read Hardware Details",
+        help_text="If set, allow reading hardware details from devices in this group.",
     )
     switches = models.ManyToManyField(
         to="Switch",
@@ -1184,7 +1194,7 @@ class SwitchGroup(models.Model):
     # def sorted_switches(self):
     #    return self.switches.order_by("order")
     allow_all_vlans = models.BooleanField(
-        default=False, verbose_name="Allow All Vlans", help_text="If set, allow access to all vlans."
+        default=False, verbose_name="Allow All Vlans", help_text="If set, allow access to all vlans on devices in this group."
     )
     vlan_groups = models.ManyToManyField(
         to="VlanGroup",
