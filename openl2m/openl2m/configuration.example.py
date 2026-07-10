@@ -501,6 +501,12 @@ TOPMENU_MAX_COLUMNS = 4
 # show the switch search form in nav bar
 SWITCH_SEARCH_FORM = True
 
+# Globally enable or disable reading of hardware details of all devices.
+# Disable to save read time, but this will not show stacked chassis info, etc.
+# Note: in the admin interface you can also disabled this
+# per Switch Group, or for individual devices (Switches)
+READ_HARDWARE_DETAILS = True
+
 # SNMP related settings, normally not needed to change.
 SNMP_TIMEOUT = 5  # in seconds
 SNMP_RETRIES = 3

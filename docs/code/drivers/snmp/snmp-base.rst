@@ -36,13 +36,13 @@ In the parsing loop, the returned data is passed to the parser function specifie
 EzSnmp Library use
 --------------------
 
-We use the Session() interface from the Python "EzSnmp" library. This calls the net-snmp package of the OS.
+We use the Session() interface from the Python "EzSnmp v2.x" library. This calls the net-snmp package of the OS.
 Use of the native library gives significant performance improvements over the pure Python *pysnmp* library.
 The EzSNMP documentation has helpful examples. This session is stored in *SnmpConnector()._snmp_session*
 
-Vlan manipulation via snmp requires dealing with bitmap fields that are represented in OctetString snmp data types.
+Vlan manipulation via snmp "set calls" requires dealing with bitmap fields that are represented in OctetString snmp data types.
 EzSNMP has a hard time dealing with this due to how it internally translates everything to/from Python Unicode strings.
-So we use the *pysnmp* library to handle these special cases only. See more below.
+So we use the *pysnmp* library to handle "setting" these special cases only. See more below.
 
 *Note: EzSNMP is the maintained successor of the original "Easy SNMP" library, which now is stale. (Summer 2024)*
 

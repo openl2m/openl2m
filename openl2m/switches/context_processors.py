@@ -23,6 +23,7 @@ from switches import constants
 from switches.connect import constants as if_constants
 
 
+# pylint: disable=unused-argument
 def add_variables(request):
     # the list of variables and constants that need to be available in all templates
     return {

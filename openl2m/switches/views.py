@@ -26,10 +26,6 @@ from django.shortcuts import redirect
 from django.template import Template, Context
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views import View
-
-
-from switches.device_actions import DeviceActions
 
 from switches.connect.classes import Error
 from switches.models import (
@@ -106,7 +102,6 @@ from switches.utils import (
     success_page,
     warning_page,
     error_page,
-    success_page_by_id,
     error_page_by_id,
     dprint,
     get_from_http_session,
@@ -166,7 +161,7 @@ def close_device(request):
             log.save()
 
 
-class Switches(LoginRequiredMixin, View):
+class Switches(LoginRequiredMixin, MyView):
     """
     This is the "home view", at "/"
     It shows the list of switches a user has access to
@@ -236,7 +231,7 @@ class Switches(LoginRequiredMixin, View):
         )
 
 
-class SwitchSearch(LoginRequiredMixin, View):
+class SwitchSearch(LoginRequiredMixin, MyView):
     """
     search for a switch by name
     """
@@ -316,7 +311,7 @@ class SwitchSearch(LoginRequiredMixin, View):
         )
 
 
-class SwitchBasics(LoginRequiredMixin, View):
+class SwitchBasics(LoginRequiredMixin, MyView):
     """
     "basic" switch view, i.e. interface data only.
     Simply call switch_view() with proper parameter
@@ -584,7 +579,7 @@ def switch_view(
 #
 # Bulk Edit interfaces on a switch
 #
-class SwitchBulkEdit(LoginRequiredMixin, SwitchPermissionMixin, View):
+class SwitchBulkEdit(LoginRequiredMixin, SwitchPermissionMixin, MyView):
     """
     Change several interfaces at once.
     """
@@ -1103,7 +1098,7 @@ def parse_vlan_form_info(request):
 #
 # Create a new vlan on a device
 #
-class SwitchVlanCreate(LoginRequiredMixin, SwitchActionMixin, View):
+class SwitchVlanCreate(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Create a vlan on a device. Form data will be POST-ed.
 
@@ -1132,7 +1127,7 @@ class SwitchVlanCreate(LoginRequiredMixin, SwitchActionMixin, View):
 #
 # Update a vlan on a device
 #
-class SwitchVlanUpdate(LoginRequiredMixin, SwitchActionMixin, View):
+class SwitchVlanUpdate(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Update a vlan on a device. Form data will be POST-ed.
 
@@ -1161,7 +1156,7 @@ class SwitchVlanUpdate(LoginRequiredMixin, SwitchActionMixin, View):
 #
 # Delete a vlan on a device
 #
-class SwitchVlanDelete(LoginRequiredMixin, SwitchActionMixin, View):
+class SwitchVlanDelete(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Manage vlan to a device. Form data will be POST-ed.
 
@@ -1221,7 +1216,7 @@ class InterfaceAdminChange(LoginRequiredMixin, SwitchActionMixin, MyView):
         )
 
 
-class InterfaceDescriptionChange(LoginRequiredMixin, View):
+class InterfaceDescriptionChange(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Change the description on an interfaces.
 
@@ -1245,29 +1240,24 @@ class InterfaceDescriptionChange(LoginRequiredMixin, View):
         dprint("InterfaceDescriptionChange() - POST called")
 
         # read the submitted form data:
-        # new_description = str(request.POST.get("new_description", ""))
         try:
-            description = request.POST["new_description"]
+            new_description = request.POST["new_description"]
         except Exception:
             error = Error()
             error.description = "Missing required parameter: 'new_description'"
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-        actions = DeviceActions(request, group_id, switch_id)
-        retval, error = actions.interface_description_change(
+        return self._dispatch_action(
+            request,
+            group_id,
+            switch_id,
+            "interface_description_change",
             interface_key=interface_name,
-            new_description=description,
+            new_description=new_description,
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
-
-        # we don't know the name of the interface, only the key or id.
-        # message = f"Interface {interface_name} description changed"
-        message = "Interface description changed"
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
-class InterfacePvidChange(LoginRequiredMixin, View):
+class InterfacePvidChange(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Change the PVID untagged vlan on an interfaces.
     This still needs to handle dot1q tagged ("trunk") ports.
@@ -1299,15 +1289,14 @@ class InterfacePvidChange(LoginRequiredMixin, View):
             error.description = "Missing required parameter: 'new_pvid'"
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
 
-        actions = DeviceActions(request, group_id, switch_id)
-        retval, info = actions.interface_pvid_change(
+        return self._dispatch_action(
+            request,
+            group_id,
+            switch_id,
+            "interface_pvid_change",
             interface_key=interface_name,
             new_pvid=new_pvid,
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=info.description)
 
 
 #
@@ -1352,7 +1341,7 @@ class InterfacePoeChange(LoginRequiredMixin, SwitchActionMixin, MyView):
 #
 # Toggle PoE status Down then Up
 #
-class InterfacePoeDownUp(LoginRequiredMixin, MyView):
+class InterfacePoeDownUp(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Toggle the PoE status of an interfaces. I.e disable, wait some, then enable again.
     """
@@ -1365,35 +1354,19 @@ class InterfacePoeDownUp(LoginRequiredMixin, MyView):
         interface_name,
     ):
         dprint("InterfacePoeDownUp() - POST called")
-        actions = DeviceActions(request, group_id, switch_id)
-
-        # disable power first:
-        retval, info = actions.interface_poe_change(
+        return self._dispatch_action(
+            request,
+            group_id,
+            switch_id,
+            "interface_poe_down_up",
             interface_key=interface_name,
-            new_state=False,
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-
-        # delay to let the device cold-boot properly
-        time.sleep(settings.POE_TOGGLE_DELAY)
-
-        # and enable again:
-        retval, info = actions.interface_poe_change(
-            interface_key=interface_name,
-            new_state=True,
-        )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-
-        description = "Interface PoE was toggled!"
-        return success_page_by_id(request=request, group_id=group_id, switch_id=switch_id, message=description)
 
 
 #
 # Edit the untagged and 802.1q-tagged vlans on a port (interface)
 #
-class InterfaceTagsEdit(LoginRequiredMixin, View):
+class InterfaceTagsEdit(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Change the untagged and tagged vlans on an interface.
 
@@ -1431,7 +1404,7 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
             pvid = int(request.POST.get("pvid"))
         except Exception as err:
             info = Error()
-            info.description = "Missing or invalid required parameter: 'new_pvid'"
+            info.description = "Missing or invalid required parameter: 'pvid'"
             info.details = err
             return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
 
@@ -1462,18 +1435,16 @@ class InterfaceTagsEdit(LoginRequiredMixin, View):
         # if tagged_vlans = empty List(), then the interface should be in Access mode!
         # else it should be in Trunk or 802.1Q Tagged mode.
 
-        actions = DeviceActions(request, group_id, switch_id)
-        retval, info = actions.interface_tags_edit(
+        return self._dispatch_action(
+            request,
+            group_id,
+            switch_id,
+            "interface_tags_edit",
             interface_key=interface_name,
             pvid=pvid,
             tagged_vlans=tagged_vlans,
             allow_all=allow_all,
         )
-        if not retval:
-            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
-
-        message = f"Interface '{interface_name}' vlan and 802.1q tags were modified!"
-        return success_page_by_id(request, group_id=group_id, switch_id=switch_id, message=message)
 
 
 class SwitchSaveConfig(LoginRequiredMixin, SwitchActionMixin, MyView):
@@ -1497,7 +1468,7 @@ class SwitchSaveConfig(LoginRequiredMixin, SwitchActionMixin, MyView):
         )
 
 
-class SwitchCmdOutput(LoginRequiredMixin, View):
+class SwitchCmdOutput(LoginRequiredMixin, MyView):
     """
     Go parse a global switch command that was submitted in the form
     """
@@ -1520,7 +1491,7 @@ class SwitchCmdOutput(LoginRequiredMixin, View):
         )
 
 
-class SwitchCmdTemplateOutput(LoginRequiredMixin, SwitchPermissionMixin, View):
+class SwitchCmdTemplateOutput(LoginRequiredMixin, SwitchPermissionMixin, MyView):
     """
     Go parse a switch command template that was submitted in the form
     """
@@ -1733,7 +1704,7 @@ class SwitchCmdTemplateOutput(LoginRequiredMixin, SwitchPermissionMixin, View):
         )
 
 
-class InterfaceCmdOutput(LoginRequiredMixin, View):
+class InterfaceCmdOutput(LoginRequiredMixin, MyView):
     """
     Parse the interface-specific command form and build the commands
     """
@@ -1793,7 +1764,7 @@ class SwitchReload(LoginRequiredMixin, SwitchPermissionMixin, MyView):
         return switch_view(request=request, group_id=group_id, switch_id=switch_id, view=view, save_needed=save_needed)
 
 
-class SwitchActivity(LoginRequiredMixin, SwitchPermissionMixin, View):
+class SwitchActivity(LoginRequiredMixin, SwitchPermissionMixin, MyView):
     """
     This shows recent activity logs for a specific device
     """
@@ -1853,7 +1824,7 @@ class SwitchActivity(LoginRequiredMixin, SwitchPermissionMixin, View):
         )
 
 
-class ShowStats(LoginRequiredMixin, View):
+class ShowStats(LoginRequiredMixin, MyView):
     """
     This shows various site statistics
     """
@@ -1894,7 +1865,7 @@ class ShowStats(LoginRequiredMixin, View):
         )
 
 
-class ShowTop(LoginRequiredMixin, View):
+class ShowTop(LoginRequiredMixin, MyView):
     """
     This shows various Top-N activity usage statistics
     """
@@ -1938,7 +1909,7 @@ class ShowTop(LoginRequiredMixin, View):
 #
 
 
-class SwitchAdminActivity(LoginRequiredMixin, View):
+class SwitchAdminActivity(LoginRequiredMixin, MyView):
     """
     This shows recent activity
     """
@@ -2031,7 +2002,7 @@ class SwitchAdminActivity(LoginRequiredMixin, View):
         )
 
 
-class SwitchAdminSettings(LoginRequiredMixin, View):
+class SwitchAdminSettings(LoginRequiredMixin, MyView):
     """
     This shows the Django settings.* variables
     """
@@ -2140,21 +2111,21 @@ class SwitchDownloadEthernetAndNeighbors(LoginRequiredMixin, MyView):
             type=LOG_TYPE_VIEW,
             action=LOG_VIEW_DOWNLOAD_ARP_LLDP,
         )
-        # load ethernet, neighbor info, etc. again
-        try:
-            if not connection.get_client_data():
-                log.type = LOG_TYPE_ERROR
-                log.description = "ERROR get_client_data()"
-                log.save()
-                return error_page(request=request, group=group, switch=switch, error=connection.error)
-        except Exception as e:
-            log.type = LOG_TYPE_ERROR
-            log.description = (
-                f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
-            )
-            dprint(log.description)
-            log.save()
-            return error_page(request=request, group=group, switch=switch, error=connection.error)
+        # # load ethernet, neighbor info, etc. again
+        # try:
+        #     if not connection.get_client_data():
+        #         log.type = LOG_TYPE_ERROR
+        #         log.description = "ERROR get_client_data()"
+        #         log.save()
+        #         return error_page(request=request, group=group, switch=switch, error=connection.error)
+        # except Exception as e:
+        #     log.type = LOG_TYPE_ERROR
+        #     log.description = (
+        #         f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+        #     )
+        #     dprint(log.description)
+        #     log.save()
+        #     return error_page(request=request, group=group, switch=switch, error=connection.error)
 
         # create a temp file with the spreadsheet
         stream, error = create_eth_neighbor_xls_file(connection)
@@ -2213,7 +2184,7 @@ class SwitchDownloadInterfaces(LoginRequiredMixin, MyView):
         return FileResponse(stream, as_attachment=True, filename=filename)
 
 
-class TestPage(LoginRequiredMixin, View):
+class TestPage(LoginRequiredMixin, MyView):
     """create a page to test html templates.
     For development only, available when DEBUG=true (see url.py)
     """

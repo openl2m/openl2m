@@ -180,11 +180,15 @@ def dvar(var, header: str = ""):
     if settings.DEBUG:
         if header:
             logger_console.debug(header)
+        else:
+            logger_console.debug("--- start dvar() ---")
+        logger_console.debug("Type=%s", type(var))
         # built-in types:
         if isinstance(var, (float, int, str, list, dict, tuple)):
             logger_console.debug(pprint.pformat(var))
         else:
-            logger_console.debug("Type: %s, Values:", type(var))
+            logger_console.debug("Values:")
+            # logger_console.debug(pprint.pformat(var))
             # use inspect.getmembers() to find attributes that are not functions:
             attribs = inspect.getmembers(var, lambda a: not inspect.isroutine(a))
             for attrib in attribs:
@@ -193,6 +197,7 @@ def dvar(var, header: str = ""):
                 # skip dunder (__) objects:
                 if not attrib[0].startswith("__"):
                     logger_console.debug(pprint.pformat(attrib))
+        logger_console.debug("--- end dvar() ---")
 
 
 def time_duration(seconds: int) -> str:
@@ -255,7 +260,8 @@ def get_remote_ip(request: HttpRequest) -> str:
     """
     if request:
         # see: https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django
-        (ip, routable) = get_client_ip(request)  # we need the request variable from the view!
+        # return ip, routable
+        ip, _ = get_client_ip(request)  # we need the request variable from the view!
         if ip is None:
             return "0.0.0.0"
         return str(ip)
@@ -358,7 +364,8 @@ def get_ip_dns_name(ip: str) -> str:
     """
     try:
         # we use 'name required' to force an exception if reverse lookup not found:
-        (hostname, port_name) = socket.getnameinfo((str(ip), 0), socket.NI_NAMEREQD)
+        # returns hostname, portname
+        hostname, _ = socket.getnameinfo((str(ip), 0), socket.NI_NAMEREQD)
     except Exception:
         hostname = ""
     return hostname

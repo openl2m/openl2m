@@ -12,16 +12,44 @@
 # License along with OpenL2M. If not, see <http://www.gnu.org/licenses/>.
 #
 import ipaddress
-import netaddr
 import struct
 
-from django.conf import settings
+# import netaddr
+
+# from django.conf import settings
 from switches.utils import dprint
 from switches.connect.constants import IANA_TYPE_IPV4, IANA_TYPE_IPV6
 
-"""
-This file contains SNMP utility functions
-"""
+#
+# This file contains SNMP utility functions
+#
+
+
+def is_valid_snmp_set_type(snmp_type: str):
+    """Check if the 'snmp_type' is a valid string as used by the NetSnmp library.
+
+    Args:
+        snmp_type (str): the string type, e.g 'i', 'u', etc.
+
+    Returns:
+        (bool) - True if valid type, False if not.
+    """
+    # As set() calls the underlying 'snmpset' command from the Net-Snmp package,
+    # the valid values for snmp_type are:
+    # i: INTEGER — A signed 32-bit integer (e.g., snmpset ... OID i 1).
+    # u: UNSIGNED — An unsigned 32-bit integer, often used for Gauge32 values.
+    # s: STRING — A simple ASCII text string (e.g., snmpset ... OID s "example").
+    # x: HEX STRING — A string of hexadecimal pairs (e.g., snmpset ... OID x "0a 1b 2c").
+    # d: DECIMAL STRING — A string of decimal bytes separated by spaces.
+    # n: NULLOBJ — Used to set an object to a null value.
+    # o: OBJID — An Object Identifier (e.g., snmpset ... OID o .1.3.6.1.2.1.1.1.0).
+    # t: TIMETICKS — A time value in hundredths of a second.
+    # a: IPADDRESS — An IPv4 address (e.g., snmpset ... OID a 192.168.1.1).
+    # b: BITS — A set of named or numbered bits.
+    valid_types = ("i", "u", "s", "x", "d", "n", "o", "t", "a", "b")
+    if snmp_type in valid_types:
+        return True
+    return False
 
 
 def decimal_to_hex_string_ethernet(decimals: str) -> str:
@@ -29,31 +57,55 @@ def decimal_to_hex_string_ethernet(decimals: str) -> str:
     Convert SNMP decimal ethernet string "5.12.13.78.90.100"
     to hex value and colon-string "05:0c:0d:4e:5a:64"
     """
-    bytes = decimals.split(".")
-    if len(bytes) == 6:
+    eth_bytes = decimals.split(".")
+    if len(eth_bytes) == 6:
         mac = ""
-        for byte in bytes:
-            h = "%02X" % int(byte)
+        for byte in eth_bytes:
+            h = "%02X" % int(byte)  # pylint: disable=consider-using-f-string
             if not mac:
                 mac += h
             else:
-                mac += ":%s" % h
+                mac += ":%s" % h  # pylint: disable=consider-using-f-string
         return mac
     return "00:00:00:00:00:00"
 
 
-def bytes_ethernet_to_string(bytes: str) -> str:
+# EsSnmp v1 "ethernet" snmp return value parsing. No longer used...
+# def bytes_ethernet_to_string(bytes: str) -> str:
+#     """
+#     Convert SNMP ethernet in 6-byte octetstring to the selected ethernet string format.
+#     """
+#     if len(bytes) == 6:
+#         eth_string = ":".join("%02X" % ord(b) for b in bytes)
+#         dprint(f"bytes_ethernet_to_string() for {eth_string}")
+#         # we use the netaddr library here to make it easy on ourselves to convert to the version wanted:
+#         eth = netaddr.EUI(eth_string)
+#         # make sure we use consistent string representation of this ethernet address:
+#         eth.dialect = settings.MAC_DIALECT
+#         return str(eth)
+#     return ""
+
+
+# EsSnmp v2 "ethernet" snmp return value parsing.
+def hex_string_to_ethernet(hex_string: str) -> str:
     """
-    Convert SNMP ethernet in 6-byte octetstring to the selected ethernet string format.
+    Convert a space-separated hex string "00 00 5E 00 01 65"
+    into an ethernet string "00:00:5e:00:01:65"
+
+    Note this does NO validation at all!
     """
-    if len(bytes) == 6:
-        eth_string = ":".join("%02X" % ord(b) for b in bytes)
-        dprint(f"bytes_ethernet_to_string() for {eth_string}")
-        # we use the netaddr library here to make it easy on ourselves to convert to the version wanted:
-        eth = netaddr.EUI(eth_string)
-        # make sure we use consistent string representation of this ethernet address:
-        eth.dialect = settings.MAC_DIALECT
-        return str(eth)
+    # do a quick validation of the data as we have seen some strange return data from ezsnmp v2.3:
+    # clean:
+    # ====> SNMP READ: .1.3.6.1.2.1.4.22.1.2.2024.10.224.64.32 Hex-STRING = '00 02 C9 56 33 5B'
+    # _parse_mibs_net_to_media() OID=.1.3.6.1.2.1.4.22.1.2.2024.10.224.64.32 = '00 02 C9 56 33 5B'
+    # error, bytes string instead of hex string:
+    # ====> SNMP READ: .1.3.6.1.2.1.4.22.1.2.2024.10.224.64.34 STRING = 'PkKl%0'
+    # _parse_mibs_net_to_media() OID=.1.3.6.1.2.1.4.22.1.2.2024.10.224.64.34 = 'PkKl%0'
+
+    if len(hex_string) == 17:
+        return ":".join(hex_string.split()).lower()
+    if len(hex_string) == 6:    # bytes representation as string!
+        return ":".join("%02x" % ord(b) for b in hex_string)
     return ""
 
 
@@ -109,10 +161,9 @@ def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
             if ipv6.version == 6:  # valid!
                 dprint(f"  IPv6={ipv6}")
                 return str(ipv6)
-            else:
-                # invalid!
-                dprint(f"  INVALID Ipv6 conversion, version return: {ipv6.version}")
-                return ""
+            # invalid!
+            dprint(f"  INVALID Ipv6 conversion, version return: {ipv6.version}")
+            return ""
         except Exception as err:
             dprint(f"  IPv6 conversion failed - {err}")
             return ""

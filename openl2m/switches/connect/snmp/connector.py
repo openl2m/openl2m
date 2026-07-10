@@ -183,9 +183,10 @@ from switches.connect.snmp.constants import (
     vlan_destroy,
 )
 from switches.connect.snmp.utils import (
-    bytes_ethernet_to_string,
+    hex_string_to_ethernet,
     decimal_to_hex_string_ethernet,
     get_ip_from_sub_oid,
+    is_valid_snmp_set_type,
 )
 from switches.connect.utils import get_vlan_id_from_l3_interface
 from switches.constants import (
@@ -685,11 +686,13 @@ class SnmpConnector(Connector):
                     hostname=self.switch.primary_ip4,
                     version=snmp_profile.version,
                     community=community,
-                    remote_port=snmp_profile.udp_port,
-                    use_numeric=True,
-                    use_sprint_value=False,
+                    port_number=snmp_profile.udp_port,
+                    print_oids_numerically=True,
+                    print_enums_numerically=True,
+                    print_timeticks_numerically=True,
                     timeout=settings.SNMP_TIMEOUT,
                     retries=settings.SNMP_RETRIES,
+                    set_max_repeaters_to_num=settings.SNMP_MAX_REPETITIONS,
                 )
             except Exception as err:
                 dprint(f"ERROR with snmp v2 session: {repr(err)}")
@@ -709,12 +712,12 @@ class SnmpConnector(Connector):
             # NoAuthNoPriv
             if snmp_profile.sec_level == SNMP_V3_SECURITY_NOAUTH_NOPRIV:
                 dprint("version 3 NoAuth-NoPriv")
-                security_level = "no_auth_or_privacy"
+                security_level = "noAuthNoPriv"
 
             # AuthNoPriv
             elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_NOPRIV:
                 dprint("version 3 Auth-NoPriv")
-                security_level = "auth_without_privacy"
+                security_level = "authNoPriv"
                 if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
                     auth_protocol = "MD5"
                 elif snmp_profile.auth_protocol == SNMP_V3_AUTH_SHA:
@@ -733,7 +736,7 @@ class SnmpConnector(Connector):
             # AuthPriv
             elif snmp_profile.sec_level == SNMP_V3_SECURITY_AUTH_PRIV:
                 dprint("version 3 Auth-Priv")
-                security_level = "auth_with_privacy"
+                security_level = "authPriv"
                 # auth protocols first
                 if snmp_profile.auth_protocol == SNMP_V3_AUTH_MD5:
                     auth_protocol = "MD5"
@@ -787,18 +790,20 @@ class SnmpConnector(Connector):
                 self._snmp_session = ezsnmp.Session(
                     hostname=self.switch.primary_ip4,
                     version=snmp_profile.version,
-                    remote_port=snmp_profile.udp_port,
-                    use_numeric=True,
-                    use_sprint_value=False,
+                    port_number=snmp_profile.udp_port,
+                    print_oids_numerically=True,
+                    print_enums_numerically=True,
+                    print_timeticks_numerically=True,
                     timeout=settings.SNMP_TIMEOUT,
                     retries=settings.SNMP_RETRIES,
+                    set_max_repeaters_to_num=settings.SNMP_MAX_REPETITIONS,
                     # here are the v3 specific entries:
                     security_level=security_level,
                     security_username=snmp_profile.username,
                     auth_protocol=auth_protocol,
-                    auth_password=passphrase,
+                    auth_passphrase=passphrase,
                     privacy_protocol=privacy_protocol,
-                    privacy_password=priv_passphrase,
+                    privacy_passphrase=priv_passphrase,
                     context=str(com_or_ctx),
                 )
                 return True
@@ -842,9 +847,11 @@ class SnmpConnector(Connector):
         dprint(f"SnmpConnector.get(oid={oid})")
         self.error.clear()
 
-        # Set a variable using an SNMP SET
+        # Perform an SNMP GET. EzSnmp v2.x returns a tuple of Result objects:
+        #      oid (str), index (str), value (str), and type (str)
+        # See https://carlkidcrypto.github.io/ezsnmp/html_v2.3.0/session_python.html#ezsnmp.session.Session.get
         try:
-            retval = self._snmp_session.get(oids=oid)
+            results = self._snmp_session.get(oid)
         except Exception as e:
             self.error.status = True
             self.error.description = "Timeout or Access denied"
@@ -852,13 +859,38 @@ class SnmpConnector(Connector):
             dprint(f"   ERROR in get() - Details:\n{self.error.details}\n")
             return (True, None)
 
+        if not results:
+            self.error.status = True
+            self.error.description = "Empty SNMP Get response"
+            self.error.details = f"SNMP Get returned no data for oid '{oid}'"
+            return (True, None)
+
+        oid_found = f"{results[0].oid}.{results[0].index}"
+        dprint(f"\n====> SNMP GET: {oid_found} {results[0].type} = {results[0].value}")
+
+        if results[0].type == "NOSUCHINSTANCE":
+            self.error.status = True
+            self.error.description = "Instance NOT found"
+            self.error.details = f"SNMP Get Error for oid '{oid}': Instance NOT Found!"
+            # log this as well
+            self.add_log(
+                type=LOG_TYPE_ERROR,
+                action=LOG_SNMP_ERROR,
+                description=f"SNMP Get Error for oid '{oid}': Instance NOT Found!",
+            )
+            dprint(f"   NOSUCHINSTANCE ERROR in get() for oid {oid}")
+            return (True, None)
+
+        # fix-up EzSnmp 2 returning some "STRING" types with extra \"<string>\" quotes.
+        clean_value = self._clean_quotes_from_snmp_string(data_type=results[0].type, value=results[0].value)
+
         # parse the data, just like returns from get_branch()
         if parser:
-            parser(f"{retval.oid}.{retval.oid_index}", str(retval.value))
+            parser(oid_found, clean_value)
         else:
             dprint("SnmpConnector.get(): Warning - Return NOT parsed!")
 
-        return (False, retval)
+        return (False, results[0])
 
     def get_snmp_branch(self, branch_name: str, parser, max_repetitions: int = settings.SNMP_MAX_REPETITIONS) -> int:
         """
@@ -892,15 +924,19 @@ class SnmpConnector(Connector):
         self.error.clear()
         try:
             dprint(f"   Calling BulkWalk {start_oid}")
+            # EzSnmp v2.x no longer accepts non_repeaters/max_repetitions on the call;
+            # set the per-call max-repeaters on the session before invoking bulk_walk().
+            self._snmp_session.set_max_repeaters_to_num = str(max_repetitions)
             start_time = time.time()
-            items = self._snmp_session.bulkwalk(oids=start_oid, non_repeaters=0, max_repetitions=max_repetitions)
+            # see https://carlkidcrypto.github.io/ezsnmp/html_v2.3.0/session_python.html#ezsnmp.session.Session.bulk_walk
+            items = self._snmp_session.bulk_walk(start_oid)
             stop_time = time.time()
         except Exception as e:
             self.error.status = True
             self.error.description = "A timeout or network error occured!"
-            self.error.details = f"SNMP Error: get_snmp_branch {branch_name} bulkwalk(), {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"SNMP Error: get_snmp_branch {branch_name} bulk_walk(), {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
             dprint(
-                f"   get_snmp_branch({branch_name}).bulkwalk(): Exception: {e.__class__.__name__}\n{self.error.details}\n"
+                f"   get_snmp_branch({branch_name}).bulk_walk(): Exception: {e.__class__.__name__}\n{self.error.details}\n"
             )
             # log this as well
             self.add_log(
@@ -911,29 +947,41 @@ class SnmpConnector(Connector):
             return -1
 
         dprint(f"   Reading return items from {start_oid}")
-        # Each returned item can be used normally as its related type (str or int)
-        # but also has several extended attributes with SNMP-specific information
+        # EzSnmp v2.x returns a tuple of Result objects for each result:
+        #      oid (str), index (str), value (str), and type (str)
+        # See docs at https://carlkidcrypto.github.io/ezsnmp/html_v2.3.0/session_python.html#ezsnmp.session.Session.bulk_walk
+
         count = 0
         for item in items:
             count = count + 1
-            oid_found = f"{item.oid}.{item.oid_index}"
+            oid_found = f"{item.oid}.{item.index}"
+
             if settings.DEBUG:
                 # Note: with ezsnmp, the returned "item.value" is ALWAYS of type str!
-                # the real SNMP type is indicated in item.snmp_type !!!
-                if item.snmp_type == "OCTETSTR":
-                    if item.value.isprintable():
-                        value = item.value
-                    else:
-                        # for non-printable octetstring, you can use this:
-                        # https://github.com/kamakazikamikaze/easysnmp/issues/91
-                        value = "CAN NOT PRINT!"
+                # In v2.3 the SNMP data type is reported in item.type (was item.snmp_type in v1).
+                # Default net-snmp output renders non-printable octet strings as "Hex-STRING".
+                if item.type in ("STRING", "Hex-STRING") and not item.value.isprintable():
+                    printable_value = "CAN NOT PRINT!"
                 else:
-                    value = item.value
-                dprint(f"\n\n====> SNMP READ: {oid_found} {item.snmp_type} = {value}")
+                    printable_value = item.value
+                dprint(f"\n====> SNMP READ: {oid_found} {item.type} = '{printable_value}'")
+
+            if item.type == "NOSUCHINSTANCE":
+                # log this
+                self.add_log(
+                    type=LOG_TYPE_ERROR,
+                    action=LOG_SNMP_ERROR,
+                    description=f"ERROR in get_snmp_branch(): oid '{oid_found}' returned No Such Instance!",
+                )
+
+                continue
+
+            # fix-up EzSnmp 2 returning some "STRING" types with extra \"<string>\" quotes.
+            clean_value = self._clean_quotes_from_snmp_string(data_type=item.type, value=item.value)
 
             # call the mib parser
             try:
-                parser(oid_found, item.value)
+                parser(oid_found, clean_value)
             except Exception as e:
                 self.error.status = True
                 self.error.description = "A SNMP parsing error occured!"
@@ -981,11 +1029,34 @@ class SnmpConnector(Connector):
 
         """
         dprint(f"SnmpConnector.set(oid={oid}, value={value}, snmp_type={snmp_type})")
-        # Set a variable using an SNMP SET
+        # Set a variable using an SNMP SET.
+        # ezsnmp v2.3 set() takes a flat list [oid, type, value, ...].
+        # see https://carlkidcrypto.github.io/ezsnmp/html_v2.3.0/session_python.html#ezsnmp.session.Session.set
+        if not is_valid_snmp_set_type(snmp_type=snmp_type):
+            err_string = f"ERROR: invalid SNMP SET data type: {snmp_type}, for oid {oid}"
+            dprint(err_string)
+            self.error.status = True
+            self.error.description = "Invalid SNMP data type!"
+            self.error.details = err_string
+            return False
+
         self.error.clear()
         try:
-            self._snmp_session.set(oid=oid, value=value, snmp_type=snmp_type)
-
+            # self._snmp_session.set(oid=oid, value=value, snmp_type=snmp_type) - old EzSnmp v1.1
+            results = self._snmp_session.set([str(oid), str(snmp_type), str(value)])
+            if not results:
+                # this "should" not happen...
+                self.error.status = True
+                self.error.description = "Empty result from SET command!"
+                dprint("ERROR in set() - Empty result from SET command!")
+                return False
+            #
+            # for item in results:
+            #     dprint(f"SET returned:\nOID: {item.oid}")
+            #     dprint(f"Index: {item.index}")
+            #     dprint(f"Value: {item.value}")
+            #     dprint(f"Type: {item.type}")
+            #     dprint("-----")
         except Exception as e:
             self.error.status = True
             self.error.description = "Access denied"
@@ -1004,17 +1075,35 @@ class SnmpConnector(Connector):
 
     def set_multiple(self, oid_values: list) -> bool:
         """
-        Set multiple OIDs at the same time, in a single snmp request
-        oid_values is a list of tuples (oid, value, type)
+        Set multiple OIDs at the same time, in a single snmp request.
+        oid_values is a list of tuples (oid, value, type).
         Returns True if success, and if requested, then we also update the
         local oid cache to track the change.
-        On failure, returns False, and self.error.X will be set
+        On failure, returns False, and self.error.X will be set.
         """
         dprint(f"SnmpConnector.set_multiple(oid_values={oid_values})")
-        # here we go:
+        # ezsnmp v2.3 no longer has set_multiple(); the single set() takes a flat list
+        # of [oid, type, value, oid, type, value, ...] entries.
+        # Note the type/value order is swapped vs. our (oid, value, type) input tuples.
+        #
+        # See the list of valid snmp_types in the comment above for self.set() !
+        #
+        flat_args: list[str] = []
+        for oid, value, snmp_type in oid_values:
+            if is_valid_snmp_set_type(snmp_type=snmp_type):
+                flat_args.extend([str(oid), str(snmp_type), str(value)])
+            else:
+                err_string = f"ERROR: invalid SNMP SET data type: {snmp_type}, for oid {oid}"
+                dprint(err_string)
+                self.error.status = True
+                self.error.description = "Invalid SNMP data type!"
+                self.error.details = err_string
+                return False
+
         self.error.clear()
         try:
-            self._snmp_session.set_multiple(oid_values=oid_values)
+            # self._snmp_session.set_multiple(oid_values=oid_values) - v1.1 NO longer available in v2.x
+            self._snmp_session.set(flat_args)
 
         except Exception as e:
             self.error.status = True
@@ -1024,6 +1113,26 @@ class SnmpConnector(Connector):
             return False
 
         return True
+
+    def _clean_quotes_from_snmp_string(self, data_type: str, value: str) -> str:
+        """Clean starting and ending \" from strings, if found.
+           This is a Fix-Up for EzSnmp v2 returning some "STRING" types with extra \"<string>\" quotes.
+
+        Args:
+            data_type(str):  the data type of 'value'
+            value(str): the snmp string value to clean
+
+        Returns:
+            (str): the 'cleaned' string.
+        """
+        dprint("_clean_quotes_from_snmp_string()")
+        # numeric_values = [ord(char) for char in item.value]
+        # dprint(f"chars = {numeric_values}")
+
+        if data_type == "STRING" and value.startswith(r'\"') and value.endswith(r'\"'):
+            dprint("    STRING with starting and ending quotes found, stripping!")
+            return value[2:-2]
+        return value
 
     #################################
     #
@@ -1091,19 +1200,19 @@ class SnmpConnector(Connector):
             (bool): True on success, False on failure
         """
         dprint("SnmpConnector.get_my_vrfs()")
-        retval = self.get_snmp_branch(branch_name="mplsL3VpnVrfEntry", parser=self._parse_mib_mpls_l3vpn)
+        retval = self.get_snmp_branch(branch_name="mplsL3VpnVrfEntry", parser=self._parse_mibs_mpls_l3vpn)
         if retval < 0:
             self.add_warning("Error getting VRF info from the MPLS-L2VPN tables (mplsL3VpnVrfEntry)")
 
         # if we have found VRF's, let's see if we can find Interface membership:
         if self.vrfs:
             retval = self.get_snmp_branch(
-                branch_name="mplsL3VpnIfVpnClassification", parser=self._parse_mib_mpls_vrf_members
+                branch_name="mplsL3VpnIfVpnClassification", parser=self._parse_mibs_mpls_vrf_members
             )
             if retval < 0:
                 # try another entry in case the device does not implement mplsL3VpnIfVpnClassification:
                 retval = self.get_snmp_branch(
-                    branch_name="mplsL3VpnIfVpnRouteDistProtocol", parser=self._parse_mib_mpls_vrf_members
+                    branch_name="mplsL3VpnIfVpnRouteDistProtocol", parser=self._parse_mibs_mpls_vrf_members
                 )
 
         return True
@@ -1247,7 +1356,7 @@ class SnmpConnector(Connector):
         """
         dprint("#####\n_get_vlan_data()\n#####")
         # get the base 802.1q settings (reads vlan count dot1qNumVlans):
-        retval = self.get_snmp_branch(branch_name="dot1qBase", parser=self._parse_mib_dot1q_base)
+        retval = self.get_snmp_branch(branch_name="dot1qBase", parser=self._parse_mibs_dot1q_base)
         if self.vlan_count > 0:
             # first get vlan id and names
             self._get_vlans()
@@ -1291,21 +1400,23 @@ class SnmpConnector(Connector):
         # see also _get_if_index_from_port_id()
 
         # read existing vlan id's from MIB-2 Q-Bridge "dot1qVlanStaticTable"
-        retval = self.get_snmp_branch(branch_name="dot1qVlanStaticRowStatus", parser=self._parse_mibs_vlan_related)
+        retval = self.get_snmp_branch(
+            branch_name="dot1qVlanStaticRowStatus", parser=self._parse_mibs_vlan_static_row_status
+        )
         if retval < 0:
             self.add_warning("Error getting 'Q-Bridge-Vlan-Rows' (dot1qVlanStaticRowStatus)")
             return retval
 
         # if there are MIB-2 Q-Bridge vlans, read the name and type
         if retval > 0:
-            retval = self.get_snmp_branch(branch_name="dot1qVlanStaticName", parser=self._parse_mibs_vlan_related)
+            retval = self.get_snmp_branch(branch_name="dot1qVlanStaticName", parser=self._parse_mibs_vlan_static_name)
             if retval < 0:
                 # error occured (unlikely to happen)
                 self.add_warning("Error getting 'Q-Bridge-Vlan-Names' (dot1qVlanStaticName)")
                 # we have found VLANs, so we are going to ignore this!
 
             # read the vlan status, ie static, dynamic!
-            retval = self.get_snmp_branch(branch_name="dot1qVlanStatus", parser=self._parse_mibs_vlan_related)
+            retval = self.get_snmp_branch(branch_name="dot1qVlanStatus", parser=self._parse_mibs_vlan_status)
             if retval < 0:
                 self.add_warning("Error getting 'Q-Bridge-Vlan-Status' (dot1qVlanStatus)")
                 # we have found VLANs, so we are going to ignore this!
@@ -1358,7 +1469,7 @@ class SnmpConnector(Connector):
         # reading this will show the static vlan configs for these ports...
         # Note: this will be used when settign/changing (tagged) vlans on ports!
         retval = self.get_snmp_branch(
-            branch_name='dot1qVlanStaticEgressPorts', parser=self._parse_mib_vlan_static_egress_ports
+            branch_name='dot1qVlanStaticEgressPorts', parser=self._parse_mibs_vlan_static_egress_ports
         )
         if retval < 0:
             self.add_warning("Error getting 'Q-Bridge-Vlan-Static-Egress-Interfaces' ({dot1qVlanStaticEgressPorts})")
@@ -1725,7 +1836,7 @@ class SnmpConnector(Connector):
     # 802.1Q / VLAN related MIB parsers
     #
 
-    def _parse_mib_dot1q_base(self, oid: str, val: str) -> bool:
+    def _parse_mibs_dot1q_base(self, oid: str, val: str) -> bool:
         """Parse entries in the 'dot1qBase' part of the Q-Bridge mib.
         This contains various 'counters' about numbers of vlans, etc.
 
@@ -1736,7 +1847,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"Base _parse_mib_dot1q_base() {str(oid)}")
+        dprint(f"Base _parse_mibs_dot1q_base() {str(oid)}")
 
         # these are part of "dot1qBase":
         sub_oid = oid_in_branch(dot1qNumVlans, oid)
@@ -1866,7 +1977,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector()._parse_mib_dot1d_port_to_ifindex_map(oid={str(oid)}, val={val}")
+        dprint(f"SnmpConnector()._parse_mibs_dot1d_port_to_ifindex_map(oid={str(oid)}, val={val}")
 
         # Map the Q-BRIDGE port id to the MIB-II if_indexes.
         # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
@@ -1887,9 +1998,8 @@ class SnmpConnector(Connector):
         # we did not parse the OID.
         return False
 
-    def _parse_mibs_vlan_related(self, oid: str, val: str) -> bool:
-        """Function to parse various VLAN related MIB entries
-        that contains vlans and vlan-membership information.
+    def _parse_mibs_vlan_static_row_status(self, oid: str, val: str) -> bool:
+        """Function to parse the Q-Bridge VLAN mib static vlan entries.
 
         Params:
             oid (str): the SNMP OID to parse
@@ -1898,7 +2008,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector()._parse_mibs_vlan_related(oid={str(oid)}, val={val}")
+        dprint(f"SnmpConnector()._parse_mibs_vlan_static_row_status(oid={str(oid)}, val={val}")
 
         # List of all available vlans on this switch as by the command "show vlans"
         vlan_id = int(oid_in_branch(dot1qVlanStaticRowStatus, oid))
@@ -1916,6 +2026,21 @@ class SnmpConnector(Connector):
             self.dot1tp_fdb_to_vlan_index[vlan_id] = vlan_id
             return True
 
+        # we did not parse the OID.
+        return False
+
+    def _parse_mibs_vlan_static_name(self, oid: str, val: str) -> bool:
+        """Function to parse the Q-Bridge mib static vlan names.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnector()._parse_mibs_vlan_static_name(oid={str(oid)}, val={val}")
+
         # The VLAN name
         vlan_id = int(oid_in_branch(dot1qVlanStaticName, oid))
         if vlan_id:
@@ -1928,6 +2053,21 @@ class SnmpConnector(Connector):
                 self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=val)
                 # self.vlans[vlan_id].name = val
             return True
+
+        # we did not parse the OID.
+        return False
+
+    def _parse_mibs_vlan_status(self, oid: str, val: str) -> bool:
+        """Function to parse the Q-Bridge vlan status information.
+
+        Params:
+            oid (str): the SNMP OID to parse
+            val (str): the value of the SNMP OID we are parsing
+
+        Returns:
+            (boolean): True if we parse the OID, False if not.
+        """
+        dprint(f"SnmpConnector()._parse_mibs_vlan_status(oid={str(oid)}, val={val}")
 
         # see if this is static or dynamic vlan
         sub_oid = oid_in_branch(dot1qVlanStatus, oid)
@@ -1999,14 +2139,14 @@ class SnmpConnector(Connector):
         # we did not parse the OID.
         return False
 
-    ######################################################################################################
-    #                                                                                                    #
-    # the following functions all parse BITMAP values that map what (switch) ports are active on a vlan. #
-    # we have both standard SNMP Q-BRIDGE mib, and IEEE IEEE8021-Q-BRIDGE mib parsers.                   #
-    #                                                                                                    #
-    # there is a lot of room for improvement of duplicate code here...                                   #
-    #                                                                                                    #
-    ######################################################################################################
+    ###############################################################################################################
+    #                                                                                                             #
+    # The following functions all parse BITMAP values that map what (physical switch) ports are active on a vlan. #
+    # We have both standard SNMP Q-BRIDGE mib, and IEEE IEEE8021-Q-BRIDGE mib parsers.                            #
+    #                                                                                                             #
+    # There is a lot of room for improvement of duplicate code here...                                            #
+    #                                                                                                             #
+    ###############################################################################################################
 
     def _parse_mibs_vlan_current_untagged_ports(self, oid: str, val: str) -> bool:
         """Function to parse VLAN current active untagged vlans on ports.
@@ -2105,14 +2245,15 @@ class SnmpConnector(Connector):
             )
 
             # store the egress port list, as some switches need this when setting untagged vlans
-            self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
+            # self.vlans[vlan_id].current_egress_portlist.from_unicode(val) # old, EzSnmp v1
+            self.vlans[vlan_id].current_egress_portlist.from_hexadecimal(val)  # new EzSnmp v2
 
             return True  # parsed
 
         # we did not parse the OID.
         return False
 
-    def _parse_mib_vlan_static_egress_ports(self, oid: str, val: str) -> bool:
+    def _parse_mibs_vlan_static_egress_ports(self, oid: str, val: str) -> bool:
         """parse the list of all static egress ports of a VLAN (tagged + untagged) as a hexstring
 
         The "val" returned from snmp is a bitmap for a specific vlan (in the sub-oid)
@@ -2125,7 +2266,7 @@ class SnmpConnector(Connector):
         if the interface is not "UP". Reading dot1qVlanStaticEgressPorts will catch those configurations!
 
         """
-        dprint("SnmpConnector()._parse_mib_vlan_static_egress_ports()")
+        dprint("SnmpConnector()._parse_mibs_vlan_static_egress_ports()")
 
         # dot1qVlanStaticEgressPorts - READ-WRITE variable
         vlan_id = int(oid_in_branch(dot1qVlanStaticEgressPorts, oid))
@@ -2197,7 +2338,8 @@ class SnmpConnector(Connector):
             vlan_id = int(v)
 
             # store the egress port list, as some switches need this when setting untagged vlans
-            self.vlans[vlan_id].current_egress_portlist.from_unicode(val)
+            # self.vlans[vlan_id].current_egress_portlist.from_unicode(val)       # EzSnmp v1
+            self.vlans[vlan_id].current_egress_portlist.from_hexadecimal(val)  # EzSnmp v2
 
             # and go figure out what ports are part of this vlan:
             self._add_ports_to_vlan_from_bitmap(
@@ -2268,6 +2410,9 @@ class SnmpConnector(Connector):
         and look at all the bits in this multi-byte bitmap value to find ports on this vlan.
         Then call the handler to store appropriate Interface() config.
 
+        Unlike EzSnmp v1, which returned the actual byte values, EzSnmp v2 returns this bit as a string with
+        hexadecimal numbers representing the bytes in the bitmap. E.g. "00 40 00 C0 00 E2 00 ..."
+
         Args:
             vlan_id (int): the Vlan ID that the bitmap represents.
             bitmap (str): the bytes that represent the bitmap. Note this is a str() as returned from the ezsnmp return value!
@@ -2288,9 +2433,13 @@ class SnmpConnector(Connector):
         # we loop through all bytes, and then the bits in that byte
         # to find bits that are set (1). This indicates that port-id is part of the vlan given!
 
+        # THIS NEEDS WORK FOR EzSnmp v2 - now return a string of Hex values representing bytes...
+        # dprint("PARSING BITMAP, THIS NEEDS WORK!!!!")
+
         offset = 0
-        for byte in bitmap:
-            byte = ord(byte)
+        for hexadecimal in bitmap.split():
+            # dprint(f"Found: {hexadecimal}")
+            byte = ord(bytes.fromhex(hexadecimal))
             # which bits are set? A hack but it works!
             # note that the bits are actually in system order,
             # ie. bit 1 is first bit in stream, i.e. HIGH order bit!
@@ -2649,7 +2798,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint("_parse_mibs_net_to_media()")
+        dprint(f"_parse_mibs_net_to_media() OID={oid} = '{val}'")
 
         # Read the old style ipNetToMedia tables
         # we take some shortcuts here by not using the mappings through ipNetToMediaIfIndex and ipNetToMediaNetAddress
@@ -2664,25 +2813,29 @@ class SnmpConnector(Connector):
             # valid interface ?
             iface = self.get_interface_by_key(key=if_index)
             if iface:
-                eth_addr = bytes_ethernet_to_string(val)
-                dprint(f"  MAC={eth_addr}")
-                # see if we can add this to a known ethernet address
-                # this should work on layer-2 (switch) devices, where we have already learned
-                # the ethernet address from the dot1qTpFdbPort tables.
-                # this maps ethernet address to the switch port interface, whereas the data here
-                # would possibly be the "virtual interface", e.g. interface Vlan100
-                # we show the ethernet on the phsyical port, if known.
-                # Note: on pure layer 3, we do not learn ethernets from the switching side.
-                #
-                # This loops through all interfaces, time consuming, but useful
-                eth = self._find_ethernet_address(eth_address=eth_addr)
-                if eth:
-                    eth.add_ip4_address(ip4_address=ip)
+                # eth_addr = bytes_ethernet_to_string(val)    # EzSnmp v1 format conversion
+                eth_addr = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
+                if eth_addr:
+                    dprint(f"  MAC={eth_addr}")
+                    # see if we can add this to a known ethernet address
+                    # this should work on layer-2 (switch) devices, where we have already learned
+                    # the ethernet address from the dot1qTpFdbPort tables.
+                    # this maps ethernet address to the switch port interface, whereas the data here
+                    # would possibly be the "virtual interface", e.g. interface Vlan100
+                    # we show the ethernet on the phsyical port, if known.
+                    # Note: on pure layer 3, we do not learn ethernets from the switching side.
+                    #
+                    # This loops through all interfaces, time consuming, but useful
+                    eth = self._find_ethernet_address(eth_address=eth_addr)
+                    if eth:
+                        eth.add_ip4_address(ip4_address=ip)
+                    else:
+                        dprint("  Eth not found in layer 2, adding from Layer 3 info!")
+                        # ethernet not found from the layer 2 tables. Add an entry
+                        # this should never fail, as this was already checked above!
+                        iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
                 else:
-                    dprint("  Eth not found in layer 2, adding from Layer 3 info!")
-                    # ethernet not found from the layer 2 tables. Add an entry
-                    # this should never fail, as this was already checked above!
-                    iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
+                    dprint("INVALID MAC FOUND - IGNORING!")
             else:
                 dprint(f"ERROR: interface not found for ifIndex {if_index}")
 
@@ -2708,7 +2861,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint("_parse_mibs_net_to_physical()")
+        dprint(f"_parse_mibs_net_to_physical() OID {oid} = '{val}")
 
         # Here is the new style ipNetToPhysicalPhysAddress entry
         if_ip_string = oid_in_branch(ipNetToPhysicalPhysAddress, oid)
@@ -2738,26 +2891,30 @@ class SnmpConnector(Connector):
                 return True  # we did parse this SNMP entry
 
             # decode the return value into the ethernet address
-            eth_addr = bytes_ethernet_to_string(val)
-            dprint(f"    MAC={eth_addr}")
-            # did we see this ethernet address in the switching tables?
-            eth = self._find_ethernet_address(eth_address=eth_addr)
-            if addr_type == IANA_TYPE_IPV4:
-                dprint(f"    IPV4={ip}")
-                if eth:
-                    # known ethernet, go add IPv4 address
-                    eth.add_ip4_address(ip4_address=ip)
-                else:
-                    # add new ethernet address to this interface:
-                    iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
-            elif addr_type == IANA_TYPE_IPV6:
-                dprint(f"    IPv6={ip}")
-                if eth:
-                    # known ethernet, go add IPv6 address
-                    eth.add_ip6_address(ip6_address=ip)
-                else:
-                    # add new ethernet address to this interface:
-                    iface.add_learned_ethernet_address(eth_address=eth_addr, ip6_address=ip)
+            # eth_addr = bytes_ethernet_to_string(val)  # EzSnmp v1 format conversion
+            eth_addr = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
+            if eth_addr:
+                dprint(f"    MAC={eth_addr}")
+                # did we see this ethernet address in the switching tables?
+                eth = self._find_ethernet_address(eth_address=eth_addr)
+                if addr_type == IANA_TYPE_IPV4:
+                    dprint(f"    IPV4={ip}")
+                    if eth:
+                        # known ethernet, go add IPv4 address
+                        eth.add_ip4_address(ip4_address=ip)
+                    else:
+                        # add new ethernet address to this interface:
+                        iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
+                elif addr_type == IANA_TYPE_IPV6:
+                    dprint(f"    IPv6={ip}")
+                    if eth:
+                        # known ethernet, go add IPv6 address
+                        eth.add_ip6_address(ip6_address=ip)
+                    else:
+                        # add new ethernet address to this interface:
+                        iface.add_learned_ethernet_address(eth_address=eth_addr, ip6_address=ip)
+            else:
+                dprint("INVALID MAC FOUND - IGNORING!")
 
             return True
 
@@ -3507,7 +3664,8 @@ class SnmpConnector(Connector):
                     neighbor = self.interfaces[if_index].lldp[lldp_index]
                     if neighbor.chassis_type > LLDP_CHASSIS_TYPE_NONE:
                         if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
-                            chassis_info = bytes_ethernet_to_string(val)
+                            # chassis_info = bytes_ethernet_to_string(val)  # EzSNMP v1 format conversion
+                            chassis_info = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
                         elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
                             # per MIB LldpChassisId, the first byte is the IANA Address Family Number:
                             net_addr_type = int(ord(val[0]))
@@ -3680,7 +3838,7 @@ class SnmpConnector(Connector):
         # not parsed here!
         return False
 
-    def _parse_mib_mpls_l3vpn(self, oid: str, val: str) -> bool:
+    def _parse_mibs_mpls_l3vpn(self, oid: str, val: str) -> bool:
         """
         Parse standard VRF mib entries from MPLS-L3VPN-STD-MIB. This gets added to self.vrfs
 
@@ -3744,7 +3902,7 @@ class SnmpConnector(Connector):
         # we did not parse:
         return False
 
-    def _parse_mib_mpls_vrf_members(self, oid: str, val: str) -> bool:
+    def _parse_mibs_mpls_vrf_members(self, oid: str, val: str) -> bool:
         """
         Parse standard VRF interface membership entries from MPLS-L3VPN-STD-MIB.
         This gets added to Interface().vrfs
@@ -3756,7 +3914,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector._parse_mib_mpls_vrf_members() {str(oid)}")
+        dprint(f"SnmpConnector._parse_mibs_mpls_vrf_members() {str(oid)}")
 
         # find ifIndex entries that are part of a VRF.
         sub_oid = oid_in_branch(mplsL3VpnIfVpnClassification, oid)
@@ -4055,6 +4213,8 @@ class SnmpConnector(Connector):
             self.error = Error(status=True, description="set_interface_admin_status(): Invalid interface (not set)!")
             return False
 
+        dprint(f"SnmpConnector.set_interface_admin_status(interface={interface.name}, state={new_state})")
+
         # make sure we cast the proper type here! Ie this needs an Integer()
         status_int = IF_OPER_STATUS_UP if new_state else IF_OPER_STATUS_DOWN
         if self.set(
@@ -4078,6 +4238,9 @@ class SnmpConnector(Connector):
         if not interface:
             self.error = Error(status=True, description="set_interface_poe_status(): Invalid interface (not set)!")
             return False
+
+        dprint(f"SnmpConnector.set_interface_poe_status(interface={interface.name}, state={new_state})")
+
         # the PoE index is kept in the iface.poe_entry
         if not interface.poe_entry:
             self.error = Error(status=True, description="set_interface_poe_status(): interface has no poe_entry!")
@@ -4108,11 +4271,13 @@ class SnmpConnector(Connector):
             self.error = Error(status=True, description="set_interface_description(): Invalid interface (not set)!")
             return False
 
+        dprint(f"SnmpConnector.set_interface_description(interface={interface.name}, descr='{description}')")
+
         # make sure we cast the proper type here! I.e. this needs an string
         if self.set(
             oid=f"{ifAlias}.{interface.index}",
             value=description,
-            snmp_type="OCTETSTRING",
+            snmp_type="s",
             parser=self._parse_mibs_if_x_table,
         ):
             super().set_interface_description(interface=interface, description=description)
@@ -4124,10 +4289,12 @@ class SnmpConnector(Connector):
         Change the VLAN via the Q-BRIDGE MIB (ie generic)
         return True on success, False on error and set self.error variables
         """
-        dprint(f"SnmpConnector.set_interface_untagged_vlan(interface={interface.name}, vlan={new_vlan_id})")
         if not interface:
-            dprint("  Invalid interface!, returning False")
+            self.error = Error(status=True, description="set_interface_untagged_vlan(): Invalid interface (not set)!")
             return False
+
+        dprint(f"SnmpConnector.set_interface_untagged_vlan(interface={interface.name}, vlan={new_vlan_id})")
+
         # now check the Q-Bridge PortID
         if interface.port_id < 0:
             dprint(f"  Invalid interface.port_id ({interface.port_id}), returning False")
@@ -4141,7 +4308,7 @@ class SnmpConnector(Connector):
             oid=f"{dot1qPvid}.{interface.port_id}",
             value=int(new_vlan_id),
             snmp_type="u",
-            parser=self._parse_mibs_vlan_related,
+            parser=self._parse_mibs_vlan_dot1q_pvid,
         ):
             return False
 
@@ -4150,7 +4317,8 @@ class SnmpConnector(Connector):
 
         # should this be using "dot1qVlanCurrentEgressPorts" ?
         #        old_vlan_portlist = PortList()
-        #        old_vlan_portlist.from_unicode(snmpval.value)
+        #        # old_vlan_portlist.from_unicode(snmpval.value)    # EzSnmp v1
+        #        old_vlan_portlist.from_decimal(snmpval.value)      # EzSnmp v2
         #        dprint(f"OLD VLAN Static Egress Ports = {old_vlan_portlist.to_hex_string()}")
         #
         #        # dot1qVlanCurrentEgressPorts Read-Only field! .0. is timestamp.
@@ -4167,7 +4335,8 @@ class SnmpConnector(Connector):
 
         # now calculate new bitmap by removing this switch port
         old_vlan_portlist = PortList()
-        old_vlan_portlist.from_unicode(snmpval.value)
+        # old_vlan_portlist.from_unicode(snmpval.value)     # EzSNmp v1
+        old_vlan_portlist.from_hexadecimal(snmpval.value)  # EzSnmp v2
         dprint(f"OLD VLAN Current Egress Ports = {old_vlan_portlist.to_hex_string()}")
 
         # unset bit for port, i.e. remove from active portlist on vlan:
@@ -4201,120 +4370,122 @@ class SnmpConnector(Connector):
         # note the 0 to hopefully deactivate time filter!
         dprint("Get OLD VLAN Current Egress Ports")
         error_status, snmpval = self.get(
-            f"{dot1qVlanCurrentEgressPorts}.0.{old_vlan_id}", parser=self._parse_mibs_vlan_related
+            f"{dot1qVlanCurrentEgressPorts}.0.{old_vlan_id}", parser=self._parse_mibs_vlan_current_egress_ports
         )
         dprint("Get NEW VLAN Current Egress Ports")
         error_status, snmpval = self.get(
-            f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_related
+            f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_current_egress_ports
         )
         interface.untagged_vlan = new_vlan_id
         dprint("SnmpConnector.set_interface_untagged_vlan() -> True")
         return True
 
-    def set_interface_tagged_vlans(
-        self, interface: Interface, tagged_vlans: list[int], allow_all: bool = False
-    ) -> bool:
-        """
-        Set the tagged vlans on an interface. This uses the standard Q-Bridge MIB
-        to set vlan egress ports with dot1qVlanStaticEgressPorts.<vlan-id>
+    # def set_interface_tagged_vlans(
+    #     self, interface: Interface, tagged_vlans: list[int], allow_all: bool = False
+    # ) -> bool:
+    #     """
+    #     Set the tagged vlans on an interface. This uses the standard Q-Bridge MIB
+    #     to set vlan egress ports with dot1qVlanStaticEgressPorts.<vlan-id>
 
-        Note: this will ALSO set the pvid/untagged-vlan of an interface as tagged
-              if this is in the list of allowed tagged vlans!
+    #     Note: this will ALSO set the pvid/untagged-vlan of an interface as tagged
+    #           if this is in the list of allowed tagged vlans!
 
-              Some devices cannot handle this (e.g. Aruba switches), others appear to need this for
-              the pvid vlan to work properly (e.g. Comware)
+    #           Some devices cannot handle this (e.g. Aruba switches), others appear to need this for
+    #           the pvid vlan to work properly (e.g. Comware)
 
-              It is up to the caller (driver) to remove the pvid vlan from tagged-vlans is this is problematic!
+    #           It is up to the caller (driver) to remove the pvid vlan from tagged-vlans is this is problematic!
 
-        Args:
-            interface = Interface() object for the requested port
-            tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
-            allow_all = boolean indicating if all vlans should be allow (True), or just the given list (False)
+    #     Args:
+    #         interface = Interface() object for the requested port
+    #         tagged_vlans = a List() of integer vlan id's that should be allowed as 802.1q tagged vlans.
+    #         allow_all = boolean indicating if all vlans should be allow (True), or just the given list (False)
 
-        Returns:
-            True on success, False on error and set self.error variables
-        """
-        dprint(
-            f"SnmpConnector.set_interface_tagged_vlans() for {interface.name} to tagged {tagged_vlans}, allow_all={allow_all}"
-        )
+    #     Returns:
+    #         True on success, False on error and set self.error variables
+    #     """
+    #     dprint(
+    #         f"SnmpConnector.set_interface_tagged_vlans() for {interface.name} to tagged {tagged_vlans}, allow_all={allow_all}"
+    #     )
 
-        #
-        # get snmp helper to handle bitmapping
-        #
-        try:
-            pysnmp = pysnmpHelper(self.switch)
-        except Exception as err:
-            dprint(f"ERROR getting pysnmpHelper(): {err}")
-            self.error.status = True
-            self.error.description = "Error getting snmp connection object (pysnmpHelper())"
-            self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
-            return False
+    #     #
+    #     # get snmp helper to handle bitmapping
+    #     #
+    #     try:
+    #         pysnmp = pysnmpHelper(self.switch)
+    #     except Exception as err:
+    #         dprint(f"ERROR getting pysnmpHelper(): {err}")
+    #         self.error.status = True
+    #         self.error.description = "Error getting snmp connection object (pysnmpHelper())"
+    #         self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+    #         return False
 
-        try:
-            for vlan_id in self.vlans:
-                dprint(f"Checking vlan {vlan_id}")
+    #     try:
+    #         for vlan_id in self.vlans:
+    #             dprint(f"Checking vlan {vlan_id}")
 
-                # Since we don't deal with dynamic vlans, we read and write the static port bitmap for each vlan!
-                # Note some implementations read vlan member ports from dot1qVlanCurrentEgressPorts bitmap,
-                # but this appears to result in errors for vlan 1 port membership when writing back the modified
-                # bitmap. In our testing, using dot1qVlanStaticEgressPorts vlan port bitmap does not!
+    #             # Since we don't deal with dynamic vlans, we read and write the static port bitmap for each vlan!
+    #             # Note some implementations read vlan member ports from dot1qVlanCurrentEgressPorts bitmap,
+    #             # but this appears to result in errors for vlan 1 port membership when writing back the modified
+    #             # bitmap. In our testing, using dot1qVlanStaticEgressPorts vlan port bitmap does not!
 
-                # read the static ports active on this vlan.
-                error_status, snmpval = self.get(f"{dot1qVlanStaticEgressPorts}.{vlan_id}")
-                if error_status:
-                    raise Exception(f"IGNORING Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
-                vlan_port_bitmap = PortList()
-                vlan_port_bitmap.from_unicode(snmpval.value)
-                dprint(f"  Static Egress Ports = {vlan_port_bitmap.to_hex_string()}")
+    #             # read the static ports active on this vlan.
+    #             error_status, snmpval = self.get(f"{dot1qVlanStaticEgressPorts}.{vlan_id}")
+    #             if error_status:
+    #                 raise Exception(f"IGNORING Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
+    #             vlan_port_bitmap = PortList()
+    #             # vlan_port_bitmap.from_unicode(snmpval.value)    # for EzSnmp v1
+    #             vlan_port_bitmap.from_hexadecimal(snmpval.value)  # for EzSnmp v2
+    #             dprint(f"  Static Egress Ports = {vlan_port_bitmap.to_hex_string()}")
 
-                # # read all the static and dynamic ports active on this vlan.
-                # # Note 0 is some kind of 'time filter'...
-                # (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{vlan_id}", parser=False)
-                # if error_status:
-                #     raise Exception(f"Error reading dot1qVlanCurrentEgressPorts.{vlan_id}")
-                # vlan_port_bitmap = PortList()
-                # vlan_port_bitmap.from_unicode(snmpval.value)
-                # dprint(f"  Current Egress Ports = {vlan_port_bitmap.to_hex_string()}")
+    #             # # read all the static and dynamic ports active on this vlan.
+    #             # # Note 0 is some kind of 'time filter'...
+    #             # (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{vlan_id}", parser=False)
+    #             # if error_status:
+    #             #     raise Exception(f"Error reading dot1qVlanCurrentEgressPorts.{vlan_id}")
+    #             # vlan_port_bitmap = PortList()
+    #             # # vlan_port_bitmap.from_unicode(snmpval.value)      # for EzSnmp v1
+    #             # vlan_port_bitmap.from_hexadecimal(snmpval.value)  # for EzSnmp v1
+    #             # dprint(f"  Current Egress Ports = {vlan_port_bitmap.to_hex_string()}")
 
-                # now check the status of this port (interface.port_id) on this vlan:
-                active = vlan_port_bitmap[interface.port_id]
+    #             # now check the status of this port (interface.port_id) on this vlan:
+    #             active = vlan_port_bitmap[interface.port_id]
 
-                # do we need this vlan as 802.1q-tagged ?
-                if allow_all or vlan_id in tagged_vlans:
-                    dprint("  TRUNK ADD!")
-                    desired = 1
-                else:
-                    dprint("  TRUNK REMOVE!")
-                    desired = 0
+    #             # do we need this vlan as 802.1q-tagged ?
+    #             if allow_all or vlan_id in tagged_vlans:
+    #                 dprint("  TRUNK ADD!")
+    #                 desired = 1
+    #             else:
+    #                 dprint("  TRUNK REMOVE!")
+    #                 desired = 0
 
-                dprint(f"  Port active={active}, desired={desired}")
+    #             dprint(f"  Port active={active}, desired={desired}")
 
-                if active != desired:
-                    dprint("  VLAN PORT CHANGE NEEDED!")
-                    # set of clear the bit for this port!
-                    vlan_port_bitmap[interface.port_id] = desired
-                    dprint(f"  NEW Egress Ports = {vlan_port_bitmap.to_hex_string()}")
-                    # and write it back to the vlan bitmap! We use PySNMP to do this work
-                    octet_string = OctetString(hexValue=vlan_port_bitmap.to_hex_string())
-                    if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{vlan_id}", octet_string):
-                        self.error.status = True
-                        self.error.description = f"Error setting port tagged vlan {vlan_id}"
-                        # copy over the error details from the call:
-                        self.error.details = pysnmp.error.details
-                        dprint(f"ERROR setting port tagged vlan {vlan_id} using dot1qVlanStaticEgressPorts")
-                        return False
-                    dprint("  CHANGE OK!\n-----")
-                else:
-                    dprint("  NO CHANGE NEEDED!\n-----")
+    #             if active != desired:
+    #                 dprint("  VLAN PORT CHANGE NEEDED!")
+    #                 # set of clear the bit for this port!
+    #                 vlan_port_bitmap[interface.port_id] = desired
+    #                 dprint(f"  NEW Egress Ports = {vlan_port_bitmap.to_hex_string()}")
+    #                 # and write it back to the vlan bitmap! We use PySNMP to do this work
+    #                 octet_string = OctetString(hexValue=vlan_port_bitmap.to_hex_string())
+    #                 if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{vlan_id}", octet_string):
+    #                     self.error.status = True
+    #                     self.error.description = f"Error setting port tagged vlan {vlan_id}"
+    #                     # copy over the error details from the call:
+    #                     self.error.details = pysnmp.error.details
+    #                     dprint(f"ERROR setting port tagged vlan {vlan_id} using dot1qVlanStaticEgressPorts")
+    #                     return False
+    #                 dprint("  CHANGE OK!\n-----")
+    #             else:
+    #                 dprint("  NO CHANGE NEEDED!\n-----")
 
-            # all vlans seem OK!
-            return True
+    #         # all vlans seem OK!
+    #         return True
 
-        except Exception as err:
-            self.error.status = True
-            self.error.description = "Error adding vlans to trunk! Interface is now in UNKNOWN state!"
-            self.error.details = format(err)
-            return False
+    #     except Exception as err:
+    #         self.error.status = True
+    #         self.error.description = "Error adding vlans to trunk! Interface is now in UNKNOWN state!"
+    #         self.error.details = format(err)
+    #         return False
 
     def set_interface_vlans(
         self, interface: Interface, untagged_vlan: int, tagged_vlans: list[int], allow_all: bool = False
@@ -4339,6 +4510,10 @@ class SnmpConnector(Connector):
               It is up to the caller (driver) to remove the pvid
               vlan from tagged-vlans is this is problematic!
         """
+        if not interface:
+            self.error = Error(status=True, description="set_interface_vlans(): Invalid interface (not set)!")
+            return False
+
         dprint(
             f"SnmpConnector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
         )
@@ -4371,7 +4546,7 @@ class SnmpConnector(Connector):
                     oid=f"{dot1qPvid}.{interface.port_id}",
                     value=int(untagged_vlan),
                     snmp_type="u",
-                    parser=self._parse_mibs_vlan_related,
+                    parser=self._parse_mibs_vlan_dot1q_pvid,
                 ):
                     # self.error already set!
                     return False
@@ -4392,7 +4567,8 @@ class SnmpConnector(Connector):
 
                 # now calculate new bitmap by removing this switch port
                 old_vlan_portlist = PortList()
-                old_vlan_portlist.from_unicode(snmpval.value)
+                # old_vlan_portlist.from_unicode(snmpval.value)     # EzSnmp v1
+                old_vlan_portlist.from_hexadecimal(snmpval.value)  # EzSnmp v2
                 dprint(f"OLD VLAN Current Egress Ports = {old_vlan_portlist.to_hex_string()}")
 
                 # unset bit for port, i.e. remove from active portlist on vlan:
@@ -4447,16 +4623,18 @@ class SnmpConnector(Connector):
                 if error_status:
                     raise Exception(f"IGNORING Error reading dot1qVlanStaticEgressPorts.{vlan_id}")
                 vlan_port_bitmap = PortList()
-                vlan_port_bitmap.from_unicode(snmpval.value)
+                # vlan_port_bitmap.from_unicode(snmpval.value)    # EzSnmp v1
+                vlan_port_bitmap.from_hexadecimal(snmpval.value)  # EzSnmp v2
                 dprint(f"  Static Egress Ports = {vlan_port_bitmap.to_hex_string()}")
 
                 # # read all the static and dynamic ports active on this vlan.
                 # # Note 0 is some kind of 'time filter'...
-                # (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{vlan_id}", parser=False)
+                # (error_status, snmpval) = self.get(f"{dot1qVlanCurrentEgressPorts}.0.{vlan_id}")
                 # if error_status:
                 #     raise Exception(f"Error reading dot1qVlanCurrentEgressPorts.{vlan_id}")
                 # vlan_port_bitmap = PortList()
-                # vlan_port_bitmap.from_unicode(snmpval.value)
+                # # vlan_port_bitmap.from_unicode(snmpval.value)    # EzSnmp v1
+                # vlan_port_bitmap.from_hexadecimal(snmpval.value)      # EzSnmp v2
                 # dprint(f"  Current Egress Ports = {vlan_port_bitmap.to_hex_string()}")
 
                 # now check the status of this port (interface.port_id) on this vlan:

@@ -33,11 +33,11 @@ import netaddr
 from django.core.exceptions import ImproperlyConfigured
 
 # Django 6.0 requires Python 3.12 - 3.14.
-# OpenL2M has been tested with 3.12 and 3.13!
+# OpenL2M has been tested with 3.12 - 3.14!
 # for v3.14 support (the default in Ubuntu 26.04), we need to upgrade to EzSnmp 2.x,
 # which requires refactoring of the base SNMP code switches/connect/snmp/connector.py
-if sys.version_info < (3, 12) or sys.version_info >= (3, 14):
-    raise RuntimeError(f"OpenL2M requires Python 3.12 - 3.13 (current: Python {sys.version.split()[0]})")
+if sys.version_info < (3, 12) or sys.version_info >= (3, 15):
+    raise RuntimeError(f"OpenL2M requires Python 3.12 - 3.14 (current: Python {sys.version.split()[0]})")
 
 
 # Check for configuration file
@@ -49,8 +49,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = "4.1.3"
-VERSION_DATE = "2026-06-24"
+VERSION = "4.2"
+VERSION_DATE = "2026-07-10"
 
 # Hostname
 HOSTNAME = platform.node()
@@ -164,6 +164,9 @@ TOPMENU_MAX_COLUMNS = getattr(configuration, "TOPMENU_MAX_COLUMNS", 4)
 
 # show the switch search form on home page
 SWITCH_SEARCH_FORM = getattr(configuration, "SWITCH_SEARCH_FORM", True)
+
+# read hardware details of a device (chassis, modules, etc.). Disable to save read time.
+READ_HARDWARE_DETAILS = getattr(configuration, "READ_HARDWARE_DETAILS", True)
 
 # snmp related constants
 SNMP_TIMEOUT = getattr(configuration, 'SNMP_TIMEOUT', 4)  # seconds before retry, see EasySNMP docs

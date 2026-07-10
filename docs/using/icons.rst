@@ -29,7 +29,7 @@ Here are the icons used in OpenL2M, and their meanings:
    * - :fas:`cogs;`
      - A routed interface. Hover will show routed subnet information, if known.
    * - :fas:`tags;`
-     - A 802.1q Tagged or Trunked interface. Hover will show allowed vlans. If enabled, you can click to edit 802.1q tags.
+     - A 802.1q Tagged or Trunked interface. Hover will show allowed vlans. If enabled, and you have rights, you can click to edit 802.1q tags.
    * - :fas:`plus`
      - An access mode interface where the user can edit the untagged and 802.1q-tagged vlans.
    * - :fas:`project-diagram;`
@@ -133,6 +133,8 @@ Here are the icons used in OpenL2M, and their meanings:
      - Go to device and usage statistics, and currently active users.
    * - :fas:`mountain;`
      - See top-N device and user activity page.
+   * - :fas:`cog;`
+     - Show Django settings (admins only!).
    * - :fas:`code;`
      - Go to the OpenL2M sources on Github.
    * - :fas:`key;`

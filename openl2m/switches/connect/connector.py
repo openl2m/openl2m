@@ -13,15 +13,17 @@
 #
 from collections import OrderedDict
 import datetime
-import json
-import jsonpickle
-import lib.manuf.manuf as manuf
-import natsort
-import netmiko
+import logging
 import re
 import time
 import traceback
 from typing import Any
+
+import json
+import jsonpickle
+from lib.manuf import manuf
+import natsort
+import netmiko
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -60,13 +62,14 @@ from switches.connect.constants import (
 
 from rest_framework.reverse import reverse as rest_reverse
 
-"""
-Base Connector() class for OpenL2M.
-This implements the interface that is expected by the higher level code
-that calls this (e.g in the view.py functions that implement the url handling)
-"""
+#
+# Base Connector() class for OpenL2M.
+# This implements the interface that is expected by the higher level code
+# that calls this (e.g in the view.py functions that implement the url handling)
+#
 
 
+# pylint: disable=too-many-public-methods
 class Connector:
     """
     This base class defines the basic interface for all switch connections.
@@ -313,10 +316,10 @@ class Connector:
         """
         return True
 
-    """
-    These are the high level functions used to "get" interface information.
-    These are called by the switches.view functions to display data.
-    """
+    #
+    # These are the high level functions used to "get" interface information.
+    # These are called by the switches.view functions to display data.
+    #
 
     def get_basic_info(self) -> bool:
         """
@@ -378,25 +381,30 @@ class Connector:
                 self.add_warning("WARNING: device driver does not support 'get_my_basic_info()' !")
 
             # see if we can get hardware details from the driver:
-            if hasattr(self, "get_my_hardware_details"):
+            # this is optional, so we do not warn if not found!
+            if (
+                settings.READ_HARDWARE_DETAILS
+                and self.switch.read_hardware_details
+                and self.group.read_hardware_details
+                and hasattr(self, "get_my_hardware_details")
+            ):
                 start_time = time.time()
                 self.get_my_hardware_details()
                 self.add_timing("HW Info Read", 1, time.time() - start_time)
-            # this is optional, so we do not warn if not found!
 
             # see if we can get device health details from the driver:
+            # this is optional, so we do not warn if not found!
             if hasattr(self, "check_my_device_health"):
                 start_time = time.time()
                 self.check_my_device_health()
                 self.add_timing("Device Health", 1, time.time() - start_time)
-            # this is optional, so we do not warn if not found!
 
             # see if the driver has VRF support:
+            # this is optional, so we do not warn if not found!
             if hasattr(self, "get_my_vrfs"):
                 start_time = time.time()
                 self.get_my_vrfs()
                 self.add_timing("VRF Info Read", 1, time.time() - start_time)
-            # this is optional, so we do not warn if not found!
 
             # info about access times, etc.
             default_time = datetime.datetime(2000, 1, 1, 0, 0, 0, 0, datetime.timezone.utc)
@@ -427,14 +435,13 @@ class Connector:
             dprint("  ==> Already loaded from cache!")
         return True
 
-    """
-    This placeholder needs to be implemented by vendor or tech specific drivers.
-    return True on success, False on error and set self.error variables
-
-    def get_my_basic_info(self):
-        return True
-
-    """
+    #
+    # This placeholder needs to be implemented by vendor or tech specific drivers.
+    # return True on success, False on error and set self.error variables
+    #
+    # def get_my_basic_info(self):
+    #     return True
+    #
 
     def get_client_data(self) -> bool:
         """
@@ -474,25 +481,24 @@ class Connector:
             self._lookup_ethernet_vendors()
             # add to timing data, for admin use!
             self.add_timing("Ethernet Vendor Search", self.eth_count + self.neighbor_count, time.time() - start_time)
-
             return True
         self.add_warning("WARNING: device driver does not support 'get_my_client_data()' !")
         return False
 
-    """
-    placeholder for class-specific implementation to read things like:
-    self.get_known_ethernet_addresses()
-        this should add EthernetAddress() =objects to the interface.eth dict(),
-        indexed by the ethernet address in string format
-
-        self.get_arp_data()
-
-        self.get_lldp_data()
-    return True on success, False on error and set self.error variables
-
-    def get_my_client_data(self):
-        return True
-    """
+    #
+    # placeholder for class-specific implementation to read things like:
+    # self.get_known_ethernet_addresses()
+    #     this should add EthernetAddress() =objects to the interface.eth dict(),
+    #     indexed by the ethernet address in string format
+    #
+    #     self.get_arp_data()
+    #
+    #     self.get_lldp_data()
+    # return True on success, False on error and set self.error variables
+    #
+    # def get_my_client_data(self):
+    #     return True
+    #
 
     def check_my_device_health(self):
         """
@@ -500,28 +506,27 @@ class Connector:
         This can be used to check stack health, power-supplies or whatever.
         """
         dprint("Connector().check_my_device_health()")
-        return
 
-    """
-    Vendor drivers that implement this should call the super-class version of this at some point.
-
-    def check_my_device_health(self):
-        # call the super class implementation of this:
-        super().check_my_device_health()
-
-        # do your own vendor/device specific checking...
-
-        # you can add information to the device-info tab
-        self.add_more_info(category="Category", name="Attribute", value="Value")
-
-        # or add a warning to the web ui:
-        self.add_warning(warning="The Fan is BAD", add_log=False)
-
-        # then add a log message
-        self.add_log(description="The Fan is BAD", type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE)
-
-        return
-    """
+    #
+    # Vendor drivers that implement this should call the super-class version of this at some point.
+    #
+    # def check_my_device_health(self):
+    #     # call the super class implementation of this:
+    #     super().check_my_device_health()
+    #
+    #     # do your own vendor/device specific checking...
+    #
+    #     # you can add information to the device-info tab
+    #     self.add_more_info(category="Category", name="Attribute", value="Value")
+    #
+    #     # or add a warning to the web ui:
+    #     self.add_warning(warning="The Fan is BAD", add_log=False)
+    #
+    #     # then add a log message
+    #     self.add_log(description="The Fan is BAD", type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE)
+    #
+    #     return
+    #
 
     def clear_client_data(self):
         """
@@ -538,14 +543,14 @@ class Connector:
             interface.eth = {}
             interface.lldp = {}
 
-    """
-    These are the "set" functions that implement changes on the device.
-    The base-class implemention updates the neccessary data that is used by
-    the 'views'.
-    The actual 'physical' changes on the device need to be implemented
-    by the device/vendor specific class, which upon success need to call
-    the relevant base-class functions
-    """
+    #
+    # These are the "set" functions that implement changes on the device.
+    # The base-class implemention updates the neccessary data that is used by
+    # the 'views'.
+    # The actual 'physical' changes on the device need to be implemented
+    # by the device/vendor specific class, which upon success need to call
+    # the relevant base-class functions
+    #
 
     def set_interface_admin_status(self, interface: Interface, new_state: bool) -> bool:
         """
@@ -703,7 +708,7 @@ class Connector:
             f"Connector.set_interface_vlans() for {interface.name} to untagged {untagged_vlan}, tagged {tagged_vlans}, allow_all={allow_all}"
         )
         interface.untagged_vlan = untagged_vlan
-        if not len(tagged_vlans) and not allow_all:
+        if not tagged_vlans and not allow_all:
             dprint("  Access Mode!")
             # no tagged vlan, ie "access mode".
             self.set_interface_untagged(interface=interface)
@@ -714,7 +719,7 @@ class Connector:
             interface.vlans = []  # start with clean slate on trunk!
             # loop through all vlans, and see if they are allowed
             # this avoids invalid vlans in 'tagged_vlans'
-            for vid in self.vlans.keys():
+            for vid in self.vlans:
                 dprint(f"  Trunk vlan {vid}")
                 if allow_all or vid in tagged_vlans:
                     dprint("    calling add_to_interface()")
@@ -881,6 +886,8 @@ class Connector:
         self.interfaces[interface.key] = interface
         return True
 
+    # pylint: disable=redefined-builtin
+    # we re-use "id"
     def add_poe_powersupply(self, id: int, power_available: int) -> PoePSE:
         """
         Add a power supply PoePse() object to the device, and return this new object.
@@ -901,6 +908,8 @@ class Connector:
         self.poe_enabled = True
         return pse
 
+    # pylint: disable=redefined-builtin
+    # we re-use "id"
     def set_powersupply_attribute(self, id: int, attribute: str, value) -> bool:
         """
         set the value for a specified attribute of a power supply indexed by id
@@ -934,7 +943,7 @@ class Connector:
             Interface() if found, False if not found.
         """
         key = str(key)
-        if key in self.interfaces.keys():
+        if key in self.interfaces:
             interface = self.interfaces[key]
             dprint(f"get_interface_by_key() for '{key}' => Found '{interface.name}'")
             return interface
@@ -1007,7 +1016,7 @@ class Connector:
         Returns:
             none
         """
-        if vlan_id in self.vlans.keys() and self.vlans[vlan_id].type == VLAN_TYPE_NORMAL and vlan_id not in iface.vlans:
+        if vlan_id in self.vlans and self.vlans[vlan_id].type == VLAN_TYPE_NORMAL and vlan_id not in iface.vlans:
             dprint(f"   add_vlan_to_interface(): Adding Vlan {vlan_id} to {iface.name}!")
             iface.vlans.append(vlan_id)
             iface.is_tagged = True
@@ -1060,9 +1069,8 @@ class Connector:
                 vrf_name=vrf_name,
             )
             return a
-        else:
-            dprint(f"conn.add_learned_ethernet_address(): Interface {if_name} does NOT exist!")
-            return False
+        dprint(f"conn.add_learned_ethernet_address(): Interface {if_name} does NOT exist!")
+        return False
 
     def add_neighbor_object(self, if_name: str, neighbor: NeighborDevice) -> bool:
         """
@@ -1080,9 +1088,8 @@ class Connector:
         if iface:
             iface.add_neighbor(neighbor)
             return True
-        else:
-            dprint(f"conn.add_neighbor_object(): Interface {if_name} does NOT exist!")
-            return False
+        dprint(f"conn.add_neighbor_object(): Interface {if_name} does NOT exist!")
+        return False
 
     def get_vrf_by_name(self, name: str) -> Vrf:
         """Get a Vrf() object by name. If not exists, create it
@@ -1150,10 +1157,10 @@ class Connector:
             return True
         return False
 
-    """
-    SSH connectivity uses the Netmiko library to connect to a device.
-    The varous ssh_* functions implement the netmiko/ssh connection.
-    """
+    #
+    # SSH connectivity uses the Netmiko library to connect to a device.
+    # The varous ssh_* functions implement the netmiko/ssh connection.
+    #
 
     def netmiko_connect(self) -> bool:
         """
@@ -1204,8 +1211,6 @@ class Connector:
 
         # write a debug file for paramiko/netmiko SSH session logging.
         if settings.DEBUG:
-            import logging
-
             logging.basicConfig(filename='netmiko-debug.log', level=logging.DEBUG)
             logging.getLogger("netmiko")
 
@@ -1225,7 +1230,6 @@ class Connector:
             return False
         except netmiko.exceptions.ReadTimeout as err:
             dprint(f"netmiko_connect(): ERROR ReadTimeout: {repr(err)}")
-            self.output = "Error: the connection attempt timed out!"
             self.error.status = True
             self.error.description = "Error: the connection attempt timed out!"
             self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
@@ -1353,7 +1357,7 @@ class Connector:
         # instead of using get_object_or_404, we want to register the error!
         # c = get_object_or_404(Command, pk=command_id)
         try:
-            c = Command.objects.get(pk=command_id)
+            c = Command.objects.get(pk=command_id)  # pylint: disable=no-member
         except Exception:
             # not found raises Command.DoesNotExist, but we simple catch all!
             self.error.status = True
@@ -1377,7 +1381,7 @@ class Connector:
             return cmd
 
         if c.type == CMD_TYPE_INTERFACE:
-            if interface_name and interface_name in self.interfaces.keys():
+            if interface_name and interface_name in self.interfaces:
                 cmd["command"] = c.command % self.interfaces[interface_name].name
             else:
                 # invalid interface name!
@@ -1475,7 +1479,7 @@ class Connector:
             start_time = time.time()
             count = 0
             # get myself from cache :-)
-            for attr_name, value in self.__dict__.items():
+            for attr_name in self.__dict__:
                 dprint(f"Reading cached attribute '{attr_name}'")
                 if attr_name not in self._do_not_cache:
                     if attr_name in self.request.session.keys():
@@ -1483,7 +1487,8 @@ class Connector:
                         # with Django 5, Pickle serialization is no longer supported, so to use the JSON session cache
                         # we use jsonpickle to make sure we can store *any* class object in the sesssion!
                         # keys=True ensures that integer dictionary keys are maintained! (e.g self.vlans)
-                        self.__setattr__(attr_name, jsonpickle.decode(self.request.session[attr_name], keys=True))
+                        # self.__setattr__(attr_name, jsonpickle.decode(self.request.session[attr_name], keys=True))
+                        setattr(self, attr_name, jsonpickle.decode(self.request.session[attr_name], keys=True))
                         count += 1
                 else:
                     dprint("   Ignoring (_do_not_cache)!")
@@ -1584,7 +1589,6 @@ class Connector:
         clear_switch_cache(self.request)
         # call child-class specific clear-clear_my_cache()
         self.clear_my_cache()
-        return
 
     def clear_my_cache(self):
         """
@@ -1653,8 +1657,7 @@ class Connector:
         if name in self.request.session.keys():
             dprint("   ... found!")
             return self.request.session[name]
-        else:
-            return None
+        return None
 
     def clear_cache_variable(self, name: str) -> bool:
         """
@@ -1679,7 +1682,7 @@ class Connector:
             return True
         return False
 
-    def add_timing(self, name: str, count: int, time):
+    def add_timing(self, name: str, count: int, duration):
         """
         Function to track response time of the switch
         This add/updates self.timing {}, dictionary to track how long various calls
@@ -1688,15 +1691,15 @@ class Connector:
         Args:
             name (str): name of timed item
             count(int): number of occurances of item
-            time:  time() is took for this item.
+            duration:  time() it took for this item.
 
         Returns:
             none
         """
-        self.timing[name] = (count, time)
+        self.timing[name] = (count, duration)
         total_count, total_time = self.timing["Total"]
         total_count += count
-        total_time += time
+        total_time += duration
         self.timing["Total"] = (total_count, total_time)
 
     def add_more_info(self, category, name: str, value: Any):
@@ -1712,7 +1715,7 @@ class Connector:
         Returns:
             none
         """
-        if category not in self.more_info.keys():
+        if category not in self.more_info:
             self.more_info[category] = {}
         self.more_info[category][name] = value
 
@@ -1739,6 +1742,7 @@ class Connector:
             dprint(f"ERROR saving driver_info field: {err}")
             self.add_warning(f"ERROR saving driver_info field: {err}")
 
+    # pylint: disable=unused-argument
     def _can_manage_interface(self, interface: Interface):
         """
         Function meant to check if this interface can be managed.
@@ -1802,12 +1806,12 @@ class Connector:
             # no vlan allowed!
             dprint("  read-only, no vlans allowed!")
             return
-        for switch_vlan_id in self.vlans.keys():
+        for switch_vlan_id, switch_vlan in self.vlans.items():
             # if allow_all is set, or we are staff or supervisor, allow this vlan:
             if self.group.allow_all_vlans or (
                 self.request and (self.request.user.is_superuser or self.request.user.is_staff)
             ):
-                self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
+                self.allowed_vlans[int(switch_vlan_id)] = switch_vlan
                 dprint(f"  {switch_vlan_id}: allowed per allow-all or superuser or staff")
             else:
                 # 'regular' user, first check the switchgroup.vlan_groups:
@@ -1815,7 +1819,7 @@ class Connector:
                 for vlan_group in self.group.vlan_groups.all():
                     for group_vlan in vlan_group.vlans.all():
                         if int(group_vlan.vid) == int(switch_vlan_id):
-                            self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
+                            self.allowed_vlans[int(switch_vlan_id)] = switch_vlan
                             found_vlan = True
                             dprint(f"  {switch_vlan_id}: allowed per group.vlan_groups")
                             continue
@@ -1824,10 +1828,9 @@ class Connector:
                     for group_vlan in self.group.vlans.all():
                         if int(group_vlan.vid) == int(switch_vlan_id):
                             # save using the switch vlan name, which is possibly different from the VLAN group name!
-                            self.allowed_vlans[int(switch_vlan_id)] = self.vlans[switch_vlan_id]
+                            self.allowed_vlans[int(switch_vlan_id)] = switch_vlan
                             dprint(f"  {switch_vlan_id}: allowed per group.vlans(individual)")
                             continue
-        return
 
     def _set_interfaces_permissions(self):
         """
@@ -1907,6 +1910,7 @@ class Connector:
                 continue
 
             # is 802.1q tag editing allowed? (default=no)
+            # pylint: disable=too-many-boolean-expressions
             if (
                 self.can_edit_tags
                 and self.can_change_vlan
@@ -1951,7 +1955,7 @@ class Connector:
 
             # check interface types first, only show ethernet and aggregaton types
             # this hides vlan, loopback etc. interfaces for the regular user.
-            if iface.type not in visible_interfaces.keys():
+            if iface.type not in visible_interfaces:
                 iface.visible = False
                 iface.manageable = False  # just to be safe :-)
                 iface.unmanage_reason = "Interface access denied: type is not visible!"  # should never show!
@@ -1980,7 +1984,7 @@ class Connector:
                 continue
 
             # check if this vlan is in the group allowed vlans list:
-            if int(iface.untagged_vlan) not in self.allowed_vlans.keys():
+            if int(iface.untagged_vlan) not in self.allowed_vlans:
                 iface.manageable = False  # match, so we cannot modify! Show anyway...
                 iface.unmanage_reason = "Interface access denied: you do not have access to the interface vlan!"
                 continue
@@ -1989,8 +1993,8 @@ class Connector:
             iface.manageable = True
 
         dprint("_set_interfaces_permissions() done!")
-        return
 
+    # pylint: disable=redefined-builtin
     def add_log(self, description: str, type: int, action: int):
         """
         Log a message about some event on this device to the log table.
@@ -2019,7 +2023,6 @@ class Connector:
         if self.request:
             log.user = self.request.user
         log.save()
-        return
 
     def add_warning(self, warning: str, add_log: bool = True):
         """
@@ -2036,7 +2039,6 @@ class Connector:
             # add a log message
             self.add_log(type=LOG_TYPE_WARNING, action=LOG_CONNECTION_ERROR, description=warning)
         # done!
-        return
 
     def log_error(self, error: Error | bool = False):
         """
@@ -2061,7 +2063,6 @@ class Connector:
                 description=f"{self.error.description}: {self.error.details}",
             )
         # done!
-        return
 
     def get_switch_vlans(self) -> dict:
         """
@@ -2087,7 +2088,7 @@ class Connector:
         """
         dprint(f"get_vlan_by_id({id}={type(vlan_id)})")
         vlan_id = int(vlan_id)
-        if vlan_id in self.vlans.keys():
+        if vlan_id in self.vlans:
             return self.vlans[vlan_id]
         return False
 
@@ -2101,7 +2102,7 @@ class Connector:
         Returns:
             (boolean):  True if vlan id exists, False if not
         """
-        if int(vlan_id) in self.vlans.keys():
+        if int(vlan_id) in self.vlans:
             return True
         return False
 
@@ -2175,25 +2176,17 @@ class Connector:
             dprint(f"  Interface '{interface.name}'")
             for eth in interface.eth.values():
                 self.eth_count += 1
-                # eth of class EthernetAddress(netaddr.EUI),
-                # so we can use that objects internal format. The data is in words[] array:
-                # is this MultiCast? (LSB bit set)
-                if bool(eth.words[0] & 0b01):
-                    eth.vendor = "MultiCast"
-                # or Locally Administered? (2nd LSB bit set)
-                elif bool(eth.words[0] & 0b10):
-                    eth.vendor = "Locally Administered"
-                # get regular vendor
-                else:
+                if not eth.is_multicast and not eth.is_locally_administered:
+                    # get regular vendor
                     eth.vendor = self._get_oui_vendor(parser=parser, ethernet_address=str(eth))
                 dprint(f"  Eth Vendor = {eth.vendor}")
             # also lookup vendor for Neighbors where the chassis-string is an ethernet address:
             for neighbor in interface.lldp.values():
                 self.neighbor_count += 1
-                if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
+                if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR and not neighbor.vendor:
                     neighbor.vendor = self._get_oui_vendor(parser=parser, ethernet_address=neighbor.chassis_string)
                     dprint(f"  Neighbor vendor = {neighbor.vendor}")
-        dprint(f"  VENDOR LOOKUP: ETH {self.eth_count}, LLDP {self.neighbor_count}")
+        dprint(f"  VENDOR LOOKUPS: ETH {self.eth_count}, LLDP {self.neighbor_count}")
 
     def _get_oui_vendor(self, parser, ethernet_address: str) -> str:
         """Look up an ethernet address in the OUI database, and return vendor information.
@@ -2212,7 +2205,7 @@ class Connector:
             vendor = parser.get_all(ethernet_address)
             if vendor.manuf_long:
                 return vendor.manuf_long
-            elif vendor.manuf:
+            if vendor.manuf:
                 return vendor.manuf
         except Exception as err:
             dprint(f"ERROR: cannot get Ethernet vendor for '{ethernet_address}'")
@@ -2235,16 +2228,16 @@ class Connector:
         return f"{self.__class__.__name__} for {self.switch.name}"
 
     def __str__(self) -> str:
-        return self.display_name
+        return self.display_name()
 
 
 # --- End of Connector() ---
 
 
-"""
-We need one helper function, since we will need to clear the cache outside
-the context of a class...
-"""
+#
+# We need one helper function, since we will need to clear the cache outside
+# the context of a class...
+#
 
 
 def clear_switch_cache(request: HttpRequest):

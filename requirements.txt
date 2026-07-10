@@ -6,14 +6,11 @@ django-ipware
 django-ordered-model>=3.7,<4.0
 # ezsnmp replaces easysnmp, see https://github.com/carlkidcrypto/ezsnmp
 # and docs at https://carlkidcrypto.github.io/ezsnmp/html/index.html
-# Tested code v1.1.0 from pypi
-# ezsnmp v2 may break as the interface may change. We have not tested this.
-# for now, lock to v1.1.0
 # See this: https://github.com/carlkidcrypto/ezsnmp/releases
 # ezsnmp may not build properly for Ubuntu. If you get SNMP session errors, then run
-# pip install --force-reinstall --no-binary :all: ezsnmp==1.1.0
+# pip install --force-reinstall --no-binary :all: ezsnmp==2.3.0
 # Note: if you change the version here, also change "upgrade.sh" !
-ezsnmp==1.1.0
+ezsnmp>= 2.3,<2.4
 flake8
 flake8-pyproject
 gitpython
@@ -45,22 +42,13 @@ netaddr>=1.2.1
 netmiko>=4.7,<4.8
 #improved PostGreSQL support
 psycopg2-binary
-# Python 3 library for HPE Comware 7 NetConf drivers.
-py3hpecw7
-# We are using a clone of the Aruba pyaoscx library from github.com,
-# as there always seems to be some fix in there that we need that has
-# not been released yet to PyPi! :-(
-# git+https://github.com/aruba/pyaoscx
-#
-# Note: pyaoscx on PyPi appears stable now, so use the tested version:
-pyaoscx==2.6.0
 pycodestyle
 pylint
 # pysnmp (original) is no longer supported.
 # see https://lists.openstack.org/pipermail/openstack-discuss/2022-August/030062.html
 # we are now using the maintained clone "pysnmp" by Lextudio
 # see https://pysnmp.com
-pysnmp==7.1.22
+pysnmp==7.1.27
 #PyTZ and the type library:
 pytz>=2024.1
 rangeparser # for arista eapi vlan ranges

@@ -13,6 +13,7 @@
 #
 import io
 import time
+import traceback
 import xlsxwriter
 
 from switches.connect.classes import Error
@@ -255,17 +256,20 @@ def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector):
 
             worksheet.write(row, COL_INTERFACE_DESCRIPTION, interface.description, spreadsheet.format_regular)
             worksheet.write(row, COL_ETHERNET, str(eth), spreadsheet.format_regular)
-            worksheet.write(row, COL_VENDOR, eth.vendor, spreadsheet.format_regular)
+            if hasattr(eth, "vendor"):
+                worksheet.write(row, COL_VENDOR, eth.vendor, spreadsheet.format_regular)
             # for IPv4 and IPv6, we keep multiple addresses, so handle the list:
-            worksheet.write(row, COL_IPV4, ", ".join(eth.address_ip4), spreadsheet.format_regular)
-            worksheet.write(row, COL_IPV6, ", ".join(eth.address_ip6), spreadsheet.format_regular)
+            if hasattr(eth, "address_ip4"):
+                worksheet.write(row, COL_IPV4, ", ".join(eth.address_ip4), spreadsheet.format_regular)
+            if hasattr(eth, "address_ip6"):
+                worksheet.write(row, COL_IPV6, ", ".join(eth.address_ip6), spreadsheet.format_regular)
 
         # and loop through lldp:
         for neighbor in interface.lldp.values():
             row += 1
             found_ipv4 = False
             found_ipv6 = False
-            dprint(f"LLDP: on {interface.name} - {neighbor.sys_name}")
+            # dprint(f"LLDP: on {interface.name} - {neighbor.sys_name}")
             worksheet.write(row, COL_INTERFACE_NAME, interface.name, spreadsheet.format_regular)
             worksheet.write(row, COL_INTERFACE_VLAN, interface.untagged_vlan, spreadsheet.format_regular)
 
@@ -309,7 +313,7 @@ def create_interfaces_xls_file(connection: Connector):
     """
     dprint("create_interfaces_xls_file()")
 
-    (spreadsheet, reason) = create_workbook()
+    spreadsheet, reason = create_workbook()
     if not spreadsheet:
         error = Error()
         error.description = "Error creating Excel file!"
@@ -323,7 +327,7 @@ def create_interfaces_xls_file(connection: Connector):
     except Exception as err:  # trap all errors from above!
         error = Error()
         error.description = "Error adding content to Excel file!"
-        error.details = f"ERROR: {err}"
+        error.details = f"ERROR: {err}\n{traceback.format_exc()}"
         return False, error
 
     # all OK!
@@ -342,7 +346,7 @@ def create_eth_neighbor_xls_file(connection: Connector):
     """
     dprint("create_eth_neighbor_xls_file()")
 
-    (spreadsheet, reason) = create_workbook()
+    spreadsheet, reason = create_workbook()
     if not spreadsheet:
         error = Error()
         error.description = "Error creating Excel file!"

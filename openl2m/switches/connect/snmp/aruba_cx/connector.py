@@ -117,7 +117,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
 
         # we recommend using the AOS-CX API driver, tell the user so:
         self.add_warning(
-            warning="We recommend using the AOS-CX API driver for this device. Please contact your OpenL2M administrator!",
+            warning="For full functionality with this device use the AOS-CX API driver!. Please contact your OpenL2M administrator!",
             add_log=False,
         )
 
@@ -369,7 +369,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             parser=self._parse_mibs_ieee_qbridge_vlan_static_untagged_ports,
         )
         if retval < 0:
-            self.add_warning(warning="Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
+            self.add_warning(warning="Error getting 'ieee8021QBridgeVlanStaticUntaggedPorts'")
             return retval
 
         retval = self.get_snmp_branch(
@@ -377,7 +377,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             parser=self._parse_mibs_ieee_qbridge_vlan_static_egress_ports,
         )
         if retval < 0:
-            self.add_warning(warning="Error getting 'Q-Bridge-Vlan-Static-Ports' (dot1qVlanStaticUntaggedPorts)")
+            self.add_warning(warning="Error getting 'ieee8021QBridgeVlanStaticEgressPorts'")
             return retval
 
         return self.vlan_count
@@ -447,7 +447,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
                     oid=f"{dot1qPvid}.{interface.index}",
                     value=int(new_vlan_id),
                     snmp_type="u",
-                    parser=self._parse_mibs_vlan_related,
+                    parser=self._parse_mibs_vlan_dot1q_pvid,
                 ):
                     dprint("   ERROR!")
                     return False
@@ -456,21 +456,22 @@ class SnmpConnectorArubaCx(SnmpConnector):
             # this needs work!
             self.error.status = True
             self.error.description = f"Vlan {new_vlan_id} is not allowed on this trunk port."
-            self.error.details = "We cannot yet change the untagged vlan if this is not allowed on the trunk!"
+            self.error.details = "We cannot yet change the untagged vlan if this is not allowed on the trunk! For this functionality, please use the AOS-CX API driver for this device!"
             dprint("  ERROR: New vlan NOT allowed on TRUNK!")
             return False
 
             # # need to add this vlan to the trunk vlans, by setting bit to 1.
             # # get the current list of static ports on this vlan:
             # egress_oid = f"{ieee8021QBridgeVlanStaticEgressPorts}.1.{new_vlan_id}"
-            # (error_status, retval) = self.get(oid=egress_oid, parser=self._parse_mibs_vlan_related)
+            # (error_status, retval) = self.get(oid=egress_oid, parser=self._parse_mibs_ieee_qbridge_vlan_static_egress_ports)
             # if error_status:
             #     dprint(f"Error getting SNMP value for 'ieee8021QBridgeVlanStaticEgressPorts': {self.error.details}")
             #     return False
             # # get the return value into a port list:
             # dprint(f"Portlist size is {len(str(retval))} bytes")
             # egress_portlist = PortList()
-            # egress_portlist.from_unicode(str(retval))
+            # # gress_portlist.from_unicode(str(retval))    # EzSnmp v1
+            # egress_portlist.from_hexadecimal(str(retval)) # EzSnmp v2
             # # now set the bit for this port
             # egress_portlist[int(interface.index)] = 1
             # # and atomically set both the egress port list, and the pvid OIDs:
@@ -498,7 +499,7 @@ class SnmpConnectorArubaCx(SnmpConnector):
             oid=f"{dot1qPvid}.{interface.index}",
             value=int(new_vlan_id),
             snmp_type="u",
-            parser=self._parse_mibs_vlan_related,
+            parser=self._parse_mibs_vlan_dot1q_pvid,
         ):
             dprint("   ERROR!")
             return False

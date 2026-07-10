@@ -170,7 +170,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
             oid=f"{dot1qPvid}.{interface.port_id}",
             value=int(new_vlan_id),
             snmp_type="u",
-            parser=self._parse_mibs_vlan_related,
+            parser=self._parse_mibs_vlan_dot1q_pvid,
         ):
             return False
 
@@ -190,12 +190,12 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         """
         dprint("SnmpConnectorAristaEOS.get_my_vrfs()")
 
-        retval = self.get_snmp_branch(branch_name="aristaVrfEntry", parser=self._parse_mib_arista_vrf_entries)
+        retval = self.get_snmp_branch(branch_name="aristaVrfEntry", parser=self._parse_mibs_arista_vrf_entries)
         if retval < 0:
             self.add_warning(warning="Error getting VRF info from the Arista MPLS tables (aristaVrfEntry)")
         if self.vrfs:
             retval = self.get_snmp_branch(
-                branch_name="aristaVrfIfMembership", parser=self._parse_mib_arista_vrf_members
+                branch_name="aristaVrfIfMembership", parser=self._parse_mibs_arista_vrf_members
             )
             # see if we can get router IP addresses in these VRFs:
             for vrf_name in self.vrfs:
@@ -217,19 +217,20 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         """
         dprint("SnmpConnectorAristaEOS().save_running_config()")
 
-        """
-        To save the running-configuration to the startup-configuration on an Arista switch via SNMP,
-        use a set request (SNMP SET) to activate the copy command MIB.
+        #
+        # To save the running-configuration to the startup-configuration on an Arista switch via SNMP,
+        # use a set request (SNMP SET) to activate the copy command MIB.
 
-            Source OID: 1.3.6.1.4.1.30065.3.7.1.1.3.7.100.101.102.97.117.108.116.0 (OctetString: "running-config")
-            Destination OID: 1.3.6.1.4.1.30065.3.7.1.1.4.7.100.101.102.97.117.108.116.0 (OctetString: "startup-config")
-            Status OID (Action): 1.3.6.1.4.1.30065.3.7.1.1.11.7.100.101.102.97.117.108.116.0 (Integer32: 1 to execute)
+        #     Source OID: 1.3.6.1.4.1.30065.3.7.1.1.3.7.100.101.102.97.117.108.116.0 (OctetString: "running-config")
+        #     Destination OID: 1.3.6.1.4.1.30065.3.7.1.1.4.7.100.101.102.97.117.108.116.0 (OctetString: "startup-config")
+        #     Status OID (Action): 1.3.6.1.4.1.30065.3.7.1.1.11.7.100.101.102.97.117.108.116.0 (Integer32: 1 to execute)
 
-        See Arista Config-COPY mib at
-            https://www.arista.com/assets/data/docs/MIBS/ARISTA-CONFIG-COPY-MIB.txt
-            https://mibs.observium.org/mib/ARISTA-CONFIG-COPY-MIB/
-        Also look at https://www.reddit.com/r/Arista/comments/v6tfs9/save_config_via_snmp/
-        """
+        # See Arista Config-COPY mib at
+        #     https://www.arista.com/assets/data/docs/MIBS/ARISTA-CONFIG-COPY-MIB.txt
+        #     https://mibs.observium.org/mib/ARISTA-CONFIG-COPY-MIB/
+        # Also look at https://www.reddit.com/r/Arista/comments/v6tfs9/save_config_via_snmp/
+        #
+
         # we're sending the commands using the 'default' job as an atomic group of set()
         try:
             # this creates a new row
@@ -320,7 +321,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         # we did not parse the OID.
         return False
 
-    def _parse_mib_arista_vrf_entries(self, oid: str, val: str) -> bool:
+    def _parse_mibs_arista_vrf_entries(self, oid: str, val: str) -> bool:
         """
         Parse Arista VRF mib entries. This gets added to self.vrfs
 
@@ -331,7 +332,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnectorAristaEOS._parse_mib_arista_vrf_entries() {str(oid)}")
+        dprint(f"SnmpConnectorAristaEOS._parse_mibs_arista_vrf_entries() {str(oid)}")
 
         # routing status has bit for IPv4 and IPv6
         sub_oid = oid_in_branch(aristaVrfRoutingStatus, oid)
@@ -378,7 +379,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         # we did not parse:
         return False
 
-    def _parse_mib_arista_vrf_members(self, oid: str, val: str) -> bool:
+    def _parse_mibs_arista_vrf_members(self, oid: str, val: str) -> bool:
         """
         Parse Arista VRF interface membership entries.
 
@@ -389,7 +390,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnectorAristaEOS._parse_mib_arista_vrf_members() {str(oid)}")
+        dprint(f"SnmpConnectorAristaEOS._parse_mibs_arista_vrf_members() {str(oid)}")
 
         # aristaVrfIfMembership.<ifIndex> = "VRF-Name"
         sub_oid = oid_in_branch(aristaVrfIfMembership, oid)

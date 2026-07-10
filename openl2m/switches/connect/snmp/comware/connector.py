@@ -215,7 +215,7 @@ class SnmpConnectorComware(SnmpConnector):
         super().get_my_hardware_details()
 
         # now read Comware specific data:
-        retval = self.get_snmp_branch(branch_name="hh3cEntityExtUpTime", parser=self._parse_mib_hhc3_entity_ext)
+        retval = self.get_snmp_branch(branch_name="hh3cEntityExtUpTime", parser=self._parse_mibs_hhc3_entity_ext)
         if retval < 0:
             self.add_warning(warning="Error getting Comware extended hardware info ('hh3cEntityExtUpTime')")
             return False
@@ -322,7 +322,7 @@ class SnmpConnectorComware(SnmpConnector):
                 #
                 # # next, read current Egress PortList bitmap first:
                 # # note the 0 to hopefull deactivate time filter!
-                # (error_status, snmpval) = self.get(oid=f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_related)
+                # (error_status, snmpval) = self.get(oid=f"{dot1qVlanCurrentEgressPorts}.0.{new_vlan_id}", parser=self._parse_mibs_vlan_current_egress_ports)
                 # if error_status:
                 #     # Hmm, not sure what to do
                 #     self.error.status = True
@@ -330,7 +330,8 @@ class SnmpConnectorComware(SnmpConnector):
                 #     return -1
                 # # now calculate new bitmap by removing this switch port
                 # current_egress_portlist = PortList()
-                # current_egress_portlist.from_unicode(snmpval.value)
+                # # current_egress_portlist.from_unicode(snmpval.value)     # EzSnmp v1
+                # current_egress_portlist.from_hexadecimal(snmpval.value)       # EzSnmp v2
                 #
 
                 # now loop to find other existing ports on this vlan:
@@ -432,13 +433,14 @@ class SnmpConnectorComware(SnmpConnector):
         # add this port to "hh3cdot1qVlanPorts.<vlan-id>" bitmap of ports on vlan:
         #
         # read current ports
-        error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", parser=False)
+        error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}")
         if error_status:
             return False
         # and get ready to add these ports in bitmap Portlist() format
         vlan_port_bitmap = PortList()
         #  We need to manipulate the returned snmp value (str() class) into a true bitmap OctectString()
-        vlan_port_bitmap.from_unicode(snmpval.value)
+        # vlan_port_bitmap.from_unicode(snmpval.value)      # EzSnmp v1
+        vlan_port_bitmap.from_hexadecimal(snmpval.value)  # EzSnmp v2
         dprint(f"  VlanPorts = {vlan_port_bitmap.to_hex_string()}")
         # now set bit to 1 for this interface (i.e. set the port_id bit!).
         # NOTE: Comware sends (and receives) bits in opposite order inside each byte! (go figure)
@@ -485,24 +487,28 @@ class SnmpConnectorComware(SnmpConnector):
         )
 
         # first call HH3C specific attribute to set port to untagged or trunk
-        if allow_all or len(tagged_vlans):
+        if allow_all or tagged_vlans:
             dprint("  Setting TRUNK mode")
             success = self.set(
                 oid=f"{hh3cifVLANType}.{interface.port_id}", value=HH3C_IF_MODE_TRUNK, snmp_type="i", parser=False
             )
             if success:
+                dprint("  Set Trunk OK!")
                 # if the interface was in Access mode, setting to Trunk resets the untagged vlan to 1.
                 # Set it back to where it was if not interface.is_tagged:
                 if not interface.is_tagged:
+                    dprint("  Setting Tagged Mode")
                     success = SnmpConnector.set_interface_untagged_vlan(
                         self=self, interface=interface, new_vlan_id=untagged_vlan
                     )
                     if not success:
+                        dprint("ERROR in SnmpConnector.set_interface_untagged_vlan() ")
                         # Error() already set!
                         return False
 
                 time.sleep(0.5)
                 # we call the regular SnmpConnector() to set the various PVID and trunk bitmaps
+                dprint("  Calling super().set_interface_vlans()")
                 return super().set_interface_vlans(
                     interface=interface, untagged_vlan=untagged_vlan, tagged_vlans=tagged_vlans, allow_all=allow_all
                 )
@@ -515,7 +521,7 @@ class SnmpConnectorComware(SnmpConnector):
             oid=f"{hh3cifVLANType}.{interface.port_id}", value=HH3C_IF_MODE_ACCESS, snmp_type="i", parser=False
         )
         if success:
-            dprint("  Setting PVID")
+            dprint("  Access OK, Setting PVID")
             #
             # get snmp helper to handle bitmapping
             #
@@ -533,13 +539,14 @@ class SnmpConnectorComware(SnmpConnector):
             # add this port to "hh3cdot1qVlanPorts.<vlan-id>" bitmap of ports on vlan:
             #
             # read current ports
-            error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}", parser=False)
+            error_status, snmpval = self.get(f"{hh3cdot1qVlanPorts}.{untagged_vlan}")
             if error_status:
                 return False
             # and get ready to add these ports in bitmap Portlist() format
             vlan_port_bitmap = PortList()
             #  We need to manipulate the returned snmp value (str() class) into a true bitmap OctectString()
-            vlan_port_bitmap.from_unicode(snmpval.value)
+            # vlan_port_bitmap.from_unicode(snmpval.value)  # EzSnmp v1
+            vlan_port_bitmap.from_hexadecimal(snmpval.value)  # EzSnmp v2
             dprint(f"  VlanPorts = {vlan_port_bitmap.to_hex_string()}")
             # now set bit to 1 for this interface (i.e. set the port_id bit!).
             # NOTE: Comware sends (and receives) bits in opposite order inside each byte! (go figure)
@@ -594,7 +601,7 @@ class SnmpConnectorComware(SnmpConnector):
                 return False
         return True
 
-    def _parse_mib_hhc3_entity_ext(self, oid: str, val: str) -> bool:
+    def _parse_mibs_hhc3_entity_ext(self, oid: str, val: str) -> bool:
         """
         Parse Comware specific Entity Extension MIB (HH3C-ENTITY-EXT-MIB)
         Looking for individual chassis uptime only.

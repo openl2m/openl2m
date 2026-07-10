@@ -106,6 +106,7 @@ class SwitchAdmin(admin.ModelAdmin):
                     "bulk_edit",
                     "allow_poe_toggle",
                     "edit_if_descr",
+                    "read_hardware_details",
                 )
             },
         ),
@@ -191,6 +192,7 @@ class SwitchGroupAdmin(OrderedInlineModelAdminMixin, admin.ModelAdmin):
                     "bulk_edit",
                     "allow_poe_toggle",
                     "edit_if_descr",
+                    "read_hardware_details",
                     "comments",
                 ),
             },
@@ -377,7 +379,7 @@ class CommandAdmin(admin.ModelAdmin):
     save_on_top = True
     save_as = True
     search_fields = ["name"]
-    list_display = ["name", "os", "command_list_count"]
+    list_display = ["name", "os", "type", "command_list_count"]
 
     # return the number of commandlist() objects that reference a given command (obj)
     # this can be in 4 difference ManyToManyField relationships:

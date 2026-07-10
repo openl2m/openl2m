@@ -1,0 +1,43 @@
+.. image:: ../_static/openl2m_logo.png
+
+===========
+Version 4.2
+===========
+
+**Version 4.2 highlights:**
+
+- v4.2 now supports Python 3.14. Ie. Ubuntu 26.04 is supported!
+
+
+New Configuration Options
+-------------------------
+
+.. code-block:: Python
+
+    # Globally enable or disable reading of hardware details of all devices.
+    # Disable to save read time, but this will not show stacked chassis info, etc.
+    # Note: in the admin interface you can also disabled this
+    # per Switch Group, or for individual devices (Switches)
+    READ_HARDWARE_DETAILS = True
+
+
+Version 4.2
+-----------
+
+Release Date: 2026-07-10
+
+* add support for Python 3.14 (and thus Ubuntu 26.04). We now use the Python EzSnmp v2.3 library (from v1.1)
+* add ability to disable reading of hardware info per device or per group from the admin pages, or globally via a *settings.py* variable.
+  Disabling this can save significant time on older, slower devices and switch stacks.
+
+Bug fixes:
+
+* fix vlan change regression bug in several SNMP drivers.
+* fix port to ifindex map regression bug in Cisco SNMP driver.
+* fix allowed vlan parsing error in Arista eAPI driver.
+* interface and ethernet spreadsheet download optimization.
+* handle poe change, vlan change, and tags editing in the "standard" way in the actions.py classes.
+* protect vlan actions for invalid http methods
+* detect invalid data types in snmp set.
+* update consistent naming of snmp _parse_mibs_functions()
+* many pylint updates.

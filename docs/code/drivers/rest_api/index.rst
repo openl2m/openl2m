@@ -23,5 +23,6 @@ In general:
 * DELETE is used to remove settings, e.g. remote a vlan, or in some cases remove an attribute from an interface.
 
 This class is used at time of writing by:
-* :doc:`Aruba AOS-S REST api driver<../aos_s_api/index>`
+* :doc:`HPE/Aruba AOS-CX REST api driver<../aos_cx_api/index>`
+* :doc:`HPE/Aruba AOS-S ("ProCurve") REST api driver<../aos_s_api/index>`
 * :doc:`HPE Comware REST api driver<../hpe_cw_api/index>`

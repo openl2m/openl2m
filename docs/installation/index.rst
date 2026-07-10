@@ -10,26 +10,21 @@ The following steps are for a full production install of OpenL2M. No containers 
 
 **Requirements**
 
-*We recommend you install OpenL2M on Ubuntu 24.04 LTS*
+*We recommend you install OpenL2M on Ubuntu 24.04 or 26.04 LTS*
 
 You can also look at testing in a Docker container, see here for more options: https://github.com/openl2m
 
 
 .. note::
 
-  Ubuntu 26.04 comes with Python 3.14, which is NOT supported at present.
-  Python 3.14 support will require an upgrade to the EzSnmp v2.x library,
-  which will require rewriting of our SNMP code.
-
-
-*So, to run on Ubuntu 26.04, you will need to install an alternative version of Python 3.12 or 3.13! See the docs elsewhere*
+  Ubuntu 26.04 comes with Python 3.14, which is now supported!.
 
 
 OpenL2M has some requirements:
 
-* Python 3.12 - 3.13 (OpenL2M is developed and tested on v3.12 and 3.13.)
+* Python 3.12 - 3.14 (OpenL2M is developed and tested on v3.12 and 3.14.)
 * net-snmp v5.7 or greater, including net-snmp-devel
-* the Python "ezsnmp" package v1.1.0
+* the Python "ezsnmp" package v2.3.0
 * a web server, with the WSGI capability. We use Nginx in all our documentation.
   Apache or Caddy may work but is not tested.
 * the Django framework, v6.0 or greater.

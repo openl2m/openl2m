@@ -18,18 +18,18 @@ if [ -f "altpython.sh" ]; then
 fi
 
 # Validate the required Python version
-COMMAND="${PYTHON} -c 'import sys; exit(1 if sys.version_info < (3, 12) or sys.version_info >= (3, 14) else 0)'"
+COMMAND="${PYTHON} -c 'import sys; exit(1 if sys.version_info < (3, 12) or sys.version_info >= (3, 15) else 0)'"
 PYTHON_VERSION=$(eval "${PYTHON} -V")
 eval $COMMAND || {
   echo "-----------------------------------------------------"
   echo "ERROR: Unsupported Python version: ${PYTHON_VERSION}."
-  echo "OpenL2M requires Python 3.12 or 3.13."
+  echo "OpenL2M requires Python v3.12 - v3.14."
   echo ""
   echo "To specify an alternate Python executable,"
   echo "create a file named 'altpython.sh'"
   echo "and add a line such as this:"
   echo ""
-  echo "PYTHON=/usr/bin/python3.13"
+  echo "PYTHON=/usr/bin/python3.14"
   echo ""
   echo "Then re-run upgrade.sh"
   echo "-----------------------------------------------------"
@@ -97,9 +97,9 @@ fi
 # temporary(?) fix.
 # Note: if you change the version here, also change "upgrade.sh" !
 # ezsnmp may not build properly for Ubuntu. If you get SNMP session errors, then run
-COMMAND="pip install --force-reinstall --no-binary :all: ezsnmp==1.1.0"
-echo "Apply fix for ezsnmp: re-install it..."
-eval $COMMAND || exit 1
+# COMMAND="pip install --force-reinstall --no-binary :all: ezsnmp==2.3.0"
+# echo "Apply fix for ezsnmp: re-install it..."
+# eval $COMMAND || exit 1
 
 # Apply any database migrations
 COMMAND="python3 openl2m/manage.py migrate"

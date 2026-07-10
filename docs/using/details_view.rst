@@ -1,12 +1,14 @@
 .. image:: ../_static/openl2m_logo.png
 
-=====================
-the Eth/ARP/LLDP view
-=====================
+========================
+The Eth/ARP/ND/LLDP View
+========================
 
 When you click the 'Read Eth/Arl/Lldp' link in the menu bar in the Basic view,
 after being patient, the details of the connections to this device will be shown in
 the "Eth/ARP/LLDP" tab.
+
+This shows known ethernet addresses, their IPv4 / IPv6 addresses if known, and LLDP neighbor information.
 
 |arp_details_tab|
 
@@ -20,7 +22,8 @@ data, click the 'Refresh Eth/Arl/LLDP' button!
 .. |arp_refresh_button| image:: ../_static/refresh-arp-lldp-button.png
 
 The details include the 'known ethernet address' table and the LLDP neighbor table. If the device is a router,
-it will also show known IPv4 ARP entries. If this is regular device, the ARP entries will likely only be for the default gateway!
+it will also show known IPv4 ARP entries, and IPv6 ND (Neighbor Discovery) entries.
+If this is regular device, the ARP / ND entries will likely only be for the default gateway!
 
 .. image:: ../_static/details-interface-info.png
 
@@ -35,7 +38,9 @@ they are connected. You may have to scroll down to see this data.
 
 **The following fields are shown:**
 
+
 **Name** and **Link** are the same as on the Basic view.
+
 
 **Ethernet Addresses**
 
@@ -47,6 +52,9 @@ If the device happens to have an ARP table (e.g. on a router),
 the ethernet addresses that also have a known IP address will be shown with
 their IP v4 address. The admin can also add configurable icons in front of the
 IP v4 address, for links to e.g. IPAM (see above.)
+
+On IPv6 enabled devices, this may also show the IPv6 address of an ethernet entry.
+
 
 **Neighbors**
 
