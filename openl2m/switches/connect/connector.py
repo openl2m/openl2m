@@ -384,8 +384,8 @@ class Connector:
             # this is optional, so we do not warn if not found!
             if (
                 settings.READ_HARDWARE_DETAILS
-                and self.read_hardware_details
-                and self.switchgroup.read_hardware_details
+                and self.switch.read_hardware_details
+                and self.group.read_hardware_details
                 and hasattr(self, "get_my_hardware_details")
             ):
                 start_time = time.time()
