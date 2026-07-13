@@ -969,7 +969,7 @@ class SnmpConnector(Connector):
             if item.type == "NOSUCHINSTANCE":
                 # log this
                 self.add_log(
-                    type=LOG_TYPE_ERROR,
+                    type=LOG_TYPE_WARNING,
                     action=LOG_SNMP_ERROR,
                     description=f"ERROR in get_snmp_branch(): oid '{oid_found}' returned No Such Instance!",
                 )
