@@ -101,13 +101,10 @@ def hex_string_to_ethernet(hex_string: str) -> str:
     # error, bytes string instead of hex string:
     # ====> SNMP READ: .1.3.6.1.2.1.4.22.1.2.2024.10.224.64.34 STRING = 'PkKl%0'
     # _parse_mibs_net_to_media() OID=.1.3.6.1.2.1.4.22.1.2.2024.10.224.64.34 = 'PkKl%0'
-    #
-    # this can be resolved in ExSNMP >= v2.4, by creating the ezsnmp.Session()with option "print_hex_strings=True".
-    # This attribute has a "setter" that we enable before reading ipNetToMediaPhysAddress.
-    # See snmp/connector.py around line 1740
+
     if len(hex_string) == 17:
         return ":".join(hex_string.split()).lower()
-    if len(hex_string) == 6:  # bytes representation as string!
+    if len(hex_string) == 6:    # bytes representation as string!
         return ":".join("%02x" % ord(b) for b in hex_string)
     return ""
 
