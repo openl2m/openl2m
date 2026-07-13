@@ -1733,7 +1733,19 @@ class SnmpConnector(Connector):
         and eventually, new style ipNetToPhysical
         Returns True on success, False on failure
         """
+        #
+        # Net-SNMP has a long-standing bug where some Ethernet addresses in the 'ipNetToMediaPhysAddress' are returned
+        # as STRING, instead of Hex-STRING. We can force return of Hex-String with the Session() attribute "print_hex_string"
+        # to work around this...This attribute has a 'setter'
+        # see https://github.com/carlkidcrypto/ezsnmp/issues/1031
+        # and https://github.com/carlkidcrypto/ezsnmp/blob/main/ezsnmp/session.py#L585
+        self._snmp_session.print_hex_strings = True
+
         retval = self.get_snmp_branch(branch_name="ipNetToMediaPhysAddress", parser=self._parse_mibs_net_to_media)
+
+        # and turn this off again, otherwize it will return all regular "STRING" values as Hex-STRING !
+        self._snmp_session.print_hex_strings = False
+
         if retval < 0:
             self.add_warning("Error getting 'ARP-Table' (ipNetToMediaPhysAddress)")
             return False

@@ -10,7 +10,7 @@ django-ordered-model>=3.7,<4.0
 # ezsnmp may not build properly for Ubuntu. If you get SNMP session errors, then run
 # pip install --force-reinstall --no-binary :all: ezsnmp==2.3.0
 # Note: if you change the version here, also change "upgrade.sh" !
-ezsnmp>= 2.3,<2.4
+ezsnmp==2.4.0a9
 flake8
 flake8-pyproject
 gitpython
