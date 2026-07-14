@@ -24,14 +24,17 @@ New Configuration Options
 Version 4.2.1
 -------------
 
-Release Date: TBD
+Release Date: 2026-07-14
 
 * Add ability to Download, or Copy-to-Clipboard the output of commands run on a switch.
   Contributed by Jisnu (https://github.com/ZEUSGMJ)
+* improved handling of "401 unauthorized" errors on Arista eAPI devices.
+* change SNMP no-instance returns to log warning instead of error.
 
 Bug fixes:
 
 * fix disable hardware read functionality on HPE Comware REST driver.
+* on HPE Comware REST driver, move hardware related calls into proper function to allow disable hardware read.
 
 
 Version 4.2
