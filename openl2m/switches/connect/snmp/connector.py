@@ -2804,6 +2804,16 @@ class SnmpConnector(Connector):
         # we take some shortcuts here by not using the mappings through ipNetToMediaIfIndex and ipNetToMediaNetAddress
         # OID format is:
         # ipNetToMediaPhysAddress.<ifIndex>.<IPv4 in dotted decimal> = <ethernet as 6 bytes>
+
+        # Net-SNMP has a long-standing bug where some Ethernet addresses in the 'ipNetToMediaPhysAddress' are returned
+        # as STRING, instead of Hex-STRING. We can force return of Hex-String with the Session() attribute "print_hex_string"
+        # to work around this...This attribute has a 'setter'
+        # see https://github.com/carlkidcrypto/ezsnmp/issues/1031
+        # and https://github.com/carlkidcrypto/ezsnmp/blob/main/ezsnmp/session.py#L585
+        # self._snmp_session.print_hex_strings = True
+        # NOTE: this is stored in the session, and appears to not be properly reset, so we are not using this.
+        # instead we rely on parsing in hex_string_to_ethernet() for string length to catch this!
+
         if_ip_string = oid_in_branch(ipNetToMediaPhysAddress, oid)
         if if_ip_string:
             parts = if_ip_string.split(".", 1)  # 1 means one split, two elements!

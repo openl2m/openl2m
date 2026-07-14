@@ -102,9 +102,18 @@ def hex_string_to_ethernet(hex_string: str) -> str:
     # ====> SNMP READ: .1.3.6.1.2.1.4.22.1.2.2024.10.224.64.34 STRING = 'PkKl%0'
     # _parse_mibs_net_to_media() OID=.1.3.6.1.2.1.4.22.1.2.2024.10.224.64.34 = 'PkKl%0'
 
+    # Net-SNMP has a long-standing bug where some Ethernet addresses in the 'ipNetToMediaPhysAddress' are returned
+    # as STRING, instead of Hex-STRING. We can force return of Hex-String with the Session() attribute "print_hex_string"
+    # to work around this...This attribute has a 'setter'
+    # see https://github.com/carlkidcrypto/ezsnmp/issues/1031
+    # and https://github.com/carlkidcrypto/ezsnmp/blob/main/ezsnmp/session.py#L585
+    # self._snmp_session.print_hex_strings = True
+    # NOTE: this is stored in the session, and appears to not be properly reset, so we are not using this.
+    # instead we rely on parsing in hex_string_to_ethernet() for string length to catch this!
+
     if len(hex_string) == 17:
         return ":".join(hex_string.split()).lower()
-    if len(hex_string) == 6:    # bytes representation as string!
+    if len(hex_string) == 6:  # bytes representation as string!
         return ":".join("%02x" % ord(b) for b in hex_string)
     return ""
 
