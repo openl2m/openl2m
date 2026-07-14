@@ -343,12 +343,10 @@ class AristaApiConnector(Connector):
         except Exception as err:
             dprint(f"  ERROR running '{command_list}': {err}")
             self.error.status = True
-            self.error.description = f"Error running eAPI command = '{command_list}'!"
-            self.error.details = f"Cannot read device information: {format(err)}"
-            self.add_warning(
-                warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
-            )
-            return False
+            self.error.description = "Error running eAPI commands!"
+            self.error.details = format(err)
+            # we raise a generic error so the upstream shows error.
+            raise Exception(self.error.details)
 
         self.save_driver_info()
 

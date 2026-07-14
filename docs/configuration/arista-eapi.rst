@@ -36,8 +36,14 @@ Something like this is needed as a base config. We recommend only running over t
       ip access-group YOUR_MANAGEMENT_ACL
 
 
-Please refere to your Arista eAPI documentation for more.
+Please refer to your Arista eAPI documentation for more.
 A good place to start is  https://arista.my.site.com/AristaCommunity/s/article/arista-eapi-101
+
+.. note::
+
+    If you get the error **"401 Client Error: Unauthorized for url"**, this means that your OpenL2M server ip is not
+    permitted on the web server acl "YOUR_MANAGEMENT_ACL"
+
 
 
 OpenL2M Configuration
