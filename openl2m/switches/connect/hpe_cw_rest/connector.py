@@ -250,63 +250,6 @@ class HPECwRestConnector(RESTConnector):
             self.set_driver_info(name="snmp_oid", value=facts["HostOid"])
 
         #
-        # some hardware info
-        #
-        hardware = self._get(path="Device/PhysicalEntities")
-        if hardware:
-            found_chassis = False
-            # dprint(f"HARDWARE: {pprint.pformat(hardware)}")
-            for hw in hardware["PhysicalEntities"]:
-                match hw["Class"]:
-                    # these class numbers match the ENTITY MIB values!
-                    case 3:  # 3 = Frame, i.e. the whole chassis
-                        # IRF stacks show up as multiple chassis, add to system and hardware section:
-                        if not found_chassis:
-                            self.add_more_info("System", "Model", hw["Model"])
-                            self.add_more_info("System", "Model Name", hw["Name"])
-                            self.add_more_info("System", "Serial", hw["SerialNumber"])
-                            self.add_more_info("System", "OS Version", hw["SoftwareRev"])
-                            # add to driver info:
-                            self.set_driver_info(name="model", value=hw["Model"])
-                            self.set_driver_info(name="os_version", value=hw["SoftwareRev"])
-                            self.set_driver_info(name="serial_number", value=hw["SerialNumber"])
-                            found_chassis = True
-                            # and add as stack member
-                            s = StackMember(id=hw["PhysicalIndex"], type=3)
-                            s.serial = hw["SerialNumber"]
-                            s.model = hw["Name"]
-                            s.version = hw["SoftwareRev"]
-                            s.info = f"OID: {hw['VendorType']}"
-                            s.description = hw["Description"]
-                            self.stack_members[hw["PhysicalIndex"]] = s
-                        else:
-                            # IRF stacks show up as multiple chassis, add as stack member
-                            s = StackMember(id=hw["PhysicalIndex"], type=3)
-                            s.serial = hw["SerialNumber"]
-                            s.model = hw["Name"]
-                            s.version = hw["SoftwareRev"]
-                            s.info = f"OID: {hw['VendorType']}"
-                            s.description = hw["Description"]
-                            self.stack_members[hw["PhysicalIndex"]] = s
-                    case 11:  # IRF fabric indicator
-                        s = StackMember(id=hw["PhysicalIndex"], type=11)
-                        s.description = "HPE IRF"
-                        self.stack_members[hw["PhysicalIndex"]] = s
-
-        #
-        # some extended hardware info, mostly to get individual stack member chassis uptime
-        #
-        hardware = self._get(path="Device/ExtPhysicalEntities")
-        if hardware:
-            found_chassis = False
-            # dprint(f"HARDWARE: {pprint.pformat(hardware)}")
-            for hw in hardware["ExtPhysicalEntities"]:
-                if hw["PhysicalIndex"] in self.stack_members:
-                    # this is more info about a stack member!
-                    if "Uptime" in hw:
-                        self.stack_members[hw["PhysicalIndex"]].uptime = hw["Uptime"]
-
-        #
         # get vlan info
         #
         # Note: this api call also returns information about the interfaces active on each vlan!
@@ -645,6 +588,73 @@ class HPECwRestConnector(RESTConnector):
                         iface.transceiver = trx
 
         # save driver info
+        self.save_driver_info()
+
+        return True
+
+    def get_my_hardware_details(self) -> bool:
+        """
+        Get all (possible) hardware info, stacking details, etc.
+        return True if success, and False if not
+        """
+        #
+        # some hardware info
+        #
+        hardware = self._get(path="Device/PhysicalEntities")
+        if hardware:
+            found_chassis = False
+            # dprint(f"HARDWARE: {pprint.pformat(hardware)}")
+            for hw in hardware["PhysicalEntities"]:
+                match hw["Class"]:
+                    # these class numbers match the ENTITY MIB values!
+                    case 3:  # 3 = Frame, i.e. the whole chassis
+                        # IRF stacks show up as multiple chassis, add to system and hardware section:
+                        if not found_chassis:
+                            self.add_more_info("System", "Model Number", hw["Model"])
+                            self.add_more_info("System", "Model Name", hw["Name"])
+                            self.add_more_info("System", "Serial", hw["SerialNumber"])
+                            self.add_more_info("System", "OS Version", hw["SoftwareRev"])
+                            # add to driver info:
+                            self.set_driver_info(name="model", value=hw["Model"])
+                            self.set_driver_info(name="os_version", value=hw["SoftwareRev"])
+                            self.set_driver_info(name="serial_number", value=hw["SerialNumber"])
+                            found_chassis = True
+                            # and add as stack member
+                            s = StackMember(id=hw["PhysicalIndex"], type=3)
+                            s.serial = hw["SerialNumber"]
+                            s.model = hw["Name"]
+                            s.version = hw["SoftwareRev"]
+                            s.info = f"OID: {hw['VendorType']}"
+                            s.description = hw["Description"]
+                            self.stack_members[hw["PhysicalIndex"]] = s
+                        else:
+                            # IRF stacks show up as multiple chassis, add as stack member
+                            s = StackMember(id=hw["PhysicalIndex"], type=3)
+                            s.serial = hw["SerialNumber"]
+                            s.model = hw["Name"]
+                            s.version = hw["SoftwareRev"]
+                            s.info = f"OID: {hw['VendorType']}"
+                            s.description = hw["Description"]
+                            self.stack_members[hw["PhysicalIndex"]] = s
+                    case 11:  # IRF fabric indicator
+                        s = StackMember(id=hw["PhysicalIndex"], type=11)
+                        s.description = "HPE IRF"
+                        self.stack_members[hw["PhysicalIndex"]] = s
+
+        #
+        # some extended hardware info, mostly to get individual stack member chassis uptime
+        #
+        hardware = self._get(path="Device/ExtPhysicalEntities")
+        if hardware:
+            found_chassis = False
+            # dprint(f"HARDWARE: {pprint.pformat(hardware)}")
+            for hw in hardware["ExtPhysicalEntities"]:
+                if hw["PhysicalIndex"] in self.stack_members:
+                    # this is more info about a stack member!
+                    if "Uptime" in hw:
+                        self.stack_members[hw["PhysicalIndex"]].uptime = hw["Uptime"]
+
+        # save driver info to database
         self.save_driver_info()
 
         return True
