@@ -11,26 +11,14 @@
       {% endif %}
       >
         {% csrf_token %}
-        <!-- Large image: Hidden on small devices (sm) and phones (xs) -->
         <input type="image" src="{% static 'img/openl2m-logo.png' %}"
-            class="d-none d-md-block img-fluid"
-            data-bs-toggle="tooltip"
-            data-bs-title="Go back to Devices Menu"
-            alt="OpenL2M logo"
-        >
-        <!-- Small image: Hidden on medium (md) and larger screens -->
-        <input type="image" src="{% static 'img/openl2m-logo-small.png' %}"
-            class="d-block d-md-none img-fluid"
             data-bs-toggle="tooltip"
             data-bs-title="Go back to Devices Menu"
             alt="OpenL2M logo"
         >
       </form>
 {% else %}
-    <!-- Large image: Hidden on small devices (sm) and phones (xs) -->
-    <img src="{% static 'img/openl2m-logo.png' %}" class="d-none d-md-block img-fluid" alt="OpenL2M logo">
-    <!-- Small image: Hidden on medium (md) and larger screens -->
-    <img src="{% static 'img/openl2m-logo-small.png' %}" class="d-block d-md-none img-fluid" alt="OpenL2M logo">
+    <img src="{% static 'img/openl2m-logo.png' %}" alt="OpenL2M logo">
 {% endif %}
 <!-- </h1> -->
 
