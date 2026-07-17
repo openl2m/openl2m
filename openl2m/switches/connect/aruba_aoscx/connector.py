@@ -49,7 +49,7 @@ from switches.utils import dprint, dvar
 from switches.constants import LOG_TYPE_ERROR, LOG_DEVICE_REST_OPEN, LOG_DEVICE_REST_CLOSE, LOG_DEVICE_REST_GET
 
 from switches.connect.restconnector import RESTConnector
-from switches.connect.classes import Interface, PoePort, Transceiver, NeighborDevice
+from switches.connect.classes import Interface, PoePort, Transceiver, NeighborDevice, StackMember
 from switches.connect.aruba_aoscx.utils import aoscx_parse_duplex
 from switches.connect.constants import (
     POE_PORT_ADMIN_DISABLED,
@@ -68,6 +68,8 @@ from switches.connect.constants import (
     # IANA_TYPE_OTHER,
     # IANA_TYPE_IPV4,
     # IANA_TYPE_IPV6,
+    ENTITY_CLASS_CHASSIS,
+    ENTITY_CLASS_POWERSUPPLY,
 )
 from switches.connect.aruba_aoscx.constants import VSX_NONE, VSX_ISL, VSX_KEEPALIVE
 
@@ -184,64 +186,110 @@ class AosCxConnector(RESTConnector):
         # if 'system_contact' in in system["other_config"] and system["other_config"]['system_description']:
         #     self.add_more_info('System', 'Description', system["other_config"]['system_description'])
 
-        #######################
-        # get sub-system info #
-        #######################
-        # try:
-        #     subsystems = self._get(path="system/subsystems?depth=2", message="Get Sub-Systems")
-        # except Exception as error:
-        #     dprint(f"  get_my_basic_info(): error geting subsystem info: {format(error)}")
-        #     self.error.status = True
-        #     self.error.description = "Error getting subsystem info!"
-        #     self.error.details = ""
-        #     self.add_warning(
-        #         warning=f"Error getting subsystem info!\n{repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
-        #     )
-        #     return False
+        #############################################################
+        # get hardware Sub-System info, ie PoE power, Chassis, etc. #
+        # as this contains PoE power info, we call this now,        #
+        # instead of in get_my_hardware_details()                   #
+        #############################################################
 
-        # # this has info about each subsystem in the environment:
-        # ps_id = 1  # power supply ID, starting at 1
-        # for name, subsystem in subsystems.items():
-        #     # format is 'subsys-name,unit-id'
-        #     subsys_name, subsys_id = name.split(",", 1)  # split once, we want just 2 components.
-        #     if subsys_name == "chassis":
-        #         if subsystem["product_info"]["part_number"]:
-        #             # this is an existing chassis, not an empty "data slot"
-        #             dprint(f"  Found CHASSIS #{subsys_id}")
-        #             # for the first chassis, add some info:
-        #             if int(subsys_id) == 1:
-        #                 self.add_more_info(
-        #                     "System",
-        #                     "Type",
-        #                     f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})",
-        #                 )
-        #                 self.add_more_info("System", "Serial", subsystem["product_info"]["serial_number"])
+        try:
+            subsystems = self._get(path="system/subsystems?depth=2", message="Get Sub-Systems")
+        except Exception as error:
+            dprint(f"  get_my_hardware_details(): error geting subsystem info: {format(error)}")
+            self.error.status = True
+            self.error.description = "Error getting subsystem info!"
+            self.error.details = ""
+            self.add_warning(
+                warning=f"Error getting subsystem info!\n{repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
+            )
+            return False
 
-        #                 self.set_driver_info(
-        #                     "model",
-        #                     f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})",
-        #                 )
-        #                 self.set_driver_info("serial_number", subsystem["product_info"]["serial_number"])
+        # this has info about each subsystem in the environment:
+        if subsystems:
+            for name, subsystem in subsystems.items():
+                # this appears to show the maximum possible module entries, not just physically available units.
+                # look at the 'state': 'ready' entry to find modules that are actually present!
+                if subsystem['state'] != 'ready':
+                    continue
+                dprint(f"FOUND existing subsystem: {name}")
+                # format is 'subsys-name,unit-id'
+                subsys_name, subsys_id = name.split(",", 1)  # split once, we want just 2 components.
+                if subsys_name == "chassis":
+                    # now we have a module that present!
+                    if subsystem["product_info"]["part_number"]:
+                        # this is an existing chassis, not an empty "data slot"
+                        dprint(f"Found CHASSIS #{subsys_id}")
+                        # for the first chassis, add some info:
+                        if int(subsys_id) == 1:
+                            self.add_more_info(
+                                "System",
+                                "Type",
+                                f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})",
+                            )
+                            self.add_more_info("System", "Serial", subsystem["product_info"]["serial_number"])
 
-        #             # we also want 'power_supplies' information for this chassis:
-        #             if "power_supplies" in subsystem:
-        #                 for ps_name, ps in subsystem["power_supplies"].items():
-        #                     dprint(f"\n  FOUND PS INFO for {ps_name}\n{ps}\n")
-        #                     if ps["status"] == "ok":
-        #                         # get used and max power:
-        #                         power_used = int(ps["characteristics"]["instantaneous_power"])
-        #                         power_max = int(ps["characteristics"]["maximum_power"])
-        #                         dprint("  MAX: {power_max} W, used {power_used} W")
-        #                         new_ps = self.add_poe_powersupply(id=ps_id, power_available=power_max)
-        #                         new_ps.set_consumed_power(power=power_used)
-        #                         self.poe_power_consumed += power_used  # total value
-        #                         ps_id += 1
-        #                         # set a few more attributes, currently not displayed yet (9/2024)
-        #                         new_ps.name = ps["name"]
-        #                         new_ps.description = ps["identity"]["description"]
-        #                         new_ps.model = ps["identity"]["model_number"]
-        #                         new_ps.part_number = ps["identity"]["product_name"]
-        #                         new_ps.serial = ps["identity"]["serial_number"]
+                            self.set_driver_info(
+                                "model",
+                                f"{subsystem['product_info']['product_name']} ({subsystem['product_info']['part_number']})",
+                            )
+                            self.set_driver_info("serial_number", subsystem["product_info"]["serial_number"])
+
+                        # add chassis info to the hardware section as a stack member
+                        member = StackMember(id=subsys_id, type=ENTITY_CLASS_CHASSIS)
+                        member.serial = subsystem["product_info"]["serial_number"]
+                        # member.uptime = unknown. We do have subsystem["boot_time"], not useful, already in System portion.
+                        # member.version = # not stored with chassis info!
+                        member.model = subsystem['product_info']['part_number']
+                        member.description = subsystem['product_info']['product_description']
+                        # this doesn't add much, smaller version of product_description
+                        # member.info = subsystem['product_info']['product_name']
+                        self.stack_members[subsys_id] = member
+
+                    # 'poe_power' is interesting
+                    if subsystem['poe_power']:  # not empty!
+                        # we use the chassis id as the power supply id
+                        dprint("FOUND POE INFO")
+                        # get used and max power:
+                        power_used = int(subsystem['poe_power']["drawn_power"])
+                        power_max = int(subsystem['poe_power']["available_power"])
+                        dprint("  MAX: {power_max} W, used {power_used} W")
+                        new_ps = self.add_poe_powersupply(id=subsys_id, power_available=power_max)
+                        new_ps.set_consumed_power(power=power_used)
+                        self.poe_power_consumed += power_used  # total value
+
+                    # # we also want 'power_supplies' information for this chassis:
+                    # 'power_supplies': {'1/1': '/rest/v10.13/system/subsystems/chassis,1/power_supplies/1%2F1',
+                    #                    '1/2': '/rest/v10.13/system/subsystems/chassis,1/power_supplies/1%2F2'},
+
+                    if subsystem['power_supplies']:
+                        powersupplies = self._get(
+                            uri=f"{subsystem['power_supplies']}?depth=2", message="Getting PS Info"
+                        )
+                        if powersupplies:
+                            for ps_name, ps in powersupplies.items():
+                                dprint(f"FOUND PS INFO for {ps_name}")
+                                if ps["status"] == "ok":
+                                    # get used and max power:
+                                    power_used = int(ps["characteristics"]["instantaneous_power"])
+                                    power_max = int(ps["characteristics"]["maximum_power"])
+                                    dprint("  MAX: {power_max} W, used {power_used} W")
+                                    # we've added a "simulated" PoE PS already, add this as a stack member.
+                                    member = StackMember(id=ps_name, type=ENTITY_CLASS_POWERSUPPLY)
+                                    member.serial = ps['identity']['serial_number']
+                                    # member.uptime = not available
+                                    # member.version = ps['identity']['hardware_rev']   # not useful.
+                                    member.model = ps['identity']['product_name']
+                                    member.description = (
+                                        f"{ps['identity']['description']} rev. {ps['identity']['hardware_rev']}"
+                                    )
+                                    # this doesn't add much, smaller version of product_description
+                                    member.info = f"{ps['identity']['input_voltage_low']}-{ps['identity']['input_voltage_high']}V {ps['identity']['voltage_type']}, using {power_used}W of {power_max}W."
+                                    self.stack_members[ps_name] = member
+
+                # these are not interesting, at the moment:
+                # elif subsys_name == 'management_module':
+                # elif subsys_name == 'fan_tray':
+                # elif subsys_name == 'line_card':
 
         #####################
         # get the VLAN info #
@@ -624,11 +672,25 @@ class AosCxConnector(RESTConnector):
         self._close_device()
         return True
 
-    def get_my_hardware_details(self) -> bool:
-        """
-        TBD: Placeholder to read more hardware details of the AOS-CX device.
-        """
-        return True
+    # hardware details are already read in get_my_basic_info() above, so this is not needed!
+    #
+    # def get_my_hardware_details(self) -> bool:
+    #     """
+    #     TBD: Placeholder to read more hardware details of the AOS-CX device.
+    #     """
+    #     dprint("AosCxConnector().get_my_hardware_details()")
+
+    #     if not self._open_device():
+    #         dprint("  _open_device() failed!")
+    #         # self.error already set!
+    #         return False
+
+    #     # get more hardware details here...
+
+    #     self.save_driver_info()
+
+    #     self._close_device()
+    #     return True
 
     def get_my_client_data(self) -> bool:
         """
