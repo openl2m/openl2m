@@ -76,12 +76,12 @@ html_static_path = ['_static']
 if on_rtd:
     # need to use fontawesome from CDN, see https://www.jsdelivr.com/package/npm/@fortawesome/fontawesome-free
     html_css_files = [
-        'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/fontawesome.min.css',
+        'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/fontawesome.min.css',
     ]
 else:
     # local server build
     html_css_files = [
-        '/static/fontawesome-7.2.0/css/all.css',
+        '/static/fontawesome-7.3.1/css/all.css',
     ]
 
 # html_js_files = [
