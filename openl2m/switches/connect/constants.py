@@ -50,11 +50,15 @@ visible_interfaces = {
     IF_TYPE_LAGG: True,
 }
 
+# Entity MIB defines hardware type we use.
+# https://mibs.observium.org/mib/ENTITY-MIB/
 ENTITY_CLASS_CHASSIS = 3  # chassis(3) - the physical device, eg the 1U switch in a stack
+ENTITY_CLASS_POWERSUPPLY = 6  # powerSupply(6)
 ENTITY_CLASS_MODULE = 9  # module(9) - a module or blade in a chassis
 ENTITY_CLASS_STACK = 11  # stack(11)
 ENTITY_CLASS_NAME = {}
 ENTITY_CLASS_NAME[ENTITY_CLASS_CHASSIS] = "Chassis"
+ENTITY_CLASS_NAME[ENTITY_CLASS_POWERSUPPLY] = "Power Supply"
 ENTITY_CLASS_NAME[ENTITY_CLASS_MODULE] = "Module"
 ENTITY_CLASS_NAME[ENTITY_CLASS_STACK] = "Stack"
 
