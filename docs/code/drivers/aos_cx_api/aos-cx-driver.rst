@@ -4,9 +4,9 @@ AOS-CX Driver Overview
 ======================
 
 The Aruba AOS-CX driver is located in *switches/connect/aruba_aoscx/connector.py*.
-It uses the OpenL2M RestConnector() class to implement the API.
+It uses the OpenL2M RestConnector() class to implement the API, thus it inherits from *switches/connect/restconnector.py*.
 
-Documentation for the API in AOS-CX v10.13 is at
+Documentation for the REST API in AOS-CX v10.13 is at
 https://www.arubanetworks.com/techdocs/AOS-CX/10.13/PDF/rest_v10-0x.pdf
 
 REST endpoints (calls) may need a "depth" parameter, that indicates how deep (recursive)
@@ -57,6 +57,57 @@ In *get_my_basic_info()* we make calls to the following REST endpoints with HTTP
 
 
 *system?depth=1* - read basis system info such as version, model, etc.
+
+*system/subsystems?depth=2* - reads the basic hardware info. We do this get information about the PoE Power Supplies,
+which is available for "chassis" type entries returned from this call. Returns a dictionary of data similar to below
+(some fields skipped). This returns all possible devices in a virtual stack, so we look at the 'state' field for
+presence of hardware.
+
+.. code-block:: python
+
+    subsystems = {
+        'chassis,1': {
+            'poe_power': {'available_power': 370,
+                    'drawn_power': 61.1,
+                    'failover_power': 0,
+                    'power_status_refresh_timestamp': 22430,
+                    'power_status_update_timestamp': 22430,
+                    'redundant_power': 0,
+                    'reserved_power': 66.7999999999999},
+            'power_supplies': '/rest/v10.13/system/subsystems/chassis,1/power_supplies',
+            'product_info': {
+                ...
+                'part_number': 'JL660A',
+                'product_description': '6300M 24-port HPE Smart Rate 1/2.5/5GbE Class 6 PoE and 4-port SFP56 Switch',
+                'product_name': '6300M 24SR5 CL6 PoE 4SFP56 Swch',
+            },
+            'state': 'ready',
+        },
+
+
+Based on the "poe_power" entry, we add a simulated 'PoE Power Supply', even though that is really part of the main 'power_supplies'.
+
+We then call a HTTP GET to read "power_supplies" for this entry: we call *system/subsystems/chassis,1/power_supplies?depth=2*
+This returns something like this:
+
+.. code-block:: python
+
+    {
+    '1/1': {'characteristics': {'instantaneous_power': 134, 'maximum_power': 680},
+         'identity': {'airflow': 'F2B',
+                      'description': 'Aruba X372 54VDC 680W PS',
+                      'hardware_rev': '10',
+                      'input_voltage_high': 240,
+                      'input_voltage_low': 100,
+                      'model_number': '0957-2475',
+                      'product_name': 'JL086A',
+                      'serial_number': 'xxxx',
+                      'voltage_type': 'AC'},
+         'status': 'ok'},
+        ...
+
+This is then added to the hardware environment as a StackMember() object.
+
 
 *system/vlans?depth=2* - read VLAN data. Note that we also store the direct REST endpoint for vlans.
 This is used to manipulate vlans. And, ehternet information is loaded per vlan, so we store "macs_uri"

@@ -35,7 +35,7 @@ Here are the icons used in OpenL2M, and their meanings:
    * - :fas:`project-diagram;`
      - IGMP snooping is enabled on interface.
    * - :fas:`link;`
-     - Interface is an LACP interface, or member of LACP interface. Hover will show details
+     - Interface is an LACP interface, or member of LACP interface. Hover will show details.
    * - :fas:`smile;`
      - This is a virtual interface. Hover will show subnet information, if known.
    * - :fas:`spinner;`
@@ -51,7 +51,7 @@ Here are the icons used in OpenL2M, and their meanings:
    * - :fas:`network-wired;`
      - Interface is a member of a VRF. Hover will show vrf membership.
    * - :fas:`bolt;`
-     - Interface optical transceiver information. Hover will show details (e.g. 10_GBASE_LR_SFP)
+     - Interface optical transceiver information. Hover will show details (e.g. 10_GBASE_LR_SFP).
 
 
 .. _Eth:
@@ -62,11 +62,11 @@ Here are the icons used in OpenL2M, and their meanings:
    * - Icon
      - Meaning
    * - :fas:`download;`
-     - Click to download the ethernet/lldp data as a spreadsheet
+     - Click to download the ethernet/lldp data as a spreadsheet.
    * - :fas:`chart-diagram;`
-     - Click to show a graphical version of all neighbor devices
+     - Click to show a graphical version of all neighbor devices.
    * - :fas:`question;`
-     - Device capabilities not advertized (i.e. unknown type)
+     - Device capabilities not advertized (i.e. unknown type).
    * - :fas:`wifi;`
      - This is a wifi radio or access point.
    * - :fas:`phone;`

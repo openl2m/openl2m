@@ -23,4 +23,3 @@ We implement *get_my_basic_info()* and *get_my_client_data()* by reading various
    :caption: Here is more information about the Aruba AOS-CX API driver:
 
    aos-cx-driver.rst
-   powersupplies.rst

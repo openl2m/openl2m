@@ -21,6 +21,21 @@ New Configuration Options
     READ_HARDWARE_DETAILS = True
 
 
+Version 4.2.2-pre
+-----------------
+
+Release Date: TBD
+
+* properly render login on small devices.
+* render logo and navigation bar properly on small devices.
+* for Aruba AOS-CX REST driver, add reading of PoE power supply and chassis info
+* upgrade to FontAwesome v7.3.1
+
+Bug fixes:
+
+* change Neighbor Graph icon to 'chart diagram'.
+
+
 Version 4.2.1
 -------------
 
