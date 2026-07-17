@@ -1,5 +1,5 @@
 {% load static %}
-<nav class="navbar navbar-expand-sm">
+<nav class="navbar navbar-expand-sm py-0">
   <div class="container-fluid">
 <!-- <h1 class="navbar-brand pb-0"> -->
 {% if request.user.is_authenticated and not is_top_menu %}
@@ -35,10 +35,18 @@
 <!-- </h1> -->
 
 {% if request.user.is_authenticated %}
+    <!-- Toggler button, shown when the navbar collapses on small screens -->
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#navbarContent"
+            aria-controls="navbarContent" aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
+    <div class="collapse navbar-collapse" id="navbarContent">
   {% if settings.SWITCH_SEARCH_FORM %}
-    <div class="navbar-collapse ms-4">
       <form name="switch_search_form"
+            class="d-flex ms-sm-4 my-2 my-sm-0"
             action="{% url 'switches:switch_search' %}"
             method="post"
       >
@@ -68,11 +76,9 @@
           }
         }
       </script>
-    </div>
   {% endif %}
 
-    <div class="position-absolute end-0" id="navbarContent">
-      <ul class="navbar-nav me-auto">
+      <ul class="navbar-nav ms-auto">
       {% if settings.MENU_INFO_URLS %}
         {% for headername,menus in settings.MENU_INFO_URLS.items %}
         <li class="nav-item dropdown">
@@ -168,7 +174,7 @@
           </ul>
         </li>
       </ul>{# navbar-nav #}
-    </div>{# navbarContent #}
+    </div>{# navbarContent (collapse) #}
 {% endif %}{# authenticated #}
   </div>{# container-fluid #}
 </nav>

@@ -8,9 +8,6 @@ html {
 html, body {
     height: 100%;
 }
-body {
-    padding-top: 70px;
-}
 .container {
     width: auto;
     max-width: 1600px;
@@ -22,7 +19,7 @@ body {
     padding-bottom: 30px;
 }
 .navbar-brand {
-    padding: 12px 15px 8px;
+    padding: 0 15px;
 }
 .footer, .push {
     height: 60px; /* .push must be the same height as .footer */
