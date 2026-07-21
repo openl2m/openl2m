@@ -24,10 +24,10 @@ New Configuration Options
     # BROWSER_SIZE_WARNING = "WARNING: OpenL2M does not render well on small browser sizes!<br />Please use a large browser window."
 
 
-Version 4.2.2-pre
------------------
+Version 4.2.2
+-------------
 
-Release Date: TBD
+Release Date: 2026-07-21
 
 * properly render login, logo and nav bar on small browser sizes.
 * add small browser size warnings on login and menu screens.
