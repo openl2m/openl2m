@@ -8,6 +8,17 @@
   </div>
 </div>
 {% endif %}
+{% if settings.BROWSER_SIZE_WARNING %}
+<!-- Small screen warning: Hidden on medium (md) and larger screens -->
+<div class="container-fluid">
+  <div class="row justify-content-lg-center d-block d-lg-none">
+    <div class="alert alert-warning text-center" role="alert">
+      {{ settings.BROWSER_SIZE_WARNING|safe }}
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <div class="row justify-content-md-center">
   <div class="col-sm-12 col-md-4 mt-1 mb-1">
     {# login form #}

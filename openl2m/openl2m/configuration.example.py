@@ -109,6 +109,9 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 # Time zone (default: UTC)
 TIME_ZONE = 'UTC'
 
+# Warn about small screen sizes. We prefer a width of 1200 pixels. On < 568, we will warn, on the login and menu windows:
+# BROWSER_SIZE_WARNING = "WARNING: OpenL2M does not render well on small displays!<br />Please use a large browser window!"
+
 # Date/time formatting. See the following link for supported formats:
 # https://docs.djangoproject.com/en/dev/ref/templates/builtins/#date
 DATE_FORMAT = 'N j, Y'

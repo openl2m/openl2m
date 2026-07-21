@@ -107,9 +107,10 @@ LONG_DATETIME_FORMAT = getattr(configuration, "LONG_DATETIME_FORMAT", "Y-m-d H:M
 SHORT_TIME_FORMAT = getattr(configuration, "SHORT_TIME_FORMAT", "H:i:s")
 TIME_FORMAT = getattr(configuration, "TIME_FORMAT", "g:i a")
 TIME_ZONE = getattr(configuration, "TIME_ZONE", "UTC")
-
 PORT_TOGGLE_DELAY = getattr(configuration, "PORT_TOGGLE_DELAY", 5)
 POE_TOGGLE_DELAY = getattr(configuration, "POE_TOGGLE_DELAY", 5)
+
+BROWSER_SIZE_WARNING = getattr(configuration, "BROWSER_SIZE_WARNING", "WARNING: OpenL2M does not render well on small browser sizes!<br />Please use a large browser window.")
 
 ALWAYS_ALLOW_POE_TOGGLE = getattr(configuration, "ALWAYS_ALLOW_POE_TOGGLE", False)
 
