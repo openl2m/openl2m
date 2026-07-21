@@ -665,9 +665,6 @@ class HPECwRestConnector(RESTConnector):
         """
         dprint("HPECwRestConnector().check_my_device_health()")
 
-        # call the super class implementation of this:
-        super().check_my_device_health()
-
         # check health of the IRF stack
         #
         # get IRF members

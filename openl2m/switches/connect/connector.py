@@ -29,8 +29,8 @@ from django.conf import settings
 from django.http.request import HttpRequest
 
 from switches.models import Switch, SwitchGroup, Command, Log
-from switches.connect.constants import LLDP_CHASSIC_TYPE_ETH_ADDR
-from switches.constants import LOG_TYPE_WARNING, LOG_CONNECTION_ERROR, LOG_TYPE_ERROR, CMD_TYPE_INTERFACE
+from switches.connect.constants import POE_PORT_DETECT_FAULT, POE_PORT_DETECT_OTHERFAULT, LLDP_CHASSIC_TYPE_ETH_ADDR
+from switches.constants import LOG_TYPE_WARNING, LOG_CONNECTION_ERROR, LOG_TYPE_ERROR, CMD_TYPE_INTERFACE, LOG_HEALTH_MESSAGE, LOG_PORT_POE_FAULT
 from switches.utils import dprint, get_remote_ip, get_ip_dns_name
 from switches.connect.classes import (
     Error,
@@ -392,12 +392,8 @@ class Connector:
                 self.get_my_hardware_details()
                 self.add_timing("HW Info Read", 1, time.time() - start_time)
 
-            # see if we can get device health details from the driver:
-            # this is optional, so we do not warn if not found!
-            if hasattr(self, "check_my_device_health"):
-                start_time = time.time()
-                self.check_my_device_health()
-                self.add_timing("Device Health", 1, time.time() - start_time)
+            # check device health - test various things.
+            self.check_device_health()
 
             # see if the driver has VRF support:
             # this is optional, so we do not warn if not found!
@@ -500,19 +496,49 @@ class Connector:
     #     return True
     #
 
-    def check_my_device_health(self):
+    def check_device_health(self):
         """
         Drivers can implement this function to set device health information, see below.
         This can be used to check stack health, power-supplies or whatever.
         """
-        dprint("Connector().check_my_device_health()")
+        dprint("Connector().check_device_health()")
+
+        start_time = time.time()
+        # we are going to do some tests on all interfaces.
+
+        for iface in self.interfaces.values():
+            # check active PoE ports for
+            # 1 - ports that deliver PoE and do NOT have link. This could be an indication of problems...
+            # 2 - PoE FAULT status.
+            if iface.poe_entry and iface.poe_entry.admin_status == POE_PORT_ADMIN_ENABLED:
+                if (
+                    iface.poe_entry.detect_status == POE_PORT_DETECT_DELIVERING
+                    and iface.admin_status
+                    and not iface.oper_status
+                ):
+                    warning = f"PoE delivering but link DOWN on interface {iface.name}"
+                    self.add_warning(warning=warning)
+                    self.add_log(type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE, description=warning)
+                elif iface.poe_entry.detect_status in (POE_PORT_DETECT_FAULT, POE_PORT_DETECT_OTHERFAULT):
+                    warning = f"PoE FAULT on interface {iface.name}"
+                    self.add_warning(warning=warning)
+                    self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
+
+        # and then call the vendor-specific version if it exists
+        # this is optional, so we do not warn if not found!
+        if hasattr(self, "check_my_device_health"):
+            self.check_my_device_health()
+
+        self.add_timing("Device Health", 1, time.time() - start_time)
 
     #
-    # Vendor drivers that implement this should call the super-class version of this at some point.
+    # Vendor drivers can implement custom device health checking as follows:
     #
     # def check_my_device_health(self):
-    #     # call the super class implementation of this:
-    #     super().check_my_device_health()
+    #     """
+    #     Drivers can implement this function to set device health information, see below.
+    #     This can be used to check stack health, power-supplies or whatever.
+    #     """
     #
     #     # do your own vendor/device specific checking...
     #
@@ -522,7 +548,7 @@ class Connector:
     #     # or add a warning to the web ui:
     #     self.add_warning(warning="The Fan is BAD", add_log=False)
     #
-    #     # then add a log message
+    #     # then add a 'generic' health log message
     #     self.add_log(description="The Fan is BAD", type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE)
     #
     #     return
@@ -1995,7 +2021,7 @@ class Connector:
         dprint("_set_interfaces_permissions() done!")
 
     # pylint: disable=redefined-builtin
-    def add_log(self, description: str, type: int, action: int):
+    def add_log(self, description: str, type: int, action: int, if_name: str = "", if_index: int = 0):
         """
         Log a message about some event on this device to the log table.
 
@@ -2019,6 +2045,8 @@ class Connector:
             type=type,
             action=action,
             description=description,
+            if_index=if_index,
+            if_name=if_name,
         )
         if self.request:
             log.user = self.request.user

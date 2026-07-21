@@ -874,8 +874,6 @@ class SnmpConnectorComware(SnmpConnector):
         Here are check IRF stacking, which is typically not handled by general purpose snmp monitoring tools.
         """
         dprint("ComwareSnmpConnector().check_my_device_health()")
-        # call the super class implementation of this:
-        super().check_my_device_health()
 
         # start with check of the IRF stack
         self._check_irf_health()
