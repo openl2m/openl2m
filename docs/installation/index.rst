@@ -33,6 +33,11 @@ OpenL2M has some requirements:
   Note: Ubuntu 24.04 comes with Python v3.12 and PostgreSQL v16. Ubuntu 22.04 comes with PostGreSQL v14.
   **Ubuntu 22.04 and 20.04 are no longer supported!**
 
+.. note::
+
+  OpenL2M renders best on a large or greater browser window (≥992px). OpenL2M does not render well on small-ish browser windows.
+
+
 **Application Stack Overview**
 
 Once installation is complete, you will have the following application stack

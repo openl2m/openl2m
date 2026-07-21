@@ -20,14 +20,17 @@ New Configuration Options
     # per Switch Group, or for individual devices (Switches)
     READ_HARDWARE_DETAILS = True
 
+    # Warn about small browser sizes. We prefer a browser size of 1200 pixels. On < 568, we will warn, on the login and menu windows:
+    # BROWSER_SIZE_WARNING = "WARNING: OpenL2M does not render well on small browser sizes!<br />Please use a large browser window."
+
 
 Version 4.2.2-pre
 -----------------
 
 Release Date: TBD
 
-* properly render login on small devices.
-* render logo and navigation bar properly on small devices.
+* properly render login, logo and nav bar on small browser sizes.
+* add small browser size warnings on login and menu screens.
 * for Aruba AOS-CX REST driver, add reading of PoE power supply and chassis info
 * upgrade to FontAwesome v7.3.1
 

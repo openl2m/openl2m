@@ -112,6 +112,7 @@ This is minimal list of requirements. Read the documentation for more details.
 * Python v3.12 - v3.14 (ie. Ubuntu 26.04 is now supported!).
 * Postgres version 15 or higher (for Django 6.0).
 * NetSNMP packages on your Linux server, and ability to install and run the Python EzSnmp v2.x package.
+* a large or greater browser window (≥992px). OpenL2M does not render well on small-ish browser windows.
 
 
 __Contributing__:

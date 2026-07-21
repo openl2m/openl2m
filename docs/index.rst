@@ -30,6 +30,8 @@ For quick testing of OpenL2M, we provide `Docker Compose configuration files. <h
 OpenL2M is written in Python 3 using the Django framework.
 Documentation is written in ReStructured Text format, which is rendered with the Sphinx documentation generator.
 
+OpenL2M renders best on a large or greater browser window (≥992px). OpenL2M does not render well on small-ish browser windows.
+
 Click here to :doc:`See What Is New <what_is_new>`!
 
 
