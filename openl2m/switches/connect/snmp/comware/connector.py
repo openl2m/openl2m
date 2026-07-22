@@ -28,9 +28,9 @@ from django.http.request import HttpRequest
 from pysnmp.proto.rfc1902 import OctetString, Gauge32
 
 from switches.models import Switch, SwitchGroup
-from switches.constants import LOG_TYPE_ERROR, LOG_TYPE_WARNING, LOG_PORT_POE_FAULT, LOG_HEALTH_MESSAGE
+from switches.constants import LOG_TYPE_WARNING, LOG_HEALTH_MESSAGE
 from switches.connect.classes import Interface, PortList, Transceiver
-from switches.connect.constants import IF_TYPE_ETHERNET, POE_PORT_DETECT_DELIVERING, poe_status_name
+from switches.connect.constants import IF_TYPE_ETHERNET
 from switches.connect.snmp.connector import pysnmpHelper, SnmpConnector, oid_in_branch
 from switches.connect.snmp.constants import SNMP_TRUE, dot1qPvid
 from switches.connect.connector import Connector
@@ -823,14 +823,15 @@ class SnmpConnectorComware(SnmpConnector):
                 if iface.index == if_index:
                     dprint(f"  Interface found: {iface.name}")
                     iface.poe_entry = port_entry
-                    if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                        warning = (
-                            f"PoE FAULT status ({port_entry.detect_status} = "
-                            f"{poe_status_name[port_entry.detect_status]}) "
-                            f"on interface {iface.name}"
-                        )
-                        self.add_warning(warning=warning)
-                        self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
+                    # this is now handled in Connector().check_device_health():
+                    # if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
+                    #     warning = (
+                    #         f"PoE FAULT status ({port_entry.detect_status} = "
+                    #         f"{poe_status_name[port_entry.detect_status]}) "
+                    #         f"on interface {iface.name}"
+                    #     )
+                    #     self.add_warning(warning=warning)
+                    #     self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
                     break
 
     def save_running_config(self) -> bool:

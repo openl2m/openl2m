@@ -21,10 +21,7 @@ Note: JUNOS devices are Read-Only for SNMP! See the PyEZ driver for R/W capabili
 from django.http.request import HttpRequest
 
 from switches.models import Switch, SwitchGroup
-from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
 from switches.connect.constants import (
-    POE_PORT_DETECT_DELIVERING,
-    poe_status_name,
     VLAN_STATUS_PERMANENT,
     VLAN_STATUS_DYNAMIC,
     VLAN_STATUS_OTHER,
@@ -96,13 +93,14 @@ class SnmpConnectorJuniper(SnmpConnector):
                 if iface.name == if_name:
                     dprint(f"   PoE Port Map FOUND {iface.name}")
                     iface.poe_entry = port_entry
-                    if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                        warning = (
-                            f"PoE FAULT status ({port_entry.detect_status} = "
-                            f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
-                        )
-                        self.add_warning(warning=warning)
-                        self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
+                    # this is now handled in Connector.check_device_health():
+                    # if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
+                    #     warning = (
+                    #         f"PoE FAULT status ({port_entry.detect_status} = "
+                    #         f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
+                    #     )
+                    #     self.add_warning(warning=warning)
+                    #     self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
                     break
 
     def _get_interface_transceiver_types(self):

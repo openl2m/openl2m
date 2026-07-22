@@ -26,9 +26,7 @@ import datetime
 from django.http.request import HttpRequest
 
 from switches.models import Switch, SwitchGroup
-from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
 from switches.connect.classes import Interface, Transceiver
-from switches.connect.constants import POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.utils import dprint
 
@@ -317,13 +315,14 @@ class SnmpConnectorProcurve(SnmpConnector):
                 dprint(f"   PoE Port Map FOUND {iface.name}")
                 # add this poe entry to the interface
                 iface.poe_entry = port_entry
-                if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                    warning = (
-                        f"PoE FAULT status ({port_entry.detect_status} = "
-                        f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
-                    )
-                    self.add_warning(warning=warning)
-                    self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
+                # this is now handled in Connector.check_device_health():
+                # if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
+                #     warning = (
+                #         f"PoE FAULT status ({port_entry.detect_status} = "
+                #         f"{poe_status_name[port_entry.detect_status]}) on interface {iface.name}"
+                #     )
+                #     self.add_warning(warning=warning)
+                #     self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
             else:
                 # should not happen!
                 dprint(f"ERROR: PoE entry NOT FOUND for pe_index={pe_index}")

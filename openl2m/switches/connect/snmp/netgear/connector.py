@@ -19,8 +19,6 @@ with vendor specific ways of doing things...
 
 from django.http.request import HttpRequest
 
-from switches.constants import LOG_TYPE_ERROR, LOG_PORT_POE_FAULT
-from switches.connect.constants import POE_PORT_DETECT_DELIVERING, poe_status_name
 from switches.connect.snmp.connector import SnmpConnector, oid_in_branch
 from switches.models import Switch, SwitchGroup
 from switches.utils import dprint
@@ -200,12 +198,13 @@ class SnmpConnectorNetgear(SnmpConnector):
                 if iface.index == if_index:
                     dprint(f"  Interface found: {iface.name}")
                     iface.poe_entry = port_entry
-                    if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                        warning = (
-                            f"PoE FAULT status ({port_entry.detect_status} = "
-                            f"{poe_status_name[port_entry.detect_status]}) "
-                            f"on interface {iface.name}"
-                        )
-                        self.add_warning(warning=warning)
-                        self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
+                    # this is now handled in Connector.check_device_health():
+                    # if port_entry.detect_status > POE_PORT_DETECT_DELIVERING:
+                    #     warning = (
+                    #         f"PoE FAULT status ({port_entry.detect_status} = "
+                    #         f"{poe_status_name[port_entry.detect_status]}) "
+                    #         f"on interface {iface.name}"
+                    #     )
+                    #     self.add_warning(warning=warning)
+                    #     self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
                     break
