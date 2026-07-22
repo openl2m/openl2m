@@ -29,8 +29,15 @@ from django.conf import settings
 from django.http.request import HttpRequest
 
 from switches.models import Switch, SwitchGroup, Command, Log
-from switches.connect.constants import POE_PORT_DETECT_FAULT, POE_PORT_DETECT_OTHERFAULT, LLDP_CHASSIC_TYPE_ETH_ADDR
-from switches.constants import LOG_TYPE_WARNING, LOG_CONNECTION_ERROR, LOG_TYPE_ERROR, CMD_TYPE_INTERFACE, LOG_HEALTH_MESSAGE, LOG_PORT_POE_FAULT
+from switches.connect.constants import LLDP_CHASSIC_TYPE_ETH_ADDR, poe_status_name
+from switches.constants import (
+    LOG_TYPE_WARNING,
+    LOG_CONNECTION_ERROR,
+    LOG_TYPE_ERROR,
+    CMD_TYPE_INTERFACE,
+    LOG_HEALTH_MESSAGE,
+    LOG_PORT_POE_FAULT,
+)
 from switches.utils import dprint, get_remote_ip, get_ip_dns_name
 from switches.connect.classes import (
     Error,
@@ -519,8 +526,8 @@ class Connector:
                     warning = f"PoE delivering but link DOWN on interface {iface.name}"
                     self.add_warning(warning=warning)
                     self.add_log(type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE, description=warning)
-                elif iface.poe_entry.detect_status in (POE_PORT_DETECT_FAULT, POE_PORT_DETECT_OTHERFAULT):
-                    warning = f"PoE FAULT on interface {iface.name}"
+                elif iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING:
+                    warning = f"PoE FAULT on interface {iface.name} ({poe_status_name[iface.port_entry.detect_status]})"
                     self.add_warning(warning=warning)
                     self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
 
