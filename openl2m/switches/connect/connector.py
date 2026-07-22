@@ -524,11 +524,11 @@ class Connector:
                     and not iface.oper_status
                 ):
                     warning = f"PoE delivering but link DOWN on interface {iface.name}"
-                    self.add_warning(warning=warning)
+                    self.add_warning(warning=warning, add_log=False)
                     self.add_log(type=LOG_TYPE_WARNING, action=LOG_HEALTH_MESSAGE, description=warning)
                 elif iface.poe_entry.detect_status > POE_PORT_DETECT_DELIVERING:
-                    warning = f"PoE FAULT on interface {iface.name} ({poe_status_name[iface.port_entry.detect_status]})"
-                    self.add_warning(warning=warning)
+                    warning = f"PoE FAULT on interface {iface.name} ({poe_status_name[iface.poe_entry.detect_status]})"
+                    self.add_warning(warning=warning, add_log=False)
                     self.add_log(type=LOG_TYPE_ERROR, action=LOG_PORT_POE_FAULT, description=warning)
 
         # and then call the vendor-specific version if it exists
