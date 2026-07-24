@@ -1,0 +1,25 @@
+# This Caddyfile is an example of how to configure
+# the Caddy web server to run OpenL2M.
+#
+# NOTE: this assumes that Caddy can do it's "auto SSL" magic, ie install automatic, free
+# "Let's Encrypt" SSL certificates! This requires among others that your Caddy server is
+# open to the Internet on both tcp port 80 and 443.
+#
+# YOU SHOULD NOT USE THIS Caddyfile IF YOU CANNOT GET AUTOMATIC SSL ENCRYPTION!
+# For custom SSL installs, or better yet SSL using the ACME protocol:
+#
+# Refer to the Caddy docs for more information:
+# https://caddyserver.com/docs/caddyfile
+
+
+# OpenL2M config for plain unencrypted access
+# NOT RECOMMENDED if you do not have Auto-SSL capable server (with Let's Encrypt)
+:80 {
+
+        handle_path /static/* {
+                root * /opt/openl2m/openl2m/static/
+                file_server
+        }
+
+        reverse_proxy 127.0.0.1:8001
+}

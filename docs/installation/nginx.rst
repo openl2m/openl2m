@@ -5,6 +5,9 @@ Nginx Installation
 ==================
 At this time, the Gunicorn Python gateway service should be running. Nginx will be used to proxy that WSGI service.
 
+*You can also use Caddyserver to proxy the OpenL2M WSGI service. This is experimental at this time.
+Skip the sections on Nginx to use Caddy*.
+
 The following will serve as a minimal nginx configuration.
 Be sure to modify your server name and installation path appropriately.
 
@@ -68,8 +71,9 @@ Please adjust these timeouts as appropriate for your environment
 
 **Firewall configuration**
 
-You will need to allow the standard http (and https) ports through the firewall, assuming you run this.
-To configure allowing this, run:
+On your server, you will need to allow the standard http (tcp/80) and https (tcp/443) ports through the OS firewall.
+To configure this on Ubuntu, see below. Other distros may vary in config.
+
 
 **Ubuntu**
 
@@ -77,6 +81,9 @@ To configure allowing this, run:
 
   sudo ufw allow http
   sudo ufw allow https
+
+
+If you are behind an enterprise firewall, those same ports need to be allowed to your server!
 
 
 Debugging

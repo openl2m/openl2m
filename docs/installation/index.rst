@@ -68,6 +68,7 @@ distributions as long as the requirements are met.
    gunicorn.rst
    nginx.rst
    nginx-ssl.rst
+   caddyserver.rst
    ldap.rst
    upgrading.rst
    alt-python.rst
