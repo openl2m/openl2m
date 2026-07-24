@@ -15,7 +15,7 @@ flake8
 flake8-pyproject
 gitpython
 #fix the WSGI runner:
-gunicorn==23.0.0
+gunicorn>=26.0.0
 hiredis
 # used for REST framework testing
 httpie
