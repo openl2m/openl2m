@@ -9,13 +9,19 @@ Switch connections are made via the **Connector() class**. The Django "views" in
 
 .. image:: ../../_static/openl2m-architecture.png
 
-The Connector() API
--------------------
+Collecting data from the device/switch is done by calling functions of the Connector() class.
 
-**connect.py**
+Depending on the "view", *switch/views.py* calls *def switch_view()* with parameters. This function opens the connection (see below),
+and then calls *Connector().get_basic_info()*. If the view is 'arp/lldp', we also run *Connector().get_client_data()*
+
+The Connector() class
+=====================
+
+connect.py
+----------
 
 **get_connection_object()** figures out what specific Connector() class to get
-for the device. This is based on the Switch() configuration in the admin pages.
+for the device. This is based on the Switch() device configuration in the admin pages.
 It returns the proper object. It is called by all 'views.py' functions
 to get an object for the current device/switch.
 
@@ -29,25 +35,28 @@ It should be called as:
         # handle exception as needed
 
 
-**connector.py**
+connector.py
+------------
 
-The Connector() API is defined in *switches/connect/connector.py*. This *Connector()* base class
+The Connector() class is defined in *switches/connect/connector.py*. This *Connector()* base class
 is inherited by all device- or vendor-specific connectors.
 
-**Data Collection**
+Basic Info Collection
+---------------------
 
-Collecting data from the device/switch is done by calling these functions:
+Interface information is learned by calling *Connector().get_basic_info()*. If exists, this calls *self.get_my_basic_info()*,
+which is a vendor driver specific implementation.
 
-* conn.get_my_basic_info()
+Next, it runs *self.get_my_hardware_details()*, again a vendor implementation that can be implemented read a variety of hardware
+information. Data can be added to the "Device Info" tab by calling the *self.add_more_info()* function.
 
-* conn.get_my_hardware_details()
+Next, we see if the driver has VRF support, by calling *self.get_my_vrfs()* if that function exists. This can implement protocol
+or vendor-specific VRF data being collected. (E.g. SNMP VRF mibs are read by the default SnmpConnector() class)
 
-* conn.check_my_device_health()
+Finally, we run *self.check_device_health()* to check a variety of 'health related' items based on the data collected so far.
+This checks some generic data, and then calls *self.check_my_device_health()* for vendor-specific data.
 
-* conn.get_my_client_data()
-
-get_my_basic_info()
--------------------
+**get_my_basic_info()**
 
 This is called when a switch is selected from the menu,
 and is called from the corresponding Django view.
@@ -79,8 +88,8 @@ They are:
   as only physical interfaces have port id's, and the interface index and the switchport ID can be different.
   For more details, read the SNMP driver explanations.
 
-_can_manage_interface(iface)
-----------------------------
+
+**_can_manage_interface(iface)**
 
 The connector() class has some rules about what interfaces can be managed. This is based on user rights (admin, staff, regular),
 group vlan access, etc.
@@ -91,36 +100,40 @@ This functions is called from the base class. If it returns False, all interface
 In the function call, the drivers can set the attribute *iface.unmanage_reason* to a string indicating
 why this interface cannot be managed.
 
-get_my_hardware_details()
--------------------------
+
+**get_my_hardware_details()**
+
 Optionally, this may be implemented by a driver to fill on more details
 about the device, such as serial number, model,etc. Most drivers do implemented this.
 If this function exists, it is also called from the 'view' function, like 'get_my_basic_info()'.
 
+Note that admins can disable this functionality to save device reading time. You can unchecking the setting
+in the Group or Switch entry in the admin pages. It can also be globally disabled by editing configuration.py
+and restarting the OpenL2M service.
 
-check_my_device_health()
-------------------------
-This is will be called to perform a health check on the device. In Connector(), there is a no-opt implementation.
-Each vendor driver can implement as needed. If implemented, drivers should their super class to run it as well:
 
-.. code-block:: python
+**check_my_device_health()**
 
-  # in connector.py, Connector() class:
-  def check_my_device_health(self):
-
-    # now do my own driver/vendor specific health checks.
-
+This is will be called to perform a health check on the device. In Connector(), there is *check_device_health()* that checks
+a few 'warnings' related to PoE. Each vendor driver can implement *check_my_device_health()* as needed.
 
 Drivers can implement this function to check device health and provide information to the user.
-E.g. This can be used to check stack health, power-supplies or whatevers. There is a log message
-for device health. Here is a example of skeleton code:
+E.g. This can be used to check stack health, power-supplies or whatever. There is a log message
+for device health.
 
+.. note::
+
+    This functionality is NOT meant to provide full-blown device status monitoring! That is best provide by an NMS.
+
+    Use this to implement check on states that are not normally found by NMS systems,
+    such as stacking problems (unexpected device as 'main' unit), PoE Faults, etc.
+
+
+Here is a example of skeleton code:
 
 .. code-block:: python
 
   def check_my_device_health(self):
-    # call the super class implementation of this:
-    super().check_my_device_health()
 
     # do your own vendor/device specific checking...
 
@@ -136,8 +149,14 @@ for device health. Here is a example of skeleton code:
     return
 
 
-get_my_client_data()
---------------------
+Arp/lldp Collection
+-------------------
+
+For the ARP/LLDP view, we call *self.get_client_data()*. This will call *self.get_my_client_data()*
+if the driver-specific implementation exists.
+
+
+**get_my_client_data()**
 
 If implemented, this is called when the user clicks the related button(ARP/LLDP) when the device is shown.
 Is it called to load information about the known ethernet addresses, arp tables, lldp neighbors,
@@ -146,6 +165,7 @@ describing these data structures in more detail.
 
 A good example is in *switches/connect/snmp/connector.py*, where *get_my_client_data()* uses snmp
 to get information on switch tables (ethernet addresses), arp tables and neighbor devices via lldp.
+
 
 run_command() and run_command_string()
 --------------------------------------

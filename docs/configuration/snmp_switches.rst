@@ -8,111 +8,26 @@ Prerequisites
 -------------
 
 Create an SNMP Profile with the proper SNMP configuration as used on this device.
-If applicable, create a Credential Profile with the proper SSH username / password that will be used to run commands on this device.
-As needed, create Commands and Command Groups to assign to this device.
-
-SNMP Device Configuration
--------------------------
-
-All SNMP devices are managed via SNMP using the Python EasySNMP and pysnmp library. You will need to create the proper SNMP Read/Write configuration
-to allow OpenL2M to work on supported devices. ::doc::`Please see the section with SNMP examples for more details.<snmp_configs>`
+You will need to create the proper SNMP Read/Write configuration
+to allow OpenL2M to work on supported devices.
+:doc:`Please see the section with SNMP examples for more details.<snmp_configs>`
+(All SNMP devices are managed via SNMP using the Python EasySNMP and pysnmp library.)
 
 Please refer to your device snmp documentation for more details.
 
+Connection Configuration
+------------------------
 
-OpenL2M Configuration
----------------------
+**Connector Type**: set to **SNMP**
 
-From the top-right Admin menu, go to Administration, and then click on Switches, or click the "+ Add" option
 
-Configure the name to show in the menu (does not need to be the switch hostname),
-and add a description if so desired.
+**SNMP Profile**: Select the proper SNMP profile to use on this device.
 
-Add the IP v4 address or resolvable DNS name used to connect to the device.
+**Credentials Profile**: If applicable, set the proper profile that will be used
+to run commands on this device. *If you want to allow 'show/display' commands, you need to add a profile here!*
+
+The remainder of options are decribed in the generic device-add page.
 
 .. note::
-  HPE Comware switches are fully Read-Write supported via SNMP, as are older Cisco switches.
-  Most Aruba AOS-CX devices have minimal write capability via SNMP (use REST API for full control).
-  Juniper switches are Read-Only via SNMP (use the PyEZ driver for full control).
 
-**In the Connection Configuration section, set:**
-
-**Connector Type:** to
-
-* **SNMP**: for fully snmp manageable devices (Cisco, HP/Procurce, HPE).
-
-
-**SNMP Profile:**
-
-Select the proper SNMP profile is this is an SNMP managed switch.
-
-
-**Credentials Profile:**
-
-Select the proper profile, required for Commands, API, PyEZ, NetConf, etc.
-If you want to allow 'show/display' commands, you need to add a profile here!
-
-
-**Group Membership section:**
-
-For this device to be visible to users (including Admin) in their menu, you need to add it to at least one Group!
-
-
-Optional settings
------------------
-
-**In the Commands Configuration section, set:**
-
-**Command List:**
-
-Select the command list desired, if any. `See here for more <commands>`
-
-
-**In View Options section, set:**
-
-**Indentation Level:**
-
-If > 0, will add some spaces in the menu before the switch name; this can look nicer !
-
-**Default View:**
-
-The Default View setting defines the opening tab when a user clicks on the
-switch. Setting this to Details is useful for routers, so that ARP and
-LLDP information are loaded immediately. Note that it then take a little longer
-to render the page, due to the extra data that needs to be read
-from the device.
-
-
-**In the Access Options section, set:**
-
-**Status:**
-
-*Note:* switches will only show in the list if their status is *Active*.
-For SNMP devices, devices need to have an SNMP Profile applied! Likewise, if a switch does not have
-a Credentials profile, interface commands and global commands options will not show.
-
-**Read-Only:**
-
-If a switch is marked Read-Only, no user (not even admin), can change settings
-on the switch. However, if commands are configured, they can be executed.
-This is useful for e.g. routers.
-
-**Bulk-Edit:**
-
-The Bulk Edit setting is enabled by default. If disabled (un-checked),
-this switch will not allow multiple interfaces to be edited at once.
-
-**Poe-Toggle:**
-
-If selected, users can toggle PoE on *all* ports, including those ports on vlans they do *not* have access to.
-(e.g this is useful for Wifi Access Points, VOIP Phones, etc.)
-
-**Edit description:**
-
-Enabled by default. If *not* selected, users cannot edit the interface descriptions
-on this device (regardless of rights!)
-
-
-**Group Membership section:**
-
-Finally, at the end you can add this new device to one or more groups.
+    Do not forget to click SAVE !

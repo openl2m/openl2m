@@ -13,7 +13,24 @@ into the Django admin interface.
 OpenL2M uses a Profile concept. A profile is a number of configuration settings that are related to each other.
 Once you have created one or more of the profiles below, they can be applied to devices as needed.
 
-Here is the order in which you should create the configuration items:
+Getting Started
+---------------
+
+To get started with your first device, you will need to add at minimum the following:
+
+* create a **SNMP Profile** first, if using SNMP managed devices.
+* next, create a **Credential Profile**, if using REST driver devices, or if you want to run SSH commands.
+* then create **VLANs** and look at using **Vlan Groups**.
+* create at least one **Switch Group**.
+* finally, add a device, aka a **Switch**, using the above entries.
+
+As Admin, you will have access to all devices added. For more granular access for users, see below.
+
+
+Detailed Configuration
+----------------------
+
+Here are more details about each configuration step, in the order in which you should create the configuration items:
 
 .. toctree::
    :maxdepth: 1
@@ -21,13 +38,15 @@ Here is the order in which you should create the configuration items:
    Create SNMP profiles<snmp_profiles.rst>
    Create Credential profiles<credential_profiles.rst>
    Create VLANs<vlans.rst>
+   Create Switch Groups to add devices<switchgroups.rst>
+   Adding Devices<switch_configs.rst>
    Add SNMP devices<snmp_switches.rst>
    Add Arista eAPI devices<arista-eapi.rst>
    Add Aruba AOS-CX devices<aos_cx_switches.rst>
    Add Aruba AOS-S devices<aruba_aoss_api.rst>
    Add HPE Comware API devices<hpe_comware_api.rst>
    Add Junos devices<junos_switches.rst>
-   Create Switch Groups to add device to<switchgroups.rst>
+   Napalm devices<napalm_devices.rst>
    Create Users and give them access to Switch Groups<users.rst>
    Create Commands and Command Lists (optional)<commands.rst>
    Create Command Templates (optional)<cmd_templates.rst>
