@@ -508,7 +508,7 @@ class AristaApiConnector(Connector):
             self.error.description = f"Error running eAPI command = '{command_list}'!"
             self.error.details = f"Cannot read device information: {format(err)}"
             self.add_warning(
-                warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
+                warning=f"Cannot read device information: {err!r} ({type(err)!s}) => {traceback.format_exc()}"
             )
             return False
 
@@ -847,7 +847,7 @@ class AristaApiConnector(Connector):
             self.error.description = f"Error running eAPI command = '{command}'!"
             self.error.details = f"Cannot read device information: {format(err)}"
             self.add_warning(
-                warning=f"Cannot read device information: {repr(err)} ({str(type(err))}) => {traceback.format_exc()}"
+                warning=f"Cannot read device information: {err!r} ({type(err)!s}) => {traceback.format_exc()}"
             )
             return False
 

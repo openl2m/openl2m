@@ -3,7 +3,6 @@
 import ldap
 from django_auth_ldap.config import LDAPSearch, NestedGroupOfNamesType
 
-
 #############################
 # Server Authentication part:
 

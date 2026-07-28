@@ -289,7 +289,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_lacp_member_port_arista() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_lacp_member_port_arista() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         # this gets the port-channel number for a LACP member interface ifIndex. Note this is NON-standard!
         member_if_index = oid_in_branch(dot3adAggPortActorAdminKey, oid)
@@ -332,7 +332,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnectorAristaEOS._parse_mibs_arista_vrf_entries() {str(oid)}")
+        dprint(f"SnmpConnectorAristaEOS._parse_mibs_arista_vrf_entries() {oid!s}")
 
         # routing status has bit for IPv4 and IPv6
         sub_oid = oid_in_branch(aristaVrfRoutingStatus, oid)
@@ -390,7 +390,7 @@ class SnmpConnectorAristaEOS(SnmpConnector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnectorAristaEOS._parse_mibs_arista_vrf_members() {str(oid)}")
+        dprint(f"SnmpConnectorAristaEOS._parse_mibs_arista_vrf_members() {oid!s}")
 
         # aristaVrfIfMembership.<ifIndex> = "VRF-Name"
         sub_oid = oid_in_branch(aristaVrfIfMembership, oid)

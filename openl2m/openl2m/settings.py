@@ -25,11 +25,11 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import logging
 import os
-import socket
 import platform
+import socket
 import sys
-import netaddr
 
+import netaddr
 from django.core.exceptions import ImproperlyConfigured
 
 # Django 6.0 requires Python 3.12 - 3.14.
@@ -332,8 +332,8 @@ except ImportError:
 if LDAP_CONFIG is not None:
     # Check that django_auth_ldap is installed
     try:
-        import ldap
         import django_auth_ldap  # noqa: F401
+        import ldap
     except ImportError:
         raise ImproperlyConfigured(
             "LDAP authentication has been configured, but django-auth-ldap is not installed. Remove "
@@ -342,7 +342,7 @@ if LDAP_CONFIG is not None:
 
     # Required configuration parameters
     try:
-        AUTH_LDAP_SERVER_URI = getattr(LDAP_CONFIG, "AUTH_LDAP_SERVER_URI")
+        AUTH_LDAP_SERVER_URI = LDAP_CONFIG.AUTH_LDAP_SERVER_URI
     except AttributeError:
         raise ImproperlyConfigured("Required parameter AUTH_LDAP_SERVER_URI is missing from ldap_config.py.")
 

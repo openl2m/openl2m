@@ -432,7 +432,7 @@ def switch_view(
     except Exception as e:
         log.type = LOG_TYPE_ERROR
         log.description = (
-            f"CAUGHT UNTRAPPED ERROR in get_basic_switch_info(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            f"CAUGHT UNTRAPPED ERROR in get_basic_switch_info(): {e!r} ({type(e)!s})\n{traceback.format_exc()}"
         )
         dprint(log.description)
         log.save()
@@ -456,7 +456,7 @@ def switch_view(
         except Exception as e:
             log.type = LOG_TYPE_ERROR
             log.description = (
-                f"CAUGHT UNTRAPPED ERROR in get_client_data(): {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+                f"CAUGHT UNTRAPPED ERROR in get_client_data(): {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             )
             dprint(log.description)
             log.save()

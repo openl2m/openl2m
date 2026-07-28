@@ -171,7 +171,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         """
         Parse HP specific Power Extention MIBs
         """
-        dprint(f"HP _parse_mibs_hp_poe(): {str(oid)} = {val}")
+        dprint(f"HP _parse_mibs_hp_poe(): {oid!s} = {val}")
 
         pe_index = oid_in_branch(hpicfPoePethPsePortPower, oid)
         if pe_index:
@@ -195,7 +195,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         """
         Parse HP specific Interface Extension MIB for link mode, PoE info
         """
-        dprint(f"HP _parse_mibs_hp_if_linkmode(): {str(oid)} = {val}")
+        dprint(f"HP _parse_mibs_hp_if_linkmode(): {oid!s} = {val}")
 
         if_index = int(oid_in_branch(hpnicfIfLinkMode, oid))
         if if_index:
@@ -211,7 +211,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         Parse Procurve specific ConfigMan MIBs for running-config info
         This gets added to the Information tab!
         """
-        dprint(f"HP _parse_mibs_procurve_config(): {str(oid)} = {val}")
+        dprint(f"HP _parse_mibs_procurve_config(): {oid!s} = {val}")
 
         sub_oid = oid_in_branch(hpnicfCfgRunModifiedLast, oid)
         if sub_oid:
@@ -232,7 +232,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         See HP-ICF-TRANSCEIVER-MIB
         return True if we parse it, False if not.
         """
-        dprint(f"HP _parse_mibs_procurve_transceiver(): {str(oid)} = {val}")
+        dprint(f"HP _parse_mibs_procurve_transceiver(): {oid!s} = {val}")
 
         if_index = oid_in_branch(hpicfXcvrModel, oid)
         if if_index:

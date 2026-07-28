@@ -200,7 +200,7 @@ class AosCxConnector(RESTConnector):
             self.error.description = "Error getting subsystem info!"
             self.error.details = ""
             self.add_warning(
-                warning=f"Error getting subsystem info!\n{repr(error)} ({str(type(error))}) => {traceback.format_exc()}"
+                warning=f"Error getting subsystem info!\n{error!r} ({type(error)!s}) => {traceback.format_exc()}"
             )
             return False
 
@@ -313,7 +313,7 @@ class AosCxConnector(RESTConnector):
             if not vlan["admin"] == "up" and not vlan["oper_state"] == "up":
                 dprint("  VLAN is disabled!")
                 v.admin_status = VLAN_ADMIN_DISABLED
-            if "voice" in vlan and vlan["voice"]:
+            if vlan.get("voice"):
                 dprint(f"Voice Vlan = '{vlan['voice']}' {type(vlan['voice'])})")
                 v.voice = True
             # set several REST uri's for additional vlan data
@@ -1426,7 +1426,7 @@ class AosCxConnector(RESTConnector):
             try:
                 self._post(path="logout", message="API LOGOUT")
                 self.aoscx_session = False
-                dprint(("  session close OK!"))
+                dprint("  session close OK!")
             except Exception as err:
                 dprint(f"Session Close Error!!!\n{err}\nTrace:{traceback.format_exc()}")
                 # add some logging:

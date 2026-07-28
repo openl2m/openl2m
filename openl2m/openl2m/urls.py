@@ -22,13 +22,13 @@ from django.contrib.auth.views import (
     PasswordChangeDoneView,
     PasswordChangeView,
 )
-from django.urls import include, path
 
 # from django.conf.urls import include
 from django.http import HttpResponseRedirect
+from django.urls import include, path
+from users.views import LogoutView, MyLoginView
 
-from users.views import MyLoginView, LogoutView
-from openl2m.api.views import APIRootView, APIAdminRootView, APIStatsView, APIEnvironmentView
+from openl2m.api.views import APIAdminRootView, APIEnvironmentView, APIRootView, APIStatsView
 
 # Custom admin site:
 from .admin import admin_site

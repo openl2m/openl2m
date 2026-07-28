@@ -301,7 +301,7 @@ def _get_group_and_switch_from_permissions(
     )
     group = None
     switch = None
-    if permissions and isinstance(permissions, dict) and group_id in permissions.keys():
+    if permissions and isinstance(permissions, dict) and group_id in permissions:
         devices = permissions[group_id]
         if isinstance(devices, dict) and switch_id in devices["members"].keys():
             try:

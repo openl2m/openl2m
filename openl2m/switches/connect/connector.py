@@ -1127,7 +1127,7 @@ class Connector:
         Returns:
             True on success, False on failure.
         """
-        dprint(f"conn.add_neighbor_object() for {str(neighbor)} on {if_name}")
+        dprint(f"conn.add_neighbor_object() for {neighbor!s} on {if_name}")
         iface = self.get_interface_by_key(if_name)
         if iface:
             iface.add_neighbor(neighbor)
@@ -1264,25 +1264,25 @@ class Connector:
             dprint("netmiko_connect(): ERROR NetMikoTimeoutException")
             self.error.status = True
             self.error.description = "Connection time-out! Please ask the admin to verify the switch hostname or IP, or change the SSH_COMMAND_TIMEOUT configuration."
-            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            self.error.details = f"Netmiko Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
             return False
         except netmiko.NetMikoAuthenticationException as err:
             dprint("netmiko_connect(): ERROR NetMikoAuthenticationException")
             self.error.status = True
             self.error.description = "Access denied! Please ask the admin to correct the switch credentials."
-            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            self.error.details = f"Netmiko Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
             return False
         except netmiko.exceptions.ReadTimeout as err:
-            dprint(f"netmiko_connect(): ERROR ReadTimeout: {repr(err)}")
+            dprint(f"netmiko_connect(): ERROR ReadTimeout: {err!r}")
             self.error.status = True
             self.error.description = "Error: the connection attempt timed out!"
-            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            self.error.details = f"Netmiko Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
             return False
         except Exception as err:
-            dprint(f"netmiko_connect(): ERROR Generic Error: {str(type(err))}")
+            dprint(f"netmiko_connect(): ERROR Generic Error: {type(err)!s}")
             self.error.status = True
             self.error.description = "SSH Connection denied! Please inform your admin."
-            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            self.error.details = f"Netmiko Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
             return False
 
         dprint("  connection OK!")
@@ -1356,18 +1356,18 @@ class Connector:
                     read_timeout=settings.SSH_COMMAND_TIMEOUT,
                 )
         except netmiko.exceptions.ReadTimeout as err:
-            dprint(f"  Netmiko.connection ReadTimeout: {repr(err)}")
+            dprint(f"  Netmiko.connection ReadTimeout: {err!r}")
             self.netmiko_output = "Error: the command timed out!"
             self.error.status = True
             self.error.description = "Error: the command timed out!"
-            self.error.details = f"Netmiko Error: {repr(err)}"
+            self.error.details = f"Netmiko Error: {err!r}"
             return False
         except Exception as err:
-            dprint(f"  Netmiko.connection error: {str(type(err))} - {repr(err)}")
+            dprint(f"  Netmiko.connection error: {type(err)!s} - {err!r}")
             self.netmiko_output = "Error sending command!"
             self.error.status = True
             self.error.description = "Error sending command!"
-            self.error.details = f"Netmiko Error: {repr(err)} ({str(type(err))})"
+            self.error.details = f"Netmiko Error: {err!r} ({type(err)!s})"
             return False
         dprint("  _execute_command() OK!")
         return True

@@ -2,117 +2,132 @@
 # https://www.python.org/dev/peps/pep-0518/
 
 [tool.black]
-line-length = 120
-target_version = ['py310', 'py311', 'py312', 'py313']
-skip-string-normalization = true
+    line-length = 120
+    target_version = ['py310', 'py311', 'py312', 'py313']
+    skip-string-normalization = true
 
 [tool.isort]
-# see https://pycqa.github.io/isort/docs/configuration/config_files.html
-profile = "black"
+    # see https://pycqa.github.io/isort/docs/configuration/config_files.html
+    profile = "black"
+    line_length = 120
 
 [tool.pylint]
-max-line-length = 120
-disable=[
-    "C0114", # Missing module docstring
-    "C0115", # Missing class docstring
-    "C0301",
-    "C0302", # Too many lines in module
-    "C0116",
-    "C0103", # upper-case name style
-    "R0801", # Similar lines in 2 files
-    "R0902", # Too many instance attributes
-    "R0911", # Too many returns
-    "R0912", # Too many branches
-    "R0913", # Too many arguments
-    "R0914", # Too many local variables
-    "R0915", # Too many statements
-    "R0917", # Too many positional arguments
-    "R1702", # Too many nested blocks
-    "W0102", # Dangerous default value
-]
+    max-line-length = 120
+    disable=[
+        "C0114", # Missing module docstring
+        "C0115", # Missing class docstring
+        "C0301",
+        "C0302", # Too many lines in module
+        "C0116",
+        "C0103", # upper-case name style
+        "R0801", # Similar lines in 2 files
+        "R0902", # Too many instance attributes
+        "R0911", # Too many returns
+        "R0912", # Too many branches
+        "R0913", # Too many arguments
+        "R0914", # Too many local variables
+        "R0915", # Too many statements
+        "R0917", # Too many positional arguments
+        "R1702", # Too many nested blocks
+        "W0102", # Dangerous default value
+    ]
 
 [tool.pylint.exceptions]
-# Allow plain "Exceptions"
-# Exceptions that will emit a warning when caught.
-# overgeneral-exceptions = ["builtins.BaseException", "builtins.Exception"]
-overgeneral-exceptions = ["builtins.BaseException"]
+    # Allow plain "Exceptions"
+    # Exceptions that will emit a warning when caught.
+    # overgeneral-exceptions = ["builtins.BaseException", "builtins.Exception"]
+    overgeneral-exceptions = ["builtins.BaseException"]
 
 [tool.mypy]
-ignore_missing_imports = true
+    ignore_missing_imports = true
 
 [tool.mypy.overrides]
-module="*"
-ignore_missing_imports = true
+    module="*"
+    ignore_missing_imports = true
 
 [tool.flake8]
-# Check that this is aligned with your other tools like Black
-max-line-length = 120
-exclude = [
-    # No need to traverse our git directory
-    ".git",
-    # There's no value in checking cache directories
-    "__pycache__",
-    "docs/conf.py",
-    "docs/_build",
-    "docs/_static",
-    "docs/_templates",
-    # ignore the 3rd-party pyhpecw library:
-    "openl2m/switches/connect/hpe_cw7_nc/libraries/pyhpecw7/"
-]
-# Use extend-ignore to add to already ignored checks which are anti-patterns like W503.
-extend-ignore = [
-    # PEP 8 recommends to treat : in slices as a binary operator with the lowest priority, and to leave an equal
-    # amount of space on either side, except if a parameter is omitted (e.g. ham[1 + 1 :]).
-    # This behaviour may raise E203 whitespace before ':' warnings in style guide enforcement tools like Flake8.
-    # Since E203 is not PEP 8 compliant, we tell Flake8 to ignore this warning.
-    # https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#slices
-    "E203",
-    "E501",
-    #,F403,F405
-]
+    # Check that this is aligned with your other tools like Black
+    max-line-length = 120
+    exclude = [
+        # No need to traverse our git directory
+        ".git",
+        # There's no value in checking cache directories
+        "__pycache__",
+        "docs/conf.py",
+        "docs/_build",
+        "docs/_static",
+        "docs/_templates",
+        # ignore the 3rd-party pyhpecw library:
+        "openl2m/switches/connect/hpe_cw7_nc/libraries/pyhpecw7/"
+    ]
+    # Use extend-ignore to add to already ignored checks which are anti-patterns like W503.
+    extend-ignore = [
+        # PEP 8 recommends to treat : in slices as a binary operator with the lowest priority, and to leave an equal
+        # amount of space on either side, except if a parameter is omitted (e.g. ham[1 + 1 :]).
+        # This behaviour may raise E203 whitespace before ':' warnings in style guide enforcement tools like Flake8.
+        # Since E203 is not PEP 8 compliant, we tell Flake8 to ignore this warning.
+        # https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#slices
+        "E203",
+        "E501",
+        #,F403,F405
+    ]
 
 [tool.ruff]
-# ruff configurations
-# Exclude a variety of commonly ignored directories.
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".ipynb_checkpoints",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pyenv",
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "site-packages",
-    "venv",
-    # ignore the 3rd-party pyhpecw library:
-    "openl2m/switches/connect/hpe_cw7_nc/libraries/pyhpecw7/"
-]
+    # ruff configurations
+    # Exclude a variety of commonly ignored directories.
+    exclude = [
+        ".bzr",
+        ".direnv",
+        ".eggs",
+        ".git",
+        ".git-rewrite",
+        ".hg",
+        ".ipynb_checkpoints",
+        ".mypy_cache",
+        ".nox",
+        ".pants.d",
+        ".pyenv",
+        ".pytest_cache",
+        ".pytype",
+        ".ruff_cache",
+        ".svn",
+        ".tox",
+        ".venv",
+        ".vscode",
+        "__pypackages__",
+        "_build",
+        "buck-out",
+        "build",
+        "dist",
+        "node_modules",
+        "site-packages",
+        "venv",
+        # ignore the 3rd-party pyhpecw library:
+        "openl2m/switches/connect/hpe_cw7_nc/libraries/pyhpecw7/"
+    ]
 
-# Same as Black.
-line-length = 120
-indent-width = 4
+    # Same as Black.
+    line-length = 120
+    indent-width = 4
 
-# Assume Python 3.10
-target-version = "py310"
+    # Assume Python 3.10
+    target-version = "py310"
 
 [tool.ruff.lint]
-# E402 Module level import not at top of file
-# F401 - unused imports
-#ignore = ["E402", "F401"]
+    # Select the rule categories you want to enforce
+    #select = ["E", "F", "B"]
+
+    # Specify the rules you want to ignore globally
+    ignore = [
+        # E402 Module level import not at top of file
+        "E501",  # Ignore line-too-long errors
+        # "F401",  # Ignore unused-import errors
+
+        "BLE001",   # Do not catch blind exception: `Exception`
+        "EXE001",   # Shebang is present but file is not executable
+        "EXE002",   # The file is executable but no shebang is present
+        "I001",     # Import block is un-sorted or un-formatted
+        "RUF012",   # Mutable default value for class attribute
+    ]
+
+

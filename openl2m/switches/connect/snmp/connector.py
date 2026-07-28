@@ -695,7 +695,7 @@ class SnmpConnector(Connector):
                     set_max_repeaters_to_num=settings.SNMP_MAX_REPETITIONS,
                 )
             except Exception as err:
-                dprint(f"ERROR with snmp v2 session: {repr(err)}")
+                dprint(f"ERROR with snmp v2 session: {err!r}")
                 self.add_log(
                     description=f"ERROR with snmp v2 session: {err}", type=LOG_TYPE_ERROR, action=LOG_SNMP_ERROR
                 )
@@ -809,7 +809,7 @@ class SnmpConnector(Connector):
                 return True
 
             except Exception as err:
-                dprint(f"ERROR with snmp v3 session: {repr(err)}")
+                dprint(f"ERROR with snmp v3 session: {err!r}")
                 self.add_log(
                     description=f"ERROR with snmp v3 session: {err}", type=LOG_TYPE_ERROR, action=LOG_SNMP_ERROR
                 )
@@ -855,7 +855,7 @@ class SnmpConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Timeout or Access denied"
-            self.error.details = f"SNMP Get Error in {e.__class__.__name__}: oid '{oid}': {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"SNMP Get Error in {e.__class__.__name__}: oid '{oid}': {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(f"   ERROR in get() - Details:\n{self.error.details}\n")
             return (True, None)
 
@@ -934,7 +934,7 @@ class SnmpConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "A timeout or network error occured!"
-            self.error.details = f"SNMP Error: get_snmp_branch {branch_name} bulk_walk(), {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"SNMP Error: get_snmp_branch {branch_name} bulk_walk(), {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(
                 f"   get_snmp_branch({branch_name}).bulk_walk(): Exception: {e.__class__.__name__}\n{self.error.details}\n"
             )
@@ -985,7 +985,7 @@ class SnmpConnector(Connector):
             except Exception as e:
                 self.error.status = True
                 self.error.description = "A SNMP parsing error occured!"
-                self.error.details = f"SNMP Error in '{branch_name}' OID={oid_found}, value='{item.value}', error {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+                self.error.details = f"SNMP Error in '{branch_name}' OID={oid_found}, value='{item.value}', error {e!r} ({type(e)!s})\n{traceback.format_exc()}"
                 dprint(
                     f"   Parse error in '{branch_name}' OID={oid_found}, value='{item.value}': Exception: {e.__class__.__name__}\n{self.error.details}\n"
                 )
@@ -1060,7 +1060,7 @@ class SnmpConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Access denied"
-            self.error.details = f"SNMP Set Error in {e.__class__.__name__}: oid '{oid}', value '{value}', value type '{type(value)}' snmp_type '{snmp_type}', Details: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"SNMP Set Error in {e.__class__.__name__}: oid '{oid}', value '{value}', value type '{type(value)}' snmp_type '{snmp_type}', Details: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(f"   ERROR in set() - Details:\n{self.error.details}\n")
             return False
 
@@ -1108,7 +1108,7 @@ class SnmpConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Access denied"
-            self.error.details = f"SNMP Set-Multiple Error in {e.__class__.__name__}: oid values '{oid_values}', error {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"SNMP Set-Multiple Error in {e.__class__.__name__}: oid values '{oid_values}', error {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(f"   ERROR in set_multiple() - Details:\n{self.error.details}\n")
             return False
 
@@ -1846,7 +1846,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"Base _parse_mibs_dot1q_base() {str(oid)}")
+        dprint(f"Base _parse_mibs_dot1q_base() {oid!s}")
 
         # these are part of "dot1qBase":
         sub_oid = oid_in_branch(dot1qNumVlans, oid)
@@ -1874,7 +1874,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"Base _parse_mibs_if_table() {str(oid)}")
+        dprint(f"Base _parse_mibs_if_table() {oid!s}")
 
         oid_end = oid_in_branch(ifIndex, oid)
         if oid_end:
@@ -1947,7 +1947,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"Base _parse_mibs_if_x_table() {str(oid)}")
+        dprint(f"Base _parse_mibs_if_x_table() {oid!s}")
 
         if_index = oid_in_branch(ifName, oid)
         if if_index:
@@ -1976,7 +1976,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector()._parse_mibs_dot1d_port_to_ifindex_map(oid={str(oid)}, val={val}")
+        dprint(f"SnmpConnector()._parse_mibs_dot1d_port_to_ifindex_map(oid={oid!s}, val={val}")
 
         # Map the Q-BRIDGE port id to the MIB-II if_indexes.
         # PortID=0 indicates known ethernet, but unknown port, i.e. ignore
@@ -2007,7 +2007,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector()._parse_mibs_vlan_static_row_status(oid={str(oid)}, val={val}")
+        dprint(f"SnmpConnector()._parse_mibs_vlan_static_row_status(oid={oid!s}, val={val}")
 
         # List of all available vlans on this switch as by the command "show vlans"
         vlan_id = int(oid_in_branch(dot1qVlanStaticRowStatus, oid))
@@ -2038,7 +2038,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector()._parse_mibs_vlan_static_name(oid={str(oid)}, val={val}")
+        dprint(f"SnmpConnector()._parse_mibs_vlan_static_name(oid={oid!s}, val={val}")
 
         # The VLAN name
         vlan_id = int(oid_in_branch(dot1qVlanStaticName, oid))
@@ -2066,7 +2066,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector()._parse_mibs_vlan_status(oid={str(oid)}, val={val}")
+        dprint(f"SnmpConnector()._parse_mibs_vlan_status(oid={oid!s}, val={val}")
 
         # see if this is static or dynamic vlan
         sub_oid = oid_in_branch(dot1qVlanStatus, oid)
@@ -2098,7 +2098,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector()._parse_mibs_vlan_dot1q_pvid(oid={str(oid)}, val={val}")
+        dprint(f"SnmpConnector()._parse_mibs_vlan_dot1q_pvid(oid={oid!s}, val={val}")
 
         # The VLAN ID assigned to ***untagged*** frames - dot1qPvid, indexed by dot1dBasePort
         # ie. lookup ifIndex with _get_if_index_from_port_id(port_id)
@@ -2160,7 +2160,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector()._parse_mibs_vlan_current_untagged(oid={str(oid)}, val={val}")
+        dprint(f"SnmpConnector()._parse_mibs_vlan_current_untagged(oid={oid!s}, val={val}")
 
         # this is the bitmap of current untagged ports in vlans (see also above dot1qVlanStaticEgressPorts)
         sub_oid = oid_in_branch(dot1qVlanCurrentUntaggedPorts, oid)
@@ -2194,7 +2194,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector()._parse_mibs_vlan_static_untagged(oid={str(oid)}, val={val}")
+        dprint(f"SnmpConnector()._parse_mibs_vlan_static_untagged(oid={oid!s}, val={val}")
 
         # this is the bitmap of static untagged ports in vlans (see also above dot1qVlanCurrentEgressPorts)
         vlan_id = int(oid_in_branch(dot1qVlanStaticUntaggedPorts, oid))
@@ -2223,7 +2223,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector()._parse_mibs_vlan_current_egress(oid={str(oid)}, val={val}")
+        dprint(f"SnmpConnector()._parse_mibs_vlan_current_egress(oid={oid!s}, val={val}")
 
         # List of all egress ports of a VLAN (tagged + untagged) as a bitmap hexstring
         sub_oid = oid_in_branch(dot1qVlanCurrentEgressPorts, oid)
@@ -2484,7 +2484,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"Base _parse_mibs_mvrp() {str(oid)}")
+        dprint(f"Base _parse_mibs_mvrp() {oid!s}")
 
         # the per-switchport GVRP setting:
         port_id = int(oid_in_branch(dot1qPortGvrpStatus, oid))
@@ -2514,7 +2514,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"Base _parse_mibs_ether_like() {str(oid)} = {val}")
+        dprint(f"Base _parse_mibs_ether_like() {oid!s} = {val}")
 
         # dot3 interface duplex status information:
         if_index = oid_in_branch(dot3StatsDuplexStatus, oid)
@@ -2562,7 +2562,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"Base _parse_mibs_if_mau_type() {str(oid)} = {val}")
+        dprint(f"Base _parse_mibs_if_mau_type() {oid!s} = {val}")
 
         # get MAU "transceiver" type information:
         # technically, we have to first read the mapping in ifMauIfIndex to get ifIndex
@@ -2944,7 +2944,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_lacp() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_lacp() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         #
         # Parse a single OID with data returned from the LACP MIB
@@ -2984,7 +2984,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_lacp_member_port() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_lacp_member_port() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         #
         # Parse a single OID with data returned from the LACP MIB
@@ -3052,7 +3052,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_ip_addr_table_ifindex() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_ip_addr_table_ifindex() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         #
         # Handle the device IP addresses, e.g. interface ip, vlan ip, etc.
@@ -3092,7 +3092,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_ip_addr_table_netmask() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_ip_addr_table_netmask() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         #
         # Handle the device IP addresses netmask entry.
@@ -3144,7 +3144,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_ip_address_if_index() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_ip_address_if_index() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         #
         # Find a device IP addresses. Returned OID is ipAddressIfIndex.<address-type>.<length>.<dotted-decimal-ip-address> = <if-index>
@@ -3204,7 +3204,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_ip_address_prefix() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_ip_address_prefix() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         #
         # Find a device IP addresses. Returned OID is
@@ -3293,7 +3293,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_ipv6_interface_address() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_ipv6_interface_address() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         # this reads the IPv6 address, and the prefix length all in one:
         # ipv6AddrPfxLength = ".1.3.6.1.2.1.55.1.8.1.2"
@@ -3372,7 +3372,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_poe_supply() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_poe_supply() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         #
         # PoE related entries:
@@ -3443,7 +3443,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_poe_port() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_poe_port() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         #
         # the pethPsePortEntry tables with port-level PoE info
@@ -3500,7 +3500,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_lldp() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_lldp() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         # we are not looking at this at this time, already have it from IF MIB
         # lldp = oid_in_branch(lldpLocPortTable, oid)
@@ -3677,7 +3677,7 @@ class SnmpConnector(Connector):
                             chassis_info = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
                         elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
                             # per MIB LldpChassisId, the first byte is the IANA Address Family Number:
-                            net_addr_type = int(ord(val[0]))
+                            net_addr_type = ord(val[0])
                             if net_addr_type == IANA_TYPE_IPV4:
                                 neighbor.chassis_string_type = IANA_TYPE_IPV4
                                 addr_bytes = val[1:]
@@ -3716,7 +3716,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_lldp_management() {str(oid)}, len = {len(val)}, type = {str(type(val))}")
+        dprint(f"_parse_mibs_lldp_management() {oid!s}, len = {len(val)}, type = {type(val)!s}")
 
         # these 2 do not seems to be implemented!
         # # the management address type, ie ipv4 or ipv6:
@@ -3858,7 +3858,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector._parse_vrf_entries() {str(oid)}")
+        dprint(f"SnmpConnector._parse_vrf_entries() {oid!s}")
 
         # VRF name
         sub_oid = oid_in_branch(mplsL3VpnVrfName, oid)
@@ -3923,7 +3923,7 @@ class SnmpConnector(Connector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"SnmpConnector._parse_mibs_mpls_vrf_members() {str(oid)}")
+        dprint(f"SnmpConnector._parse_mibs_mpls_vrf_members() {oid!s}")
 
         # find ifIndex entries that are part of a VRF.
         sub_oid = oid_in_branch(mplsL3VpnIfVpnClassification, oid)
@@ -4363,7 +4363,7 @@ class SnmpConnector(Connector):
         except Exception as err:
             self.error.status = True
             self.error.description = "Error getting snmp connection object (pysnmpHelper())"
-            self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            self.error.details = f"Caught Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
             dprint("SnmpConnector.set_interface_untagged_vlan() -> False from pysnmpHelper()")
             return False
         if not pysnmp.set(f"{dot1qVlanStaticEgressPorts}.{old_vlan_id}", octet_string):
@@ -4536,7 +4536,7 @@ class SnmpConnector(Connector):
             dprint(f"ERROR getting pysnmpHelper(): {err}")
             self.error.status = True
             self.error.description = "Error getting snmp connection object (pysnmpHelper())"
-            self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            self.error.details = f"Caught Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
             return False
 
         #################################

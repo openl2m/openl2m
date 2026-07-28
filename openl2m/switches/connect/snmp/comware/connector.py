@@ -293,7 +293,7 @@ class SnmpConnectorComware(SnmpConnector):
                     self.error.description = (
                         f"Error getting snmp connection object (pysnmpHelper()) for '{interface.name}'"
                     )
-                    self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                    self.error.details = f"Caught Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
                     return False
 
                 if not pysnmp.set_multiple([low_oid, high_oid, pvid_oid]):
@@ -380,7 +380,7 @@ class SnmpConnectorComware(SnmpConnector):
                 except Exception as err:
                     self.error.status = True
                     self.error.description = "Error getting snmp connection object (pysnmpHelper()) for set_access_mode_vlan on '{interface.name}'"
-                    self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                    self.error.details = f"Caught Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
                     return False
 
                 dprint("Setting via pysnmpHelper()")
@@ -425,7 +425,7 @@ class SnmpConnectorComware(SnmpConnector):
             dprint(f"ERROR getting pysnmpHelper(): {err}")
             self.error.status = True
             self.error.description = "Error getting snmp connection object (pysnmpHelper())"
-            self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            self.error.details = f"Caught Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
             return False
 
         #
@@ -532,7 +532,7 @@ class SnmpConnectorComware(SnmpConnector):
                 dprint(f"ERROR getting pysnmpHelper(): {err}")
                 self.error.status = True
                 self.error.description = "Error getting snmp connection object (pysnmpHelper())"
-                self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                self.error.details = f"Caught Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
                 return False
 
             #

@@ -88,7 +88,7 @@ class NapalmConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get device facts"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Napalm Error: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.get_facts() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning(warning="Napalm error in get_facts() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_FACTS, description=f"ERROR: {self.error.details}")
@@ -118,7 +118,7 @@ class NapalmConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get interface list"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Napalm Error: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.get_interfaces() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning(warning="Napalm error in get_interfaces() - Likely not implemented!")
             self.add_log(
@@ -184,7 +184,7 @@ class NapalmConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get vlan list"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Napalm Error: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.get_vlans() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning(warning="Napalm error in get_vlans() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_VLANS, description=f"ERROR: {self.error.details}")
@@ -196,7 +196,7 @@ class NapalmConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get interfaces ip list"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Napalm Error: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.get_interfaces_ip() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning(warning="Napalm error in get_interfaces_ip() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_IF_IP, description=f"ERROR: {self.error.details}")
@@ -261,7 +261,7 @@ class NapalmConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get VRF table"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Napalm Error: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(
                 f"   napalm.device.get_network_instances() Exception: {e.__class__.__name__}\n{self.error.details}\n"
             )
@@ -293,7 +293,7 @@ class NapalmConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get arp table"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Napalm Error: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(
                 f"   napalm.device.get_mac_address_table() Exception: {e.__class__.__name__}\n{self.error.details}\n"
             )
@@ -316,7 +316,7 @@ class NapalmConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get arp table"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Napalm Error: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.get_arp_table() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning(warning="Napalm error in get_arp_table() - Likely not implemented!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_ARP, description=f"ERROR: {self.error.details}")
@@ -339,7 +339,7 @@ class NapalmConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get arp table"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Napalm Error: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(
                 f"   napalm.device.get_ipv6_neighbors_table() Exception: {e.__class__.__name__}\n{self.error.details}\n"
             )
@@ -383,7 +383,7 @@ class NapalmConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get lldp details"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Napalm Error: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(
                 f"   napalm.device.get_lldp_neighbors_detail() Exception: {e.__class__.__name__}\n{self.error.details}\n"
             )
@@ -404,7 +404,7 @@ class NapalmConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get Napalm network driver"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Napalm Error: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(f"   napalm.get_network_driver() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning(warning="Napalm error in get_network_driver()!")
             self.add_log(
@@ -426,7 +426,7 @@ class NapalmConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get Napalm connection"
-            self.error.details = f"Napalm Error: {repr(e)} ({str(type(e))})\n{traceback.format_exc()}"
+            self.error.details = f"Napalm Error: {e!r} ({type(e)!s})\n{traceback.format_exc()}"
             dprint(f"   napalm.device.open() Exception: {e.__class__.__name__}\n{self.error.details}\n")
             self.add_warning(warning="Napalm error in open()!")
             self.add_log(type=LOG_TYPE_ERROR, action=LOG_NAPALM_ERROR_OPEN, description=f"ERROR: {self.error.details}")

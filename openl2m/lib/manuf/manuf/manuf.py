@@ -17,12 +17,10 @@ Converts MAC addresses into a manufacturer using Wireshark's OUI database.
 See README.md.
 
 """
-from __future__ import print_function
 from collections import namedtuple
 import argparse
 import re
 import sys
-import io
 
 try:
     from urllib2 import Request
@@ -44,7 +42,7 @@ import os
 Vendor = namedtuple("Vendor", ["manuf", "manuf_long", "comment"])
 
 
-class MacParser():
+class MacParser:
     """Class that contains a parser for Wireshark's OUI database.
 
     Optimized for quick lookup performance by reading the entire file into memory on
@@ -87,7 +85,7 @@ class MacParser():
         """
         if not manuf_name:
             manuf_name = self._manuf_name
-        with io.open(manuf_name, "r", encoding="utf-8") as read_file:
+        with open(manuf_name, "r", encoding="utf-8") as read_file:
             manuf_file = StringIO(read_file.read())
         self._masks = {}
 

@@ -10,7 +10,6 @@ class ManufTestCase(unittest.TestCase):
     def setUp(self):
         self.manuf = manuf.MacParser(manuf_name="manuf/test/manuf")
 
-    #
     def test_update_update(self):
         self.manuf.update(manuf_url=self.MANUF_URL, wfa_url=self.WFA_URL, manuf_name="manuf_update")
         assert os.path.exists("manuf_update")

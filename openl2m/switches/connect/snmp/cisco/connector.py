@@ -582,7 +582,7 @@ class SnmpConnectorCisco(SnmpConnector):
         Returns:
             (boolean): True if we parse the OID, False if not.
         """
-        dprint(f"_parse_mibs_cisco_port_type() {str(oid)} = {val}")
+        dprint(f"_parse_mibs_cisco_port_type() {oid!s} = {val}")
 
         stack_id = oid_in_branch(ciscoPortType, oid)
         if stack_id:
@@ -1002,7 +1002,7 @@ class SnmpConnectorCisco(SnmpConnector):
         dprint("\nCISCO save_running_config()\n")
         # first try old method, prios to IOS 12. This work on older 29xx and similar switches
         # set this OID, but do not update local cache.
-        if self.set(oid=ciscoWriteMem, value=int(1), snmp_type="i", parser=self._parse_mibs_cisco_vlan) == 1:
+        if self.set(oid=ciscoWriteMem, value=1, snmp_type="i", parser=self._parse_mibs_cisco_vlan) == 1:
             # the original old-style write-mem worked.
             return True
 

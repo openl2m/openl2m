@@ -700,7 +700,7 @@ class APIAdminSwitchGroupDetail(APIView):
 
         serializer = SwitchGroupSerializer(switchgroup, data=request.data, context={"request": request}, partial=True)
         if serializer.is_valid():
-            dprint(f"Valid data: {repr(serializer.validated_data)}")
+            dprint(f"Valid data: {serializer.validated_data!r}")
             serializer.save()
             log = Log(
                 type=LOG_TYPE_VIEW,

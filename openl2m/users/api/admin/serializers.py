@@ -39,7 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
         Obviously also need to set the other attributes!
         '''
         dprint("UserSerializer.create() called!")
-        dprint(f"Data={repr(validated_data)}")
+        dprint(f"Data={validated_data!r}")
 
         # optional fields:
         if 'email' in validated_data:

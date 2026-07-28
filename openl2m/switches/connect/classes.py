@@ -18,7 +18,6 @@
 #
 
 import array
-from typing import Dict, List
 
 import netaddr
 
@@ -343,7 +342,7 @@ class PortList:
         """
         Handle the "string" representation
         """
-        return f"{self.__class__.__name__}({repr(self.to_hex_string())})"
+        return f"{self.__class__.__name__}({self.to_hex_string()!r})"
 
     def __setitem__(self, position: int, value: int) -> None:
         """
@@ -401,7 +400,7 @@ class EthernetAddress:
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
         self.vrf_name: str = ""  # the VRF this ethernet belongs to.
         self.address_ip4: list = []  # list of ipv4 addresses as str() from arp table, if known
-        self.address_ip6: List = []  # known ipv6 addresses of this ethernet address, in list as str()
+        self.address_ip6: list = []  # known ipv6 addresses of this ethernet address, in list as str()
         self.address_ip6_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
         self.hostname: str = ""  # reverse lookup for first ipv4 address found.
         self.hostname6: str = ""  # reverse lookup of first ipv6 address found.
@@ -1133,8 +1132,8 @@ class Interface:
         self.phys_addr = 0x0
         self.transceiver: Transceiver = None  # any transceiver info know for this interface
         self.description: str = ""  # the interface description, as set by the switch configuration, from IF-MIB
-        self.addresses_ip4: Dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
-        self.addresses_ip6: Dict[str, IPNetworkHostname] = (
+        self.addresses_ip4: dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
+        self.addresses_ip6: dict[str, IPNetworkHostname] = (
             {}
         )  # dictionary of all my (routable) ipv6 addresses on this interface
         self.address_ip6_linklocal: str = ""  # the IPv6 LinkLocal address for this interface, if any.
@@ -1144,7 +1143,7 @@ class Interface:
         self.untagged_vlan: int = (
             -1
         )  # the vlan id of the interface in untagged mode. This is invalid if tagged/trunked !
-        self.vlans: List[int] = (
+        self.vlans: list[int] = (
             []
         )  # list (array) of vlanId's (as int) on this interface. If size > 0 this is a tagged port!
         self.vlan_count: int = 0
@@ -1169,7 +1168,7 @@ class Interface:
         self.lacp_type: int = LACP_IF_TYPE_NONE
         # for LACP aggregator, a dictionary of lacp member interfaces. key=ifIndex, value=ifName of member interfaces
         self.lacp_admin_key: int = -1  # "LacpKey" admin key. Member interfaces map back to this.
-        self.lacp_members: Dict[str, str] = {}
+        self.lacp_members: dict[str, str] = {}
         # for members:
         self.lacp_master_index: int = (
             -1
@@ -1179,10 +1178,10 @@ class Interface:
         self.poe_entry: PoePort | bool = False  # if interface has PoE capabilities, will be a PoePort() object
         self.allow_poe_toggle: bool = False  # if set, any user can toggle PoE OFF-ON
         # a variety of data about what is happening on this interface:
-        self.eth: Dict[str, EthernetAddress] = (
+        self.eth: dict[str, EthernetAddress] = (
             {}
         )  # heard ethernet address on this interface, dictionay of EthernetAddress() objects
-        self.lldp: Dict[str, NeighborDevice] = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
+        self.lldp: dict[str, NeighborDevice] = {}  # LLDP neighbors, dictionay of NeighborDevice() objects
         # the Vrf() this interface belongs to, if any
         self.vrf_name = ""
 
@@ -1317,7 +1316,7 @@ class Interface:
         It gets stored indexed by lldp "index", mostly for snmp purposes.
         return True on success, False on failure.
         """
-        dprint(f"add_neighbor() for {str(neighbor)}")
+        dprint(f"add_neighbor() for {neighbor!s}")
         self.lldp[neighbor.index] = neighbor
         # return True
 

@@ -84,7 +84,7 @@ def update_user_profile(request, user):
         if isinstance(d, dict):
             # all looks good, get user's Profile()
             profile = Profile.objects.get(user=user)  # pylint: disable=no-member
-            dprint(f"Found Profile: {repr(profile)}")
+            dprint(f"Found Profile: {profile!r}")
             # and go update the fields:
             for name, value in d.items():
                 dprint(f"  SET {name} = {value}")

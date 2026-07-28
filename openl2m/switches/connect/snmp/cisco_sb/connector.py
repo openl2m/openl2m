@@ -329,7 +329,7 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
                     except Exception as err:
                         self.error.status = True
                         self.error.description = "Error getting snmp connection object (pysnmpHelper()) for set_access_mode_vlan on '{interface.name}'"
-                        self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+                        self.error.details = f"Caught Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
                         return False
 
                     dprint("Setting via pysnmpHelper()")
@@ -630,7 +630,7 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
         except Exception as err:
             self.error.status = True
             self.error.description = "Error getting snmp connection object (pysnmpHelper()) for vlan_create()"
-            self.error.details = f"Caught Error: {repr(err)} ({str(type(err))})\n{traceback.format_exc()}"
+            self.error.details = f"Caught Error: {err!r} ({type(err)!s})\n{traceback.format_exc()}"
             return False
 
         dprint("Setting via pysnmpHelper()")

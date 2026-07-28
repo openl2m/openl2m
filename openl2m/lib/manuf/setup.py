@@ -1,7 +1,7 @@
 from setuptools import setup
 
 # The text of the README file
-README = open("./README.md", "r").read()
+README = open("./README.md", "r").read()    # noqa
 # Setup
 setup(
     name="manuf",
