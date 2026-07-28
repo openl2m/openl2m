@@ -23,6 +23,25 @@ New Configuration Options
     # Warn about small browser sizes. We prefer a browser size of 1200 pixels. On < 568, we will warn, on the login and menu windows:
     # BROWSER_SIZE_WARNING = "WARNING: OpenL2M does not render well on small browser sizes!<br />Please use a large browser window."
 
+    # DNS read timeout in seconds, for both forward and reverse lookups.
+    DNS_TIMEOUT = 3
+
+
+Version 4.2.3
+-------------
+
+Release Date: 2026-07-28
+
+* implement PoE health checks for all drivers.
+* change how health checks are called in drivers.
+* add very basic Caddyserver installation steps.
+* update configuration documention.
+* add DNS_TIMEOUT setting.
+
+Bug fixes:
+
+* upgrade Gunicorn>=26.0.0 to support newer Python versions.
+
 
 Version 4.2.2
 -------------
