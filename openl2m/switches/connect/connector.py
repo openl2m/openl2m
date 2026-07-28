@@ -38,7 +38,7 @@ from switches.constants import (
     LOG_HEALTH_MESSAGE,
     LOG_PORT_POE_FAULT,
 )
-from switches.utils import dprint, get_remote_ip, get_ip_dns_name
+from switches.utils import dprint, get_remote_ip, get_host_by_name, get_ip_dns_name
 from switches.connect.classes import (
     Error,
     PoePort,
@@ -353,11 +353,22 @@ class Connector:
             dprint("  => Cache did NOT load!")
             # add some info about the device:
             self.add_more_info("System", "Group", self.group.name)
-            self.add_more_info("System", "Class Handler", self.__class__.__name__)
-            self.add_more_info("System", "Driver info", self.description)
+            # self.add_more_info("System", "Class Handler", self.__class__.__name__)
+            self.add_more_info("System", "Driver", self.description)
+            self.add_more_info("System", "Connect Name", self.switch.primary_ip)
+
+            # validate/show forward and reverse for "primary_ip"
+            # do forward lookup to get IP address (if hostname used):
+            device_ip = get_host_by_name(hostname=self.switch.primary_ip)
+            if device_ip != self.switch.primary_ip:
+                self.add_more_info("System", "Connect IP", device_ip)
+            # add reverse IP hostname, if exists.
+            reverse_hostname = get_ip_dns_name(device_ip)
+            self.add_more_info("System", "Reverse Hostname", reverse_hostname)
+
+            # add creds info, if exists:
             if self.switch.netmiko_profile:
                 self.add_more_info("System", "Credentials Profile", self.switch.netmiko_profile.name)
-            self.add_more_info("System", "Connect IP", self.switch.primary_ip)
 
             # call the implementation-specific function:
             if hasattr(self, "get_my_basic_info"):
