@@ -51,7 +51,7 @@ def build_url_string(values):
     Build a external url string from the url values dict() given
     Used to build custom links from "settings" variables
     """
-    if "target" in values.keys() and values["target"]:
+    if "target" in values and values["target"]:
         s = '<a target="_blank"'
     else:
         s = "<a"
@@ -59,16 +59,16 @@ def build_url_string(values):
     # alt is not a standard attribute for <a>:
     # if 'alt' in values.keys() and values['alt']:
     #     s = s + f" alt=\"{values['alt']}\""
-    if "hint" in values.keys():
+    if "hint" in values:
         # add as tooltip and aria-label for screen readers:
         s = s + f' data-bs-toggle="tooltip" data-bs-title="{values["hint"]}" aria-label="{values["hint"]}"'
     else:
         # force aria-label for screen readers:
         s = s + ' aria-label="Click for more info"'
     s = s + ">"
-    if "fa_icon" in values.keys():
+    if "fa_icon" in values:
         s = s + f' <i class="fa-solid {values["fa_icon"]}" aria-hidden="false"></i>'
-    elif "icon" in values.keys():
+    elif "icon" in values:
         s = s + f' <img src="{values["icon"]}" aria-hidden="false" alt="{values["alt"]}" height="24" width="24">'
     s = s + "</a> "
     return s
@@ -144,7 +144,7 @@ def validate_info_url_fields(info_url, switch, interface=False):
     Currently checks nms_id and hostname, since those are not always defined.
     """
 
-    if "url" not in info_url.keys():
+    if "url" not in info_url:
         return False
     # not check fields in the url:
     # the switch.nms_id field is optional. If used in URL, check that it is set!

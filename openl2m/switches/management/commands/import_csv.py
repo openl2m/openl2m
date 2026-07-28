@@ -74,7 +74,7 @@ class Command(BaseCommand):
                 self.stdout.write("Importing Device Commands")
                 for row in reader:
                     strip_whitespace_from_values(row)
-                    if "name" not in row.keys():
+                    if "name" not in row:
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
                     self.stdout.write(f"Found: {row['name']}")
@@ -93,13 +93,13 @@ class Command(BaseCommand):
                         c = DeviceCommand()
                         c.name = row["name"]  # the only mandatory field!
                     # the remaining fields
-                    if "description" in row.keys():
+                    if "description" in row:
                         c.description = row["description"]
-                    if "type" in row.keys():
+                    if "type" in row:
                         c.type = row["type"]
-                    if "command" in row.keys():
+                    if "command" in row:
                         c.command = row["command"]
-                    if "os" in row.keys():
+                    if "os" in row:
                         c.os = row["os"]
                     try:
                         c.save()
@@ -123,7 +123,7 @@ class Command(BaseCommand):
                 self.stdout.write("Importing SwitchGroups")
                 for row in reader:
                     strip_whitespace_from_values(row)
-                    if "name" not in row.keys():
+                    if "name" not in row:
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
                     self.stdout.write(f"Found: {row['name']}")
@@ -157,14 +157,14 @@ class Command(BaseCommand):
                 self.stdout.write("Importing Users")
                 for row in reader:
                     strip_whitespace_from_values(row)
-                    if "username" not in row.keys():
+                    if "username" not in row:
                         self.stdout.write(f"Line {reader.line_num}:")
                         self.stdout.write(self.style.ERROR("'username' field is required!"))
                         sys.exit()
-                    if "email" not in row.keys():
+                    if "email" not in row:
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'email' field is required!"))
                         sys.exit()
-                    if "password" not in row.keys():
+                    if "password" not in row:
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'password' field is required!"))
                         sys.exit()
                     self.stdout.write(f"Found: {row['username']}")
@@ -183,14 +183,14 @@ class Command(BaseCommand):
                         )
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                         continue
-                    if "staff" in row.keys():
+                    if "staff" in row:
                         u.is_staff = bool(row["staff"])
-                    if "superuser" in row.keys():
+                    if "superuser" in row:
                         u.is_superuser = bool(row["superuser"])
                     u.save()
                     self.stdout.write(self.style.SUCCESS("   Import OK"))
                     # now add to group. Cannot do earlier, as new user object needs to exist!
-                    if "group" in row.keys() and row["group"]:
+                    if "group" in row and row["group"]:
                         try:
                             group = Group.objects.get(name=row["group"])
                             group.user_set.add(u)
@@ -210,7 +210,7 @@ class Command(BaseCommand):
                 self.stdout.write("Importing VLANs")
                 for row in reader:
                     strip_whitespace_from_values(row)
-                    if "name" not in row.keys():
+                    if "name" not in row:
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
                     self.stdout.write(f"Found: {row['name']}")
@@ -230,9 +230,9 @@ class Command(BaseCommand):
                         v.vid = int(row["vid"])
                         v.name = row["name"]
                     # set or update values:
-                    if "description" in row.keys():
+                    if "description" in row:
                         v.description = row["description"]
-                    if "contact" in row.keys():
+                    if "contact" in row:
                         v.contact = row["contact"]
                     try:
                         v.save()
@@ -254,7 +254,7 @@ class Command(BaseCommand):
                 self.stdout.write("Importing Switches")
                 for row in reader:
                     strip_whitespace_from_values(row)
-                    if "name" not in row.keys():
+                    if "name" not in row:
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
                     self.stdout.write(f"Found: {row['name']}")
@@ -273,9 +273,9 @@ class Command(BaseCommand):
                         switch = Switch()
                         switch.name = row["name"]
                     # now set all the values found:
-                    if "primary_ip4" in row.keys():
+                    if "primary_ip4" in row:
                         switch.primary_ip4 = row["primary_ip4"]
-                    if "primary_ip6" in row.keys():
+                    if "primary_ip6" in row:
                         switch.primary_ip6 = row["primary_ip6"]
                     if not switch.primary_ip4 and not switch.primary_ip6:
                         self.stdout.write(
@@ -284,16 +284,16 @@ class Command(BaseCommand):
                             )
                         )
                         sys.exit()
-                    if "description" in row.keys():
+                    if "description" in row:
                         switch.description = row["description"]
-                    if "read_only" in row.keys():
+                    if "read_only" in row:
                         switch.read_only = row["read_only"]
-                    if "default_view" in row.keys():
+                    if "default_view" in row:
                         switch.default_view = row["default_view"]
-                    if "nms_id" in row.keys():
+                    if "nms_id" in row:
                         switch.nms_id = row["nms_id"]
                     # figure out the SnmpProfile
-                    if "snmp_profile" in row.keys() and row["snmp_profile"]:
+                    if "snmp_profile" in row and row["snmp_profile"]:
                         try:
                             snmp = SnmpProfile.objects.get(name=row["snmp_profile"])
                             switch.snmp_profile = snmp
@@ -313,7 +313,7 @@ class Command(BaseCommand):
                             )
                             self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                             continue
-                    if "netmiko_profile" in row.keys() and row["netmiko_profile"]:
+                    if "netmiko_profile" in row and row["netmiko_profile"]:
                         try:
                             nm = NetmikoProfile.objects.get(name=row["netmiko_profile"])
                             switch.netmiko_profile = nm
@@ -333,7 +333,7 @@ class Command(BaseCommand):
                             )
                             self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                             continue
-                    if "command_list" in row.keys() and row["command_list"]:
+                    if "command_list" in row and row["command_list"]:
                         try:
                             cl = CommandList.objects.get(name=row["command_list"])
                             switch.command_list = cl
@@ -375,7 +375,7 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                         continue
                     # do we need to add switch to a group?
-                    if "group" in row.keys() and row["group"]:
+                    if "group" in row and row["group"]:
                         # see if the group exists, if not, create it
                         try:
                             g = SwitchGroup.objects.get(name=row["group"])
@@ -421,7 +421,7 @@ class Command(BaseCommand):
                 self.stdout.write("Importing Netmiko Profile")
                 for row in reader:
                     strip_whitespace_from_values(row)
-                    if "name" not in row.keys():
+                    if "name" not in row:
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}:'name' field is required!"))
                         sys.exit()
                     self.stdout.write(f"Found: {row['name']}")
@@ -443,16 +443,16 @@ class Command(BaseCommand):
                     nm.password = row["password"]  # mandatory
                     nm.device_type = row["device_type"]  # mandatory
 
-                    if "description" in row.keys():
+                    if "description" in row:
                         nm.description = row["description"]
 
-                    if "tcp_port" in row.keys():
+                    if "tcp_port" in row:
                         nm.tcp_port = int(row["tcp_port"])
 
-                    if "verify_hostkey" in row.keys():
+                    if "verify_hostkey" in row:
                         nm.verify_hostkey = bool(row["verify_hostkey"])
 
-                    if "secret" in row.keys():
+                    if "secret" in row:
                         nm.secret = bool(row["secret"])
 
                     try:
@@ -475,7 +475,7 @@ class Command(BaseCommand):
                 self.stdout.write("Importing SNMP Profile")
                 for row in reader:
                     strip_whitespace_from_values(row)
-                    if "name" not in row.keys():
+                    if "name" not in row:
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: 'name' field is required!"))
                         sys.exit()
                     self.stdout.write(f"Found: {row['name']}")
@@ -495,37 +495,37 @@ class Command(BaseCommand):
                     # now update the rest
                     s.version = int(row["version"])  # mandatory
 
-                    if "description" in row.keys():
+                    if "description" in row:
                         s.description = row["description"]
 
-                    if "community" in row.keys():
+                    if "community" in row:
                         s.community = row["community"]
 
-                    if "udp_port" in row.keys():
+                    if "udp_port" in row:
                         s.udp_port = int(row["udp_port"])
 
-                    if "username" in row.keys():
+                    if "username" in row:
                         s.username = row["username"]
 
-                    if "passphrase" in row.keys():
+                    if "passphrase" in row:
                         s.passphrase = row["passphrase"]
 
-                    if "priv_passphrase" in row.keys():
+                    if "priv_passphrase" in row:
                         s.priv_passphrase = row["priv_passphrase"]
 
-                    if "auth_protocol" in row.keys():
+                    if "auth_protocol" in row:
                         if row["auth_protocol"] == "MD5":
                             s.auth_protocol = SNMP_V3_AUTH_MD5
                         elif row["auth_protocol"] == "SHA":
                             s.auth_protocol = SNMP_V3_AUTH_SHA
 
-                    if "priv_protocol" in row.keys():
+                    if "priv_protocol" in row:
                         if row["priv_protocol"] == "DES":
                             s.priv_protocol = SNMP_V3_PRIV_DES
                         elif row["priv_protocol"] == "AES":
                             s.priv_protocol = SNMP_V3_PRIV_AES
 
-                    if "sec_level" in row.keys():
+                    if "sec_level" in row:
                         if row["sec_level"] == "NoAuth-NoPriv":
                             s.sec_level = SNMP_V3_SECURITY_NOAUTH_NOPRIV
                         elif row["sec_level"] == "Auth-NoPriv":

@@ -207,12 +207,12 @@ class NapalmConnector(Connector):
             # dprint(f"IF {if_name}: {if_data}")
             iface = self.get_interface_by_key(if_name)
             # get the IP's for this interface
-            if "ipv4" in if_data.keys():
+            if "ipv4" in if_data:
                 for ipv4, values in if_data["ipv4"].items():
                     prefix_len = values["prefix_length"]
                     # dprint(f"IP: {ipv4}/{prefix_len}")
                     iface.add_ip4_network(address=ipv4, prefix_len=prefix_len)
-            if "ipv6" in if_data.keys():
+            if "ipv6" in if_data:
                 for ipv6, values in if_data["ipv6"].items():
                     prefix_len = values["prefix_length"]
                     # dprint(f"IP: {ipv6}/{prefix_len}")

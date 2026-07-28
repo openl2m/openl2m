@@ -1510,7 +1510,7 @@ class Connector:
         """
         dprint("load_cache()")
 
-        if self.request and "switch_id" in self.request.session.keys():
+        if self.request and "switch_id" in self.request.session:
             # is the cached data for the current switch ?
             if self.request.session["switch_id"] != self.switch.id:
                 # wrong switch id, i.e. we changed switches, clear session data!
@@ -1526,7 +1526,7 @@ class Connector:
             for attr_name in self.__dict__:
                 dprint(f"Reading cached attribute '{attr_name}'")
                 if attr_name not in self._do_not_cache:
-                    if attr_name in self.request.session.keys():
+                    if attr_name in self.request.session:
                         dprint("   Valid attribute!")
                         # with Django 5, Pickle serialization is no longer supported, so to use the JSON session cache
                         # we use jsonpickle to make sure we can store *any* class object in the sesssion!
@@ -1669,7 +1669,7 @@ class Connector:
             # store this variable
             self.request.session[name] = value
             # and append the name to the list of cached variable names
-            if "cache_var_names" in self.request.session.keys():
+            if "cache_var_names" in self.request.session:
                 cache_var_names = self.request.session["cache_var_names"]
             else:
                 cache_var_names = {}
@@ -1698,7 +1698,7 @@ class Connector:
             value of cached item. None if not found.
         """
         dprint(f"get_cache_variable(): {name}")
-        if name in self.request.session.keys():
+        if name in self.request.session:
             dprint("   ... found!")
             return self.request.session[name]
         return None
@@ -1714,7 +1714,7 @@ class Connector:
             True if succeeds, False if fails
         """
         dprint(f"clear_cache_variable(): {name}")
-        if self.request and name in self.request.session.keys():
+        if self.request and name in self.request.session:
             dprint("   ... found and deleted!")
             del self.request.session[name]
             # update cached variable names

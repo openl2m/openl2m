@@ -303,7 +303,7 @@ def _get_group_and_switch_from_permissions(
     switch = None
     if permissions and isinstance(permissions, dict) and group_id in permissions:
         devices = permissions[group_id]
-        if isinstance(devices, dict) and switch_id in devices["members"].keys():
+        if isinstance(devices, dict) and switch_id in devices["members"]:
             try:
                 group = SwitchGroup.objects.get(pk=group_id)
                 switch = Switch.objects.get(pk=switch_id)

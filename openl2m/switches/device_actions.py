@@ -370,7 +370,7 @@ class DeviceActions:
 
         # are we allowed to change to this vlan ?
         self.connection._set_allowed_vlans()
-        if new_pvid not in self.connection.allowed_vlans.keys():
+        if new_pvid not in self.connection.allowed_vlans:
             self._log_error(log, log.description)
             return self._error_result(f"New vlan {new_pvid} is not valid or allowed on this device")
 

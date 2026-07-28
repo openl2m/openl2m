@@ -138,7 +138,7 @@ def close_device(request):
     """
 
     # if we came here from a previous switch, call _close_device() to clear out old session as needed.
-    if "switch_id" in request.session.keys():
+    if "switch_id" in request.session:
         dprint(f"CLOSING DEVICE: id={request.session['switch_id']}")
         # instantiate the previous device Connector() one more time to proper close sessions...
         try:
@@ -675,7 +675,7 @@ class SwitchBulkEdit(LoginRequiredMixin, SwitchPermissionMixin, MyView):
         # safety-check: is the new PVID allowed:
         if new_pvid > 0:
             conn._set_allowed_vlans()  # pylint: disable=protected-access
-            if new_pvid not in conn.allowed_vlans.keys():
+            if new_pvid not in conn.allowed_vlans:
                 log = Log(
                     user=request.user,
                     ip_address=remote_ip,

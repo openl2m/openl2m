@@ -89,9 +89,9 @@ def main():
                     print("   Error creating User '%s'" % row['username'])
                     print("   Error details: ", sys.exc_info()[0])
                     continue
-                if 'staff' in row.keys():
+                if 'staff' in row:
                     u.is_staff = bool(row['staff'])
-                if 'superuser' in row.keys():
+                if 'superuser' in row:
                     u.is_superuser = bool(row['superuser'])
                 u.save()
                 print("   Import OK")
@@ -126,14 +126,14 @@ def main():
                     switch.name = row['name']
                 # now set all the values found:
                 switch.primary_ip4 = row['primary_ip4']
-                if 'description' in row.keys():
+                if 'description' in row:
                     switch.description = row['description']
-                if 'read_only' in row.keys():
+                if 'read_only' in row:
                     switch.read_only = row['read_only']
-                if 'default_view' in row.keys():
+                if 'default_view' in row:
                     switch.default_view = row['default_view']
                 # figure out the SnmpProfile
-                if 'snmp_profile' in row.keys() and row['snmp_profile']:
+                if 'snmp_profile' in row and row['snmp_profile']:
                     try:
                         snmp = SnmpProfile.objects.get(name=row['snmp_profile'])
                         switch.snmp_profile = snmp
@@ -142,7 +142,7 @@ def main():
                         print("   Error details: %s" % sys.exc_info()[0])
                         print("   We cannot import a switch with an invalid SNMP Profile!")
                         continue
-                if 'netmiko_profile' in row.keys() and row['netmiko_profile']:
+                if 'netmiko_profile' in row and row['netmiko_profile']:
                     try:
                         nm = NetmikoProfile.objects.get(name=row['netmiko_profile'])
                         switch.netmiko_profile = nm
@@ -151,7 +151,7 @@ def main():
                         print("   Error details: %s" % sys.exc_info()[0])
                         print("   We cannot import a switch with an invalid Netmiko Profile!")
                         continue
-                if 'command_list' in row.keys() and row['command_list']:
+                if 'command_list' in row and row['command_list']:
                     try:
                         cl = CommandList.objects.get(name=row['command_list'])
                         switch.command_list = cl
@@ -167,7 +167,7 @@ def main():
                             print("   Error details: %s" % sys.exc_info()[0])
                             continue
                 g = False
-                if 'group' in row.keys() and row['group']:
+                if 'group' in row and row['group']:
                     # see if the switch group exists, if not, create it
                     try:
                         g = SwitchGroup.objects.get(name=row['group'])

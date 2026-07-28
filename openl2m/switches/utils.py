@@ -243,7 +243,7 @@ def get_from_http_session(request: HttpRequest, name: str, delete: bool = False)
     If delete=True, object will be removed from the store
     """
     dprint(f"get_from_http_session(name={name}, delete={delete})")
-    if name in request.session.keys():
+    if name in request.session:
         data = request.session[name]
         if delete:
             del request.session[name]
