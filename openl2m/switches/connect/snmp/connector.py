@@ -1255,7 +1255,6 @@ class SnmpConnector(Connector):
             return retval  # error of some kind
 
         # add some more info about the configuration/settings
-        self.add_more_info("System", "IP/Hostname", self.switch.primary_ip4)
         if self.switch.snmp_profile:
             snmp_profile_name = self.switch.snmp_profile.name
         else:
