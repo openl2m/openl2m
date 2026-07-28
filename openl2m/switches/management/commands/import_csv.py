@@ -190,7 +190,7 @@ class Command(BaseCommand):
                     u.save()
                     self.stdout.write(self.style.SUCCESS("   Import OK"))
                     # now add to group. Cannot do earlier, as new user object needs to exist!
-                    if "group" in row and row["group"]:
+                    if row.get("group"):
                         try:
                             group = Group.objects.get(name=row["group"])
                             group.user_set.add(u)
@@ -293,7 +293,7 @@ class Command(BaseCommand):
                     if "nms_id" in row:
                         switch.nms_id = row["nms_id"]
                     # figure out the SnmpProfile
-                    if "snmp_profile" in row and row["snmp_profile"]:
+                    if row.get("snmp_profile"):
                         try:
                             snmp = SnmpProfile.objects.get(name=row["snmp_profile"])
                             switch.snmp_profile = snmp
@@ -313,7 +313,7 @@ class Command(BaseCommand):
                             )
                             self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                             continue
-                    if "netmiko_profile" in row and row["netmiko_profile"]:
+                    if row.get("netmiko_profile"):
                         try:
                             nm = NetmikoProfile.objects.get(name=row["netmiko_profile"])
                             switch.netmiko_profile = nm
@@ -333,7 +333,7 @@ class Command(BaseCommand):
                             )
                             self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                             continue
-                    if "command_list" in row and row["command_list"]:
+                    if row.get("command_list"):
                         try:
                             cl = CommandList.objects.get(name=row["command_list"])
                             switch.command_list = cl
@@ -375,7 +375,7 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.ERROR(f"Line {reader.line_num}: {format(e)}"))
                         continue
                     # do we need to add switch to a group?
-                    if "group" in row and row["group"]:
+                    if row.get("group"):
                         # see if the group exists, if not, create it
                         try:
                             g = SwitchGroup.objects.get(name=row["group"])
