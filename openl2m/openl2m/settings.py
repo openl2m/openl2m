@@ -110,7 +110,11 @@ TIME_ZONE = getattr(configuration, "TIME_ZONE", "UTC")
 PORT_TOGGLE_DELAY = getattr(configuration, "PORT_TOGGLE_DELAY", 5)
 POE_TOGGLE_DELAY = getattr(configuration, "POE_TOGGLE_DELAY", 5)
 
-BROWSER_SIZE_WARNING = getattr(configuration, "BROWSER_SIZE_WARNING", "WARNING: OpenL2M does not render well on small browser sizes!<br />Please use a large browser window.")
+BROWSER_SIZE_WARNING = getattr(
+    configuration,
+    "BROWSER_SIZE_WARNING",
+    "WARNING: OpenL2M does not render well on small browser sizes!<br />Please use a large browser window.",
+)
 
 ALWAYS_ALLOW_POE_TOGGLE = getattr(configuration, "ALWAYS_ALLOW_POE_TOGGLE", False)
 
@@ -443,6 +447,9 @@ CISCO_WRITE_MEM_MAX_WAIT = getattr(configuration, "CISCO_WRITE_MEM_MAX_WAIT", 5)
 # perform hostname lookup from IP addresses found in ARP info, Admin pages, etc.
 # Note this could have impact on page rendering, depending on host fast your
 # dns resolution is and how may retries the underlying host OS is configured for.
+
+# DNS read timeout in seconds, for both forward and reverse lookups.
+DNS_TIMEOUT = getattr(configuration, "DNS_TIMEOUT", 3)
 
 # perform hostname lookup for admin page showing connected user
 LOOKUP_HOSTNAME_ADMIN = getattr(configuration, "LOOKUP_HOSTNAME_ADMIN", False)

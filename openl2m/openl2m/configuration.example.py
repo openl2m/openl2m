@@ -603,6 +603,9 @@ REST_API_TIMEOUT = 10
 # Note this could have impact on page rendering, depending on how fast your
 # dns resolution is and how may retries the underlying host OS is configured for.
 
+# DNS read timeout in seconds, for both forward and reverse lookups.
+DNS_TIMEOUT = 3
+
 # perform hostname lookup for admin page showing connected user
 LOOKUP_HOSTNAME_ADMIN = False
 # for IP addresses in device ARP tables, perform hostname lookup
