@@ -1,3 +1,4 @@
+# noqa: N999 # Invalid module name
 #########################
 #                       #
 #   Required settings   #

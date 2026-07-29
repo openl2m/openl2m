@@ -1,3 +1,5 @@
+# noqa: N999 # Invalid module name
+
 # this is an example LDAP authentication Configuration
 # this works with Windows AD servers, and uses secure ldap
 import ldap
