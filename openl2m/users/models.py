@@ -247,9 +247,10 @@ class Token(models.Model):
 
     @property
     def is_expired(self):
-        if self.expires is None or timezone.now() < self.expires:
-            return False
-        return True
+        # if self.expires is None or timezone.now() < self.expires:
+        #     return False
+        # return True
+        return not bool(self.expires is None or timezone.now() < self.expires)
 
     def validate_client_ip(self, client_ip):
         """

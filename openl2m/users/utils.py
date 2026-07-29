@@ -24,16 +24,24 @@ def user_can_bulkedit(user, group, switch):
     Verify if this user can bulk-edit.
     Return True is so, False if not.
     """
-    if (
+    # if (
+    #     user.profile.bulk_edit  # pylint: disable=too-many-boolean-expressions
+    #     and group.bulk_edit
+    #     and switch.bulk_edit
+    #     and not group.read_only
+    #     and not switch.read_only
+    #     and not user.profile.read_only
+    # ):
+    #     return True
+    # return False
+    return bool(
         user.profile.bulk_edit  # pylint: disable=too-many-boolean-expressions
         and group.bulk_edit
         and switch.bulk_edit
         and not group.read_only
         and not switch.read_only
         and not user.profile.read_only
-    ):
-        return True
-    return False
+    )
 
 
 def user_can_edit_vlans(user, group, switch):
@@ -43,10 +51,10 @@ def user_can_edit_vlans(user, group, switch):
     """
     if user.profile.read_only or group.read_only or switch.read_only:
         return False
-    if user.is_superuser or user.profile.vlan_edit:
-        return True
-    return False
-
+    # if user.is_superuser or user.profile.vlan_edit:
+    #     return True
+    # return False
+    return bool(user.is_superuser or user.profile.vlan_edit)
 
 def get_current_users():
     """
