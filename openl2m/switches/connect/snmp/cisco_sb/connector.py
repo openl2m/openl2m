@@ -204,14 +204,12 @@ class SnmpConnectorCiscoSB(SnmpConnectorCisco):
         if interface.if_vlan_mode == SB_VLAN_MODE_GENERAL:
             # we set the dot1qPvid value:
             dprint("  SB_VLAN_MODE_GENERAL - setting with dot1qPvid:")
-            if not self.set(
+            return self.set(
                 oid=f"{dot1qPvid}.{interface.port_id}",
                 value=int(new_vlan_id),
                 snmp_type="u",
                 parser=self._parse_mibs_vlan_dot1q_pvid,
-            ):
-                return False
-            return True
+            )
 
         if interface.if_vlan_mode == SB_VLAN_MODE_ACCESS:
             # we set the vlanAccessPortModeVlanId value:
