@@ -47,9 +47,7 @@ def is_valid_snmp_set_type(snmp_type: str):
     # a: IPADDRESS — An IPv4 address (e.g., snmpset ... OID a 192.168.1.1).
     # b: BITS — A set of named or numbered bits.
     valid_types = ("i", "u", "s", "x", "d", "n", "o", "t", "a", "b")
-    if snmp_type in valid_types:
-        return True
-    return False
+    return snmp_type in valid_types
 
 
 def decimal_to_hex_string_ethernet(decimals: str) -> str:
