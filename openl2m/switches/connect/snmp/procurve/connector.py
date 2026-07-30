@@ -144,7 +144,7 @@ class SnmpConnectorProcurve(SnmpConnector):
                 dprint("  Adding ALL vlans to tagged_vlans")
                 # add all vlans to tagged_vlans:
                 for vlan_id in self.vlans:
-                    tagged_vlans.append(vlan_id)
+                    tagged_vlans.append(vlan_id)    # noqa: PERF402 Use `list` or `list.copy` to create a copy of a list
                 # make it unique:
                 tagged_vlans = list(dict.fromkeys(tagged_vlans))
             # now remove the PVID (untagged_vlan) if present:
@@ -200,9 +200,8 @@ class SnmpConnectorProcurve(SnmpConnector):
         if_index = int(oid_in_branch(hpnicfIfLinkMode, oid))
         if if_index:
             dprint(f"HP LinkMode if_index {if_index} link_mode {val}")
-            if if_index in self.interfaces:
-                if int(val) == HP_ROUTE_MODE:
-                    self.interfaces[if_index].is_routed = True
+            if if_index in self.interfaces and int(val) == HP_ROUTE_MODE:
+                self.interfaces[if_index].is_routed = True
             return True
         return False
 
@@ -308,7 +307,7 @@ class SnmpConnectorProcurve(SnmpConnector):
         dprint("Procurve _map_poe_port_entries_to_interface()\n")
         for pe_index, port_entry in self.poe_port_entries.items():
             # we take the ending part of "5.12" as the index
-            module, index = port_entry.index.split(".")  # pylint: disable=unused-variable
+            _module, index = port_entry.index.split(".")  # pylint: disable=unused-variable
             # for the SnmpConnector() class and sub-classes, the "index" is the key to the Interface()
             if index in self.interfaces:
                 iface = self.interfaces[index]
