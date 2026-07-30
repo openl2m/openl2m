@@ -58,7 +58,7 @@ class Command(BaseCommand):
         create_added = 0
         log_count_used = 0
         for log in admin_logs:
-            if log.is_addition():
+            if log.is_addition():   # noqa: SIM102 Use a single `if` statement instead of nested `if` statements
                 # self.stdout.write(f"{log.action_flag} - {log.action_time} - {log.content_type} - {log.object_id} - {log.object_repr}")
                 if log.content_type == switch_content_type:
                     log_count_used += 1
