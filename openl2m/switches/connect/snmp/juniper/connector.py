@@ -160,12 +160,10 @@ class SnmpConnectorJuniper(SnmpConnector):
             # see if this is a type we want to look at, for now fiber only:
             if int(val) == JNX_IF_TYPE_FIBER:
                 iface = self.get_interface_by_key(key=if_index)
-                if iface:
-                    # dprint(f"Found interface {iface.name}")
-                    if not iface.transceiver:  # only if not set yet!
-                        trx = Transceiver()
-                        trx.type = jnx_if_types[int(val)]
-                        iface.transceiver = trx
+                if iface and not iface.transceiver:  # only if not set yet!
+                    trx = Transceiver()
+                    trx.type = jnx_if_types[int(val)]
+                    iface.transceiver = trx
             return True  # we parsed it
         return False
 
