@@ -1267,13 +1267,12 @@ class SnmpConnector(Connector):
         )
 
         # see if the hostname changed
-        if self.hostname:
-            if self.switch.hostname != self.hostname:
-                self.switch.hostname = self.hostname
-                self.switch.save()
-                self.add_log(
-                    type=LOG_TYPE_WARNING, action=LOG_NEW_HOSTNAME_FOUND, description="New System Hostname found"
-                )
+        if self.hostname and self.switch.hostname != self.hostname:
+            self.switch.hostname = self.hostname
+            self.switch.save()
+            self.add_log(
+                type=LOG_TYPE_WARNING, action=LOG_NEW_HOSTNAME_FOUND, description="New System Hostname found"
+            )
 
         return 1
 
@@ -1375,9 +1374,9 @@ class SnmpConnector(Connector):
         return self.vlan_count
 
     def _get_dot1d_port_to_ifindex_map(self) -> int:
-        """ """
-        # read the dot1D-Bridge mapping of (switch) ports to ifIndexes,
-        # needed for Q-Bridge and IEEE8021-QBridge vlan bitmap entried that use port-id to map back to ifIndex
+        """Read the dot1D-Bridge mapping of (switch) ports to ifIndexes,
+           needed for Q-Bridge and IEEE8021-QBridge vlan bitmap entried that use port-id to map back to ifIndex
+        """
         retval = self.get_snmp_branch(
             branch_name="dot1dBasePortIfIndex", parser=self._parse_mibs_dot1d_port_to_ifindex_map
         )
@@ -1891,13 +1890,12 @@ class SnmpConnector(Connector):
         if_index = oid_in_branch(ifType, oid)
         if if_index:
             if_type = int(val)
-            if self.set_interface_attribute_by_key(if_index, "type", if_type):
-                if if_type != IF_TYPE_ETHERNET:
-                    # non-Ethernet interfaces are NOT manageable, no matter who
-                    self.set_interface_attribute_by_key(if_index, "manageable", False)
-                    self.set_interface_attribute_by_key(
-                        if_index, "unmanage_reason", "Access denied: not an Ethernet interface!"
-                    )
+            if self.set_interface_attribute_by_key(if_index, "type", if_type) and if_type != IF_TYPE_ETHERNET:
+                # non-Ethernet interfaces are NOT manageable, no matter who
+                self.set_interface_attribute_by_key(if_index, "manageable", False)
+                self.set_interface_attribute_by_key(
+                    if_index, "unmanage_reason", "Access denied: not an Ethernet interface!"
+                )
             return True
 
         if_index = oid_in_branch(ifMtu, oid)
@@ -2072,7 +2070,7 @@ class SnmpConnector(Connector):
         sub_oid = oid_in_branch(dot1qVlanStatus, oid)
         if sub_oid:
             dprint(f"  Found dot1qVlanStatus for sub_oid {sub_oid}")
-            dummy, v = sub_oid.split(".")
+            _not_used, v = sub_oid.split(".")
             vlan_id = int(v)
             status = int(val)
             if vlan_id in self.vlans:
@@ -2167,7 +2165,7 @@ class SnmpConnector(Connector):
         if sub_oid:
             dprint(f"  Found dot1qVlanCurrentUntaggedPorts for sub_oid {sub_oid}")
             # the timestamp is related to when the switchport membership on this vlan was last changed.
-            timestamp, v = sub_oid.split('.')  # pylint: disable=unused-variable
+            _timestamp, v = sub_oid.split('.')
             self._add_ports_to_vlan_from_bitmap(
                 vlan_id=int(v), bitmap=val, handler=self._add_untagged_vlan_to_interface_by_port_id
             )
@@ -2235,7 +2233,7 @@ class SnmpConnector(Connector):
             # and can be different for each vlan!
             # this also causes vlans to be listed "out of order" in the returns when running this mib value...
             # so vlans can be added to ports in non-incremental order!
-            timestamp, v = sub_oid.split(".")  # pylint: disable=unused-variable
+            _timestamp, v = sub_oid.split(".")
             vlan_id = int(v)
 
             # parse the bitmap to find ports set (enabled) on vlan
@@ -2302,7 +2300,7 @@ class SnmpConnector(Connector):
             dprint(f"Found ieee8021QBridgeVlanStaticEgressPorts, sub_oid = '{sub_oid}'")
             # sub oid part is ieee8021QBridgeVlanStaticEgressPorts.instance.timestamp.vlan_id = bitmap
             # timestamp appears to be related to last member change of this vlan. We don't use it!
-            ignore, v = sub_oid.split(".")  # pylint: disable=unused-variable
+            _timestamp, v = sub_oid.split(".")
             vlan_id = int(v)
 
             # and go figure out what ports are part of this vlan:
@@ -2333,7 +2331,7 @@ class SnmpConnector(Connector):
             dprint(f"Found ieee8021QBridgeVlanCurrentEgressPorts, sub_oid = '{sub_oid}'")
             # sub oid part is ieee8021QBridgeVlanCurrentEgressPorts.instance.timestamp.vlan_id = bitmap
             # there are 2 vars that we ignore. We don't use it!
-            ignore1, ignore2, v = sub_oid.split(".")  # pylint: disable=unused-variable
+            _instance, _timestamp, v = sub_oid.split(".")
             vlan_id = int(v)
 
             # store the egress port list, as some switches need this when setting untagged vlans
@@ -2366,7 +2364,7 @@ class SnmpConnector(Connector):
         if sub_oid:
             dprint("Found ieee8021QBridgeVlanStaticUntaggedPorts ")
             # sub oid part is ieee8021QBridgeVlanStaticUntaggedPorts.<some_value>.<vlan_id> = bitmap
-            ignore, v = sub_oid.split('.')  # pylint: disable=unused-variable
+            _ignore, v = sub_oid.split('.')
 
             # figure out untagged ports based on the bitmap
             self._add_ports_to_vlan_from_bitmap(
@@ -2394,7 +2392,7 @@ class SnmpConnector(Connector):
             dprint("Found ieee8021QBridgeVlanCurrentUntaggedPorts ")
             dprint("parsing ignored for now (not functional!)")
             # sub oid part is ieee8021QBridgeVlanCurrentUntaggedPorts.something.instance.vlan_id = bitmap
-            ignore, ignore2, v = sub_oid.split('.')  # pylint: disable=unused-variable
+            _unknown, _instance, v = sub_oid.split('.')
 
             # figure out untagged ports based on the bitmap
             self._add_ports_to_vlan_from_bitmap(
@@ -2466,7 +2464,7 @@ class SnmpConnector(Connector):
             if byte & 1:
                 port_id = (offset * 8) + 8
                 handler(port_id=port_id, vlan_id=vlan_id)
-            offset += 1
+            offset += 1     # noqa: SIM113 Use `enumerate()` for index variable `offset` in `for` loop
 
     #####################################
     #                                   #
@@ -2771,10 +2769,9 @@ class SnmpConnector(Connector):
                         #
                         e.vlan_id = self.vlan_id_by_index.get(self.dot1tp_fdb_to_vlan_index.get(fdb_index, 0), 0)
                         # if vlan_id is still 0, if could be the fbd_index is the vlan id!
-                        if e.vlan_id == 0:
-                            # if fdb_index is a valid vlan id, assume so!
-                            if fdb_index in self.vlans:
-                                e.vlan_id = fdb_index
+                        # and if fdb_index is a valid vlan id, assume so!
+                        if e.vlan_id == 0 and fdb_index in self.vlans:
+                            e.vlan_id = fdb_index
                     dprint(f"  NEW MAC: {e}, vlan: {e.vlan_id}, interface {self.interfaces[if_index].name}")
                     if str(e) not in self.interfaces[if_index].eth:
                         self.interfaces[if_index].eth[str(e)] = e
@@ -3552,7 +3549,7 @@ class SnmpConnector(Connector):
 
         lldp_index = oid_in_branch(lldpRemPortId, oid)
         if lldp_index:
-            extra_one, port_id, extra_two = lldp_index.split(".")  # pylint: disable=unused-variable
+            _unused_one, port_id, _unused_two = lldp_index.split(".")
             # store the new lldp object, based on the string index.
             # need to find the ifIndex first.
             # did we find Q-Bridge mappings?
@@ -3570,7 +3567,7 @@ class SnmpConnector(Connector):
         # lldpRemPortIdSubType is used to indicate what the value from "lldpRemPortId" means.
         lldp_index = oid_in_branch(lldpRemPortIdSubType, oid)
         if lldp_index:
-            extra_one, port_id, extra_two = lldp_index.split(".")
+            _unused_one, port_id, _unused_two = lldp_index.split(".")
             # store the new lldp object, based on the string index.
             # need to find the ifIndex first.
             # did we find Q-Bridge mappings?
@@ -3592,116 +3589,110 @@ class SnmpConnector(Connector):
 
         lldp_index = oid_in_branch(lldpRemPortDesc, oid)
         if lldp_index:
-            extra_one, port_id, extra_two = lldp_index.split(".")
+            _unused_one, port_id, _unused_two = lldp_index.split(".")
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces:
-                if lldp_index in self.interfaces[if_index].lldp:
-                    # now update with system port description
-                    self.interfaces[if_index].lldp[lldp_index].port_descr = str(val)
+            if if_index in self.interfaces and lldp_index in self.interfaces[if_index].lldp:
+                # now update with system port description
+                self.interfaces[if_index].lldp[lldp_index].port_descr = str(val)
             return True
 
         lldp_index = oid_in_branch(lldpRemSysName, oid)
         if lldp_index:
-            extra_one, port_id, extra_two = lldp_index.split(".")
+            _unused_one, port_id, _unused_two = lldp_index.split(".")
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces:
-                if lldp_index in self.interfaces[if_index].lldp:
-                    # now update with system name
-                    self.interfaces[if_index].lldp[lldp_index].sys_name = str(val)
+            if if_index in self.interfaces and lldp_index in self.interfaces[if_index].lldp:
+                # now update with system name
+                self.interfaces[if_index].lldp[lldp_index].sys_name = str(val)
             return True
 
         lldp_index = oid_in_branch(lldpRemSysDesc, oid)
         if lldp_index:
-            extra_one, port_id, extra_two = lldp_index.split(".")
+            _unused_one, port_id, _unused_two = lldp_index.split(".")
             port_id = int(port_id)
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces:
-                if lldp_index in self.interfaces[if_index].lldp:
-                    # now update with system description
-                    self.interfaces[if_index].lldp[lldp_index].sys_descr = str(val)
+            if if_index in self.interfaces and lldp_index in self.interfaces[if_index].lldp:
+                # now update with system description
+                self.interfaces[if_index].lldp[lldp_index].sys_descr = str(val)
             return True
 
         # parse enabled capabilities
         lldp_index = oid_in_branch(lldpRemSysCapEnabled, oid)
         if lldp_index:
-            extra_one, port_id, extra_two = lldp_index.split(".")
+            _unused_one, port_id, _unused_two = lldp_index.split(".")
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces:
-                if lldp_index in self.interfaces[if_index].lldp:
-                    # now update with system capabilities
-                    cap_bytes = bytes(val, "utf-8")
-                    # self.interfaces[if_index].lldp[lldp_index].capabilities = cap_bytes
-                    self.interfaces[if_index].lldp[lldp_index].capabilities = int(cap_bytes[0])
+            if if_index in self.interfaces and lldp_index in self.interfaces[if_index].lldp:
+                # now update with system capabilities
+                cap_bytes = bytes(val, "utf-8")
+                # self.interfaces[if_index].lldp[lldp_index].capabilities = cap_bytes
+                self.interfaces[if_index].lldp[lldp_index].capabilities = int(cap_bytes[0])
             return True
 
         lldp_index = oid_in_branch(lldpRemChassisIdSubtype, oid)
         if lldp_index:
-            extra_one, port_id, extra_two = lldp_index.split(".")
+            _unused_one, port_id, _unused_two = lldp_index.split(".")
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces:
-                if lldp_index in self.interfaces[if_index].lldp:
-                    # now update with system chassis type
-                    if self.interfaces[if_index].lldp[lldp_index].chassis_type > LLDP_CHASSIS_TYPE_NONE:
-                        self.add_warning(
-                            f"Chassis Type for {lldp_index} already "
-                            "{self.interfaces[if_index].lldp[lldp_index].chassis_type},"
-                            " now {val}!"
-                        )
-                    self.interfaces[if_index].lldp[lldp_index].chassis_type = int(val)
+            if if_index in self.interfaces and lldp_index in self.interfaces[if_index].lldp:
+                # now update with system chassis type
+                if self.interfaces[if_index].lldp[lldp_index].chassis_type > LLDP_CHASSIS_TYPE_NONE:
+                    self.add_warning(
+                        f"Chassis Type for {lldp_index} already "
+                        "{self.interfaces[if_index].lldp[lldp_index].chassis_type},"
+                        " now {val}!"
+                    )
+                self.interfaces[if_index].lldp[lldp_index].chassis_type = int(val)
             return True
 
         lldp_index = oid_in_branch(lldpRemChassisId, oid)
         if lldp_index:
-            extra_one, port_id, extra_two = lldp_index.split(".")
+            _unused_one, port_id, _unused_two = lldp_index.split(".")
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces:
-                if lldp_index in self.interfaces[if_index].lldp:
-                    # now update with system chassis info, but only chassis type is known
-                    # (it should be at this time)
-                    neighbor = self.interfaces[if_index].lldp[lldp_index]
-                    if neighbor.chassis_type > LLDP_CHASSIS_TYPE_NONE:
-                        if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
-                            # chassis_info = bytes_ethernet_to_string(val)  # EzSNMP v1 format conversion
-                            chassis_info = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
-                        elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
-                            # per MIB LldpChassisId, the first byte is the IANA Address Family Number:
-                            net_addr_type = ord(val[0])
-                            if net_addr_type == IANA_TYPE_IPV4:
-                                neighbor.chassis_string_type = IANA_TYPE_IPV4
-                                addr_bytes = val[1:]
-                                chassis_info = ".".join(
-                                    "%d" % ord(b) for b in addr_bytes  # pylint: disable=consider-using-f-string
-                                )  # pylint: disable=consider-using-f-string
-                            elif net_addr_type == IANA_TYPE_IPV6:
-                                neighbor.chassis_string_type = IANA_TYPE_IPV6
-                                addr_bytes = val[1:]
-                                chassis_info = ":".join(
-                                    "%d" % ord(b) for b in addr_bytes  # pylint: disable=consider-using-f-string
-                                )  # pylint: disable=consider-using-f-string
-                                # we should simplify this here - TBD
-                            else:
-                                chassis_info = "Unknown Address Type"
-                        elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_LOCAL:
-                            # a locally assigned string, we are going to assume name!
-                            chassis_info = ""
-                            if not neighbor.sys_name:
-                                neighbor.sys_name = str(val)
+            if if_index in self.interfaces and lldp_index in self.interfaces[if_index].lldp:
+                # now update with system chassis info, but only chassis type is known
+                # (it should be at this time)
+                neighbor = self.interfaces[if_index].lldp[lldp_index]
+                if neighbor.chassis_type > LLDP_CHASSIS_TYPE_NONE:
+                    if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
+                        # chassis_info = bytes_ethernet_to_string(val)  # EzSNMP v1 format conversion
+                        chassis_info = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
+                    elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
+                        # per MIB LldpChassisId, the first byte is the IANA Address Family Number:
+                        net_addr_type = ord(val[0])
+                        if net_addr_type == IANA_TYPE_IPV4:
+                            neighbor.chassis_string_type = IANA_TYPE_IPV4
+                            addr_bytes = val[1:]
+                            chassis_info = ".".join(
+                                "%d" % ord(b) for b in addr_bytes  # pylint: disable=consider-using-f-string
+                            )  # pylint: disable=consider-using-f-string
+                        elif net_addr_type == IANA_TYPE_IPV6:
+                            neighbor.chassis_string_type = IANA_TYPE_IPV6
+                            addr_bytes = val[1:]
+                            chassis_info = ":".join(
+                                "%d" % ord(b) for b in addr_bytes  # pylint: disable=consider-using-f-string
+                            )  # pylint: disable=consider-using-f-string
+                            # we should simplify this here - TBD
                         else:
-                            # we don't parse this chassis_type, so just assume it is a string :-)
-                            chassis_info = str(val)
-                        neighbor.chassis_string = chassis_info
+                            chassis_info = "Unknown Address Type"
+                    elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_LOCAL:
+                        # a locally assigned string, we are going to assume name!
+                        chassis_info = ""
+                        if not neighbor.sys_name:
+                            neighbor.sys_name = str(val)
+                    else:
+                        # we don't parse this chassis_type, so just assume it is a string :-)
+                        chassis_info = str(val)
+                    neighbor.chassis_string = chassis_info
 
             return True
         return False
