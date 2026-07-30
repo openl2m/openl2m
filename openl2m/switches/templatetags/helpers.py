@@ -148,17 +148,13 @@ def validate_info_url_fields(info_url, switch, interface=False):
         return False
     # not check fields in the url:
     # the switch.nms_id field is optional. If used in URL, check that it is set!
-    if info_url["url"].find("switch.nms_id") > -1:
-        # found it, but is the value set:
-        if not switch.nms_id:
-            # nms_id not set, skipping this url
-            return False
+    if info_url["url"].find("switch.nms_id") > -1 and not switch.nms_id:
+        # nms_id not set, skipping this url
+        return False
     # the switch.hostname field is optional. If used in URL, check that it is set!
-    if info_url["url"].find("switch.hostname") > -1:
-        # found it, but is the value set:
-        if not switch.hostname:
-            # skipping the url
-            return False
+    if info_url["url"].find("switch.hostname") > -1 and not switch.hostname:
+        # skipping the url
+        return False
     if interface:
         # there is actually nothing to check here:
         return True
@@ -181,15 +177,14 @@ def get_switch_info_url_links(switch, user):
             context = Context({"switch": switch})
             links += tpl.render(context)
 
-    if user.is_superuser or user.is_staff:
-        if settings.SWITCH_INFO_URLS_STAFF:
-            for info_url in settings.SWITCH_INFO_URLS_STAFF:
-                # if we have a url defined, make sure used fields are set:
-                if not validate_info_url_fields(info_url, switch):
-                    continue
-                tpl = Template(build_url_string(info_url))
-                context = Context({"switch": switch})
-                links += tpl.render(context)
+    if (user.is_superuser or user.is_staff) and settings.SWITCH_INFO_URLS_STAFF:
+        for info_url in settings.SWITCH_INFO_URLS_STAFF:
+            # if we have a url defined, make sure used fields are set:
+            if not validate_info_url_fields(info_url, switch):
+                continue
+            tpl = Template(build_url_string(info_url))
+            context = Context({"switch": switch})
+            links += tpl.render(context)
 
     if user.is_superuser and settings.SWITCH_INFO_URLS_ADMINS:
         for info_url in settings.SWITCH_INFO_URLS_ADMINS:
