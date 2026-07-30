@@ -693,10 +693,10 @@ class SnmpConnectorComware(SnmpConnector):
         """
         vlan_id = int(oid_in_branch(hh3cIgmpSnoopingVlanEnabled, oid))
         if vlan_id > 0:
-            # this vlan has IMGP snooping enabled.
-            if vlan_id in self.vlans:
-                if int(val) == SNMP_TRUE:
-                    self.vlans[vlan_id].igmp_snooping = True
+            # this valid vlan has IMGP snooping enabled.
+            if vlan_id in self.vlans and int(val) == SNMP_TRUE:
+                self.vlans[vlan_id].igmp_snooping = True
+            # we parsed it
             return True
         return False
 
