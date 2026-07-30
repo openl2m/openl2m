@@ -649,10 +649,9 @@ class HPECwRestConnector(RESTConnector):
             found_chassis = False
             # dprint(f"HARDWARE: {pprint.pformat(hardware)}")
             for hw in hardware["ExtPhysicalEntities"]:
-                if hw["PhysicalIndex"] in self.stack_members:
-                    # this is more info about a stack member!
-                    if "Uptime" in hw:
-                        self.stack_members[hw["PhysicalIndex"]].uptime = hw["Uptime"]
+                # this is more info about a stack member!
+                if hw["PhysicalIndex"] in self.stack_members and "Uptime" in hw:
+                    self.stack_members[hw["PhysicalIndex"]].uptime = hw["Uptime"]
 
         # save driver info to database
         self.save_driver_info()
@@ -811,9 +810,8 @@ class HPECwRestConnector(RESTConnector):
                 if_index = arp["IfIndex"]
                 # except if "PortIndex" exists, then this field points to the physical port
                 # where this eth was heard
-                if "PortIndex" in arp:
-                    if arp["PortIndex"] in self.port_index_to_if_index:
-                        if_index = self.port_index_to_if_index[arp["PortIndex"]]
+                if "PortIndex" in arp and arp["PortIndex"] in self.port_index_to_if_index:
+                    if_index = self.port_index_to_if_index[arp["PortIndex"]]
 
                 # find the Interface() from the "IfIndex" field, ie. the Interface().key
                 iface = self.get_interface_by_key(key=if_index)
