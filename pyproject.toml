@@ -119,15 +119,17 @@
 
     # Specify the rules you want to ignore globally
     ignore = [
-        # E402 Module level import not at top of file
-        "E501",  # Ignore line-too-long errors
+        #"ALL",
+        "E402",     # Module level import not at top of file
+        "E501",     # Ignore line-too-long errors
         # "F401",  # Ignore unused-import errors
-
         "BLE001",   # Do not catch blind exception: `Exception`
         "EXE001",   # Shebang is present but file is not executable
         "EXE002",   # The file is executable but no shebang is present
         "I001",     # Import block is un-sorted or un-formatted
         "RUF012",   # Mutable default value for class attribute
+        "TRY002",   # Create your own exception
+        "UP031",    # Use format specifiers instead of percent format
     ]
 
 
