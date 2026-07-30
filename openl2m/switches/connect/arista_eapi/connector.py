@@ -938,7 +938,7 @@ class AristaApiConnector(Connector):
             cmds = [f"{command}"]
         else:
             # cannot handle this!
-            raise Exception(f"Unknown command type: f{type(command)}")
+            raise Exception(f"Unknown command type: f{type(command)}")  # noqa: TRY004 # Prefer `TypeError` exception for invalid type
 
         # JSON-RPC request payload for 'show ip route'
         payload = {
