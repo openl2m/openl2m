@@ -333,7 +333,7 @@ class PortList:
             if octet & 1:
                 new_octet += 128
             self.portlist[offset] = new_octet
-            offset += 1
+            offset += 1     # noqa: SIM113 Use `enumerate()` for index variable `offset` in `for` loop
 
     def __len__(self) -> int:
         return len(self.portlist) * 8
