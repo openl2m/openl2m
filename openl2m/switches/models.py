@@ -160,18 +160,17 @@ class SnmpProfile(models.Model):
                 # verify settings:
                 if not self.username or not self.passphrase or not self.auth_protocol:
                     raise ValidationError("SNMP v3 Auth-NoPriv requires Username, Passphrase and Auth-Protocol!")
-            if self.sec_level == constants.SNMP_V3_SECURITY_AUTH_PRIV:
-                # verify auth proto and priv proto are set:
-                if (
-                    not self.username
-                    or not self.passphrase
-                    or not self.auth_protocol
-                    or not self.priv_protocol
-                    or not self.priv_passphrase
-                ):
-                    raise ValidationError(
-                        "SNMP v3 Auth-Priv requires Username, Passphrase, Auth-Protocol, Priv-Protocol and Priv-Passphase!"
-                    )
+            # verify auth proto and priv proto are set:
+            if self.sec_level == constants.SNMP_V3_SECURITY_AUTH_PRIV and (
+                not self.username
+                or not self.passphrase
+                or not self.auth_protocol
+                or not self.priv_protocol
+                or not self.priv_passphrase
+            ):
+                raise ValidationError(
+                    "SNMP v3 Auth-Priv requires Username, Passphrase, Auth-Protocol, Priv-Protocol and Priv-Passphase!"
+                )
 
     class Meta:
         ordering = ["name"]
@@ -1048,11 +1047,11 @@ class Switch(models.Model):
         Requires valid NetMiko profile!
         Returns True or False.
         """
-        if self.netmiko_profile and self.command_list:
-            if self.command_list.interface_commands.count > 0 or self.command_list.interface_commands_staff.count > 0:
-                # Looks like we do!
-                return True
-        return False
+        return (
+            self.netmiko_profile
+            and self.command_list
+            and (self.command_list.interface_commands.count > 0 or self.command_list.interface_commands_staff.count > 0)
+        )
 
     # this needs to be accessed from templates:
     @property
@@ -1062,11 +1061,11 @@ class Switch(models.Model):
         Requires valid NetMiko profile!
         Returns True or False.
         """
-        if self.netmiko_profile and self.command_list:
-            if self.command_list.global_commands.count > 0 or self.command_list.global_commands_staff.count > 0:
-                # Looks like we do!
-                return True
-        return False
+        return (
+            self.netmiko_profile
+            and self.command_list
+            and (self.command_list.global_commands.count > 0 or self.command_list.global_commands_staff.count > 0)
+        )
 
     # basic validation
     # see also https://docs.djangoproject.com/en/2.2/ref/models/instances/#validating-objects
@@ -1090,16 +1089,19 @@ class Switch(models.Model):
             if not self.napalm_device_type or not self.netmiko_profile:
                 raise ValidationError("Napalm Connector needs a Credentials Profile and a Napalm device type!")
 
-        elif self.connector_type in (
-            constants.CONNECTOR_TYPE_PYEZ,
-            constants.CONNECTOR_TYPE_AOSCX,
-            constants.CONNECTOR_TYPE_AOS_S_REST,
-            constants.CONNECTOR_TYPE_HPE_CW_REST,
-            constants.CONNECTOR_TYPE_EAPI,
-            constants.CONNECTOR_TYPE_COMMANDS_ONLY,
+        elif (
+            self.connector_type
+            in (
+                constants.CONNECTOR_TYPE_PYEZ,
+                constants.CONNECTOR_TYPE_AOSCX,
+                constants.CONNECTOR_TYPE_AOS_S_REST,
+                constants.CONNECTOR_TYPE_HPE_CW_REST,
+                constants.CONNECTOR_TYPE_EAPI,
+                constants.CONNECTOR_TYPE_COMMANDS_ONLY,
+            )
+            and not self.netmiko_profile
         ):
-            if not self.netmiko_profile:
-                raise ValidationError("This Connector needs a Credentials Profile!")
+            raise ValidationError("This Connector needs a Credentials Profile!")
 
     # this needs to be accessed from templates:
     @property
@@ -1348,25 +1350,23 @@ class Log(models.Model):
         super().save(*args, **kwargs)
 
         # if requested, also sent to Syslog host
-        if settings.SYSLOG_HOST:
-            # should this action be sent to syslog?
-            # Either all, or partial list
-            if not settings.SYSLOG_ACTIONS or self.action in self.syslog_action_list:
-                # we are defining a logger, and then check if it has a handler.
-                # each time you create a named logger, python will add handler to existing,
-                # even if you delete the object. this is a 'globally' defined logger in apps.py :
-                syslogger = logging.getLogger("openl2m_log_to_syslog")
-                if not syslogger.hasHandlers():
-                    handler = logging.handlers.SysLogHandler(
-                        address=(settings.SYSLOG_HOST, settings.SYSLOG_PORT), facility=settings.SYSLOG_FACILITY
-                    )
-                    syslogger.addHandler(handler)
-                syslogger.setLevel(settings.SYSLOG_LEVEL)
-                # syslogger.setLevel(logging.DEBUG)
-                if settings.SYSLOG_JSON:
-                    syslogger.info(self.as_json())
-                else:
-                    syslogger.info(self.as_string())
+        # should this action be sent to syslog? Either all, or partial list
+        if settings.SYSLOG_HOST and (not settings.SYSLOG_ACTIONS or self.action in self.syslog_action_list):
+            # we are defining a logger, and then check if it has a handler.
+            # each time you create a named logger, python will add handler to existing,
+            # even if you delete the object. this is a 'globally' defined logger in apps.py :
+            syslogger = logging.getLogger("openl2m_log_to_syslog")
+            if not syslogger.hasHandlers():
+                handler = logging.handlers.SysLogHandler(
+                    address=(settings.SYSLOG_HOST, settings.SYSLOG_PORT), facility=settings.SYSLOG_FACILITY
+                )
+                syslogger.addHandler(handler)
+            syslogger.setLevel(settings.SYSLOG_LEVEL)
+            # syslogger.setLevel(logging.DEBUG)
+            if settings.SYSLOG_JSON:
+                syslogger.info(self.as_json())
+            else:
+                syslogger.info(self.as_string())
 
     def as_string(self):
         """
