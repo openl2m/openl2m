@@ -181,20 +181,19 @@ def get_connection_if_permitted(
         error.description = "Access denied!"
         return None, error
 
-    if write_access:
-        if request.user.profile.read_only or group.read_only or switch.read_only:
-            dprint("READ-ONLY - access denied!")
-            log.type = LOG_TYPE_ERROR
-            log.action = LOG_DENIED
-            log.description = "Access Denied! (group or switch is read-only)"
-            log.save()
-            counter_increment(COUNTER_ACCESS_DENIED)
-            error = Error()
-            error.status = True
-            error.code = http_status.HTTP_403_FORBIDDEN
-            error.description = "Access denied!"
-            error.details = "User, Group or Switch is read-only!"
-            return None, error
+    if write_access and (request.user.profile.read_only or group.read_only or switch.read_only):
+        dprint("READ-ONLY - access denied!")
+        log.type = LOG_TYPE_ERROR
+        log.action = LOG_DENIED
+        log.description = "Access Denied! (group or switch is read-only)"
+        log.save()
+        counter_increment(COUNTER_ACCESS_DENIED)
+        error = Error()
+        error.status = True
+        error.code = http_status.HTTP_403_FORBIDDEN
+        error.description = "Access denied!"
+        error.details = "User, Group or Switch is read-only!"
+        return None, error
 
     try:
         connection = get_connection_object(request, group, switch)
@@ -252,9 +251,8 @@ def get_interface_to_change(
         return False, error
 
     # specific management request?
-    if permission == PERMISSION_INTERFACE_POE:
-        if interface.allow_poe_toggle:
-            return interface, False
+    if permission == PERMISSION_INTERFACE_POE and interface.allow_poe_toggle:
+        return interface, False
 
     # can the user manage the interface?
     if not interface.manageable:
@@ -332,13 +330,12 @@ def user_can_write(request: HttpRequest) -> tuple[bool, Error]:
             info is an Error() object with code and description set accordingly.
     """
     dprint(f"user_can_write(), request = {type(request)}")
-    if hasattr(request, "auth"):
-        if request.auth is not None:  # Token from REST API
-            if not request.auth.write_enabled:
-                error = Error()
-                error.code = http_status.HTTP_403_FORBIDDEN
-                error.description = "This token cannot write!"
-                return False, error
+    if hasattr(request, "auth") and request.auth is not None and not request.auth.write_enabled:
+        error = Error()
+        error.code = http_status.HTTP_403_FORBIDDEN
+        error.description = "This token cannot write!"
+        return False, error
+
     info = Error()
     info.status = False
     info.description = "All OK!"
