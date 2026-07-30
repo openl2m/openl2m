@@ -13,9 +13,11 @@
         <tr>
           <th>Interface Name</th>
           <th>Link</th>
-          <th>Vlan</th>
           {% if connection.poe_capable %}
           <th>PoE</th>
+          {% endif %}
+          {% if connection.vlan_count %}
+          <th>Vlan</th>
           {% endif %}
           {% if connection.eth_count > 0 %}
           <th>
@@ -73,19 +75,9 @@
             {% endif %}
             {% include "_tpl_if_type_icons.html" %}
             <!-- ifkey = {{ iface.key }},  ifIndex = {{ iface.index }} -->
-            </td>
+            </td>{# interface name #}
 
             {% include "_tpl_if_linkspeed_td.html" %}
-
-            <td>
-              {% if iface.untagged_vlan > 0 %}
-                <abbr data-bs-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
-                  {{ iface.untagged_vlan }}
-                </abbr>
-              {% else %}
-                <span data-bs-toggle="tooltip" title="Not applicable for this interface">n/a</span>
-              {% endif %}
-            </td>
 
             {% if connection.poe_capable %}
             <td>
@@ -95,7 +87,19 @@
               -
               {% endif %}
             </td>
-            {% endif %}
+            {% endif %}{# poe #}
+
+            {% if connection.vlan_count %}
+            <td>
+              {% if iface.untagged_vlan > 0 %}
+                <abbr data-bs-toggle="tooltip" title="{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}">
+                  {{ iface.untagged_vlan }}
+                </abbr>
+              {% else %}
+                <span data-bs-toggle="tooltip" title="Not applicable for this interface">n/a</span>
+              {% endif %}
+            </td>
+            {% endif %}{# vlan #}
 
             {% if connection.eth_count > 0 %}
             <td>{# known ethernet addresses #}
