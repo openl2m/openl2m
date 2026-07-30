@@ -277,9 +277,7 @@ def is_valid_hostname_or_ip(data: str) -> bool:
     # check IPv4 pattern first
     try:
         address = ipaddress.ip_address(data)
-        if isinstance(address, ipaddress.IPv4Address):
-            return True
-        return False  # should not happen!
+        return isinstance(address, ipaddress.IPv4Address)
     except ValueError:
         # not IPv4 so check hostname:
         try:
@@ -300,9 +298,7 @@ def is_valid_hostname_or_ip6(data: str) -> bool:
     # check IPv6 pattern first
     try:
         address = ipaddress.ip_address(data)
-        if isinstance(address, ipaddress.IPv6Address):
-            return True
-        return False  # should not happen!
+        return isinstance(address, ipaddress.IPv6Address)
     except ValueError:
         # not IPv6!, so check IPv6 hostname:
         try:
