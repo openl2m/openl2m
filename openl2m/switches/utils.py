@@ -280,13 +280,16 @@ def is_valid_hostname_or_ip(data: str) -> bool:
         return isinstance(address, ipaddress.IPv4Address)
     except ValueError:
         # not IPv4 so check hostname:
+        default_timeout = socket.getdefaulttimeout()
         try:
             # note: this does IPv4 resolution only!
             socket.setdefaulttimeout(settings.DNS_TIMEOUT)  # max wait for DNS answer
             socket.gethostbyname(data)
+            socket.setdefaulttimeout(default_timeout)
             return True
         except Exception:
             # fail gracefully!
+            socket.setdefaulttimeout(default_timeout)
             return False
 
 
@@ -301,12 +304,15 @@ def is_valid_hostname_or_ip6(data: str) -> bool:
         return isinstance(address, ipaddress.IPv6Address)
     except ValueError:
         # not IPv6!, so check IPv6 hostname:
+        default_timeout = socket.getdefaulttimeout()
         try:
             socket.setdefaulttimeout(settings.DNS_TIMEOUT)  # max wait for DNS answer
             socket.getaddrinfo(host=data, port=0, family=socket.AF_INET6)
+            socket.setdefaulttimeout(default_timeout)
             return True
         except Exception:
             # fail gracefully!
+            socket.setdefaulttimeout(default_timeout)
             return False
 
 
@@ -361,22 +367,26 @@ def get_host_by_name(hostname: str, family: int = socket.AF_INET) -> str:
     Return:
         (str): the IPv4 or IPv6 in string format, or "" if not found.
     """
+    default_timeout = socket.getdefaulttimeout()
     socket.setdefaulttimeout(settings.DNS_TIMEOUT)  # max wait for DNS answer
     try:
         if family == socket.AF_INET:
-            return socket.gethostbyname(hostname)
+            ip = socket.gethostbyname(hostname)
         elif family == socket.AF_INET6:
             # Request only IPv6 (AF_INET6) addresses
             results = socket.getaddrinfo(hostname, None, socket.AF_INET6)
             # see https://docs.python.org/3/library/socket.html#other-functions
             # returns a tuple of (family, type, proto, canonname, sockaddr)
             # return first IPv6 address from the result(s)
-            return results[0][4][0]
+            ip = results[0][4][0]
         else:
             # unknown protocol, should not happen:
-            return ""
+            ip = ""
     except Exception:
-        return ""
+        ip = ""
+
+    socket.setdefaulttimeout(default_timeout)
+    return ip
 
 
 def get_ip_dns_name(ip: str) -> str:
@@ -388,14 +398,18 @@ def get_ip_dns_name(ip: str) -> str:
     Return:
         (str): either the FQDN for the ip address, or an empty string if not found.
     """
+    default_timeout = socket.getdefaulttimeout()
     socket.setdefaulttimeout(settings.DNS_TIMEOUT)  # max wait for DNS answer
     try:
         # we use 'name required' to force an exception if reverse lookup not found:
         # returns (hostname, portname)
         hostname, _ = socket.getnameinfo((str(ip), 0), socket.NI_NAMEREQD)
-        return hostname
+
     except Exception:
-        return ""
+        hostname = ""
+
+    socket.setdefaulttimeout(default_timeout)
+    return hostname
 
 
 def get_choice_name(choice_list: list, choice) -> str:
