@@ -387,8 +387,8 @@ def get_usage_info() -> dict:
     # not sure how to fix the ruff warning yet...
     filter_values = {
         "type": int(LOG_TYPE_COMMAND),
-        "timestamp__date": datetime.date.today(),
-    }  # noqa: DTZ011 `datetime.date.today()` used
+        "timestamp__date": datetime.date.today(),   # noqa: DTZ011 `datetime.date.today()` used
+    }
     usage["commands_today"] = {
         "label": "Commands today",
         "value": Log.objects.filter(**filter_values).count(),
