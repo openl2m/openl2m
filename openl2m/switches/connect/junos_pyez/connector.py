@@ -397,7 +397,7 @@ class PyEZConnector(Connector):
                 self._parse_address_family(iface=iface, xml_data=intf)
 
             try:
-                intf.find(".//minimum-links-in-aggregate").text  # pylint: disable=expression-not-assigned
+                intf.find(".//minimum-links-in-aggregate").text  # noqa: B018 # pylint: disable=expression-not-assigned
                 iface.type = IF_TYPE_LAGG
             except Exception:
                 dprint("  not an aggregate.")
