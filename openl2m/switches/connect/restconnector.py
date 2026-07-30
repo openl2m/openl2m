@@ -133,7 +133,7 @@ class RESTConnector(Connector):
     # DELETE needs to be used to remove an object. It does NOT take request body data.
     #
 
-    def _get(self, path: str = "", uri: str = "", headers: dict = {}, cookies: dict = {}, message: str = ""):
+    def _get(self, path: str = "", uri: str = "", headers: dict | None = None, cookies: dict | None = None, message: str = ""):
         """GET a specific REST endpoint and return JSON response.
         Will return json response or None if error is trapped (most likely because API endpoint does not exist).
 
@@ -197,7 +197,7 @@ class RESTConnector(Connector):
         return None
 
     def _post(
-        self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""
+        self, path: str, params: dict | None = None, data: dict | None = None, headers: dict | None = None, cookies: dict | None = None, message: str = ""
     ):
         """POST a specific REST endpoint and return JSON response.
             will raise exception on error
@@ -237,20 +237,15 @@ class RESTConnector(Connector):
         debug_response(response=self.response, message=message)
         self.response.raise_for_status()
 
-        # no errors:
-        if self.response.status_code in (200, 201, 202, 204):
-            # valid returns:
-            # 200 - Created, with content returned
-            # 201 - Created, not content
-            # 202 - Batch accepted (no content) - may still eventyally fail the batch of commands.
-            # 204 - Processed, no content returned.
-            return True
-
-        return False
+        # valid returns:
+        # 200 - Created, with content returned
+        # 201 - Created, not content
+        # 202 - Batch accepted (no content) - may still eventyally fail the batch of commands.
+        # 204 - Processed, no content returned.
+        return self.response.status_code in (200, 201, 202, 204)
 
     def _put(
-        self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""
-    ):
+        self, path: str, params: dict | None = None, data: dict | None = None, headers: dict | None = None, cookies: dict | None = None, message: str = ""):
         """PUT a specific REST endpoint and return JSON response.
         Intended for full updates of objects. Will raise exception on error
 
@@ -290,13 +285,10 @@ class RESTConnector(Connector):
         self.response.raise_for_status()
 
         # no errors
-        if self.response.status_code in (200, 204):
-            return True
-        # Hmm ?
-        return False
+        return self.response.status_code in (200, 204)
 
     def _patch(
-        self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""
+        self, path: str, params: dict | None = None, data: dict | None = None, headers: dict | None = None, cookies: dict | None = None, message: str = ""
     ):
         """PUT a specific REST endpoint and return JSON response.
         Intended for partial updates of objects. Will raise exception on HTTP error
@@ -337,13 +329,10 @@ class RESTConnector(Connector):
         self.response.raise_for_status()
 
         # no errors
-        if self.response.status_code in (200, 204):
-            return True
-        # Hmm ?
-        return False
+        return self.response.status_code in (200, 204)
 
     def _delete(
-        self, path: str, params: dict = {}, data: dict = {}, headers: dict = {}, cookies: dict = {}, message: str = ""
+        self, path: str, params: dict | None = None, data: dict | None = None, headers: dict | None = None, cookies: dict | None = None, message: str = ""
     ):
         """DELETE a specific REST endpoint and return JSON response.
         will raise exception on error
@@ -384,7 +373,4 @@ class RESTConnector(Connector):
         self.response.raise_for_status()
 
         # no errors
-        if self.response.status_code in (200, 204):
-            return True
-        # Hmm ?
-        return False
+        return self.response.status_code in (200, 204)
