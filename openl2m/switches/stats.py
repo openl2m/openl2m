@@ -127,7 +127,7 @@ def get_environment_info() -> dict:
         "value": f"{settings.VERSION} ({settings.VERSION_DATE})",
     }
 
-    if os.environ.get("IN_CONTAINER", False):
+    if os.environ.get("IN_CONTAINER"):
         environment["dockerized"] = {
             "label": "Dockerized",
             "value": "Yes",
@@ -243,7 +243,8 @@ def get_usage_info() -> dict:
     filter_values = {
         "type__in": [LOG_TYPE_VIEW, LOG_TYPE_CHANGE],
         "switch_id__isnull": False,
-        "timestamp__date": datetime.date.today(),
+        # not sure how to fix the ruff warning yet...
+        "timestamp__date": datetime.date.today(),  # noqa: DTZ011 `datetime.date.today()` used
     }
     usage["devices_today"] = {
         "label": "Devices today",
@@ -280,7 +281,8 @@ def get_usage_info() -> dict:
 
     filter_values = {
         "type": int(LOG_TYPE_CHANGE),
-        "timestamp__date": datetime.date.today(),
+        # not sure how to fix the ruff warning yet...
+        "timestamp__date": datetime.date.today(),  # noqa: DTZ011 `datetime.date.today()` used
     }
     usage["changes_today"] = {
         "label": "Changes today",
@@ -323,7 +325,8 @@ def get_usage_info() -> dict:
 
     filter_values = {
         "type": int(LOG_TYPE_LOGIN_OUT),
-        "timestamp__date": datetime.date.today(),
+        # not sure how to fix the ruff warning yet...
+        "timestamp__date": datetime.date.today(),  # noqa: DTZ011 `datetime.date.today()` used
     }
     usage["users_today"] = {
         "label": "Users today",
@@ -352,7 +355,8 @@ def get_usage_info() -> dict:
     filter_values = {
         "type": int(LOG_TYPE_LOGIN_OUT),
         "action": int(LOG_LOGIN_REST_API),
-        "timestamp__date": datetime.date.today(),
+        # not sure how to fix the ruff warning yet...
+        "timestamp__date": datetime.date.today(),  # noqa: DTZ011 `datetime.date.today()` used
     }
     usage["api_calls_today"] = {
         "label": "API calls today",
@@ -380,7 +384,11 @@ def get_usage_info() -> dict:
     }
 
     # Commands run:
-    filter_values = {"type": int(LOG_TYPE_COMMAND), "timestamp__date": datetime.date.today()}
+    # not sure how to fix the ruff warning yet...
+    filter_values = {
+        "type": int(LOG_TYPE_COMMAND),
+        "timestamp__date": datetime.date.today(),
+    }  # noqa: DTZ011 `datetime.date.today()` used
     usage["commands_today"] = {
         "label": "Commands today",
         "value": Log.objects.filter(**filter_values).count(),
@@ -430,7 +438,7 @@ def get_top_n_from_dict_on_count(data: dict) -> dict:
     num = 0
     for key, val in data_sorted.items():
         top_data[key] = val
-        num += 1
+        num += 1  # noqa: SIM113 Use `enumerate()` for index variable `num` in `for` loop
         if num == settings.TOP_ACTIVITY:
             break
     return top_data
