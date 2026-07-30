@@ -176,7 +176,7 @@ class AosCxConnector(RESTConnector):
         #     self.add_more_info('System', 'Domain Name', '')
 
         if "boot_time" in system:
-            boot_time = datetime.datetime.fromtimestamp(system["boot_time"])
+            boot_time = datetime.datetime.fromtimestamp(system["boot_time"])    # noqa: DTZ006 `datetime.datetime.fromtimestamp()` called without a `tz` argument
             self.add_more_info("System", "Boot Time", boot_time)
 
         # if 'system_contact' in system["other_config"] and system["other_config"]['system_contact']:
@@ -310,7 +310,7 @@ class AosCxConnector(RESTConnector):
             v = self.add_vlan_by_id(vlan_id=vlan_id, vlan_name=vlan["name"])
             # v = self.vlans[vlan_id]
             # is this vlan enabled?
-            if not vlan["admin"] == "up" and not vlan["oper_state"] == "up":
+            if vlan["admin"] != "up" and vlan["oper_state"] != "up":
                 dprint("  VLAN is disabled!")
                 v.admin_status = VLAN_ADMIN_DISABLED
             if vlan.get("voice"):
@@ -403,10 +403,10 @@ class AosCxConnector(RESTConnector):
                     # dprint("LINK_STATE UP!")
                     iface.admin_status = True
                     iface.oper_status = True
-                    if "link_speed" in interface:  # for physicl ports, better be :-)
-                        if interface["link_speed"] is not None:
-                            # iface.speed is in 1Mbps increments:
-                            iface.speed = int(int(interface["link_speed"]) / 1000000)
+                    # for physical ports, better be true :-)
+                    if "link_speed" in interface and interface["link_speed"] is not None:
+                        # iface.speed is in 1Mbps increments:
+                        iface.speed = int(int(interface["link_speed"]) / 1000000)
                 else:  # not up, we can get port speed from hw_info
                     # dprint("LINK_STATE NOT UP!")
                     if "hw_intf_info" in interface and "max_speed" in interface["hw_intf_info"]:
@@ -414,7 +414,7 @@ class AosCxConnector(RESTConnector):
 
             # interface not up, so just down, or admin shutdown?
             if not iface.oper_status:
-                # dprint("LINK NOT UP, CHECKING ADMIN STATE")
+                dprint("LINK NOT UP, CHECKING ADMIN STATE")
                 if "admin" in interface and not interface["admin"]:
                     dprint("ADMIN STATE UP!")
                     iface.admin_status = True
@@ -487,45 +487,47 @@ class AosCxConnector(RESTConnector):
                 iface.lacp_master_name = f"lag{lacp_actor}"
                 # we don't have the LAG interface yet, so cannot add member there!
 
-            if "ip4_address" in interface:
-                if interface["ip4_address"]:
-                    dprint(f"   IPv4 = {interface['ip4_address']}")
-                    iface.add_ip4_network(address=interface["ip4_address"])
-                    if "ip4_address_secondary" in interface:
-                        dprint(f"   IPv4(2nd) = {interface['ip4_address_secondary']}")
+            # if "ip4_address" in interface and interface["ip4_address"]:
+            ipv4_address = interface.get("ip4_address")
+            if ipv4_address:
+                dprint(f"   IPv4 = {ipv4_address}")
+                iface.add_ip4_network(address=ipv4_address)
+                ipv4_secondary = interface.get("ip4_address_secondary")
+                if ipv4_secondary:
+                    # not used yet...
+                    dprint(f"   IPv4(2nd) = {ipv4_secondary}")
 
             # check VRF membership
-            if "vrf" in interface:
-                if interface["vrf"] is not None:
-                    # this is a dictionary of one element only!
-                    # e.g.: 'vrf': {'KeepAlive': '/rest/v10.17/system/vrfs/KeepAlive'},
-                    vrf_name = next(iter(interface["vrf"]))  # we use first element only!
-                    if iface.name not in self.vrfs[vrf_name].interfaces:
-                        self.vrfs[vrf_name].interfaces.append(iface.name)
-                    # assing this vrf name to the interface:
-                    iface.vrf_name = vrf_name
+            vrf = interface.get("vrf")
+            if vrf:
+                # this is a dictionary of one element only!
+                # e.g.: 'vrf': {'KeepAlive': '/rest/v10.17/system/vrfs/KeepAlive'},
+                vrf_name = next(iter(vrf))  # we use first element only!
+                if iface.name not in self.vrfs[vrf_name].interfaces:
+                    self.vrfs[vrf_name].interfaces.append(iface.name)
+                # assing this vrf name to the interface:
+                iface.vrf_name = vrf_name
 
             # check plugable modules for optics info
-            if "pm_info" in interface:
-                if "connector" in interface["pm_info"] and interface["pm_info"]["connector"] != "absent":
-                    dprint(f"Optics info found:\n{interface['pm_info']}\n")
-                    trx = Transceiver()
-                    if "external_connector" in interface["pm_info"]:
-                        trx.connector = interface["pm_info"]["external_connector"]
+            if "pm_info" in interface and "connector" in interface["pm_info"] and interface["pm_info"]["connector"] != "absent":
+                dprint(f"Optics info found:\n{interface['pm_info']}\n")
+                trx = Transceiver()
+                if "external_connector" in interface["pm_info"]:
+                    trx.connector = interface["pm_info"]["external_connector"]
 
-                    if "xcvr_desc" in interface["pm_info"]:
-                        trx.type = interface["pm_info"]["xcvr_desc"]
-                    else:  # see if we can goble something from speed and connector info:
-                        if "speed" in interface["pm_info"]:
-                            gig_speed = int(interface["pm_info"]["speed"]) / 1000
-                            trx.type = f"{gig_speed}g {interface['pm_info']['connector']}"
+                if "xcvr_desc" in interface["pm_info"]:
+                    trx.type = interface["pm_info"]["xcvr_desc"]
+                else:  # see if we can goble something from speed and connector info:
+                    if "speed" in interface["pm_info"]:
+                        gig_speed = int(interface["pm_info"]["speed"]) / 1000
+                        trx.type = f"{gig_speed}g {interface['pm_info']['connector']}"
 
-                    if "vendor_name" in interface["pm_info"]:
-                        trx.vendor = interface["pm_info"]["vendor_name"]
+                if "vendor_name" in interface["pm_info"]:
+                    trx.vendor = interface["pm_info"]["vendor_name"]
 
-                    if "wavelength" in interface["pm_info"]:
-                        trx.wavelength = interface["pm_info"]["wavelength"]
-                    iface.transceiver = trx
+                if "wavelength" in interface["pm_info"]:
+                    trx.wavelength = interface["pm_info"]["wavelength"]
+                iface.transceiver = trx
 
             # check if this has PoE Capabilities
             if "poe_interface" in interface:
