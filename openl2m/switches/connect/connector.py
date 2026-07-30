@@ -1197,9 +1197,10 @@ class Connector:
         Returns:
             True or False
         """
-        if self.switch.primary_ip4 and self.switch.netmiko_profile:
-            return True
-        return False
+        # if self.switch.primary_ip4 and self.switch.netmiko_profile:
+        #     return True
+        # return False
+        return bool(self.switch.primary_ip4 and self.switch.netmiko_profile)
 
     #
     # SSH connectivity uses the Netmiko library to connect to a device.
@@ -2148,9 +2149,10 @@ class Connector:
         Returns:
             (boolean):  True if vlan id exists, False if not
         """
-        if int(vlan_id) in self.vlans:
-            return True
-        return False
+        # if int(vlan_id) in self.vlans:
+        #     return True
+        # return False
+        return int(vlan_id) in self.vlans
 
     def _lookup_hostname_from_arp(self):
         """Look up the hostnames for found ethernet/arp pairs on all interfaces.
@@ -2192,12 +2194,11 @@ class Connector:
         count = 0
         for interface in self.interfaces.values():
             for neighbor in interface.lldp.values():
-                if neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
-                    # networkAddress(5), first byte is address type, next bytes are address.
-                    # see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml
-                    if neighbor.chassis_string_type in [IANA_TYPE_IPV4, IANA_TYPE_IPV6]:
-                        count += 1
-                        neighbor.hostname = get_ip_dns_name(neighbor.chassis_string)
+                # networkAddress(5), first byte is address type, next bytes are address.
+                # see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml
+                if neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR and neighbor.chassis_string_type in [IANA_TYPE_IPV4, IANA_TYPE_IPV6]:
+                    count += 1
+                    neighbor.hostname = get_ip_dns_name(neighbor.chassis_string)
         return count
 
     def _lookup_ethernet_vendors(self):
@@ -2298,10 +2299,9 @@ def clear_switch_cache(request: HttpRequest):
         none
     """
     dprint("clear_switch_cache() called:")
-    if request:
-        # all we have to do is clear the 'switch_id' !
-        if "switch_id" in request.session:
-            dprint(f"  clearing request.session['switch_id'] = {request.session['switch_id']}")
-            del request.session["switch_id"]
-            request.session.modified = True
-        # if not found, we had not selected a switch before. ie upon login!
+    # all we have to do is clear the 'switch_id' !
+    if request and "switch_id" in request.session:
+        dprint(f"  clearing request.session['switch_id'] = {request.session['switch_id']}")
+        del request.session["switch_id"]
+        request.session.modified = True
+    # if not found, we had not selected a switch before. ie upon login!
