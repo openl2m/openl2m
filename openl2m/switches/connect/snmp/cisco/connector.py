@@ -868,7 +868,7 @@ class SnmpConnectorCisco(SnmpConnector):
             if byte & 1:
                 vlan_id = (offset * 8) + 7 + vlan_base
                 self.add_vlan_to_interface(iface, vlan_id)
-            offset += 1
+            offset += 1     # noqa: SIM113 Use `enumerate()` for index variable `offset` in `for` loop
         return True
 
     def _parse_mibs_cisco_config(self, oid: str, val: str) -> bool:
@@ -978,17 +978,19 @@ class SnmpConnectorCisco(SnmpConnector):
                 # approximate / calculate the datetime value:
                 # msg timestamp = time when sysUpTime was read minus seconds between sysUptime and msg timetick
                 dprint(f"TIMES ARE: {self.sys_uptime_timestamp}  {self.sys_uptime}  {timetick}")
-                self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(
+                self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(     # noqa: DTZ006 `datetime.datetime.fromtimestamp()` called without a `tz` argument
                     self.sys_uptime_timestamp - int((self.sys_uptime - timetick) / 100)
                 )
+                # not sure how to deal with the above! What TZ to use ?
             else:
                 # be save, create; "should" never happen
                 msg = SyslogMsg(index)
                 # approximate / calculate the datetime value:
                 # msg time = time when sysUpTime was read minus seconds between sysUptime and msg timetick
-                msg.datetime = datetime.datetime.fromtimestamp(
+                msg.datetime = datetime.datetime.fromtimestamp(     # noqa: DTZ006 `datetime.datetime.fromtimestamp()` called without a `tz` argument
                     self.sys_uptime_timestamp - int((self.sys_uptime - timetick) / 100)
                 )
+                # not sure how to deal with the above! What TZ to use ?
                 self.syslog_msgs[index] = msg
             return True
 
