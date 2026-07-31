@@ -220,15 +220,19 @@
                   </td>
                 {% endif %}
 
+                {# Vlan and Description change are on the same form, so we can get both changes with one submit ! #}
+                {# django parser sequentially, so sees this as (can_change and can_edit) OR vlan_count ! #}
+                {% if connection.can_change_description and iface.can_edit_description or connection.vlan_count %}
+                      <form name="vlan_description_form_{{ forloop.counter }}"
+                        id="vlan_description_form_{{ forloop.counter }}"
+                        method="post"
+                        >
+                {% endif %}
+
                 {% if connection.vlan_count %}
                 <td>
                   {% if iface.untagged_vlan > 0 %}
                     {% if connection.can_change_vlan and iface.lacp_type == LACP_IF_TYPE_NONE %}
-                      <form name="vlan_form_{{ forloop.counter }}"
-                            id="vlan_form_{{ forloop.counter }}"
-                            action="{% url 'switches:pvid_change' group.id switch.id iface.key %}"
-                            method="post"
-                            >
                         {% csrf_token %}
                         <select name="new_pvid" data-bs-toggle="tooltip" title="Select the new vlan here"
                                 id="vlan_select{{ forloop.counter }}"
@@ -243,6 +247,7 @@
                           {% endfor %}
                         </select>
                         <button type="submit" id="vlan_submit{{ forloop.counter }}" class="btn btn-primary" disabled
+                                formaction="{% url 'switches:pvid_change' group.id switch.id iface.key %}"
                             {% if request.user.profile.are_you_sure %}
                                 onclick="return confirm_change('Are you sure you want change VLAN on interface {{ iface.name }}?')"
                             {% endif %}
@@ -255,7 +260,7 @@
                         </button>
 <script>
   // add listener to form submit
-  document.getElementById('vlan_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
+  document.getElementById('vlan_description_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
     const submitButton = document.getElementById('vlan_submit{{ forloop.counter }}');
     const spinner = submitButton.querySelector('.spinner-border');
     const spanText = document.getElementById('spinner_vlan_submit{{ forloop.counter }}_text');
@@ -267,7 +272,7 @@
     spanText.textContent = 'Updating...';
   });
 </script>
-                      </form>
+
                       <!-- Add script to detect vlan input change and enable submit -->
                       <script>
                         // value at initial form rendering:
@@ -307,17 +312,13 @@
                         }
                       }
                     </script>
-                    <form name="description_form_{{ forloop.counter }}"
-                          id="description_form_{{ forloop.counter }}"
-                          action="{% url 'switches:description_change' group.id switch.id iface.key %}"
-                          method="post"
-                      >
                       {% csrf_token %}
                       <input type="text" size=40 maxlength="{{ connection.max_description_size }}" name="new_description" value="{{ iface.description }}"
                              id="description{{ forloop.counter }}"
                              data-bs-toggle="tooltip" title="Type the new description here!"
                              onkeyup="checkDescrChanged{{ forloop.counter }}()">
                       <button type="submit" id="description_submit_{{ forloop.counter }}" class="btn btn-primary" disabled
+                              formaction="{% url 'switches:description_change' group.id switch.id iface.key %}"
                           {% if request.user.profile.are_you_sure %}
                               onclick="return confirm_change('Are you sure you want change the description on interface {{ iface.name }}?')"
                           {% endif %}
@@ -330,7 +331,7 @@
                       </button>
 <script>
   // add listener to form submit
-  document.getElementById('description_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
+  document.getElementById('vlan_description_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
     const submitButton = document.getElementById('description_submit_{{ forloop.counter }}');
     const spinner = submitButton.querySelector('.spinner-border');
     const spanText = document.getElementById('spinner_description_submit_{{ forloop.counter }}_text');
@@ -342,10 +343,15 @@
     spanText.textContent = 'Updating...';
   });
 </script>
-                    </form>
                   {% else %}
                     {{ iface.description }}
                   {% endif %}
+
+                {# django parser sequentially, so sees this as (can_change and can_edit) OR vlan_count ! #}
+                {% if connection.can_change_description and iface.can_edit_description or connection.vlan_count %}
+                    {# end of vlan and description edit form #}
+                    </form>
+                {% endif %}
                 </td>
 
                 {% if connection.can_run_commands %}
