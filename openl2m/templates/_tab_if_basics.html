@@ -246,18 +246,19 @@
                             </option>
                           {% endfor %}
                         </select>
-                        <button type="submit" id="vlan_submit_{{ forloop.counter }}" class="btn btn-primary" disabled
+                        <button type="submit" id="vlan_submit_{{ forloop.counter }}" class="btn btn-primary" value="vlan" disabled
                                 formaction="{% url 'switches:pvid_change' group.id switch.id iface.key %}"
                             {% if request.user.profile.are_you_sure %}
                                 onclick="return confirm_change('Are you sure you want change VLAN on interface {{ iface.name }}?')"
                             {% endif %}
                         >
                           <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_save_{{ forloop.counter }}"></span>
-                          <span id="spinner_vlan_submit_{{ forloop.counter }}_text"
+                          <span id="spinner_vlan_submit_{{ forloop.counter }}_text" class="submit-spinner-text"
                                 data-bs-toggle="tooltip" title="Click here to change the untagged vlan!">
                             <i class="fa-solid fa-sync" aria-hidden="true"></i>Change
                           </span>
                         </button>
+<!--
 <script>
   // add listener to vlan submit button
   document.getElementById('vlan_description_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
@@ -272,7 +273,7 @@
     spanText.textContent = 'Updating...';
   });
 </script>
-
+-->
                       <!-- Add script to detect vlan input change and enable submit -->
                       <script>
                         // value at initial form rendering:
@@ -317,18 +318,19 @@
                              id="description{{ forloop.counter }}"
                              data-bs-toggle="tooltip" title="Type the new description here!"
                              onkeyup="checkDescrChanged{{ forloop.counter }}()">
-                      <button type="submit" id="description_submit_{{ forloop.counter }}" class="btn btn-primary" disabled
+                      <button type="submit" id="description_submit_{{ forloop.counter }}" class="btn btn-primary" value="description" disabled
                               formaction="{% url 'switches:description_change' group.id switch.id iface.key %}"
                           {% if request.user.profile.are_you_sure %}
                               onclick="return confirm_change('Are you sure you want change the description on interface {{ iface.name }}?')"
                           {% endif %}
                       >
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="spinner_description_{{ forloop.counter }}"></span>
-                        <span id="spinner_description_submit_{{ forloop.counter }}_text"
+                        <span id="spinner_description_submit_{{ forloop.counter }}_text" class="submit-spinner-text"
                               data-bs-toggle="tooltip" title="Click here to change the description!">
                           <i class="fa-solid fa-sync" aria-hidden="true"></i>Change
                         </span>
                       </button>
+<!--
 <script>
   // add listener to description submit
   document.getElementById('vlan_description_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
@@ -343,6 +345,7 @@
     spanText.textContent = 'Updating...';
   });
 </script>
+-->
                   {% else %}
                     {{ iface.description }}
                   {% endif %}
@@ -350,6 +353,28 @@
                 {# django parser sequentially, so sees this as (can_change and can_edit) OR vlan_count ! #}
                 {% if connection.can_change_description and iface.can_edit_description or connection.vlan_count %}
                     {# end of vlan and description edit form #}
+
+<script>
+  // add listener to description submit
+  document.getElementById('vlan_description_form_{{ forloop.counter }}').addEventListener('submit', function(event) {
+    // Get the specific button that triggered the submit, either vlan change or description change
+    const submitButton = event.submitter;
+
+    // Access the button's properties (like value, name, or textContent)
+    console.log('Button value:', submitButton.value); // value = 'vlan' or 'description'
+
+    // set the spinner to visible and change the submit button text
+    const spinner = submitButton.querySelector('.spinner-border');
+    const spinnerText = submitButton.querySelector('submit-spinner-text');
+    // Disable the button
+    submitButton.disabled = true;
+    // Show the spinner
+    spinner.classList.remove('d-none');
+    // Update text on button
+    spinnerText.textContent = 'Updating...';
+  });
+</script>
+
                     </form>
                 {% endif %}
                 </td>
