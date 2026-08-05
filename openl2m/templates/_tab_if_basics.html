@@ -227,16 +227,16 @@
                         id="vlan_description_form_{{ forloop.counter }}"
                         method="post"
                         >
+                        {% csrf_token %}
                 {% endif %}
 
                 {% if connection.vlan_count %}
                 <td>
                   {% if iface.untagged_vlan > 0 %}
                     {% if connection.can_change_vlan and iface.lacp_type == LACP_IF_TYPE_NONE %}
-                        {% csrf_token %}
                         <select name="new_pvid" data-bs-toggle="tooltip" title="Select the new vlan here"
                                 id="vlan_select{{ forloop.counter }}"
-                                onchange="checkVlanChanged{{ forloop.counter }}()"
+                                onchange="checkVlanOrDescriptionChanged{{ forloop.counter }}()"
                                 aria-label="Select new vlan here">
                           {% for vlan_id,vlan in connection.allowed_vlans.items %}
                             <option
@@ -275,6 +275,7 @@
 </script>
 -->
                       <!-- Add script to detect vlan input change and enable submit -->
+<!--
                       <script>
                         // value at initial form rendering:
                         const initialVlanValue{{ forloop.counter }} = document.getElementById('vlan_select{{ forloop.counter }}').value;
@@ -288,6 +289,7 @@
                           }
                         }
                       </script>
+-->
                     {% else %} {# not can_change_vlan #}
                       <span data-bs-toggle="tooltip" title="Cannot edit vlan {{iface.untagged_vlan}} '{{ connection.vlans|get_dictionary_value:iface.untagged_vlan }}' due to interface status (LACP, etc.)">
                         {{ iface.untagged_vlan }}
@@ -302,6 +304,7 @@
                 <td>
                   {% if connection.can_change_description and iface.can_edit_description %}
                     <!-- Add script to detect description input change and enable submit -->
+<!--
                     <script>
                       function checkDescrChanged{{ forloop.counter }}() {
                         const newDescr = document.getElementById('description{{ forloop.counter }}');
@@ -313,11 +316,11 @@
                         }
                       }
                     </script>
-                      {% csrf_token %}
+-->
                       <input type="text" size=40 maxlength="{{ connection.max_description_size }}" name="new_description" value="{{ iface.description }}"
                              id="description{{ forloop.counter }}"
                              data-bs-toggle="tooltip" title="Type the new description here!"
-                             onkeyup="checkDescrChanged{{ forloop.counter }}()">
+                             onkeyup="checkVlanOrDescriptionChanged{{ forloop.counter }}()">
                       <button type="submit" id="description_submit_{{ forloop.counter }}" class="btn btn-primary" value="description" disabled
                               formaction="{% url 'switches:description_change' group.id switch.id iface.key %}"
                           {% if request.user.profile.are_you_sure %}
@@ -353,6 +356,39 @@
                 {# django parser sequentially, so sees this as (can_change and can_edit) OR vlan_count ! #}
                 {% if connection.can_change_description and iface.can_edit_description or connection.vlan_count %}
                     {# end of vlan and description edit form #}
+<script>
+  // script to handle change of either vlan or description. Set proper submit button to enable.
+  // If both changed also change text to "BOTH"
+{% if connection.vlan_count and connection.can_change_vlan and iface.lacp_type == LACP_IF_TYPE_NONE and iface.untagged_vlan > 0 %}
+  // value at initial form rendering:
+  const initialVlanValue{{ forloop.counter }} = document.getElementById('vlan_select{{ forloop.counter }}').value;
+{% endif %}
+  function checkVlanOrDescriptionChanged{{ forloop.counter }}() {
+    console.log("checkVlanOrDescriptionChanged{{ forloop.counter }} firing...")
+  {% if connection.vlan_count and connection.can_change_vlan and iface.lacp_type == LACP_IF_TYPE_NONE and iface.untagged_vlan > 0 %}
+    const vlanSelect = document.getElementById('vlan_select{{ forloop.counter }}');
+    const vlanSubmitButton = document.getElementById('vlan_submit_{{ forloop.counter }}');
+    if (vlanSelect.value !== initialVlanValue{{ forloop.counter }}) {
+      console.log(" vlan changed!")
+      vlanSubmitButton.disabled = false;   // selected vlan changed, enable the submit button
+    } else {
+      console.log(" NO vlan change.")
+      vlanSubmitButton.disabled = true;    // No changes from original vlan, disable the submit button
+    }
+  {% endif %}
+  {% if connection.can_change_description and iface.can_edit_description %}
+    const newDescr = document.getElementById('description{{ forloop.counter }}');
+    const descrSubmitButton = document.getElementById('description_submit_{{ forloop.counter }}');
+    if (newDescr.value.trim() !== newDescr.defaultValue) {
+      console.log(" descr. changed!")
+      descrSubmitButton.disabled = false;   // Input changes, enable the submit button
+    } else {
+      console.log(" NO descr. change.")
+      descrSubmitButton.disabled = true;    // No changes from original, disable the submit button
+    }
+  {% endif %}
+  }
+</script>
 
 <script>
   // add listener to description submit
@@ -375,7 +411,7 @@
   });
 </script>
 
-                    </form>
+                    </form> {# vlan_description_form_x #}
                 {% endif %}
                 </td>
 
