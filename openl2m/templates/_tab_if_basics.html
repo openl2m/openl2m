@@ -365,12 +365,18 @@
 {% endif %}
   function checkVlanOrDescriptionChanged{{ forloop.counter }}() {
     console.log("checkVlanOrDescriptionChanged{{ forloop.counter }} firing...")
+  {% if connection.vlan_count and connection.can_change_vlan and iface.lacp_type == LACP_IF_TYPE_NONE and iface.untagged_vlan > 0 and connection.can_change_description and iface.can_edit_description %}
+    // track of both are changed!
+    let vlanChanged = false
+    let descrChanged = false
+  {% endif %}
   {% if connection.vlan_count and connection.can_change_vlan and iface.lacp_type == LACP_IF_TYPE_NONE and iface.untagged_vlan > 0 %}
     const vlanSelect = document.getElementById('vlan_select{{ forloop.counter }}');
     const vlanSubmitButton = document.getElementById('vlan_submit_{{ forloop.counter }}');
     if (vlanSelect.value !== initialVlanValue{{ forloop.counter }}) {
       console.log(" vlan changed!")
       vlanSubmitButton.disabled = false;   // selected vlan changed, enable the submit button
+      vlanChanged = true
     } else {
       console.log(" NO vlan change.")
       vlanSubmitButton.disabled = true;    // No changes from original vlan, disable the submit button
@@ -382,10 +388,19 @@
     if (newDescr.value.trim() !== newDescr.defaultValue) {
       console.log(" descr. changed!")
       descrSubmitButton.disabled = false;   // Input changes, enable the submit button
+      descrChanged = true
     } else {
       console.log(" NO descr. change.")
       descrSubmitButton.disabled = true;    // No changes from original, disable the submit button
     }
+  {% if connection.vlan_count and connection.can_change_vlan and iface.lacp_type == LACP_IF_TYPE_NONE and iface.untagged_vlan > 0 and connection.can_change_description and iface.can_edit_description %}
+    if(vlanChanged && descrChanged) {
+      console.log("BOTH changed!")
+      // change text on both vlan and description submit buttons:
+      vlanSubmitButton.textContent = "! Both"
+      descrSubmitButton.textContent = "! Both"
+    }
+  {% endif %}
   {% endif %}
   }
 </script>
