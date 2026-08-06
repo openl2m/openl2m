@@ -153,6 +153,11 @@ urlpatterns = [
         name="pvid_change",
     ),
     path(
+        "<int:group_id>/<int:switch_id>/<ifname:interface_name>/new_pvid_descr/",
+        views.InterfacePvidAndDescrChange.as_view(),
+        name="pvid_descr_change",
+    ),
+    path(
         "<int:group_id>/<int:switch_id>/<ifname:interface_name>/poe/<int:new_state>/",
         views.InterfacePoeChange.as_view(),
         name="poe_change",

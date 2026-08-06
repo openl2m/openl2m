@@ -86,6 +86,7 @@ from switches.connect.constants import (
 )
 from switches.download import create_eth_neighbor_xls_file, create_interfaces_xls_file
 from switches.mixins import SwitchActionMixin, SwitchPermissionMixin
+from switches.device_actions import DeviceActions
 from switches.myview import MyView
 from switches.permissions import get_group_and_switch, get_connection_if_permitted, get_my_device_groups
 
@@ -100,6 +101,7 @@ from switches.stats import (
 
 from switches.utils import (
     success_page,
+    success_page_by_id,
     warning_page,
     error_page,
     error_page_by_id,
@@ -1260,7 +1262,6 @@ class InterfaceDescriptionChange(LoginRequiredMixin, SwitchActionMixin, MyView):
 class InterfacePvidChange(LoginRequiredMixin, SwitchActionMixin, MyView):
     """
     Change the PVID untagged vlan on an interfaces.
-    This still needs to handle dot1q tagged ("trunk") ports.
 
     Params:
         request:  HttpRequest() object
@@ -1297,6 +1298,58 @@ class InterfacePvidChange(LoginRequiredMixin, SwitchActionMixin, MyView):
             interface_key=interface_name,
             new_pvid=new_pvid,
         )
+
+
+class InterfacePvidAndDescrChange(LoginRequiredMixin, SwitchActionMixin, MyView):
+    """
+    Change the PVID untagged vlan AND the description on an interfaces.
+
+    Params:
+        request:  HttpRequest() object
+        group_id: (int) the pk of the SwitchGroup()
+        switch_id: (int) the pk of the Switch()
+        interface_name: (str) the key or to the Interface() in the list of Interface()s
+
+    Returns:
+        renders either OK or Error page, depending permissions and result.
+    """
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_name,
+    ):
+        dprint("InterfacePvidAndDescrChange() - POST called")
+
+        # read the submitted form data:
+        try:
+            new_pvid = int(request.POST.get("new_pvid"))
+            new_description = request.POST.get("new_description")
+        except Exception:
+            error = Error()
+            error.description = "Missing required parameter: 'new_pvid' or 'description'"
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=error)
+
+        # now we will call the description and vlan actions.
+        actions = DeviceActions(request, group_id, switch_id)
+
+        # description first
+        retval, info = actions.interface_description_change(
+            interface_key=interface_name, new_description=new_description
+        )
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        # vlan next
+        retval, info = actions.interface_pvid_change(interface_key=interface_name, new_pvid=new_pvid)
+        if not retval:
+            return error_page_by_id(request=request, group_id=group_id, switch_id=switch_id, error=info)
+
+        # all OK!
+        description = "Vlan and Description changed!"
+        return success_page_by_id(request, group_id, switch_id, mark_safe(description))
 
 
 #

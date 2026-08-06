@@ -399,6 +399,10 @@
       // change text on both vlan and description submit buttons:
       vlanSubmitButton.textContent = "! Both"
       descrSubmitButton.textContent = "! Both"
+      // change the form submit url as well!
+      vlanSubmitButton.formAction = "{% url 'switches:pvid_descr_change' group.id switch.id iface.key %}"
+      descrSubmitButton.formAction = "{% url 'switches:pvid_descr_change' group.id switch.id iface.key %}"
+
     }
   {% endif %}
   {% endif %}
@@ -412,7 +416,7 @@
     const submitButton = event.submitter;
 
     // Access the button's properties (like value, name, or textContent)
-    console.log('Button value:', submitButton.value); // value = 'vlan' or 'description'
+    console.log('vlan_description_form_{{ forloop.counter }} Submit - Button value:', submitButton.value); // value = 'vlan' or 'description'
 
     // set the spinner to visible and change the submit button text
     const spinner = submitButton.querySelector('.spinner-border');
