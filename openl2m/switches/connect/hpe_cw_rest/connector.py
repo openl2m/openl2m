@@ -20,6 +20,11 @@ in the HPE Comware NetConf documentation.
 TO DO:
 - description set to empty string ''
 
+DOCUMENTATION:
+the code here is primarily based on these PDFs:
+- "H3C Access Controllers REST API Developers Guide-6W100-book", this has examples of Python code.
+- "HPE FlexFabric 5944&5945 Comware 7 API Reference" (HPE support site login required)
+  where all the current API endpoints are described.
 """
 
 import base64
@@ -86,6 +91,10 @@ class HPECwRestConnector(RESTConnector):
         super().__init__(request, group, switch)
         self.description = "HPE Comware REST API driver"
         self.vendor_name = "HPE/Aruba"
+
+        # do not cache REST tokens set in the headers
+        self.set_do_not_cache_attribute("headers")
+
         # we can override the settings calculated from switch.read_only, group.ready_only and user.profile.read_only
         # but we should only do this to create a Read-Only driver!
         # self.read_only = True
@@ -97,7 +106,6 @@ class HPECwRestConnector(RESTConnector):
 
         # this holds the custom REST api attributes
         self.token: str = ""  # REST token after username/password login
-        self.token_timeout: str = ""  # time token expires
         self.set_do_not_cache_attribute("token")
 
         self.port_index_to_if_index: dict[int, str] = (
@@ -119,6 +127,10 @@ class HPECwRestConnector(RESTConnector):
         self.can_set_vlan_name = True  # set to False if vlan create/delete cannot set/change vlan name!
         self.can_edit_tags = True  # True if this driver can edit 802.1q tagged vlans on interfaces
 
+    def __del__(self):
+        # when we close the object, release the REST ticket, so the switch does not run out of resources!
+        self._close_device()
+
     #########################################
     # Comware REST API supporting functions #
     #########################################
@@ -127,6 +139,7 @@ class HPECwRestConnector(RESTConnector):
         #
         # set request headers with our API authentication token. We use JSON format as default
         #
+        dprint(f"_set_auth_headers() type={data_type}, token={self.token}")
         self.headers = {
             "X-Auth-Token": self.token,
             "Content-Type": f"application/{data_type}",
@@ -162,11 +175,27 @@ class HPECwRestConnector(RESTConnector):
 
     def _close_device(self) -> bool:
         """
-        eAPI is stateless, just clear out token.
+        eAPI is stateless, but we will delete the token on the device.
         """
         dprint("HPECwRestConnector._close_device()")
-        self.token = ""
-        self.token_timeout = ""
+        if self.token:
+            # do should not have to check creds if we get to closing state!
+            # do we want to check SSL certificates?
+            if not self.switch.netmiko_profile.verify_hostkey:
+                dprint("  Cert warnings disabled in urllib3!")
+                # disable unknown cert warnings
+                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                # or all warnings:
+                urllib3.disable_warnings()
+            # and remove it
+            try:
+                self._delete(path=f"tokens/{self.token}", message="API LOGOUT")
+            except Exception as err:
+                # catch, but really ignore this, as older device tend to return
+                # "401 Reason: Unauthorized", instead of "204 No Content"
+                dprint(f"ERROR deleting token: {err}")
+            # clear token info
+            self.token = ""
         return True
 
     def login(self):
@@ -189,9 +218,8 @@ class HPECwRestConnector(RESTConnector):
             data = json.loads(self.response.text)
             if "token-id" in data:
                 self.token = data['token-id']
-                self.token_timeout = data['expiry-time']
+                # self.token_timeout = data['expiry-time']  # not used
                 dprint(f"  Found token: {self.token}")
-                dprint(f"  Timeout: {self.token_timeout}")
                 self._set_auth_headers()
                 return True
             # Hmm? No token?
@@ -590,6 +618,9 @@ class HPECwRestConnector(RESTConnector):
         # save driver info
         self.save_driver_info()
 
+        # to prevent the device from running out of REST ticket resources, close REST session
+        self._close_device()
+
         return True
 
     def get_my_hardware_details(self) -> bool:
@@ -753,7 +784,6 @@ class HPECwRestConnector(RESTConnector):
         dprint("HPECwRestConnector.get_my_client_data()")
 
         if not self._open_device():
-            dprint("_open_device() failed!")
             return False
 
         #
@@ -900,6 +930,9 @@ class HPECwRestConnector(RESTConnector):
                 # dprint(f"\nLLDP: {pprint.pformat(nb)}")
                 self.parse_neighbor_management(nb=nb)
 
+        # to prevent the device from running out of REST ticket resources, close REST session
+        self._close_device()
+
         return True
 
     def parse_neighbor(self, nb):
@@ -1031,6 +1064,9 @@ class HPECwRestConnector(RESTConnector):
         # interface.admin_status = new_state
         dprint(f"HPECwRestConnector.set_interface_admin_status() for {interface.name} to {bool(new_state)}")
 
+        if not self._open_device():
+            return False
+
         # status values: 1=up, 2=down
         if new_state:
             status = 1
@@ -1048,6 +1084,7 @@ class HPECwRestConnector(RESTConnector):
         }
         try:
             resp = self._put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
+            self._close_device()
             if resp:
                 # all OK, now do the book keeping
                 super().set_interface_admin_status(interface=interface, new_state=new_state)
@@ -1058,6 +1095,7 @@ class HPECwRestConnector(RESTConnector):
             self.error.details = "We're not sure what happened (?)"
             return False
         except Exception as err:
+            self._close_device()
             self.error.status = True
             self.error.description = "Error changing interface state!"
             self.error.details = format(err)
@@ -1097,8 +1135,12 @@ class HPECwRestConnector(RESTConnector):
             "Description": description,
         }
 
+        if not self._open_device():
+            return False
+
         try:
             resp = self._put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
+            self._close_device()
             if resp:
                 # all OK, now do the book keeping
                 super().set_interface_description(interface=interface, description=description)
@@ -1109,6 +1151,7 @@ class HPECwRestConnector(RESTConnector):
             self.error.details = "We're not sure what happened (?)"
             return False
         except Exception as err:
+            self._close_device()
             self.error.status = True
             self.error.description = "Error setting description!"
             self.error.details = format(err)
@@ -1164,9 +1207,13 @@ class HPECwRestConnector(RESTConnector):
             "AdminEnable": status,  # True=PoE enabled, False=disabled
         }
 
+        if not self._open_device():
+            return False
+
         # go set PoE state
         try:
             resp = self._put(path="PoE/Ports", params=params, data=json.dumps(data))
+            self._close_device()
             if resp:
                 # all OK, now do the book keeping
                 super().set_interface_poe_status(interface, new_state)
@@ -1177,6 +1224,7 @@ class HPECwRestConnector(RESTConnector):
             self.error.details = "We're not sure what happened (?)"
             return False
         except Exception as err:
+            self._close_device()
             self.error.status = True
             self.error.description = f"Error setting PoE to {status_name}!"
             self.error.details = format(err)
@@ -1212,8 +1260,12 @@ class HPECwRestConnector(RESTConnector):
             "PVID": new_vlan_id,  # valid vlan id's
         }
 
+        if not self._open_device():
+            return False
+
         try:
             resp = self._put(path="Ifmgr/Interfaces", params=params, data=json.dumps(data))
+            self._close_device()
             if resp:
                 # all OK, now do the book keeping
                 super().set_interface_untagged_vlan(interface=interface, new_vlan_id=new_vlan_id)
@@ -1224,6 +1276,7 @@ class HPECwRestConnector(RESTConnector):
             self.error.details = "We're not sure what happened (?)"
             return False
         except Exception as err:
+            self._close_device()
             self.error.status = True
             self.error.description = f"Error setting vlan to {new_vlan_id}!"
             self.error.details = format(err)
@@ -1279,6 +1332,9 @@ class HPECwRestConnector(RESTConnector):
             else:
                 dprint("Already Trunk mode!")
 
+        if not self._open_device():
+            return False
+
         # and make the API call for the Access/Trunk setting:
         try:
             dprint(f"Setting Mode to {mode}")
@@ -1315,11 +1371,13 @@ class HPECwRestConnector(RESTConnector):
                             self.error.status = True
                             self.error.description = "Error adding vlans to trunk! Interface is now in UNKNOWN state!"
                             self.error.details = ""
+                            self._close_device()
                             return False
                     except Exception as err:
                         self.error.status = True
                         self.error.description = "Error adding vlans to trunk! Interface is now in UNKNOWN state!"
                         self.error.details = format(err)
+                        self._close_device()
                         return False
                 # all OK, now do the book keeping
                 dprint("Calling Bookkeeping...")
@@ -1328,11 +1386,13 @@ class HPECwRestConnector(RESTConnector):
                 )
                 return True
             # error ?
+            self._close_device()
             self.error.status = True
             self.error.description = f"Error setting untagged vlan and {mode} mode!"
             self.error.details = "We're not sure what happened (?)"
             return False
         except Exception as err:
+            self._close_device()
             self.error.status = True
             self.error.description = f"Error setting untagged vlan and {mode} mode"
             self.error.details = format(err)
@@ -1359,9 +1419,13 @@ class HPECwRestConnector(RESTConnector):
             "Name": vlan_name,
         }
 
+        if not self._open_device():
+            return False
+
         try:
             # create requires a HTTP POST
             success = self._post(path="VLAN/VLANs", data=json.dumps(data))
+            self._close_device()
             if success:
                 # all OK, now do the book keeping
                 super().vlan_create(vlan_id=vlan_id, vlan_name=vlan_name)
@@ -1372,6 +1436,7 @@ class HPECwRestConnector(RESTConnector):
             self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
             return False
         except Exception as err:
+            self._close_device()
             self.error.status = True
             self.error.description = "Error creating vlan!"
             self.error.details = format(err)
@@ -1409,9 +1474,13 @@ class HPECwRestConnector(RESTConnector):
             # "Description": not supported...,
         }
 
+        if not self._open_device():
+            return False
+
         try:
             # create requires a HTTP POST
             success = self._put(path="VLAN/VLANs", params=params, data=json.dumps(data))
+            self._close_device()
             if success:
                 # all OK, now do the book keeping
                 super().vlan_edit(vlan_id=vlan_id, vlan_name=vlan_name)
@@ -1422,6 +1491,7 @@ class HPECwRestConnector(RESTConnector):
             self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
             return False
         except Exception as err:
+            self._close_device()
             self.error.status = True
             self.error.description = "Error editing vlan!"
             self.error.details = format(err)
@@ -1450,8 +1520,13 @@ class HPECwRestConnector(RESTConnector):
         params = {
             "index": f"ID={vlan_id}",
         }
+
+        if not self._open_device():
+            return False
+
         try:
             success = self._delete(path="VLAN/VLANs", params=params)
+            self._close_device()
             if success:
                 # all OK, now do the book keeping
                 super().vlan_delete(vlan_id=vlan_id)
@@ -1462,6 +1537,7 @@ class HPECwRestConnector(RESTConnector):
             self.error.details = f"We're not sure what happened (?) Http return code {self.response.status_code}"
             return False
         except Exception as err:
+            self._close_device()
             self.error.status = True
             self.error.description = "Error deleting vlan!"
             self.error.details = format(err)
