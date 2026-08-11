@@ -27,6 +27,21 @@ New Configuration Options
     DNS_TIMEOUT = 3
 
 
+Version 4.2.4
+-------------
+
+Release Date: 2026-08-11
+
+* allow change of interface vlan and description with a single submit.
+* increase the size of search results box before scrolling is required.
+
+Bug fixes:
+
+* added new ruff v0.16 code compliance updates.
+* fix socket timeout introduced from DNS_TIMEOUT setting.
+* fix HPE Comware REST API driver idle timeout.
+
+
 Version 4.2.3
 -------------
 
