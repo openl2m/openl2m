@@ -1955,19 +1955,30 @@ class Connector:
                 continue
 
             # is 802.1q tag editing allowed? (default=no)
-            # pylint: disable=too-many-boolean-expressions
+            # interface has to technically handle vlan tag editing, and the user needs permission.
             if (
                 self.can_edit_tags
                 and self.can_change_vlan
                 and self.vlan_count
                 and iface.type == IF_TYPE_ETHERNET
                 and iface.untagged_vlan > 0
-                and (user.is_staff or user.is_superuser)
-                and settings.ALLOW_TAGS_EDIT
-                and settings.STAFF_ALLOW_TAGS_EDIT
                 and iface.lacp_type == LACP_IF_TYPE_NONE
+                and (user.is_superuser or (user.is_staff and settings.STAFF_ALLOW_TAGS_EDIT))
             ):
                 iface.can_edit_tags = True
+
+            # if (
+            #     self.can_edit_tags
+            #     and self.can_change_vlan
+            #     and self.vlan_count
+            #     and iface.type == IF_TYPE_ETHERNET
+            #     and iface.untagged_vlan > 0
+            #     and (user.is_staff or user.is_superuser)
+            #     and settings.ALLOW_TAGS_EDIT
+            #     and settings.STAFF_ALLOW_TAGS_EDIT
+            #     and iface.lacp_type == LACP_IF_TYPE_NONE
+            # ):
+            #     iface.can_edit_tags = True
 
             # super-users have access to all other ethernet interfaces!
             if user.is_superuser:
