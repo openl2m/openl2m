@@ -49,8 +49,8 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = "4.2.4"
-VERSION_DATE = "2026-08-11"
+VERSION = "4.2.5"
+VERSION_DATE = "BETA"
 
 # Hostname
 HOSTNAME = platform.node()

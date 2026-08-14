@@ -26,6 +26,13 @@ New Configuration Options
     # DNS read timeout in seconds, for both forward and reverse lookups.
     DNS_TIMEOUT = 3
 
+Version 4.2.5
+-------------
+
+Release Date: TBD
+
+* add REST endpoint to edit interface 802.1q vlan tags
+
 
 Version 4.2.4
 -------------
