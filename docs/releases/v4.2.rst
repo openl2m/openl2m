@@ -38,6 +38,8 @@ Bug fixes:
 
 * fix error in AOS-CX API driver when "poe_power" attribute missing.
 * fix logic denying admin to edit interface tags.
+* HPE Comware API driver clear description will reset to default '<name> Interface'
+* fix modal stacking black screen on IOS WebKit/iPad browsers.
 
 
 Version 4.2.4
