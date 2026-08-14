@@ -72,8 +72,13 @@ header of either *application/x-www-form-urlencoded* or *application/json*
     * - api/switches/<group>/<switch>/interface/<interface_id>/vlan/
       - No
       - Yes
-      - vlan(int)
+      - vlan(integer vlan id)
       - Set the untagged vlan on an interface.
+    * - api/switches/<group>/<switch>/interface/<interface_id>/tags/
+      - No
+      - Yes
+      - untagged_vlan(integer vlan id), tagged_vlans(list of 0 or more integer vlan id's), allow_all(bool)
+      - Set the untagged and tagged vlans on an interface.
     * - api/switches/<group>/<switch>/interface/<interface_id>/state/
       - No
       - Yes

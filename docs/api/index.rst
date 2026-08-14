@@ -30,6 +30,7 @@ This describes the use of the REST API to read and change settings of devices.
    api_basic_details.rst
    api_interface_state.rst
    api_interface_vlan.rst
+   api_interface_tags.rst
    api_interface_poe.rst
    api_interface_description.rst
    api_save_config.rst
