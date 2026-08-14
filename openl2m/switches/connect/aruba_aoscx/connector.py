@@ -246,7 +246,7 @@ class AosCxConnector(RESTConnector):
                         self.stack_members[subsys_id] = member
 
                     # 'poe_power' is interesting
-                    if subsystem['poe_power']:  # not empty!
+                    if subsystem.get('poe_power'):  # not empty!
                         # we use the chassis id as the power supply id
                         dprint("FOUND POE INFO")
                         # get used and max power:
@@ -261,7 +261,7 @@ class AosCxConnector(RESTConnector):
                     # 'power_supplies': {'1/1': '/rest/v10.13/system/subsystems/chassis,1/power_supplies/1%2F1',
                     #                    '1/2': '/rest/v10.13/system/subsystems/chassis,1/power_supplies/1%2F2'},
 
-                    if subsystem['power_supplies']:
+                    if subsystem.get('power_supplies'):
                         powersupplies = self._get(
                             uri=f"{subsystem['power_supplies']}?depth=2", message="Getting PS Info"
                         )
