@@ -325,6 +325,38 @@ class APIInterfaceSetDescription(
             return respond(status=info.code, text=info.description)
         return respond_ok(info.description)
 
+class APIInterfaceSetTags(
+    APIView,
+):
+    """
+    Set the description for the selected interface.
+    """
+
+    def post(
+        self,
+        request,
+        group_id,
+        switch_id,
+        interface_id,
+    ):
+        dprint("APIInterfaceSetTags(POST)")
+        try:
+            untagged_vlan = int(request.data["untagged_vlan"])
+            tagged_vlans = str(request.data["tagged_vlans"])
+            allow_all = bool(request.data["allow_all"])
+        except Exception:
+            return respond_error("Missing or invalid parameter: 'untagged_vlan', 'tagged_vlans' and 'allow_all' are required!")
+
+        actions = DeviceActions(request, group_id, switch_id)
+        retval, info = actions.interface_tags_edit(
+            interface_key=interface_id,
+            pvid=untagged_vlan,
+            tagged_vlans=tagged_vlans,
+            allow_all=allow_all,
+        )
+        if not retval:
+            return respond(status=info.code, text=info.description)
+        return respond_ok(info.description)
 
 class APISwitchVlanAdd(
     APIView,

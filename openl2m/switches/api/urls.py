@@ -26,6 +26,7 @@ from switches.api.views import (
     APIInterfaceSetState,
     APIInterfaceSetPoE,
     APIInterfaceSetDescription,
+    APIInterfaceSetTags,
 )
 
 app_name = "switches-api"
@@ -92,4 +93,11 @@ urlpatterns = [
         APIInterfaceSetDescription.as_view(),
         name="api_interface_set_description",
     ),
+    path(
+        "<int:group_id>/<int:switch_id>/interface/<ifname:interface_id>/tags/",
+        APIInterfaceSetTags.as_view(),
+        name="api_interface_set_tags",
+    ),
 ]
+
+
