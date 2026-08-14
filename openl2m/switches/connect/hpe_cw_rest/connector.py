@@ -1118,12 +1118,15 @@ class HPECwRestConnector(RESTConnector):
         # interface.admin_status = new_state
         dprint(f"HPECwRestConnector.set_interface_description() for {interface.name} to '{description}'")
 
-        if not description:
-            # don't know yet how to handle deleting description!
-            self.error.status = True
-            self.error.description = "Clearing description is NOT implemented yet!"
-            self.error.details = ""
-            return False
+        if description:
+            new_description = description
+        else:
+            # The API does not accept an empty Description: the Ifmgr data model requires
+            # a length of 1-255, so PUT/PATCH with "" fails, and DELETE removes the whole
+            # interface config (the table row). The CLI "undo description" restores the
+            # documented default "<full interface name> Interface", so writing that value
+            # is the REST equivalent of clearing the description.
+            new_description = f"{interface.name} Interface"
 
         # query string parameters
         params = {
@@ -1132,7 +1135,7 @@ class HPECwRestConnector(RESTConnector):
         # body data
         data = {
             "IfIndex": int(interface.key),
-            "Description": description,
+            "Description": new_description,
         }
 
         if not self._open_device():
@@ -1143,7 +1146,7 @@ class HPECwRestConnector(RESTConnector):
             self._close_device()
             if resp:
                 # all OK, now do the book keeping
-                super().set_interface_description(interface=interface, description=description)
+                super().set_interface_description(interface=interface, description=new_description)
                 return True
             # error ?
             self.error.status = True
