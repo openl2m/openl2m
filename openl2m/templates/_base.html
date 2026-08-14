@@ -137,6 +137,13 @@
   <script src="{% static 'bootstrap-5.3.8-dist/js/bootstrap.bundle.js' %}"></script>
   <script src="{% static 'js/openl2m.js' %}"></script>
   <script>
+    // Move all modals to be direct children of <body>.
+    // Modals rendered inside a scroll container (e.g. .table-responsive) get trapped
+    // in its stacking context on WebKit browsers (iPad Safari/Brave), leaving them
+    // grayed out behind the backdrop and unclickable.
+    document.querySelectorAll('.modal').forEach(function (modal) {
+      document.body.appendChild(modal);
+    });
     // New Bootstrap 5 tooltip activation:
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
