@@ -26,12 +26,18 @@ New Configuration Options
     # DNS read timeout in seconds, for both forward and reverse lookups.
     DNS_TIMEOUT = 3
 
+
 Version 4.2.5
 -------------
 
-Release Date: TBD
+Release Date: 2026-08-14
 
 * add REST endpoint to edit interface 802.1q vlan tags
+
+Bug fixes:
+
+* fix error in AOS-CX API driver when "poe_power" attribute missing.
+* fix logic denying admin to edit interface tags.
 
 
 Version 4.2.4
