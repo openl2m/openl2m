@@ -24,7 +24,8 @@ As seen in the LLDP-MIB:
             lldpRemIndex
         }
 
-**lldpRemLocalPortNum** is of type *LldpPortNumber*, and  identifies the port on which the remote system information is received.
+**lldpRemLocalPortNum** is of type *LldpPortNumber*, and  identifies the (local) device port on which the remote
+system information is received.
 
 Again, from the MIB:
 
@@ -49,7 +50,7 @@ Again, from the MIB:
         port number bit in LldpPortList."
 
 This means that *lldpRemLocalPortNum* is the Q-BRIDGE <port-id>, mapped back to the *ifIndex*
-from MIB-II in *self.qbridge_port_to_if_index[port_id]*
+from MIB-II in *self.qbridge_port_to_if_index[port_id]* (as described in the Vlan Discovery section)
 
 If Q-BRIDGE is NOT implemented, <port-id> = *ifIndex*, ie without the mapping.
 
@@ -64,8 +65,11 @@ Each *lldpRemEntry* entry is a sequence of attributes, all indexed as described 
 
 **lldpRemPortId** is *lldpRemEntry.7* - a value describing the remote connected port name. Interpretation of this field depends on the value of lldpRemPortIdSubType.
 
-**lldpRemPortIdSubtype** is *lldpRemEntry.6* - a value indicating how the interpret lldpRemPortId. We think we can interpret these as strings:
+**lldpRemPortIdSubtype** is *lldpRemEntry.6* - a value indicating how the interpret lldpRemPortId.
+    We think we can interpret the following entries as strings:
+
     LLDP_PORT_SUBTYPE_INTERFACE_ALIAS, LLDP_PORT_SUBTYPE_MAC_ADDRESS, LLDP_PORT_SUBTYPE_NETWORK_ADDRESS, LLDP_PORT_SUBTYPE_INTERFACE_NAME
+
     For all other values, we set the remote port name field to empty ""
 
 **lldpRemPortDesc** is *lldpRemEntry.8* - the remote port's description
@@ -76,9 +80,17 @@ Each *lldpRemEntry* entry is a sequence of attributes, all indexed as described 
 
 **lldpRemSysCapEnabled** is *lldpRemEntry.12* - a bit-mapped field showing the current enabled capabilities of the remote device. E.g. wifi, telephone, router/switch, etc.
 
-**lldpRemChassisIdSubtype** is *lldpRemEntry.4* - what the chassis id means, ie how to interpret the data, eg as a string, ethernet address, ipv4/6 address.
+**lldpRemChassisIdSubtype** is *lldpRemEntry.4* - what the chassis id means, ie how to interpret the data,
+eg as a string, ethernet address, ipv4/6 address. The two most occuring values are 4 - macAddress, ie a standard Ethernet address,
+and 5 -  networkAddress. ie a IP address.,
 
-**lldpRemChassisId** is *lldpRemEntry.5* - the remote chassis id.(see above)
+**lldpRemChassisId** is *lldpRemEntry.5* - the remote chassis id.
+See above, **lldpRemChassisIdSubtype** defined how to interpret this data.
+If *4-macAdress*, this entry returns 6 bytes for the ethernet address.
+
+If *5-networkAddress*, this entry returns one byte for the IP address type, followed by the byte representation of the address.
+E.g. type=1 is IPv4 and this is followed by 4 bytes. type=2 is IPv6, and is followed by 16 more bytes.
+
 
 
 Attribute Parsing

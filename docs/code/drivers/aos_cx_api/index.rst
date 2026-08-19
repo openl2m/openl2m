@@ -1,17 +1,17 @@
 .. image:: ../../../_static/openl2m_logo.png
 
-================================
-Aruba AOS-CX API Driver Overview
-================================
+=====================================
+Aruba AOS-CX REST API Driver Overview
+=====================================
 
-We implement an AOS-CX driver in the AosCxConnector() class in *switches/connect/aruba_aoscx/connector.py*.
+We implement an AOS-CX REST driver in the AosCxConnector() class in *switches/connect/aruba_aoscx/connector.py*.
 
 This class uses the OpenL2M RestConnector() as the base class.
 
-This is a custom AOS-CX REST connector that performs significantly faster then the
-"pyaoscx" package, which also appears to be not thread-safe when running with gunicorn.py
+This is a custom AOS-CX REST connector that performs significantly faster then the "pyaoscx" package.
+(The latter package also appears to not be thread-safe when running with gunicorn.py, and hence causes problems.)
 
-This uses the documented REST API, and allows us to handle any AOS-CX device.
+This driver uses the documented REST API, and allows us to handle any AOS-CX device.
 See https://developer.arubanetworks.com/aruba-aoscx/docs/python-getting-started
 
 A good API doc (at time of writing) is at https://arubanetworking.hpe.com/techdocs/AOS-CX/10.16/PDF/rest_v10-0x.pdf

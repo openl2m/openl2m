@@ -4,6 +4,11 @@
 SSH CLI commands
 ================
 
+We implement the ability to run regular Command-Line Interface (CLI) commands through SSH logins.
+This uses the Python Netmiko library. This is also implemented as a part of the base Connector() class.
+This allows vendor-drivers to override this functionality and implement their own mechanism to run CLI commands.
+
+
 Preparing commands and templates
 --------------------------------
 

@@ -9,8 +9,11 @@ Connector() Class
 
 The *switches/connect/* directory contains the drivers for the various devices supported by OpenL2M.
 
-All drivers are derived from a base Connector() class. This implements basic attributes and functions
-used by all drivers. It is also the programatic interface used by the HTML templates in */templates/*,
+All drivers are derived from a base Connector() class. This class provides the High-Level functions
+that are called by the various Django "views".
+
+The Connector() implements basic attributes and functions used by all drivers.
+It is also the programatic interface used by the HTML templates in */templates/*,
 mostly through the *conn* object passed into the templates.
 
 The following pages attempt to document the Connector() class, and how to use it to store various pieces
@@ -19,7 +22,6 @@ which use the Connector() class.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Information about the Connector() class:
 
    connector.rst
    vlan_info.rst
@@ -46,38 +48,36 @@ implemented and should be used in vendor drivers.
    interface_description.rst
    interface_trunk_edit.rst
 
-
-Vendor Drivers
---------------
-
-Here are some details about some of the drivers we have implemented.
-We currently provide several sub-connectors (sub-classes):
-
-* several based on SNMP (generic, Arista, Aruba/HP-Procurve, Aruba/AOS-CX, Cisco, Juniper, Netgear).
-* a Juniper PyEz-NC API based driver.
-* a REST-API based connector for Arista devices.
-* a REST-API based connector for the HPE/Aruba AOS-S line of devices.
-* a REST-API based connector for the HPE/Aruba AOS-CX line of devices.
-* a REST-API based connector for the HPE Comware line of devices.
-* a read-only driver based on the Napalm automation framework.
-* a SSH commands-only driver using the Python Netmiko module.
-
-Note that the SNMP driver can support several vendors that implemented their own SNMP data.
-See that driver for more details.
-
-We implement the ability to run regular Command-Line Interface (CLI) commands through SSH logins.
-This uses the Python Netmiko library. This is also implemented as a part of the base Connector() class.
-This allows vendor-drivers to override this functionality and implement their own mechanism to run CLI commands.
-See :doc:`SSH connections<netmiko/index>` for details.
-
-Finally, we provide an overview of how to implement a new driver.
+Running Commands
+----------------
 
 .. toctree::
    :maxdepth: 1
-   :caption: Details about (some of) the drivers:
 
-   hierarchy.rst
+   netmiko/index.rst
+
+
+SNMP Driver
+-----------
+
+We have implemented a "generic" SNMP driver, as well as several vendor-specific derivatives,
+i.e. sub-connectors (sub-classes) to support generic, Arista, Aruba/HP-Procurve, Aruba/AOS-CX, Cisco,
+Juniper, Netgear and other devices.
+
+.. toctree::
+   :maxdepth: 1
+
    snmp/index.rst
+
+
+Other Drivers
+-------------
+
+We currently provide several connector for API-based device access.
+
+.. toctree::
+   :maxdepth: 1
+
    arista_eapi/index.rst
    junos_pyez/index.rst
    rest_api/index.rst
@@ -85,5 +85,15 @@ Finally, we provide an overview of how to implement a new driver.
    aos_s_api/index.rst
    hpe_cw_api/index.rst
    napalm/index.rst
-   netmiko/index.rst
-   new-drivers.rst
+   dummy/index.rst
+
+Driver Hierarchy
+----------------
+
+Here is an overview of the current driver inheritance scheme:
+
+.. toctree::
+   :maxdepth: 1
+
+   hierarchy.rst
+

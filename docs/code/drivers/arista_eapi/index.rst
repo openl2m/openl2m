@@ -4,7 +4,11 @@
 Arista eAPI Driver Overview
 ===========================
 
-We implement an Arista eAPI driver. At present, this does not yet support PoE, as we do not have a test device that supports PoE!
+We implement an Arista eAPI driver in *switches/connect/arista_eapi/connector.py*
+
+.. note::
+
+   At present, this does not yet support PoE, as we do not have a test device that supports PoE!
 
 You will need a configuraton similar to documented here to get your device serving API calls:
 https://arista.my.site.com/AristaCommunity/s/article/arista-eapi-101
