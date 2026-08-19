@@ -116,6 +116,37 @@ def hex_string_to_ethernet(hex_string: str) -> str:
     return ""
 
 
+def hex_string_to_ip(hex_string: str) -> str:
+    """
+    Convert a space-separated hex string into an IPv4 or IPv6 address.
+    Defined in the LLDP MIB LldpChassisId, the first byte is the IANA Address Family Number:
+    01=IPv4 02=IPv6, the remaining hex numbers are the byte values of the address.
+    E.g.:
+    "01 0A 01 64 C8" = IPv4 10.1.100.200
+    "02 FD AB 00 01 00 02 00 00 00 00 00 00 00 00 00 10" = IPv6 fdab:1:2::16
+
+    Note this does NO validation at all!
+    """
+    # dprint(f"hex_string_to_ip() for '{hex_string}'")
+    try:
+        hexvalues = hex_string.split(' ')
+        if hexvalues[0] == '01':  # IPv4,  take individual bytes as integers, and format with .
+            # dprint("FOUND IPv4")
+            return ".".join(str(int(b, 16)) for b in hexvalues[1:])
+        elif hexvalues[0] == '02':  # IPv6
+            # dprint("FOUND IPv6")
+            # the IPv6 starts at the 4th char:
+            clean_hex = hex_string[3:].replace(" ", "")
+            # dprint(f"CLEAN HEX: {clean_hex}")
+            return ipaddress.IPv6Address(int(clean_hex, 16))
+        else:
+            # we don't parse the other types...
+            return "Unknown Address Type"
+    except Exception as err:
+        dprint(f"ERROR caught in hex_string_to_ip(): {err}")
+        return "Unknown Address Type"
+
+
 def get_ip_from_sub_oid(sub_oid: str, addr_type: int, has_length: bool) -> str:
     """Convert an OID sub-sub_oid to an IP address in string format.
     Note: currently does NOT do IPV6 parsing yet!

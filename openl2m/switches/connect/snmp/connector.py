@@ -184,6 +184,7 @@ from switches.connect.snmp.constants import (
 )
 from switches.connect.snmp.utils import (
     hex_string_to_ethernet,
+    hex_string_to_ip,
     decimal_to_hex_string_ethernet,
     get_ip_from_sub_oid,
     is_valid_snmp_set_type,
@@ -855,7 +856,9 @@ class SnmpConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "Timeout or Access denied"
-            self.error.details = f"SNMP Get Error in {e.__class__.__name__}: oid '{oid}': {e!r} ({type(e)!s})\n{traceback.format_exc()}"
+            self.error.details = (
+                f"SNMP Get Error in {e.__class__.__name__}: oid '{oid}': {e!r} ({type(e)!s})\n{traceback.format_exc()}"
+            )
             dprint(f"   ERROR in get() - Details:\n{self.error.details}\n")
             return (True, None)
 
@@ -934,7 +937,9 @@ class SnmpConnector(Connector):
         except Exception as e:
             self.error.status = True
             self.error.description = "A timeout or network error occured!"
-            self.error.details = f"SNMP Error: get_snmp_branch {branch_name} bulk_walk(), {e!r} ({type(e)!s})\n{traceback.format_exc()}"
+            self.error.details = (
+                f"SNMP Error: get_snmp_branch {branch_name} bulk_walk(), {e!r} ({type(e)!s})\n{traceback.format_exc()}"
+            )
             dprint(
                 f"   get_snmp_branch({branch_name}).bulk_walk(): Exception: {e.__class__.__name__}\n{self.error.details}\n"
             )
@@ -1270,9 +1275,7 @@ class SnmpConnector(Connector):
         if self.hostname and self.switch.hostname != self.hostname:
             self.switch.hostname = self.hostname
             self.switch.save()
-            self.add_log(
-                type=LOG_TYPE_WARNING, action=LOG_NEW_HOSTNAME_FOUND, description="New System Hostname found"
-            )
+            self.add_log(type=LOG_TYPE_WARNING, action=LOG_NEW_HOSTNAME_FOUND, description="New System Hostname found")
 
         return 1
 
@@ -1375,7 +1378,7 @@ class SnmpConnector(Connector):
 
     def _get_dot1d_port_to_ifindex_map(self) -> int:
         """Read the dot1D-Bridge mapping of (switch) ports to ifIndexes,
-           needed for Q-Bridge and IEEE8021-QBridge vlan bitmap entried that use port-id to map back to ifIndex
+        needed for Q-Bridge and IEEE8021-QBridge vlan bitmap entried that use port-id to map back to ifIndex
         """
         retval = self.get_snmp_branch(
             branch_name="dot1dBasePortIfIndex", parser=self._parse_mibs_dot1d_port_to_ifindex_map
@@ -2464,7 +2467,7 @@ class SnmpConnector(Connector):
             if byte & 1:
                 port_id = (offset * 8) + 8
                 handler(port_id=port_id, vlan_id=vlan_id)
-            offset += 1     # noqa: SIM113 Use `enumerate()` for index variable `offset` in `for` loop
+            offset += 1  # noqa: SIM113 Use `enumerate()` for index variable `offset` in `for` loop
 
     #####################################
     #                                   #
@@ -3635,6 +3638,12 @@ class SnmpConnector(Connector):
                 self.interfaces[if_index].lldp[lldp_index].capabilities = int(cap_bytes[0])
             return True
 
+        # this defines the value of the 'lldpRemChassisId' entry (parsed later, see below)
+        # the return data is an integer indicating the address type.
+        # Most common, and what we can handle, are:
+        # LLDP_CHASSIC_TYPE_ETH_ADDR = 4  macAddress(4), standard Ethernet address
+        # LLDP_CHASSIC_TYPE_NET_ADDR = 5  networkAddress(5), first byte is address type,
+        #                                 next bytes are address.
         lldp_index = oid_in_branch(lldpRemChassisIdSubtype, oid)
         if lldp_index:
             _unused_one, port_id, _unused_two = lldp_index.split(".")
@@ -3659,37 +3668,43 @@ class SnmpConnector(Connector):
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
             if if_index in self.interfaces and lldp_index in self.interfaces[if_index].lldp:
-                # now update with system chassis info, but only chassis type is known
-                # (it should be at this time)
+                # now update with system chassis info, but only if chassis type is known (should be by now)
+                # Note: EzSNMP v2 returns this as hex-encoded strings, eg "AA BB CC DD EE FF"
+                # instead of the byte array returned with EzSNMP v1
                 neighbor = self.interfaces[if_index].lldp[lldp_index]
                 if neighbor.chassis_type > LLDP_CHASSIS_TYPE_NONE:
                     if neighbor.chassis_type == LLDP_CHASSIC_TYPE_ETH_ADDR:
                         # chassis_info = bytes_ethernet_to_string(val)  # EzSNMP v1 format conversion
                         chassis_info = hex_string_to_ethernet(val)  # EzSNMP v2 format conversion
                     elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_NET_ADDR:
+                        # the value is the 'hex string encoded IP bytes with spaces' (EzSNMP v2)
                         # per MIB LldpChassisId, the first byte is the IANA Address Family Number:
-                        net_addr_type = ord(val[0])
-                        if net_addr_type == IANA_TYPE_IPV4:
-                            neighbor.chassis_string_type = IANA_TYPE_IPV4
-                            addr_bytes = val[1:]
-                            chassis_info = ".".join(
-                                "%d" % ord(b) for b in addr_bytes  # pylint: disable=consider-using-f-string
-                            )  # pylint: disable=consider-using-f-string
-                        elif net_addr_type == IANA_TYPE_IPV6:
-                            neighbor.chassis_string_type = IANA_TYPE_IPV6
-                            addr_bytes = val[1:]
-                            chassis_info = ":".join(
-                                "%d" % ord(b) for b in addr_bytes  # pylint: disable=consider-using-f-string
-                            )  # pylint: disable=consider-using-f-string
-                            # we should simplify this here - TBD
-                        else:
-                            chassis_info = "Unknown Address Type"
+                        chassis_info = hex_string_to_ip(val)
+
+                        # this is the old EzSNMP v1 parsing code:
+                        # per MIB LldpChassisId, the first byte is the IANA Address Family Number:
+                        # net_addr_type = ord(val[0])
+                        # if net_addr_type == IANA_TYPE_IPV4:
+                        #     neighbor.chassis_string_type = IANA_TYPE_IPV4
+                        #     addr_bytes = val[1:]
+                        #     chassis_info = ".".join(
+                        #         "%d" % ord(b) for b in addr_bytes  # pylint: disable=consider-using-f-string
+                        #     )  # pylint: disable=consider-using-f-string
+                        # elif net_addr_type == IANA_TYPE_IPV6:
+                        #     neighbor.chassis_string_type = IANA_TYPE_IPV6
+                        #     addr_bytes = val[1:]
+                        #     chassis_info = ":".join(
+                        #         "%d" % ord(b) for b in addr_bytes  # pylint: disable=consider-using-f-string
+                        #     )  # pylint: disable=consider-using-f-string
+                        #     # we should simplify this here - TBD
+
                     elif neighbor.chassis_type == LLDP_CHASSIC_TYPE_LOCAL:
                         # a locally assigned string, we are going to assume name!
                         chassis_info = ""
                         if not neighbor.sys_name:
                             neighbor.sys_name = str(val)
                     else:
+                        dprint(f"WARNING: Can not parse chassis info type: {neighbor.chassis_type}")
                         # we don't parse this chassis_type, so just assume it is a string :-)
                         chassis_info = str(val)
                     neighbor.chassis_string = chassis_info
