@@ -40,8 +40,9 @@ napalm-procurve
 natsort>=8.4.0
 netaddr>=1.2.1
 netmiko>=4.7,<4.8
-#improved PostGreSQL support
-psycopg2-binary
+#improved PostGreSQL support, now using psycopg 3:
+# psycopg2-binary
+psycopg>=3.1.12
 pycodestyle
 pylint
 # pysnmp (original) is no longer supported.
