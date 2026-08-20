@@ -10,7 +10,7 @@ The following steps are for a full production install of OpenL2M. No containers 
 
 **Requirements**
 
-*We recommend you install OpenL2M on Ubuntu 24.04 or 26.04 LTS*
+*We recommend you install OpenL2M on Ubuntu 26.04 or 24.04 LTS*
 
 You can also look at testing in a Docker container, see here for more options: https://github.com/openl2m
 
@@ -22,15 +22,15 @@ You can also look at testing in a Docker container, see here for more options: h
 
 OpenL2M has some requirements:
 
-* Python 3.12 - 3.14 (OpenL2M is developed and tested on v3.12 and 3.14.)
+* Python 3.12 - 3.14 (OpenL2M is developed and tested on v3.14.)
 * net-snmp v5.7 or greater, including net-snmp-devel
 * the Python "ezsnmp" package v2.3.0
 * a web server, with the WSGI capability. We use Nginx in all our documentation.
-  Apache or Caddy may work but is not tested.
+  Basic Caddyserver configuration is documented, but not well tested. Apache may work but is not tested.
 * the Django framework, v6.0 or greater.
-* a PostgreSQL database, running at least version 15. We use v16 in our testing.
+* a PostgreSQL database, running at least version 15. We use v18 in our testing.
 
-  Note: Ubuntu 24.04 comes with Python v3.12 and PostgreSQL v16. Ubuntu 22.04 comes with PostGreSQL v14.
+  Note:Ubuntu 26.04 comes with Python v3.14 and PostGreSQL v18. Ubuntu 24.04 comes with Python v3.12 and PostgreSQL v16.
   **Ubuntu 22.04 and 20.04 are no longer supported!**
 
 .. note::
