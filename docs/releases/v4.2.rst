@@ -27,12 +27,25 @@ New Configuration Options
     DNS_TIMEOUT = 3
 
 
+Version 4.2.6
+-------------
+
+Release Date: 2026-08-21
+
+* use psycopg 3 driver for improved database performance.
+* add more driver code documentation.
+
+Bug fixes:
+
+* fix LLDP remote ip address parsing bug (EzSnmp v2 regression/upgrade bug).
+
+
 Version 4.2.5
 -------------
 
 Release Date: 2026-08-14
 
-* add REST endpoint to edit interface 802.1q vlan tags
+* add REST endpoint to edit interface 802.1q vlan tags.
 
 Bug fixes:
 
