@@ -1549,12 +1549,13 @@ class SnmpConnector(Connector):
         if retval < 0:
             self.add_warning("Error getting 'IP-Address-ifIndex' (ipAddressIfIndex)")
 
-        #
-        # get 'ipAddressPrefix' from IP-MIB ipAddressTable.
-        # this handles both IPv4 and IPv6 interface addresses. Last octed of returned OID is prefix lenght!
-        retval = self.get_snmp_branch(branch_name="ipAddressPrefix", parser=self._parse_mibs_ip_address_prefix)
-        if retval < 0:
-            self.add_warning("Error getting 'IP-Address-Prefix' (ipAddressPrefix)")
+        # only read prefix length if we found ip address info:
+        if retval > 0:
+            # get 'ipAddressPrefix' from IP-MIB ipAddressTable.
+            # this handles both IPv4 and IPv6 interface addresses. Last octed of returned OID is prefix lenght!
+            retval = self.get_snmp_branch(branch_name="ipAddressPrefix", parser=self._parse_mibs_ip_address_prefix)
+            if retval < 0:
+                self.add_warning("Error getting 'IP-Address-Prefix' (ipAddressPrefix)")
 
         return 1
 
