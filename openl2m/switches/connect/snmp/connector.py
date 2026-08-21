@@ -958,7 +958,7 @@ class SnmpConnector(Connector):
 
         count = 0
         for item in items:
-            count = count + 1
+            # count = count + 1     # too soon to increment valid count!
             oid_found = f"{item.oid}.{item.index}"
 
             if settings.DEBUG:
@@ -1000,6 +1000,9 @@ class SnmpConnector(Connector):
                     action=LOG_SNMP_ERROR,
                     description=f"ERROR parsing '{branch_name}' OID={oid_found}, value='{item.value}': {self.error.details}",
                 )
+
+            # valid entry!
+            count = count + 1
 
         # add to timing data, for admin use!
         self.add_timing(branch_name, count, stop_time - start_time)
