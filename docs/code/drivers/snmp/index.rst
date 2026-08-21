@@ -8,8 +8,9 @@ The SNMP driver
 ---------------
 
 Several vendors allow a pure Snmp connector. The base SnmpConnector() and related code is in the
-*switches/connect/snmp/* directory. There are several vendor-specific snmp drivers derired from the
-base snmp class.
+*switches/connect/snmp/* directory. The driver itself is in *connector.py*
+
+There are several vendor-specific snmp drivers derired from the base snmp class.
 
 Below are some documents that explain how we extract interface and vlan information from the
 various SNMP MIBs. Most of that data is read from 'Standard' MIBs, and some vendors have vendor extensions
@@ -24,13 +25,14 @@ for additional data.
    snmp-discover-vlan.rst
    snmp-discover-interface.rst
    snmp-discover-vlan-membership.rst
-   snmp-discover-mac-arp.rst
-   snmp-interface-ip.rst
    snmp-interface-lacp.rst
    snmp-interface-poe.rst
-   snmp-discover-lldp.rst
    snmp-discover-vrf.rst
-   snmp-transceiver-type
+   snmp-transceiver-type.rst
+   snmp-discover-hardware.rst
+   snmp-discover-mac-arp.rst
+   snmp-interface-ip.rst
+   snmp-discover-lldp.rst
    snmp-vlan-add-del.rst
 
 There are additional vendor-specific SNMP drivers. They all inherit most functionality from the base SnmpConnector().

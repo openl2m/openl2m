@@ -6,6 +6,10 @@ What's New...
 
 :doc:`Please read the release notes for more details on each release. <releases/index>`
 
+* v4.2 adds command-output download or copy-to-clipboard. Vlan and description changes can be submitted together.
+  We now supports Python v3.14. Reading device hardware info can be disabled globally, per group or per device
+  (saving device read time).
+
 * v4.1 supports more devices with editing 802.1Q tagged/trunk interfaces.
   OpenL2M now runs on Django 6.0, and uses FontAwesome 7.2 icons.
 

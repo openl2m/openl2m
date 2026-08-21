@@ -8,10 +8,9 @@ how the OpenL2M project works "under the hood".
 
 **Python 3**
 
-Django 5 requires v3.10 or above. We developed in v3.12, and have tested v3.13.
-Ie. we require Python v3.10 - v3.13
+Django 6 requires v3.12 or above. We currently require Python v3.12 - v3.14
 
-As of OpenL2M v3, all the code is written and tested in Python v3.12.
+As of OpenL2M v4.2, all the code is written and tested in Python v3.14.
 
 The project by default is located in **/opt/openl2m**. To use these scripts, or work on things,
 you should first activate the Python virtual environment:
@@ -27,7 +26,7 @@ Normal Django development steps can now be used.
 
 **Django**
 
-We use the Django web framework, v5.2 or higher. For a good introduction, see
+We use the Django web framework, v6.0 or higher. For a good introduction, see
 `the Django Tutorial <https://docs.djangoproject.com/>`_
 If you follow this tutorial, you will have enough of an Django understanding
 to start digging into the code.
@@ -72,12 +71,28 @@ that does not have these problems. However, it is significantly slower, so we on
 it only where absolutely needed. (Note: *pysnmplib* is a continuation of the original *pysnmp*; that
 library is no longer developed.)
 
+Many vendors are supported via the SNMP driver. See the SNMP driver documentation for more details.
+
+
+**Arista eAPI**
+
+We use regular 'request' class calls to the Arista eAPI to parse data. See the driver documentation for more details.
+
 
 **Aruba AOS-CX**
 
-We use the *pyaoscx* library `from the github repo <https://github.com/aruba/pyaoscx>`_,
-as that frequently provides bugfixes ahead of what is available in the released version available via pip.
+We use a custom REST library for performance reasons, instead of the vendor-provided *pyaoscx* library.
 See *requirements.txt* for more.
+
+
+**Aruba AOS-S REST**
+
+This also uses the custom REST library. See the driver documentation for more details.
+
+
+**HPE Comware REST**
+
+This also uses the custom REST library. See the driver documentation for more details.
 
 
 **Juniper Devices**

@@ -6,7 +6,7 @@ Ethernet Information
 
 Below is documented how a driver should set this information, and where it shows.
 
-This typically is loaded when the driver's *get_my_client_data()* function is called. 
+This typically is loaded when the driver's *get_my_client_data()* function is called.
 I.e. This is when the user click the 'Read Arp/LLDP' button.
 
 The *EthernetAddress()* class  is used to store MAC address information.
@@ -30,14 +30,15 @@ There are a number of functions to help with storing ethernet address:
 
     Same as above, but can be used if you already have the Interface() object.
 
-Where does it shows
--------------------
+
+Where It Shows
+--------------
 
 This shows under the 'Arp/LLDP' tab, and is rendered in the file *templates/_tab_if_arp_lldp.html*
 
 See the code segment similar to this, inside the 'for each interface' loop:
 
-.. code-block:: python
+.. code-block:: html+django
 
     # around line 29:
     {% for key,iface in connection.interfaces.items %}

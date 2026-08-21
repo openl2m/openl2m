@@ -26,12 +26,14 @@ which use the Connector() class.
    connector.rst
    vlan_info.rst
    interface_info.rst
-   ethernet_info.rst
-   lldp_info.rst
    vrf_info.rst
    transceiver_info.rst
+   hardware_info.rst
+   ethernet_info.rst
+   lldp_info.rst
    vlan-add-del_info.rst
    permissions.rst
+
 
 Interface Operations
 --------------------
@@ -44,17 +46,24 @@ implemented and should be used in vendor drivers.
 
    interface_up_down.rst
    interface_vlan_change.rst
-   interface_poe_change.rst
    interface_description.rst
+   interface_vlan_description.rst
+   interface_poe_change.rst
    interface_trunk_edit.rst
 
-Running Commands
-----------------
+
+Other Options
+-------------
 
 .. toctree::
    :maxdepth: 1
 
    netmiko/index.rst
+   saving_config.rst
+   other_info.rst
+   logs.rst
+   warnings.rst
+   syslog_info.rst
 
 
 SNMP Driver
@@ -86,6 +95,7 @@ We currently provide several connector for API-based device access.
    hpe_cw_api/index.rst
    napalm/index.rst
    dummy/index.rst
+
 
 Driver Hierarchy
 ----------------

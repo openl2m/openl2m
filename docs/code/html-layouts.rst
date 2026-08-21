@@ -13,6 +13,7 @@ See more at https://www.w3.org/WAI/standards-guidelines/wcag/
 
 A useful tool during development is the "WAVE Web Accesibility Evaluation Tool" browser extension.
 
+
 HTML
 ----
 
@@ -28,6 +29,7 @@ Additionally, we can use positioning to line up along the top of the page:
 
 See more at https://getbootstrap.com/docs/5.3/utilities/position/
 
+
 Row and column
 --------------
 
@@ -39,6 +41,7 @@ We use various "div" options to adjust layout in each "row", *<div class="row ju
 
 See more at https://getbootstrap.com/docs/5.3/layout/grid/
 
+
 Start and End
 -------------
 
@@ -48,6 +51,7 @@ E.g. "me-auto" is "Marging-End Auto", ie automatic right side margin.
 mb- is Margin Bottom
 
 See more at https://getbootstrap.com/docs/5.3/utilities/spacing/
+
 
 Menus
 -----

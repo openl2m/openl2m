@@ -4,11 +4,20 @@
 Interface VLAN Change
 =====================
 
+View
+----
 
-To be written
+In views.py, (see also urls.py) this is handled in the class *class InterfacePvidChange()*.
 
+This class calls the *self._dispatch_action()* with the appropriate action function name.
 
-What to implement
------------------
+Connector
+---------
 
-Drivers need to implement ...
+In the *Connector()* object, we implement the placeholder bookkeeping function *Connector().set_interface_untagged_vlan()*
+
+Drivers need to set the appropriate *can_xxxx* flags in **__init__()**.
+Next, they need to implement this function to provide these features.
+
+Upon successfull completion of the action (implementation), drivers should call the equivalent
+function in the base Connector() class for bookkeeping and updating what is rendered in the view.

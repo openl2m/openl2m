@@ -41,22 +41,6 @@ The other table row entries then give us the details about the VRF. Another exam
 Ie. here we have a description and the VRF "RD" value for the above VRF named "VRF-Name"
 
 
-Arista Specific
----------------
-
-Arista uses a vendor mib "ARISTA-VRF-MIB", see https://www.arista.com/assets/data/docs/MIBS/ARISTA-VRF-MIB.txt
-
-Similar to the standard mib, the VRF name is "OID encoded". All entries below "aristaVrfEntry" use this 'encoding'.
-
-So, e.g. *aristaVrfName.4.78.97.109.101*  encodes a string of length 4 with value "Name"
-
-Likewize for *aristaVrfRouteDistinguisher*, *aristaVrfRoutingStatus* , etc. where the returned value is
-the meaning of the MIB counter )(ie the RD, and IPv4/v6 status)
-
-Parsing in handled in *switches.connect.snmp.arista_eos.connector._parse_mib_arista_vrf_entries()*
-
-
-
 Interface VRF membership
 ========================
 
@@ -90,19 +74,6 @@ set the Interface.vrf to point to that Vrf() object.
 The same goes for the other table entries. Since we don't care (mostly) about the returned values,
 we try one more entry (mplsL3VpnIfVpnRouteDistProtocol) if the device does not implement mplsL3VpnIfVpnClassification.
 
-
-
-Arista Specific
----------------
-
-Arista has a private MIB table *aristaVrfIfTable* that contains VRF Interface information.
-
-In that table, the element *aristaVrfIfMembership* has what we need. An example:
-
-    aristaVrfIfMembership.999001 = STRING: "Management"
-
-This means that the interface with ifIndex 099001 is member of VRF "Management".
-So this is somewhat easier then the standard mib!
 
 
 

@@ -29,7 +29,6 @@ We also add Python type hints in many places. (Note: work in progress!)
    templating.rst
    html-layouts.rst
    api/index.rst
-   switches_app/graphing_neighbors.rst
    data_model.rst
    documentation.rst
 
