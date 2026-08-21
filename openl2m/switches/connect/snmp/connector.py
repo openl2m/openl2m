@@ -976,7 +976,7 @@ class SnmpConnector(Connector):
                 self.add_log(
                     type=LOG_TYPE_WARNING,
                     action=LOG_SNMP_ERROR,
-                    description=f"ERROR in get_snmp_branch(): oid '{oid_found}' returned No Such Instance!",
+                    description=f"ERROR in get_snmp_branch(): {branch_name} OID={oid_found} returned No Such Instance!",
                 )
 
                 continue
