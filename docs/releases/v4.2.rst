@@ -30,10 +30,11 @@ New Configuration Options
 Version 4.2.7
 -------------
 
-Release Date: TBD
+Release Date: 2026-08-25
 
 * optimize reading of ip addresses from SNMP IP-MIB
 * improved error description when SNMP branch return "No Such Instance"
+* additional driver development documentation
 
 Bug fixes:
 
