@@ -4,7 +4,8 @@
 SNMP MIBs Used
 ==============
 
-Portions of the following MIB are used in OpenL2M.
+Portions of the following MIBs are used in OpenL2M. And explanation of how MIBs are structured,
+and how SNMP data is returned when reading a device are outside of the scope of this documentation.
 
 Specific entries are described in more detail in the following pages.
 Definitions of the entries used can be found in the various *constants.py* under *openl2m/switches/connect/snmp*

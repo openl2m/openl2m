@@ -17,7 +17,7 @@ This calls **switch_view()** to handle the data gathering and rendering (as does
   conn = get_connection_object(request, group, switch)
 
 
-2 - Next, gets the basic switch information. This reads Interface, Vlan, and Power-over-Ethernet data::
+2 - Next, gets the basic switch information. This reads Interface, Vlan, and Power-over-Ethernet data.
 
 .. code-block:: python
 
