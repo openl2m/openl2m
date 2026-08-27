@@ -1192,13 +1192,13 @@ class Interface:
         self.cdp_uri = ""  # URI to CDP neighbors on interface
         self.lldp_uri = ""  # URI to LLDP neighbors on interface
 
-    def add_ip4_network(self, address: str, prefix_len: int = 0, netmask: str = "") -> None:
+    def add_ipv4_network(self, address: str, prefix_len: int = 0, netmask: str = "") -> None:
         """
         Add an IPv4 address to this interface, as given by the IPv4 address and prefix_len
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
         return True on success, False on failure.
         """
-        dprint(f"add_ip4_network(): interface '{self.name}': adding '{address}' len {prefix_len}, netmask '{netmask}'")
+        dprint(f"add_ipv4_network(): interface '{self.name}': adding '{address}' len {prefix_len}, netmask '{netmask}'")
         if prefix_len:
             self.addresses_ip4[address] = IPNetworkHostname(f"{address}/{prefix_len}")
         elif netmask:

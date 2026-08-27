@@ -557,7 +557,7 @@ class ArubaAOSsRestConnector(RESTConnector):
                     iface.is_routed = True
                     iface.manageable = False
                     iface.unmanage_reason = "Virtual Interface cannot be edited!"
-                    iface.add_ip4_network(address=a['ip_address']['octets'], netmask=a['ip_mask']['octets'])
+                    iface.add_ipv4_network(address=a['ip_address']['octets'], netmask=a['ip_mask']['octets'])
 
                     # done, add this interface to the list...
                     self.add_interface(iface)

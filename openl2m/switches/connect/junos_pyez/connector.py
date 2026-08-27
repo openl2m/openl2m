@@ -163,16 +163,16 @@ class PyEZConnector(Connector):
                         dprint(f"  IPv4 ADDR = {ipv4_address}")
                         # get the netmask
                         try:
-                            ip4_net = af.find(".//ifa-destination").text
-                            ip4_net = standardize_ipv4_subnet(ip=ip4_net)
-                            dprint(f"  IPv4 NET = {ip4_net}")
-                            net = IPNetwork(ip4_net)
+                            ipv4_net = af.find(".//ifa-destination").text
+                            ipv4_net = standardize_ipv4_subnet(ip=ipv4_net)
+                            dprint(f"  IPv4 NET = {ipv4_net}")
+                            net = IPNetwork(ipv4_net)
                             prefixlen = net.prefixlen
                         except Exception as err:
                             dprint(f"    Error in finding subnet size: {err}")
                             # not found, so lets assume a /32
                             prefixlen = 32
-                        iface.add_ip4_network(address=ipv4_address, prefix_len=prefixlen)
+                        iface.add_ipv4_network(address=ipv4_address, prefix_len=prefixlen)
                 except Exception as error:
                     dprint(f"  NO ipv4 address found! Error={error}")
             elif af_name == "inet6":

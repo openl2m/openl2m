@@ -3069,7 +3069,7 @@ class SnmpConnector(Connector):
                 # store IP and interface index (as str) for lookup of netmask below
                 self.ip4_to_if_index[ip] = val
                 # no need to store yet:
-                # self.interfaces[val].add_ip4_network(address=ip)
+                # self.interfaces[val].add_ipv4_network(address=ip)
             return True
 
         # we did not parse the OID.
@@ -3110,10 +3110,10 @@ class SnmpConnector(Connector):
                 # make sure we have an interface for this key:
                 # if if_key in self.interfaces:
                 #     # now add this IP / Netmask combo to this interface:
-                #     self.interfaces[if_key].add_ip4_network(address=ip, netmask=val)
+                #     self.interfaces[if_key].add_ipv4_network(address=ip, netmask=val)
                 iface = self.get_interface_by_key(key=if_key)
                 if iface:
-                    iface.add_ip4_network(address=ip, netmask=val)
+                    iface.add_ipv4_network(address=ip, netmask=val)
                     # these types are routed if they have an IP address of any kind!
                     if iface.type in (IF_TYPE_ETHERNET, IF_TYPE_LAGG):
                         iface.is_routed = True
@@ -3175,7 +3175,7 @@ class SnmpConnector(Connector):
                         dprint(f"   INTERFACE IPV4={ip_address} (/32)")
                         # add to the interface, making the INVALID assumption that we have a /32.
                         # note that the ipAddressPrefix parsing below, if found, can set the proper prefix length.
-                        iface.add_ip4_network(address=ip_address, prefix_len=32)
+                        iface.add_ipv4_network(address=ip_address, prefix_len=32)
                     elif addr_type == IANA_TYPE_IPV6:
                         dprint(f"   INTERFACE IPV6={ip_address} (/64)")
                         # add to the interface, assume a /64:
@@ -3269,7 +3269,7 @@ class SnmpConnector(Connector):
             if addr_type == IANA_TYPE_IPV4:
                 dprint(f"   INTERFACE '{iface.name}' IPV4={ip_address} / {prefix_len}")
                 # add to the interface:
-                iface.add_ip4_network(address=ip_address, prefix_len=prefix_len)
+                iface.add_ipv4_network(address=ip_address, prefix_len=prefix_len)
             elif addr_type == IANA_TYPE_IPV6:
                 dprint(f"   INTERFACE '{iface.name}' IPV6={ip_address} / {prefix_len}")
                 # add to the interface:

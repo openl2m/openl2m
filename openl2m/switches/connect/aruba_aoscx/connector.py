@@ -491,7 +491,7 @@ class AosCxConnector(RESTConnector):
             ipv4_address = interface.get("ip4_address")
             if ipv4_address:
                 dprint(f"   IPv4 = {ipv4_address}")
-                iface.add_ip4_network(address=ipv4_address)
+                iface.add_ipv4_network(address=ipv4_address)
                 ipv4_secondary = interface.get("ip4_address_secondary")
                 if ipv4_secondary:
                     # not used yet...

@@ -101,8 +101,8 @@ class DummyConnector(Connector):
         iface.speed = 10
         iface.description = "Interface eth0/0/1"
         iface.untagged_vlan = 5
-        iface.add_ip4_network(address="192.168.5.1", prefix_len=24)
-        iface.add_ip4_network(address="192.168.15.1", prefix_len=24)
+        iface.add_ipv4_network(address="192.168.5.1", prefix_len=24)
+        iface.add_ipv4_network(address="192.168.15.1", prefix_len=24)
         iface.vrf_name = "VRF-1"
         self.add_interface(iface)
 
@@ -114,8 +114,8 @@ class DummyConnector(Connector):
         iface.speed = 100
         iface.description = "Interface eth2"
         iface.untagged_vlan = 15
-        iface.add_ip4_network(address="192.168.99.99", prefix_len=24)
-        iface.add_ip4_network(address="192.168.55.1", prefix_len=24)
+        iface.add_ipv4_network(address="192.168.99.99", prefix_len=24)
+        iface.add_ipv4_network(address="192.168.55.1", prefix_len=24)
         self.add_interface(iface)
         self.set_interface_poe_available(iface, 15000)
         self.set_interface_poe_consumed(iface, 4500)
@@ -130,7 +130,7 @@ class DummyConnector(Connector):
         iface.untagged_vlan = 5
         iface.is_dot1x = True
         iface.unmanage_reason = "DOT1X is enabled!"
-        iface.add_ip4_network(address="192.168.55.1", prefix_len=24)
+        iface.add_ipv4_network(address="192.168.55.1", prefix_len=24)
         iface.add_ipv6_network(address="fc00::dead:beef")  # prefix_len is optional, default=64
         iface.add_ipv6_network(address="fc00::deaa:beee")  # prefix_len is optional, default=64
         iface.add_ipv6_network(address="fe80::1234:4567", prefix_len=64)  # this is a Link-Local address.
@@ -146,7 +146,7 @@ class DummyConnector(Connector):
         iface.speed = 10
         iface.description = "Interface eth4 - ALL VLANTAGGED TEST"
         iface.untagged_vlan = 5
-        iface.add_ip4_network(address="192.168.66.1", prefix_len=24)
+        iface.add_ipv4_network(address="192.168.66.1", prefix_len=24)
         iface.add_ipv6_network(address="fc00::dead:beef")  # prefix_len is optional, default=64
         iface.add_ipv6_network(address="fc00::deaa:beee")  # prefix_len is optional, default=64
         iface.add_ipv6_network(address="fe80::1234:4568", prefix_len=64)  # this is a Link-Local address.
@@ -169,7 +169,7 @@ class DummyConnector(Connector):
         iface.speed = 10
         iface.description = "Interface eth5 - PARTIAL VLANTAGGED TEST"
         iface.untagged_vlan = 5
-        iface.add_ip4_network(address="192.168.77.1", prefix_len=24)
+        iface.add_ipv4_network(address="192.168.77.1", prefix_len=24)
         iface.add_ipv6_network(address="fc00::dead:beef")  # prefix_len is optional, default=64
         iface.add_ipv6_network(address="fc00::deaa:beee")  # prefix_len is optional, default=64
         iface.add_ipv6_network(address="fe80::1235:4569", prefix_len=64)  # this is a Link-Local address.

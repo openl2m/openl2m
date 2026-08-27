@@ -206,7 +206,7 @@ class AristaApiConnector(Connector):
                 if "interfaceAddress" in if_data:
                     for addr in if_data["interfaceAddress"]:
                         dprint(f"Found IPv4: {addr['primaryIp']}")
-                        iface.add_ip4_network(address=f"{addr['primaryIp']['address']}/{addr['primaryIp']['maskLen']}")
+                        iface.add_ipv4_network(address=f"{addr['primaryIp']['address']}/{addr['primaryIp']['maskLen']}")
 
                 # # parse ipv6 addresses of this interface:
                 if "interfaceAddressIp6" in if_data:

@@ -344,7 +344,7 @@ class HPECwRestConnector(RESTConnector):
                     iface.is_routed = True
                     if "InetAddressIPV4" in i:
                         # set ipv4 info
-                        iface.add_ip4_network(address=i["InetAddressIPV4"], netmask=i["InetAddressIPV4Mask"])
+                        iface.add_ipv4_network(address=i["InetAddressIPV4"], netmask=i["InetAddressIPV4Mask"])
 
                     # IPv6 not available on some devices (Comware 7 - No?, Comware 9 - Yes ?) See also above.
                     if "InetAddressIPV6" in i:
@@ -511,7 +511,7 @@ class HPECwRestConnector(RESTConnector):
                     # dprint(f"\nADDRESS: {pprint.pformat(a)}")
                     iface = self.get_interface_by_key(key=a["IfIndex"])
                     if iface:
-                        iface.add_ip4_network(address=a["Ipv4Address"], netmask=a["Ipv4Mask"])
+                        iface.add_ipv4_network(address=a["Ipv4Address"], netmask=a["Ipv4Mask"])
 
             dprint("--- Reading interface IPv6 from 'IPV6ADDRESS/Ipv6Addresses' api ---")
             addresses = self._get(path="IPV6ADDRESS/Ipv6Addresses")
