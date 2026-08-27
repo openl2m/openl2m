@@ -653,7 +653,7 @@ class ArubaAOSsRestConnector(RESTConnector):
                     # items[3] = interface, items[1]=IP, and items[0]=eth.addr
                     iface = self.get_interface_by_key(key=items[3])
                     if iface:
-                        iface.add_learned_ethernet_address(eth_address=items[1], ip4_address=items[0])
+                        iface.add_learned_ethernet_address(eth_address=items[1], ipv4_address=items[0])
 
         #
         # get IPV6 ND (aka Neighbors) - NOT implemented

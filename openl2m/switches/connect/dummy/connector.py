@@ -205,7 +205,7 @@ class DummyConnector(Connector):
             if_name="eth0/0/0",
             eth_address="00:11:22:33:44:55",
             vlan_id=10,
-            ip4_address="192.168.0.100",
+            ipv4_address="192.168.0.100",
             ip6_address="FE80::0001/64",
         )
         # "fc00::/7"  is a private range for IPv6
@@ -214,7 +214,7 @@ class DummyConnector(Connector):
             if_name="eth0/0/1",
             eth_address="0000.1111.2222",
             vlan_id=5,
-            ip4_address="192.168.1.222",
+            ipv4_address="192.168.1.222",
             ip6_address="FE80::00F0/64",
         )
         eth.add_ip6_address("fc00::0001:0010/64")
@@ -222,7 +222,7 @@ class DummyConnector(Connector):
             if_name="eth2",
             eth_address="aa-bb-cc-dd-ee-ff",
             vlan_id=15,
-            ip4_address="192.168.2.56",
+            ipv4_address="192.168.2.56",
             ip6_address="FE80::00E5/64",
         )
 

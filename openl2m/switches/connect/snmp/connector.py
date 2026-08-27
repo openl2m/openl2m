@@ -2841,12 +2841,12 @@ class SnmpConnector(Connector):
                     # This loops through all interfaces, time consuming, but useful
                     eth = self._find_ethernet_address(eth_address=eth_addr)
                     if eth:
-                        eth.add_ip4_address(ip4_address=ip)
+                        eth.add_ipv4_address(ipv4_address=ip)
                     else:
                         dprint("  Eth not found in layer 2, adding from Layer 3 info!")
                         # ethernet not found from the layer 2 tables. Add an entry
                         # this should never fail, as this was already checked above!
-                        iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
+                        iface.add_learned_ethernet_address(eth_address=eth_addr, ipv4_address=ip)
                 else:
                     dprint("INVALID MAC FOUND - IGNORING!")
             else:
@@ -2914,10 +2914,10 @@ class SnmpConnector(Connector):
                     dprint(f"    IPV4={ip}")
                     if eth:
                         # known ethernet, go add IPv4 address
-                        eth.add_ip4_address(ip4_address=ip)
+                        eth.add_ipv4_address(ipv4_address=ip)
                     else:
                         # add new ethernet address to this interface:
-                        iface.add_learned_ethernet_address(eth_address=eth_addr, ip4_address=ip)
+                        iface.add_learned_ethernet_address(eth_address=eth_addr, ipv4_address=ip)
                 elif addr_type == IANA_TYPE_IPV6:
                     dprint(f"    IPv6={ip}")
                     if eth:

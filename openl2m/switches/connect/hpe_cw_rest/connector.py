@@ -849,7 +849,7 @@ class HPECwRestConnector(RESTConnector):
                     dprint(f"  Found interface {iface.name}")
                     eth = iface.add_learned_ethernet_address(
                         eth_address=arp["MacAddress"],
-                        ip4_address=arp["Ipv4Address"],
+                        ipv4_address=arp["Ipv4Address"],
                         vlan_id=vlan_id,
                         vrf_name=vrf_name,
                     )

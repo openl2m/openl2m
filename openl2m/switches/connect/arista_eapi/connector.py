@@ -414,7 +414,7 @@ class AristaApiConnector(Connector):
                         if_name=if_name,
                         eth_address=arp["hwAddress"],
                         vlan_id=vlan_id,
-                        ip4_address=arp["address"],
+                        ipv4_address=arp["address"],
                     )
 
             #
@@ -484,7 +484,7 @@ class AristaApiConnector(Connector):
                             if_name=if_name,
                             eth_address=neighbor.chassis_string,
                             # vlan_id = vlan_id,
-                            ip4_address=mgmt_ipv4,
+                            ipv4_address=mgmt_ipv4,
                             ip6_address=mgmt_ipv6,
                         )
 

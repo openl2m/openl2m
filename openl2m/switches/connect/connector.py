@@ -1083,7 +1083,7 @@ class Connector:
         if_name: str,
         eth_address: str,
         vlan_id: int = -1,
-        ip4_address: str = "",
+        ipv4_address: str = "",
         ip6_address: str = "",
         vrf_name: str = "",
     ) -> EthernetAddress | bool:
@@ -1097,7 +1097,7 @@ class Connector:
             if_name(str): interface name (key) as string.
             eth_address(str): ethernet address as string.
             vlan_id(int): vlan where ethernet is learned, if known.
-            ip4_address(str): IPv4 address for this ethernet, if known.
+            ipv4_address(str): IPv4 address for this ethernet, if known.
 
         Returns:
             EthernetAddress() on success, False on failure (interface not found).
@@ -1108,7 +1108,7 @@ class Connector:
             a = iface.add_learned_ethernet_address(
                 eth_address=eth_address,
                 vlan_id=vlan_id,
-                ip4_address=ip4_address,
+                ipv4_address=ipv4_address,
                 ip6_address=ip6_address,
                 vrf_name=vrf_name,
             )

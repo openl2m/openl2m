@@ -253,7 +253,7 @@ def get_ethernet_info_links(ethernet):
 
 
 @register.filter
-def get_ip4_info_links(ip4_address):
+def get_ip4_info_links(ipv4_address):
     """
     Get the info url(s) for the ipv4 address (string format) expanded from the settings file variable
     """
@@ -264,7 +264,7 @@ def get_ip4_info_links(ip4_address):
             tpl = Template(build_url_string(info_url))
             context = Context(
                 {
-                    "ip4": ip4_address,
+                    "ip4": ipv4_address,
                 }
             )
             links += tpl.render(context)

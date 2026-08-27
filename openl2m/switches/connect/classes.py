@@ -423,25 +423,25 @@ class EthernetAddress:
     def set_vlan(self, vlan_id: int) -> None:
         self.vlan_id = int(vlan_id)
 
-    def set_ip4_address(self, ip4_address: str) -> None:
+    def set_ipv4_address(self, ipv4_address: str) -> None:
         """Set the IPv4 address for this ethernet address."""
-        return self.add_ip4_address(ip4_address=ip4_address)
+        return self.add_ipv4_address(ipv4_address=ipv4_address)
 
     def set_ip6_address(self, ip6_address: str) -> None:
         """Set the IPv6 address for this ethernet address."""
         return self.add_ip6_address(ip6_address=ip6_address)
 
-    def add_ip4_address(self, ip4_address: str) -> None:
+    def add_ipv4_address(self, ipv4_address: str) -> None:
         """Add an IPv4 address to the list of addresses for this ethernet address.
 
         Args:
-            ip4_address (str): string representing the IPv4 address for this ethernet address
+            ipv4_address (str): string representing the IPv4 address for this ethernet address
 
         Returns:
             n/a
         """
-        if ip4_address not in self.address_ip4:
-            self.address_ip4.append(ip4_address)
+        if ipv4_address not in self.address_ip4:
+            self.address_ip4.append(ipv4_address)
 
     def add_ip6_address(self, ip6_address: str) -> None:
         """Add an IPv6 address to the list of addresses for this ethernet address.

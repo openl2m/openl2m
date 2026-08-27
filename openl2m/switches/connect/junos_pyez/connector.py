@@ -158,9 +158,9 @@ class PyEZConnector(Connector):
                 iface.is_routed = True
                 # some inet interfaces do NOT have ip address fields:
                 try:
-                    ip4_address = af.find(".//ifa-local").text
-                    if ip4_address:  # this has an IPv4 address:
-                        dprint(f"  IPv4 ADDR = {ip4_address}")
+                    ipv4_address = af.find(".//ifa-local").text
+                    if ipv4_address:  # this has an IPv4 address:
+                        dprint(f"  IPv4 ADDR = {ipv4_address}")
                         # get the netmask
                         try:
                             ip4_net = af.find(".//ifa-destination").text
@@ -172,7 +172,7 @@ class PyEZConnector(Connector):
                             dprint(f"    Error in finding subnet size: {err}")
                             # not found, so lets assume a /32
                             prefixlen = 32
-                        iface.add_ip4_network(address=ip4_address, prefix_len=prefixlen)
+                        iface.add_ip4_network(address=ipv4_address, prefix_len=prefixlen)
                 except Exception as error:
                     dprint(f"  NO ipv4 address found! Error={error}")
             elif af_name == "inet6":
@@ -617,7 +617,7 @@ class PyEZConnector(Connector):
                 # if found on routed interface, if_name could be formed as "irb.nnn [if_name]"
                 if_name = junos_get_real_ifname(if_name)
                 dprint(f"   Final real interface: {if_name}")
-                self.add_learned_ethernet_address(if_name=if_name, eth_address=mac_address, ip4_address=ip_address)
+                self.add_learned_ethernet_address(if_name=if_name, eth_address=mac_address, ipv4_address=ip_address)
         except Exception as error:
             dprint(f"dev.rpc.get_arp_table_information() error: {error}")
             self.add_warning(warning=f"ERROR: Cannot get ARP data - {error}")
