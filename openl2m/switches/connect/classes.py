@@ -399,7 +399,7 @@ class EthernetAddress:
         self.vendor: str = ""  # the vendor registered for the OUI portion (first 24 bits) of the address
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
         self.vrf_name: str = ""  # the VRF this ethernet belongs to.
-        self.address_ip4: list = []  # list of ipv4 addresses as str() from arp table, if known
+        self.ipv4_address: list = []  # list of ipv4 addresses as str() from arp table, if known
         self.address_ip6: list = []  # known ipv6 addresses of this ethernet address, in list as str()
         self.address_ip6_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
         self.hostname: str = ""  # reverse lookup for first ipv4 address found.
@@ -440,8 +440,8 @@ class EthernetAddress:
         Returns:
             n/a
         """
-        if ipv4_address not in self.address_ip4:
-            self.address_ip4.append(ipv4_address)
+        if ipv4_address not in self.ipv4_address:
+            self.ipv4_address.append(ipv4_address)
 
     def add_ip6_address(self, ip6_address: str) -> None:
         """Add an IPv6 address to the list of addresses for this ethernet address.
@@ -481,7 +481,7 @@ class EthernetAddress:
         return {
             "address": self.address_formatted,
             "vlan": self.vlan_id,
-            "ipv4": self.address_ip4,
+            "ipv4": self.ipv4_address,
             "ipv6": self.address_ip6,
             "hostname": self.hostname,
             "vendor": self.vendor,

@@ -259,8 +259,8 @@ def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector):
             if hasattr(eth, "vendor"):
                 worksheet.write(row, COL_VENDOR, eth.vendor, spreadsheet.format_regular)
             # for IPv4 and IPv6, we keep multiple addresses, so handle the list:
-            if hasattr(eth, "address_ip4"):
-                worksheet.write(row, COL_IPV4, ", ".join(eth.address_ip4), spreadsheet.format_regular)
+            if hasattr(eth, "ipv4_address"):
+                worksheet.write(row, COL_IPV4, ", ".join(eth.ipv4_address), spreadsheet.format_regular)
             if hasattr(eth, "address_ip6"):
                 worksheet.write(row, COL_IPV6, ", ".join(eth.address_ip6), spreadsheet.format_regular)
 

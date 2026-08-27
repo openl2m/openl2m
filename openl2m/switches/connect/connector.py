@@ -2180,8 +2180,8 @@ class Connector:
         count = 0
         for interface in self.interfaces.values():
             for eth in interface.eth.values():
-                if eth.address_ip4:
-                    eth.hostname = get_ip_dns_name(eth.address_ip4[0])
+                if eth.ipv4_address:
+                    eth.hostname = get_ip_dns_name(eth.ipv4_address[0])
                     count += 1
                 # only resolve IPv6 if IPv4 did not resolve hostname
                 if not eth.hostname and eth.address_ip6:
