@@ -220,9 +220,9 @@ class AristaApiConnector(Connector):
                         if netmask_pos > 0:
                             # and get the mask len from that:
                             prefix_len = int(addr["subnet"][netmask_pos + 1 : :])
-                        iface.add_ip6_network(address=ipv6, prefix_len=prefix_len)
+                        iface.add_ipv6_network(address=ipv6, prefix_len=prefix_len)
                     # LinkLocal:
-                    iface.add_ip6_network(address=f"{if_data['interfaceAddressIp6']['linkLocalIp6']['address']}")
+                    iface.add_ipv6_network(address=f"{if_data['interfaceAddressIp6']['linkLocalIp6']['address']}")
 
                 # done, add this interface to the list...
                 self.add_interface(iface)
@@ -433,7 +433,7 @@ class AristaApiConnector(Connector):
                         if_name=if_name,
                         eth_address=nd["hwAddress"],
                         vlan_id=vlan_id,
-                        ip6_address=nd["address"],
+                        ipv6_address=nd["address"],
                     )
 
             #
@@ -485,7 +485,7 @@ class AristaApiConnector(Connector):
                             eth_address=neighbor.chassis_string,
                             # vlan_id = vlan_id,
                             ipv4_address=mgmt_ipv4,
-                            ip6_address=mgmt_ipv6,
+                            ipv6_address=mgmt_ipv6,
                         )
 
                     # remote device capabilities:

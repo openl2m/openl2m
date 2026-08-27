@@ -272,7 +272,7 @@ def get_ip4_info_links(ipv4_address):
 
 
 @register.filter
-def get_ip6_info_links(ip6_address):
+def get_ip6_info_links(ipv6_address):
     """
     Get the info url(s) for the ipv6 address (string format) expanded from the settings file variable
     """
@@ -283,7 +283,7 @@ def get_ip6_info_links(ip6_address):
             tpl = Template(build_url_string(info_url))
             context = Context(
                 {
-                    "ip6": ip6_address,
+                    "ip6": ipv6_address,
                 }
             )
             links += tpl.render(context)

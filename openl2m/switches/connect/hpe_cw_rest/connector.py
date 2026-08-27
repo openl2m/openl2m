@@ -349,7 +349,7 @@ class HPECwRestConnector(RESTConnector):
                     # IPv6 not available on some devices (Comware 7 - No?, Comware 9 - Yes ?) See also above.
                     if "InetAddressIPV6" in i:
                         # set ipv6 info
-                        iface.add_ip6_network(address=i["InetAddressIPV6"], prefix_len=i["InetAddressIPV6PrefixLength"])
+                        iface.add_ipv6_network(address=i["InetAddressIPV6"], prefix_len=i["InetAddressIPV6PrefixLength"])
 
                 if "ifType" in i:
                     iface.type = int(i["ifType"])
@@ -520,7 +520,7 @@ class HPECwRestConnector(RESTConnector):
                     # dprint(f"\nADDRESS: {pprint.pformat(a)}")
                     iface = self.get_interface_by_key(key=a["IfIndex"])
                     if iface:
-                        iface.add_ip6_network(address=a["Ipv6Address"], prefix_len=a["Ipv6PrefixLength"])
+                        iface.add_ipv6_network(address=a["Ipv6Address"], prefix_len=a["Ipv6PrefixLength"])
 
             #
             # Deprecated - see below
@@ -877,13 +877,13 @@ class HPECwRestConnector(RESTConnector):
                         if_name=nd["IfName"],
                         eth_address=nd["MacAddress"],
                         # vlan_id=vlan_id,
-                        ip6_address=nd["Ipv6Address"],
+                        ipv6_address=nd["Ipv6Address"],
                     )
                 else:
                     # find the Interface() from the "IfIndex" field, ie. the Interface().key
                     iface = self.get_interface_by_key(key=nd["IfIndex"])
                     if iface:
-                        iface.add_learned_ethernet_address(eth_address=nd["MacAddress"], ip6_address=nd["Ipv6Address"])
+                        iface.add_learned_ethernet_address(eth_address=nd["MacAddress"], ipv6_address=nd["Ipv6Address"])
 
         #
         # LLDP neighbors

@@ -261,8 +261,8 @@ def create_neighbors_worksheet(spreadsheet: Spreadsheet, connection: Connector):
             # for IPv4 and IPv6, we keep multiple addresses, so handle the list:
             if hasattr(eth, "ipv4_address"):
                 worksheet.write(row, COL_IPV4, ", ".join(eth.ipv4_address), spreadsheet.format_regular)
-            if hasattr(eth, "address_ip6"):
-                worksheet.write(row, COL_IPV6, ", ".join(eth.address_ip6), spreadsheet.format_regular)
+            if hasattr(eth, "ipv6_address"):
+                worksheet.write(row, COL_IPV6, ", ".join(eth.ipv6_address), spreadsheet.format_regular)
 
         # and loop through lldp:
         for neighbor in interface.lldp.values():

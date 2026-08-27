@@ -1084,7 +1084,7 @@ class Connector:
         eth_address: str,
         vlan_id: int = -1,
         ipv4_address: str = "",
-        ip6_address: str = "",
+        ipv6_address: str = "",
         vrf_name: str = "",
     ) -> EthernetAddress | bool:
         """
@@ -1109,7 +1109,7 @@ class Connector:
                 eth_address=eth_address,
                 vlan_id=vlan_id,
                 ipv4_address=ipv4_address,
-                ip6_address=ip6_address,
+                ipv6_address=ipv6_address,
                 vrf_name=vrf_name,
             )
             return a
@@ -2184,8 +2184,8 @@ class Connector:
                     eth.hostname = get_ip_dns_name(eth.ipv4_address[0])
                     count += 1
                 # only resolve IPv6 if IPv4 did not resolve hostname
-                if not eth.hostname and eth.address_ip6:
-                    eth.hostname = get_ip_dns_name(eth.address_ip6[0])
+                if not eth.hostname and eth.ipv6_address:
+                    eth.hostname = get_ip_dns_name(eth.ipv6_address[0])
                     count += 1
         return count
 

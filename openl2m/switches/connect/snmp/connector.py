@@ -2922,10 +2922,10 @@ class SnmpConnector(Connector):
                     dprint(f"    IPv6={ip}")
                     if eth:
                         # known ethernet, go add IPv6 address
-                        eth.add_ip6_address(ip6_address=ip)
+                        eth.add_ipv6_address(ipv6_address=ip)
                     else:
                         # add new ethernet address to this interface:
-                        iface.add_learned_ethernet_address(eth_address=eth_addr, ip6_address=ip)
+                        iface.add_learned_ethernet_address(eth_address=eth_addr, ipv6_address=ip)
             else:
                 dprint("INVALID MAC FOUND - IGNORING!")
 
@@ -3179,7 +3179,7 @@ class SnmpConnector(Connector):
                     elif addr_type == IANA_TYPE_IPV6:
                         dprint(f"   INTERFACE IPV6={ip_address} (/64)")
                         # add to the interface, assume a /64:
-                        iface.add_ip6_network(address=ip_address, prefix_len=64)
+                        iface.add_ipv6_network(address=ip_address, prefix_len=64)
                     # these types are routed if they have an IP address of any kind!
                     if iface.type in (IF_TYPE_ETHERNET, IF_TYPE_LAGG):
                         iface.is_routed = True
@@ -3273,7 +3273,7 @@ class SnmpConnector(Connector):
             elif addr_type == IANA_TYPE_IPV6:
                 dprint(f"   INTERFACE '{iface.name}' IPV6={ip_address} / {prefix_len}")
                 # add to the interface:
-                iface.add_ip6_network(address=ip_address, prefix_len=prefix_len)
+                iface.add_ipv6_network(address=ip_address, prefix_len=prefix_len)
 
             return True  # we parsed the entry
 
@@ -3317,9 +3317,9 @@ class SnmpConnector(Connector):
                 ip = get_ip_from_sub_oid(sub_oid=parts[1], addr_type=IANA_TYPE_IPV6, has_length=False)
                 if ip:
                     # add to interface
-                    iface.add_ip6_network(
+                    iface.add_ipv6_network(
                         address=ip, prefix_len=int(val)
-                    )  # Link-Local is handled by add_ip6_network()!
+                    )  # Link-Local is handled by add_ipv6_network()!
                     # these types are routed if they have an IP address of any kind!
                     if iface.type in (IF_TYPE_ETHERNET, IF_TYPE_LAGG):
                         iface.is_routed = True

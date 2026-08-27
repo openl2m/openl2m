@@ -216,7 +216,7 @@ class NapalmConnector(Connector):
                 for ipv6, values in if_data["ipv6"].items():
                     prefix_len = values["prefix_length"]
                     # dprint(f"IP: {ipv6}/{prefix_len}")
-                    iface.add_ip6_network(address=ipv6, prefix_len=prefix_len)
+                    iface.add_ipv6_network(address=ipv6, prefix_len=prefix_len)
 
         self.save_driver_info()
 
@@ -335,7 +335,7 @@ class NapalmConnector(Connector):
                     if_name = interface_name_to_long(if_name)
                     a = self.add_learned_ethernet_address(if_name, neighbor["mac"])
                     if a:
-                        a.add_ip6_address(neighbor["ip"])
+                        a.add_ipv6_address(neighbor["ip"])
         except Exception as e:
             self.error.status = True
             self.error.description = "Cannot get arp table"

@@ -400,8 +400,8 @@ class EthernetAddress:
         self.vlan_id: int = 0  # the vlan id (number) this was heard on, if known
         self.vrf_name: str = ""  # the VRF this ethernet belongs to.
         self.ipv4_address: list = []  # list of ipv4 addresses as str() from arp table, if known
-        self.address_ip6: list = []  # known ipv6 addresses of this ethernet address, in list as str()
-        self.address_ip6_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
+        self.ipv6_address: list = []  # known ipv6 addresses of this ethernet address, in list as str()
+        self.ipv6_address_linklocal: str = ""  # IPv6 Link-Local address for this ethernet address, if any.
         self.hostname: str = ""  # reverse lookup for first ipv4 address found.
         self.hostname6: str = ""  # reverse lookup of first ipv6 address found.
         try:
@@ -427,9 +427,9 @@ class EthernetAddress:
         """Set the IPv4 address for this ethernet address."""
         return self.add_ipv4_address(ipv4_address=ipv4_address)
 
-    def set_ip6_address(self, ip6_address: str) -> None:
+    def set_ipv6_address(self, ipv6_address: str) -> None:
         """Set the IPv6 address for this ethernet address."""
-        return self.add_ip6_address(ip6_address=ip6_address)
+        return self.add_ipv6_address(ipv6_address=ipv6_address)
 
     def add_ipv4_address(self, ipv4_address: str) -> None:
         """Add an IPv4 address to the list of addresses for this ethernet address.
@@ -443,36 +443,36 @@ class EthernetAddress:
         if ipv4_address not in self.ipv4_address:
             self.ipv4_address.append(ipv4_address)
 
-    def add_ip6_address(self, ip6_address: str) -> None:
+    def add_ipv6_address(self, ipv6_address: str) -> None:
         """Add an IPv6 address to the list of addresses for this ethernet address.
-        If Link-Local is given, will set the self.ip6_address_linklocal property,
-        else will add to self.address_ip6 Dict() indexed by address as key.
+        If Link-Local is given, will set the self.ipv6_address_linklocal property,
+        else will add to self.ipv6_address Dict() indexed by address as key.
 
         Args:
-            ip6_address (str): string representing the IPv6 address for this ethernet address
+            ipv6_address (str): string representing the IPv6 address for this ethernet address
 
         Returns:
             n/a
         """
-        dprint(f"EthernetAddress() adding IPv6 address '{ip6_address}'")
+        dprint(f"EthernetAddress() adding IPv6 address '{ipv6_address}'")
 
         # need to add logic to recognize IPv6 link-local "FE80::/10" subnets.
         # we do no check validity of the address at this time.
         if settings.IPV6_USE_UPPER:
-            ipv6 = ip6_address.upper()
+            ipv6 = ipv6_address.upper()
         else:
-            ipv6 = ip6_address.lower()
+            ipv6 = ipv6_address.lower()
         try:
             # validate format
-            ipv6 = IPNetworkHostname(network=f"{ip6_address}/64")
+            ipv6 = IPNetworkHostname(network=f"{ipv6_address}/64")
             # and check if this is Link-Local address
             if ipv6 in IPV6_LINK_LOCAL_NETWORK:
                 dprint("   IS LINK-LOCAL!")
-                self.address_ip6_linklocal = ip6_address
+                self.ipv6_address_linklocal = ipv6_address
             else:
-                self.address_ip6.append(ip6_address)
+                self.ipv6_address.append(ipv6_address)
         except Exception as err:
-            dprint(f"EthernetAddress() object: adding INVALID IPv6 address '{ip6_address}': {err}")
+            dprint(f"EthernetAddress() object: adding INVALID IPv6 address '{ipv6_address}': {err}")
 
     def as_dict(self) -> dict:
         """
@@ -482,7 +482,7 @@ class EthernetAddress:
             "address": self.address_formatted,
             "vlan": self.vlan_id,
             "ipv4": self.ipv4_address,
-            "ipv6": self.address_ip6,
+            "ipv6": self.ipv6_address,
             "hostname": self.hostname,
             "vendor": self.vendor,
         }
@@ -1136,7 +1136,7 @@ class Interface:
         self.addresses_ip6: dict[str, IPNetworkHostname] = (
             {}
         )  # dictionary of all my (routable) ipv6 addresses on this interface
-        self.address_ip6_linklocal: str = ""  # the IPv6 LinkLocal address for this interface, if any.
+        self.ipv6_address_linklocal: str = ""  # the IPv6 LinkLocal address for this interface, if any.
         self.igmp_snooping: bool = False  # if True, interface does IGMP snooping
         # vlan related
         self.port_id: int = -1  # Q-Bridge MIB port id
@@ -1209,17 +1209,17 @@ class Interface:
             self.addresses_ip4[address].resolve_ip_address()
         # return True
 
-    def add_ip6_network(self, address: str, prefix_len: int = 64) -> None:
+    def add_ipv6_network(self, address: str, prefix_len: int = 64) -> None:
         """
         Add an IPv6 address to this interface, as given by the IPv6 address and prefix_len
         It gets stored in the form of a netaddr.IPNetwork() object, indexed by addres.
         return True on success, False on failure.
         """
-        dprint(f"add_ip6_network(): interface '{self.name}': adding '{address}' len {prefix_len}")
+        dprint(f"add_ipv6_network(): interface '{self.name}': adding '{address}' len {prefix_len}")
         try:
             ipv6 = IPNetworkHostname(f"{address}/{prefix_len}")
             if ipv6 in IPV6_LINK_LOCAL_NETWORK:
-                self.address_ip6_linklocal = ipv6
+                self.ipv6_address_linklocal = ipv6
             else:
                 if settings.LOOKUP_HOSTNAME_ROUTED_IP:
                     ipv6.resolve_ip_address()
@@ -1262,8 +1262,8 @@ class Interface:
         self,
         eth_address: str,
         vlan_id: int = -1,
-        ip4_address: str = "",
-        ip6_address: str = "",
+        ipv4_address: str = "",
+        ipv6_address: str = "",
         vrf_name: str = "",
     ) -> EthernetAddress:
         """
@@ -1274,14 +1274,14 @@ class Interface:
         Args:
             eth_address(str): ethernet address as string.
             vlan_id(int): the vlan this ethernet address was heard on.
-            ip4_address (str): the IPv4 address for this ethernet address, if known. Typically from ARP tables.
-            ip6_address (str): the IPv6 address for this ethernet address, if known. Found in ND tables.
+            ipv4_address (str): the IPv4 address for this ethernet address, if known. Typically from ARP tables.
+            ipv6_address (str): the IPv6 address for this ethernet address, if known. Found in ND tables.
 
         Returns:
             EthernetAddress(), either existing or new.
         """
         dprint(
-            f"Interface().add_learned_ethernet_address() for interface {self.name}: {eth_address}, vlan={vlan_id}, ip4='{ip4_address}', ip6='{ip6_address}'"
+            f"Interface().add_learned_ethernet_address() for interface {self.name}: {eth_address}, vlan={vlan_id}, ipv4='{ipv4_address}', ipv6='{ipv6_address}'"
         )
         if eth_address in self.eth:
             # already known!
@@ -1292,8 +1292,8 @@ class Interface:
         #         e.set_vlan(vlan_id)
         #     if ip4_address:
         #         e.add_ip4_address(ip4_address=ip4_address)
-        #     if ip6_address:
-        #         e.add_ip6_address(ip6_address=ip6_address)
+        #     if ipv6_address:
+        #         e.add_ipv6_address(ipv6_address=ipv6_address)
         #     return e
         else:
             # add the new ethernet address
@@ -1302,10 +1302,10 @@ class Interface:
             self.eth[eth_address] = e
         if vlan_id > 0:
             e.set_vlan(vlan_id)
-        if ip4_address:
-            e.add_ip4_address(ip4_address=ip4_address)
-        if ip6_address:
-            e.add_ip6_address(ip6_address=ip6_address)
+        if ipv4_address:
+            e.add_ipv4_address(ipv4_address=ipv4_address)
+        if ipv6_address:
+            e.add_ipv6_address(ipv6_address=ipv6_address)
         e.vrf_name = vrf_name
         return e
 

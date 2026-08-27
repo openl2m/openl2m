@@ -180,18 +180,18 @@ class PyEZConnector(Connector):
                 iface.is_routed = True
                 # some do not have ipv6 address:
                 try:
-                    ip6_address = af.find(".//ifa-local").text
-                    if ip6_address:  # this has an IPv4 address:
-                        dprint(f"  IPv6 ADDR = {ip6_address}")
+                    ipv6_address = af.find(".//ifa-local").text
+                    if ipv6_address:  # this has an IPv4 address:
+                        dprint(f"  IPv6 ADDR = {ipv6_address}")
                         try:
-                            ip6_net = af.find(".//ifa-destination").text
-                            dprint(f"  IPv6 NET = {ip6_net}")
-                            net6 = IPNetwork(ip6_net)
-                            prefixlen = net6.prefixlen
+                            ipv6_net = af.find(".//ifa-destination").text
+                            dprint(f"  IPv6 NET = {ipv6_net}")
+                            netv6 = IPNetwork(ipv6_net)
+                            prefixlen = netv6.prefixlen
                         except Exception:
                             # not found, let's assume /128
                             prefixlen = 128
-                        iface.add_ip6_network(ip6_address, prefix_len=prefixlen)
+                        iface.add_ipv6_network(ipv6_address, prefix_len=prefixlen)
                 except Exception as error:
                     dprint(f"  NO ipv6 address found! Error={error}")
             elif af_name == "aenet":
@@ -641,7 +641,7 @@ class PyEZConnector(Connector):
                 # if found on routed interface, if_name could be formed as "irb.nnn [if_name]"
                 if_name = junos_get_real_ifname(if_name=if_name)
                 dprint(f"   Final real interface: {if_name}")
-                self.add_learned_ethernet_address(if_name=if_name, eth_address=mac_address, ip6_address=ipv6_address)
+                self.add_learned_ethernet_address(if_name=if_name, eth_address=mac_address, ipv6_address=ipv6_address)
         except Exception as error:
             dprint(f"dev.rpc.get_ipv6_nd_information() error: {error}")
             # NO warning to the user - not all devices support IPv6
