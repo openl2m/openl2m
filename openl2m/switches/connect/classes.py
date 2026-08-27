@@ -1132,8 +1132,8 @@ class Interface:
         self.phys_addr = 0x0
         self.transceiver: Transceiver = None  # any transceiver info know for this interface
         self.description: str = ""  # the interface description, as set by the switch configuration, from IF-MIB
-        self.addresses_ip4: dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
-        self.addresses_ip6: dict[str, IPNetworkHostname] = (
+        self.ipv4_addresses: dict[str, IPNetworkHostname] = {}  # dictionary of all my ipv4 addresses on this interface
+        self.ipv6_addresses: dict[str, IPNetworkHostname] = (
             {}
         )  # dictionary of all my (routable) ipv6 addresses on this interface
         self.ipv6_address_linklocal: str = ""  # the IPv6 LinkLocal address for this interface, if any.
@@ -1200,13 +1200,13 @@ class Interface:
         """
         dprint(f"add_ipv4_network(): interface '{self.name}': adding '{address}' len {prefix_len}, netmask '{netmask}'")
         if prefix_len:
-            self.addresses_ip4[address] = IPNetworkHostname(f"{address}/{prefix_len}")
+            self.ipv4_addresses[address] = IPNetworkHostname(f"{address}/{prefix_len}")
         elif netmask:
-            self.addresses_ip4[address] = IPNetworkHostname(f"{address}/{netmask}")
+            self.ipv4_addresses[address] = IPNetworkHostname(f"{address}/{netmask}")
         else:
-            self.addresses_ip4[address] = IPNetworkHostname(address)
+            self.ipv4_addresses[address] = IPNetworkHostname(address)
         if settings.LOOKUP_HOSTNAME_ROUTED_IP:
-            self.addresses_ip4[address].resolve_ip_address()
+            self.ipv4_addresses[address].resolve_ip_address()
         # return True
 
     def add_ipv6_network(self, address: str, prefix_len: int = 64) -> None:
@@ -1223,7 +1223,7 @@ class Interface:
             else:
                 if settings.LOOKUP_HOSTNAME_ROUTED_IP:
                     ipv6.resolve_ip_address()
-                self.addresses_ip6[address] = ipv6
+                self.ipv6_addresses[address] = ipv6
         except Exception as err:
             dprint(f"INVALID IPv6 address '{address}/{prefix_len}': {err}")
         # return True
@@ -1290,8 +1290,8 @@ class Interface:
         # else:
         #     if vlan_id > 0:
         #         e.set_vlan(vlan_id)
-        #     if ip4_address:
-        #         e.add_ip4_address(ip4_address=ip4_address)
+        #     if ipv4_address:
+        #         e.add_ipv4_address(ipv4_address=ipv4_address)
         #     if ipv6_address:
         #         e.add_ipv6_address(ipv6_address=ipv6_address)
         #     return e

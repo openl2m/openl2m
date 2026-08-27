@@ -595,7 +595,7 @@ class SnmpConnector(Connector):
         self.dot1tp_fdb_to_vlan_index: dict[int, int] = (
             {}
         )  # forwarding database index to vlan index mapping. Note many switches do not use this...
-        self.ip4_to_if_index: dict[str, str] = (
+        self.ipv4_to_if_index: dict[str, str] = (
             {}
         )  # the IPv4 addresses as keys, with stored value ifIndex (string); needed to map netmask to interface
         # self.has_connector = True   # value of IFMIB_CONNECTOR
@@ -3067,7 +3067,7 @@ class SnmpConnector(Connector):
             # Interfaces are indexed by string index, ie the 'val' returned:
             if val in self.interfaces:
                 # store IP and interface index (as str) for lookup of netmask below
-                self.ip4_to_if_index[ip] = val
+                self.ipv4_to_if_index[ip] = val
                 # no need to store yet:
                 # self.interfaces[val].add_ipv4_network(address=ip)
             return True
@@ -3105,8 +3105,8 @@ class SnmpConnector(Connector):
         if ip:
             # OID return value is netmask
             # we should have found the IP address already above!
-            if ip in self.ip4_to_if_index:
-                if_key = self.ip4_to_if_index[ip]
+            if ip in self.ipv4_to_if_index:
+                if_key = self.ipv4_to_if_index[ip]
                 # make sure we have an interface for this key:
                 # if if_key in self.interfaces:
                 #     # now add this IP / Netmask combo to this interface:

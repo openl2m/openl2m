@@ -30,7 +30,7 @@ from rangeparser import RangeParser
 
 from switches import constants
 from switches.connect.constants import NETMIKO_DEVICE_TYPES, NAPALM_DEVICE_TYPES
-from switches.utils import is_valid_hostname_or_ip, is_valid_hostname_or_ip6
+from switches.utils import is_valid_hostname_or_ip, is_valid_hostname_or_ipv6
 
 
 #
@@ -1075,7 +1075,7 @@ class Switch(models.Model):
         if self.status == constants.SWITCH_STATUS_ACTIVE:
             if self.primary_ip4 and not is_valid_hostname_or_ip(self.primary_ip4):
                 raise ValidationError("Invalid Management IPv4 address or hostname.")
-            if self.primary_ip6 and not is_valid_hostname_or_ip6(self.primary_ip6):
+            if self.primary_ip6 and not is_valid_hostname_or_ipv6(self.primary_ip6):
                 raise ValidationError("Invalid Management IPv6 address or hostname.")
             if not self.primary_ip4 and not self.primary_ip6:
                 raise ValidationError("We need a valid IPv4 or IPv6 address or hostname.")

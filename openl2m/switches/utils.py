@@ -293,7 +293,7 @@ def is_valid_hostname_or_ip(data: str) -> bool:
             return False
 
 
-def is_valid_hostname_or_ip6(data: str) -> bool:
+def is_valid_hostname_or_ipv6(data: str) -> bool:
     """
     Check if the data given is either an IPv6 address, or a valid IPv6 hostname.
     Return True if so, False otherwize.

@@ -253,7 +253,7 @@ def get_ethernet_info_links(ethernet):
 
 
 @register.filter
-def get_ip4_info_links(ipv4_address):
+def get_ipv4_info_links(ipv4_address):
     """
     Get the info url(s) for the ipv4 address (string format) expanded from the settings file variable
     """
@@ -272,7 +272,7 @@ def get_ip4_info_links(ipv4_address):
 
 
 @register.filter
-def get_ip6_info_links(ipv6_address):
+def get_ipv6_info_links(ipv6_address):
     """
     Get the info url(s) for the ipv6 address (string format) expanded from the settings file variable
     """
@@ -638,16 +638,16 @@ def list_ip_addresses(iface: Interface) -> str:
     iface (Interface)
     """
     s = ""
-    if iface.addresses_ip4:
-        for addr in iface.addresses_ip4.values():
+    if iface.ipv4_addresses:
+        for addr in iface.ipv4_addresses.values():
             s += f" {addr.ip}/"
             if settings.IFACE_IP4_SHOW_PREFIXLEN:
                 s += f"{addr.prefixlen}"
             else:
                 s += f"{addr.netmask}"
     # add IPv6 if found
-    if iface.addresses_ip6:
-        for addr in iface.addresses_ip6.values():
+    if iface.ipv6_addresses:
+        for addr in iface.ipv6_addresses.values():
             s += f" {addr.ip}/{addr.prefixlen}"
     return s
 

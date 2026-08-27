@@ -129,7 +129,7 @@ class Connector:
         self.eth_count = 0  # total ethernet count on all interfaces
         self.neighbor_count = 0  # total neighbor (lldp/cdp) count on all interfaces
         self.vrfs: dict[str, Vrf] = {}  # VRFs available on this device.
-        self.ip4_to_if_index: dict[str, int] = (
+        self.ipv4_to_if_index: dict[str, int] = (
             {}
         )  # the IPv4 addresses as keys, with stored value if_index; needed to map netmask to interface
         # some flags:
