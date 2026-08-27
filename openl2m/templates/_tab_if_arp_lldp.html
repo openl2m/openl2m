@@ -122,24 +122,24 @@
                     {% endif %}
                     {% for ipv4 in eth.address_ip4 %}
                       {% if forloop.counter > 1%}&nbsp;&nbsp;{% endif %}
-                      {{ ipv4|get_ip4_info_links }} {{ ipv4 }}
+                      {{ ipv4|get_ipv4_info_links }} {{ ipv4 }}
                     {% endfor %}
                     {% if eth.hostname %}
                       </abbr>
                     {% endif %}
                   {% endif %}
                   {% if eth.vendor %}&nbsp;<small>({{ eth.vendor }})</small>{% endif %}
-                  {% if eth.address_ip6 %}
+                  {% if eth.ipv6_address %}
                     <br />
                     {% if eth.hostname6 %}
                        <abbr data-bs-toggle="tooltip" title="{{ eth.hostname6 }}" class="text-decoration-underline">
                     {% endif %}
-                    {% for ipv6 in eth.address_ip6 %}
+                    {% for ipv6 in eth.ipv6_address %}
                       {% if forloop.counter > 1%}&nbsp;&nbsp;{% endif %}
-                      {{ ipv6|get_ip6_info_links }} {{ ipv6 }}
+                      {{ ipv6|get_ipv6_info_links }} {{ ipv6 }}
                     {% endfor %}
-                    {% if settings.IPV6_SHOW_LINKLOCAL and eth.address_ip6_linklocal %}
-                      {{ eth.address_ip6_linklocal}}
+                    {% if settings.IPV6_SHOW_LINKLOCAL and eth.ipv6_address_linklocal %}
+                      {{ eth.ipv6_address_linklocal}}
                     {% endif %}
                     {% if eth.hostname6 %}
                         </abbr>

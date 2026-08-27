@@ -13,7 +13,7 @@
     </div>
     {% for if_index,iface in connection.interfaces.items %}
     {# this needs work ! #}
-      {% if iface.addresses_ip4 or iface.addresses_ip6 or iface.address_ip6_linklocal %}
+      {% if iface.ipv4_addresses or iface.ipv6_addresses or iface.ipv6_address_linklocal %}
       <div class="row p-1{% cycle '' ' bg-light' %}">
         <div class="col-3">
           {% if not iface.oper_status %}
@@ -25,7 +25,7 @@
           {% endif %}
         </div>
         <div class="col-5">
-          {% for ip,addr in iface.addresses_ip4.items %}
+          {% for ip,addr in iface.ipv4_addresses.items %}
             {% if addr.hostname %}
               <abbr data-bs-toggle="tooltip" title="{{ addr.hostname }}">{{ addr.ip }}</abbr>
             {% else %}
@@ -40,7 +40,7 @@
             <br />
           {% endfor %}
 
-          {% for ip,addr in iface.addresses_ip6.items %}
+          {% for ip,addr in iface.ipv6_addresses.items %}
             {% if addr.hostname %}
               <abbr data-bs-toggle="tooltip" title="{{ addr.hostname }}">{{ addr.ip }}</abbr>
             {% else %}
@@ -48,12 +48,12 @@
             {% endif %}
             / {{ addr.prefixlen }} <br />
           {% endfor %}
-          {% if settings.IPV6_SHOW_LINKLOCAL and iface.address_ip6_linklocal %}
-            {{ iface.address_ip6_linklocal.ip }} / {{ iface.address_ip6_linklocal.prefixlen }} <br />
+          {% if settings.IPV6_SHOW_LINKLOCAL and iface.ipv6_address_linklocal %}
+            {{ iface.ipv6_address_linklocal.ip }} / {{ iface.ipv6_address_linklocal.prefixlen }} <br />
           {% endif %}
         </div>
         {# info links/icons in the "Etc" column #}
-        <div class="col">{{ connection.switch|get_interface_info_links:iface }} {{ addr.ip|get_ip4_info_links }}
+        <div class="col">{{ connection.switch|get_interface_info_links:iface }} {{ addr.ip|get_ipv4_info_links }}
           {% if iface.vrf_name %}
             &nbsp;
             <i class="fa-solid fa-network-wired" aria-hidden="true"

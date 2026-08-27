@@ -22,7 +22,7 @@
               <td>{{ l.timestamp }}</td>
               <td>{{ l.get_type_display }}</td>
               <td>{{ l.get_action_display }}</td>
-              <td>{{ l.ip_address|get_ip4_info_links }}{{ l.ip_address }}</td>
+              <td>{{ l.ip_address|get_ipv4_info_links }}{{ l.ip_address }}</td>
               <td>
                 {% if l.user %}
                   {% if request.user.is_superuser or request.user.is_staff %}
