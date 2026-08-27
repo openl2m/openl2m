@@ -131,8 +131,8 @@ SWITCH_INFO_URLS_STAFF = getattr(configuration, "SWITCH_INFO_URLS_STAFF", False)
 SWITCH_INFO_URLS_ADMINS = getattr(configuration, "SWITCH_INFO_URLS_ADMINS", False)
 INTERFACE_INFO_URLS = getattr(configuration, "INTERFACE_INFO_URLS", False)
 VLAN_INFO_URLS = getattr(configuration, "VLAN_INFO_URLS", False)
-IP4_INFO_URLS = getattr(configuration, "IP4_INFO_URLS", False)
-IP6_INFO_URLS = getattr(configuration, "IP6_INFO_URLS", False)
+IPV4_INFO_URLS = getattr(configuration, "IPV4_INFO_URLS", False)
+IPV6_INFO_URLS = getattr(configuration, "IPV6_INFO_URLS", False)
 ETHERNET_INFO_URLS = getattr(configuration, "ETHERNET_INFO_URLS", False)
 
 ETH_FORMAT = getattr(configuration, "ETH_FORMAT", 0)
@@ -154,7 +154,7 @@ IFACE_ALIAS_NOT_ALLOW_REGEX = getattr(configuration, "IFACE_ALIAS_NOT_ALLOW_REGE
 IFACE_ALIAS_KEEP_BEGINNING_REGEX = getattr(configuration, "IFACE_ALIAS_KEEP_BEGINNING_REGEX", "")
 
 # if true, interface IPv4 will show prefixlen. Default is subnet mask.
-IFACE_IP4_SHOW_PREFIXLEN = getattr(configuration, "IFACE_IP4_SHOW_PREFIXLEN", False)
+IFACE_IPV4_SHOW_PREFIXLEN = getattr(configuration, "IFACE_IPV4_SHOW_PREFIXLEN", False)
 
 MENU_ON_RIGHT = getattr(configuration, "MENU_ON_RIGHT", True)
 MENU_INFO_URLS = getattr(configuration, "MENU_INFO_URLS", False)

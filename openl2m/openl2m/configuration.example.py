@@ -318,7 +318,7 @@ HIDE_NONE_ETHERNET_INTERFACES = False
 # ]
 
 #
-# IP4_INFO_URLS is a list of dictionaries that will be links shown on found IP addresses.
+# IPV4_INFO_URLS is a list of dictionaries that will be links shown on found IP addresses.
 # The idea is that you may want to provide a link to your device registration site, as well as your logging (eg Splunk)
 #
 # You can use the following templates:
@@ -326,7 +326,7 @@ HIDE_NONE_ETHERNET_INTERFACES = False
 #
 
 # uncomment this as needed:
-# IP4_INFO_URLS = [
+# IPV4_INFO_URLS = [
 #     {
 #         'name': 'IPAM',
 #         'url': 'https://ipam.yoursite.com/something/search?ipv4={{ ip4 }}',
@@ -439,7 +439,7 @@ IPV6_SHOW_LINKLOCAL = False
 # IFACE_ALIAS_KEEP_BEGINNING_REGEX = "D.\d+"
 
 # if true, routed interface IPv4 addresses will show prefixlen. Default is subnet mask.
-IFACE_IP4_SHOW_PREFIXLEN = False
+IFACE_IPV4_SHOW_PREFIXLEN = False
 
 #
 # Custom Menu items, consisting of MENU_INFO_URLS and MENU_ON_RIGHT.
