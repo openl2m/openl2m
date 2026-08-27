@@ -7,6 +7,8 @@ Version 4.2
 **Version 4.2 highlights:**
 
 - v4.2 now supports Python 3.14. Ie. Ubuntu 26.04 is supported!
+- interface vlan and description change with a single submit.
+- output of commands run have one-click Download, or Copy-to-Clipboard.
 
 
 New Configuration Options
@@ -14,17 +16,36 @@ New Configuration Options
 
 .. code-block:: Python
 
-    # Globally enable or disable reading of hardware details of all devices.
-    # Disable to save read time, but this will not show stacked chassis info, etc.
-    # Note: in the admin interface you can also disabled this
-    # per Switch Group, or for individual devices (Switches)
-    READ_HARDWARE_DETAILS = True
+  # Globally enable or disable reading of hardware details of all devices.
+  # Disable to save read time, but this will not show stacked chassis info, etc.
+  # Note: in the admin interface you can also disabled this
+  # per Switch Group, or for individual devices (Switches)
+  READ_HARDWARE_DETAILS = True
 
-    # Warn about small browser sizes. We prefer a browser size of 1200 pixels. On < 568, we will warn, on the login and menu windows:
-    # BROWSER_SIZE_WARNING = "WARNING: OpenL2M does not render well on small browser sizes!<br />Please use a large browser window."
+  # Warn about small browser sizes. We prefer a browser size of 1200 pixels. On < 568, we will warn, on the login and menu windows:
+  # BROWSER_SIZE_WARNING = "WARNING: OpenL2M does not render well on small browser sizes!<br />Please use a large browser window."
 
-    # DNS read timeout in seconds, for both forward and reverse lookups.
-    DNS_TIMEOUT = 3
+  # DNS read timeout in seconds, for both forward and reverse lookups.
+  DNS_TIMEOUT = 3
+
+
+Changed Configuration Options
+-----------------------------
+
+  "configuration.py" variable name changes:
+
+  IP4_INFO_URLS changed to IPV4_INFO_URLS
+  IP6_INFO_URLS changed to IPV6_INFO_URLS
+  IFACE_IP4_SHOW_PREFIXLEN changed to IFACE_IPV4_SHOW_PREFIXLEN
+
+
+Version 4.2.8
+-------------
+
+Release Date: TBD
+
+* standardize internals to "ipv4_xxx" and "ipv6_xxx"
+
 
 
 Version 4.2.7
