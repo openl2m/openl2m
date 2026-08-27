@@ -32,7 +32,7 @@
               {{ addr.ip }}
             {% endif %}
             /
-            {% if settings.IFACE_IP4_SHOW_PREFIXLEN %}
+            {% if settings.IFACE_IPV4_SHOW_PREFIXLEN %}
               {{ addr.prefixlen }}
             {% else %}
               {{ addr.netmask }}

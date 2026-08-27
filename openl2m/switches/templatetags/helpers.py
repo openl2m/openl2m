@@ -258,9 +258,9 @@ def get_ipv4_info_links(ipv4_address):
     Get the info url(s) for the ipv4 address (string format) expanded from the settings file variable
     """
     links = ""
-    if settings.IP4_INFO_URLS:
+    if settings.IPV4_INFO_URLS:
         # do this for all URLs listed:
-        for info_url in settings.IP4_INFO_URLS:
+        for info_url in settings.IPV4_INFO_URLS:
             tpl = Template(build_url_string(info_url))
             context = Context(
                 {
@@ -277,9 +277,9 @@ def get_ipv6_info_links(ipv6_address):
     Get the info url(s) for the ipv6 address (string format) expanded from the settings file variable
     """
     links = ""
-    if settings.IP6_INFO_URLS:
+    if settings.IPV6_INFO_URLS:
         # do this for all URLs listed:
-        for info_url in settings.IP6_INFO_URLS:
+        for info_url in settings.IPV6_INFO_URLS:
             tpl = Template(build_url_string(info_url))
             context = Context(
                 {
@@ -641,7 +641,7 @@ def list_ip_addresses(iface: Interface) -> str:
     if iface.ipv4_addresses:
         for addr in iface.ipv4_addresses.values():
             s += f" {addr.ip}/"
-            if settings.IFACE_IP4_SHOW_PREFIXLEN:
+            if settings.IFACE_IPV4_SHOW_PREFIXLEN:
                 s += f"{addr.prefixlen}"
             else:
                 s += f"{addr.netmask}"
