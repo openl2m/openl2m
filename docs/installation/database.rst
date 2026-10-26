@@ -58,32 +58,34 @@ NOTE: DO NOT USE THE PASSWORD FROM THE EXAMPLE:
 
 .. code-block:: bash
 
+  # start the Postgres management tool:
   sudo -u postgres psql
-  psql (16.4 ...)
-  Type "help" for help.
-  postgres=# CREATE DATABASE openl2m;
-  CREATE DATABASE
-  postgres=# CREATE USER openl2m WITH PASSWORD 'xxxxxxxxxxxx';
-  CREATE ROLE
-  postgres=# GRANT ALL PRIVILEGES ON DATABASE openl2m TO openl2m;
-  GRANT
-  postgres=# \q
+  
+  # create the database:
+  CREATE DATABASE openl2m;
+  
+  # create the user. Change password as needed:
+  CREATE USER openl2m WITH PASSWORD 'xxxxxxxxxxxx';
+
+  # give rights to this user on the database:
+  GRANT ALL PRIVILEGES ON DATABASE openl2m TO openl2m;
+
+  # in PostgreSQL 15+, grant rights to the "public" schema:
+  \c openl2m
+  GRANT ALL ON SCHEMA public TO openl2m;
+
+  # Done!
+  \q
 
 
 *MacOS*
 
 .. code-block:: bash
 
+  # enter management
   psql postgres
-  psql (16.4 ...)
-  Type "help" for help.
-  postgres=# CREATE DATABASE openl2m;
-  CREATE DATABASE
-  postgres=# CREATE USER openl2m WITH PASSWORD 'xxxxxxxxxxxx';
-  CREATE ROLE
-  postgres=# GRANT ALL PRIVILEGES ON DATABASE openl2m TO openl2m;
-  GRANT
-  postgres=# \q
+
+  # now enter the commands from above!
 
 
 You can verify that authentication works issuing the following command and providing the configured password.
