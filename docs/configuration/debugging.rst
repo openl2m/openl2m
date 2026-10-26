@@ -7,8 +7,8 @@ Debugging
 Debugging is mostly to assist the developers with troubleshooting. This can
 come in handy when you have a new device that is not properly rendering.
 
-The source uses the *dprint(<string>)* function to print debugging output.
-If *settings.DEBUG* is enabled, this will output to the *openl2m.console* Python logger.
+The source uses the *dprint(<string>)* function (in *switches/utils.py*) to print debugging output.
+If *settings.DEBUG* is enabled, this will output logging to the configuration set in *settings.LOGGING*.
 
 To enable lots of debugging output, add the following to the
 configuration file in *openl2m/configuration.py*
@@ -23,9 +23,12 @@ This configuration below enables the following debugging, depending on *handler*
 * you can also log to remote syslog, Sentry.io, or anything else supported by the
   Python logging library. Further configuration is left as an exercise to the reader.
 
-Add this to configuration.py:
+Add this to your *openl2m/configuration.py*:
 
 .. code-block:: bash
+
+    # enable debugging
+    DEBUG = True
 
     # logging for debug:
     LOGGING = {
