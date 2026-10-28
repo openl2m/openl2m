@@ -3639,7 +3639,8 @@ class SnmpConnector(Connector):
 
         # parse enabled capabilities
         lldp_index = oid_in_branch(lldpRemSysCapEnabled, oid)
-        if lldp_index:
+        # we have seen empty string being returned, so only parse a valid return value (github ticket #113)
+        if lldp_index and val:
             _unused_one, port_id, _unused_two = lldp_index.split(".")
             # at this point, we should have already found the lldp neighbor and created an object
             # did we find Q-Bridge mappings?
