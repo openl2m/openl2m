@@ -3587,7 +3587,8 @@ class SnmpConnector(Connector):
             # need to find the ifIndex first.
             # did we find Q-Bridge mappings?
             if_index = self._get_if_index_from_port_id(int(port_id))
-            if if_index in self.interfaces:
+            # validate interface and lldp-neighbor:
+            if if_index in self.interfaces and lldp_index in self.interfaces[if_index].lldp:
                 sub_type = int(val)
                 # depending on type, we may need to blank neighbor.port_name!
                 # we 'think' we can handle these: LLDP_PORT_SUBTYPE_INTERFACE_ALIAS, LLDP_PORT_SUBTYPE_MAC_ADDRESS
@@ -3598,7 +3599,7 @@ class SnmpConnector(Connector):
                     LLDP_PORT_SUBTYPE_PORT_COMPONENT,
                     LLDP_PORT_SUBTYPE_LOCAL,
                 ):
-                    dprint(f"  Clearning LLDP.port_name - interface subtype: {sub_type}")
+                    dprint(f"  Clearing LLDP.port_name - interface subtype: {sub_type}")
                     self.interfaces[if_index].lldp[lldp_index].port_name = ""
             return True
 
