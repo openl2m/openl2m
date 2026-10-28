@@ -2524,7 +2524,15 @@ class SnmpConnector(Connector):
         # dot3 interface duplex status information:
         if_index = oid_in_branch(dot3StatsDuplexStatus, oid)
         if if_index:
-            return self.set_interface_attribute_by_key(if_index, "duplex", int(val))
+            # is the snmp return value a valid integer:
+            try:
+                duplex = int(val)
+                # set the duplex parameter on the interface
+                return self.set_interface_attribute_by_key(if_index, "duplex", duplex)
+
+            except ValueError:
+                # not valid! We parsed this, so return True:
+                return True
 
         # we did not parse the OID.
         return False
