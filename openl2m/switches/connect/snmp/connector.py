@@ -3245,11 +3245,19 @@ class SnmpConnector(Connector):
             # start after the ipAddressPrefixOrigin string
             val_ip_string = val[len(ipAddressPrefixOrigin) + 1 :]
             dprint(f"Addr type={addr_type}, returned substring={val_ip_string}")
+            if not val_ip_string:   # nothing after the ipAddressPrefixOrigin !
+                dprint(f"   INVALID RETURN VALUE, nothing after ipAddressPrefixOrigin({ipAddressPrefixOrigin})")
+                return True  # we did parse this!
 
             # split into <if-index>.<addr-type>.<addr-len>.<ip-address-dotted-decimal>.<prefix-len>
             ip_parts = val_ip_string.split(".", maxsplit=3)  # split into 4
+            if len(ip_parts) < 4:
+                dprint(f"   INVALID RETURN VALUE, not enough parts after ipAddressPrefixOrigin({ipAddressPrefixOrigin})")
+                return True  # we did parse this!
+
+            # parse the parts:
             if_index = ip_parts[0]  # leave as str() since interface keys are strings!
-            # we already know add_type and addr_length, so ignore ip_parts[1] annd [2]
+            # we already know add_type and addr_length from the OID returned, so ignore ip_parts[1] and [2]
 
             # now split second part to find the dotted-decimal IP and prefix len field!
             # split from end, aka rsplit(), to isolate prefix-length!
