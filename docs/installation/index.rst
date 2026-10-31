@@ -10,7 +10,7 @@ The following steps are for a full production install of OpenL2M. No containers 
 
 **Requirements**
 
-*We recommend you install OpenL2M on Ubuntu 26.04 or 24.04 LTS*
+*We recommend you install OpenL2M on Ubuntu 26.04 LTS*
 
 You can also look at testing in a Docker container, see here for more options: https://github.com/openl2m
 
@@ -31,7 +31,7 @@ OpenL2M has some requirements:
 * a PostgreSQL database, running at least version 15. We use v18 in our testing.
 
   Note:Ubuntu 26.04 comes with Python v3.14 and PostGreSQL v18. Ubuntu 24.04 comes with Python v3.12 and PostgreSQL v16.
-  **Ubuntu 22.04 and 20.04 are no longer supported!**
+  **Ubuntu 22.04 and older are no longer supported!**
 
 .. note::
 
@@ -51,7 +51,7 @@ At the end of this page is an image showing the application stack.
 
 **Installation**
 
-OpenL2M is developed and tested in a Ubuntu 24.04 LTS environment.
+OpenL2M is developed and tested in a Ubuntu 26.04 LTS environment.
 All instructions are related to that. However, this should work just fine on other
 distributions as long as the requirements are met.
 (*We no longer develop and test on CentOS/Rocky/AlmaLinux environments.*)

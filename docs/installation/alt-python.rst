@@ -4,10 +4,10 @@
 Using Alternate Python Versions
 ===============================
 
-OpenL2M is developed and tested on Ubuntu 24.04 with Python v3.12
-
 If you distribution does not by default install a supported version of Python,
-you can retrieve a different version from the "Deadsnakes" PPA.
+you can install one from a 3rd-party repository.
+
+On Ubuntu, you can retrieve a different version from the "Deadsnakes" PPA.
 Using this repository is well documented on many web pages.
 
 The details of installing an alternate version of Python for other distros and from other repos are left to the user.

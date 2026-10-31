@@ -5,7 +5,7 @@ Gunicorn Installation
 =====================
 
 OpenL2M is developed and tested running as an application under the gunicorn_ WSGI service. This basically runs the OpenL2m Python code as a service process
-with a WSGI interface. The Nginx web server talks in the backend to this WSGI interface to render client http requests.
+with a Web Server Gateway Interface (WSGI). The Nginx web server talks in the backend to this WSGI service to render client http(s) requests.
 Gunicorn is started as a service from systemd. (Note that Apache web server should work fine, but is left as an exercise to the reader.)
 
 .. _gunicorn: http://gunicorn.org/
@@ -17,7 +17,7 @@ You need to copy the Gunicorn configuration into the "root" openl2m installation
 
 .. code-block:: bash
 
-  cp /opt/openl2m/scripts/gunicorn_config.py /opt/openl2m/gunicorn_config.py
+  cp scripts/gunicorn_config.py ./gunicorn_config.py
 
 Modify this file as needed for your environment.
 Note the following:
@@ -39,7 +39,12 @@ Copy the file *openl2m.service* to the */etc/systemd/system* directory:
 
 .. code-block:: bash
 
-  sudo cp /opt/openl2m/scripts/openl2m.service /etc/systemd/system
+  sudo cp scripts/openl2m.service /etc/systemd/system
+
+.. note::
+
+  If you install in a directory other then */opt/openl2m*, you will need to modify the *openl2m.service* file before copying!
+
 
 Now activate this service:
 
@@ -69,3 +74,11 @@ And verify:
 
 
 If all is well, you are now ready to install the :doc:`webserver <nginx>`.
+
+**Troubleshooting**
+
+To troubleshoot, you can start by looking at the WSGI service startup logs. This will typically tell you what is going wrong.
+
+.. code-block:: bash
+
+  journalctl -u openl2m
