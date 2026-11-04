@@ -95,6 +95,7 @@ DEBUG_API = getattr(configuration, "DEBUG_API", False)
 DEVELOPER = getattr(configuration, "DEVELOPER", False)  # If True, django developer extension are loaded.
 LOGGING = getattr(configuration, "LOGGING", {})
 LOGIN_TIMEOUT = getattr(configuration, "LOGIN_TIMEOUT", 1800)
+PRE_LOGIN_MENU = getattr(configuration, "PRE_LOGIN_MENU", True)
 LOGOUT_ON_INACTIVITY = getattr(configuration, "LOGOUT_ON_INACTIVITY", True)
 MAINTENANCE_MODE = getattr(configuration, "MAINTENANCE_MODE", False)
 MAX_PAGE_SIZE = getattr(configuration, "MAX_PAGE_SIZE", 1000)

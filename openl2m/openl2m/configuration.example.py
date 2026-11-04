@@ -80,6 +80,9 @@ CORS_ORIGIN_REGEX_WHITELIST = [
 # re-authenticate. (Default: 1800 [30 minutes]) See also LOGOUT_ON_INACTIVITY
 LOGIN_TIMEOUT = 1800
 
+# Show info menu on login screen. This includes documentation and sources link, and version.
+PRE_LOGIN_MENU = True
+
 # if this is set, then the login timeout is treated as inactivity timeout.
 # if False, default Django behaviour is LOGIN_TIMEOUT is max time session will last.
 LOGOUT_ON_INACTIVITY = True

@@ -165,15 +165,15 @@
     </div>{# navbarContent (collapse) #}
 
 {% else %}
-   
   {# not logged in #}
+  {% if settings.PRE_LOGIN_MENU %}
     <!-- Toggler button, shown when the navbar collapses on small screens -->
     <button class="navbar-toggler" type="button"
             data-bs-toggle="collapse" data-bs-target="#navbarContent"
             aria-controls="navbarContent" aria-expanded="false"
             aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
-    </button>  
+    </button>
     <div class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item dropdown">
@@ -189,6 +189,7 @@
         </li>
       </ul>{# navbar-nav #}
     </div>{# navbarContent (collapse) #}
+    {% endif %}
 
 {% endif %}{# authenticated #}
   </div>{# container-fluid #}
