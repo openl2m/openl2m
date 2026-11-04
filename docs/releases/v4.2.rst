@@ -28,6 +28,9 @@ New Configuration Options
   # DNS read timeout in seconds, for both forward and reverse lookups.
   DNS_TIMEOUT = 3
 
+  # Show info menu on login screen. This includes documentation and sources link, and version.
+  PRE_LOGIN_MENU = True
+
 
 Changed Configuration Options
 -----------------------------
