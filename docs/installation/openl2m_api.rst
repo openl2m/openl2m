@@ -12,6 +12,7 @@ API access is enabled by default. If this setting is False, API access is disabl
 
 .. code-block:: python
 
+    # default:
     API_ENABLED = True
 
 **Limit IP access**

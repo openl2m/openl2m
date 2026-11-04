@@ -3,8 +3,8 @@
 ==================
 Caddy Installation
 ==================
-At this time, the Gunicorn Python gateway service should be running.
-Caddyserver ("Caddy") be used to proxy that WSGI service. Configuration is not well documented at this time.
+At this time, the Gunicorn Python gateway service (WSGI) should be running.
+Caddyserver ("Caddy") can be used to proxy that WSGI service. Configuration is not well documented at this time.
 
 The following will serve as a minimal Caddy configuration.
 Be sure to modify your caddyserver configuration appropriately.
@@ -45,6 +45,15 @@ Restart the Caddy service to use the new configuration:
 
   sudo systemctl restart caddy
   sudo systemctl enable caddy
+
+
+And verify:
+
+.. code-block:: bash
+
+  sudo systemctl status caddy
+
+  This should return several lines, indicating the service is running. 
 
 
 We highly recommend you enable SSL if auto-SSL is not working for your setup. Please refer to the Caddy documentation for details.

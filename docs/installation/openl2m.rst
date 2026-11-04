@@ -12,19 +12,19 @@ Dependencies
 
 Begin by installing all system packages required by OpenL2M and its dependencies.
 
-**Note: on Ubuntu 24.04 you can install the 'system' Python (v3.12) and PostgreSql (v16).
-On other distro's, install the required Python (v3.12-3.13)**
+**Note: on Ubuntu 24.04 - 26.04 you can install the 'system' Python (v3.12 - v3.14) and PostgreSQL (v16-v18).
+On other distro's, install a supported version of Python and PostgreSQL**
 
 .. code-block:: bash
 
-  # On Ubuntu 24.04:
+  # On Ubuntu:
   sudo apt install -y libxml2-dev libxslt1-dev libffi-dev libpq-dev libssl-dev zlib1g-dev
   sudo apt install -y libldap2-dev libsasl2-dev libssl-dev snmpd snmp libsnmp-dev git curl
   sudo apt install -y python3 python3-pip python3-venv python3-dev build-essential software-properties-common
 
 .. note::
 
-  Make sure this installs either Python v3.12 - v3.13! Other versions are NOT supported!
+  Make sure this installs a Python version supported by OpenL2M! Other versions will NOT work!
 
 :doc:`See the Alternate Python Installation section for more. <alt-python>`
 
@@ -44,6 +44,12 @@ On other distro's, install the required Python (v3.12-3.13)**
 
 OpenL2M Install
 ---------------
+
+.. note::
+
+  The installation instruction assume you are installing into the default directory */opt/openl2m*
+  If you are using a different install root, adjust all commands accordingly!
+
 
 First, create the user environment for OpenL2M:
 
@@ -71,8 +77,8 @@ First, create the user environment for OpenL2M:
   #add openl2m to the group
   sudo dscl . -append /Groups/openl2m GroupMembership openl2m
 
-Next, install OpenL2M. The easiest is cloning the main branch of its repository on GitHub.
 
+Next, install OpenL2M. The easiest is cloning the main branch of its repository on GitHub.
 
 **Clone the Git Repository**
 

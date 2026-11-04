@@ -59,6 +59,15 @@ Restart the nginx service to use the new configuration:
   sudo systemctl enable nginx
 
 
+And verify:
+
+.. code-block:: bash
+
+  sudo systemctl status nginx
+
+  This should return several lines, indicating the service is running. 
+
+
 We highly recommend you `enable SSL <nginx-ssl>`
 
 **Notes**
