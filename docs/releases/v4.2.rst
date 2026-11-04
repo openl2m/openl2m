@@ -32,11 +32,13 @@ New Configuration Options
 Changed Configuration Options
 -----------------------------
 
-  "configuration.py" variable name changes:
+**configuration.py** variable name changes to be more consistent with IPv4 and IPv6:
 
-  IP4_INFO_URLS changed to IPV4_INFO_URLS
-  IP6_INFO_URLS changed to IPV6_INFO_URLS
-  IFACE_IP4_SHOW_PREFIXLEN changed to IFACE_IPV4_SHOW_PREFIXLEN
+.. code-block:: text
+
+  IP4_INFO_URLS ==> IPV4_INFO_URLS
+  IP6_INFO_URLS ==> IPV6_INFO_URLS
+  IFACE_IP4_SHOW_PREFIXLEN ==> IFACE_IPV4_SHOW_PREFIXLEN
 
 
 Version 4.2.8
