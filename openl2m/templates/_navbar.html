@@ -163,6 +163,33 @@
         </li>
       </ul>{# navbar-nav #}
     </div>{# navbarContent (collapse) #}
+
+{% else %}
+   
+  {# not logged in #}
+    <!-- Toggler button, shown when the navbar collapses on small screens -->
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#navbarContent"
+            aria-controls="navbarContent" aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>  
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarInfoDropdown" role="button" data-bs-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">Info</a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarUserDropdown">
+            <li><a class="dropdown-item" href="{% static 'docs/html/what_is_new.html' %}" target="_blank"><i class="fa-solid fa-star" aria-hidden="true"></i> What&apos;s New!</a></li>
+            <li><a class="dropdown-item" href="{% static 'docs/html/using/index.html' %}" target="_blank"><i class="fa-solid fa-book" aria-hidden="true"></i> Documentation</a></li>
+            <li><a class="dropdown-item" href="https://github.com/openl2m/openl2m/" target="_blank"><i class="fa-solid fa-code" aria-hidden="true"></i> Code</a></li>
+            <li> <hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" ><i class="fa-solid fa-info" aria-hidden="true"></i> OpenL2M v{{ settings.VERSION }}</a></li>
+          </ul>
+        </li>
+      </ul>{# navbar-nav #}
+    </div>{# navbarContent (collapse) #}
+
 {% endif %}{# authenticated #}
   </div>{# container-fluid #}
 </nav>
