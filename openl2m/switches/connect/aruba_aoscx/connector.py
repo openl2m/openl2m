@@ -176,7 +176,7 @@ class AosCxConnector(RESTConnector):
         #     self.add_more_info('System', 'Domain Name', '')
 
         if "boot_time" in system:
-            boot_time = datetime.datetime.fromtimestamp(system["boot_time"])    # noqa: DTZ006 `datetime.datetime.fromtimestamp()` called without a `tz` argument
+            boot_time = datetime.datetime.fromtimestamp(system["boot_time"])
             self.add_more_info("System", "Boot Time", boot_time)
 
         # if 'system_contact' in system["other_config"] and system["other_config"]['system_contact']:
@@ -993,14 +993,45 @@ class AosCxConnector(RESTConnector):
             dprint("_open_device() failed!")
             return False
 
+        # NOTE: on Aruba AOS-CX switches, if interface is in tagged/trunked mode,
+        # the PVID vlan MUST ALSO be allowed as tagged/trunked !
+        # this is by (Aruba) design, see https://github.com/openl2m/openl2m/issues/116
+
         # 802.1q-tagged or untagged?
         if interface.is_tagged:
-            dprint("  tagged mode port!")
-            vlan_mode = "native-untagged"
-        else:
-            # untagged, ie set access mode vlan
-            dprint("  access mode port!")
-            vlan_mode = "access"
+            dprint("  tagged mode port - hand-off to set_interface_vlans() !")
+
+            # An HTTP PATCH does NOT delete tagged "trunk_vlans" that may already be set
+            # in both access or either of the tagged modes, so this could cause unwanted
+            # vlans permitted in the tagged trunk.
+            #
+            # A PUT deletes attributes that are not listed in the request data,
+            # i.e. can clear things like "description"
+            #
+            # all of this is handled in set_interface_vlans(), so call it!
+            trunk_allow = []
+
+            # explicitly allow the new vlan as tagged!
+            dprint(f"   trunk allow pvid {new_vlan_id}")
+            v = self.get_vlan_by_id(vlan_id=new_vlan_id)
+            trunk_allow.append(new_vlan_id)
+
+            # add existing trunked vlans:
+            for vlan_id in interface.vlans:
+                # We ignore the old PVID, it needs to be removed from the trunk!
+                if vlan_id != interface.untagged_vlan:
+                    dprint(f"   trunk allow vlan {vlan_id}")
+                    # vlan allowed. Get URI info to add to trunk config
+                    v = self.get_vlan_by_id(vlan_id=vlan_id)
+                    trunk_allow.append(vlan_id)
+                else:
+                    dprint(f"   NOT allowing old vlan {vlan_id} !")
+
+            return self.set_interface_vlans(interface=interface, untagged_vlan=new_vlan_id, tagged_vlans=trunk_allow)
+
+        # untagged, ie set access mode vlan
+        dprint("  access mode port!")
+        vlan_mode = "access"
 
         # set the payload for the patch request
         v = self.get_vlan_by_id(vlan_id=new_vlan_id)
@@ -1116,20 +1147,24 @@ class AosCxConnector(RESTConnector):
 
         else:
             dprint("  trunk mode")
+
+            # NOTE: on Aruba AOS-CX switches, if interface is in tagged/trunked mode,
+            # the PVID vlan MUST ALSO be allowed as tagged/trunked !
+            # this is by (Aruba) design, see https://github.com/openl2m/openl2m/issues/116
+
             data["vlan_mode"] = "native-untagged"
             data["vlan_tag"] = {
                 untagged_vlan: v.vlan_uri,
             }
-            # # loop through all vlans, and see if they are allowed
-            # trunked_vlans = {}
-            # for vlan in self.vlans.values():
-            #     if allow_all or vlan.id in tagged_vlans:
-            #         # allowed!
-            #         trunked_vlans[vlan.id] = vlan.vlan_uri
+
             if allow_all:
                 # this is the equivalent to CLI "vlan trunk allowed all"
-                data["vlan_trunks"] = {}
+                data["vlan_trunks"] = {}    # empty means "trunk allow all" !
             else:
+                trunked_vlans = {}
+                # explicitly allow the PVID/untagged_vlan, per AOS design this is required!
+                trunked_vlans[untagged_vlan] = v.vlan_uri
+
                 # allow only specified vlans
                 trunked_vlans = {}
                 for vlan in self.vlans.values():
