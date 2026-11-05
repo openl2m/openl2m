@@ -2144,7 +2144,7 @@ class Connector:
         Returns:
             the Vlan() object if found, else False
         """
-        dprint(f"get_vlan_by_id({id}={type(vlan_id)})")
+        dprint(f"get_vlan_by_id({vlan_id}={type(vlan_id)})")
         vlan_id = int(vlan_id)
         if vlan_id in self.vlans:
             return self.vlans[vlan_id]
