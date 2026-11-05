@@ -439,6 +439,11 @@ class SnmpConnectorArubaCx(SnmpConnector):
             dprint(f"  Invalid new vlan {new_vlan_id}, returning False")
             return False
         # set this switch port on the new vlan:
+
+        # NOTE: on Aruba AOS-CX switches, if interface is in tagged/trunked mode,
+        # the PVID vlan MUST ALSO be allowed as tagged/trunked !
+        # this is by (Aruba) design, see https://github.com/openl2m/openl2m/issues/116
+
         if interface.is_tagged:
             # if the vlan is allowed in the trunk, then we simply set the PVID.
             if new_vlan_id in interface.vlans:
