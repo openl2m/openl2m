@@ -39,9 +39,12 @@ napalm-dellos10
 napalm-procurve
 natsort>=8.4.0
 netaddr>=1.2.1
-netmiko>=4.7,<4.8
-#improved PostGreSQL support, now using psycopg 3:
-# psycopg2-binary
+# Netmiko 4.8 by default uses Paramiko 5.x, which disables legacy or deprecated key exhanges.
+# For backward compatibility with older switches running old ssh, we keep running with Paramiko 4
+# This is needed for e.g. old Aruba/HP Procurve switches, and likely others...
+# netmiko>=4.7,<4.8
+netmiko[par4]>=4.8,<4.9
+# improved PostGreSQL support, now using psycopg 3:
 psycopg>=3.1.12
 pycodestyle
 pylint
