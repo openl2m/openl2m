@@ -39,7 +39,10 @@ napalm-dellos10
 napalm-procurve
 natsort>=8.4.0
 netaddr>=1.2.1
-netmiko>=4.7,<4.8
+# Netmiko 4.8 by default uses Paramiko 5, which disables
+# for backward compatibility with older switches running old ssh, we keep running with Paramiko 4
+#netmiko>=4.7,<4.8
+netmiko[par4]>=4.8,<4.9
 #improved PostGreSQL support, now using psycopg 3:
 # psycopg2-binary
 psycopg>=3.1.12
