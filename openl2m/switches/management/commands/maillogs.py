@@ -137,8 +137,8 @@ class Command(BaseCommand):
             return
 
         # validate a few things...
-        if not settings.EMAIL_HOST:
-            self.stdout.write("Error: settings.EMAIL_HOST is NOT set!", self.style.ERROR)
+        if not settings.MAILERS:
+            self.stdout.write("Error: settings.MAILERS is NOT set!", self.style.ERROR)
             return
 
         if not options["to"]:
