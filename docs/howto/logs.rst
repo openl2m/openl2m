@@ -35,8 +35,7 @@ You can email selected OpenL2M logs to a user with the Django command '**maillog
 
 .. note::
 
-   This requires the EMAIL related settings to be properly configured in the *configuration.py* file!
-   Make sure you set **EMAIL_HOST**, **EMAIL_HOST_USER**, **EMAIL_HOST_PASSWORD** as needed for your mail (relay) server.
+   This requires the MAILERS related settings to be properly configured in the *configuration.py* file!
 
 The '*maillogs*' command gives you the ability to e.g. email detected errors on a daily basis to your ticket system;
 or save the logs before you delete them with the *removelogs* command above.
