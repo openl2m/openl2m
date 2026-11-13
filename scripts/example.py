@@ -34,13 +34,13 @@ sys.path.insert(0, PROJECT_DIR)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'openl2m.settings')
 django.setup()
 
-from django.conf import settings        # noqa: E401, E402, F401
+from django.conf import settings        # noqa: F401
 
 # load the User() object
-from django.contrib.auth.models import User # noqa: E402
+from django.contrib.auth.models import User
 
 # load various OpenL2M objects
-from switches.models import Switch, SwitchGroup, SnmpProfile, NetmikoProfile, CommandList   # noqa: E402
+from switches.models import Switch, SwitchGroup, SnmpProfile, NetmikoProfile, CommandList
 # if you needs constants, import from the various files. eg:
 # from switches.constants import <constants-as-needed>
 
@@ -133,7 +133,7 @@ def main():
                 if 'default_view' in row:
                     switch.default_view = row['default_view']
                 # figure out the SnmpProfile
-                if 'snmp_profile' in row and row['snmp_profile']:
+                if row.get('snmp_profile'):
                     try:
                         snmp = SnmpProfile.objects.get(name=row['snmp_profile'])
                         switch.snmp_profile = snmp
@@ -142,7 +142,7 @@ def main():
                         print("   Error details: %s" % sys.exc_info()[0])
                         print("   We cannot import a switch with an invalid SNMP Profile!")
                         continue
-                if 'netmiko_profile' in row and row['netmiko_profile']:
+                if row.get('netmiko_profile'):
                     try:
                         nm = NetmikoProfile.objects.get(name=row['netmiko_profile'])
                         switch.netmiko_profile = nm
@@ -151,7 +151,7 @@ def main():
                         print("   Error details: %s" % sys.exc_info()[0])
                         print("   We cannot import a switch with an invalid Netmiko Profile!")
                         continue
-                if 'command_list' in row and row['command_list']:
+                if row.get('command_list'):
                     try:
                         cl = CommandList.objects.get(name=row['command_list'])
                         switch.command_list = cl
@@ -167,7 +167,7 @@ def main():
                             print("   Error details: %s" % sys.exc_info()[0])
                             continue
                 g = False
-                if 'group' in row and row['group']:
+                if row.get('group'):
                     # see if the switch group exists, if not, create it
                     try:
                         g = SwitchGroup.objects.get(name=row['group'])
