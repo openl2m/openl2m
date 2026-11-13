@@ -244,7 +244,7 @@ def get_usage_info() -> dict:
         "type__in": [LOG_TYPE_VIEW, LOG_TYPE_CHANGE],
         "switch_id__isnull": False,
         # not sure how to fix the ruff warning yet...
-        "timestamp__date": datetime.date.today(),  # noqa: DTZ011 `datetime.date.today()` used
+        "timestamp__date": datetime.date.today(),
     }
     usage["devices_today"] = {
         "label": "Devices today",
@@ -282,7 +282,7 @@ def get_usage_info() -> dict:
     filter_values = {
         "type": int(LOG_TYPE_CHANGE),
         # not sure how to fix the ruff warning yet...
-        "timestamp__date": datetime.date.today(),  # noqa: DTZ011 `datetime.date.today()` used
+        "timestamp__date": datetime.date.today(),
     }
     usage["changes_today"] = {
         "label": "Changes today",
@@ -326,7 +326,7 @@ def get_usage_info() -> dict:
     filter_values = {
         "type": int(LOG_TYPE_LOGIN_OUT),
         # not sure how to fix the ruff warning yet...
-        "timestamp__date": datetime.date.today(),  # noqa: DTZ011 `datetime.date.today()` used
+        "timestamp__date": datetime.date.today(),
     }
     usage["users_today"] = {
         "label": "Users today",
@@ -356,7 +356,7 @@ def get_usage_info() -> dict:
         "type": int(LOG_TYPE_LOGIN_OUT),
         "action": int(LOG_LOGIN_REST_API),
         # not sure how to fix the ruff warning yet...
-        "timestamp__date": datetime.date.today(),  # noqa: DTZ011 `datetime.date.today()` used
+        "timestamp__date": datetime.date.today(),
     }
     usage["api_calls_today"] = {
         "label": "API calls today",
@@ -387,7 +387,7 @@ def get_usage_info() -> dict:
     # not sure how to fix the ruff warning yet...
     filter_values = {
         "type": int(LOG_TYPE_COMMAND),
-        "timestamp__date": datetime.date.today(),   # noqa: DTZ011 `datetime.date.today()` used
+        "timestamp__date": datetime.date.today(),
     }
     usage["commands_today"] = {
         "label": "Commands today",
