@@ -563,23 +563,30 @@ SNMP_MAX_REPETITIONS = 25
 # Email settings, used to send results of commands and other emails.
 # the default uses the local plain old smtp server on port 25
 # see the installation docs or Django docs for other options.
-EMAIL_HOST = 'localhost'
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
-EMAIL_PORT = 25
-EMAIL_TIMEOUT = 10  # in seconds
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = False
-EMAIL_SSL_CERTFILE = None
-EMAIL_SSL_KEYFILE = None
+MAILERS = {
+    "default": {
+        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+        "OPTIONS": {
+            "host": "localhost",
+            "username": "",
+            "password": "",
+            "port": 25,
+            "timeout": 10,    # in seconds
+            "use_tls": False,
+            "use_ssl": False,
+            "ssl_certfile": None,
+            "ssl_keyfile": None,
+        },
+    },
+}
 
+# Custom OpenL2M email settings:
 # to receive bounced emails, make sure this is a valid return address!
 EMAIL_FROM_ADDRESS = '<openl2m@localhost>'
 # the subject Prefix for admin emails:
 EMAIL_SUBJECT_PREFIX = '[OpenL2M-Admin] '
 # the subject Prefix for regular user emails:
 EMAIL_SUBJECT_PREFIX_USER = '[OpenL2M] '
-
 
 # Vendor specific setings
 
