@@ -428,16 +428,10 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, "project-static"),)
 
 #
 # Email settings for command-line reports, etc.
-#
-EMAIL_HOST = getattr(configuration, "EMAIL_HOST", "localhost")
-EMAIL_HOST_USER = getattr(configuration, "EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = getattr(configuration, "EMAIL_HOST_PASSWORD", "")
-EMAIL_PORT = getattr(configuration, "EMAIL_PORT", 25)
-EMAIL_USE_TLS = getattr(configuration, "EMAIL_USE_TLS", False)
-EMAIL_USE_SSL = getattr(configuration, "EMAIL_USE_SSL", False)
-EMAIL_SSL_CERTFILE = getattr(configuration, "EMAIL_SSL_CERTFILE", None)
-EMAIL_SSL_KEYFILE = getattr(configuration, "EMAIL_SSL_KEYFILE", None)
-EMAIL_TIMEOUT = getattr(configuration, "EMAIL_TIMEOUT", 10)
+# the new Django MAILERS format, instead of older EMAIL_xxx entries:
+MAILERS = getattr(configuration, "MAILERS", None)
+
+# OpenL2M specific mail related entries:
 EMAIL_SUBJECT_PREFIX = getattr(configuration, "EMAIL_SUBJECT_PREFIX", "[OpenL2M-Admin] ")
 EMAIL_SUBJECT_PREFIX_USER = getattr(configuration, "EMAIL_SUBJECT_PREFIX_USER", "[OpenL2M] ")
 EMAIL_FROM_ADDRESS = getattr(configuration, "EMAIL_FROM_ADDRESS", "<openl2m@localhost>")
