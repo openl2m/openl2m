@@ -19,7 +19,7 @@ copyright = '2019-2026, Various'
 author = 'Various'
 
 # The main version and full release, including alpha/beta/rc tags
-version = '4.2.8-BETA'
+version = '4.3-BETA'
 date = 'TBD'
 release = f'{version} ({date})'
 
