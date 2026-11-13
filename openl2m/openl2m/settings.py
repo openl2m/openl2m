@@ -49,7 +49,7 @@ except ImportError:
     )
 
 # if you change this version, also change it in docs/conf.py and docs/releases/<version> !!!
-VERSION = "4.2.8-BETA"
+VERSION = "4.3-BETA"
 VERSION_DATE = "TBD"
 
 # Hostname

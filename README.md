@@ -60,6 +60,8 @@ __What's New:__
 
 Highlights:
 
+v4.3 adds support for Django 6.1
+
 v4.2 adds support for Python 3.14 (and thus Ubuntu 26.04!). We now support Python v3.12 - v3.14
 
 v4.1 supports more devices for editing 802.1Q tagged/trunk interfaces. We also upgrade to Django 6.0 and FontAwesome 7.2
