@@ -2102,7 +2102,8 @@ class SwitchAdminSettings(LoginRequiredMixin, MyView):
             'AUTH_PASSWORD_VALIDATORS',
             'DATABASE',
             'DATABASES',
-            'EMAIL_HOST',
+            'MAILERS',      # the new format
+            'EMAIL_HOST',   # deprecated entries...
             'EMAIL_HOST_PASSWORD',
             'EMAIL_HOST_USER',
             'EMAIL_SSL_CERTFILE',
