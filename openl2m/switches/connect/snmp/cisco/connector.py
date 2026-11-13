@@ -978,7 +978,7 @@ class SnmpConnectorCisco(SnmpConnector):
                 # approximate / calculate the datetime value:
                 # msg timestamp = time when sysUpTime was read minus seconds between sysUptime and msg timetick
                 dprint(f"TIMES ARE: {self.sys_uptime_timestamp}  {self.sys_uptime}  {timetick}")
-                self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(     # noqa: DTZ006 `datetime.datetime.fromtimestamp()` called without a `tz` argument
+                self.syslog_msgs[index].datetime = datetime.datetime.fromtimestamp(
                     self.sys_uptime_timestamp - int((self.sys_uptime - timetick) / 100)
                 )
                 # not sure how to deal with the above! What TZ to use ?
@@ -987,7 +987,7 @@ class SnmpConnectorCisco(SnmpConnector):
                 msg = SyslogMsg(index)
                 # approximate / calculate the datetime value:
                 # msg time = time when sysUpTime was read minus seconds between sysUptime and msg timetick
-                msg.datetime = datetime.datetime.fromtimestamp(     # noqa: DTZ006 `datetime.datetime.fromtimestamp()` called without a `tz` argument
+                msg.datetime = datetime.datetime.fromtimestamp(
                     self.sys_uptime_timestamp - int((self.sys_uptime - timetick) / 100)
                 )
                 # not sure how to deal with the above! What TZ to use ?
