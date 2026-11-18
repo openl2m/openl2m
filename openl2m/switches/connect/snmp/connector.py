@@ -2121,7 +2121,8 @@ class SnmpConnector(Connector):
                 self.set_interface_attribute_by_key(
                     if_index, "unmanage_reason", f"Untagged vlan {untagged_vlan} is NOT defined on switch"
                 )
-                warning = f"Undefined vlan {untagged_vlan} on {self.interfaces[if_index].name}"
+                warning = f"Undefined untagged vlan {untagged_vlan} on {self.interfaces[if_index].name}"
+                dprint(f"WARNING: {warning}")
                 self.add_warning(warning)
                 # log this as well
                 log = Log(
@@ -2668,7 +2669,8 @@ class SnmpConnector(Connector):
                 self.set_interface_attribute_by_key(
                     if_index, "unmanage_reason", f"Untagged vlan {untagged_vlan} is NOT defined on switch"
                 )
-                warning = f"Undefined vlan {untagged_vlan} on {self.interfaces[if_index].name}"
+                warning = f"Undefined untagged vlan {untagged_vlan} on {self.interfaces[if_index].name}"
+                dprint(f"WARNING: {warning}")
                 self.add_warning(warning)
                 # log this as well
                 log = Log(
