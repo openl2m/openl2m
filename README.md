@@ -60,7 +60,8 @@ __What's New:__
 
 Highlights:
 
-v4.3 adds support for Django 6.1
+v4.3 adds support for Django 6.1 and Python 3.15. We now support Python 3.12 - 3.15.
+It also includes several driver bug fixes.
 
 v4.2 adds support for Python 3.14 (and thus Ubuntu 26.04!). We now support Python v3.12 - v3.14
 
