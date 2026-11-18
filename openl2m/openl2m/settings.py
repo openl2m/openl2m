@@ -145,6 +145,8 @@ else:
     # default:
     MAC_DIALECT = netaddr.mac_unix_expanded  # 00:11:22:33:44:55
 
+ETH_VENDOR_HOVER = getattr(configuration, "ETH_VENDOR_HOVER", False)
+
 IPV6_USE_UPPER = getattr(configuration, "IPV6_USE_UPPER", False)
 IPV6_SHOW_LINKLOCAL = getattr(configuration, "IPV6_SHOW_LINKLOCAL", False)
 

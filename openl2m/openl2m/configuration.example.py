@@ -395,6 +395,10 @@ HIDE_NONE_ETHERNET_INTERFACES = False
 # CISCO = 2  e.g.  0011.2233.4455
 ETH_FORMAT = 0
 
+# if True, the Eth/ARP screen will move Ethernet vendor information (aka OUI data)
+# to a hover-over format. This shrinks the screen size.
+ETH_VENDOR_HOVER = False
+
 # if set to True, IPv6 addresses will be shown with UPPER case letters.
 # default is lower case.
 IPV6_USE_UPPER = False
