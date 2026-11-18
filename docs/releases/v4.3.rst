@@ -13,15 +13,6 @@ Version 4.3
 - fix in AOS-CX api driver setting PVID on trunk ports.
 
 
-New Configuration Options
--------------------------
-
-.. code-block:: Python
-
-  # Show info menu on login screen. This includes documentation and sources link, and version.
-  PRE_LOGIN_MENU = True
-
-
 Changed Configuration Options
 -----------------------------
 
@@ -86,6 +77,19 @@ Field names are now lower case, and stored inside the OPTIONS entry!
 
 See more details in *openl2m/configuration.example.py* and at https://docs.djangoproject.com/en/6.1/howto/mailers-migration/
 
+
+New Configuration Options
+-------------------------
+
+.. code-block:: Python
+
+  # Show info menu on login screen. This includes documentation and sources link, and version.
+  PRE_LOGIN_MENU = True
+
+
+  # if True, the Eth/ARP screen will move Ethernet vendor information (aka OUI data)
+  # to a hover-over format. This shrinks the screen size.
+  ETH_VENDOR_HOVER = False
 
 
 Version 4.3
