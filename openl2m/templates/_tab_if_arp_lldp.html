@@ -112,7 +112,13 @@
                 <tr><td>
                 {% endif %}
                   {{ eth|get_ethernet_info_links }}
+                  {% if settings.ETH_VENDOR_HOVER %}
+                    <abbr data-bs-toggle="tooltip" title="{{ eth.vendor }}">
+                  {% endif %}
                   {{ eth }}
+                  {% if settings.ETH_VENDOR_HOVER %}
+                    </abbr>
+                  {% endif %}
                   {% if eth.vlan_id > 0 %}
                     (Vlan {{ eth.vlan_id }})
                   {% endif %}
@@ -128,11 +134,13 @@
                       </abbr>
                     {% endif %}
                   {% endif %}
-                  {% if eth.vendor %}&nbsp;<small>({{ eth.vendor }})</small>{% endif %}
+                  {% if not settings.ETH_VENDOR_HOVER %}
+                    {% if eth.vendor %}&nbsp;<small>({{ eth.vendor }})</small>{% endif %}
+                  {% endif %}
                   {% if eth.ipv6_address %}
                     <br />
                     {% if eth.hostname6 %}
-                       <abbr data-bs-toggle="tooltip" title="{{ eth.hostname6 }}" class="text-decoration-underline">
+                       <abbr data-bs-toggle="tooltip" data-bs-title="{{ eth.hostname6 }}" class="text-decoration-underline">
                     {% endif %}
                     {% for ipv6 in eth.ipv6_address %}
                       {% if forloop.counter > 1%}&nbsp;&nbsp;{% endif %}
