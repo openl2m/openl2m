@@ -8,7 +8,7 @@ how the OpenL2M project works "under the hood".
 
 **Python 3**
 
-Django 6 requires v3.12 or above. We currently require Python v3.12 - v3.14
+Django 6 requires v3.12 or above. We currently require Python v3.12 - v3.15
 
 As of OpenL2M v4.2, all the code is written and tested in Python v3.14.
 

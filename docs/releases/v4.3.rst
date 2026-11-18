@@ -10,10 +10,7 @@ Version 4.3
 - add option for pre-login menu items.
 - changes mail server configuration to MAILERS (per Django 6.1+).
 - several SNMP parsing error fixes.
-<<<<<<< HEAD
 - fix in AOS-CX api driver setting PVID on trunk ports.
-=======
->>>>>>> 98673a454ac8e0520f402461912f6d3a56df0a06
 
 
 New Configuration Options
@@ -41,7 +38,8 @@ Change the following *configuration.py* entries now:
 .. warning::
 
   **Change EMAIL_x configuration now!**
-  Django will shortly require email settings to be changed. Please read the following
+
+  **OpenL2M requires email settings to be changed !** Please read the following
   and modify your *configuration.py* now to make sure email functionality will continue
   to function.
 

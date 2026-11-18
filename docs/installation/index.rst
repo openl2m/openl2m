@@ -22,7 +22,7 @@ You can also look at testing in a Docker container, see here for more options: h
 
 OpenL2M has some requirements:
 
-* Python 3.12 - 3.14 (OpenL2M is developed and tested on v3.14.)
+* Python 3.12 - 3.15 (OpenL2M is developed and tested on v3.14.)
 * net-snmp v5.7 or greater, including net-snmp-devel
 * the Python "ezsnmp" package v2.3.0
 * a web server, with the WSGI capability. We use Nginx in all our documentation.
