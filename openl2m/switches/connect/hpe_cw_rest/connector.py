@@ -869,21 +869,42 @@ class HPECwRestConnector(RESTConnector):
         ipv6nd = self._get(path="ND/NDTable")
         if ipv6nd:
             for nd in ipv6nd["NDTable"]:
-                # dprint(f"\nND = {pprint.pformat(nd)}")
-                # some devices return an "IfName", but not all!
-                # Note: this also has "VrfIndex", not used at present.
-                if "IfName" in nd:
-                    self.add_learned_ethernet_address(
-                        if_name=nd["IfName"],
+                dprint(f"\nND = {pprint.pformat(nd)}")
+
+                # some entries have vlan id:
+                vlan_id = -1
+                if "VLANID" in nd:
+                    vlan_id = int(nd["VLANID"])
+                    vlan = self.get_vlan_by_id(vlan_id)
+
+                    # some entries return a "VrfIndex", we can then map a VLAN to a VRF.
+                    vrf_name = ""
+                    if "VrfIndex" in nd:
+                        dprint("  Looking for VRF!")
+                        vrf = self.get_vrf_by_index(index=int(nd["VrfIndex"]))
+                        if vrf and vlan and not vlan.vrf_name:
+                            dprint("  Adding VRF name {vrf.name} to vlan {vlan.id}")
+                            vlan.vrf_name = vrf.name
+
+                # IfIndex is the field that maps to the interface
+                if_index = nd["IfIndex"]
+                # except if "PortIndex" exists, then this field points to the physical port
+                # where this ND was heard
+                if "PortIndex" in nd and nd["PortIndex"] in self.port_index_to_if_index:
+                    dprint(f"  Using PortIndex as interface key: {nd['PortIndex']}")
+                    if_index = self.port_index_to_if_index[nd["PortIndex"]]
+
+                # Note: interfaces are saved by the "IfIndex" key.
+                # this also has "VrfIndex", not used at present.
+                if "IfIndex" in nd:
+                    eth = self.add_learned_ethernet_address(
+                        if_name=if_index,
                         eth_address=nd["MacAddress"],
-                        # vlan_id=vlan_id,
+                        vlan_id=vlan_id,
                         ipv6_address=nd["Ipv6Address"],
                     )
                 else:
-                    # find the Interface() from the "IfIndex" field, ie. the Interface().key
-                    iface = self.get_interface_by_key(key=nd["IfIndex"])
-                    if iface:
-                        iface.add_learned_ethernet_address(eth_address=nd["MacAddress"], ipv6_address=nd["Ipv6Address"])
+                    dprint(f"ERROR: ND data has no IfIndex: {nd}")
 
         #
         # LLDP neighbors
