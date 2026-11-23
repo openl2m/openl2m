@@ -147,7 +147,7 @@
                       {{ ipv6|get_ipv6_info_links }} {{ ipv6 }}
                     {% endfor %}
                     {% if settings.IPV6_SHOW_LINKLOCAL and eth.ipv6_address_linklocal %}
-                      {{ eth.ipv6_address_linklocal}}
+                      &nbsp;&nbsp;{{ eth.ipv6_address_linklocal}}
                     {% endif %}
                     {% if eth.hostname6 %}
                         </abbr>
