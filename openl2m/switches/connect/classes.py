@@ -459,9 +459,9 @@ class EthernetAddress:
         # need to add logic to recognize IPv6 link-local "FE80::/10" subnets.
         # we do no check validity of the address at this time.
         if settings.IPV6_USE_UPPER:
-            ipv6 = ipv6_address.upper()
+            ipv6_address = ipv6_address.upper()
         else:
-            ipv6 = ipv6_address.lower()
+            ipv6_address = ipv6_address.lower()
         try:
             # validate format
             ipv6 = IPNetworkHostname(network=f"{ipv6_address}/64")
