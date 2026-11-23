@@ -108,4 +108,6 @@ Bug fixes:
 * fix PVID change not working on AOS-CX devices tagged interface using AOS-CX api driver.
 * fix SNMP parsing of invalid return data on ipAddressPrefix, dot3StatsDuplexStatus,
   lldpRemSysCapEnabled and lldpRemPortIdSubType.
-
+* fix IPv6 ND parsing in the HPE Comware REST API driver.
+* fix show IPv6 in lower case if configured.
+* fix spacing if showing IPv6 link-local address.
